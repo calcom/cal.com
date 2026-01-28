@@ -1,6 +1,6 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
 import {
@@ -1219,26 +1219,11 @@ export class BookingRepository implements IBookingRepository {
     };
 
     const userIds = users.map((user) => user.id);
-    const userEmails = users.map((user) => user.email);
 
     const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
       ...baseWhere,
       userId: {
         in: userIds,
-      },
-      eventType: {
-        teamId,
-      },
-    };
-
-    const whereCollectiveRoundRobinBookingsAttendee: Prisma.BookingWhereInput = {
-      ...baseWhere,
-      attendees: {
-        some: {
-          email: {
-            in: userEmails,
-          },
-        },
       },
       eventType: {
         teamId,
@@ -1262,9 +1247,25 @@ export class BookingRepository implements IBookingRepository {
         where: whereCollectiveRoundRobinOwner,
       });
 
-      const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.count({
-        where: whereCollectiveRoundRobinBookingsAttendee,
-      });
+      // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
+      // This replaces the previous pattern of passing all user emails to an IN clause
+      const collectiveRoundRobinBookingsAttendee = await this.prismaClient.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(DISTINCT b.id) as count
+        FROM "Booking" b
+        INNER JOIN "EventType" et ON b."eventTypeId" = et.id
+        WHERE b.status = 'ACCEPTED'
+          AND b."startTime" >= ${startDate}
+          AND b."endTime" <= ${endDate}
+          ${excludedUid ? Prisma.sql`AND b.uid != ${excludedUid}` : Prisma.empty}
+          AND et."teamId" = ${teamId}
+          AND EXISTS (
+            SELECT 1 FROM "Attendee" a
+            INNER JOIN "users" u ON a.email = u.email
+            INNER JOIN "Membership" m ON u.id = m."userId"
+            WHERE a."bookingId" = b.id
+              AND m."teamId" = ${teamId}
+          )
+      `;
 
       let managedBookings = 0;
 
@@ -1275,7 +1276,9 @@ export class BookingRepository implements IBookingRepository {
       }
 
       const totalNrOfBooking =
-        collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee + managedBookings;
+        collectiveRoundRobinBookingsOwner +
+        Number(collectiveRoundRobinBookingsAttendee[0]?.count ?? 0) +
+        managedBookings;
 
       return totalNrOfBooking;
     }
@@ -1284,11 +1287,27 @@ export class BookingRepository implements IBookingRepository {
       where: whereCollectiveRoundRobinOwner,
     });
 
-    const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.findMany({
-      where: whereCollectiveRoundRobinBookingsAttendee,
-    });
+    // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
+    // This replaces the previous pattern of passing all user emails to an IN clause
+    const collectiveRoundRobinBookingsAttendee = await this.prismaClient.$queryRaw<Booking[]>`
+      SELECT b.*
+      FROM "Booking" b
+      INNER JOIN "EventType" et ON b."eventTypeId" = et.id
+      WHERE b.status = 'ACCEPTED'
+        AND b."startTime" >= ${startDate}
+        AND b."endTime" <= ${endDate}
+        ${excludedUid ? Prisma.sql`AND b.uid != ${excludedUid}` : Prisma.empty}
+        AND et."teamId" = ${teamId}
+        AND EXISTS (
+          SELECT 1 FROM "Attendee" a
+          INNER JOIN "users" u ON a.email = u.email
+          INNER JOIN "Membership" m ON u.id = m."userId"
+          WHERE a."bookingId" = b.id
+            AND m."teamId" = ${teamId}
+        )
+    `;
 
-    let managedBookings: typeof collectiveRoundRobinBookingsAttendee = [];
+    let managedBookings: typeof collectiveRoundRobinBookingsOwner = [];
 
     if (includeManagedEvents) {
       managedBookings = await this.prismaClient.booking.findMany({
