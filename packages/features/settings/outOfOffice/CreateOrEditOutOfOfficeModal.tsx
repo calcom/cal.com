@@ -206,11 +206,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }}>
         <form
           id="create-or-edit-ooo-form"
-          onSubmit={handleSubmit((data) => {
+          onSubmit={handleSubmit(async (data) => {
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
-              createOrEditOutOfOfficeEntry.mutate({
+              await createOrEditOutOfOfficeEntry.mutateAsync({
                 ...data,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
