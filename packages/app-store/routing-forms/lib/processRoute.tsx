@@ -73,7 +73,7 @@ export function findMatchingRoute({
     if ("name" in chosenRoute && chosenRoute.name) {
       routeName = chosenRoute.name;
     } else if (isFallbackRoute(chosenRoute)) {
-      routeName = "Default Route";
+      routeName = "default_route";
     } else {
       routeName = chosenRoute.id;
     }

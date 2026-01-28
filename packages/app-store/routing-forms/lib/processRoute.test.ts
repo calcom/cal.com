@@ -128,7 +128,7 @@ describe("findMatchingRoute", () => {
       expect(mockRoutingFormTrace.routeMatched).not.toHaveBeenCalled();
     });
 
-    it("should use 'Default Route' as name when fallback route has no name", () => {
+    it("should use 'default_route' as name when fallback route has no name", () => {
       vi.mocked(evaluateRaqbLogic)
         .mockReturnValueOnce(RaqbLogicResult.NO_MATCH)
         .mockReturnValueOnce(RaqbLogicResult.MATCH);
@@ -147,7 +147,7 @@ describe("findMatchingRoute", () => {
       expect(result).not.toBeNull();
       expect(mockRoutingFormTrace.fallbackRouteUsed).toHaveBeenCalledWith({
         routeId: "fallback",
-        routeName: "Default Route",
+        routeName: "default_route",
       });
     });
 
