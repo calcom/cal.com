@@ -6,7 +6,7 @@ const DOMAIN = "salesforce";
  * Static class providing trace methods for Salesforce CRM routing operations.
  * Each method accepts an optional CrmRoutingTraceServiceInterface and only records if present.
  */
-export class SalesforceRoutingTrace {
+export class SalesforceRoutingTraceService {
   // ===== Account Resolution (SOQL path) =====
 
   /**

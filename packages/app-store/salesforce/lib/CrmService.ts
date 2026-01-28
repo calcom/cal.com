@@ -18,7 +18,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent, CrmRoutingTraceServiceInterface } from "@calcom/types/CrmService";
 
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import { SalesforceRoutingTrace } from "./tracing";
+import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
@@ -553,7 +553,7 @@ class SalesforceCRMService implements CRM {
       const includeOwnerData = (includeOwner || forRoundRobinSkip) && !isFreeEmailDomain;
 
       if (isFreeEmailDomain && (includeOwner || forRoundRobinSkip)) {
-        SalesforceRoutingTrace.ownerLookupSkipped(crmTrace, {
+        SalesforceRoutingTraceService.ownerLookupSkipped(crmTrace, {
           reason: "Free email domain",
           email: emailArray[0],
         });
@@ -572,13 +572,13 @@ class SalesforceCRMService implements CRM {
         if (includeOwnerData && record?.Id && record?.OwnerId) {
           const recordType = record?.attributes?.type;
           if (recordType === SalesforceRecordEnum.CONTACT) {
-            SalesforceRoutingTrace.contactOwnerLookup(crmTrace, {
+            SalesforceRoutingTraceService.contactOwnerLookup(crmTrace, {
               contactId: record.Id,
               ownerEmail: ownerEmail ?? null,
               ownerId: record.OwnerId ?? null,
             });
           } else if (recordType === SalesforceRecordEnum.LEAD) {
-            SalesforceRoutingTrace.leadOwnerLookup(crmTrace, {
+            SalesforceRoutingTraceService.leadOwnerLookup(crmTrace, {
               leadId: record.Id,
               ownerEmail: ownerEmail ?? null,
               ownerId: record.OwnerId ?? null,
@@ -587,7 +587,7 @@ class SalesforceCRMService implements CRM {
             recordType === SalesforceRecordEnum.ACCOUNT ||
             (includeAccountRecordType && record?.AccountId)
           ) {
-            SalesforceRoutingTrace.accountOwnerLookup(crmTrace, {
+            SalesforceRoutingTraceService.accountOwnerLookup(crmTrace, {
               accountId: record.AccountId || record.Id,
               ownerEmail: ownerEmail ?? null,
               ownerId: record.OwnerId ?? null,
@@ -1052,7 +1052,7 @@ class SalesforceCRMService implements CRM {
     const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
 
-    SalesforceRoutingTrace.searchingByWebsiteValue(crmTrace, {
+    SalesforceRoutingTraceService.searchingByWebsiteValue(crmTrace, {
       emailDomain,
     });
 
@@ -1068,7 +1068,7 @@ class SalesforceCRMService implements CRM {
         "Found account based on email domain",
         safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
       );
-      SalesforceRoutingTrace.accountFoundByWebsite(crmTrace, {
+      SalesforceRoutingTraceService.accountFoundByWebsite(crmTrace, {
         accountId: account.Id,
         website: account.Website,
       });
@@ -1080,7 +1080,7 @@ class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
-    SalesforceRoutingTrace.searchingByContactEmailDomain(crmTrace, {
+    SalesforceRoutingTraceService.searchingByContactEmailDomain(crmTrace, {
       emailDomain,
       contactCount: response.records.length,
     });
@@ -1092,13 +1092,13 @@ class SalesforceCRMService implements CRM {
       const contactsUnderAccount = (response.records as { AccountId: string }[]).filter(
         (r) => r.AccountId === accountId
       );
-      SalesforceRoutingTrace.accountSelectedByMostContacts(crmTrace, {
+      SalesforceRoutingTraceService.accountSelectedByMostContacts(crmTrace, {
         accountId,
         contactCount: contactsUnderAccount.length,
       });
     } else {
       log.info("No account found");
-      SalesforceRoutingTrace.noAccountFound(crmTrace, {
+      SalesforceRoutingTraceService.noAccountFound(crmTrace, {
         email,
         reason: "No account found by website or contact domain",
       });
@@ -1644,7 +1644,7 @@ class SalesforceCRMService implements CRM {
     if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail, crmTrace);
 
-      SalesforceRoutingTrace.lookupFieldQuery(crmTrace, {
+      SalesforceRoutingTraceService.lookupFieldQuery(crmTrace, {
         fieldName,
         salesforceObject,
         accountId: accountId ?? null,
@@ -1672,7 +1672,7 @@ class SalesforceCRMService implements CRM {
 
       const user = userQuery.records[0] as { Email: string };
 
-      SalesforceRoutingTrace.userQueryFromLookupField(crmTrace, {
+      SalesforceRoutingTraceService.userQueryFromLookupField(crmTrace, {
         lookupFieldUserId,
         userEmail: user.Email,
       });

@@ -6,7 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Contact, CrmRoutingTraceServiceInterface } from "@calcom/types/CrmService";
 
 import { SalesforceRecordEnum } from "../enums";
-import { SalesforceRoutingTrace } from "../tracing";
+import { SalesforceRoutingTraceService } from "../tracing";
 import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "../utils/getDominantAccountId";
 import { GetAccountRecordsForRRSkip } from "./documents/queries";
@@ -65,7 +65,7 @@ export class SalesforceGraphQLClient {
     const websites = this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
 
     // Trace query initiation
-    SalesforceRoutingTrace.graphqlQueryInitiated(crmTrace, {
+    SalesforceRoutingTraceService.graphqlQueryInitiated(crmTrace, {
       email,
       emailDomain,
     });
@@ -101,7 +101,7 @@ export class SalesforceGraphQLClient {
 
       if (contact) {
         log.info(`Existing contact found with id ${contact.Id}`);
-        SalesforceRoutingTrace.graphqlExistingContactFound(crmTrace, {
+        SalesforceRoutingTraceService.graphqlExistingContactFound(crmTrace, {
           contactId: contact.Id,
           accountId: contact.AccountId?.value || contact.Id,
           ownerEmail: contact.Account?.Owner?.Email?.value || "",
@@ -125,7 +125,7 @@ export class SalesforceGraphQLClient {
         log.info(
           `Existing account with website that matches email domain of ${emailDomain} found with id ${account.Id}`
         );
-        SalesforceRoutingTrace.graphqlAccountFoundByWebsite(crmTrace, {
+        SalesforceRoutingTraceService.graphqlAccountFoundByWebsite(crmTrace, {
           accountId: account.Id,
           ownerEmail: account.Owner?.Email?.value || "",
         });
@@ -178,7 +178,7 @@ export class SalesforceGraphQLClient {
       }, [] as { id: string; AccountId: string; ownerId: string; ownerEmail: string }[]);
 
       // Trace searching by contact domain
-      SalesforceRoutingTrace.graphqlSearchingByContactDomain(crmTrace, {
+      SalesforceRoutingTraceService.graphqlSearchingByContactDomain(crmTrace, {
         emailDomain,
         contactCount: relatedContacts.length,
       });
@@ -190,7 +190,7 @@ export class SalesforceGraphQLClient {
           "Could not find dominant account id with the following contacts",
           safeStringify({ relatedContacts })
         );
-        SalesforceRoutingTrace.graphqlNoAccountFound(crmTrace, {
+        SalesforceRoutingTraceService.graphqlNoAccountFound(crmTrace, {
           email,
           reason: "Could not find dominant account from related contacts",
         });
@@ -215,7 +215,7 @@ export class SalesforceGraphQLClient {
         // @ts-ignore
         (contact) => contact.AccountId === dominantAccountId
       );
-      SalesforceRoutingTrace.graphqlDominantAccountSelected(crmTrace, {
+      SalesforceRoutingTraceService.graphqlDominantAccountSelected(crmTrace, {
         accountId: dominantAccountId,
         contactCount: contactsUnderDominantAccount.length,
         ownerEmail: contactUnderAccount.ownerEmail,
@@ -234,7 +234,7 @@ export class SalesforceGraphQLClient {
     }
 
     log.info("No account found for attendee");
-    SalesforceRoutingTrace.graphqlNoAccountFound(crmTrace, {
+    SalesforceRoutingTraceService.graphqlNoAccountFound(crmTrace, {
       email,
       reason: "No account found via any tier",
     });

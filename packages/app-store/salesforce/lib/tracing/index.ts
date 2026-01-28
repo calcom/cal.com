@@ -1,1 +1,1 @@
-export { SalesforceRoutingTrace } from "./SalesforceRoutingTrace";
+export { SalesforceRoutingTraceService } from "./SalesforceRoutingTraceService";
