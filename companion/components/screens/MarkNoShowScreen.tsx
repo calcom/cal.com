@@ -178,7 +178,9 @@ export function MarkNoShowScreen({
 
     // For transparent mode (iOS glass UI), use consistent styling regardless of no-show state
     const itemBgStyle = transparentBackground
-      ? "bg-white/60"
+      ? isDark
+        ? "bg-[#1C1C1E]/80"
+        : "bg-white/60"
       : isNoShow
         ? isDark
           ? "bg-[#FF453A]/10"
@@ -191,7 +193,7 @@ export function MarkNoShowScreen({
       <TouchableOpacity
         className={`flex-row items-center px-4 py-4 ${
           transparentBackground
-            ? `rounded-xl border border-gray-300/40 ${!isLast ? "mb-3" : ""}`
+            ? `rounded-xl ${isDark ? "border border-[#38383A]/40" : "border border-gray-300/40"} ${!isLast ? "mb-3" : ""}`
             : !isLast
               ? isDark
                 ? "border-b border-[#38383A]"

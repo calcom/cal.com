@@ -67,7 +67,9 @@ export function ViewRecordingsScreen({
     <TouchableOpacity
       className={`mb-3 overflow-hidden rounded-xl ${
         transparentBackground
-          ? "border border-gray-300/40 bg-white/60"
+          ? isDark
+            ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+            : "border border-gray-300/40 bg-white/60"
           : isDark
             ? "bg-[#1C1C1E]"
             : "bg-white"

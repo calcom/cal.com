@@ -181,20 +181,30 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
         >
           {/* Email input */}
           {transparentBackground && (
-            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Email *</Text>
+            <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Email *</Text>
           )}
           <View
             className={`mb-3 overflow-hidden rounded-xl px-4 py-3 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+              transparentBackground
+                ? isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
+                : isDark
+                  ? "bg-[#1C1C1E]"
+                  : "bg-white"
             }`}
           >
             {!transparentBackground && (
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Email *</Text>
+              <Text
+                className={`mb-1.5 text-[13px] font-medium ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+              >
+                Email *
+              </Text>
             )}
             <TextInput
-              className="h-10 text-[17px] text-[#000]"
+              className={`h-10 text-[17px] ${isDark ? "text-white" : "text-[#000]"}`}
               placeholder="guest@example.com"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -206,20 +216,32 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
 
           {/* Name input */}
           {transparentBackground && (
-            <Text className="mb-2 px-1 text-[13px] font-medium text-gray-500">Name (optional)</Text>
+            <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">
+              Name (optional)
+            </Text>
           )}
           <View
             className={`mb-4 overflow-hidden rounded-xl px-4 py-3 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+              transparentBackground
+                ? isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
+                : isDark
+                  ? "bg-[#1C1C1E]"
+                  : "bg-white"
             }`}
           >
             {!transparentBackground && (
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">Name (optional)</Text>
+              <Text
+                className={`mb-1.5 text-[13px] font-medium ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+              >
+                Name (optional)
+              </Text>
             )}
             <TextInput
-              className="h-10 text-[17px] text-[#000]"
+              className={`h-10 text-[17px] ${isDark ? "text-white" : "text-[#000]"}`}
               placeholder="Guest Name"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
               value={name}
               onChangeText={setName}
               editable={!isSaving}
@@ -229,7 +251,13 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           {/* Add button */}
           <TouchableOpacity
             className={`mb-6 flex-row items-center justify-center rounded-xl py-3 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+              transparentBackground
+                ? isDark
+                  ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                  : "border border-gray-300/40 bg-white/60"
+                : isDark
+                  ? "bg-[#1C1C1E]"
+                  : "bg-white"
             }`}
             onPress={handleAddGuest}
             activeOpacity={0.7}
@@ -242,30 +270,48 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
           {/* Guest list */}
           {guests.length > 0 && (
             <View>
-              <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+              <Text
+                className={`mb-2 px-1 text-[13px] font-medium uppercase tracking-wide ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+              >
                 Guests to add ({guests.length})
               </Text>
               <View
                 className={`overflow-hidden rounded-xl ${
-                  transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+                  transparentBackground
+                    ? isDark
+                      ? "border border-[#38383A]/40 bg-[#1C1C1E]/80"
+                      : "border border-gray-300/40 bg-white/60"
+                    : isDark
+                      ? "bg-[#1C1C1E]"
+                      : "bg-white"
                 }`}
               >
                 {guests.map((guest, index) => (
                   <View
                     key={guest.email}
                     className={`flex-row items-center px-4 py-3 ${
-                      index < guests.length - 1 ? "border-b border-gray-100/50" : ""
+                      index < guests.length - 1
+                        ? isDark
+                          ? "border-b border-[#38383A]/50"
+                          : "border-b border-gray-100/50"
+                        : ""
                     }`}
                   >
                     <View
                       className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}
                     >
-                      <Ionicons name="person" size={20} color="#6B7280" />
+                      <Ionicons name="person" size={20} color={isDark ? "#8E8E93" : "#6B7280"} />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-[17px] text-[#000]">{guest.email}</Text>
+                      <Text className={`text-[17px] ${isDark ? "text-white" : "text-[#000]"}`}>
+                        {guest.email}
+                      </Text>
                       {guest.name && (
-                        <Text className="mt-0.5 text-[15px] text-gray-500">{guest.name}</Text>
+                        <Text
+                          className={`mt-0.5 text-[15px] ${isDark ? "text-[#8E8E93]" : "text-gray-500"}`}
+                        >
+                          {guest.name}
+                        </Text>
                       )}
                     </View>
                     <TouchableOpacity
@@ -273,7 +319,11 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       disabled={isSaving}
                     >
-                      <Ionicons name="close-circle-outline" size={24} color="#800020" />
+                      <Ionicons
+                        name="close-circle-outline"
+                        size={24}
+                        color={isDark ? "#FF453A" : "#800020"}
+                      />
                     </TouchableOpacity>
                   </View>
                 ))}
