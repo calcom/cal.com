@@ -238,7 +238,7 @@ export class RoutingTraceService {
     }
 
     logger.warn("Could not extract assignment reason from routing trace - no matching steps found", {
-      traceSteps: trace.map((s) => \`\${s.domain}:\${s.step}\`),
+      traceSteps: trace.map((s) => `${s.domain}:${s.step}`),
     });
     return null;
   }
@@ -250,16 +250,16 @@ export class RoutingTraceService {
   }): string {
     const { isRerouting, reroutedByEmail, attributeRoutingDetails } = data;
 
-    const reroutingPart = isRerouting && reroutedByEmail ? \`Rerouted by \${reroutedByEmail}\` : "";
+    const reroutingPart = isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : "";
 
     const attributesPart =
       attributeRoutingDetails && attributeRoutingDetails.length > 0
         ? attributeRoutingDetails
-            .map(({ attributeName, attributeValue }) => \`\${attributeName}: \${attributeValue}\`)
+            .map(({ attributeName, attributeValue }) => `${attributeName}: ${attributeValue}`)
             .join(", ")
         : "";
 
-    return \`\${reroutingPart} \${attributesPart}\`.trim();
+    return `${reroutingPart} ${attributesPart}`.trim();
   }
 
   private buildSalesforceReasonString(data: {
@@ -278,14 +278,14 @@ export class RoutingTraceService {
     } = data;
 
     if (rrSkipToAccountLookupField && rrSKipToAccountLookupFieldName) {
-      return \`Salesforce account lookup field: \${rrSKipToAccountLookupFieldName} - \${email}\${
-        recordId ? \` (Account ID: \${recordId})\` : ""
-      }\`;
+      return `Salesforce account lookup field: ${rrSKipToAccountLookupFieldName} - ${email}${
+        recordId ? ` (Account ID: ${recordId})` : ""
+      }`;
     }
 
     const recordLabel = recordType.toLowerCase();
-    return \`Salesforce \${recordLabel} owner: \${email}\${
-      recordId ? \` (\${recordType} ID: \${recordId})\` : ""
-    }\`;
+    return `Salesforce ${recordLabel} owner: ${email}${
+      recordId ? ` (${recordType} ID: ${recordId})` : ""
+    }`;
   }
 }
