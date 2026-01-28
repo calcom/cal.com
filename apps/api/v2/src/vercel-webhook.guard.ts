@@ -31,6 +31,12 @@ export class VercelWebhookGuard implements CanActivate {
     // RawBodyMiddleware provides a Buffer, compute signature from raw bytes
     const expectedSignature = crypto.createHmac("sha1", webhookSecret).update(rawBody).digest("hex");
 
+    // Check signature length first (timingSafeEqual throws if lengths differ)
+    if (signature.length !== expectedSignature.length) {
+      this.logger.warn("Invalid Vercel webhook signature length");
+      throw new UnauthorizedException("Invalid signature");
+    }
+
     // Secure comparison to prevent timing attacks
     const isSignatureValid = crypto.timingSafeEqual(
       Buffer.from(expectedSignature, "utf8"),
