@@ -4,9 +4,9 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 
-import { useOverlayCalendarStore } from "../OverlayCalendar/store";
-import type { UseCalendarsReturnType } from "./useCalendars";
-import { useLocalSet } from "./useLocalSet";
+import { useOverlayCalendarStore } from "~/bookings/components/OverlayCalendar/store";
+import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
 
 export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
 
