@@ -88,13 +88,11 @@ export const BaseScheduledEmail = (
       }
       subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
       {props.calEvent.rejectionReason && (
-        <>
-          <Info
-            label={t("rejection_reason")}
-            description={sanitizeText(props.calEvent.rejectionReason)}
-            withSpacer
-          />
-        </>
+        <Info
+          label={t("rejection_reason")}
+          description={sanitizeText(props.calEvent.rejectionReason)}
+          withSpacer
+        />
       )}
       {props.calEvent.cancellationReason && (
         <Info
@@ -127,7 +125,7 @@ export const BaseScheduledEmail = (
           )}
         </>
       )}
-      {props.reassigned && props.reassigned.byUser && (
+      {props.reassigned?.byUser && (
         <>
           <Info label={t("reassigned_by")} description={sanitizeText(props.reassigned.byUser)} withSpacer />
           {props.reassigned?.reason && (

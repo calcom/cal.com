@@ -304,7 +304,7 @@ describe("getSanitizedCalEvent", () => {
     expect(sanitized.team?.members[0].name).toBe("Team Member");
 
     expect(sanitized.team?.members[0].email).not.toContain("<script>");
-    expect(sanitized.team?.members[0].email).toBe("member@example[.]com");
+    expect(sanitized.team?.members[0].email).toBe("member@example.com");
   });
 
   it("should handle empty or missing fields gracefully", () => {
