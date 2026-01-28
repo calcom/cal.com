@@ -233,6 +233,13 @@ export class Cal {
 
   isPrerendering?: boolean;
 
+  /**
+   * Stores UI config that should persist across iframe resets.
+   * This is needed because for element-click embeds, ui() is called before the iframe exists,
+   * and iframeReset() clears the queue when the modal is opened.
+   */
+  persistentUiConfig: UiConfig = {};
+
   static actionsManagers: Record<Namespace, SdkActionManager>;
   // Store calLink separately and not rely on deriving it from iframe.src, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
   calLink: string | null = null;
@@ -461,6 +468,13 @@ export class Cal {
         this.doInIframe(doInIframeArg);
       });
       this.iframeDoQueue = [];
+
+      // Apply stored UI config that persists across iframe resets.
+      // This ensures UI config set before iframe creation (e.g., for element-click embeds)
+      // is applied after the iframe becomes ready.
+      if (Object.keys(this.persistentUiConfig).length > 0) {
+        this.doInIframe({ method: "ui", arg: this.persistentUiConfig });
+      }
     });
 
     this.actionManager.on("__routeChanged", () => {
@@ -1486,6 +1500,10 @@ class CalApi {
         },
       },
     });
+
+    // Store UI config so it persists across iframe resets.
+    // This is needed for element-click embeds where ui() is called before the iframe exists.
+    this.cal.persistentUiConfig = { ...this.cal.persistentUiConfig, ...uiConfig };
 
     this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }
