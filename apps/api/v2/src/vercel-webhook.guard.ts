@@ -1,5 +1,3 @@
-// vercel-webhook.guard.ts
-
 import * as crypto from "node:crypto";
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 
