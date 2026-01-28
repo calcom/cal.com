@@ -95,16 +95,8 @@ function validateKnowledgeBase(filePath: string): ValidationError[] {
   while ((match = sectionRegex.exec(content)) !== null) {
     const title = match[1].trim();
 
-    // Check if title starts with "When" or has a clear trigger pattern
-    const isValidTrigger =
-      title.toLowerCase().startsWith("when ") ||
-      title.toLowerCase().includes("error") ||
-      title.toLowerCase().includes("file naming") ||
-      title.toLowerCase().includes("pull request") ||
-      title.toLowerCase().includes("pr ") ||
-      title === "Repo note for calcom/cal.com";
-
-    if (!isValidTrigger) {
+    // Section titles must start with "When..." for clear trigger descriptions
+    if (!title.toLowerCase().startsWith("when ")) {
       invalidSections.push(title);
     }
   }
