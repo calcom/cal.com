@@ -12,7 +12,7 @@ import { bootstrap } from "./bootstrap";
 import { loggerConfig } from "./lib/logger";
 import type { AppConfig } from "@/config/type";
 
-if (process.env.NODE_ENV === "production" && process.env.VERCEL) {
+if (process.env.NODE_ENV === "production") {
   process.env.TRIGGER_VERSION = TRIGGER_VERSION;
 }
 const logger: Logger = new Logger("App");
