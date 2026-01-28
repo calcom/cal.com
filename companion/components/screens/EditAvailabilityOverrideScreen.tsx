@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -76,6 +77,8 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   ref
 ) {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   // Use mutation hook for cache-synchronized updates
   const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
@@ -93,12 +96,12 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   // Render modal content
   const renderTimePickerContent = () => (
     <>
-      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
-        <Text className="text-[17px] font-semibold">
+      <View className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-[#38383A]">
+        <Text className="text-[17px] font-semibold text-black dark:text-white">
           Select {showTimePicker?.type === "start" ? "Start" : "End"} Time
         </Text>
         <AppPressable onPress={() => setShowTimePicker(null)}>
-          <Ionicons name="close" size={24} color="#8E8E93" />
+          <Ionicons name="close" size={24} color={isDark ? "#FFFFFF" : "#8E8E93"} />
         </AppPressable>
       </View>
       <ScrollView className="px-4 py-3">
@@ -111,14 +114,16 @@ export const EditAvailabilityOverrideScreen = forwardRef<
               <View
                 className={`mb-2.5 rounded-xl border-2 px-4 py-4 ${
                   isSelected
-                    ? "border-[#007AFF] bg-blue-50 shadow-md"
-                    : "border-gray-200 bg-gray-50"
+                    ? "border-[#007AFF] bg-blue-50 shadow-md dark:bg-[#0A84FF]/20"
+                    : "border-gray-200 bg-gray-50 dark:border-[#38383A] dark:bg-[#1C1C1E]"
                 }`}
               >
                 <View className="flex-row items-center justify-between">
                   <Text
                     className={`text-[17px] ${
-                      isSelected ? "font-semibold text-[#007AFF]" : "font-medium text-gray-900"
+                      isSelected
+                        ? "font-semibold text-[#007AFF]"
+                        : "font-medium text-gray-900 dark:text-white"
                     }`}
                   >
                     {formatTime12Hour(time)}
@@ -320,23 +325,24 @@ export const EditAvailabilityOverrideScreen = forwardRef<
 
   if (!schedule) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-gray-500">No schedule data</Text>
+      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+        <Text className="text-gray-500 dark:text-[#8E8E93]">No schedule data</Text>
       </View>
     );
   }
 
   return (
     <ScrollView
-      className="flex-1 bg-white"
+      className="flex-1 bg-white dark:bg-black"
       contentContainerStyle={{
         padding: 16,
         paddingBottom: insets.bottom + 16,
       }}
     >
-      {/* Date Input */}
-      <Text className="mb-2 text-[13px] font-medium text-gray-500">Date (YYYY-MM-DD)</Text>
-      <View className="mb-4 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3">
+      <Text className="mb-2 text-[13px] font-medium text-gray-500 dark:text-[#8E8E93]">
+        Date (YYYY-MM-DD)
+      </Text>
+      <View className="mb-4 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 dark:border-[#38383A] dark:bg-[#1C1C1E]">
         <View className="flex-row items-center">
           <Ionicons name="calendar-outline" size={20} color="#007AFF" style={{ marginRight: 12 }} />
           {Platform.OS === "web" ? (
@@ -347,7 +353,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
               style={{
                 flex: 1,
                 fontSize: 17,
-                color: "#000",
+                color: isDark ? "#FFFFFF" : "#000000",
                 backgroundColor: "transparent",
                 border: "none",
                 outline: "none",
@@ -356,54 +362,56 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             />
           ) : (
             <TextInput
-              className="flex-1 text-[17px] text-black"
+              className="flex-1 text-[17px] text-black dark:text-white"
               placeholder="2024-12-25"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
               value={selectedDate}
               onChangeText={setSelectedDate}
             />
           )}
         </View>
         {selectedDate ? (
-          <Text className="mt-2 text-[15px] text-gray-500">
+          <Text className="mt-2 text-[15px] text-gray-500 dark:text-[#8E8E93]">
             {formatDateForDisplay(selectedDate)}
           </Text>
         ) : null}
       </View>
 
-      {/* Unavailable Toggle */}
-      <View className="mb-4 flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5">
+      <View className="mb-4 flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5 dark:border-[#38383A] dark:bg-[#1C1C1E]">
         <View className="flex-row items-center">
           <Ionicons name="moon-outline" size={20} color="#FF3B30" style={{ marginRight: 12 }} />
           <View>
-            <Text className="text-[17px] text-black">Mark as unavailable</Text>
-            <Text className="text-[13px] text-gray-500">Block this entire day</Text>
+            <Text className="text-[17px] text-black dark:text-white">Mark as unavailable</Text>
+            <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">
+              Block this entire day
+            </Text>
           </View>
         </View>
         <Switch
           value={isUnavailable}
           onValueChange={setIsUnavailable}
-          trackColor={{ false: "#E5E5EA", true: "#000000" }}
-          thumbColor="#fff"
+          trackColor={{ false: "#E5E5EA", true: isDark ? "#FFFFFF" : "#000000" }}
+          thumbColor={isDark ? "#000000" : "#FFFFFF"}
         />
       </View>
 
-      {/* Time Range (only when available) */}
       {!isUnavailable && (
         <>
-          <Text className="mb-2 text-[13px] font-medium text-gray-500">Available Hours</Text>
-          <View className="mb-4 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5">
+          <Text className="mb-2 text-[13px] font-medium text-gray-500 dark:text-[#8E8E93]">
+            Available Hours
+          </Text>
+          <View className="mb-4 rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3.5 dark:border-[#38383A] dark:bg-[#1C1C1E]">
             <View className="flex-row items-center">
               {Platform.OS === "web" ? (
-                <View className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2">
-                  <Text className="text-[13px] text-gray-500">Start Time</Text>
+                <View className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2 dark:bg-[#38383A]/50">
+                  <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">Start Time</Text>
                   <input
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
                     style={{
                       fontSize: 17,
-                      color: "#000",
+                      color: isDark ? "#FFFFFF" : "#000000",
                       backgroundColor: "transparent",
                       border: "none",
                       outline: "none",
@@ -414,26 +422,28 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                 </View>
               ) : (
                 <AppPressable
-                  className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2"
+                  className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2 dark:bg-[#38383A]/50"
                   onPress={() => setShowTimePicker({ type: "start" })}
                 >
-                  <Text className="text-[13px] text-gray-500">Start Time</Text>
-                  <Text className="text-[17px] text-black">{formatTime12Hour(startTime)}</Text>
+                  <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">Start Time</Text>
+                  <Text className="text-[17px] text-black dark:text-white">
+                    {formatTime12Hour(startTime)}
+                  </Text>
                 </AppPressable>
               )}
 
-              <Text className="mx-4 text-[17px] text-gray-400">–</Text>
+              <Text className="mx-4 text-[17px] text-gray-400 dark:text-[#8E8E93]">–</Text>
 
               {Platform.OS === "web" ? (
-                <View className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2">
-                  <Text className="text-[13px] text-gray-500">End Time</Text>
+                <View className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2 dark:bg-[#38383A]/50">
+                  <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">End Time</Text>
                   <input
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
                     style={{
                       fontSize: 17,
-                      color: "#000",
+                      color: isDark ? "#FFFFFF" : "#000000",
                       backgroundColor: "transparent",
                       border: "none",
                       outline: "none",
@@ -444,11 +454,13 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                 </View>
               ) : (
                 <AppPressable
-                  className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2"
+                  className="flex-1 rounded-lg bg-gray-200/50 px-3 py-2 dark:bg-[#38383A]/50"
                   onPress={() => setShowTimePicker({ type: "end" })}
                 >
-                  <Text className="text-[13px] text-gray-500">End Time</Text>
-                  <Text className="text-[17px] text-black">{formatTime12Hour(endTime)}</Text>
+                  <Text className="text-[13px] text-gray-500 dark:text-[#8E8E93]">End Time</Text>
+                  <Text className="text-[17px] text-black dark:text-white">
+                    {formatTime12Hour(endTime)}
+                  </Text>
                 </AppPressable>
               )}
             </View>
@@ -456,10 +468,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         </>
       )}
 
-      {/* Existing Overrides */}
       {!isEditing && schedule.overrides && schedule.overrides.length > 0 && (
         <>
-          <Text className="mb-2 mt-4 text-[13px] font-medium text-gray-500">
+          <Text className="mb-2 mt-4 text-[13px] font-medium text-gray-500 dark:text-[#8E8E93]">
             Existing Overrides
           </Text>
           <View>
@@ -469,15 +480,17 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                 className="mb-2.5"
                 onPress={() => onEditOverride?.(index)}
               >
-                <View className="flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5">
+                <View className="flex-row items-center justify-between rounded-xl border-2 border-gray-200 bg-white px-4 py-3.5 dark:border-[#38383A] dark:bg-[#1C1C1E]">
                   <View className="flex-1">
-                    <Text className="text-[15px] font-medium text-black">
+                    <Text className="text-[15px] font-medium text-black dark:text-white">
                       {formatDateForDisplay(override.date ?? "")}
                     </Text>
                     {override.startTime === "00:00" && override.endTime === "00:00" ? (
-                      <Text className="mt-0.5 text-[13px] text-red-500">Unavailable</Text>
+                      <Text className="mt-0.5 text-[13px] text-red-500 dark:text-[#FF453A]">
+                        Unavailable
+                      </Text>
                     ) : (
-                      <Text className="mt-0.5 text-[13px] text-gray-500">
+                      <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-[#8E8E93]">
                         {formatTime12Hour(override.startTime ?? "00:00")} –{" "}
                         {formatTime12Hour(override.endTime ?? "00:00")}
                       </Text>
@@ -485,7 +498,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                   </View>
                   <View className="flex-row items-center">
                     <AppPressable
-                      className="rounded-full bg-red-50 p-2"
+                      className="rounded-full bg-red-50 p-2 dark:bg-[#FF453A]/10"
                       onPress={() => handleDeleteOverride(index)}
                     >
                       <Ionicons name="trash-outline" size={18} color="#FF3B30" />
@@ -494,7 +507,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
                       style={{ marginLeft: 12 }}
                       name="chevron-forward"
                       size={18}
-                      color="#C7C7CC"
+                      color={isDark ? "#8E8E93" : "#C7C7CC"}
                     />
                   </View>
                 </View>
@@ -504,7 +517,6 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         </>
       )}
 
-      {/* Time Picker Modal */}
       <FullScreenModal
         visible={!!showTimePicker}
         animationType={Platform.OS === "web" ? "fade" : "slide"}
@@ -517,7 +529,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             onPress={() => setShowTimePicker(null)}
           >
             <TouchableOpacity
-              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2"
+              className="max-h-[80%] w-full max-w-[500px] overflow-hidden rounded-2xl bg-white p-2 dark:bg-[#1C1C1E]"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
               style={shadows.xl()}
@@ -526,7 +538,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             </TouchableOpacity>
           </TouchableOpacity>
         ) : (
-          <View className="flex-1 bg-white p-2">{renderTimePickerContent()}</View>
+          <View className="flex-1 bg-white p-2 dark:bg-[#1C1C1E]">{renderTimePickerContent()}</View>
         )}
       </FullScreenModal>
     </ScrollView>

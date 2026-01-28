@@ -3,7 +3,15 @@ import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TIMEZONES as ALL_TIMEZONES } from "@/constants/timezones";
 import { type Schedule, useUpdateSchedule } from "@/hooks/useSchedules";
@@ -34,7 +42,13 @@ export const EditAvailabilityNameScreen = forwardRef<
   ref
 ) {
   const insets = useSafeAreaInsets();
-  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const backgroundStyle = transparentBackground
+    ? "bg-transparent"
+    : isDark
+      ? "bg-black"
+      : "bg-[#F2F2F7]";
 
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState("UTC");
@@ -181,15 +195,16 @@ export const EditAvailabilityNameScreen = forwardRef<
           </>
         ) : (
           <>
-            {/* Name Input */}
             <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
               Schedule Name
             </Text>
-            <View className="mb-4 overflow-hidden rounded-xl bg-white">
+            <View
+              className={`mb-4 overflow-hidden rounded-xl ${isDark ? "bg-[#1C1C1E]" : "bg-white"}`}
+            >
               <TextInput
-                className="px-4 py-3.5 text-[17px] text-black"
+                className={`px-4 py-3.5 text-[17px] ${isDark ? "text-white" : "text-black"}`}
                 placeholder="Enter schedule name"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={isDark ? "#8E8E93" : "#9CA3AF"}
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -197,16 +212,19 @@ export const EditAvailabilityNameScreen = forwardRef<
               />
             </View>
 
-            {/* Timezone Selector */}
             <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-[#8E8E93]">
               Timezone
             </Text>
-            <View className="mb-4 flex-row items-center rounded-xl bg-white px-4 py-3">
+            <View
+              className={`mb-4 flex-row items-center rounded-xl px-4 py-3 ${isDark ? "bg-[#1C1C1E]" : "bg-white"}`}
+            >
               <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/10">
                 <Ionicons name="globe-outline" size={20} color="#007AFF" />
               </View>
               <View className="flex-1">
-                <Text className="text-[17px] font-medium text-black">{selectedTimezoneLabel}</Text>
+                <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-black"}`}>
+                  {selectedTimezoneLabel}
+                </Text>
                 <Text className="mt-0.5 text-[13px] text-[#8E8E93]">{timezone}</Text>
               </View>
 

@@ -1,7 +1,7 @@
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Switch, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
@@ -87,7 +87,13 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   ref
 ) {
   const insets = useSafeAreaInsets();
-  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const backgroundStyle = transparentBackground
+    ? "bg-transparent"
+    : isDark
+      ? "bg-black"
+      : "bg-[#F2F2F7]";
 
   // Use mutation hook for cache-synchronized updates
   const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
@@ -290,11 +296,14 @@ export const EditAvailabilityOverrideScreen = forwardRef<
       }}
       showsVerticalScrollIndicator={!transparentBackground}
     >
-      {/* Date Picker */}
       <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Date</Text>
       <View
         className={`mb-4 rounded-xl px-4 py-3.5 ${
-          transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+          transparentBackground
+            ? "border border-gray-300/40 bg-white/60"
+            : isDark
+              ? "bg-[#1C1C1E]"
+              : "bg-white"
         }`}
       >
         <View className="flex-row items-center justify-between">
@@ -302,7 +311,9 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/10">
               <Ionicons name="calendar" size={20} color="#007AFF" />
             </View>
-            <Text className="text-[17px] text-black">{formatDateForDisplay(selectedDate)}</Text>
+            <Text className={`text-[17px] ${isDark ? "text-white" : "text-black"}`}>
+              {formatDateForDisplay(selectedDate)}
+            </Text>
           </View>
         </View>
         <View className="mt-3">
@@ -316,10 +327,13 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         </View>
       </View>
 
-      {/* Unavailable Toggle */}
       <View
         className={`mb-4 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-          transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+          transparentBackground
+            ? "border border-gray-300/40 bg-white/60"
+            : isDark
+              ? "bg-[#1C1C1E]"
+              : "bg-white"
         }`}
       >
         <View className="flex-row items-center">
@@ -327,25 +341,30 @@ export const EditAvailabilityOverrideScreen = forwardRef<
             <Ionicons name="moon-outline" size={20} color="#FF3B30" />
           </View>
           <View>
-            <Text className="text-[17px] text-black">Mark as unavailable</Text>
+            <Text className={`text-[17px] ${isDark ? "text-white" : "text-black"}`}>
+              Mark as unavailable
+            </Text>
             <Text className="text-[13px] text-[#8E8E93]">Block this entire day</Text>
           </View>
         </View>
         <Switch
           value={isUnavailable}
           onValueChange={setIsUnavailable}
-          trackColor={{ false: "#E5E5EA", true: "#000000" }}
-          thumbColor="#fff"
+          trackColor={{ false: "#E5E5EA", true: isDark ? "#FFFFFF" : "#000000" }}
+          thumbColor={isDark ? "#000000" : "#FFFFFF"}
         />
       </View>
 
-      {/* Time Range (only when available) */}
       {!isUnavailable && (
         <>
           <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Available Hours</Text>
           <View
             className={`mb-4 rounded-xl px-4 py-3.5 ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+              transparentBackground
+                ? "border border-gray-300/40 bg-white/60"
+                : isDark
+                  ? "bg-[#1C1C1E]"
+                  : "bg-white"
             }`}
           >
             <View className="flex-row items-center">
@@ -377,7 +396,6 @@ export const EditAvailabilityOverrideScreen = forwardRef<
         </>
       )}
 
-      {/* Existing Overrides (if any) */}
       {!isEditing && schedule.overrides && schedule.overrides.length > 0 && (
         <>
           <Text className="mb-2 mt-4 px-1 text-[13px] font-medium text-[#8E8E93]">
@@ -385,19 +403,27 @@ export const EditAvailabilityOverrideScreen = forwardRef<
           </Text>
           <View
             className={`overflow-hidden rounded-xl ${
-              transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+              transparentBackground
+                ? "border border-gray-300/40 bg-white/60"
+                : isDark
+                  ? "bg-[#1C1C1E]"
+                  : "bg-white"
             }`}
           >
             {schedule.overrides.map((override, index) => (
               <Pressable
                 key={override.date}
                 className={`flex-row items-center justify-between px-4 py-3 ${
-                  index > 0 ? "border-t border-[#E5E5EA]" : ""
+                  index > 0
+                    ? isDark
+                      ? "border-t border-[#38383A]"
+                      : "border-t border-[#E5E5EA]"
+                    : ""
                 }`}
                 onPress={() => onEditOverride?.(index)}
               >
                 <View className="flex-1">
-                  <Text className="text-[15px] text-black">
+                  <Text className={`text-[15px] ${isDark ? "text-white" : "text-black"}`}>
                     {formatDateForDisplay(dateStringToDate(override.date ?? ""))}
                   </Text>
                   {override.startTime === "00:00" && override.endTime === "00:00" ? (

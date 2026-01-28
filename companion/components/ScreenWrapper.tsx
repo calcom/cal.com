@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { EmptyScreen } from "./EmptyScreen";
 import { Header } from "./Header";
 import { LoadingSpinner } from "./LoadingSpinner";
@@ -68,6 +68,10 @@ export function ScreenWrapper({
   showHeader = true,
   children,
 }: ScreenWrapperProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const errorIconColor = isDark ? "#FF453A" : "#800020";
+
   if (loading) {
     return (
       <View className="flex-1 bg-gray-100 dark:bg-black">
@@ -84,7 +88,7 @@ export function ScreenWrapper({
       <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#1C1C1E]">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
+          <Ionicons name="alert-circle" size={64} color={errorIconColor} />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
             {errorTitle}
           </Text>

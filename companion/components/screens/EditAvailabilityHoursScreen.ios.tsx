@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import type { Schedule } from "@/services/calcom";
@@ -90,7 +90,13 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
     _ref
   ) {
     const insets = useSafeAreaInsets();
-    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
+    const backgroundStyle = transparentBackground
+      ? "bg-transparent"
+      : isDark
+        ? "bg-black"
+        : "bg-[#F2F2F7]";
 
     const availability = parseAvailability(schedule);
 
@@ -117,7 +123,11 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
 
         <View
           className={`overflow-hidden rounded-xl ${
-            transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+            transparentBackground
+              ? "border border-gray-300/40 bg-white/60"
+              : isDark
+                ? "bg-[#1C1C1E]"
+                : "bg-white"
           }`}
         >
           {DAYS.map((day, dayIndex) => {
@@ -128,27 +138,28 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
               <AppPressable
                 key={day}
                 className={`flex-row items-center px-4 py-3.5 ${
-                  dayIndex > 0 ? "border-t border-[#E5E5EA]" : ""
+                  dayIndex > 0
+                    ? isDark
+                      ? "border-t border-[#38383A]"
+                      : "border-t border-[#E5E5EA]"
+                    : ""
                 }`}
                 onPress={() => onDayPress(dayIndex)}
               >
-                {/* Day status indicator */}
                 <View
                   className={`mr-3 h-2.5 w-2.5 rounded-full ${
-                    isEnabled ? "bg-[#34C759]" : "bg-[#E5E5EA]"
+                    isEnabled ? "bg-[#34C759]" : isDark ? "bg-[#48484A]" : "bg-[#E5E5EA]"
                   }`}
                 />
 
-                {/* Day name */}
                 <Text
                   className={`w-24 text-[17px] font-medium ${
-                    isEnabled ? "text-black" : "text-[#8E8E93]"
+                    isEnabled ? (isDark ? "text-white" : "text-black") : "text-[#8E8E93]"
                   }`}
                 >
                   {day}
                 </Text>
 
-                {/* Time slots or unavailable */}
                 <View className="flex-1">
                   {isEnabled ? (
                     daySlots.map((slot, slotIndex) => (
@@ -164,8 +175,7 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
                   )}
                 </View>
 
-                {/* Chevron */}
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                <Ionicons name="chevron-forward" size={18} color={isDark ? "#8E8E93" : "#C7C7CC"} />
               </AppPressable>
             );
           })}
