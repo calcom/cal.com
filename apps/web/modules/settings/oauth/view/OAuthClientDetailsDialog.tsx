@@ -303,7 +303,9 @@ const OAuthClientDetailsDialog = ({
             {client.user?.email ? (
               <div>
                 <div className="mb-1 text-sm text-subtle">{t("owner")}</div>
-                <div className="text-sm text-default">{client.user.email}</div>
+                <div className="text-sm text-default" data-testid="oauth-client-details-user-email">
+                  {client.user.email}
+                </div>
               </div>
             ) : null}
 

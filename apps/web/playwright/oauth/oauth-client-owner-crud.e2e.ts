@@ -52,6 +52,7 @@ type ExpectedOAuthClientDetails = {
   statusLabel: "Approved" | "Rejected" | "Pending";
   pkceEnabled: boolean;
   hasLogo: boolean;
+  userEmail: string;
 };
 
 type TruthyExpectation = { kind: "truthy" };
@@ -243,6 +244,8 @@ async function expectOAuthClientDetails(details: Locator, expected: ExpectedOAut
   await expect(pkceToggle).toHaveAttribute("data-state", expected.pkceEnabled ? "checked" : "unchecked");
 
   await expect(details.locator('img[alt="Logo"][src]')).toHaveCount(expected.hasLogo ? 1 : 0);
+
+  await expect(details.getByTestId("oauth-client-details-user-email")).toHaveText(expected.userEmail);
 }
 
 async function expectOAuthClientInList(page: Page, input: { clientId: string; name: string }): Promise<void> {
@@ -341,6 +344,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: false,
+      userEmail: "admin@example.com",
     });
 
     await expectOAuthClientInDb(prisma, clientId, {
@@ -378,6 +382,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
@@ -392,6 +397,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
@@ -449,6 +455,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Approved",
       pkceEnabled: true,
       hasLogo: false,
+      userEmail: "admin@example.com",
     });
 
     await expectOAuthClientInDb(prisma, clientId, {
@@ -481,6 +488,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: false,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
@@ -523,6 +531,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
 
     await expectOAuthClientInDb(prisma, clientId, {
@@ -560,6 +569,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
@@ -574,6 +584,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: false,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
@@ -622,6 +633,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: false,
+      userEmail: "admin@example.com",
     });
 
     await expectOAuthClientInDb(prisma, clientId, {
@@ -659,6 +671,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
@@ -673,6 +686,7 @@ test.describe("OAuth client creation", () => {
       statusLabel: "Pending",
       pkceEnabled: true,
       hasLogo: true,
+      userEmail: "admin@example.com",
     });
     await closeOAuthClientDetails(page);
 
