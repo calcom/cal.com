@@ -19,9 +19,8 @@ export default async function routerGetCrmContactOwnerEmail({
   action: LocalRoute["action"];
   routingTraceService?: RoutingTraceService;
 }) {
-  // Check if route is skipping CRM contact check
   if (attributeRoutingConfig?.skipContactOwner) return null;
-  // Check if email is present
+
   let prospectEmail: string | null = null;
   if (identifierKeyedResponse) {
     for (const identifier of Object.keys(identifierKeyedResponse)) {
@@ -35,7 +34,6 @@ export default async function routerGetCrmContactOwnerEmail({
   }
   if (!prospectEmail) return null;
 
-  // Determine if the action is an event type redirect
   if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId)
     return null;
 
@@ -61,16 +59,13 @@ export default async function routerGetCrmContactOwnerEmail({
     recordId: null,
   };
 
-  // Run CRM operations within trace context (if available)
-  // This makes the trace service available via AsyncLocalStorage to all nested CRM calls
   const runCrmOperations = async () => {
-    //   Determine if there is a CRM option enabled in the chosen route
     for (const appSlug of enabledAppSlugs) {
       const routingOptions =
         attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
 
       if (!routingOptions) continue;
-      // See if any options are true
+
       if (Object.values(routingOptions).some((option) => option === true)) {
         const appBookingFormHandler = (
           await import("@calcom/app-store/routing-forms/appBookingFormHandler")
@@ -100,11 +95,8 @@ export default async function routerGetCrmContactOwnerEmail({
     }
   };
 
-  // Create CRM trace service if we have a parent trace service
-  // This wraps the RoutingTraceService and provides AsyncLocalStorage access for CRM-specific traces
   const crmTrace = CrmRoutingTraceService.create(routingTraceService);
 
-  // If we have a CRM trace service, run within its context; otherwise run directly
   if (crmTrace) {
     await crmTrace.runAsync(runCrmOperations);
   } else {
@@ -113,7 +105,6 @@ export default async function routerGetCrmContactOwnerEmail({
 
   if (!contactOwner) return null;
 
-  //   Check that the contact owner is a part of the event type
   if (!eventType.hosts.some((host) => host.user.email === contactOwner.email))
     return null;
 

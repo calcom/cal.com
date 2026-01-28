@@ -9,20 +9,7 @@ import classNames from "@calcom/ui/classNames";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-
-export type ICalendarSwitchProps = {
-  title: string;
-  externalId: string;
-  type: string;
-  isChecked: boolean;
-  name: string;
-  isLastItemInList?: boolean;
-  destination?: boolean;
-  credentialId: number;
-  delegationCredentialId: string | null;
-  eventTypeId: number | null;
-  disabled?: boolean;
-};
+import type { ICalendarSwitchProps } from "@calcom/ui/components/calendar-switch";
 
 type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
 

@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "public"."PendingRoutingTrace" (
     "id" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "trace" JSONB NOT NULL,
     "formResponseId" INTEGER,
     "queuedFormResponseId" TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE "public"."PendingRoutingTrace" (
 -- CreateTable
 CREATE TABLE "public"."RoutingTrace" (
     "id" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "trace" JSONB NOT NULL,
     "formResponseId" INTEGER,
     "queuedFormResponseId" TEXT,
@@ -57,3 +57,9 @@ ALTER TABLE "public"."RoutingTrace" ADD CONSTRAINT "RoutingTrace_bookingUid_fkey
 
 -- AddForeignKey
 ALTER TABLE "public"."RoutingTrace" ADD CONSTRAINT "RoutingTrace_assignmentReasonId_fkey" FOREIGN KEY ("assignmentReasonId") REFERENCES "public"."AssignmentReason"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddCheckConstraint: Ensure at least one of formResponseId or queuedFormResponseId is set
+ALTER TABLE "public"."PendingRoutingTrace" ADD CONSTRAINT "PendingRoutingTrace_at_least_one_response_id" CHECK ("formResponseId" IS NOT NULL OR "queuedFormResponseId" IS NOT NULL);
+
+-- AddCheckConstraint: Ensure at least one of formResponseId or queuedFormResponseId is set
+ALTER TABLE "public"."RoutingTrace" ADD CONSTRAINT "RoutingTrace_at_least_one_response_id" CHECK ("formResponseId" IS NOT NULL OR "queuedFormResponseId" IS NOT NULL);

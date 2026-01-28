@@ -11,6 +11,16 @@ import type {
   RoutingTrace,
 } from "../repositories/RoutingTraceRepository.interface";
 
+export const ROUTING_TRACE_DOMAINS = {
+  SALESFORCE: "salesforce",
+  ROUTING_FORM: "routing_form",
+} as const;
+
+export const ROUTING_TRACE_STEPS = {
+  SALESFORCE_ASSIGNMENT: "salesforce_assignment",
+  ATTRIBUTE_LOGIC_EVALUATED: "attribute-logic-evaluated",
+} as const;
+
 interface IRoutingTraceServiceDeps {
   pendingRoutingTraceRepository: IPendingRoutingTraceRepository;
   routingTraceRepository: IRoutingTraceRepository;
@@ -98,7 +108,6 @@ export class RoutingTraceService {
   }): Promise<ProcessRoutingTraceResult | null> {
     const { formResponseId, queuedFormResponseId, bookingId, bookingUid, organizerEmail, isRerouting, reroutedByEmail } = args;
 
-    // 1. Look up pending trace by formResponseId or queuedFormResponseId
     let pendingTrace = null;
     if (formResponseId) {
       pendingTrace = await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
@@ -111,7 +120,6 @@ export class RoutingTraceService {
       return null;
     }
 
-    // 2. Extract assignment reason from trace
     const assignmentReasonData = this.extractAssignmentReasonFromTrace(
       pendingTrace.trace,
       {
@@ -123,7 +131,6 @@ export class RoutingTraceService {
 
     let assignmentReasonId: number | undefined;
 
-    // 3. Create assignment reason record if we have trace-based data
     if (assignmentReasonData) {
       const createdReason = await this.deps.assignmentReasonRepository.createAssignmentReason({
         bookingId,
@@ -133,7 +140,6 @@ export class RoutingTraceService {
       assignmentReasonId = createdReason.id;
     }
 
-    // 4. Create permanent routing trace
     await this.deps.routingTraceRepository.create({
       trace: pendingTrace.trace,
       formResponseId: pendingTrace.formResponseId ?? undefined,
@@ -165,10 +171,10 @@ export class RoutingTraceService {
       reroutedByEmail?: string | null;
     }
   ): { reasonEnum: AssignmentReasonEnum; reasonString: string } | null {
-    // Check for CRM assignment step (e.g., salesforce_assignment)
     const crmAssignmentStep = trace.find(
       (step) =>
-        step.domain === "salesforce" && step.step === "salesforce_assignment"
+        step.domain === ROUTING_TRACE_DOMAINS.SALESFORCE &&
+        step.step === ROUTING_TRACE_STEPS.SALESFORCE_ASSIGNMENT
     );
 
     if (crmAssignmentStep && crmAssignmentStep.data) {
@@ -186,7 +192,6 @@ export class RoutingTraceService {
         rrSKipToAccountLookupFieldName?: string | null;
       };
 
-      // Only use CRM assignment if the booking organizer matches the contact owner
       if (
         email &&
         email.toLowerCase() === context.organizerEmail.toLowerCase()
@@ -195,7 +200,7 @@ export class RoutingTraceService {
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
           reasonString: this.buildSalesforceReasonString({
             email,
-            recordType: recordType ?? "Contact", // Default to Contact if not specified
+            recordType: recordType ?? "Contact",
             recordId,
             rrSkipToAccountLookupField,
             rrSKipToAccountLookupFieldName,
@@ -204,10 +209,10 @@ export class RoutingTraceService {
       }
     }
 
-    // Check for routing form attribute logic step
     const routingFormStep = trace.find(
       (step) =>
-        step.domain === "routing_form" && step.step === "attribute-logic-evaluated"
+        step.domain === ROUTING_TRACE_DOMAINS.ROUTING_FORM &&
+        step.step === ROUTING_TRACE_STEPS.ATTRIBUTE_LOGIC_EVALUATED
     );
 
     if (routingFormStep && routingFormStep.data) {
@@ -233,7 +238,7 @@ export class RoutingTraceService {
     }
 
     logger.warn("Could not extract assignment reason from routing trace - no matching steps found", {
-      traceSteps: trace.map((s) => `${s.domain}:${s.step}`),
+      traceSteps: trace.map((s) => \`\${s.domain}:\${s.step}\`),
     });
     return null;
   }
@@ -245,17 +250,16 @@ export class RoutingTraceService {
   }): string {
     const { isRerouting, reroutedByEmail, attributeRoutingDetails } = data;
 
-    const reroutingPart = isRerouting && reroutedByEmail ? `Rerouted by ${reroutedByEmail}` : "";
+    const reroutingPart = isRerouting && reroutedByEmail ? \`Rerouted by \${reroutedByEmail}\` : "";
 
     const attributesPart =
       attributeRoutingDetails && attributeRoutingDetails.length > 0
         ? attributeRoutingDetails
-            .map(({ attributeName, attributeValue }) => `${attributeName}: ${attributeValue}`)
+            .map(({ attributeName, attributeValue }) => \`\${attributeName}: \${attributeValue}\`)
             .join(", ")
         : "";
 
-    // Combine both parts, matching main branch behavior
-    return `${reroutingPart} ${attributesPart}`.trim();
+    return \`\${reroutingPart} \${attributesPart}\`.trim();
   }
 
   private buildSalesforceReasonString(data: {
@@ -274,14 +278,14 @@ export class RoutingTraceService {
     } = data;
 
     if (rrSkipToAccountLookupField && rrSKipToAccountLookupFieldName) {
-      return `Salesforce account lookup field: ${rrSKipToAccountLookupFieldName} - ${email}${
-        recordId ? ` (Account ID: ${recordId})` : ""
-      }`;
+      return \`Salesforce account lookup field: \${rrSKipToAccountLookupFieldName} - \${email}\${
+        recordId ? \` (Account ID: \${recordId})\` : ""
+      }\`;
     }
 
     const recordLabel = recordType.toLowerCase();
-    return `Salesforce ${recordLabel} owner: ${email}${
-      recordId ? ` (${recordType} ID: ${recordId})` : ""
-    }`;
+    return \`Salesforce \${recordLabel} owner: \${email}\${
+      recordId ? \` (\${recordType} ID: \${recordId})\` : ""
+    }\`;
   }
 }
