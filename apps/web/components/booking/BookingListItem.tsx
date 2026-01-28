@@ -40,6 +40,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
@@ -273,6 +274,12 @@ function BookingListItem(booking: BookingItemProps) {
 
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
   const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
+  const isOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.isOpenWrongAssignmentDialog
+  );
+  const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.setIsOpenWrongAssignmentDialog
+  );
 
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
@@ -513,7 +520,22 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeFormat={userTimeFormat}
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
+        onAssignmentReasonClick={
+          isBookingFromRoutingForm ? () => setIsOpenWrongAssignmentDialog(true) : undefined
+        }
       />
+      {isBookingFromRoutingForm && (
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
     </div>
   );
 }
@@ -526,6 +548,7 @@ const BookingItemBadges = ({
   userTimeFormat,
   userTimeZone,
   isRescheduled,
+  onAssignmentReasonClick,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
@@ -534,6 +557,7 @@ const BookingItemBadges = ({
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
   isRescheduled: boolean;
+  onAssignmentReasonClick?: () => void;
 }) => {
   const { t } = useLocale();
 
@@ -562,7 +586,10 @@ const BookingItemBadges = ({
         </Badge>
       )}
       {booking?.assignmentReason.length > 0 && (
-        <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+        <AssignmentReasonTooltip
+          assignmentReason={booking.assignmentReason[0]}
+          onClick={onAssignmentReasonClick}
+        />
       )}
       {booking.report && (
         <Tooltip
@@ -1093,12 +1120,21 @@ const DisplayAttendees = ({
   );
 };
 
-const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: AssignmentReason }) => {
+const AssignmentReasonTooltip = ({
+  assignmentReason,
+  onClick,
+}: {
+  assignmentReason: AssignmentReason;
+  onClick?: () => void;
+}) => {
   const { t } = useLocale();
   const badgeTitle = assignmentReasonBadgeTitleMap(assignmentReason.reasonEnum);
   return (
     <Tooltip content={<p>{assignmentReason.reasonString}</p>}>
-      <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+      <Badge
+        className={classNames("ltr:mr-2 rtl:ml-2", onClick && "cursor-pointer hover:opacity-80")}
+        variant="gray"
+        onClick={onClick}>
         {t(badgeTitle)}
       </Badge>
     </Tooltip>

@@ -4,7 +4,7 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
+import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
@@ -91,6 +91,7 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
+  hideOrgTeamAvatar,
   showNoAvailabilityDialog,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
@@ -217,8 +218,10 @@ const BookerComponent = ({
   );
 
   // Cloudflare Turnstile Captcha
+  // Note: process.env may be undefined in embed contexts, so we safely check it
+  const isE2E = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_IS_E2E;
   const shouldRenderCaptcha = !!(
-    !process.env.NEXT_PUBLIC_IS_E2E &&
+    !isE2E &&
     renderCaptcha &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
@@ -468,6 +471,7 @@ const BookerComponent = ({
                     locale={userLocale}
                     timeZones={timeZones}
                     roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideOrgTeamAvatar={hideOrgTeamAvatar}
                     hideEventTypeDetails={hideEventTypeDetails}>
                     {eventMetaChildren}
                   </EventMeta>

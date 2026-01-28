@@ -10,6 +10,8 @@ import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
+import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
+import { ZMassApplyHostLocationInputSchema } from "./massApplyHostLocation.schema";
 import { get } from "./procedures/get";
 import { createEventPbacProcedure } from "./util";
 
@@ -145,4 +147,32 @@ export const eventTypesRouter = router({
       input,
     });
   }),
+
+  getHostsWithLocationOptions: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetHostsWithLocationOptionsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsWithLocationOptionsHandler } = await import("./getHostsWithLocationOptions.handler");
+
+      return getHostsWithLocationOptionsHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  massApplyHostLocation: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZMassApplyHostLocationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
+
+      return massApplyHostLocationHandler({
+        ctx,
+        input,
+      });
+    }),
 });

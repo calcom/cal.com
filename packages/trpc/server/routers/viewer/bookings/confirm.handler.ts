@@ -4,6 +4,7 @@ import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleInternalNote } from "@calcom/features/bookings/lib/handleInternalNote";
@@ -221,6 +222,16 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
+      assignmentReason: {
+        select: {
+          reasonEnum: true,
+          reasonString: true,
+        },
+        orderBy: {
+          createdAt: "desc" as const,
+        },
+        take: 1,
+      },
     },
   });
 
@@ -358,6 +369,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     organizationId:
       organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
+    assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
+      ? {
+          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
+          details: booking.assignmentReason[0].reasonString ?? null,
+        }
+      : null,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
