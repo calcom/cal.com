@@ -84,7 +84,7 @@ export function rateLimiter() {
       rootKey: UNKEY_ROOT_KEY,
       namespace: "forcedSlowMode",
       limit: 1,
-      duration: "30s",
+      duration: "1s",
       timeout,
       onError,
     }),
