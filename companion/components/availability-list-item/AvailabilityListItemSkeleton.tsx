@@ -1,5 +1,6 @@
 import { ScrollView, useColorScheme, View } from "react-native";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getColors } from "@/constants/colors";
 
 interface AvailabilityListItemSkeletonProps {
   isLast?: boolean;
@@ -10,13 +11,14 @@ export function AvailabilityListItemSkeleton({
 }: AvailabilityListItemSkeletonProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   return (
     <View
       style={{
-        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        backgroundColor: theme.background,
         borderBottomWidth: !isLast ? 1 : 0,
-        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
+        borderBottomColor: theme.border,
       }}
     >
       <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}>
@@ -70,16 +72,12 @@ export function AvailabilityListSkeleton({
 }: AvailabilityListSkeletonProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  const colors = {
-    background: isDark ? "#000000" : "#FFFFFF",
-    border: isDark ? "#4D4D4D" : "#E5E5EA",
-  };
+  const theme = getColors(isDark);
 
   if (iosStyle) {
     return (
       <ScrollView
-        style={{ backgroundColor: colors.background }}
+        style={{ backgroundColor: theme.background }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
@@ -88,7 +86,7 @@ export function AvailabilityListSkeleton({
             flex: 1,
             borderRadius: 8,
             borderWidth: 1,
-            borderColor: colors.border,
+            borderColor: theme.border,
             marginHorizontal: 8,
             marginVertical: 4,
             overflow: "hidden",
@@ -112,8 +110,8 @@ export function AvailabilityListSkeleton({
         flex: 1,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.background,
+        borderColor: theme.border,
+        backgroundColor: theme.background,
         paddingHorizontal: 8,
         paddingVertical: 4,
       }}

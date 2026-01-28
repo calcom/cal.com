@@ -112,4 +112,10 @@ export const semanticColors = {
     light: "rgba(209, 213, 219, 0.4)",
     dark: "rgba(77, 77, 77, 0.4)",
   },
+
+  // Skeleton loading state
+  skeleton: {
+    light: colors.light.backgroundEmphasis,
+    dark: colors.dark.backgroundEmphasis,
+  },
 } as const;

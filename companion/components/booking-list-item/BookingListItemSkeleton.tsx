@@ -7,8 +7,18 @@ interface BookingListItemSkeletonProps {
 }
 
 export function BookingListItemSkeleton({ isLast = false }: BookingListItemSkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   return (
-    <View className={`bg-cal-bg ${!isLast ? "border-b border-cal-border" : ""}`}>
+    <View
+      style={{
+        backgroundColor: theme.background,
+        borderBottomWidth: !isLast ? 1 : 0,
+        borderBottomColor: theme.border,
+      }}
+    >
       <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}>
         <View
           style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}
