@@ -1,9 +1,9 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { usePathname, useRouter } from "next/navigation";
 
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { AdminUserForm, type AdminUserFormValues } from "../components/AdminUserForm";
 
@@ -14,12 +14,12 @@ const AdminUserAddPage = () => {
 
   const mutation = trpc.viewer.admin.calid.users.add.useMutation({
     onSuccess: async () => {
-      showToast("User added successfully", "success");
+      triggerToast("User added successfully", "success");
       await utils.viewer.admin.calid.users.list.invalidate();
       if (pathname) router.replace(pathname.replace("/add", ""));
     },
     onError: () => {
-      showToast("There has been an error adding this user.", "error");
+      triggerToast("There has been an error adding this user.", "error");
     },
   });
 

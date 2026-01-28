@@ -1,5 +1,10 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Button } from "@calid/features/ui/components/button";
+import { Form } from "@calid/features/ui/components/form";
+import { EmailField, TextField } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
@@ -8,9 +13,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { EmailField, Form, Label, Select, TextField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 export type AdminUserFormValues = {
@@ -28,9 +31,8 @@ export type AdminUserFormValues = {
 };
 
 const identityProviderOptions = [
-  { value: "CAL", label: "CAL" },
   { value: "GOOGLE", label: "GOOGLE" },
-  { value: "SAML", label: "SAML" },
+  { value: "CAL", label: "CAL" },
 ];
 
 const roleOptions = [
@@ -135,7 +137,7 @@ export const AdminUserForm = ({
   }, [normalizeValues, watchedValues]);
 
   return (
-    <Form form={form} className="space-y-4" handleSubmit={onSubmit}>
+    <Form form={form} className="space-y-4" onSubmit={onSubmit}>
       <div className="flex items-center">
         <Controller
           control={form.control}

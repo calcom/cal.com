@@ -269,6 +269,13 @@ function FloatingFeatureBubbles() {
 
 export function UserNotFoundView({ slug }: UserNotFoundViewProps) {
   const { t } = useLocale();
+  const [host, setHost] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHost(window.location.host);
+    }
+  }, []);
 
   const features = [
     {
@@ -306,7 +313,8 @@ export function UserNotFoundView({ slug }: UserNotFoundViewProps) {
             </div>
 
             <h1 className="text-default mb-4 text-4xl font-bold leading-tight md:text-5xl lg:text-6xl">
-              {t("claim")} <span className="text-active">cal.id/{slug}</span> {t("before_someone_else_does")}
+              {t("claim")} <span className="text-active">{host ? `${host}/${slug}` : slug}</span>{" "}
+              {t("before_someone_else_does")}
             </h1>
 
             <p className="text-default mb-8 text-lg md:text-xl">{t("claim_username_description")}</p>

@@ -117,6 +117,17 @@ const providers: Provider[] = [
       }
 
       const userRepo = new UserRepository(prisma);
+      const lockedCheck = await prisma.user.findFirst({
+        where: {
+          email: credentials.email.toLowerCase(),
+          OR: [{ locked: false }, { locked: true }],
+        },
+        select: { locked: true },
+      });
+      if (lockedCheck?.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
+      }
+
       const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: credentials.email,
       });
@@ -833,6 +844,10 @@ export const getOptions = ({
           },
         });
 
+        if (existingUser?.locked) {
+          return "/auth/locked";
+        }
+
         /* --- START FIX LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
         if (!existingUser) {
           existingUser = await prisma.user.findFirst({
@@ -860,6 +875,9 @@ export const getOptions = ({
           }
         }
         /* --- END FIXES LEGACY ISSUE WHERE 'identityProviderId' was accidentally set to userId --- */
+        if (existingUser?.locked) {
+          return "/auth/locked";
+        }
         if (existingUser) {
           // In this case there's an existing user and their email address
           // hasn't changed since they last logged in.
