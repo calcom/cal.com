@@ -41,42 +41,44 @@ describe("Vercel Webhook Controller (e2e)", () => {
     await app.close();
   });
 
-  function generateSignature(body: string): string {
+  function generateSignature(body: Buffer): string {
     return crypto.createHmac("sha1", WEBHOOK_SECRET).update(body).digest("hex");
   }
 
   describe("POST /webhooks/vercel/deployment-promoted", () => {
     it("should reject requests without x-vercel-signature header", async () => {
       const payload = { type: "deployment.promoted" };
+      const bodyBuffer = Buffer.from(JSON.stringify(payload));
 
       await request(app.getHttpServer())
         .post("/v2/webhooks/vercel/deployment-promoted")
-        .send(payload)
+        .set("Content-Type", "application/json")
+        .send(bodyBuffer)
         .expect(401);
     });
 
     it("should reject requests with invalid signature", async () => {
       const payload = { type: "deployment.promoted" };
-      const body = JSON.stringify(payload);
+      const bodyBuffer = Buffer.from(JSON.stringify(payload));
 
       await request(app.getHttpServer())
         .post("/v2/webhooks/vercel/deployment-promoted")
         .set("x-vercel-signature", "invalid-signature")
         .set("Content-Type", "application/json")
-        .send(body)
+        .send(bodyBuffer)
         .expect(401);
     });
 
     it("should ignore non-deployment.promoted events with valid signature", async () => {
       const payload = { type: "deployment.created" };
-      const body = JSON.stringify(payload);
-      const signature = generateSignature(body);
+      const bodyBuffer = Buffer.from(JSON.stringify(payload));
+      const signature = generateSignature(bodyBuffer);
 
       const response = await request(app.getHttpServer())
         .post("/v2/webhooks/vercel/deployment-promoted")
         .set("x-vercel-signature", signature)
         .set("Content-Type", "application/json")
-        .send(body)
+        .send(bodyBuffer)
         .expect(200);
 
       expect(response.body.status).toBe("ignored");
@@ -85,8 +87,8 @@ describe("Vercel Webhook Controller (e2e)", () => {
 
     it("should process deployment.promoted events with valid signature", async () => {
       const payload = { type: "deployment.promoted" };
-      const body = JSON.stringify(payload);
-      const signature = generateSignature(body);
+      const bodyBuffer = Buffer.from(JSON.stringify(payload));
+      const signature = generateSignature(bodyBuffer);
 
       const originalFetch = global.fetch;
       let fetchCalled = false;
@@ -108,7 +110,7 @@ describe("Vercel Webhook Controller (e2e)", () => {
           .post("/v2/webhooks/vercel/deployment-promoted")
           .set("x-vercel-signature", signature)
           .set("Content-Type", "application/json")
-          .send(body)
+          .send(bodyBuffer)
           .expect(200);
 
         expect(response.body.status).toBe("success");
@@ -128,8 +130,8 @@ describe("Vercel Webhook Controller (e2e)", () => {
 
     it("should retry on trigger.dev API failure", async () => {
       const payload = { type: "deployment.promoted" };
-      const body = JSON.stringify(payload);
-      const signature = generateSignature(body);
+      const bodyBuffer = Buffer.from(JSON.stringify(payload));
+      const signature = generateSignature(bodyBuffer);
 
       const originalFetch = global.fetch;
       let fetchCallCount = 0;
@@ -154,7 +156,7 @@ describe("Vercel Webhook Controller (e2e)", () => {
           .post("/v2/webhooks/vercel/deployment-promoted")
           .set("x-vercel-signature", signature)
           .set("Content-Type", "application/json")
-          .send(body)
+          .send(bodyBuffer)
           .expect(200);
 
         expect(response.body.status).toBe("success");
