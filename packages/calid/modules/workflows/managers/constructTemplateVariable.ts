@@ -33,6 +33,7 @@ export const constructVariablesForTemplate = (
     eventTypeName: eventData.eventType.title || "",
     eventName: eventData.title || "",
     organizerName: eventData.organizer.name,
+    organizerFirstName: eventData.organizer.name.split(" ")[0],
     attendeeName: participantData.name,
     attendeeFirstName: participantData.firstName || participantData.name.split(" ")[0],
     attendeeLastName:
@@ -40,7 +41,8 @@ export const constructVariablesForTemplate = (
         ? participantData.name.split(" ")[1]
         : "",
     attendeeEmail: participantData.email,
-    eventDate: dayjs(eventStartTime).tz(targetTimezone),
+    eventDate: formatTimestamp(eventData?.startTime, "DD MMM YYYY"),
+    eventStartTime: dayjs(eventStartTime).tz(targetTimezone),
     eventEndTime: dayjs(eventEndTime).tz(targetTimezone),
     timezone: targetTimezone,
     location: eventData.location,
@@ -56,5 +58,6 @@ export const constructVariablesForTemplate = (
     eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
     eventTime: formatTimestamp(eventData?.startTime, "ddd, MMM D, YYYY h:mma"),
     cancellationReason: eventData.cancellationReason || "",
+    eventTimeFormatted: formatTimestamp(eventData?.startTime, "h:mma [GMT]Z"),
   };
 };
