@@ -127,7 +127,7 @@ export const TestForm = ({
   };
 
   function testRouting() {
-    const route = findMatchingRoute({ form, response });
+    const { chosenRoute: route } = findMatchingRoute({ form, response });
 
     // Create a copy of the route with substituted variables for display
     let displayRoute = route;

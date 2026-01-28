@@ -26,6 +26,7 @@ const _handleResponse = async ({
   // Unused but probably should be used
   // formFillerId,
   chosenRouteId,
+  routingTrace,
   isPreview,
   queueFormResponse,
   fetchCrm,
@@ -42,6 +43,7 @@ const _handleResponse = async ({
   form: TargetRoutingFormForResponse;
   formFillerId: string;
   chosenRouteId: string | null;
+  routingTrace?: any[];
   isPreview: boolean;
   queueFormResponse?: boolean;
   fetchCrm?: boolean;
@@ -118,10 +120,10 @@ const _handleResponse = async ({
             const contactOwnerQuery =
               identifierKeyedResponse && fetchCrm
                 ? await routerGetCrmContactOwnerEmail({
-                    attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-                    identifierKeyedResponse,
-                    action: chosenRoute.action,
-                  })
+                  attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+                  identifierKeyedResponse,
+                  action: chosenRoute.action,
+                })
                 : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
@@ -132,20 +134,20 @@ const _handleResponse = async ({
             const teamMembersMatchingAttributeLogicWithResult =
               formTeamId && formOrgId
                 ? await findTeamMembersMatchingAttributeLogic(
-                    {
-                      dynamicFieldValueOperands: {
-                        response,
-                        fields: form.fields || [],
-                      },
-                      attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-                      fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
-                      teamId: formTeamId,
-                      orgId: formOrgId,
+                  {
+                    dynamicFieldValueOperands: {
+                      response,
+                      fields: form.fields || [],
                     },
-                    {
-                      enablePerf: true,
-                    }
-                  )
+                    attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+                    fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
+                    teamId: formTeamId,
+                    orgId: formOrgId,
+                  },
+                  {
+                    enablePerf: true,
+                  }
+                )
                 : null;
 
             moduleLogger.debug(
@@ -156,8 +158,8 @@ const _handleResponse = async ({
             teamMemberIdsMatchingAttributeLogic =
               teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
                 ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
-                    (member) => member.userId
-                  )
+                  (member) => member.userId
+                )
                 : null;
 
             timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
@@ -176,6 +178,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          routingTrace,
         });
         dbFormResponse = null;
       } else {
@@ -183,6 +186,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          routingTrace,
         });
         queuedFormResponse = null;
 
@@ -207,6 +211,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          routingTrace,
           createdAt: new Date(),
           updatedAt: new Date(),
         };

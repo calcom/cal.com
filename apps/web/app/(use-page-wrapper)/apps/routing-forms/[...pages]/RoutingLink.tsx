@@ -70,7 +70,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const router = useRouter();
 
   const onSubmit = (response: FormResponse) => {
-    const chosenRoute = findMatchingRoute({ form, response });
+    const { chosenRoute, trace: routingTrace } = findMatchingRoute({ form, response });
 
     if (!chosenRoute) {
       // This error should never happen as we ensure that fallback route is always there that matches always
@@ -82,6 +82,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       formFillerId,
       response: response,
       chosenRouteId: chosenRoute.id,
+      routingTrace,
       isPreview: isBookingDryRun,
     });
 

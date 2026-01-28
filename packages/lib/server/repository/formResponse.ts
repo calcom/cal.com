@@ -5,10 +5,11 @@ interface RecordFormResponseInput {
   formId: string;
   response: Record<string, any> | Prisma.JsonValue;
   chosenRouteId: string | null;
+  routingTrace?: any[];
 }
 
 export class RoutingFormResponseRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   private generateCreateFormResponseData(
     input: RecordFormResponseInput & { queuedFormResponseId?: string | null }
@@ -17,14 +18,15 @@ export class RoutingFormResponseRepository {
       formId: input.formId,
       response: input.response as Prisma.InputJsonValue,
       chosenRouteId: input.chosenRouteId,
+      routingTrace: input.routingTrace as Prisma.InputJsonValue,
       ...(input.queuedFormResponseId
         ? {
-            queuedFormResponse: {
-              connect: {
-                id: input.queuedFormResponseId,
-              },
+          queuedFormResponse: {
+            connect: {
+              id: input.queuedFormResponseId,
             },
-          }
+          },
+        }
         : {}),
     };
   }

@@ -134,7 +134,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     fieldsResponses,
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  const { chosenRoute: matchingRoute, trace: routingTrace } = findMatchingRoute({
+    form: serializableForm,
+    response,
+  });
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -155,6 +158,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       response: response,
       identifierKeyedResponse: fieldsResponses,
       chosenRouteId: matchingRoute.id,
+      routingTrace,
       isPreview: isBookingDryRun,
       queueFormResponse: shouldQueueFormResponse,
       fetchCrm,

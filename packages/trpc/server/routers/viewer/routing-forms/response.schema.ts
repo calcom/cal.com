@@ -12,6 +12,7 @@ export const ZResponseInputSchema = z.object({
   ),
   // TODO: There could be existing forms loaded that will not send chosenRouteId. Make it required later.
   chosenRouteId: z.string().optional(),
+  routingTrace: z.any().array().optional(),
   isPreview: z.boolean().optional(),
 });
 

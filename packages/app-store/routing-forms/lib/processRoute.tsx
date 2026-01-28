@@ -42,6 +42,8 @@ export function findMatchingRoute({
     // After above flat map, all routes are non router routes.
     .concat([fallbackRoute]) as z.infer<typeof zodNonRouterRoute>[];
 
+  const trace = [];
+
   for (const route of routesWithFallbackInEnd) {
     if (!route) {
       continue;
@@ -57,15 +59,17 @@ export function findMatchingRoute({
       data: responseValues,
     });
 
+    trace.push({
+      id: route.id,
+      isFallback: isFallbackRoute(route),
+      result,
+    });
+
     if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
       chosenRoute = route;
       break;
     }
   }
 
-  if (!chosenRoute) {
-    return null;
-  }
-
-  return chosenRoute;
+  return { chosenRoute, trace };
 }
