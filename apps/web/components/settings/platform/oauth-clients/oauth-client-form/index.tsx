@@ -231,6 +231,11 @@ export const OAuthClientForm = ({
               </div>
             </Tooltip>
           </div>
+          <p className="text-subtle mt-2 text-sm">
+            When calendar events are disabled, video call links can only be generated for Cal Video. Google Meet
+            and Microsoft Teams links cannot be generated because their link generation is tied to calendar event
+            creation.
+          </p>
         </div>
         <div className="mt-6">
           <div className="flex items-center">
