@@ -49,8 +49,10 @@ import {
   shouldScheduleEmailReminder,
 } from "../config/utils";
 import { workflowFormSchema as formSchema } from "../config/validation";
+import emailCancelledTemplate from "../templates/email/cancelled";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
+import emailRescheduledTemplate from "../templates/email/rescheduled";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 // Add these imports to your WorkflowBuilder component
 import { type VariableMapping } from "./utils";
@@ -929,6 +931,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               } else if (newTemplate === WorkflowTemplates.THANKYOU) {
                 updatedStep.emailSubject = emailThankYouTemplate({
                   isEditingMode: true,
+                  timeFormat,
+                }).emailSubject;
+              } else if (newTemplate === WorkflowTemplates.CANCELLED) {
+                updatedStep.emailSubject = emailCancelledTemplate({
+                  isEditingMode: true,
+                  locale: i18n.language,
+                  action: actionType,
+                }).emailSubject;
+              } else if (newTemplate === WorkflowTemplates.RESCHEDULED) {
+                updatedStep.emailSubject = emailRescheduledTemplate({
+                  isEditingMode: true,
+                  locale: i18n.language,
+                  action: actionType,
                   timeFormat,
                 }).emailSubject;
               }
@@ -1966,7 +1981,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               <Label className={cn("flex-none", readOnly ? "mb-2" : "mb-0")}>
                                                 {t("email_subject")}
                                               </Label>
-                                              {!readOnly && (
+                                              {!readOnly && step.template == WorkflowTemplates.CUSTOM && (
                                                 <div className="flex-grow text-right">
                                                   <VariableDropdown
                                                     onSelect={(variable) =>
