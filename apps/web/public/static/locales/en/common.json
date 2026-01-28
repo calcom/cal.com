@@ -4508,8 +4508,5 @@
   "error_enabling_feature": "Error enabling feature. Please try again.",
   "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
   "overwrite_existing_contact_owner": "Overwrite existing contact owner",
-  "failed_to_download": "Failed to download",
-  "cancel_download": "Cancel Download",
-  "download_progress": "{{progress}}% complete",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

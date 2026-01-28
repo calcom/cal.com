@@ -1,12 +1,14 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
+import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-
-import { CsvDownloadButton } from "@lib/components/CsvDownloadButton";
+import { Button } from "@calcom/ui/components/button";
+import { hideProgressToast, showProgressToast, showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import type { BookingListingStatus } from "../types";
 
@@ -36,6 +38,7 @@ function transformBookingToCsv(booking: BookingOutput, t: TranslationFunction) {
 export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
   const { t } = useLocale();
   const { data: user, isPending: isUserPending } = useMeQuery();
+  const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
 
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
@@ -48,30 +51,75 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
     return null;
   }
 
+  const fetchBatch = async (offset: number) => {
+    const result = await utils.viewer.bookings.get.fetch({
+      limit: BATCH_SIZE,
+      offset,
+      filters: {
+        statuses: [status],
+        eventTypeIds,
+        teamIds,
+        userIds,
+        attendeeName,
+        attendeeEmail,
+        bookingUid,
+        afterStartDate: dateRange?.startDate
+          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+          : undefined,
+        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+      },
+    });
+
+    return {
+      bookings: result.bookings,
+      totalCount: result.totalCount,
+    };
+  };
+
+  const handleDownload = async () => {
+    try {
+      setIsDownloading(true);
+      showProgressToast(0);
+
+      // Fetch first batch to get total count
+      const firstBatch = await fetchBatch(0);
+      let allBookings = firstBatch.bookings;
+      const totalCount = firstBatch.totalCount;
+
+      // Continue fetching remaining batches
+      while (allBookings.length < totalCount) {
+        const offset = allBookings.length;
+        const batch = await fetchBatch(offset);
+        if (batch.bookings.length === 0) break; // Prevent infinite loop if batch returns empty
+        allBookings = [...allBookings, ...batch.bookings];
+
+        const currentProgress = Math.min(Math.round((allBookings.length / totalCount) * 100), 99);
+        showProgressToast(currentProgress);
+      }
+
+      showProgressToast(100);
+
+      // Transform and download
+      const csvData = allBookings.map((booking) => transformBookingToCsv(booking, t));
+      const filename = `${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`;
+      downloadAsCsv(csvData, filename);
+    } catch {
+      showToast(t("unexpected_error_try_again"), "error");
+    } finally {
+      setIsDownloading(false);
+      hideProgressToast();
+    }
+  };
+
   return (
-    <CsvDownloadButton
-      fetchBatch={async (offset) => {
-        const result = await utils.viewer.bookings.get.fetch({
-          limit: BATCH_SIZE,
-          offset,
-          filters: {
-            statuses: [status],
-            eventTypeIds,
-            teamIds,
-            userIds,
-            attendeeName,
-            attendeeEmail,
-            bookingUid,
-            afterStartDate: dateRange?.startDate
-              ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-              : undefined,
-            beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
-          },
-        });
-        return { data: result.bookings, total: result.totalCount };
-      }}
-      transformData={(bookings) => bookings.map((booking) => transformBookingToCsv(booking, t))}
-      filename={`${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`}
-    />
+    <Button
+      color="secondary"
+      StartIcon="download"
+      loading={isDownloading}
+      onClick={handleDownload}
+      size="sm"
+      className="h-full">
+      {t("download")}
+    </Button>
   );
 }
