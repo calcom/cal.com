@@ -105,6 +105,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           title: "Date Override",
           start: dateOverrideStart.add(workingHoursForDay.startTime, "minutes").toDate(),
           end: dateOverrideEnd.add(workingHoursForDay.endTime, "minutes").toDate(),
+          source: undefined,
           options: {
             color: "black",
             status: BookingStatus.ACCEPTED,
