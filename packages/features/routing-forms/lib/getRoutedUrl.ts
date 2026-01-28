@@ -140,11 +140,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     fieldsResponses,
   });
 
-  let routingFormTrace: RoutingFormTraceService | undefined;
+  let routingFormTraceService: RoutingFormTraceService | undefined;
   if (!isBookingDryRun) {
-    routingFormTrace = new RoutingFormTraceService(routingTraceService);
+    routingFormTraceService = new RoutingFormTraceService(routingTraceService);
   }
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response, routingFormTrace });
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response, routingFormTraceService });
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -169,7 +169,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       queueFormResponse: shouldQueueFormResponse,
       fetchCrm,
       traceService: isBookingDryRun ? undefined : routingTraceService,
-      routingFormTrace,
+      routingFormTraceService,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;

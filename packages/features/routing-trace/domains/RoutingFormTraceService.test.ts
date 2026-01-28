@@ -5,19 +5,19 @@ import { ROUTING_FORM_STEPS, RoutingFormTraceService } from "./RoutingFormTraceS
 
 describe("RoutingFormTraceService", () => {
   let mockTraceService: RoutingTraceService;
-  let routingFormTrace: RoutingFormTraceService;
+  let routingFormTraceService: RoutingFormTraceService;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockTraceService = {
       addStep: vi.fn(),
     } as unknown as RoutingTraceService;
-    routingFormTrace = new RoutingFormTraceService(mockTraceService);
+    routingFormTraceService = new RoutingFormTraceService(mockTraceService);
   });
 
   describe("routeMatched", () => {
     it("should add a route_matched step with correct data", () => {
-      routingFormTrace.routeMatched({
+      routingFormTraceService.routeMatched({
         routeId: "route-123",
         routeName: "Sales Route",
       });
@@ -35,7 +35,7 @@ describe("RoutingFormTraceService", () => {
 
   describe("fallbackRouteUsed", () => {
     it("should add a fallback_route_used step with correct data", () => {
-      routingFormTrace.fallbackRouteUsed({
+      routingFormTraceService.fallbackRouteUsed({
         routeId: "fallback-route",
         routeName: "Default Route",
       });
@@ -53,7 +53,7 @@ describe("RoutingFormTraceService", () => {
 
   describe("attributeLogicEvaluated", () => {
     it("should add an attribute-logic-evaluated step with routing details", () => {
-      routingFormTrace.attributeLogicEvaluated({
+      routingFormTraceService.attributeLogicEvaluated({
         routeName: "Enterprise Route",
         routeIsFallback: false,
         checkedFallback: true,
@@ -79,7 +79,7 @@ describe("RoutingFormTraceService", () => {
     });
 
     it("should add an attribute-logic-evaluated step with minimal data", () => {
-      routingFormTrace.attributeLogicEvaluated({});
+      routingFormTraceService.attributeLogicEvaluated({});
 
       expect(mockTraceService.addStep).toHaveBeenCalledWith({
         domain: ROUTING_TRACE_DOMAINS.ROUTING_FORM,
@@ -91,7 +91,7 @@ describe("RoutingFormTraceService", () => {
 
   describe("attributeFallbackUsed", () => {
     it("should add an attribute_fallback_used step with route name", () => {
-      routingFormTrace.attributeFallbackUsed({
+      routingFormTraceService.attributeFallbackUsed({
         routeName: "Fallback Route",
       });
 
@@ -105,7 +105,7 @@ describe("RoutingFormTraceService", () => {
     });
 
     it("should add an attribute_fallback_used step with undefined route name", () => {
-      routingFormTrace.attributeFallbackUsed({});
+      routingFormTraceService.attributeFallbackUsed({});
 
       expect(mockTraceService.addStep).toHaveBeenCalledWith({
         domain: ROUTING_TRACE_DOMAINS.ROUTING_FORM,

@@ -30,7 +30,7 @@ const _handleResponse = async ({
   queueFormResponse,
   fetchCrm,
   traceService,
-  routingFormTrace,
+  routingFormTraceService,
 }: {
   response: Record<
     string,
@@ -48,7 +48,7 @@ const _handleResponse = async ({
   queueFormResponse?: boolean;
   fetchCrm?: boolean;
   traceService?: RoutingTraceService;
-  routingFormTrace?: RoutingFormTraceService;
+  routingFormTraceService?: RoutingFormTraceService;
 }) => {
   try {
     if (!form.fields) {
@@ -152,7 +152,7 @@ const _handleResponse = async ({
                     },
                     {
                       enablePerf: true,
-                      routingFormTrace,
+                      routingFormTraceService,
                     }
                   )
                 : null;

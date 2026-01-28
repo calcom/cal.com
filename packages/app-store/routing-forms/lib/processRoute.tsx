@@ -14,11 +14,11 @@ import isRouter from "./isRouter";
 export function findMatchingRoute({
   form,
   response,
-  routingFormTrace,
+  routingFormTraceService,
 }: {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
   response: Record<string, Pick<FormResponse[string], "value">>;
-  routingFormTrace?: RoutingFormTraceService;
+  routingFormTraceService?: RoutingFormTraceService;
 }) {
   const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
@@ -68,7 +68,7 @@ export function findMatchingRoute({
     return null;
   }
 
-  if (routingFormTrace) {
+  if (routingFormTraceService) {
     let routeName: string;
     if ("name" in chosenRoute && chosenRoute.name) {
       routeName = chosenRoute.name;
@@ -78,9 +78,9 @@ export function findMatchingRoute({
       routeName = chosenRoute.id;
     }
     if (isFallbackRoute(chosenRoute)) {
-      routingFormTrace.fallbackRouteUsed({ routeId: chosenRoute.id, routeName });
+      routingFormTraceService.fallbackRouteUsed({ routeId: chosenRoute.id, routeName });
     } else {
-      routingFormTrace.routeMatched({ routeId: chosenRoute.id, routeName });
+      routingFormTraceService.routeMatched({ routeId: chosenRoute.id, routeName });
     }
   }
 

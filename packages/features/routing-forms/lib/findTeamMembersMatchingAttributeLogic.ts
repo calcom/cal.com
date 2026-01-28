@@ -462,11 +462,11 @@ export async function findTeamMembersMatchingAttributeLogic(
     enablePerf?: boolean;
     concurrency?: number;
     enableTroubleshooter?: boolean;
-    routingFormTrace?: RoutingFormTraceService;
+    routingFormTraceService?: RoutingFormTraceService;
   } = {}
 ) {
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false, routingFormTrace } = options;
+  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false, routingFormTraceService } = options;
 
   // Any explicit value being passed should cause fallback to be considered. Even undefined
   const considerFallback = "fallbackAttributesQueryValue" in data;
@@ -523,14 +523,14 @@ export async function findTeamMembersMatchingAttributeLogic(
 
   // Helper to add trace step for attribute logic evaluation
   const addTraceStep = (checkedFallback: boolean) => {
-    if (routingFormTrace) {
+    if (routingFormTraceService) {
       const attributeRoutingDetails = extractAttributeRoutingDetails({
         resolvedAttributesQueryValue,
         attributesOfTheOrg,
         dynamicFieldValueOperands,
       });
 
-      routingFormTrace.attributeLogicEvaluated({
+      routingFormTraceService.attributeLogicEvaluated({
         routeName,
         routeIsFallback,
         checkedFallback,
