@@ -54,7 +54,6 @@ vi.mock("../config", () => {
     OPT_IN_FEATURES: mockFeatures,
     isOptInFeature: (slug: string) => mockFeatures.some((feature) => feature.slug === slug),
     getOptInFeaturesForScope: () => mockFeatures,
-    getOptInFeaturesForScopeInSettings: () => mockFeatures,
     get isFeatureAllowedForScope(): Mock {
       return mockIsFeatureAllowedForScope;
     },

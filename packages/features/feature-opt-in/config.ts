@@ -106,43 +106,37 @@ export const HAS_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.length > 0;
  * Whether there are opt-in features available for the user scope in settings.
  * Only counts features that should be displayed in settings (displayLocations includes 'settings' or is omitted).
  */
-export const HAS_USER_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
-  (f) => (!f.scope || f.scope.includes("user")) && shouldDisplayFeatureAt(f, "settings")
-);
+export const HAS_USER_OPT_IN_FEATURES: boolean = getOptInFeaturesForScope("user", "settings").length > 0;
 
 /**
  * Whether there are opt-in features available for the team scope in settings.
  * Only counts features that should be displayed in settings (displayLocations includes 'settings' or is omitted).
  */
-export const HAS_TEAM_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
-  (f) => (!f.scope || f.scope.includes("team")) && shouldDisplayFeatureAt(f, "settings")
-);
+export const HAS_TEAM_OPT_IN_FEATURES: boolean = getOptInFeaturesForScope("team", "settings").length > 0;
 
 /**
  * Whether there are opt-in features available for the org scope in settings.
  * Only counts features that should be displayed in settings (displayLocations includes 'settings' or is omitted).
  */
-export const HAS_ORG_OPT_IN_FEATURES: boolean = OPT_IN_FEATURES.some(
-  (f) => (!f.scope || f.scope.includes("org")) && shouldDisplayFeatureAt(f, "settings")
-);
+export const HAS_ORG_OPT_IN_FEATURES: boolean = getOptInFeaturesForScope("org", "settings").length > 0;
 
 /**
  * Get opt-in features that are available for a specific scope.
  * Features without a scope field are available for all scopes.
+ * Optionally filter by display location (e.g., 'settings' or 'banner').
  */
-export function getOptInFeaturesForScope(scope: OptInFeatureScope): OptInFeatureConfig[] {
-  return OPT_IN_FEATURES.filter((f) => !f.scope || f.scope.includes(scope));
-}
-
-/**
- * Get opt-in features that are available for a specific scope and should be displayed in settings.
- * Features without a scope field are available for all scopes.
- * Only returns features that have 'settings' in their displayLocations (or omit displayLocations, defaulting to settings).
- */
-export function getOptInFeaturesForScopeInSettings(scope: OptInFeatureScope): OptInFeatureConfig[] {
-  return OPT_IN_FEATURES.filter(
-    (f) => (!f.scope || f.scope.includes(scope)) && shouldDisplayFeatureAt(f, "settings")
-  );
+export function getOptInFeaturesForScope(
+  scope: OptInFeatureScope,
+  displayLocation?: OptInFeatureDisplayLocation
+): OptInFeatureConfig[] {
+  return OPT_IN_FEATURES.filter((f) => {
+    const scopeMatches = !f.scope || f.scope.includes(scope);
+    if (!scopeMatches) return false;
+    if (displayLocation) {
+      return shouldDisplayFeatureAt(f, displayLocation);
+    }
+    return true;
+  });
 }
 
 /**

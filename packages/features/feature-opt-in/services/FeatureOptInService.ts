@@ -13,7 +13,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import {
   getOptInFeatureConfig,
-  getOptInFeaturesForScopeInSettings,
+  getOptInFeaturesForScope,
   isFeatureAllowedForScope,
   isOptInFeature,
 } from "../config";
@@ -238,7 +238,7 @@ export class FeatureOptInService implements IFeatureOptInService {
     teamIds: number[];
   }): Promise<ListFeaturesForUserResult[]> {
     const { userId, orgId, teamIds } = input;
-    const userScopedFeatures = getOptInFeaturesForScopeInSettings("user");
+    const userScopedFeatures = getOptInFeaturesForScope("user", "settings");
     const featureIds = userScopedFeatures.map((config) => config.slug);
 
     const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
@@ -265,7 +265,7 @@ export class FeatureOptInService implements IFeatureOptInService {
   }): Promise<ListFeaturesForTeamResult[]> {
     const { teamId, parentOrgId, scope = "team" } = input;
     const teamIdsToQuery = getTeamIdsToQuery(teamId, parentOrgId);
-    const scopedFeatures = getOptInFeaturesForScopeInSettings(scope);
+    const scopedFeatures = getOptInFeaturesForScope(scope, "settings");
 
     const [allFeatures, teamStates] = await Promise.all([
       this.deps.featureRepo.findAll(),
