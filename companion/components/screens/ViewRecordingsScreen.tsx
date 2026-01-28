@@ -10,6 +10,7 @@ import * as WebBrowser from "expo-web-browser";
 import { FlatList, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BookingRecording } from "@/services/types/bookings.types";
+import { getColors } from "@/constants/colors";
 
 export interface ViewRecordingsScreenProps {
   recordings: BookingRecording[];
@@ -42,11 +43,12 @@ export function ViewRecordingsScreen({
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const backgroundStyle = transparentBackground
     ? "bg-transparent"
     : isDark
       ? "bg-black"
-      : "bg-[#F2F2F7]";
+      : `bg-[${theme.backgroundMuted}]`;
   const pillStyle = transparentBackground
     ? "bg-[#E8E8ED]/50"
     : isDark

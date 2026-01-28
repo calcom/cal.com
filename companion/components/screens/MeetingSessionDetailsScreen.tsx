@@ -9,6 +9,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { ConferencingSession } from "@/services/types/bookings.types";
+import { getColors } from "@/constants/colors";
 
 export interface MeetingSessionDetailsScreenProps {
   sessions: ConferencingSession[];
@@ -52,11 +53,12 @@ export function MeetingSessionDetailsScreen({
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const backgroundStyle = transparentBackground
     ? "bg-transparent"
     : isDark
       ? "bg-black"
-      : "bg-[#F2F2F7]";
+      : `bg-[${theme.backgroundMuted}]`;
   const pillStyle = transparentBackground
     ? "bg-[#E8E8ED]/50"
     : isDark

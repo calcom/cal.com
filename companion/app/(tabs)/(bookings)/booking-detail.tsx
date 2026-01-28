@@ -223,6 +223,7 @@ export default function BookingDetail() {
       <Stack.Screen
         options={{
           headerBackButtonDisplayMode: "minimal",
+          title: "Booking",
         }}
       />
 

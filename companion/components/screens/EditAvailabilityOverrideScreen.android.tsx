@@ -6,6 +6,7 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
+import { getColors } from "@/constants/colors";
 
 // Convert 24-hour time to 12-hour format with AM/PM
 const formatTime12Hour = (time24: string): string => {
@@ -94,11 +95,12 @@ export const EditAvailabilityOverrideScreen = forwardRef<
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const backgroundStyle = transparentBackground
     ? "bg-transparent"
     : isDark
       ? "bg-black"
-      : "bg-[#F2F2F7]";
+      : `bg-[${theme.backgroundMuted}]`;
 
   // Use mutation hook for cache-synchronized updates
   const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();

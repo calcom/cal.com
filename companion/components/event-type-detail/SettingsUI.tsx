@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { openInAppBrowser } from "@/utils/browser";
 import { IOSPickerTrigger } from "./tabs/IOSPickerTrigger";
+import { getColors } from "@/constants/colors";
 
 // Section header
 export function SectionHeader({
@@ -19,11 +20,13 @@ export function SectionHeader({
   title: string;
   rightElement?: React.ReactNode;
 }) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
     <View className={`flex-row items-center ${rightElement ? "justify-between pr-4" : ""} mb-2`}>
       <Text
-        className="ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72] dark:text-[#A3A3A3]"
-        style={{ letterSpacing: 0.5 }}
+        className="ml-4 text-[13px] uppercase tracking-wide"
+        style={{ letterSpacing: 0.5, color: theme.textSecondary }}
       >
         {title}
       </Text>
@@ -44,12 +47,21 @@ export function SettingsGroup({
   headerRight?: React.ReactNode;
   footer?: string;
 }) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
     <View>
       {header ? <SectionHeader title={header} rightElement={headerRight} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white dark:bg-[#171717]">{children}</View>
+      <View
+        className="overflow-hidden rounded-[14px] bg-white"
+        style={{ backgroundColor: theme.backgroundSecondary }}
+      >
+        {children}
+      </View>
       {footer ? (
-        <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72] dark:text-[#A3A3A3]">{footer}</Text>
+        <Text className="ml-4 mt-2 text-[13px]" style={{ color: theme.textSecondary }}>
+          {footer}
+        </Text>
       ) : null}
     </View>
   );
@@ -75,6 +87,7 @@ export function SettingRow({
 }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const height = isFirst || isLast ? 52 : 44;
   const showDescription = () => {
     if (!description) return;
@@ -96,10 +109,16 @@ export function SettingRow({
   };
 
   return (
-    <View className="bg-white pl-4 dark:bg-[#171717]">
+    <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
       <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""}`}
-        style={{ height, flexDirection: "row", alignItems: "center" }}
+        className={`flex-row items-center pr-4`}
+        style={{
+          height,
+          flexDirection: "row",
+          alignItems: "center",
+          borderBottomWidth: !isLast ? 1 : 0,
+          borderBottomColor: theme.borderSubtle,
+        }}
       >
         <TouchableOpacity
           className="flex-1 flex-row items-center"
@@ -108,7 +127,7 @@ export function SettingRow({
           activeOpacity={description ? 0.7 : 1}
           disabled={!description}
         >
-          <Text className="text-[17px] text-black dark:text-white" style={{ fontWeight: "400" }}>
+          <Text className="text-[17px]" style={{ fontWeight: "400", color: theme.text }}>
             {title}
           </Text>
           {description ? (
@@ -147,15 +166,19 @@ export function NavigationRow({
   onSelect?: (value: string) => void;
 }) {
   const height = isFirst || isLast ? 52 : 44;
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
-    <View className="bg-white pl-4 dark:bg-[#171717]" style={{ height }}>
+    <View className="bg-white pl-4" style={{ height, backgroundColor: theme.backgroundSecondary }}>
       <View
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""
-        }`}
-        style={{ height }}
+        className={`flex-1 flex-row items-center justify-between pr-4`}
+        style={{
+          height,
+          borderBottomWidth: !isLast ? 1 : 0,
+          borderBottomColor: theme.borderSubtle,
+        }}
       >
-        <Text className="text-[17px] text-black dark:text-white" style={{ fontWeight: "400" }}>
+        <Text className="text-[17px]" style={{ fontWeight: "400", color: theme.text }}>
           {title}
         </Text>
         <View className="flex-row items-center">

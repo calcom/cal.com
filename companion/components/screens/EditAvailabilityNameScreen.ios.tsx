@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TIMEZONES as ALL_TIMEZONES } from "@/constants/timezones";
 import { type Schedule, useUpdateSchedule } from "@/hooks/useSchedules";
 import { showErrorAlert } from "@/utils/alerts";
+import { getColors } from "@/constants/colors";
 
 // Format timezones for display
 const TIMEZONES = ALL_TIMEZONES.map((tz) => ({
@@ -44,11 +45,12 @@ export const EditAvailabilityNameScreen = forwardRef<
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const backgroundStyle = transparentBackground
     ? "bg-transparent"
     : isDark
       ? "bg-black"
-      : "bg-[#F2F2F7]";
+      : `bg-[${theme.backgroundMuted}]`;
 
   const [name, setName] = useState("");
   const [timezone, setTimezone] = useState("UTC");

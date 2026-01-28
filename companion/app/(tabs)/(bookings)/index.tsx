@@ -12,6 +12,7 @@ import {
 import { AppPressable } from "@/components/AppPressable";
 import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useEventTypes } from "@/hooks";
+import { getColors } from "@/constants/colors";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,12 +20,7 @@ export default function Bookings() {
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  // iOS system colors for dark mode
-  const colors = {
-    text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#A3A3A3" : "#333333",
-  };
+  const theme = getColors(isDark);
 
   // Use React Query hook for event types (same as iOS for unified caching)
   const { data: eventTypes = [], isLoading: eventTypesLoading } = useEventTypes();
@@ -63,24 +59,35 @@ export default function Bookings() {
       selectedEventTypeId !== null ? selectedEventTypeLabel || "Event Type" : "Filter";
 
     return (
-      <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 dark:border-[#4D4D4D] dark:bg-black md:px-4">
+      <View
+        className="border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4"
+        style={{
+          borderBottomColor: theme.borderSubtle,
+          backgroundColor: isDark ? theme.background : undefined,
+        }}
+      >
         <View className="flex-row items-center gap-3">
           {/* Dropdown menu for event type filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <AppPressable
-                className="flex-row items-center rounded-lg border border-gray-200 bg-white dark:border-[#4D4D4D] dark:bg-[#171717]"
+                className="flex-row items-center rounded-lg border border-gray-200 bg-white"
                 style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.backgroundSecondary,
                   paddingHorizontal: 8,
                   paddingVertical: 6,
                   flexDirection: "row",
                   alignItems: "center",
                 }}
               >
-                <Ionicons name="options-outline" size={14} color={colors.textSecondary} />
+                <Ionicons name="options-outline" size={14} color={theme.textSecondary} />
                 <Text
-                  className={`text-sm ${selectedEventTypeId !== null ? "text-[#000000] font-semibold dark:text-white" : "text-[#333] dark:text-gray-300"}`}
-                  style={{ marginLeft: 4 }}
+                  className={`text-sm ${selectedEventTypeId !== null ? "font-semibold" : ""}`}
+                  style={{
+                    marginLeft: 4,
+                    color: selectedEventTypeId !== null ? theme.text : theme.textSecondary,
+                  }}
                   numberOfLines={1}
                 >
                   {filterLabel}
@@ -88,7 +95,7 @@ export default function Bookings() {
                 <Ionicons
                   name="chevron-down"
                   size={12}
-                  color={colors.textSecondary}
+                  color={theme.textSecondary}
                   style={{ marginLeft: 2 }}
                 />
               </AppPressable>
@@ -105,7 +112,9 @@ export default function Bookings() {
                 checked={selectedEventTypeId === null}
                 onCheckedChange={() => handleEventTypeSelect(null)}
               >
-                <Text className="text-base dark:text-white">All Event Types</Text>
+                <Text className="text-base" style={{ color: theme.text }}>
+                  All Event Types
+                </Text>
               </DropdownMenuCheckboxItem>
 
               {/* Event type options */}
@@ -115,7 +124,7 @@ export default function Bookings() {
                   checked={selectedEventTypeId === eventType.id}
                   onCheckedChange={() => handleEventTypeSelect(eventType.id, eventType.title)}
                 >
-                  <Text className="text-base dark:text-white" numberOfLines={1}>
+                  <Text className="text-base" style={{ color: theme.text }} numberOfLines={1}>
                     {eventType.title}
                   </Text>
                 </DropdownMenuCheckboxItem>
@@ -132,9 +141,14 @@ export default function Bookings() {
 
           <View style={{ flex: 1 }}>
             <TextInput
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundSecondary,
+                color: theme.text,
+              }}
               placeholder="Search bookings"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={theme.textSecondary}
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"

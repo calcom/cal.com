@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useMarkNoShow } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
+import { getColors } from "@/constants/colors";
 
 interface Attendee {
   id?: number | string;
@@ -65,11 +66,12 @@ export function MarkNoShowScreen({
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const backgroundStyle = transparentBackground
-    ? "bg-transparent"
+  const theme = getColors(isDark);
+  const backgroundColor = transparentBackground
+    ? "transparent"
     : isDark
-      ? "bg-black"
-      : "bg-[#F2F2F7]";
+      ? theme.background
+      : theme.backgroundMuted;
   const pillStyle = transparentBackground
     ? "bg-[#E8E8ED]/50"
     : isDark
@@ -283,14 +285,14 @@ export function MarkNoShowScreen({
 
   if (!booking) {
     return (
-      <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
         <Text className={`${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}>No booking data</Text>
       </View>
     );
   }
 
   return (
-    <View className={`flex-1 ${backgroundStyle}`}>
+    <View className="flex-1" style={{ backgroundColor }}>
       <View className="flex-1 p-4">
         {safeAttendees.length === 0 ? (
           <View className="flex-1 items-center justify-center">

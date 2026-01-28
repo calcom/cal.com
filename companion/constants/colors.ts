@@ -52,6 +52,7 @@ export const colors = {
 
     // Borders - Website grays
     border: "#4D4D4D",
+    borderLight: "#4D4D4D",
     borderSubtle: "#262626",
 
     // Accent colors

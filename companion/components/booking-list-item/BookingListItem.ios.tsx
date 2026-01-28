@@ -1,7 +1,7 @@
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, useColorScheme, View } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import { getBookingActions } from "@/utils/booking-actions";
@@ -59,6 +59,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const [isPressed, setIsPressed] = useState(false);
 
   // Define context menu actions based on booking state
   type ContextMenuAction = {
@@ -166,8 +167,14 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
           <ContextMenu.Trigger>
             <Pressable
               onPress={() => onPress(booking)}
-              style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-              className="active:bg-cal-bg-secondary"
+              onPressIn={() => setIsPressed(true)}
+              onPressOut={() => setIsPressed(false)}
+              style={{
+                paddingHorizontal: 16,
+                paddingTop: 16,
+                paddingBottom: 12,
+                backgroundColor: isPressed ? (isDark ? "#171717" : "#F3F4F6") : "transparent",
+              }}
             >
               <TimeAndDateRow
                 formattedDate={formattedDate}

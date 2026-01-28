@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import type { Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
+import { getColors } from "@/constants/colors";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -92,17 +93,18 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
     const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === "dark";
-    const backgroundStyle = transparentBackground
-      ? "bg-transparent"
+    const theme = getColors(isDark);
+    const backgroundColor = transparentBackground
+      ? "transparent"
       : isDark
-        ? "bg-black"
-        : "bg-[#F2F2F7]";
+        ? theme.background
+        : theme.backgroundMuted;
 
     const availability = parseAvailability(schedule);
 
     if (!schedule) {
       return (
-        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
+        <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
           <Text className="text-[#A3A3A3]">No schedule data</Text>
         </View>
       );
@@ -110,7 +112,8 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
 
     return (
       <ScrollView
-        className={`flex-1 ${backgroundStyle}`}
+        className="flex-1"
+        style={{ backgroundColor }}
         contentContainerStyle={{
           padding: 16,
           paddingBottom: insets.bottom + 16,

@@ -10,18 +10,14 @@ import { GlobalToast } from "@/components/ui/GlobalToast";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/contexts/QueryContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { colors as semanticColors, getColors } from "@/constants/colors";
 import "../global.css";
 
 function RootLayoutContent() {
   const { isAuthenticated, loading } = useAuth();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  const colors = {
-    background: isDark ? "#000000" : "#FFFFFF",
-    secondaryBackground: isDark ? "#171717" : "#F2F2F7",
-    border: isDark ? "#4D4D4D" : "#C6C6C8",
-  };
+  const colors = getColors(isDark);
 
   // Show Cal.com logo while checking auth state to prevent login flash
   if (loading) {
@@ -38,7 +34,11 @@ function RootLayoutContent() {
           barStyle={isDark ? "light-content" : "dark-content"}
           backgroundColor={colors.background}
         />
-        <CalComLogo width={120} height={26} />
+        <CalComLogo
+          width={120}
+          height={26}
+          color={isDark ? semanticColors.dark.text : semanticColors.light.text}
+        />
       </View>
     );
   }
@@ -99,10 +99,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -132,10 +132,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -165,10 +165,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -198,10 +198,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -231,10 +231,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -264,10 +264,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -297,10 +297,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -330,10 +330,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -363,10 +363,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()
@@ -396,10 +396,10 @@ function RootLayoutContent() {
             backgroundColor:
               Platform.OS === "ios" && isLiquidGlassAvailable()
                 ? "transparent"
-                : colors.secondaryBackground,
+                : colors.backgroundSecondary,
           },
           headerStyle: {
-            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.secondaryBackground,
+            backgroundColor: Platform.OS === "ios" ? "transparent" : colors.backgroundSecondary,
           },
           headerBlurEffect:
             Platform.OS === "ios" && isLiquidGlassAvailable()

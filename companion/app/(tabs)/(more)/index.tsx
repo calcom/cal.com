@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getColors } from "@/constants/colors";
 
 interface MoreMenuItem {
   name: string;
@@ -30,12 +31,7 @@ export default function More() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  // iOS system colors for dark mode
-  const colors = {
-    text: isDark ? "#FFFFFF" : "#333333",
-    textSecondary: isDark ? "#A3A3A3" : "#C7C7CC",
-  };
+  const theme = getColors(isDark);
 
   const performLogout = async () => {
     try {
@@ -104,59 +100,71 @@ export default function More() {
   ];
 
   return (
-    <View className="flex-1 bg-white dark:bg-black">
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <Header />
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
+        <View
+          className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
               onPress={item.onPress}
-              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] dark:bg-[#171717] dark:active:bg-[#2C2C2E] ${
-                index < menuItems.length - 1
-                  ? "border-b border-[#E5E5EA] dark:border-[#4D4D4D]"
-                  : ""
-              }`}
+              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA]`}
+              style={{
+                backgroundColor: theme.backgroundSecondary,
+                borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
+                borderBottomColor: theme.border,
+              }}
             >
               <View className="flex-1 flex-row items-center">
-                <Ionicons name={item.icon} size={20} color={colors.text} />
-                <Text className="ml-3 text-base font-semibold text-[#333] dark:text-gray-100">
+                <Ionicons name={item.icon} size={20} color={theme.text} />
+                <Text className="ml-3 text-base font-semibold" style={{ color: theme.text }}>
                   {item.name}
                 </Text>
               </View>
               {item.isExternal ? (
-                <Ionicons name="open-outline" size={20} color={colors.textSecondary} />
+                <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
               ) : (
-                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
               )}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Delete Account Link */}
-        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
+        <View
+          className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
           <TouchableOpacity
             onPress={() =>
               openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
             }
-            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50 dark:bg-[#171717] dark:active:bg-red-900/30"
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
+            style={{ backgroundColor: theme.backgroundSecondary }}
           >
             <View className="flex-1 flex-row items-center">
               <Ionicons name="trash-outline" size={20} color="#991B1B" />
               <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
             </View>
-            <Ionicons name="open-outline" size={20} color={colors.textSecondary} />
+            <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Sign Out Button */}
-        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
+        <View
+          className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
           <TouchableOpacity
             onPress={handleSignOut}
-            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50 dark:bg-[#171717] dark:active:bg-red-900/30"
+            className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
+            style={{ backgroundColor: theme.backgroundSecondary }}
           >
             <Ionicons name="log-out-outline" size={20} color="#800000" />
             <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
@@ -164,11 +172,14 @@ export default function More() {
         </View>
 
         {/* Footer Note */}
-        <Text className="mt-6 px-1 text-center text-xs text-gray-400 dark:text-gray-500">
+        <Text
+          className="mt-6 px-1 text-center text-xs text-gray-400"
+          style={{ color: theme.textMuted }}
+        >
           The companion app is an extension of the web application.{"\n"}
           For advanced features, visit{" "}
           <Text
-            className="text-gray-800 dark:text-gray-300"
+            style={{ color: theme.text }}
             onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
           >
             app.cal.com

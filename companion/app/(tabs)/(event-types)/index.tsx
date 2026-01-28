@@ -47,20 +47,14 @@ import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
 import { shadows } from "@/utils/shadows";
 import { slugify } from "@/utils/slugify";
 
+import { getColors } from "@/constants/colors";
+
 export default function EventTypes() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  // iOS system colors for dark mode
-  const colors = {
-    text: isDark ? "#FFFFFF" : "#000000",
-    textSecondary: isDark ? "#A3A3A3" : "#666666",
-    background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#171717" : "#F9FAFB",
-    border: isDark ? "#4D4D4D" : "#E5E5EA",
-  };
+  const theme = getColors(isDark);
 
   // Modal state for creating new event type
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -393,10 +387,10 @@ export default function EventTypes() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-white dark:bg-black">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && <Header />}
         <ScrollView
-          style={{ backgroundColor: colors.background }}
+          style={{ backgroundColor: theme.background }}
           contentContainerStyle={{ paddingBottom: 90 }}
           showsVerticalScrollIndicator={false}
           contentInsetAdjustmentBehavior="automatic"
@@ -409,21 +403,36 @@ export default function EventTypes() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-gray-100 dark:bg-black">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
+          <Text
+            className="mb-2 mt-4 text-center text-xl font-bold text-gray-800"
+            style={{ color: theme.text }}
+          >
             Unable to load event types
           </Text>
-          <Text className="mb-6 text-center text-base text-gray-500 dark:text-gray-400">
+          <Text
+            className="mb-6 text-center text-base text-gray-500"
+            style={{ color: theme.textMuted }}
+          >
             {error}
           </Text>
           <TouchableOpacity
-            className="rounded-lg bg-black px-6 py-3 dark:bg-white"
+            className="rounded-lg bg-black px-6 py-3"
+            style={{ backgroundColor: isDark ? "white" : "black" }}
             onPress={() => refetch()}
           >
-            <Text className="text-base font-semibold text-white dark:text-black">Retry</Text>
+            <Text
+              className="text-base font-semibold text-white"
+              style={{ color: isDark ? "black" : "white" }}
+            >
+              Retry
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -432,9 +441,12 @@ export default function EventTypes() {
 
   if (eventTypes.length === 0) {
     return (
-      <View className="flex-1 bg-gray-100 dark:bg-black">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <EmptyScreen
             icon="link-outline"
             headline="Create your first event type"
@@ -449,15 +461,26 @@ export default function EventTypes() {
 
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
-      <View className="flex-1 bg-gray-100 dark:bg-black">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && (
           <>
             <Header />
-            <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#4D4D4D] dark:bg-black">
+            <View
+              className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2"
+              style={{
+                borderBottomColor: theme.border,
+                backgroundColor: theme.backgroundSecondary,
+              }}
+            >
               <TextInput
-                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: isDark ? theme.background : "white",
+                  color: theme.text,
+                }}
                 placeholder="Search event types"
-                placeholderTextColor={colors.textSecondary}
+                placeholderTextColor={theme.textSecondary}
                 value={searchQuery}
                 onChangeText={handleSearch}
                 autoCapitalize="none"
@@ -465,17 +488,30 @@ export default function EventTypes() {
                 clearButtonMode="while-editing"
               />
               <TouchableOpacity
-                className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2 dark:bg-white"
-                style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
+                className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: isDark ? "white" : "black",
+                }}
                 onPress={handleCreateNew}
               >
                 <Ionicons name="add" size={18} color={isDark ? "#000" : "#fff"} />
-                <Text className="text-base font-semibold text-white dark:text-black">New</Text>
+                <Text
+                  className="text-base font-semibold text-white"
+                  style={{ color: isDark ? "black" : "white" }}
+                >
+                  New
+                </Text>
               </TouchableOpacity>
             </View>
           </>
         )}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <EmptyScreen
             icon="search-outline"
             headline={`No results found for "${searchQuery}"`}
@@ -518,11 +554,19 @@ export default function EventTypes() {
               activeFilterCount,
             }}
           />
-          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2 dark:border-[#4D4D4D] dark:bg-black">
+          <View
+            className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2"
+            style={{ borderBottomColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+          >
             <TextInput
-              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#171717] dark:text-white"
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: isDark ? theme.background : "white",
+                color: theme.text,
+              }}
               placeholder="Search event types"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={theme.textSecondary}
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"
@@ -530,19 +574,29 @@ export default function EventTypes() {
               clearButtonMode="while-editing"
             />
             <TouchableOpacity
-              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2 dark:bg-white"
-              style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}
+              className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: isDark ? "white" : "black",
+              }}
               onPress={handleCreateNew}
             >
               <Ionicons name="add" size={18} color={isDark ? "#000" : "#fff"} />
-              <Text className="text-base font-semibold text-white dark:text-black">New</Text>
+              <Text
+                className="text-base font-semibold text-white"
+                style={{ color: isDark ? "black" : "white" }}
+              >
+                New
+              </Text>
             </TouchableOpacity>
           </View>
         </>
       )}
 
       <ScrollView
-        style={{ backgroundColor: colors.background }}
+        style={{ backgroundColor: theme.background }}
         contentContainerStyle={{ paddingBottom: 90 }}
         refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
@@ -551,7 +605,10 @@ export default function EventTypes() {
         {refreshing ? (
           <EventTypeListSkeleton />
         ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
-          <View className="flex-1 items-center justify-center bg-white p-5 pt-20 dark:bg-black">
+          <View
+            className="flex-1 items-center justify-center bg-white p-5 pt-20"
+            style={{ backgroundColor: theme.background }}
+          >
             <EmptyScreen
               icon="filter-outline"
               headline="No event types match your filters"
@@ -563,7 +620,10 @@ export default function EventTypes() {
           </View>
         ) : (
           <View className="px-2 pt-4 md:px-4">
-            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-[#171717]">
+            <View
+              className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+              style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+            >
               {filteredEventTypes.map((item, index) => (
                 <EventTypeListItem
                   key={item.id.toString()}
@@ -653,17 +713,20 @@ export default function EventTypes() {
             onPress={handleCloseCreateModal}
           >
             <TouchableOpacity
-              className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white dark:bg-[#171717]"
+              className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
-              style={shadows.xl()}
+              style={{ ...shadows.xl(), backgroundColor: theme.backgroundSecondary }}
             >
               {/* Header */}
               <View className="px-8 pb-4 pt-6">
-                <Text className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                <Text
+                  className="mb-2 text-2xl font-semibold text-gray-900"
+                  style={{ color: theme.text }}
+                >
                   Add a new event type
                 </Text>
-                <Text className="text-sm text-gray-500 dark:text-gray-400">
+                <Text className="text-sm text-gray-500" style={{ color: theme.textSecondary }}>
                   Set up event types to offer different types of meetings.
                 </Text>
               </View>
@@ -672,13 +735,21 @@ export default function EventTypes() {
               <View className="px-8 pb-6">
                 {/* Title */}
                 <View className="mb-4">
-                  <Text className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <Text
+                    className="mb-2 text-sm font-medium text-gray-700"
+                    style={{ color: theme.textSecondary }}
+                  >
                     Title
                   </Text>
                   <TextInput
-                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-black focus:ring-2 focus:ring-black dark:border-[#4D4D4D] dark:bg-[#2C2C2E] dark:text-white"
+                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-black focus:ring-2 focus:ring-black"
+                    style={{
+                      borderColor: theme.border,
+                      backgroundColor: isDark ? theme.backgroundMuted : "white",
+                      color: theme.text,
+                    }}
                     placeholder="Quick Chat"
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={theme.textSecondary}
                     value={newEventTitle}
                     onChangeText={setNewEventTitle}
                     autoFocus
@@ -762,7 +833,7 @@ export default function EventTypes() {
                       if (eventType) handleEdit(eventType);
                     }}
                   >
-                    <Ionicons name="pencil-outline" size={20} color={colors.textSecondary} />
+                    <Ionicons name="pencil-outline" size={20} color={theme.textSecondary} />
                     <Text className="ml-3 text-base text-gray-900 dark:text-white">Edit</Text>
                   </TouchableOpacity>
 
@@ -775,7 +846,7 @@ export default function EventTypes() {
                       if (eventType) handleDuplicate(eventType);
                     }}
                   >
-                    <Ionicons name="copy-outline" size={20} color={colors.textSecondary} />
+                    <Ionicons name="copy-outline" size={20} color={theme.textSecondary} />
                     <Text className="ml-3 text-base text-gray-900 dark:text-white">Duplicate</Text>
                   </TouchableOpacity>
 
@@ -852,7 +923,7 @@ export default function EventTypes() {
                 }}
                 className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] md:p-4"
               >
-                <Ionicons name="calendar-outline" size={20} color={colors.textSecondary} />
+                <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
                 <Text className="ml-3 text-base text-gray-900 dark:text-white">New Event Type</Text>
               </TouchableOpacity>
             </View>

@@ -401,9 +401,12 @@ export function BookingDetailScreen({
               {durationFormatted && (
                 <View
                   className="rounded-full px-2.5 py-1"
-                  style={{ backgroundColor: colors.badge }}
+                  style={{ backgroundColor: isDark ? "#171717" : colors.badge }}
                 >
-                  <Text className="text-[13px] font-medium" style={{ color: colors.textTertiary }}>
+                  <Text
+                    className="text-[13px] font-medium"
+                    style={{ color: isDark ? "#FFFFFF" : colors.textTertiary }}
+                  >
                     {durationFormatted}
                   </Text>
                 </View>

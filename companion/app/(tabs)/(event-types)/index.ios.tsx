@@ -37,19 +37,15 @@ import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
 import { slugify } from "@/utils/slugify";
 
+import { getColors } from "@/constants/colors";
+
 export default function EventTypesIOS() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: userProfile } = useUserProfile();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  // iOS system colors for dark mode
-  const colors = {
-    background: isDark ? "#000000" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#171717" : "#F9FAFB",
-    border: isDark ? "#4D4D4D" : "#E5E5EA",
-  };
+  const theme = getColors(isDark);
 
   // No modal state needed for iOS - using native Alert.prompt
 
@@ -352,7 +348,7 @@ export default function EventTypesIOS() {
           <Stack.Header.Title large>Event Types</Stack.Header.Title>
         </Stack.Header>
         <ScrollView
-          style={{ backgroundColor: colors.background }}
+          style={{ backgroundColor: theme.background }}
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
           contentInsetAdjustmentBehavior="automatic"
@@ -365,17 +361,34 @@ export default function EventTypesIOS() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
+      <View
+        className="flex-1 items-center justify-center bg-gray-50 p-5"
+        style={{ backgroundColor: theme.backgroundSecondary }}
+      >
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
+        <Text
+          className="mb-2 mt-4 text-center text-xl font-bold text-gray-800"
+          style={{ color: theme.text }}
+        >
           Unable to load event types
         </Text>
-        <Text className="mb-6 text-center text-base text-gray-500 dark:text-gray-400">{error}</Text>
+        <Text
+          className="mb-6 text-center text-base text-gray-500"
+          style={{ color: theme.textMuted }}
+        >
+          {error}
+        </Text>
         <TouchableOpacity
-          className="rounded-lg bg-black px-6 py-3 dark:bg-white"
+          className="rounded-lg bg-black px-6 py-3"
+          style={{ backgroundColor: isDark ? "white" : "black" }}
           onPress={() => refetch()}
         >
-          <Text className="text-base font-semibold text-white dark:text-black">Retry</Text>
+          <Text
+            className="text-base font-semibold text-white"
+            style={{ color: isDark ? "black" : "white" }}
+          >
+            Retry
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -392,7 +405,10 @@ export default function EventTypesIOS() {
             headerLargeTitleEnabled: true,
           }}
         />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <EmptyScreen
             icon="link-outline"
             headline="Create your first event type"
@@ -513,7 +529,7 @@ export default function EventTypesIOS() {
 
       {/* Event Types List */}
       <ScrollView
-        style={{ backgroundColor: colors.background }}
+        style={{ backgroundColor: theme.background }}
         contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
@@ -522,7 +538,10 @@ export default function EventTypesIOS() {
         {refreshing ? (
           <EventTypeListSkeleton />
         ) : filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
-          <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20 dark:bg-[#171717]">
+          <View
+            className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20"
+            style={{ backgroundColor: theme.backgroundSecondary }}
+          >
             <EmptyScreen
               icon="search-outline"
               headline={`No results found for "${searchQuery}"`}
@@ -530,7 +549,10 @@ export default function EventTypesIOS() {
             />
           </View>
         ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
-          <View className="flex-1 items-center justify-center bg-white p-5 pt-20 dark:bg-black">
+          <View
+            className="flex-1 items-center justify-center bg-white p-5 pt-20"
+            style={{ backgroundColor: theme.background }}
+          >
             <EmptyScreen
               icon="filter-outline"
               headline="No event types match your filters"
@@ -545,9 +567,9 @@ export default function EventTypesIOS() {
             <View
               className="overflow-hidden rounded-lg"
               style={{
-                backgroundColor: colors.background,
+                backgroundColor: theme.backgroundSecondary,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: theme.border,
               }}
             >
               {filteredEventTypes.map((item, index) => (

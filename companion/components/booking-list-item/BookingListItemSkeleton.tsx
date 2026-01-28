@@ -1,5 +1,6 @@
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, useColorScheme } from "react-native";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getColors } from "@/constants/colors";
 
 interface BookingListItemSkeletonProps {
   isLast?: boolean;
@@ -53,18 +54,22 @@ interface BookingListSkeletonProps {
 }
 
 export function BookingListSkeleton({ count = 4, iosStyle = false }: BookingListSkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   if (iosStyle) {
     return (
       <ScrollView
-        style={{ backgroundColor: "white" }}
+        style={{ backgroundColor: theme.background }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
         <View
           style={{
-            backgroundColor: "#f1f1f1",
+            backgroundColor: theme.backgroundMuted,
             borderBottomWidth: 1,
-            borderBottomColor: "#E5E5EA",
+            borderBottomColor: theme.border,
             paddingHorizontal: 8,
             paddingVertical: 12,
           }}
@@ -81,12 +86,15 @@ export function BookingListSkeleton({ count = 4, iosStyle = false }: BookingList
 
   return (
     <View className="flex-1 px-2 pt-4 md:px-4">
-      <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+      <View
+        className="flex-1 overflow-hidden rounded-lg border"
+        style={{ borderColor: theme.border, backgroundColor: theme.background }}
+      >
         <View
           style={{
-            backgroundColor: "#f1f1f1",
+            backgroundColor: theme.backgroundMuted,
             borderBottomWidth: 1,
-            borderBottomColor: "#E5E5EA",
+            borderBottomColor: theme.border,
             paddingHorizontal: 8,
             paddingVertical: 12,
           }}

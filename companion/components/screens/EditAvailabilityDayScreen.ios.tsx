@@ -8,6 +8,7 @@ import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
+import { getColors } from "@/constants/colors";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -169,11 +170,12 @@ export const EditAvailabilityDayScreen = forwardRef<
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const backgroundStyle = transparentBackground
-    ? "bg-transparent"
+  const theme = getColors(isDark);
+  const backgroundColor = transparentBackground
+    ? "transparent"
     : isDark
-      ? "bg-black"
-      : "bg-[#F2F2F7]";
+      ? theme.background
+      : theme.backgroundMuted;
 
   // Use mutation hook for cache-synchronized updates
   const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
@@ -310,7 +312,7 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   if (!schedule) {
     return (
-      <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
         <Text className="text-[#A3A3A3]">No schedule data</Text>
       </View>
     );
@@ -318,7 +320,8 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   return (
     <ScrollView
-      className={`flex-1 ${backgroundStyle}`}
+      className="flex-1"
+      style={{ backgroundColor }}
       contentContainerStyle={{
         padding: 16,
         paddingBottom: insets.bottom + 16,

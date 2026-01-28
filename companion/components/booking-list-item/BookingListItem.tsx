@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -42,6 +42,7 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const [isPressed, setIsPressed] = useState(false);
 
   const colors = {
     icon: isDark ? "#FFFFFF" : "#3C3F44",
@@ -166,8 +167,14 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
     >
       <Pressable
         onPress={() => onPress(booking)}
-        style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary dark:active:bg-[#171717]"
+        onPressIn={() => setIsPressed(true)}
+        onPressOut={() => setIsPressed(false)}
+        style={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 12,
+          backgroundColor: isPressed ? (isDark ? "#171717" : "#F3F4F6") : "transparent",
+        }}
         android_ripple={{ color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }}
       >
         <TimeAndDateRow formattedDate={formattedDate} formattedTimeRange={formattedTimeRange} />

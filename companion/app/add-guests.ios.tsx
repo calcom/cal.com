@@ -2,8 +2,9 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import type { AddGuestsScreenHandle } from "@/components/screens/AddGuestsScreen";
 import AddGuestsScreenComponent from "@/components/screens/AddGuestsScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -27,6 +28,9 @@ export default function AddGuestsIOS() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const addGuestsScreenRef = useRef<AddGuestsScreenHandle>(null);
 
@@ -70,7 +74,7 @@ export default function AddGuestsIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : theme.background,
           },
         }}
       />
@@ -101,14 +105,14 @@ export default function AddGuestsIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
       >
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={theme.text} />
           </View>
         ) : (
           <AddGuestsScreenComponent
