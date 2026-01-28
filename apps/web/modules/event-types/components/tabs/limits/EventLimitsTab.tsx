@@ -15,7 +15,7 @@ import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import { PeriodType } from "@calcom/prisma/enums";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -28,6 +28,7 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Badge } from "@calcom/ui/components/badge";
 import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -36,6 +37,7 @@ import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
+import Link from "next/link";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
@@ -135,13 +137,13 @@ function RangeLimitRadioItem({
         "text-default mb-2 flex flex-col items-start text-sm sm:flex-row sm:items-center",
         customClassNames?.wrapper
       )}>
-      <div className="flex w-full items-center sm:w-auto">
+      <div className="flex items-center w-full sm:w-auto">
         {!isDisabled && (
           <RadioGroup.Item
             id={radioValue}
             value={radioValue}
-            className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-            <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+            className="flex items-center w-4 h-4 rounded-full border cursor-pointer bg-default border-default min-w-4 focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            <RadioGroup.Indicator className="flex relative justify-center items-center w-4 h-4 after:bg-inverted after:block after:h-2 after:w-2 after:rounded-full" />
           </RadioGroup.Item>
         )}
         <span>{t("within_date_range")}</span>
@@ -223,8 +225,8 @@ function RollingLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="bg-default border-default flex h-4 w-4 min-w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-          <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+          className="flex items-center w-4 h-4 rounded-full border cursor-pointer bg-default border-default min-w-4 focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          <RadioGroup.Indicator className="flex relative justify-center items-center w-4 h-4 after:bg-inverted after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
 
@@ -259,7 +261,7 @@ function RollingLimitRadioItem({
           />
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
-        <div className="-ml-6 flex flex-col py-2">
+        <div className="flex flex-col py-2 -ml-6">
           <div className="flex items-center">
             <CheckboxField
               checked={!!rollingExcludeUnavailableDays}
@@ -289,7 +291,7 @@ function RollingLimitRadioItem({
               })}>
               <Icon
                 name="info"
-                className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+                className="inline w-4 h-4 rounded-md text-default hover:text-attention hover:bg-attention ms-1"
               />
             </Tooltip>
           </div>
@@ -350,7 +352,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex items-end justify-end">
+    <div className="flex justify-end items-end">
       <div className="w-1/2 md:w-full">
         <InputField
           required
@@ -399,7 +401,54 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
+  const hasTeamLimits = () => {
+    const team = eventType.team as { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } | null | undefined;
+    const parentTeam = (eventType.parent as { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } } | null | undefined)?.team;
+
+    const teamHasLimits =
+      !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
+
+    const parentTeamHasLimits =
+      !!parentTeam?.bookingLimits &&
+      Object.keys(parentTeam.bookingLimits).length > 0;
+
+    const includeManaged =
+      !!parentTeam?.includeManagedEventsInLimits ||
+      !!team?.includeManagedEventsInLimits;
+
+    if (teamHasLimits) {
+      if(eventType.schedulingType === SchedulingType.MANAGED) return includeManaged;
+      return true;
+    }
+
+    return parentTeamHasLimits && includeManaged;
+  };
+
+  const TeamLimitsBadge = ({ isManagedChild, teamId }: { isManagedChild: boolean, teamId?: number | null }) => {
+    const badge = (
+      <Badge variant="blue" className="text-xs cursor-pointer hover:opacity-80">
+        {t("team_limits_apply")}
+      </Badge>
+    );
+
+    if (isManagedChild) {
+      return <Tooltip content={t("managed_by_team_admins")}>{badge}</Tooltip>;
+    }
+
+    if (teamId) {
+      return (
+        <Link
+          href={`/settings/teams/${teamId}/settings`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {badge}
+        </Link>
+      );
+    }
+    return null;
+  };
 
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
@@ -432,7 +481,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           "border-subtle stack-y-6 rounded-lg border p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="stack-y-4 lg:stack-y-0 flex  flex-col lg:flex-row lg:space-x-4">
+        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -526,7 +575,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
+        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -603,6 +652,10 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               toggleSwitchAtTheEnd={true}
               labelClassName={classNames("text-sm", customClassNames?.bookingFrequencyLimit?.label)}
               title={t("limit_booking_frequency")}
+              Badge={
+                hasTeamLimits()
+                  ? TeamLimitsBadge({ isManagedChild: !!eventType.parent, teamId: eventType.team?.id }) : null
+              }
               {...bookingLimitsLocked}
               description={
                 <LearnMoreLink
@@ -703,7 +756,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   onChange({});
                 }
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                 <IntervalLimitsManager
                   propertyName="durationLimits"
                   defaultLimit={60}
@@ -756,7 +809,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                 }
                 return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                 <RadioGroup.Root
                   value={watchPeriodTypeUiValue}
                   onValueChange={(val) => {
@@ -821,7 +874,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               formMethods.setValue("offsetStart", 0, { shouldDirty: true });
             }
           }}>
-          <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>
+          <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
             <TextField
               required
               type="number"

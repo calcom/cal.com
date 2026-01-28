@@ -637,6 +637,13 @@ export class EventTypeRepository implements IEventTypesRepository {
         select: {
           id: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -653,6 +660,8 @@ export class EventTypeRepository implements IEventTypesRepository {
           slug: true,
           parentId: true,
           rrTimestampBasis: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           parent: {
             select: {
               slug: true,
@@ -943,6 +952,13 @@ export class EventTypeRepository implements IEventTypesRepository {
         select: {
           id: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -959,6 +975,8 @@ export class EventTypeRepository implements IEventTypesRepository {
           slug: true,
           parentId: true,
           rrTimestampBasis: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           parent: {
             select: {
               slug: true,
