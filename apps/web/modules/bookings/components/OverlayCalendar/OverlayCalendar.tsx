@@ -1,20 +1,14 @@
-import { useEffect } from "react";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
 import { useOverlayCalendar } from "@calcom/features/bookings/Booker/components/hooks/useOverlayCalendar";
+import type { WrappedBookerPropsMain } from "@calcom/features/bookings/Booker/types";
+import { useEffect } from "react";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "./OverlayCalendarSettingsModal";
 import { OverlayCalendarSwitch } from "./OverlayCalendarSwitch";
 
 type OverlayCalendarProps = Pick<
-  UseCalendarsReturnType,
-  | "connectedCalendars"
-  | "overlayBusyDates"
-  | "onToggleCalendar"
-  | "loadingConnectedCalendar"
-  | "isOverlayCalendarEnabled"
+  WrappedBookerPropsMain["calendars"],
+  "connectedCalendars" | "overlayBusyDates" | "onToggleCalendar" | "isOverlayCalendarEnabled"
 > & {
   handleClickNoCalendar: () => void;
   hasSession: boolean;
@@ -27,12 +21,11 @@ export const OverlayCalendar = ({
   overlayBusyDates,
   onToggleCalendar,
   isOverlayCalendarEnabled,
-  loadingConnectedCalendar,
   handleClickNoCalendar,
   handleSwitchStateChange,
   handleClickContinue,
   hasSession,
-}: OverlayCalendarProps) => {
+}: OverlayCalendarProps): JSX.Element | null => {
   const isPlatform = useIsPlatform();
   const {
     handleCloseContinueModal,
@@ -70,10 +63,8 @@ export const OverlayCalendar = ({
         />
       )}
       <OverlayCalendarSettingsModal
-        connectedCalendars={connectedCalendars}
         open={isOpenOverlaySettingsModal}
         onClose={handleCloseSettingsModal}
-        isLoading={loadingConnectedCalendar}
         onToggleConnectedCalendar={handleToggleConnectedCalendar}
         onClickNoCalendar={() => {
           handleClickNoCalendar();

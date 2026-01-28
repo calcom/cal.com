@@ -1,13 +1,13 @@
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
 import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
+import type { EventBusyDate } from "@calcom/types/Calendar";
 import type React from "react";
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -105,6 +105,11 @@ export interface BookerProps {
   useApiV2?: boolean;
 }
 
+export type ToggledConnectedCalendars = {
+  credentialId: number;
+  externalId: string;
+};
+
 export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
@@ -121,7 +126,35 @@ export type WrappedBookerPropsMain = {
   extraOptions: Record<string, string | string[]>;
   bookings: UseBookingsReturnType;
   slots: UseSlotsReturnType;
-  calendars: UseCalendarsReturnType;
+  calendars: {
+    overlayBusyDates?: EventBusyDate[];
+    isOverlayCalendarEnabled: boolean;
+    connectedCalendars: {
+      calendars?: {
+        name?: string;
+        integrationTitle?: string;
+        externalId: string;
+        primary: boolean | null;
+      }[];
+      credentialId: number;
+      delegationCredentialId?: string | null;
+      cacheUpdatedAt: null;
+      error?: {
+        message: string | null;
+      };
+      primary?: {
+        email?: string;
+      };
+      integration: {
+        slug: string;
+        name?: string | undefined;
+        title?: string;
+        logo: string;
+      };
+    }[];
+    loadingConnectedCalendar: boolean;
+    onToggleCalendar: (calendarsToLoad: Set<ToggledConnectedCalendars>) => void;
+  };
   bookerForm: UseBookingFormReturnType;
   event: BookerEventQuery;
   schedule: useScheduleForEventReturnType;
