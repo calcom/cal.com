@@ -2,7 +2,7 @@
 const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-const { TRIGGER_VERSION } = require("./trigger.version");
+const { TRIGGER_VERSION } = require("./trigger.version.js");
 const plugins = [withAxiom];
 
 /** @type {import("next").NextConfig} */
