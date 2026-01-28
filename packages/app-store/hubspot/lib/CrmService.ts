@@ -17,12 +17,13 @@ import prisma from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
 
 import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
+import { metadata as appMeta } from "../_metadata";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
@@ -360,6 +361,16 @@ class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
+  private hubspotMarkMeetingNoShow = async (uid: string) => {
+    const simplePublicObjectInput: SimplePublicObjectInput = {
+      properties: {
+        hs_meeting_outcome: "NO_SHOW",
+      },
+    };
+
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+  };
+
   private hubspotArchiveMeeting = async (uid: string) => {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
@@ -564,8 +575,42 @@ class HubspotCalendarService implements CRM {
     return this.appOptions;
   }
 
-  async handleAttendeeNoShow() {
-    console.log("Not implemented");
+  async handleAttendeeNoShow(bookingUid: string, attendees: { email: string; noShow: boolean }[]) {
+    const auth = await this.auth;
+    await auth.getToken();
+
+    const hasNoShow = attendees.some((attendee) => attendee.noShow);
+    if (!hasNoShow) {
+      this.log.debug("No attendees marked as no-show, skipping HubSpot update");
+      return;
+    }
+
+    const hubspotMeetings = await prisma.bookingReference.findMany({
+      where: {
+        type: appMeta.type,
+        booking: {
+          uid: bookingUid,
+        },
+        deleted: null,
+      },
+      select: {
+        uid: true,
+      },
+    });
+
+    if (hubspotMeetings.length === 0) {
+      this.log.warn(`No HubSpot meetings found for bookingUid ${bookingUid}`);
+      return;
+    }
+
+    for (const meeting of hubspotMeetings) {
+      try {
+        await this.hubspotMarkMeetingNoShow(meeting.uid);
+        this.log.debug(`Updated HubSpot meeting ${meeting.uid} outcome to NO_SHOW`);
+      } catch (error) {
+        this.log.error(`Failed to update HubSpot meeting ${meeting.uid} outcome to NO_SHOW`, error);
+      }
+    }
   }
 
   private async getHubspotOwnerIdFromEmail(email: string): Promise<string | null> {
