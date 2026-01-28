@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { IncomingMessage, Server, ServerResponse } from "node:http";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
