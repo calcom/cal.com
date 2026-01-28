@@ -1,3 +1,5 @@
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
 
@@ -7,12 +9,11 @@ import { RescheduledAuditActionService, type RescheduledAuditData } from "../act
 import { AcceptedAuditActionService, type AcceptedAuditData } from "../actions/AcceptedAuditActionService";
 import { RescheduleRequestedAuditActionService, type RescheduleRequestedAuditData } from "../actions/RescheduleRequestedAuditActionService";
 import { AttendeeAddedAuditActionService, type AttendeeAddedAuditData } from "../actions/AttendeeAddedAuditActionService";
-import { HostNoShowUpdatedAuditActionService, type HostNoShowUpdatedAuditData } from "../actions/HostNoShowUpdatedAuditActionService";
+import { NoShowUpdatedAuditActionService, type NoShowUpdatedAuditData } from "../actions/NoShowUpdatedAuditActionService";
 import { RejectedAuditActionService, type RejectedAuditData } from "../actions/RejectedAuditActionService";
 import { AttendeeRemovedAuditActionService, type AttendeeRemovedAuditData } from "../actions/AttendeeRemovedAuditActionService";
 import { ReassignmentAuditActionService, type ReassignmentAuditData } from "../actions/ReassignmentAuditActionService";
 import { LocationChangedAuditActionService, type LocationChangedAuditData } from "../actions/LocationChangedAuditActionService";
-import { AttendeeNoShowUpdatedAuditActionService, type AttendeeNoShowUpdatedAuditData } from "../actions/AttendeeNoShowUpdatedAuditActionService";
 import { SeatBookedAuditActionService, type SeatBookedAuditData } from "../actions/SeatBookedAuditActionService";
 import { SeatRescheduledAuditActionService, type SeatRescheduledAuditData } from "../actions/SeatRescheduledAuditActionService";
 
@@ -27,12 +28,11 @@ export type AuditActionData =
     | AcceptedAuditData
     | RescheduleRequestedAuditData
     | AttendeeAddedAuditData
-    | HostNoShowUpdatedAuditData
+    | NoShowUpdatedAuditData
     | RejectedAuditData
     | AttendeeRemovedAuditData
     | ReassignmentAuditData
     | LocationChangedAuditData
-    | AttendeeNoShowUpdatedAuditData
     | SeatBookedAuditData
     | SeatRescheduledAuditData;
 
@@ -43,10 +43,15 @@ export type AuditActionData =
  * Provides a single source of truth for action service mapping and eliminates
  * code duplication between consumer and viewer services.
  */
+interface BookingAuditActionServiceRegistryDeps {
+    attendeeRepository: IAttendeeRepository;
+    userRepository: UserRepository;
+}
+
 export class BookingAuditActionServiceRegistry {
     private readonly actionServices: Map<BookingAuditAction, IAuditActionService>;
 
-    constructor() {
+    constructor(private deps: BookingAuditActionServiceRegistryDeps) {
         const services: Array<[BookingAuditAction, IAuditActionService]> = [
             ["CREATED", new CreatedAuditActionService(deps)],
             ["CANCELLED", new CancelledAuditActionService()],
@@ -54,12 +59,11 @@ export class BookingAuditActionServiceRegistry {
             ["ACCEPTED", new AcceptedAuditActionService()],
             ["RESCHEDULE_REQUESTED", new RescheduleRequestedAuditActionService()],
             ["ATTENDEE_ADDED", new AttendeeAddedAuditActionService()],
-            ["HOST_NO_SHOW_UPDATED", new HostNoShowUpdatedAuditActionService()],
+            ["NO_SHOW_UPDATED", new NoShowUpdatedAuditActionService({ attendeeRepository: deps.attendeeRepository, userRepository: deps.userRepository })],
             ["REJECTED", new RejectedAuditActionService()],
             ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
-            ["REASSIGNMENT", new ReassignmentAuditActionService()],
+            ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],
             ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
-            ["ATTENDEE_NO_SHOW_UPDATED", new AttendeeNoShowUpdatedAuditActionService()],
             ["SEAT_BOOKED", new SeatBookedAuditActionService()],
             ["SEAT_RESCHEDULED", new SeatRescheduledAuditActionService()],
         ];

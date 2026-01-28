@@ -28,7 +28,7 @@ export const stripeCredentialKeysSchema = z.object({
   stripe_publishable_key: z.string(),
 });
 
-export class PaymentService implements IAbstractPaymentService {
+class StripePaymentService implements IAbstractPaymentService {
   private stripe: Stripe;
   private credentials: z.infer<typeof stripeCredentialKeysSchema> | null;
 
@@ -219,7 +219,8 @@ export class PaymentService implements IAbstractPaymentService {
         bookingId,
         safeStringify(error)
       );
-      throw new Error("Stripe: Payment method could not be collected");
+
+      throw new ErrorWithCode(ErrorCode.CollectCardFailure, "Stripe: Payment method could not be collected");
     }
   }
 
@@ -479,4 +480,13 @@ export class PaymentService implements IAbstractPaymentService {
       bookingTitle: bookingTitle || "",
     };
   }
+}
+
+/**
+ * Factory function that creates a Stripe Payment service instance.
+ * This is exported instead of the class to prevent SDK types (Stripe)
+ * from leaking into the emitted .d.ts file.
+ */
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+  return new StripePaymentService(credentials);
 }
