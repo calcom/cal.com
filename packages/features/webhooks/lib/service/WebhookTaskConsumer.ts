@@ -180,6 +180,19 @@ export class WebhookTaskConsumer {
       return null;
     }
 
+    // Transform DB eventType shape to EventTypeInfo shape expected by PayloadBuilder
+    // DB has: title, description, price, currency, length, requiresConfirmation
+    // PayloadBuilder expects: eventTitle, eventDescription, price, currency, length, requiresConfirmation
+    const eventTypeInfo = {
+      id: eventType.id,
+      eventTitle: eventType.title,
+      eventDescription: eventType.description,
+      requiresConfirmation: eventType.requiresConfirmation,
+      price: eventType.price,
+      currency: eventType.currency,
+      length: eventType.length,
+    };
+
     // Build DTO based on trigger event type
     const bookingPayload = payload as BookingWebhookTaskPayload;
     const baseDTO = {
@@ -191,7 +204,7 @@ export class WebhookTaskConsumer {
       orgId: bookingPayload.orgId,
       platformClientId: bookingPayload.oAuthClientId,
       evt: calendarEvent,
-      eventType,
+      eventType: eventTypeInfo,
       booking: {
         id: booking.id,
         eventTypeId: booking.eventTypeId,
@@ -203,7 +216,17 @@ export class WebhookTaskConsumer {
     };
 
     switch (triggerEvent) {
-      case WebhookTriggerEvents.BOOKING_CREATED:
+      case WebhookTriggerEvents.BOOKING_CREATED: {
+        // Platform fields are already on CalendarEvent (built by BookingWebhookDataFetcher)
+        // and will be included in final payload when payload builder spreads ...params.evt
+        // This matches legacy behavior where platform fields were flat fields on the payload
+        return {
+          ...baseDTO,
+          triggerEvent,
+          status: "ACCEPTED",
+          metadata: bookingPayload.metadata,
+        } as WebhookEventDTO;
+      }
       case WebhookTriggerEvents.BOOKING_REQUESTED:
       case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
         return {

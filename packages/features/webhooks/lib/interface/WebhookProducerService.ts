@@ -33,6 +33,18 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   /** OAuth Client ID (for platform webhooks) */
   oAuthClientId?: string | null;
 
+  /** Platform Client ID (for platform webhooks) */
+  platformClientId?: string | null;
+
+  /** Platform Reschedule URL (for platform webhooks) */
+  platformRescheduleUrl?: string | null;
+
+  /** Platform Cancel URL (for platform webhooks) */
+  platformCancelUrl?: string | null;
+
+  /** Platform Booking URL (for platform webhooks) */
+  platformBookingUrl?: string | null;
+
   // ---- Trigger-specific fields (BOOKING_CANCELLED) ----
   /** Who cancelled the booking (email or identifier) */
   cancelledBy?: string;

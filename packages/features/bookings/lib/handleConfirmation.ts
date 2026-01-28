@@ -553,6 +553,10 @@ export async function handleConfirmation(args: {
         teamId,
         orgId,
         oAuthClientId: platformClientParams?.platformClientId,
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
+        platformRescheduleUrl: platformClientParams?.platformRescheduleUrl,
+        platformCancelUrl: platformClientParams?.platformCancelUrl,
+        platformBookingUrl: platformClientParams?.platformBookingUrl,
       });
     } catch (webhookError) {
       tracingLogger.error(

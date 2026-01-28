@@ -42,7 +42,15 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       }
 
       // Build CalendarEvent using the builder pattern (same pattern used by email/sms tasks)
-      const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, {})).build();
+      // Map oAuthClientId to platformClientId for platform metadata
+      const calendarEvent = (
+        await CalendarEventBuilder.fromBooking(booking, {
+          platformClientId: payload.oAuthClientId ?? undefined,
+          platformRescheduleUrl: payload.platformRescheduleUrl ?? undefined,
+          platformCancelUrl: payload.platformCancelUrl ?? undefined,
+          platformBookingUrl: payload.platformBookingUrl ?? undefined,
+        })
+      ).build();
 
       if (!calendarEvent) {
         this.logger.error("Failed to build CalendarEvent from booking", { bookingUid });

@@ -31,12 +31,6 @@ export interface BookingCreatedDTO extends BaseEventDTO {
   };
   status: "ACCEPTED" | "PENDING";
   metadata?: Record<string, unknown>;
-  platformParams?: {
-    platformClientId?: string;
-    platformRescheduleUrl?: string;
-    platformCancelUrl?: string;
-    platformBookingUrl?: string;
-  };
 }
 
 export interface BookingCancelledDTO extends BaseEventDTO {
@@ -569,10 +563,10 @@ export type DelegationCredentialErrorPayloadType = {
   };
 };
 
-export type EventPayloadType = CalendarEvent &
+export type EventPayloadType = Omit<CalendarEvent, "assignmentReason" | "metadata"> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
-    metadata?: { [key: string]: string | number | boolean | null };
+    metadata?: Record<string, unknown>;
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
@@ -586,6 +580,11 @@ export type EventPayloadType = CalendarEvent &
     cancelledBy?: string;
     paymentData?: Record<string, unknown>;
     requestReschedule?: boolean;
+    assignmentReason?:
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 // dto/types.ts
