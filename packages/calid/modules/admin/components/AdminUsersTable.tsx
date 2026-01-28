@@ -1,5 +1,19 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog as CalidDialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/features/ui/components/icon";
+import { TextField } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { keepPreviousData } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -9,20 +23,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import {
-  ConfirmationDialogContent,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-} from "@calcom/ui/components/dialog";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
-import { showToast } from "@calcom/ui/components/toast";
 
 const { Cell, ColumnTitle, Header, Row } = Table;
 
@@ -56,17 +57,17 @@ export const AdminUsersTable = () => {
 
   const deleteUser = trpc.viewer.admin.calid.users.delete.useMutation({
     onSuccess: async () => {
-      showToast("User has been deleted", "success");
+      triggerToast("User has been deleted", "success");
       utils.viewer.admin.listPaginated.invalidate();
     },
     onError: () => {
-      showToast("There has been an error deleting this user.", "error");
+      triggerToast("There has been an error deleting this user.", "error");
     },
     onSettled: () => setUserToDelete(null),
   });
 
   const sendPasswordReset = trpc.viewer.admin.sendPasswordReset.useMutation({
-    onSuccess: () => showToast("Password reset email has been sent", "success"),
+    onSuccess: () => triggerToast("Password reset email has been sent", "success"),
   });
 
   const lockUserAccount = trpc.viewer.admin.lockUserAccount.useMutation({
@@ -74,7 +75,7 @@ export const AdminUsersTable = () => {
       lastLockUserId.current = input.userId;
     },
     onSuccess: ({ locked }) => {
-      showToast(locked ? "User was locked" : "User was unlocked", "success");
+      triggerToast(locked ? "User was locked" : "User was unlocked", "success");
       utils.viewer.admin.listPaginated.setInfiniteData(
         { limit: FETCH_LIMIT, searchTerm: debouncedSearchTerm },
         (cachedData) => {
@@ -116,21 +117,51 @@ export const AdminUsersTable = () => {
 
   return (
     <div>
+      <style jsx global>{`
+        .admin-users-table thead th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: var(--color-bg-default, #fff);
+        }
+        .admin-users-table > div {
+          overflow: visible !important;
+        }
+        .admin-users-table thead tr {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: var(--color-bg-default, #fff);
+        }
+      `}</style>
       <TextField
         placeholder="username or email"
         label="Search"
+        className="mb-3"
         onChange={(event) => setSearchTerm(event.target.value)}
       />
       <div
-        className="border-subtle rounded-md border"
+        className="admin-users-table border-subtle rounded-md border"
         ref={tableContainerRef}
         onScroll={() => fetchMoreOnBottomReached(tableContainerRef.current)}
-        style={{ height: "calc(100vh - 30vh)", overflow: "auto" }}>
+        style={{ height: "calc(100vh - 24vh)", overflow: "auto" }}>
         <Table>
           <Header>
-            <ColumnTitle widthClassNames="w-auto">User</ColumnTitle>
-            <ColumnTitle>Timezone</ColumnTitle>
-            <ColumnTitle>Role</ColumnTitle>
+            <ColumnTitle widthClassNames="w-auto">
+              <span className="bg-subtle/60 text-muted inline-flex rounded px-2 py-1 text-[11px] font-semibold uppercase">
+                User
+              </span>
+            </ColumnTitle>
+            <ColumnTitle>
+              <span className="bg-subtle/60 text-muted inline-flex rounded px-2 py-1 text-[11px] font-semibold uppercase">
+                Timezone
+              </span>
+            </ColumnTitle>
+            <ColumnTitle>
+              <span className="bg-subtle/60 text-muted inline-flex rounded px-2 py-1 text-[11px] font-semibold uppercase">
+                Role
+              </span>
+            </ColumnTitle>
             <ColumnTitle widthClassNames="w-auto">
               <span className="sr-only">Actions</span>
             </ColumnTitle>
@@ -166,9 +197,12 @@ export const AdminUsersTable = () => {
                 </Cell>
                 <Cell>{user.timeZone}</Cell>
                 <Cell>
-                  <Badge className="capitalize" variant={user.role === "ADMIN" ? "red" : "gray"}>
-                    {user.role.toLowerCase()}
-                  </Badge>
+                  <span
+                    className={
+                      user.role === "ADMIN" ? "font-semibold text-red-600" : "text-default font-medium"
+                    }>
+                    {user.role === "ADMIN" ? "Admin" : "User"}
+                  </span>
                 </Cell>
                 <Cell widthClassNames="w-auto">
                   <div className="flex w-full justify-end">
@@ -218,32 +252,38 @@ export const AdminUsersTable = () => {
         </Table>
       </div>
 
-      <Dialog
-        name="delete-user"
-        open={!!userToDelete}
-        onOpenChange={(open) => {
-          if (!open) setUserToDelete(null);
-        }}>
-        <ConfirmationDialogContent
-          title="Delete User"
-          confirmBtnText="Delete"
-          cancelBtnText="Cancel"
-          variety="danger"
-          onConfirm={() => userToDelete && deleteUser.mutate({ userId: userToDelete })}>
-          <p>Are you sure you want to delete this user?</p>
-        </ConfirmationDialogContent>
-      </Dialog>
+      <CalidDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <DialogContent size="md" showCloseButton>
+          <DialogHeader showIcon variant="warning">
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription>Are you sure you want to delete this user?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-8">
+            <DialogClose color="secondary">{t("cancel")}</DialogClose>
+            <Button
+              color="primary"
+              type="button"
+              onClick={() => userToDelete && deleteUser.mutate({ userId: userToDelete })}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </CalidDialog>
 
       {showImpersonateModal && impersonateUser && (
-        <Dialog open={showImpersonateModal} onOpenChange={() => setShowImpersonateModal(false)}>
-          <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
+        <CalidDialog open={showImpersonateModal} onOpenChange={setShowImpersonateModal}>
+          <DialogContent size="md" showCloseButton>
+            <DialogHeader>
+              <DialogTitle>{t("impersonate")}</DialogTitle>
+              <DialogDescription>{t("impersonation_user_tip")}</DialogDescription>
+            </DialogHeader>
             <form
               onSubmit={async (event) => {
                 event.preventDefault();
                 await handleImpersonate(impersonateUser);
                 setShowImpersonateModal(false);
               }}>
-              <DialogFooter showDivider className="mt-8">
+              <DialogFooter className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
                 <Button color="primary" type="submit">
                   {t("impersonate")}
@@ -251,7 +291,7 @@ export const AdminUsersTable = () => {
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
+        </CalidDialog>
       )}
     </div>
   );
