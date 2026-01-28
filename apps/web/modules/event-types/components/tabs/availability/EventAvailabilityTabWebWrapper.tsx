@@ -6,14 +6,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 
-import type { TeamMembers } from "../../EventType";
 import { EventAvailabilityTab } from "./EventAvailabilityTab";
 
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
   user?: RouterOutputs["viewer"]["me"]["get"];
-  teamMembers: TeamMembers;
 };
 
 export type GetAllSchedulesByUserIdQueryType =

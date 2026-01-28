@@ -1,6 +1,6 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { useState, memo, useEffect } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef, useState, memo, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -10,7 +10,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
 import type {
   AvailabilityOption,
   FormValues,
@@ -18,6 +17,12 @@ import type {
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import { useHosts } from "@calcom/features/eventtypes/lib/HostsContext";
+import { useFetchMoreOnScroll } from "@calcom/features/eventtypes/lib/useFetchMoreOnScroll";
+import {
+  usePaginatedAvailabilityHosts,
+  type AvailabilityHostWithMeta,
+} from "@calcom/features/eventtypes/lib/usePaginatedAvailabilityHosts";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -31,6 +36,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -105,15 +111,12 @@ type EventTypeTeamScheduleProps = {
   customClassNames?: TeamAvailabilityCustomClassNames;
 };
 
-type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
-
 type EventTypeScheduleProps = {
   schedulesQueryData?: Array<
     Omit<RouterOutputs["viewer"]["availability"]["list"]["schedules"][number], "availability">
   >;
   isSchedulesPending?: boolean;
   eventType: EventTypeSetup;
-  teamMembers: TeamMember[];
   customClassNames?: UserAvailabilityCustomClassNames;
   fieldName?: "schedule" | "restrictionSchedule";
   scheduleQueryData?: ScheduleQueryData;
@@ -633,22 +636,16 @@ const EventTypeSchedule = ({
 
 const TeamMemberSchedule = ({
   host,
-  index,
-  teamMembers,
   hostScheduleQuery,
   customClassNames,
 }: {
-  host: Host;
-  index: number;
-  teamMembers: TeamMember[];
+  host: AvailabilityHostWithMeta;
   hostScheduleQuery: HostSchedulesQueryType;
   customClassNames?: TeamMemmberScheduelCustomClassNames;
 }) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
-
-  const formMethods = useFormContext<FormValues>();
-  const { getValues } = formMethods;
+  const { updateHost } = useHosts();
 
   const { data, isPending } = hostScheduleQuery({
     userId: host.userId,
@@ -662,52 +659,42 @@ const TeamMemberSchedule = ({
     isManaged: false,
   }));
 
-  //Set to defaultSchedule if Host Schedule is not previously selected
-  const scheduleId = getValues(`hosts.${index}.scheduleId`);
+  // Read scheduleId from the host prop (which includes pending changes from context)
+  const scheduleId = host.scheduleId;
   const value = options?.find((option) =>
     scheduleId
       ? option.value === scheduleId
       : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
   );
 
-  const member = teamMembers.find((mem) => mem.id === host.userId);
-  const avatar = member?.avatar;
-  const label = member?.name;
-
   return (
     <>
       <div className={classNames("flex w-full items-center", customClassNames?.labelContainer)}>
-        {!isPlatform && <Avatar size="sm" imageSrc={avatar} alt={label || ""} />}
+        {!isPlatform && <Avatar size="sm" imageSrc={host.avatarUrl} alt={host.name || ""} />}
         {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
-        <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
+        <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{host.name}</p>
       </div>
       <div className="flex w-full flex-col pt-2">
         {isPending ? (
           <Spinner className="mt-2 h-6 w-6" />
         ) : (
-          <Controller
-            name={`hosts.${index}.scheduleId`}
-            render={({ field }) => {
-              return (
-                <Select
-                  placeholder={t("select")}
-                  options={options}
-                  isSearchable={false}
-                  onChange={(selected) => {
-                    field.onChange(selected?.value || null);
-                  }}
-                  className={classNames(
-                    "block w-full min-w-0 flex-1 rounded-sm text-sm",
-                    customClassNames?.select
-                  )}
-                  innerClassNames={customClassNames?.innerClassNames}
-                  value={value as AvailabilityOption}
-                  components={{ Option, SingleValue }}
-                  isMulti={false}
-                  isDisabled={isPending}
-                />
-              );
+          <Select
+            placeholder={t("select")}
+            options={options}
+            isSearchable={false}
+            onChange={(selected) => {
+              // Write schedule change to pendingHostChanges via context
+              updateHost(host.userId, { scheduleId: selected?.value || null });
             }}
+            className={classNames(
+              "block w-full min-w-0 flex-1 rounded-sm text-sm",
+              customClassNames?.select
+            )}
+            innerClassNames={customClassNames?.innerClassNames}
+            value={value as AvailabilityOption}
+            components={{ Option, SingleValue }}
+            isMulti={false}
+            isDisabled={isPending}
           />
         )}
       </div>
@@ -716,17 +703,41 @@ const TeamMemberSchedule = ({
 };
 
 const TeamAvailability = ({
-  teamMembers,
   hostSchedulesQuery,
   customClassNames,
 }: EventTypeTeamScheduleProps & {
-  teamMembers: TeamMember[];
   customClassNames?: TeamAvailabilityCustomClassNames;
 }) => {
   const { t } = useLocale();
-  const { watch } = useFormContext<FormValues>();
-  const [animationRef] = useAutoAnimate<HTMLUListElement>();
-  const hosts = watch("hosts");
+  const { pendingChanges } = useHosts();
+  const formMethods = useFormContext<FormValues>();
+  const eventTypeId = formMethods.getValues("id");
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { hosts, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    usePaginatedAvailabilityHosts({
+      eventTypeId,
+      pendingChanges,
+      search: debouncedSearch,
+    });
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  useFetchMoreOnScroll(scrollContainerRef, hasNextPage, isFetchingNextPage, fetchNextPage);
+
+  const rowVirtualizer = useVirtualizer({
+    count: hosts.length,
+    estimateSize: () => 52,
+    getScrollElement: () => scrollContainerRef.current,
+    overscan: 5,
+  });
+
   return (
     <>
       <div
@@ -752,30 +763,56 @@ const TeamAvailability = ({
           </p>
         </div>
         <div className="border-subtle rounded-b-md border border-t-0 p-6">
-          {hosts && hosts.length > 0 ? (
-            <ul
-              className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
-              ref={animationRef}>
-              {hosts?.map((host, index) => (
-                <li
-                  key={host.userId}
-                  className={classNames(
-                    `flex flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
-                    customClassNames?.teamMemberSchedule?.container
-                  )}>
-                  <TeamMemberSchedule
-                    host={host}
-                    index={index}
-                    teamMembers={teamMembers}
-                    hostScheduleQuery={hostSchedulesQuery}
-                    customClassNames={customClassNames?.teamMemberSchedule}
-                  />
-                </li>
-              ))}
-            </ul>
+          <TextField
+            placeholder={t("search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+            containerClassName="mb-3"
+          />
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <Spinner className="h-6 w-6" />
+            </div>
+          ) : hosts && hosts.length > 0 ? (
+            <div
+              ref={scrollContainerRef}
+              className={classNames("mb-4 mt-3 overflow-y-auto rounded-md", "border-subtle border")}
+              style={{ maxHeight: 400 }}>
+              <ul className="relative w-full" style={{ height: rowVirtualizer.getTotalSize() }}>
+                {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+                  const host = hosts[virtualItem.index];
+                  const index = virtualItem.index;
+                  return (
+                    <li
+                      key={host.userId}
+                      data-index={virtualItem.index}
+                      ref={(node) => rowVirtualizer.measureElement(node)}
+                      className={classNames(
+                        `absolute left-0 flex w-full flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
+                        customClassNames?.teamMemberSchedule?.container
+                      )}
+                      style={{
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}>
+                      <TeamMemberSchedule
+                        host={host}
+                        hostScheduleQuery={hostSchedulesQuery}
+                        customClassNames={customClassNames?.teamMemberSchedule}
+                      />
+                    </li>
+                  );
+                })}
+              </ul>
+              {isFetchingNextPage && (
+                <div className="flex justify-center py-2">
+                  <Spinner className="h-5 w-5" />
+                </div>
+              )}
+            </div>
           ) : (
             <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
-              {t("no_hosts_description")}
+              {debouncedSearch ? t("no_results") : t("no_hosts_description")}
             </p>
           )}
         </div>
@@ -853,7 +890,6 @@ const UseTeamEventScheduleSettingsToggle = ({
         {useHostSchedulesForTeamEvent && (
           <div className="lg:ml-14">
             <TeamAvailability
-              teamMembers={rest.teamMembers}
               hostSchedulesQuery={rest.hostSchedulesQuery}
               customClassNames={customClassNames?.teamAvailability}
             />
