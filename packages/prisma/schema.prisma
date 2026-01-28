@@ -842,7 +842,7 @@ model Attendee {
 
   @@index([email])
   @@index([bookingId])
-  @@index([bookingId, email])
+  @@index([email, bookingId])
 }
 
 enum BookingStatus {

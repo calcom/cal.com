@@ -1,5 +1,5 @@
 -- CreateIndex
-CREATE INDEX "Attendee_bookingId_email_idx" ON "Attendee"("bookingId", "email");
+CREATE INDEX "Attendee_email_bookingId_idx" ON "Attendee"("email", "bookingId");
 
 -- CreateIndex
 CREATE INDEX "Booking_userId_endTime_idx" ON "Booking"("userId", "endTime");
