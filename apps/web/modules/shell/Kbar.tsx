@@ -1,4 +1,5 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -19,8 +20,6 @@ import {
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useMemo } from "react";
-
-import dayjs from "@calcom/dayjs";
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -319,8 +318,6 @@ function CommandKey(): JSX.Element {
 
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
-  useEventTypesAction();
-  useUpcomingBookingsAction();
 
   return (
     <KBarPortal>
@@ -458,6 +455,9 @@ function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
   const { t } = useLocale();
+
+  useEventTypesAction();
+  useUpcomingBookingsAction();
 
   if (results.length === 0 && searchQuery.trim().length > 0) {
     return <NoResultsFound searchQuery={searchQuery} />;

@@ -128,7 +128,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     title={
                       <ServerTrans
                         t={t}
-                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                        i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"}`}
                       />
                     }
                     actions={
@@ -138,7 +138,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       <ServerTrans
                         t={t}
                         i18nKey={`webhooks_${lockedText}_${
-                          isManagedEventType ? "for_members" : "by_team_admins"
+                          isManagedEventType ? "for_members" : "by_team_admin"
                         }_description`}
                       />
                     }
