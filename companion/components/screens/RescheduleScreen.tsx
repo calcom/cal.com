@@ -65,7 +65,6 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
       accent: "#007AFF",
     };
 
-    const backgroundStyle = transparentBackground ? "bg-transparent" : "";
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);

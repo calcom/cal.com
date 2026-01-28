@@ -66,6 +66,10 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       destructive: isDark ? "#FF453A" : "#800020",
     };
 
+    // Derive styles from colors and props
+    const backgroundStyle = transparentBackground ? "" : `bg-[${colors.background}]`;
+    const pillStyle = transparentBackground ? "bg-gray-200/50" : `bg-[${colors.pill}]`;
+
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [guests, setGuests] = useState<{ email: string; name?: string }[]>([]);
