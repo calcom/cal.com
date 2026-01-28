@@ -1,6 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Props } from "react-select";
-
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -11,9 +8,10 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Select, Switch } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { Props } from "react-select";
 
 export type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 
@@ -44,11 +42,14 @@ export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
   customClassNames,
+  isHiddenFieldLocked = false,
   ...props
 }: Omit<Props<ChildrenEventType, true>, "value" | "onChange"> & {
   value?: ChildrenEventType[];
   onChange: (value: readonly ChildrenEventType[]) => void;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  /** When true, the per-member "Hidden" toggle is disabled (parent controls it). */
+  isHiddenFieldLocked?: boolean;
 }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -138,11 +139,14 @@ export const ChildrenEventTypeSelect = ({
                 <div className={classNames("flex flex-row items-center gap-2")}>
                   <Tooltip
                     className={customClassNames?.selectedChildrenList?.listItem?.showOnProfileTooltip}
-                    content={t("show_eventtype_on_profile")}>
+                    content={
+                      isHiddenFieldLocked ? t("hidden_controlled_by_admin") : t("show_eventtype_on_profile")
+                    }>
                     <div className="self-center rounded-md p-2">
                       <Switch
                         name="Hidden"
                         checked={!children.hidden}
+                        disabled={isHiddenFieldLocked}
                         onCheckedChange={(checked) => {
                           const newData = value.map((item) =>
                             item.owner.id === children.owner.id ? { ...item, hidden: !checked } : item
