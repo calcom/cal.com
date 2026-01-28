@@ -6,6 +6,8 @@ import type {
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
+import { useHosts } from "@calcom/features/eventtypes/lib/HostsContext";
+import { usePaginatedAssignmentHosts } from "@calcom/features/eventtypes/lib/usePaginatedAssignmentHosts";
 import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -139,61 +141,46 @@ type FixedHostsCustomClassNames = SettingsToggleClassNames & {
 };
 const FixedHosts = ({
   teamId,
-  teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   isRoundRobinEvent = false,
   customClassNames,
+  serverHosts,
 }: {
   teamId: number;
   value: Host[];
   onChange: (hosts: Host[]) => void;
-  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   isRoundRobinEvent?: boolean;
   customClassNames?: FixedHostsCustomClassNames;
+  serverHosts: Host[];
 }) => {
   const { t } = useLocale();
-  const { getValues, setValue } = useFormContext<FormValues>();
+  const { setHosts } = useHosts();
 
-  const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
+  const hasActiveFixedHosts = isRoundRobinEvent && value.some((host) => host.isFixed);
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
-  const handleFixedHostsActivation = useCallback(() => {
-    const currentHosts = getValues("hosts");
-    setValue(
-      "hosts",
-      teamMembers.map((teamMember) => {
-        const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-        return {
-          isFixed: true,
-          userId: parseInt(teamMember.value, 10),
-          priority: host?.priority ?? 2,
-          weight: host?.weight ?? 100,
-          // if host was already added, retain scheduleId and groupId
-          scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-          groupId: host?.groupId || null,
-        };
-      }),
-      { shouldDirty: true }
-    );
-  }, [getValues, setValue, teamMembers]);
+  // No-op: when "assign all" is toggled ON, the assignAllTeamMembers flag
+  // is set by the AssignAllTeamMembers component. The booking system resolves
+  // all members at booking time, so we don't need to create individual host entries.
+  const handleFixedHostsActivation = useCallback(() => {}, []);
 
   const handleFixedHostsToggle = useCallback(
     (checked: boolean) => {
       if (!checked) {
-        const rrHosts = getValues("hosts")
+        const rrHosts = value
           .filter((host) => !host.isFixed)
           .sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
-        setValue("hosts", rrHosts, { shouldDirty: true });
+        setHosts(serverHosts, rrHosts);
       }
       setIsDisabled(checked);
     },
-    [getValues, setValue]
+    [value, setHosts, serverHosts]
   );
 
   return (
@@ -220,7 +207,6 @@ const FixedHosts = ({
             <AddMembersWithSwitch
               teamId={teamId}
               groupId={null}
-              teamMembers={teamMembers}
               value={value}
               onChange={onChange}
               assignAllTeamMembers={assignAllTeamMembers}
@@ -251,7 +237,6 @@ const FixedHosts = ({
               groupId={null}
               placeholder={t("add_a_member")}
               teamId={teamId}
-              teamMembers={teamMembers}
               customClassNames={customClassNames?.addMembers}
               value={value}
               onChange={onChange}
@@ -286,6 +271,7 @@ const RoundRobinHosts = ({
   customClassNames,
   teamId,
   isSegmentApplicable,
+  serverHosts,
 }: {
   orgId: number | null;
   value: Host[];
@@ -296,9 +282,11 @@ const RoundRobinHosts = ({
   customClassNames?: RoundRobinHostsCustomClassNames;
   teamId: number;
   isSegmentApplicable: boolean;
+  serverHosts: Host[];
 }) => {
   const { t } = useLocale();
 
+  const { setHosts: setHostsFromContext } = useHosts();
   const { setValue, getValues, control, formState } = useFormContext<FormValues>();
   const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
@@ -316,24 +304,24 @@ const RoundRobinHosts = ({
 
   const handleWeightsEnabledChange = (active: boolean, onChange: (value: boolean) => void) => {
     onChange(active);
-    const allHosts = getValues("hosts");
+    const allHosts = value;
     const fixedHosts = allHosts.filter((host) => host.isFixed);
     const rrHosts = allHosts.filter((host) => !host.isFixed);
     const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
     // Preserve fixed hosts when updating
-    setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
+    setHostsFromContext(serverHosts, [...fixedHosts, ...sortedRRHosts]);
   };
 
   const handleWeightsChange = (hosts: Host[]) => {
-    const allHosts = getValues("hosts");
+    const allHosts = value;
     const fixedHosts = allHosts.filter((host) => host.isFixed);
     const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
     // Preserve fixed hosts when updating
-    setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
+    setHostsFromContext(serverHosts, [...fixedHosts, ...sortedRRHosts]);
   };
 
   const handleAddGroup = useCallback(() => {
-    const allHosts = getValues("hosts");
+    const allHosts = value;
     const currentRRHosts = allHosts.filter((host) => !host.isFixed);
     const fixedHosts = allHosts.filter((host) => host.isFixed);
 
@@ -350,7 +338,7 @@ const RoundRobinHosts = ({
         }
         return host;
       });
-      setValue("hosts", [...fixedHosts, ...updatedRRHosts], { shouldDirty: true });
+      setHostsFromContext(serverHosts, [...fixedHosts, ...updatedRRHosts]);
     } else {
       // If groups already exist, just add one more group
       const newGroup = { id: uuidv4(), name: "" };
@@ -363,7 +351,7 @@ const RoundRobinHosts = ({
       setValue("assignAllTeamMembers", false, { shouldDirty: true });
       setAssignAllTeamMembers(false);
     }
-  }, [hostGroups, getValues, setValue, assignAllTeamMembers, setAssignAllTeamMembers]);
+  }, [hostGroups, value, serverHosts, setHostsFromContext, setValue, assignAllTeamMembers, setAssignAllTeamMembers]);
 
   const handleGroupNameChange = useCallback(
     (groupId: string, newName: string) => {
@@ -383,33 +371,15 @@ const RoundRobinHosts = ({
       // Remove all hosts that belong to this group
       const updatedHosts = value.filter((host) => host.groupId !== groupId);
       onChange(updatedHosts);
-      setValue("hosts", updatedHosts, { shouldDirty: true });
+      setHostsFromContext(serverHosts, updatedHosts);
     },
-    [hostGroups, setValue, value, onChange]
+    [hostGroups, setValue, setHostsFromContext, serverHosts, value, onChange]
   );
 
-  const handleMembersActivation = useCallback(
-    (groupId: string | null) => {
-      const currentHosts = getValues("hosts");
-      setValue(
-        "hosts",
-        teamMembers.map((teamMember) => {
-          const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-          return {
-            isFixed: false,
-            userId: parseInt(teamMember.value, 10),
-            priority: host?.priority ?? 2,
-            weight: host?.weight ?? 100,
-            // if host was already added, retain scheduleId and groupId
-            scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-            groupId: host?.groupId || groupId,
-          };
-        }),
-        { shouldDirty: true }
-      );
-    },
-    [getValues, setValue, teamMembers]
-  );
+  // No-op: when "assign all" is toggled ON, the assignAllTeamMembers flag
+  // is set by the AssignAllTeamMembers component. The booking system resolves
+  // all members at booking time, so we don't need to create individual host entries.
+  const handleMembersActivation = useCallback((_groupId: string | null) => {}, []);
 
   const AddMembersWithSwitchComponent = ({
     groupId,
@@ -422,7 +392,6 @@ const RoundRobinHosts = ({
       <AddMembersWithSwitch
         placeholder={t("add_a_member")}
         teamId={teamId}
-        teamMembers={teamMembers}
         value={value}
         onChange={onChange}
         assignAllTeamMembers={assignAllTeamMembers}
@@ -629,16 +598,26 @@ const Hosts = ({
 }) => {
   const {
     control,
-    setValue,
-    getValues,
     formState: { submitCount },
   } = useFormContext<FormValues>();
+  const { addHost, updateHost, removeHost, setHosts, pendingChanges } = useHosts();
+
+  const eventTypeId = useWatch({ control, name: "id" });
+
+  const { hosts: paginatedHosts, serverHosts } = usePaginatedAssignmentHosts({
+    eventTypeId,
+    pendingChanges,
+    search: "",
+  });
+
   const schedulingType = useWatch({
     control,
     name: "schedulingType",
   });
+
+  // Track scheduling type changes to reset hosts
   const initialValue = useRef<{
-    hosts: FormValues["hosts"];
+    pendingChanges: typeof pendingChanges;
     schedulingType: SchedulingType | null;
     submitCount: number;
   } | null>(null);
@@ -646,22 +625,20 @@ const Hosts = ({
   useEffect(() => {
     // Handles init & out of date initial value after submission.
     if (!initialValue.current || initialValue.current?.submitCount !== submitCount) {
-      initialValue.current = { hosts: getValues("hosts"), schedulingType, submitCount };
+      initialValue.current = { pendingChanges, schedulingType, submitCount };
       return;
     }
-    setValue(
-      "hosts",
-      initialValue.current.schedulingType === schedulingType ? initialValue.current.hosts : [],
-      { shouldDirty: true }
-    );
-  }, [schedulingType, setValue, getValues, submitCount]);
+    if (initialValue.current.schedulingType !== schedulingType) {
+      // Scheduling type changed - reset all hosts
+      paginatedHosts.forEach((h) => removeHost(h.userId));
+    }
+  }, [schedulingType, submitCount]);
 
   // To ensure existing host do not loose its scheduleId and groupId properties, whenever a new host of same type is added.
   // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
-    const existingHosts = getValues("hosts");
     return changedHosts.map((newValue) => {
-      const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+      const existingHost = paginatedHosts.find((host: Host) => host.userId === newValue.userId);
 
       return existingHost
         ? {
@@ -673,62 +650,67 @@ const Hosts = ({
     });
   };
 
-  return (
-    <Controller<FormValues>
-      name="hosts"
-      render={({ field: { onChange, value } }) => {
-        const schedulingTypeRender = {
-          COLLECTIVE: hideFixedHostsForCollective ? (
-            <></>
-          ) : (
-            <FixedHosts
-              teamId={teamId}
-              teamMembers={teamMembers}
-              value={value}
-              onChange={(changeValue) => {
-                onChange([...updatedHosts(changeValue)]);
-              }}
-              assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              customClassNames={customClassNames?.fixedHosts}
-            />
-          ),
-          ROUND_ROBIN: (
-            <>
-              <FixedHosts
-                teamId={teamId}
-                teamMembers={teamMembers}
-                value={value}
-                onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
-                }}
-                assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                isRoundRobinEvent={true}
-                customClassNames={customClassNames?.fixedHosts}
-              />
-              <RoundRobinHosts
-                orgId={orgId}
-                teamId={teamId}
-                teamMembers={teamMembers}
-                value={value}
-                onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
-                  onChange(hosts);
-                }}
-                assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                customClassNames={customClassNames?.roundRobinHosts}
-                isSegmentApplicable={isSegmentApplicable}
-              />
-            </>
-          ),
-          MANAGED: <></>,
-        };
-        return schedulingType ? schedulingTypeRender[schedulingType] : <></>;
-      }}
-    />
+  // handleHostsChange computes delta between current hosts and new hosts
+  const handleHostsChange = useCallback(
+    (newHosts: Host[]) => {
+      setHosts(serverHosts, newHosts);
+    },
+    [setHosts, serverHosts]
   );
+
+  const value = paginatedHosts; // hosts from paginated query (already merged with pending changes)
+
+  const schedulingTypeRender = {
+    COLLECTIVE: hideFixedHostsForCollective ? (
+      <></>
+    ) : (
+      <FixedHosts
+        teamId={teamId}
+        value={value}
+        onChange={(changeValue) => {
+          handleHostsChange([...updatedHosts(changeValue)]);
+        }}
+        assignAllTeamMembers={assignAllTeamMembers}
+        setAssignAllTeamMembers={setAssignAllTeamMembers}
+        customClassNames={customClassNames?.fixedHosts}
+        serverHosts={serverHosts}
+      />
+    ),
+    ROUND_ROBIN: (
+      <>
+        <FixedHosts
+          teamId={teamId}
+          value={value}
+          onChange={(changeValue) => {
+            handleHostsChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
+          }}
+          assignAllTeamMembers={assignAllTeamMembers}
+          setAssignAllTeamMembers={setAssignAllTeamMembers}
+          isRoundRobinEvent={true}
+          customClassNames={customClassNames?.fixedHosts}
+          serverHosts={serverHosts}
+        />
+        <RoundRobinHosts
+          orgId={orgId}
+          teamId={teamId}
+          teamMembers={teamMembers}
+          value={value}
+          onChange={(changeValue) => {
+            const newHosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
+            handleHostsChange(newHosts);
+          }}
+          assignAllTeamMembers={assignAllTeamMembers}
+          setAssignAllTeamMembers={setAssignAllTeamMembers}
+          customClassNames={customClassNames?.roundRobinHosts}
+          isSegmentApplicable={isSegmentApplicable}
+          serverHosts={serverHosts}
+        />
+      </>
+    ),
+    MANAGED: <></>,
+  };
+  return schedulingType ? schedulingTypeRender[schedulingType] : <></>;
+
 };
 
 export const EventTeamAssignmentTab = ({

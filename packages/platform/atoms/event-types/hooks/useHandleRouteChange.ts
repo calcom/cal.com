@@ -1,10 +1,7 @@
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useEffect } from "react";
 
-import type {
-  EventTypeAssignedUsers,
-  EventTypeHosts,
-} from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeAssignedUsers } from "@calcom/features/eventtypes/lib/types";
 import { checkForEmptyAssignment } from "@calcom/features/eventtypes/lib/checkForEmptyAssignment";
 
 export const useHandleRouteChange = ({
@@ -12,7 +9,7 @@ export const useHandleRouteChange = ({
   isleavingWithoutAssigningHosts,
   isTeamEventType,
   assignedUsers,
-  hosts,
+  hostCount,
   assignAllTeamMembers,
   isManagedEventType,
   onError,
@@ -24,7 +21,7 @@ export const useHandleRouteChange = ({
   isleavingWithoutAssigningHosts: boolean;
   isTeamEventType: boolean;
   assignedUsers: EventTypeAssignedUsers;
-  hosts: EventTypeHosts;
+  hostCount: number;
   assignAllTeamMembers: boolean;
   isManagedEventType: boolean;
   watchTrigger: unknown;
@@ -45,7 +42,7 @@ export const useHandleRouteChange = ({
         (url === "/event-types" || paths[1] !== "event-types") &&
         checkForEmptyAssignment({
           assignedUsers,
-          hosts,
+          hostCount,
           assignAllTeamMembers,
           isManagedEventType,
         })
@@ -58,5 +55,5 @@ export const useHandleRouteChange = ({
       onEnd?.(handleRouteChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchTrigger, hosts, assignedUsers, assignAllTeamMembers, onError, onStart, onEnd]);
+  }, [watchTrigger, hostCount, assignedUsers, assignAllTeamMembers, onError, onStart, onEnd]);
 };
