@@ -115,18 +115,33 @@ const _handleResponse = async ({
       const getRoutedMembers = async () =>
         await Promise.all([
           (async () => {
-            const contactOwnerQuery =
-              identifierKeyedResponse && fetchCrm
-                ? await routerGetCrmContactOwnerEmail({
-                    attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-                    identifierKeyedResponse,
-                    action: chosenRoute.action,
-                  })
-                : null;
-            crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
-            crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
-            crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
-            crmRecordId = contactOwnerQuery?.recordId ?? null;
+            try {
+              const contactOwnerQuery =
+                identifierKeyedResponse && fetchCrm
+                  ? await routerGetCrmContactOwnerEmail({
+                      attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+                      identifierKeyedResponse,
+                      action: chosenRoute.action,
+                    })
+                  : null;
+              if (fetchCrm) {
+                crmContactOwnerEmail = contactOwnerQuery?.email ?? "";
+                crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? "";
+                crmAppSlug = contactOwnerQuery?.crmAppSlug ?? "";
+                crmRecordId = contactOwnerQuery?.recordId ?? "";
+              } else {
+                crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
+                crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
+                crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
+                crmRecordId = contactOwnerQuery?.recordId ?? null;
+              }
+            } catch (error) {
+              moduleLogger.error("Error fetching CRM contact owner", safeStringify(error));
+              crmContactOwnerEmail = "";
+              crmContactOwnerRecordType = "";
+              crmAppSlug = "";
+              crmRecordId = "";
+            }
           })(),
           (async () => {
             const teamMembersMatchingAttributeLogicWithResult =
