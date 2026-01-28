@@ -527,6 +527,21 @@ async function seedProrationTest(): Promise<SeedResult> {
 
   console.log("Organization billing created");
 
+  // Set subscriptionId in team metadata so the org upgrade banner check is satisfied.
+  // checkIfOrgNeedsUpgrade.handler.ts looks at team.metadata.subscriptionId to determine
+  // if the org has been fully set up (not in trial/needs-upgrade state).
+  await prisma.team.update({
+    where: { id: org.id },
+    data: {
+      metadata: {
+        subscriptionId: stripeSubscriptionId,
+        subscriptionItemId: stripeSubscriptionItemId,
+      },
+    },
+  });
+
+  console.log("Organization team metadata updated with subscriptionId");
+
   // Get the organization billing record for linking seat changes
   const orgBilling = await prisma.organizationBilling.findUnique({
     where: { teamId: org.id },
