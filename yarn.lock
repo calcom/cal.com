@@ -2885,6 +2885,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/lyra@workspace:packages/app-store/lyra":
+  version: 0.0.0-use.local
+  resolution: "@calcom/lyra@workspace:packages/app-store/lyra"
+  dependencies:
+    "@calcom/lib": "npm:*"
+    "@calcom/prisma": "npm:*"
+    "@calcom/types": "npm:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/make@workspace:packages/app-store/make":
   version: 0.0.0-use.local
   resolution: "@calcom/make@workspace:packages/app-store/make"
@@ -3106,7 +3116,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
+"@calcom/prisma@npm:*, @calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
   version: 0.0.0-use.local
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
