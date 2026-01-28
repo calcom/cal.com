@@ -1,7 +1,7 @@
 import { ROADMAP } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUserAgentData } from "@calcom/lib/hooks/useUserAgentData";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import useMeAvatar from "@calcom/trpc/react/hooks/useMeAvatar";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Icon } from "@calcom/ui/components/icon";
@@ -69,7 +69,7 @@ const DOWNLOAD_LINKS = {
 export function UserDropdown({ small }: UserDropdownProps) {
   const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
-  const { data: user, isPending } = useMeQuery();
+  const { data: user, isPending } = useMeAvatar();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const { os, browser, isMobile } = useUserAgentData();
