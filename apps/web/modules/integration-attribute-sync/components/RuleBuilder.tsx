@@ -18,7 +18,7 @@ import {
   isArrayOperator,
   isTeamCondition,
   type TAttributeSyncRuleConditionWithId,
-} from "../lib/ruleHelpers";
+} from "@calcom/features/ee/integration-attribute-sync/lib/ruleHelpers";
 import {
   ConditionIdentifierEnum,
   type ConditionOperatorEnum,
@@ -27,7 +27,7 @@ import {
   type ITeamCondition,
   type RuleOperatorEnum,
   type TAttributeSyncRuleCondition,
-} from "../repositories/IIntegrationAttributeSyncRepository";
+} from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 
 const ensureConditionHasId = (condition: TAttributeSyncRuleCondition): TAttributeSyncRuleConditionWithId => {
   if ("_id" in condition && condition._id) {
@@ -64,7 +64,7 @@ const ConditionComponent = ({
 }: ConditionComponentProps) => {
   const { t } = useLocale();
   const conditionTypeOptions = getConditionTypeOptions(t);
-  const conditionTypeOption = conditionTypeOptions.find((opt) => opt.value === condition.identifier);
+  const conditionTypeOption = conditionTypeOptions.find((opt: { value: ConditionIdentifierEnum; label: string }) => opt.value === condition.identifier);
 
   const handleTypeChange = (newType: { value: ConditionIdentifierEnum; label: string } | null) => {
     if (!newType) return;
@@ -127,7 +127,7 @@ interface TeamConditionFieldsProps {
 const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: TeamConditionFieldsProps) => {
   const { t } = useLocale();
   const teamOperatorOptions = getTeamOperatorOptions(t);
-  const operatorOption = teamOperatorOptions.find((opt) => opt.value === condition.operator);
+  const operatorOption = teamOperatorOptions.find((opt: { value: ConditionOperatorEnum; label: string }) => opt.value === condition.operator);
   const isMulti = isArrayOperator(condition.operator);
 
   const selectedTeams = isMulti
@@ -222,7 +222,7 @@ const AttributeConditionFields = ({
     ? getOperatorOptionsForAttributeType(selectedAttribute.type, t)
     : [];
 
-  const operatorOption = operatorOptions.find((opt) => opt.value === condition.operator);
+  const operatorOption = operatorOptions.find((opt: { value: ConditionOperatorEnum; label: string }) => opt.value === condition.operator);
 
   const handleAttributeChange = (selected: { value: string; label: string } | null) => {
     if (!selected) return;
@@ -402,7 +402,7 @@ export const RuleBuilder = ({
 }: RuleBuilderProps) => {
   const { t } = useLocale();
   const parentOperatorOptions = getParentOperatorOptions(t);
-  const parentOperatorOption = parentOperatorOptions.find((opt) => opt.value === value.operator);
+  const parentOperatorOption = parentOperatorOptions.find((opt: { value: RuleOperatorEnum; label: string }) => opt.value === value.operator);
   const isLoading = isLoadingTeams || isLoadingAttributes;
 
   const handleOperatorChange = (newOperator: { value: RuleOperatorEnum; label: string } | null) => {
@@ -432,7 +432,7 @@ export const RuleBuilder = ({
   const handleRemoveCondition = (index: number) => {
     onChange({
       ...value,
-      conditions: value.conditions.filter((_, i) => i !== index),
+      conditions: value.conditions.filter((_: TAttributeSyncRuleCondition, i: number) => i !== index),
     });
   };
 
@@ -464,7 +464,7 @@ export const RuleBuilder = ({
             {t("attribute_sync_no_conditions")}
           </div>
         ) : (
-          value.conditions.map((condition, index) => {
+          value.conditions.map((condition: TAttributeSyncRuleCondition, index: number) => {
             const conditionWithId = ensureConditionHasId(condition);
             return (
               <ConditionComponent
