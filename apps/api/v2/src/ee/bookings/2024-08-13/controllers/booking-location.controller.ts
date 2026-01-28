@@ -1,26 +1,25 @@
+import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  UpdateBookingInputAttendeeAddressLocation_2024_08_13,
+  UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
+  UpdateBookingInputAttendeePhoneLocation_2024_08_13,
+  UpdateBookingInputLinkLocation_2024_08_13,
+  UpdateBookingInputPhoneLocation_2024_08_13,
+  UpdateBookingLocationInput_2024_08_13,
+  UpdateInputAddressLocation_2024_08_13,
+} from "@calcom/platform-types";
+import { Body, Controller, HttpCode, HttpStatus, Param, Patch, UseGuards } from "@nestjs/common";
+import { ApiExtraModels, ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-location.output";
 import { BookingLocationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location.service";
-import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { Controller, Patch, Logger, Body, UseGuards, Param, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiExtraModels, ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
-
-import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  UpdateBookingLocationInput_2024_08_13,
-  UpdateInputAddressLocation_2024_08_13,
-  UpdateBookingInputAttendeeAddressLocation_2024_08_13,
-  UpdateBookingInputAttendeeDefinedLocation_2024_08_13,
-  UpdateBookingInputAttendeePhoneLocation_2024_08_13,
-  UpdateBookingInputLinkLocation_2024_08_13,
-  UpdateBookingInputPhoneLocation_2024_08_13,
-} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings/:bookingUid/location",
@@ -43,8 +42,6 @@ import {
   required: true,
 })
 export class BookingLocationController_2024_08_13 {
-  private readonly logger = new Logger("BookingLocationController_2024_08_13");
-
   constructor(private readonly bookingLocationService: BookingLocationService_2024_08_13) {}
 
   @Patch("/")
