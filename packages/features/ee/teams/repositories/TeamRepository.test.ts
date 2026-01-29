@@ -172,6 +172,7 @@ describe("TeamRepository", () => {
           metadata: true,
           parentId: true,
           isOrganization: true,
+          name: true,
         },
       });
       expect(result).toEqual(mockTeam);
