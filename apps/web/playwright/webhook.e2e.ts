@@ -1,8 +1,10 @@
+import { expect } from "@playwright/test";
+import { v4 as uuidv4 } from "uuid";
+
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { expect } from "@playwright/test";
-import { v4 as uuidv4 } from "uuid";
+
 import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
@@ -20,6 +22,110 @@ const dynamic = "[redacted/dynamic]";
 test.afterEach(async ({ users }) => {
   // This also delete forms on cascade
   await users.deleteAll();
+});
+
+test.describe("BOOKING_CREATED", async () => {
+  test("add webhook & test that creating an event triggers a webhook call", async ({
+    page,
+    users,
+    webhooks,
+  }, _testInfo) => {
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+    await user.apiLogin();
+    const webhookReceiver = await webhooks.createReceiver();
+
+    // --- Book the first available day next month in the pro user's "30min"-event
+    await page.goto(`/${user.username}/${eventType.slug}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body: any = request.body;
+
+    body.createdAt = dynamic;
+    body.payload.startTime = dynamic;
+    body.payload.endTime = dynamic;
+    body.payload.location = dynamic;
+    for (const attendee of body.payload.attendees) {
+      attendee.timeZone = dynamic;
+      attendee.language = dynamic;
+    }
+    body.payload.organizer.id = dynamic;
+    body.payload.organizer.email = dynamic;
+    body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
+    body.payload.uid = dynamic;
+    body.payload.bookingId = dynamic;
+    body.payload.additionalInformation = dynamic;
+    body.payload.requiresConfirmation = dynamic;
+    body.payload.eventTypeId = dynamic;
+    body.payload.videoCallData = dynamic;
+    body.payload.appsStatus = dynamic;
+    body.payload.metadata.videoCallUrl = dynamic;
+    expect(body).toMatchObject({
+      triggerEvent: "BOOKING_CREATED",
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        type: "30-min",
+        title: "30 min between Nameless and Test Testson",
+        description: "",
+        additionalNotes: "",
+        customInputs: {},
+        startTime: "[redacted/dynamic]",
+        endTime: "[redacted/dynamic]",
+        organizer: {
+          id: "[redacted/dynamic]",
+          name: "Nameless",
+          email: "[redacted/dynamic]",
+          timeZone: "[redacted/dynamic]",
+          language: "[redacted/dynamic]",
+        },
+        responses: {
+          email: {
+            value: "test@example.com",
+            label: "email_address",
+          },
+          name: {
+            value: "Test Testson",
+            label: "your_name",
+          },
+        },
+        userFieldsResponses: {},
+        attendees: [
+          {
+            email: "test@example.com",
+            name: "Test Testson",
+            timeZone: "[redacted/dynamic]",
+            language: "[redacted/dynamic]",
+          },
+        ],
+        location: "[redacted/dynamic]",
+        destinationCalendar: null,
+        hideCalendarNotes: false,
+        hideCalendarEventDetails: false,
+        requiresConfirmation: "[redacted/dynamic]",
+        eventTypeId: "[redacted/dynamic]",
+        seatsShowAttendees: true,
+        seatsPerTimeSlot: null,
+        uid: "[redacted/dynamic]",
+        eventTitle: "30 min",
+        eventDescription: null,
+        price: 0,
+        currency: "usd",
+        length: 30,
+        bookingId: "[redacted/dynamic]",
+        metadata: { videoCallUrl: "[redacted/dynamic]" },
+        status: "ACCEPTED",
+        additionalInformation: "[redacted/dynamic]",
+      },
+    });
+
+    webhookReceiver.close();
+  });
 });
 
 test.describe("BOOKING_REJECTED", async () => {
@@ -128,6 +234,251 @@ test.describe("BOOKING_REJECTED", async () => {
     });
 
     webhookReceiver.close();
+  });
+});
+
+test.describe("BOOKING_REQUESTED", async () => {
+  test("can book an event that requires confirmation and get a booking requested event", async ({
+    page,
+    users,
+    webhooks,
+  }) => {
+    // --- create a user
+    const user = await users.create();
+
+    // --- login as that user
+    await user.apiLogin();
+    const webhookReceiver = await webhooks.createReceiver();
+
+    // --- visit user page
+    await page.goto(`/${user.username}`);
+
+    // --- book the user's opt in
+    await bookOptinEvent(page);
+
+    // --- check that webhook was called
+
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = request.body as any;
+
+    body.createdAt = dynamic;
+    body.payload.startTime = dynamic;
+    body.payload.endTime = dynamic;
+    body.payload.location = dynamic;
+    for (const attendee of body.payload.attendees) {
+      attendee.timeZone = dynamic;
+      attendee.language = dynamic;
+    }
+    body.payload.organizer.id = dynamic;
+    body.payload.organizer.email = dynamic;
+    body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
+    body.payload.uid = dynamic;
+    body.payload.bookingId = dynamic;
+    body.payload.additionalInformation = dynamic;
+    body.payload.requiresConfirmation = dynamic;
+    body.payload.eventTypeId = dynamic;
+    body.payload.videoCallData = dynamic;
+    body.payload.appsStatus = dynamic;
+    body.payload.metadata.videoCallUrl = dynamic;
+
+    expect(body).toMatchObject({
+      triggerEvent: "BOOKING_REQUESTED",
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        type: "opt-in",
+        title: "Opt in between Nameless and Test Testson",
+        customInputs: {},
+        startTime: "[redacted/dynamic]",
+        endTime: "[redacted/dynamic]",
+        organizer: {
+          id: "[redacted/dynamic]",
+          name: "Nameless",
+          email: "[redacted/dynamic]",
+          timeZone: "[redacted/dynamic]",
+          language: "[redacted/dynamic]",
+        },
+        responses: {
+          email: {
+            value: "test@example.com",
+            label: "email_address",
+          },
+          name: {
+            value: "Test Testson",
+            label: "your_name",
+          },
+        },
+        userFieldsResponses: {},
+        attendees: [
+          {
+            email: "test@example.com",
+            name: "Test Testson",
+            timeZone: "[redacted/dynamic]",
+            language: "[redacted/dynamic]",
+          },
+        ],
+        location: "[redacted/dynamic]",
+        destinationCalendar: null,
+        requiresConfirmation: "[redacted/dynamic]",
+        eventTypeId: "[redacted/dynamic]",
+        uid: "[redacted/dynamic]",
+        eventTitle: "Opt in",
+        eventDescription: null,
+        price: 0,
+        currency: "usd",
+        length: 30,
+        bookingId: "[redacted/dynamic]",
+        status: "PENDING",
+        additionalInformation: "[redacted/dynamic]",
+        metadata: { videoCallUrl: "[redacted/dynamic]" },
+      },
+    });
+
+    webhookReceiver.close();
+  });
+});
+
+test.describe("BOOKING_RESCHEDULED", async () => {
+  test("can reschedule a booking and get a booking rescheduled event", async ({
+    page,
+    users,
+    bookings,
+    webhooks,
+  }) => {
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+
+    await user.apiLogin();
+
+    const webhookReceiver = await webhooks.createReceiver();
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+    });
+
+    await page.goto(`/${user.username}/${eventType.slug}?rescheduleUid=${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await confirmReschedule(page);
+
+    await expect(page.getByTestId("success-page")).toBeVisible();
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } })!;
+    expect(newBooking).not.toBeNull();
+
+    // --- check that webhook was called
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+
+    expect(request.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        uid: newBooking?.uid,
+      },
+    });
+  });
+
+  test("when rescheduling to a booking that already exists, should send a booking rescheduled event with the existent booking uid", async ({
+    page,
+    users,
+    bookings,
+    webhooks,
+  }) => {
+    const { user, eventType, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+      { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+      { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+    ]);
+
+    await prisma.eventType.update({
+      where: { id: eventType.id },
+      data: { requiresConfirmation: false },
+    });
+
+    await user.apiLogin();
+
+    const webhookReceiver = await webhooks.createReceiver();
+
+    const bookingAttendees = await prisma.attendee.findMany({
+      where: { bookingId: booking.id },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    const bookingSeats = bookingAttendees.map((attendee) => ({
+      bookingId: booking.id,
+      attendeeId: attendee.id,
+      referenceUid: uuidv4(),
+    }));
+
+    await prisma.bookingSeat.createMany({
+      data: bookingSeats,
+    });
+
+    const references = await prisma.bookingSeat.findMany({
+      where: { bookingId: booking.id },
+      include: { attendee: true },
+    });
+
+    await page.goto(`/reschedule/${references[0].referenceUid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await confirmReschedule(page);
+
+    await expect(page.getByTestId("success-page")).toBeVisible();
+
+    const newBooking = await prisma.booking.findFirst({
+      where: {
+        attendees: {
+          some: {
+            email: bookingAttendees[0].email,
+          },
+        },
+      },
+    });
+
+    // --- ensuring that new booking was created
+    expect(newBooking).not.toBeNull();
+
+    // --- check that webhook was called
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [firstRequest] = webhookReceiver.requestList;
+
+    expect(firstRequest?.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        uid: newBooking?.uid,
+      },
+    });
+
+    await page.goto(`/reschedule/${references[1].referenceUid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await confirmReschedule(page);
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    await webhookReceiver.waitForRequestCount(2);
+
+    const [_, secondRequest] = webhookReceiver.requestList;
+
+    expect(secondRequest?.body).toMatchObject({
+      triggerEvent: "BOOKING_RESCHEDULED",
+      payload: {
+        // in the current implementation, it is the same as the first booking
+        uid: newBooking?.uid,
+      },
+    });
   });
 });
 
