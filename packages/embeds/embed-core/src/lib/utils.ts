@@ -1,4 +1,4 @@
-import type { KnownConfig, PrefillAndIframeAttrsConfig, UiConfig } from "../types";
+import type { KnownConfig, PrefillAndIframeAttrsConfig } from "../types";
 
 export const getErrorString = ({
   errorCode,
@@ -223,47 +223,5 @@ export function buildConfigWithPrerenderRelatedFields({
   return {
     ...config,
     prerender: "true",
-  };
-}
-
-/**
- * Deep merges two UiConfig objects, handling nested properties like cssVarsPerTheme
- * at the appropriate level (theme-level for cssVarsPerTheme).
- *
- * This ensures that multiple ui() calls preserve values from previous calls,
- * especially important for properties like cssVarsPerTheme where different themes
- * may be set in separate calls.
- *
- * @param oldConfig - The existing UI config to merge into
- * @param newConfig - The new UI config to merge
- * @returns A merged UiConfig with proper deep merging for nested properties
- */
-export function mergeUiConfig(oldConfig: UiConfig, newConfig: UiConfig): UiConfig {
-  // Handle cssVarsPerTheme with theme-level merge
-  const oldCssVarsPerTheme = oldConfig?.cssVarsPerTheme;
-  const newCssVarsPerTheme = newConfig?.cssVarsPerTheme;
-  let mergedCssVarsPerTheme: UiConfig["cssVarsPerTheme"] | undefined;
-
-  if (oldCssVarsPerTheme || newCssVarsPerTheme) {
-    mergedCssVarsPerTheme = {} as Record<"light" | "dark", Record<string, string>>;
-    const themes = Array.from(
-      new Set([
-        ...Object.keys(oldCssVarsPerTheme || {}),
-        ...Object.keys(newCssVarsPerTheme || {}),
-      ])
-    ) as Array<"light" | "dark">;
-
-    for (const theme of themes) {
-      mergedCssVarsPerTheme[theme] = {
-        ...oldCssVarsPerTheme?.[theme],
-        ...newCssVarsPerTheme?.[theme],
-      };
-    }
-  }
-
-  return {
-    ...oldConfig,
-    ...newConfig,
-    ...(mergedCssVarsPerTheme ? { cssVarsPerTheme: mergedCssVarsPerTheme } : {}),
   };
 }

@@ -236,14 +236,6 @@ export class Cal {
 
   isPrerendering?: boolean;
 
-  /**
-   * Stores UI config that should persist across iframe resets.
-   * This is important for two reasons:
-   * 1. For element-click embeds, ui() is called before the iframe even exists and loadInIframe resets the doQueue effectively clearing the ui config.
-   * 2. If iframe reloads for whatever reason, the UI command won't be sent to iframe again, the persistentUiConfig would still have it and it is possible to be synced back to iframe
-   */
-  persistentUiConfig: UiConfig = {};
-
   static actionsManagers: Record<Namespace, SdkActionManager>;
   // Store calLink separately and not rely on deriving it from iframe.src, because we could load different URL in iframe(derived from calLink e.g. calLink=Router -> redirects to eventBookingUrl and then we load that URL in iframe)
   calLink: string | null = null;
@@ -376,9 +368,9 @@ export class Cal {
       urlInstance.searchParams.append(key, value);
     }
 
-    // Very Important:Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check when it is ready.
+    // Very Important:Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check when it is ready, we don't want to reset UI
     this.iframeReset();
-
+    
     if (iframe.src === urlInstance.toString()) {
       // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
       // This param has no other purpose except to ensure forced reload.
@@ -418,7 +410,8 @@ export class Cal {
 
   iframeReset() {
     this.iframeReady = false;
-    this.iframeDoQueue = [];
+    // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI applied
+    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => doInIframeArg.method === "ui");
   }
 
   constructor(namespace: string, q: Queue) {
@@ -1497,9 +1490,8 @@ class CalApi {
       },
     });
 
-    this.cal.persistentUiConfig = mergeUiConfig(this.cal.persistentUiConfig, uiConfig);
 
-    this.cal.doInIframe({ method: "ui", arg: this.cal.persistentUiConfig });
+    this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }
 }
 
