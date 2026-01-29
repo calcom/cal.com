@@ -94,38 +94,36 @@ export function normalizeUsername(username: string): string {
 }
 
 /**
- * Gets wildcard patterns that could match a given domain.
- * Used to check if any wildcard entries (*.domain.com) would block this domain.
+ * Gets the wildcard pattern that could match a given domain.
+ * Used to check if a wildcard entry (*.domain.com) would block this domain.
+ *
+ * Simply strips the first part before the first `.` and adds `*.` prefix.
+ * Only returns a pattern if the parent domain has at least 2 parts (to avoid *.com).
  *
  * Example:
- * - Input: "app.cal.com"
- * - Output: ["*.cal.com"] (because app.cal.com is a subdomain of cal.com)
- *
- * - Input: "sub.app.cal.com"
- * - Output: ["*.app.cal.com", "*.cal.com"]
- *
- * Note: Does not include patterns for TLD alone (e.g., "*.com") as that would be too broad.
+ * - Input: "app.cal.com" -> Output: ["*.cal.com"]
+ * - Input: "bloody-hell.cal.co.uk" -> Output: ["*.cal.co.uk"]
+ * - Input: "cal.com" -> Output: [] (parent would be just "com")
+ * - Input: "example.co.uk" -> Output: ["*.co.uk"]
  *
  * @param domain - Normalized domain (without @ prefix)
- * @returns Array of wildcard patterns from most specific to least specific
+ * @returns Array with single wildcard pattern, or empty if no valid parent domain
  */
 export function getWildcardPatternsForDomain(domain: string): string[] {
-  const parts = domain.split(".");
+  const firstDotIndex = domain.indexOf(".");
 
-  if (parts.length < 2) {
+  if (firstDotIndex === -1 || firstDotIndex === domain.length - 1) {
     return [];
   }
 
-  const patterns: string[] = [];
+  const parentDomain = domain.slice(firstDotIndex + 1);
 
-  // Start from index 1 to skip the first part (the subdomain itself)
-  // For "app.cal.com", we want "*.cal.com" not "*.app.cal.com"
-  for (let i = 1; i < parts.length - 1; i++) {
-    const parentDomain = parts.slice(i).join(".");
-    patterns.push(`*.${parentDomain}`);
+  // Only return pattern if parent domain has at least one dot (e.g., "cal.com" not "com")
+  if (!parentDomain.includes(".")) {
+    return [];
   }
 
-  return patterns;
+  return [`*.${parentDomain}`];
 }
 
 /**

@@ -201,7 +201,7 @@ describe("OrganizationBlockingService", () => {
       const wildcardEntry = {
         id: "789",
         type: WatchlistType.DOMAIN,
-        value: "*.cal.com",
+        value: "*.app.cal.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: false,
@@ -219,7 +219,7 @@ describe("OrganizationBlockingService", () => {
       expect(result.watchlistEntry).toEqual(wildcardEntry);
       expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
         emails: ["user@sub.app.cal.com"],
-        domains: ["sub.app.cal.com", "*.app.cal.com", "*.cal.com"],
+        domains: ["sub.app.cal.com", "*.app.cal.com"],
         organizationId: ORGANIZATION_ID,
       });
     });

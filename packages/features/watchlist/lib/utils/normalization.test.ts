@@ -103,12 +103,12 @@ describe("normalization", () => {
   });
 
   describe("getWildcardPatternsForDomain", () => {
-    test("should return wildcard patterns for a subdomain", () => {
+    test("should return wildcard pattern for a subdomain", () => {
       expect(getWildcardPatternsForDomain("app.cal.com")).toEqual(["*.cal.com"]);
     });
 
-    test("should return wildcard patterns for deeply nested subdomains", () => {
-      expect(getWildcardPatternsForDomain("sub.app.cal.com")).toEqual(["*.app.cal.com", "*.cal.com"]);
+    test("should return single wildcard pattern for deeply nested subdomains", () => {
+      expect(getWildcardPatternsForDomain("sub.app.cal.com")).toEqual(["*.app.cal.com"]);
     });
 
     test("should return empty array for a simple domain (no subdomains)", () => {
@@ -117,16 +117,11 @@ describe("normalization", () => {
 
     test("should handle multi-level TLDs correctly", () => {
       expect(getWildcardPatternsForDomain("example.co.uk")).toEqual(["*.co.uk"]);
-      expect(getWildcardPatternsForDomain("mail.example.co.uk")).toEqual(["*.example.co.uk", "*.co.uk"]);
+      expect(getWildcardPatternsForDomain("bloody-hell.cal.co.uk")).toEqual(["*.cal.co.uk"]);
     });
 
     test("should return empty array for single-part domain", () => {
       expect(getWildcardPatternsForDomain("localhost")).toEqual([]);
-    });
-
-    test("should return patterns from most specific to least specific", () => {
-      const result = getWildcardPatternsForDomain("a.b.c.d.com");
-      expect(result).toEqual(["*.b.c.d.com", "*.c.d.com", "*.d.com"]);
     });
   });
 
