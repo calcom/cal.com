@@ -3,7 +3,8 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 
 /**
  * Created Audit Action Service
@@ -65,9 +66,16 @@ export class CreatedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
         const { fields } = this.parseStored(storedData);
-        const hostUser = fields.hostUserUuid ? await this.deps.userRepository.findByUuid({ uuid: fields.hostUserUuid }) : null;
+        return {
+            userUuids: fields.hostUserUuid ? [fields.hostUserUuid] : [],
+        };
+    }
+
+    async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+        const { fields } = this.parseStored(storedData);
+        const hostUser = fields.hostUserUuid ? dbStore.getUserByUuid(fields.hostUserUuid) : null;
         const hostName = hostUser?.name || "Unknown";
         if (fields.seatReferenceUid) {
             return { key: "booking_audit_action.created_with_seat", params: { host: hostName } };

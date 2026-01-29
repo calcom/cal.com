@@ -2973,7 +2973,6 @@ export class RegularBookingService implements IBookingService {
         logger: tracingLogger,
       });
 
-      // For recurring bookings we fire the events in the RecurringBookingService
       if (!isRecurringBooking) {
         if (originalRescheduledBooking) {
           const bookingRescheduledPayload: BookingRescheduledPayload = {
