@@ -513,7 +513,6 @@ export const getOptions = ({
   /** Ad tracking data for Stripe customer metadata */
   getTrackingData: () => TrackingData;
 }): AuthOptions => ({
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
