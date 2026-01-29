@@ -21,6 +21,7 @@ import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
+import { VercelWebhookController } from "@/vercel-webhook.controller";
 
 @Module({
   imports: [
@@ -58,7 +59,7 @@ import { RedisService } from "@/modules/redis/redis.service";
     AuthModule,
     JwtModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, VercelWebhookController],
   providers: [
     {
       provide: APP_FILTER,
@@ -92,6 +93,10 @@ export class AppModule implements NestModule {
         },
         {
           path: "/v2/billing/webhook",
+          method: RequestMethod.POST,
+        },
+        {
+          path: "/v2/webhooks/vercel/deployment-promoted",
           method: RequestMethod.POST,
         }
       )
