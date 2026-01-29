@@ -93,7 +93,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
     <li
       data-testid="list-link-item"
       className={classNames(
-        "group flex w-full items-center justify-between p-5 pb-4",
+        "group flex w-full flex-col gap-3 p-5 pb-4 sm:flex-row sm:items-center sm:justify-between",
         className,
         disabled ? "hover:bg-cal-muted" : ""
       )}>
@@ -101,13 +101,13 @@ export function ListLinkItem(props: ListLinkItemProps) {
         passHref
         href={href}
         className={classNames(
-          "text-default grow truncate text-sm",
+          "text-default min-w-0 grow text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
-        <div className="flex items-center">
-          <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+        <div className="flex flex-wrap items-center gap-1">
+          <h1 className="truncate text-sm font-semibold leading-none">{heading}</h1>
           {readOnly && (
-            <Badge data-testid="badge" variant="gray" className="ml-2">
+            <Badge data-testid="badge" variant="gray">
               {t("readonly")}
             </Badge>
           )}
@@ -118,7 +118,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         </h2>
         <div className="mt-2">{children}</div>
       </Link>
-      {actions}
+      <div className="flex shrink-0 items-center">{actions}</div>
     </li>
   );
 }
