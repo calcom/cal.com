@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { Prisma } from "@calcom/prisma/client";
 import type {
@@ -23,7 +24,7 @@ const translator = short();
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
 export const getWhat = (title: string, t: TFunction) => {
-  return `${t("what")}:\n${title}`;
+  return `${t("what")}:\n${sanitizeText(title)}`;
 };
 
 export const getWhen = (
@@ -41,6 +42,39 @@ export const getWhen = (
   return calEvent.seatsPerTimeSlot
     ? `${t("organizer_timezone")}:\n${organizerTimezone}`
     : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
+};
+
+export const sanitizeText = (input: string | null | undefined): string => {
+  const text = input || "";
+  let stripped = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+  stripped = stripped.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  stripped = stripped.replace(/<img[^>]*>/gi, "");
+  stripped = stripped.replace(/<[^>]+>/g, "");
+  const processed = markdownToSafeHTML(stripped);
+  const finalStripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
+  const result = breakUrl(finalStripped);
+  return result.trim();
+};
+
+/**
+ * Sanitizes email addresses by stripping HTML tags only, without URL obfuscation.
+ * Emails are format-validated on input (Zod), so they shouldn't contain HTML.
+ * This is a defense-in-depth measure that preserves the email format (user@example.com)
+ * instead of turning it into user@example[.]com.
+ */
+export const sanitizeEmail = (input: string | null | undefined): string => {
+  const text = input || "";
+  let stripped = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+  stripped = stripped.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, "");
+  stripped = stripped.replace(/<img[^>]*>/gi, "");
+  stripped = stripped.replace(/<[^>]+>/g, "");
+  const processed = markdownToSafeHTML(stripped);
+  const finalStripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
+  return finalStripped.trim();
+};
+
+const breakUrl = (input: string): string => {
+  return input.replace(/(https?:\/\/)/g, "hxxp://").replace(/(?<!\[)\./g, "[.]");
 };
 
 export const getWho = (
@@ -64,36 +98,39 @@ export const getWho = (
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : ""
-        }`
+        `${sanitizeText(attendee?.name) || t("guest")}${
+          attendee.phoneNumber ? ` - ${sanitizeText(attendee.phoneNumber)}` : ""
+        }\n${!isSmsCalEmail(attendee.email) ? sanitizeEmail(attendee.email) : ""}`
     )
     .join("\n");
 
   const organizer = calEvent.hideOrganizerEmail
-    ? `${calEvent.organizer.name} - ${t("organizer")}`
-    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+    ? `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}`
+    : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeEmail(
+        calEvent.organizer.email
+      )}`;
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
         .map((member) =>
           calEvent.hideOrganizerEmail
-            ? `${member.name} - ${t("team_member")}`
-            : `${member.name} - ${t("team_member")}\n${member.email}`
+            ? `${sanitizeText(member.name)} - ${t("team_member")}`
+            : `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeEmail(member.email)}`
         )
         .join("\n")
     : [];
 
-  return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
+  const result = `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
     teamMembers.length ? `\n${teamMembers}` : ""
   }`;
+  return result;
 };
 
 export const getAdditionalNotes = (t: TFunction, additionalNotes?: string | null) => {
   if (!additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${additionalNotes}`;
+  return `${t("additional_notes")}:\n${sanitizeText(additionalNotes)}`;
 };
 
 export const getUserFieldsResponses = (
@@ -650,4 +687,61 @@ export const getVideoCallUrlFromCalEvent = (calEvent: {
 
 export const getVideoCallPassword = (videoCallData?: VideoCallData): string => {
   return isDailyVideoCall(videoCallData) ? "" : videoCallData?.password ?? "";
+};
+
+export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => {
+  const sanitized = { ...calEvent };
+  sanitized.title = sanitizeText(sanitized.title);
+  sanitized.organizer = {
+    ...sanitized.organizer,
+    name: sanitizeText(sanitized.organizer.name),
+    email: sanitizeEmail(sanitized.organizer.email),
+  };
+  sanitized.attendees = sanitized.attendees.map((attendee) => ({
+    ...attendee,
+    name: sanitizeText(attendee.name),
+    email: sanitizeEmail(attendee.email),
+  }));
+  if (sanitized.team?.members) {
+    sanitized.team = {
+      ...sanitized.team,
+      name: sanitizeText(sanitized.team.name),
+      members: sanitized.team.members.map((member) => ({
+        ...member,
+        name: sanitizeText(member.name),
+        email: sanitizeEmail(member.email),
+      })),
+    };
+  }
+  sanitized.additionalNotes = sanitizeText(sanitized.additionalNotes);
+  sanitized.description = sanitizeText(sanitized.description);
+  sanitized.cancellationReason = sanitizeText(sanitized.cancellationReason);
+  sanitized.rejectionReason = sanitizeText(sanitized.rejectionReason);
+  sanitized.location = sanitizeText(sanitized.location);
+  if (sanitized.customInputs) {
+    sanitized.customInputs = Object.fromEntries(
+      Object.entries(sanitized.customInputs).map(([key, value]) => [
+        key,
+        typeof value === "string" ? sanitizeText(value) : String(value),
+      ])
+    );
+  }
+  if (sanitized.responses) {
+    sanitized.responses = Object.fromEntries(
+      Object.entries(sanitized.responses).map(([key, value]) => {
+        if (typeof value === "object" && value !== null && "value" in value) {
+          return [
+            key,
+            {
+              ...value,
+              value: sanitizeText(String(value.value)),
+              label: sanitizeText(String(value.label)),
+            },
+          ];
+        }
+        return [key, sanitizeText(String(value))];
+      })
+    );
+  }
+  return sanitized;
 };
