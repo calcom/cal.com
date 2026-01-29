@@ -319,6 +319,13 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
+  code-coverage:
+    name: Coverage
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/code-coverage.yml
+    secrets: inherit
+
   api-v2-unit-test:
     name: Tests
     needs: [prepare]

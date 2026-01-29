@@ -75,6 +75,7 @@
     "test-e2e:embed-react": "yarn db-seed && yarn e2e:embed-react",
     "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "TZ=UTC vitest run",
+    "test:coverage": "TZ=UTC vitest run --coverage",
     "test:ui": "TZ=UTC vitest --ui",
     "type-check": "turbo run type-check",
     "type-check:ci": "turbo run type-check:ci --log-prefix=none",

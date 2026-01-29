@@ -1,0 +1,201 @@
+name: Code Coverage
+
+on:
+  workflow_call:
+
+env:
+  LINGO_DOT_DEV_API_KEY: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  coverage:
+    name: Coverage
+    timeout-minutes: 30
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      lines: ${{ steps.coverage.outputs.lines }}
+      statements: ${{ steps.coverage.outputs.statements }}
+      functions: ${{ steps.coverage.outputs.functions }}
+      branches: ${{ steps.coverage.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+
+      - name: Run tests with coverage
+        run: yarn test:coverage -- --no-isolate
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ github.sha }}
+          path: coverage/
+          retention-days: 7
+
+      - name: Generate coverage summary
+        id: coverage
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "No coverage summary found"
+            echo "lines=0" >> $GITHUB_OUTPUT
+            echo "statements=0" >> $GITHUB_OUTPUT
+            echo "functions=0" >> $GITHUB_OUTPUT
+            echo "branches=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+          STATEMENTS=$(jq '.total.statements.pct' coverage/coverage-summary.json)
+          FUNCTIONS=$(jq '.total.functions.pct' coverage/coverage-summary.json)
+          BRANCHES=$(jq '.total.branches.pct' coverage/coverage-summary.json)
+
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+
+          echo "## Coverage Summary (Packages)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lines | ${LINES}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Statements | ${STATEMENTS}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functions | ${FUNCTIONS}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branches | ${BRANCHES}% |" >> $GITHUB_STEP_SUMMARY
+
+  coverage-base:
+    name: Coverage (Base)
+    timeout-minutes: 30
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      lines: ${{ steps.coverage-base.outputs.lines }}
+      statements: ${{ steps.coverage-base.outputs.statements }}
+      functions: ${{ steps.coverage-base.outputs.functions }}
+      branches: ${{ steps.coverage-base.outputs.branches }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || 'main' }}
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || 'main' }}
+      - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+
+      - name: Run tests with coverage on base
+        run: |
+          if grep -q "test:coverage" package.json; then
+            yarn test:coverage -- --no-isolate || true
+          else
+            echo "test:coverage script not found in base branch, skipping"
+            mkdir -p coverage
+            echo '{"total":{"lines":{"pct":0},"statements":{"pct":0},"functions":{"pct":0},"branches":{"pct":0}}}' > coverage/coverage-summary.json
+          fi
+
+      - name: Upload base coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-base
+          path: coverage/
+          retention-days: 7
+
+      - name: Generate base coverage summary
+        id: coverage-base
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "No coverage summary found for base"
+            echo "lines=0" >> $GITHUB_OUTPUT
+            echo "statements=0" >> $GITHUB_OUTPUT
+            echo "functions=0" >> $GITHUB_OUTPUT
+            echo "branches=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+          STATEMENTS=$(jq '.total.statements.pct' coverage/coverage-summary.json)
+          FUNCTIONS=$(jq '.total.functions.pct' coverage/coverage-summary.json)
+          BRANCHES=$(jq '.total.branches.pct' coverage/coverage-summary.json)
+
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+          echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+          echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+
+  compare-coverage:
+    name: Compare Coverage
+    needs: [coverage, coverage-base]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Compare coverage
+        id: compare
+        run: |
+          PR_LINES="${{ needs.coverage.outputs.lines }}"
+          PR_STATEMENTS="${{ needs.coverage.outputs.statements }}"
+          PR_FUNCTIONS="${{ needs.coverage.outputs.functions }}"
+          PR_BRANCHES="${{ needs.coverage.outputs.branches }}"
+
+          BASE_LINES="${{ needs.coverage-base.outputs.lines }}"
+          BASE_STATEMENTS="${{ needs.coverage-base.outputs.statements }}"
+          BASE_FUNCTIONS="${{ needs.coverage-base.outputs.functions }}"
+          BASE_BRANCHES="${{ needs.coverage-base.outputs.branches }}"
+
+          # Handle empty values
+          PR_LINES=${PR_LINES:-0}
+          PR_STATEMENTS=${PR_STATEMENTS:-0}
+          PR_FUNCTIONS=${PR_FUNCTIONS:-0}
+          PR_BRANCHES=${PR_BRANCHES:-0}
+          BASE_LINES=${BASE_LINES:-0}
+          BASE_STATEMENTS=${BASE_STATEMENTS:-0}
+          BASE_FUNCTIONS=${BASE_FUNCTIONS:-0}
+          BASE_BRANCHES=${BASE_BRANCHES:-0}
+
+          LINES_DIFF=$(echo "$PR_LINES - $BASE_LINES" | bc)
+          STATEMENTS_DIFF=$(echo "$PR_STATEMENTS - $BASE_STATEMENTS" | bc)
+          FUNCTIONS_DIFF=$(echo "$PR_FUNCTIONS - $BASE_FUNCTIONS" | bc)
+          BRANCHES_DIFF=$(echo "$PR_BRANCHES - $BASE_BRANCHES" | bc)
+
+          echo "## Coverage Comparison (Packages)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Base | PR | Diff |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|-----|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lines | ${BASE_LINES}% | ${PR_LINES}% | ${LINES_DIFF}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Statements | ${BASE_STATEMENTS}% | ${PR_STATEMENTS}% | ${STATEMENTS_DIFF}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functions | ${BASE_FUNCTIONS}% | ${PR_FUNCTIONS}% | ${FUNCTIONS_DIFF}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branches | ${BASE_BRANCHES}% | ${PR_BRANCHES}% | ${BRANCHES_DIFF}% |" >> $GITHUB_STEP_SUMMARY
+
+          COVERAGE_DECREASED="false"
+          if (( $(echo "$LINES_DIFF < -0.5" | bc -l) )); then
+            echo "::warning::Lines coverage decreased by ${LINES_DIFF}%"
+            COVERAGE_DECREASED="true"
+          fi
+          if (( $(echo "$STATEMENTS_DIFF < -0.5" | bc -l) )); then
+            echo "::warning::Statements coverage decreased by ${STATEMENTS_DIFF}%"
+            COVERAGE_DECREASED="true"
+          fi
+          if (( $(echo "$FUNCTIONS_DIFF < -0.5" | bc -l) )); then
+            echo "::warning::Functions coverage decreased by ${FUNCTIONS_DIFF}%"
+            COVERAGE_DECREASED="true"
+          fi
+          if (( $(echo "$BRANCHES_DIFF < -0.5" | bc -l) )); then
+            echo "::warning::Branches coverage decreased by ${BRANCHES_DIFF}%"
+            COVERAGE_DECREASED="true"
+          fi
+
+          echo "coverage_decreased=$COVERAGE_DECREASED" >> $GITHUB_OUTPUT
+
+          if [ "$COVERAGE_DECREASED" = "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> **Warning**: Code coverage has decreased by more than 0.5%. Please add tests to maintain coverage." >> $GITHUB_STEP_SUMMARY
+            echo "::error::Code coverage has decreased. Please add tests to maintain coverage."
+            exit 1
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Coverage check passed!" >> $GITHUB_STEP_SUMMARY
