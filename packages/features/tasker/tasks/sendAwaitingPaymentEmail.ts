@@ -66,10 +66,10 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
     let attendeesToEmail = evt.attendees;
     if (attendeeSeatId) {
       const attendeeRepository = new AttendeeRepository(prisma);
-      const seatAttendees = await attendeeRepository.findByBookingIdAndSeatReference(
+      const seatAttendees = await attendeeRepository.findByBookingIdAndSeatReference({
         bookingId,
-        attendeeSeatId
-      );
+        seatReferenceUid: attendeeSeatId,
+      });
       const seatEmails = new Set(seatAttendees.map((a) => (a.email || "").toLowerCase()));
       attendeesToEmail = evt.attendees.filter((attendee) =>
         seatEmails.has((attendee.email || "").toLowerCase())

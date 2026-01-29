@@ -4,7 +4,7 @@ import { vi } from "vitest";
 import dayjs from "@calcom/dayjs";
 import { PeriodType } from "@calcom/prisma/enums";
 
-import NoAvailabilityDialog from "../NoAvailabilityDialog";
+import NoAvailabilityDialog from "../components/NoAvailabilityDialog";
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({
