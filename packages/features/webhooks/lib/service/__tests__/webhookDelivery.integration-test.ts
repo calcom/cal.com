@@ -2,7 +2,7 @@ import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webh
 import { prisma } from "@calcom/prisma";
 import type { EventType, User, Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import uuid from "uuid";
+import { v4 } from "uuid";
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "vitest";
 
 /**
@@ -18,7 +18,7 @@ describe("Webhook Producer Integration", () => {
   let testWebhook: Webhook;
 
   // Use unique identifiers for each test run to avoid collisions
-  const testId = uuid.v4().slice(0, 8);
+  const testId = v4();
 
   beforeAll(async () => {
     // Create test user
