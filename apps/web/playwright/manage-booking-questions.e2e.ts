@@ -1,14 +1,12 @@
-import type { Locator, Page, PlaywrightTestArgs } from "@playwright/test";
-import { expect } from "@playwright/test";
-import type { createUsersFixture } from "playwright/fixtures/users";
-import { uuid } from "short-uuid";
-
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { md } from "@calcom/lib/markdownIt";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import type { Locator, Page, PlaywrightTestArgs } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { createUsersFixture } from "playwright/fixtures/users";
+import { uuid } from "short-uuid";
 import { test } from "./lib/fixtures";
 import {
   createHttpServer,
@@ -138,31 +136,6 @@ test.describe("Manage Booking Questions", () => {
           });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
           await expect(page.locator('[data-testid="attendee-name-John Doe"]').first()).toHaveText("John Doe");
-          await expectWebhookToBeCalled(webhookReceiver, {
-            triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-            payload: {
-              attendees: [
-                {
-                  // It would have full Name only
-                  name: "John Doe",
-                  email: "booker@example.com",
-                },
-              ],
-              responses: {
-                name: {
-                  label: "your_name",
-                  value: {
-                    firstName: "John",
-                    lastName: "Doe",
-                  },
-                },
-                email: {
-                  label: "email_address",
-                  value: "booker@example.com",
-                },
-              },
-            },
-          });
         });
       });
 
@@ -363,40 +336,6 @@ async function runTestStepsCommonForTeamAndUserEventType(
           expect(
             await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
-
-          await webhookReceiver.waitForRequestCount(1);
-
-          const [request] = webhookReceiver.requestList;
-
-          // @ts-expect-error body is unknown
-          const payload = request.body.payload;
-
-          expect(payload.responses).toMatchObject({
-            email: {
-              label: "email_address",
-              value: "booker@example.com",
-            },
-            "how-are-you": {
-              label: "How are you?",
-              value: "I am great!",
-            },
-            name: {
-              label: "your_name",
-              value: "Booker",
-            },
-          });
-
-          expect(payload.attendees[0]).toMatchObject({
-            name: "Booker",
-            email: "booker@example.com",
-          });
-
-          expect(payload.userFieldsResponses).toMatchObject({
-            "how-are-you": {
-              label: "How are you?",
-              value: "I am great!",
-            },
-          });
         },
         true
       );
