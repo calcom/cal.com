@@ -94,32 +94,36 @@ export function normalizeUsername(username: string): string {
 }
 
 /**
- * Gets all wildcard patterns that could match a given domain.
- * Used to check if any wildcard entry (*.domain.com) would block this domain.
+ * Gets the wildcard pattern that could match a given domain.
+ * Used to check if a wildcard entry (*.domain.com) would block this domain.
  *
- * Generates patterns for all ancestor domains to ensure higher-level wildcards are matched.
- * Only generates patterns where the parent has at least 2 parts (to avoid *.com).
+ * Simply strips the first part before the first `.` and adds `*.` prefix.
+ * Only returns a pattern if the parent domain has at least 2 parts (to avoid *.com).
  *
  * Example:
- * - Input: "sub.app.cal.com" -> Output: ["*.app.cal.com", "*.cal.com"]
  * - Input: "app.cal.com" -> Output: ["*.cal.com"]
  * - Input: "bloody-hell.cal.co.uk" -> Output: ["*.cal.co.uk"]
  * - Input: "cal.com" -> Output: [] (parent would be just "com")
+ * - Input: "example.co.uk" -> Output: ["*.co.uk"]
  *
  * @param domain - Normalized domain (without @ prefix)
- * @returns Array of wildcard patterns from most specific to least specific
+ * @returns Array with single wildcard pattern, or empty if no valid parent domain
  */
 export function getWildcardPatternsForDomain(domain: string): string[] {
-  const parts = domain.split(".");
-  const patterns: string[] = [];
+  const firstDotIndex = domain.indexOf(".");
 
-  // Generate wildcard patterns for each ancestor domain (avoids *.com for 2-part domains)
-  for (let i = 1; i < parts.length - 1; i++) {
-    const parentDomain = parts.slice(i).join(".");
-    patterns.push(`*.${parentDomain}`);
+  if (firstDotIndex === -1 || firstDotIndex === domain.length - 1) {
+    return [];
   }
 
-  return patterns;
+  const parentDomain = domain.slice(firstDotIndex + 1);
+
+  // Only return pattern if parent domain has at least one dot (e.g., "cal.com" not "com")
+  if (!parentDomain.includes(".")) {
+    return [];
+  }
+
+  return [`*.${parentDomain}`];
 }
 
 /**
