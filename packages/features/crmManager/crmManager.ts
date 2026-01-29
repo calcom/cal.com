@@ -41,7 +41,12 @@ export default class CrmManager {
     if (skipContactCreation) return;
     const contactSet = new Set(contacts.map((c: { email: string }) => c.email));
     // Figure out which contacts to create
-    const contactsToCreate = eventAttendees.filter((attendee) => !contactSet.has(attendee.email));
+    const attendeesToCreate = eventAttendees.filter((attendee) => !contactSet.has(attendee.email));
+    const contactsToCreate: ContactCreateInput[] = attendeesToCreate.map((attendee) => ({
+      email: attendee.email,
+      name: attendee.name,
+      phoneNumber: attendee.phoneNumber ?? undefined,
+    }));
     const createdContacts = await this.createContacts(
       contactsToCreate,
       event.organizer?.email,
