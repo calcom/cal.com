@@ -54,6 +54,7 @@ import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import lindy_config_json from "./lindy/config.json";
 import linear_config_json from "./linear/config.json";
+import lyra_config_json from "./lyra/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
@@ -164,6 +165,7 @@ export const appStoreMetadata = {
   larkcalendar: larkcalendar__metadata_ts,
   lindy: lindy_config_json,
   linear: linear_config_json,
+  lyra: lyra_config_json,
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
