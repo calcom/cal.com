@@ -1,8 +1,3 @@
-import classNames from "classnames";
-import { useEffect, useState } from "react";
-import type { OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
-
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
@@ -10,6 +5,10 @@ import type { IntegrationCalendar } from "@calcom/types/Calendar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import classNames from "classnames";
+import { useEffect, useState } from "react";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 
 type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
@@ -134,8 +133,7 @@ const DestinationCalendarSelector = ({
 
   useEffect(() => {
     const selected = connectedCalendarsList
-      ?.map((connected) => connected.calendars ?? [])
-      .flat()
+      ?.flatMap((connected) => connected.calendars ?? [])
       .find((cal) => cal.externalId === value);
 
     if (selected) {
@@ -186,7 +184,7 @@ const DestinationCalendarSelector = ({
             `${t("create_events_on")}`
           ) : (
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-              <Badge variant="blue">Default</Badge>{" "}
+              <Badge variant="blue">{t("default")}</Badge>{" "}
               {destinationCalendar?.name &&
                 `${destinationCalendar.name} (${destinationCalendar?.integrationTitle} - ${destinationCalendar.primaryEmail})`}
             </span>
