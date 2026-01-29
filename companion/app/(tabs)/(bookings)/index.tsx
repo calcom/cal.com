@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useState, useEffect } from "react";
 import { Text, TextInput, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
@@ -10,10 +11,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppPressable } from "@/components/AppPressable";
-import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useEventTypes } from "@/hooks";
 
+const VALID_FILTERS: BookingFilter[] = [
+  "upcoming",
+  "unconfirmed",
+  "recurring",
+  "past",
+  "cancelled",
+];
+
+function isValidBookingFilter(value: string | undefined): value is BookingFilter {
+  return value !== undefined && VALID_FILTERS.includes(value as BookingFilter);
+}
+
 export default function Bookings() {
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
@@ -23,7 +39,7 @@ export default function Bookings() {
 
   // Use the active booking filter hook
   const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
-    "upcoming",
+    initialFilter,
     () => {
       // Clear dependent filters when status filter changes
       setSearchQuery("");
@@ -31,6 +47,14 @@ export default function Bookings() {
       setSelectedEventTypeLabel(null);
     }
   );
+
+  // Reactively update filter when URL params change
+  useEffect(() => {
+    if (isValidBookingFilter(filter) && filter !== activeFilter) {
+      console.log("[Bookings Android] Filter param changed:", filter);
+      handleFilterChange(filter);
+    }
+  }, [filter, activeFilter, handleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

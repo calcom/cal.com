@@ -1,26 +1,51 @@
 import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Stack } from "expo-router";
-import { useState } from "react";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useState, useEffect } from "react";
 
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { useEventTypes } from "@/hooks";
-import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+
+const VALID_FILTERS: BookingFilter[] = [
+  "upcoming",
+  "unconfirmed",
+  "recurring",
+  "past",
+  "cancelled",
+];
+
+function isValidBookingFilter(value: string | undefined): value is BookingFilter {
+  return value !== undefined && VALID_FILTERS.includes(value as BookingFilter);
+}
 
 export default function Bookings() {
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
+
+  console.log("[Bookings.ios] Received filter param:", filter, "initialFilter:", initialFilter);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const { data: eventTypes } = useEventTypes();
 
   // Use the active booking filter hook
   const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
-    "upcoming",
+    initialFilter,
     () => {
       // Clear dependent filters when status filter changes
       setSearchQuery("");
       setSelectedEventTypeId(null);
     }
   );
+
+  // Update filter when URL params change (for when component is already mounted)
+  useEffect(() => {
+    if (isValidBookingFilter(filter) && filter !== activeFilter) {
+      console.log("[Bookings.ios] Updating filter from URL param:", filter);
+      handleFilterChange(filter);
+    }
+  }, [filter, activeFilter, handleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
