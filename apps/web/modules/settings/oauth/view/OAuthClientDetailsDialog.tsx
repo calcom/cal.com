@@ -10,7 +10,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ConfirmationDialogContent, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import {
+  ConfirmationDialogContent,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+} from "@calcom/ui/components/dialog";
+
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Label, TextArea } from "@calcom/ui/components/form";
@@ -30,6 +36,9 @@ type OAuthClientDetails = {
   clientSecret?: string;
   isPkceEnabled?: boolean;
   clientType?: string;
+  user?: {
+    email: string;
+  } | null;
 };
 
 const OAuthClientDetailsDialog = ({
@@ -69,7 +78,8 @@ const OAuthClientDetailsDialog = ({
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [showRejectionReasonError, setShowRejectionReasonError] = useState(false);
+  const [showRejectionReasonError, setShowRejectionReasonError] =
+    useState(false);
   const form = useForm<OAuthClientCreateFormValues>({
     defaultValues: {
       name: "",
@@ -93,7 +103,10 @@ const OAuthClientDetailsDialog = ({
     if (!client) return;
 
     const enablePkce =
-      client.isPkceEnabled ?? (client.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
+      client.isPkceEnabled ??
+      (client.clientType
+        ? client.clientType.toUpperCase() === "PUBLIC"
+        : false);
     const nextLogo = client.logo ?? "";
 
     setLogo(nextLogo);
@@ -139,8 +152,10 @@ const OAuthClientDetailsDialog = ({
     );
 
     if (showAdminActions) {
-      const canReject = Boolean(onReject) && (status === "PENDING" || status === "APPROVED");
-      const canApprove = Boolean(onApprove) && (status === "PENDING" || status === "REJECTED");
+      const canReject =
+        Boolean(onReject) && (status === "PENDING" || status === "APPROVED");
+      const canApprove =
+        Boolean(onApprove) && (status === "PENDING" || status === "REJECTED");
 
       return (
         <div className="flex gap-2 justify-end items-center w-full">
@@ -156,7 +171,8 @@ const OAuthClientDetailsDialog = ({
                 setIsRejectConfirmOpen(true);
                 setRejectionReason("");
                 setShowRejectionReasonError(false);
-              }}>
+              }}
+            >
               {t("reject")}
             </Button>
           ) : null}
@@ -170,7 +186,8 @@ const OAuthClientDetailsDialog = ({
               onClick={() => {
                 if (!clientId) return;
                 onApprove?.(clientId);
-              }}>
+              }}
+            >
               {t("approve")}
             </Button>
           ) : null}
@@ -182,14 +199,20 @@ const OAuthClientDetailsDialog = ({
       return (
         <div className="flex gap-2 justify-end items-center w-full">
           {closeButton}
-          <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
+          <Button
+            type="submit"
+            loading={isUpdatePending}
+            data-testid="oauth-client-details-save"
+          >
             {t("save")}
           </Button>
         </div>
       );
     }
 
-    return <div className="flex justify-end items-center w-full">{closeButton}</div>;
+    return (
+      <div className="flex justify-end items-center w-full">{closeButton}</div>
+    );
   })();
 
   return (
@@ -209,26 +232,42 @@ const OAuthClientDetailsDialog = ({
                 websiteUrl: values.websiteUrl.trim() || "",
                 logo: values.logo,
               });
-            })}>
+            })}
+          >
             {status ? (
               <div className="flex justify-start items-center">
-                <Badge data-testid="oauth-client-details-status-badge" variant={getStatusBadgeVariant(status).variant}>
+                <Badge
+                  data-testid="oauth-client-details-status-badge"
+                  variant={getStatusBadgeVariant(status).variant}
+                >
                   {t(getStatusBadgeVariant(status).labelKey)}
                 </Badge>
               </div>
             ) : null}
 
             {status === "PENDING" ? (
-              <Alert severity="warning" title={t("oauth_client_pending_info_description")} />
+              <Alert
+                severity="warning"
+                title={t("oauth_client_pending_info_description")}
+              />
             ) : null}
 
             {status === "APPROVED" ? (
-              <Alert severity="warning" title={t("oauth_client_approved_reapproval_info")} />
+              <Alert
+                severity="warning"
+                title={t("oauth_client_approved_reapproval_info")}
+              />
             ) : null}
 
             {status === "REJECTED" && client.rejectionReason ? (
-              <div className="text-sm text-subtle" data-testid="oauth-client-details-rejection-reason-display">
-                <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
+              <div
+                className="text-sm text-subtle"
+                data-testid="oauth-client-details-rejection-reason-display"
+              >
+                <span className="font-medium">
+                  {t("oauth_client_rejection_reason")}:
+                </span>{" "}
+                {client.rejectionReason}
               </div>
             ) : null}
 
@@ -237,26 +276,38 @@ const OAuthClientDetailsDialog = ({
               <div className="flex">
                 <code
                   data-testid="oauth-client-details-client-id"
-                  className="px-2 py-1 w-full font-mono text-sm truncate align-middle rounded-md rounded-r-none bg-subtle text-default">
+                  className="px-2 py-1 w-full font-mono text-sm truncate align-middle rounded-md rounded-r-none bg-subtle text-default"
+                >
                   {client.clientId}
                 </code>
                 <Tooltip side="top" content={t("copy_to_clipboard")}>
                   <Button
                     onClick={() => {
                       copyToClipboard(client.clientId, {
-                        onSuccess: () => showToast(t("client_id_copied"), "success"),
+                        onSuccess: () =>
+                          showToast(t("client_id_copied"), "success"),
                         onFailure: () => showToast(t("error"), "error"),
                       });
                     }}
                     type="button"
                     size="sm"
                     className="rounded-l-none"
-                    StartIcon="clipboard">
+                    StartIcon="clipboard"
+                  >
                     {t("copy")}
                   </Button>
                 </Tooltip>
               </div>
             </div>
+
+            {client.user?.email ? (
+              <div>
+                <div className="mb-1 text-sm text-subtle">{t("owner")}</div>
+                <div className="text-sm text-default" data-testid="oauth-client-details-user-email">
+                  {client.user.email}
+                </div>
+              </div>
+            ) : null}
 
             <OAuthClientFormFields
               form={form}
@@ -275,10 +326,14 @@ const OAuthClientDetailsDialog = ({
                   data-testid="oauth-client-details-delete-trigger"
                   loading={isDeletePending}
                   className="w-auto"
-                  onClick={() => setIsDeleteConfirmOpen(true)}>
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                >
                   {t("delete_oauth_client")}
                 </Button>
-                <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+                <Dialog
+                  open={isDeleteConfirmOpen}
+                  onOpenChange={setIsDeleteConfirmOpen}
+                >
                   <ConfirmationDialogContent
                     variety="danger"
                     title={t("delete_oauth_client")}
@@ -292,21 +347,24 @@ const OAuthClientDetailsDialog = ({
                         onClick={() => {
                           if (!client) return;
                           onDelete?.(client.clientId);
-                        }}>
+                        }}
+                      >
                         {isDeletePending ? t("deleting") : t("delete")}
                       </DialogClose>
-                    }>
+                    }
+                  >
                     <p className="mb-4">{t("confirm_delete_oauth_client")}</p>
                   </ConfirmationDialogContent>
                 </Dialog>
               </div>
             ) : null}
 
-            <DialogFooter className="mt-6">
-              {footerActions}
-            </DialogFooter>
+            <DialogFooter className="mt-6">{footerActions}</DialogFooter>
 
-            <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
+            <Dialog
+              open={isRejectConfirmOpen}
+              onOpenChange={setIsRejectConfirmOpen}
+            >
               <ConfirmationDialogContent
                 variety="danger"
                 title={t("reject_oauth_client")}
@@ -319,23 +377,32 @@ const OAuthClientDetailsDialog = ({
                     data-testid="oauth-client-details-reject-confirm"
                     loading={isStatusChangePending}
                     className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
-                    onClick={handleConfirmReject}>
+                    onClick={handleConfirmReject}
+                  >
                     {t("reject")}
                   </Button>
-                }>
+                }
+              >
                 <div className="mt-4 space-y-2">
-                  <Label htmlFor="oauth-rejection-reason">{t("reason_for_rejection")}</Label>
+                  <Label htmlFor="oauth-rejection-reason">
+                    {t("reason_for_rejection")}
+                  </Label>
                   <TextArea
                     id="oauth-rejection-reason"
                     data-testid="oauth-client-details-rejection-reason"
                     value={rejectionReason}
                     onChange={(e) => {
                       setRejectionReason(e.target.value);
-                      if (showRejectionReasonError && e.target.value.trim().length > 0) {
+                      if (
+                        showRejectionReasonError &&
+                        e.target.value.trim().length > 0
+                      ) {
                         setShowRejectionReasonError(false);
                       }
                     }}
-                    className={showRejectionReasonError ? "border-error" : undefined}
+                    className={
+                      showRejectionReasonError ? "border-error" : undefined
+                    }
                   />
                   {showRejectionReasonError ? (
                     <p className="text-sm text-error">{t("is_required")}</p>
@@ -360,7 +427,7 @@ function getStatusBadgeVariant(status: string) {
     default:
       return { variant: "orange" as const, labelKey: "pending" as const };
   }
-};
+}
 
 export type { OAuthClientDetails };
 export { OAuthClientDetailsDialog };
