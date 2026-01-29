@@ -1,5 +1,8 @@
-import { PortalHost } from "@rn-primitives/portal";
+import "./_webRuntimeGuards";
+import "../global.css";
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { PortalHost } from "@rn-primitives/portal";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { Platform, StatusBar, useColorScheme, View } from "react-native";
@@ -7,11 +10,10 @@ import { CalComLogo } from "@/components/CalComLogo";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
 import { GlobalToast } from "@/components/ui/GlobalToast";
+import { getColors, colors as semanticColors } from "@/constants/colors";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/contexts/QueryContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-import { colors as semanticColors, getColors } from "@/constants/colors";
-import "../global.css";
 
 function RootLayoutContent() {
   const { isAuthenticated, loading } = useAuth();
