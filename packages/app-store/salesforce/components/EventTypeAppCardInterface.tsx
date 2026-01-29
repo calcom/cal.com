@@ -456,8 +456,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     <Section.SubSectionHeader
                       icon="filter"
                       title={t("salesforce_rr_skip_field_rules")}
-                      labelFor="rr-skip-field-rules"
-                    />
+                      labelFor="rr-skip-field-rules">
+                      <></>
+                    </Section.SubSectionHeader>
                     <Section.SubSectionContent>
                       <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
                         <div className="flex-1">{t("field_name")}</div>
