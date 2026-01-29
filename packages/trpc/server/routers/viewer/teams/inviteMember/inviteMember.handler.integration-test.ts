@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
 import { prisma } from "@calcom/prisma";
-import type { Prisma, Team, User, Membership, Profile } from "@calcom/prisma/client";
+import type { Membership, Prisma, Profile, Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import inviteMemberHandler, { inviteMembersWithNoInviterPermissionCheck } from "./inviteMember.handler";
 
@@ -374,6 +373,17 @@ describe("inviteMember.handler Integration Tests", () => {
         })
       );
 
+      // Create event type with assignAllTeamMembers enabled on the sub-team
+      const eventType = await prisma.eventType.create({
+        data: {
+          title: "Team Event",
+          slug: "team-event",
+          length: 30,
+          teamId: regularTeam.id,
+          assignAllTeamMembers: true,
+        },
+      });
+
       // Add unaccepted team membership
       await prisma.membership.create({
         data: {
@@ -411,6 +421,20 @@ describe("inviteMember.handler Integration Tests", () => {
         regularTeam.id
       );
       expect(originalMembership?.accepted).toBe(true);
+
+      // Verify user is added as host to the sub-team's event type with assignAllTeamMembers=true
+      const host = await prisma.host.findFirst({
+        where: {
+          userId: unverifiedUserWithUnacceptedMembership.id,
+          eventTypeId: eventType.id,
+        },
+      });
+      expect(host).toBeTruthy();
+      expect(host?.userId).toBe(unverifiedUserWithUnacceptedMembership.id);
+      expect(host?.eventTypeId).toBe(eventType.id);
+
+      // Cleanup event type
+      await prisma.eventType.delete({ where: { id: eventType.id } });
     });
   });
 
