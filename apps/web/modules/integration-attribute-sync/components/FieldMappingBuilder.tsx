@@ -3,11 +3,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Input, Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { getDefaultFieldMapping } from "../lib/fieldMappingHelpers";
+import { getDefaultFieldMapping } from "@calcom/features/ee/integration-attribute-sync/lib/fieldMappingHelpers";
 import type {
   IFieldMappingFormState,
   IFieldMappingWithOptionalId,
-} from "../repositories/IIntegrationAttributeSyncRepository";
+} from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 
 type AttributeOptions = {
   label: string;
@@ -115,7 +115,7 @@ export const FieldMappingBuilder = ({
   // Find indices of rows with duplicate attribute mappings
   const duplicateIndices = new Set<number>();
   const seenAttributes = new Map<string, number>(); // attributeId -> first index
-  value.mappings.forEach((mapping, index) => {
+  value.mappings.forEach((mapping: IFieldMappingWithOptionalId, index: number) => {
     if (mapping.attributeId) {
       const firstIndex = seenAttributes.get(mapping.attributeId);
       if (firstIndex !== undefined) {
@@ -147,7 +147,7 @@ export const FieldMappingBuilder = ({
   const handleRemoveMapping = (index: number) => {
     onChange({
       ...value,
-      mappings: value.mappings.filter((_, i) => i !== index),
+      mappings: value.mappings.filter((_: IFieldMappingWithOptionalId, i: number) => i !== index),
     });
   };
 
@@ -164,7 +164,7 @@ export const FieldMappingBuilder = ({
         {value.mappings.length === 0 ? (
           <div className="text-subtle py-6 text-center text-sm">{t("attribute_sync_no_mappings")}</div>
         ) : (
-          value.mappings.map((mapping, index) => (
+          value.mappings.map((mapping: IFieldMappingWithOptionalId, index: number) => (
             <MappingRow
               key={mapping.id || `new-${index}`}
               mapping={mapping}
