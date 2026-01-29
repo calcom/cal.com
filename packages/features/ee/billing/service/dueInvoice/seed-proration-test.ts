@@ -690,7 +690,7 @@ async function main() {
     result.users.forEach((u) => {
       console.log(`  - ${u.name} (${u.email}) - Role: ${u.role}`);
     });
-    console.log(`  Password for all users: ${TEST_PASSWORD}`);
+    console.log("  Password for all users: See TEST_PASSWORD constant in this file");
 
     console.log("\nProration Records:");
     result.prorations.forEach((p) => {
