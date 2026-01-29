@@ -56,6 +56,24 @@ export class BillingPeriodService {
     }
   }
 
+  async shouldUseNextCycleBilling(teamId: number): Promise<boolean> {
+    try {
+      const featuresRepository = new FeaturesRepository(prisma);
+      const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-seat-billing");
+
+      if (!isFeatureEnabled) {
+        return false;
+      }
+
+      const info = await this.getOrCreateBillingPeriodInfo(teamId);
+
+      return info.billingPeriod === "MONTHLY" && !info.isInTrial;
+    } catch (error) {
+      log.error(`Failed to check if next-cycle billing should apply for team ${teamId}`, { error });
+      return false;
+    }
+  }
+
   async getOrCreateBillingPeriodInfo(teamId: number): Promise<BillingPeriodInfo> {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
