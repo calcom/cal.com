@@ -17,7 +17,6 @@ import logger from "@calcom/lib/logger";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
 import {
-  expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
@@ -36,6 +35,9 @@ function getPlusDayDate(date: string, days: number) {
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
+
+// Webhook delivery (BOOKING_CREATED etc.) is tested in packages/features/webhooks
+// (webhookTaskQueuing.unit.test.ts, webhookDelivery.integration-test.ts) with no DB.
 describe("handleNewBooking", () => {
   setupAndTeardown();
 
@@ -46,7 +48,6 @@ describe("handleNewBooking", () => {
           1. Should create the same number of bookings as requested slots in the database
           2. Should send emails for the first booking only to the booker as well as organizer
           3. Should create a calendar event for every booking in the destination calendar
-          3. Should trigger BOOKING_CREATED webhook for every booking
       `,
         async ({ emails }) => {
           const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
@@ -196,14 +197,6 @@ describe("handleNewBooking", () => {
               ],
             });
 
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: All recurring bookings seem to have the same URL. https://github.com/calcom/cal.com/issues/11955
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
-            });
           }
 
           // expectWorkflowToBeTriggered();
@@ -384,7 +377,6 @@ describe("handleNewBooking", () => {
           1. Should create the same number of bookings as requested slots in the database
           2. Should send emails for the first booking only to the booker as well as organizer
           3. Should create a calendar event for every booking in the destination calendar
-          3. Should trigger BOOKING_CREATED webhook for every booking
       `,
         async ({ emails }) => {
           const recurringCountInRequest = 4;
@@ -545,14 +537,6 @@ describe("handleNewBooking", () => {
               ],
             });
 
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
-            });
           }
 
           // expectWorkflowToBeTriggered();
@@ -602,7 +586,6 @@ describe("handleNewBooking", () => {
           1. Should create the same number of bookings as requested slots in the database
           2. Should send emails for the first booking only to the booker as well as organizer
           3. Should create a calendar event for every booking in the destination calendar
-          3. Should trigger BOOKING_CREATED webhook for every booking
       `,
         async ({ emails }) => {
           const recurringCountInRequest = 4;
@@ -763,14 +746,6 @@ describe("handleNewBooking", () => {
               ],
             });
 
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
-            });
           }
 
           // expectWorkflowToBeTriggered();
