@@ -143,14 +143,14 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "webhooks" },
         },
         {
+          name: "oAuth",
+          href: "/settings/developer/oauth",
+          trackingMetadata: { section: "developer", page: "oauth_clients" },
+        },
+        {
           name: "api_keys",
           href: "/settings/developer/api-keys",
           trackingMetadata: { section: "developer", page: "api_keys" },
-        },
-        {
-          name: "oAuth",
-          href: "/settings/developer/oauth",
-          trackingMetadata: { section: "developer", page: "oauth_clients" }
         },
         {
           name: "admin_api",
@@ -826,7 +826,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`px-2! h-7 w-fit ${
+                          className={`px-2! py-1! min-h-7 h-auto w-fit ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron

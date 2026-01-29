@@ -59,22 +59,23 @@ enum CreationSource {
 }
 
 model Host {
-  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
-  eventType        EventType   @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType        EventType     @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId      Int
-  isFixed          Boolean     @default(false)
+  isFixed          Boolean       @default(false)
   priority         Int?
   weight           Int?
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
-  schedule         Schedule?   @relation(fields: [scheduleId], references: [id])
+  schedule         Schedule?     @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
-  createdAt        DateTime    @default(now())
-  group            HostGroup?  @relation(fields: [groupId], references: [id])
+  createdAt        DateTime      @default(now())
+  group            HostGroup?    @relation(fields: [groupId], references: [id])
   groupId          String?
   memberId         Int?
-  member           Membership? @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member           Membership?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  location         HostLocation?
 
   @@id([userId, eventTypeId])
   @@index([memberId])
@@ -93,6 +94,25 @@ model HostGroup {
   updatedAt   DateTime   @updatedAt
 
   @@index([name])
+  @@index([eventTypeId])
+}
+
+model HostLocation {
+  id           String      @id @default(uuid())
+  userId       Int
+  eventTypeId  Int
+  host         Host        @relation(fields: [userId, eventTypeId], references: [userId, eventTypeId], onDelete: Cascade)
+  type         String
+  credentialId Int?
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  link         String?
+  address      String?
+  phoneNumber  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@unique([userId, eventTypeId])
+  @@index([credentialId])
   @@index([eventTypeId])
 }
 
@@ -259,6 +279,7 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
   rrHostSubsetEnabled           Boolean @default(false)
+  enablePerHostLocations        Boolean @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -304,6 +325,7 @@ model Credential {
   delegationCredentialId    String?
   delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   integrationAttributeSyncs IntegrationAttributeSync[]
+  hostLocations             HostLocation[]
 
   @@index([appId])
   @@index([subscriptionId])
@@ -820,6 +842,7 @@ model Attendee {
 
   @@index([email])
   @@index([bookingId])
+  @@index([email, bookingId])
 }
 
 enum BookingStatus {
@@ -897,6 +920,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
 
@@ -908,6 +932,10 @@ model Booking {
   @@index([status])
   @@index([startTime, endTime, status])
   @@index([fromReschedule])
+  @@index([userId, endTime])
+  @@index([userId, status, startTime])
+  @@index([eventTypeId, status])
+  @@index([userId, createdAt])
 }
 
 model Tracking {
@@ -1322,6 +1350,8 @@ model App_RoutingForms_FormResponse {
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
   queuedFormResponse        App_RoutingForms_QueuedFormResponse?
+  pendingRoutingTrace       PendingRoutingTrace?
+  routingTrace              RoutingTrace?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1330,15 +1360,17 @@ model App_RoutingForms_FormResponse {
 }
 
 model App_RoutingForms_QueuedFormResponse {
-  id               String                         @id @default(cuid())
-  form             App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId           String
-  response         Json
-  chosenRouteId    String?
-  createdAt        DateTime                       @default(now())
-  updatedAt        DateTime?                      @updatedAt
-  actualResponseId Int?                           @unique
-  actualResponse   App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  id                  String                         @id @default(cuid())
+  form                App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId              String
+  response            Json
+  chosenRouteId       String?
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime?                      @updatedAt
+  actualResponseId    Int?                           @unique
+  actualResponse      App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  pendingRoutingTrace PendingRoutingTrace?
+  routingTrace        RoutingTrace?
 }
 
 model RoutingFormResponseField {
@@ -2140,6 +2172,7 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+  @@index([email, emailVerified])
 }
 
 // Needed to store tasks that need to be processed by a background worker or Tasker
@@ -2307,6 +2340,7 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+  routingTrace RoutingTrace?
 
   @@index([bookingId])
 }
@@ -3058,6 +3092,7 @@ model MonthlyProration {
 
   invoiceItemId String?
   invoiceId     String?
+  invoiceUrl    String?
 
   status ProrationStatus @default(PENDING)
 
@@ -3178,4 +3213,34 @@ model AttributeSyncFieldMapping {
 
   @@unique([integrationAttributeSyncId, attributeId])
   @@index([integrationAttributeSyncId])
+}
+
+model PendingRoutingTrace {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  trace     Json
+
+  formResponseId Int?                           @unique
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  queuedFormResponseId String?                              @unique
+  queuedFormResponse   App_RoutingForms_QueuedFormResponse? @relation(fields: [queuedFormResponseId], references: [id], onDelete: Cascade)
+}
+
+model RoutingTrace {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  trace     Json
+
+  formResponseId Int?                           @unique
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  queuedFormResponseId String?                              @unique
+  queuedFormResponse   App_RoutingForms_QueuedFormResponse? @relation(fields: [queuedFormResponseId], references: [id], onDelete: Cascade)
+
+  bookingUid String?  @unique
+  booking    Booking? @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+
+  assignmentReasonId Int?              @unique
+  assignmentReason   AssignmentReason? @relation(fields: [assignmentReasonId], references: [id], onDelete: Cascade)
 }

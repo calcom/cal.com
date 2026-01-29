@@ -1,5 +1,11 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { TeamOutputDto } from "@calcom/platform-types";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -14,12 +20,6 @@ import { UpdateTeamOutput } from "@/modules/teams/teams/outputs/teams/update-tea
 import { TeamsService } from "@/modules/teams/teams/services/teams.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Param, ParseIntPipe, Delete, Patch, Post, Body } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { TeamOutputDto } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams",
@@ -29,7 +29,10 @@ import { TeamOutputDto } from "@calcom/platform-types";
 @DocsTags("Teams")
 @ApiHeader(API_KEY_HEADER)
 export class TeamsController {
-  constructor(private teamsService: TeamsService, private teamsRepository: TeamsRepository) {}
+  constructor(
+    private teamsService: TeamsService,
+    private teamsRepository: TeamsRepository
+  ) {}
 
   @Post()
   @ApiOperation({ summary: "Create a team" })
@@ -95,6 +98,7 @@ export class TeamsController {
 
   @UseGuards(RolesGuard)
   @Delete("/:teamId")
+  @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
   @Roles("TEAM_OWNER")
   async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number): Promise<OrgTeamOutputResponseDto> {
