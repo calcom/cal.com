@@ -1,4 +1,5 @@
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { validateWebhookUrl } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { ConflictException, Injectable } from "@nestjs/common";
 
@@ -7,6 +8,8 @@ export class OAuthClientWebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
   async createOAuthClientWebhook(platformOAuthClientId: string, body: PipedInputWebhookType) {
+    validateWebhookUrl(body.subscriberUrl);
+
     const existingWebhook = await this.webhooksRepository.getOAuthClientWebhookByUrl(
       platformOAuthClientId,
       body.subscriberUrl
