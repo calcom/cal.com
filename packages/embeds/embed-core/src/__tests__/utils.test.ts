@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { generateDataAttributes, isSameBookingLink, mergeUiConfig } from "../lib/utils";
 import type { UiConfig } from "../types";
 
@@ -104,13 +103,13 @@ describe("mergeUiConfig", () => {
     const oldConfig: UiConfig = {
       cssVarsPerTheme: {
         light: { "--cal-brand": "red", "--cal-text": "black" },
-      } as UiConfig["cssVarsPerTheme"],
+      } as unknown as UiConfig["cssVarsPerTheme"],
     };
 
     const newConfig: UiConfig = {
       cssVarsPerTheme: {
         dark: { "--cal-brand": "blue", "--cal-text": "white" },
-      } as UiConfig["cssVarsPerTheme"],
+      } as unknown as UiConfig["cssVarsPerTheme"],
     };
 
     const merged = mergeUiConfig(oldConfig, newConfig);
