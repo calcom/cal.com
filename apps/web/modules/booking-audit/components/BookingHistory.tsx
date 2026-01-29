@@ -74,8 +74,7 @@ const ACTION_ICON_MAP: Record<string, IconName> = {
     ATTENDEE_ADDED: "user-check",
     ATTENDEE_REMOVED: "user-check",
     LOCATION_CHANGED: "map-pin",
-    HOST_NO_SHOW_UPDATED: "ban",
-    ATTENDEE_NO_SHOW_UPDATED: "ban",
+    NO_SHOW_UPDATED: "ban",
 } as const;
 
 const ACTOR_ROLE_LABEL_MAP: Record<AuditActorType, string | null> = {
@@ -182,6 +181,32 @@ function JsonViewer({ data }: JsonViewerProps) {
     );
 }
 
+interface DisplayFieldValueProps {
+    field: {
+        valueKey?: string;
+        value?: string;
+        values?: string[];
+    };
+}
+
+function DisplayFieldValue({ field }: DisplayFieldValueProps) {
+    const { t } = useLocale();
+
+    if (field.values) {
+        return (
+            <span className="flex flex-col">
+                {field.values.map((v, i) => (
+                    <span className="p-0.5" key={i}>
+                        {v}
+                    </span>
+                ))}
+            </span>
+        );
+    }
+
+    return <>{field.value ?? (field.valueKey ? t(field.valueKey) : "")}</>;
+}
+
 function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
     const { t } = useLocale();
     const [expandedLogIds, setExpandedLogIds] = useState<Set<string>>(new Set());
@@ -279,10 +304,10 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                     <div
                                                         key={idx}
                                                         className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                                                        <span className="font-medium text-emphasis w-[140px]">
-                                                            {t(field.labelKey)}
+                                                        <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
+                                                        <span className="font-medium">
+                                                            <DisplayFieldValue field={field} />
                                                         </span>
-                                                        <span className="text-[#096638] font-medium">{t(field.valueKey)}</span>
                                                     </div>
                                                 ))
                                                 : null}
@@ -356,8 +381,12 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
         };
 
         const doesMatchActionDisplayTitle = (): boolean => {
-            return log.actionDisplayTitle.key?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                Object.values(log.actionDisplayTitle.params ?? {}).some((param) => param?.toString().toLowerCase().includes(searchTerm.toLowerCase()));
+            return (
+                log.actionDisplayTitle.key?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                Object.values(log.actionDisplayTitle.params ?? {}).some((param) =>
+                    param?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                )
+            );
         };
 
         const matchesSearch =
