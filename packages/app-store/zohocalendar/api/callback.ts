@@ -103,6 +103,25 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const primaryCalendar = data.calendars.find((calendar: any) => calendar.isdefault);
 
   if (primaryCalendar.uid) {
+    // Check if this calendar is already connected to prevent duplicates
+    const existingCalendar = await prisma.selectedCalendar.findFirst({
+      where: {
+        userId: req.session.user.id,
+        externalId: primaryCalendar.uid,
+        integration: config.type,
+      },
+    });
+
+    if (existingCalendar) {
+      res.redirect(
+        `${
+          getSafeRedirectUrl(state?.onErrorReturnTo) ??
+          getInstalledAppPath({ variant: config.variant, slug: config.slug })
+        }?error=account_already_linked`
+      );
+      return;
+    }
+
     const credential = await prisma.credential.create({
       data: {
         type: config.type,
