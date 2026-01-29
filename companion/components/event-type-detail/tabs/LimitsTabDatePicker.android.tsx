@@ -61,7 +61,7 @@ export function LimitsTabDatePicker({ value, onChange, placeholder }: LimitsTabD
       className="rounded-lg px-3 py-2"
       style={{ backgroundColor: theme.backgroundMuted }}
     >
-      <Text className="text-[15px]" style={{ color: value ? theme.text : "#A3A3A3" }}>
+      <Text className="text-[15px]" style={{ color: value ? theme.text : theme.textMuted }}>
         {displayText}
       </Text>
     </Pressable>
