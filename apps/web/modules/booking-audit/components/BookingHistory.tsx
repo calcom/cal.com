@@ -36,7 +36,13 @@ type AuditLog = {
     source: string;
     displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
-    displayFields?: Array<{ labelKey: string; valueKey?: string; value?: string; values?: string[] }> | null;
+    displayFields?: Array<{
+        labelKey: string;
+        valueKey?: string;
+        value?: string;
+        values?: string[];
+        valuesWithParams?: TranslationWithParams[];
+    }> | null;
     actor: {
         type: AuditActorType;
         displayName: string | null;
@@ -186,11 +192,24 @@ interface DisplayFieldValueProps {
         valueKey?: string;
         value?: string;
         values?: string[];
+        valuesWithParams?: TranslationWithParams[];
     };
 }
 
 function DisplayFieldValue({ field }: DisplayFieldValueProps) {
     const { t } = useLocale();
+
+    if (field.valuesWithParams) {
+        return (
+            <span className="flex flex-col">
+                {field.valuesWithParams.map((v, i) => (
+                    <span className="p-0.5" key={i}>
+                        {t(v.key, v.params)}
+                    </span>
+                ))}
+            </span>
+        );
+    }
 
     if (field.values) {
         return (

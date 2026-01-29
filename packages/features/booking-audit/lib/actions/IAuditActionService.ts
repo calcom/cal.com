@@ -112,6 +112,7 @@ export interface IAuditActionService {
       valueKey?: string; // Translation key for field value (will be translated)
       value?: string; // Raw value for field value (will NOT be translated)
       values?: string[]; // Array of raw values (will NOT be translated, rendered as separate lines)
+      valuesWithParams?: TranslationWithParams[]; // Array of translation keys with params (will be translated with interpolation)
     }>
   >;
 

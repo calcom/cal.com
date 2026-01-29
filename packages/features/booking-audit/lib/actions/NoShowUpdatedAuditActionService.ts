@@ -111,25 +111,48 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
       valueKey?: string;
       value?: string;
       values?: string[];
+      valuesWithParams?: TranslationWithParams[];
     }>
   > {
     const { fields } = this.parseStored(storedData);
     const parsedFields = fields as NoShowUpdatedAuditData;
-    const displayFields: { labelKey: string; valueKey?: string; value?: string; values?: string[] }[] = [];
+    const displayFields: {
+      labelKey: string;
+      valueKey?: string;
+      value?: string;
+      values?: string[];
+      valuesWithParams?: TranslationWithParams[];
+    }[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-      const attendeesFieldValues = parsedFields.attendeesNoShow.map((attendee) => {
-        const noShowStatus = attendee.noShow.new ? "Yes" : "No";
-        return `${attendee.attendeeEmail}: ${noShowStatus}`;
+      const attendeesValuesWithParams: TranslationWithParams[] = parsedFields.attendeesNoShow.map((attendee) => ({
+        key: "booking_audit_action.attendee_no_show_status",
+        params: {
+          email: attendee.attendeeEmail,
+          status: attendee.noShow.new ? "yes" : "no",
+        },
+      }));
+      displayFields.push({
+        labelKey: "booking_audit_action.attendees",
+        valuesWithParams: attendeesValuesWithParams,
       });
-      displayFields.push({ labelKey: "Attendees", values: attendeesFieldValues });
     }
 
     if (this.isHostSet(parsedFields)) {
       const user = await this.deps.userRepository.findByUuid({ uuid: parsedFields.host.userUuid });
       const hostName = user?.name || "Unknown";
-      const hostFieldValue = `${hostName}:${parsedFields.host.noShow.new ? "Yes" : "No"}`;
-      displayFields.push({ labelKey: "Host", value: hostFieldValue });
+      displayFields.push({
+        labelKey: "booking_audit_action.host",
+        valuesWithParams: [
+          {
+            key: "booking_audit_action.host_no_show_status",
+            params: {
+              name: hostName,
+              status: parsedFields.host.noShow.new ? "yes" : "no",
+            },
+          },
+        ],
+      });
     }
 
     return displayFields;
