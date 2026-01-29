@@ -55,7 +55,7 @@ function createTeamBlockedWarningFn(
   return (feature: NormalizedFeature): string | null => {
     const blockingState = blockingStateMap.get(feature.slug);
     if (blockingState?.orgState === "disabled") {
-      return t("feature_blocked_by_org_warning");
+      return t("feature_org_disabled");
     }
     return null;
   };
