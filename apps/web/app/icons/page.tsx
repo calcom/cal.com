@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../../fonts/CalSans-SemiBold.woff2",
-  variable: "--font-cal",
+  variable: "--font-heading",
   preload: true,
   display: "swap",
   weight: "600",
@@ -32,7 +32,7 @@ export default function IconsPage() {
       <div className="bg-subtle flex h-screen">
         <IconSprites />
         <div className="bg-default m-auto min-w-full rounded-md p-10 text-right ltr:text-left">
-          <h1 className="text-emphasis font-cal text-2xl font-medium">Icons Showcase</h1>
+          <h1 className="text-emphasis font-heading text-2xl font-medium">Icons Showcase</h1>
           <IconGrid title="Regular Icons" icons={icons} />
           <IconGrid
             title="Filled Icons"

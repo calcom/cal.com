@@ -36,7 +36,7 @@ export interface CalPageWrapper {
 const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
-  variable: "--font-cal",
+  variable: "--font-heading",
   preload: true,
   display: "swap",
   weight: "600",
@@ -91,7 +91,7 @@ function PageWrapper(props: AppProps) {
       <style jsx global>{`
         :root {
           --font-sans: ${interFont.style.fontFamily};
-          --font-cal: ${calFont.style.fontFamily};
+          --font-heading: ${calFont.style.fontFamily};
         }
       `}</style>
       <IconSprites />
