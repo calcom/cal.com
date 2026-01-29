@@ -83,7 +83,7 @@ const CheckedHostField = ({
               onChange(
                 options.map((option) => ({
                   isFixed,
-                  userId: parseInt(option.value, 10),
+                  userId: option.isEmailInvite ? 0 : (isNaN(parseInt(option.value, 10)) ? 0 : parseInt(option.value, 10)),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
