@@ -38,7 +38,7 @@ export type AddSeatInput = {
   };
   seatData: {
     description?: string;
-    responses?: Record<string, unknown> | null;
+    responses?: Prisma.InputJsonValue | null;
   };
   metadata?: Record<string, string>;
 };
