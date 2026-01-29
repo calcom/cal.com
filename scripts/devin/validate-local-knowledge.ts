@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env -S npx ts-node
 
 /**
  * Validates the format of files in the agents/ directory.
@@ -8,6 +8,7 @@
  * Exit code 0 = valid, Exit code 1 = invalid
  */
 
+import process from "node:process";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -124,9 +125,7 @@ function main() {
   if (fs.existsSync(rulesDir)) {
     const ruleFiles = fs
       .readdirSync(rulesDir)
-      .filter(
-        (f) => f.endsWith(".md") && f !== "README.md" && f !== "_template.md" && f !== "_sections.md"
-      );
+      .filter((f) => f.endsWith(".md") && f !== "README.md" && f !== "_template.md" && f !== "_sections.md");
 
     console.log(`Checking ${ruleFiles.length} rule files...`);
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env -S npx ts-node
 
 import * as fs from "fs";
 import * as path from "path";
@@ -155,7 +155,9 @@ function main() {
 
   // Parse rules directory
   if (fs.existsSync(rulesDir)) {
-    const ruleFiles = fs.readdirSync(rulesDir).filter((f) => f.endsWith(".md") && f !== "README.md" && f !== "_template.md" && f !== "_sections.md");
+    const ruleFiles = fs
+      .readdirSync(rulesDir)
+      .filter((f) => f.endsWith(".md") && f !== "README.md" && f !== "_template.md" && f !== "_sections.md");
 
     for (const ruleFile of ruleFiles) {
       const filePath = path.join(rulesDir, ruleFile);
