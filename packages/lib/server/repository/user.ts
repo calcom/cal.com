@@ -802,6 +802,7 @@ export class UserRepository {
     });
     return !!teams.length;
   }
+
   async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
     const isAdminOrOwnerOfTeam = await this.prismaClient.membership.findUnique({
       where: {
@@ -818,6 +819,24 @@ export class UserRepository {
     });
     return !!isAdminOrOwnerOfTeam;
   }
+
+  async isAdminOrOwnerOfCalIdTeam({ userId, teamId }: { userId: number; teamId: number }) {
+    const isAdminOrOwnerOfTeam = await this.prismaClient.calIdMembership.findUnique({
+      where: {
+        userId_calIdTeamId: {
+          userId,
+          calIdTeamId: teamId,
+        },
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        acceptedInvitation: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!isAdminOrOwnerOfTeam;
+  }
+
   async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await this.prismaClient.user.findUnique({
       where: {
