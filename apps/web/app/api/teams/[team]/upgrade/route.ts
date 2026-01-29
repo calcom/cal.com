@@ -121,6 +121,25 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
 
     const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
+    if (session?.user && team) {
+      const isOwner = await prisma.membership.findFirst({
+        where: {
+          teamId: team.id,
+          userId: session.user.id,
+          role: "OWNER",
+        },
+      });
+
+      if (isOwner) {
+        const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+        const creditService = new CreditService();
+        await creditService.moveCreditsFromUserToTeam({
+          userId: session.user.id,
+          teamId: team.id,
+        });
+      }
+    }
+
     if (!session) {
       return NextResponse.json({ message: "Team upgraded successfully" });
     }
