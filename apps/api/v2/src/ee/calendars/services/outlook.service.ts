@@ -1,6 +1,7 @@
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
 import { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { extractBearerToken } from "@/lib/api-key";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -37,7 +38,7 @@ export class OutlookService implements OAuthCalendarApp {
     redir?: string,
     isDryRun?: boolean
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
-    const accessToken = authorization.replace("Bearer ", "");
+    const accessToken = extractBearerToken(authorization) ?? "";
     const origin = req.get("origin") ?? req.get("host");
     const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir, isDryRun);
 

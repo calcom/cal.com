@@ -6,3 +6,5 @@ export const isApiKey = (authString: string, prefix: string): boolean =>
   authString?.startsWith(prefix ?? "cal_");
 
 export const stripApiKey = (apiKey: string, prefix?: string): string => apiKey.replace(prefix ?? "cal_", "");
+
+export { extractBearerToken } from "./bearer-token";

@@ -1,4 +1,4 @@
-import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey, extractBearerToken } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
@@ -59,7 +59,13 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       const { params } = request;
       const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
       const oAuthClientId = params.clientId || request.get(X_CAL_CLIENT_ID);
-      const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
+      const authHeader = request.get("Authorization");
+
+      // Extract Bearer token using shared utility that handles:
+      // - Case-insensitive Bearer scheme matching
+      // - Empty/whitespace-only headers
+      // - Empty tokens after "Bearer "
+      const bearerToken = extractBearerToken(authHeader);
 
       const allowedMethods = request.allowedAuthMethods;
       const noSpecificAuthExpected = !allowedMethods || !allowedMethods.length;

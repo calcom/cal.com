@@ -5,7 +5,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey, extractBearerToken } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
@@ -409,7 +409,7 @@ export class BookingsController_2024_04_15 {
 
   private async getOwner(req: Request): Promise<{ id: number; uuid: string } | null> {
     try {
-      const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
+      const bearerToken = extractBearerToken(req.get("Authorization"));
       if (!bearerToken) {
         return null;
       }
