@@ -1,33 +1,37 @@
 /// <reference types="../env" />
-import { FloatingButton } from "./FloatingButton/FloatingButton";
-import { Inline } from "./Inline/inline";
-import { ModalBox } from "./ModalBox/ModalBox";
+
+import process from "node:process";
 import {
   EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
   EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
   EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
 } from "./constants";
-import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css?inline";
+import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
+import { FloatingButton } from "./FloatingButton/FloatingButton";
+import { Inline } from "./Inline/inline";
 import { getScrollableAncestor } from "./lib/domUtils";
 import { getScrollByDistanceHandler } from "./lib/eventHandlers/scrollByDistanceEventHandler";
 import {
+  buildConfigWithPrerenderRelatedFields,
   fromEntriesWithDuplicateKeys,
-  isRouterPath,
   generateDataAttributes,
   getConfigProp,
+  isRouterPath,
   isSameBookingLink,
-  buildConfigWithPrerenderRelatedFields,
+  mergeUiConfig,
 } from "./lib/utils";
-import { SdkActionManager } from "./sdk-action-manager";
+import { ModalBox } from "./ModalBox/ModalBox";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
+import { SdkActionManager } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
-import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig, ModalPrerenderOptions } from "./types";
+import type { EmbedPageType, ModalPrerenderOptions, PrefillAndIframeAttrsConfig, UiConfig } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
 export type { PrefillAndIframeAttrsConfig } from "./types";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[] | undefined> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -177,8 +181,8 @@ type SingleInstructionMap = {
   off: ["off", allPossibleCallbacksAndActions];
 } & {
   [K in Exclude<keyof CalApi, "on" | "off">]: CalApi[K] extends (...args: never[]) => void
-  ? [K, ...Parameters<CalApi[K]>]
-  : never;
+    ? [K, ...Parameters<CalApi[K]>]
+    : never;
 };
 
 type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
@@ -235,8 +239,9 @@ export class Cal {
 
   /**
    * Stores UI config that should persist across iframe resets.
-   * This is needed because for element-click embeds, ui() is called before the iframe exists,
-   * and iframeReset() clears the queue when the modal is opened.
+   * This is important for two reasons:
+   * 1. For element-click embeds, ui() is called before the iframe even exists and loadInIframe resets the doQueue effectively clearing the ui config.
+   * 2. If iframe reloads for whatever reason, the UI command won't be sent to iframe again, the persistentUiConfig would still have it and it is possible to be synced back to iframe
    */
   persistentUiConfig: UiConfig = {};
 
@@ -368,7 +373,7 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
-    // @ts-ignore TS2802: URLSearchParams iteration requires downlevelIteration
+    // @ts-expect-error TS2802: URLSearchParams iteration requires downlevelIteration
     for (const [key, value] of searchParams) {
       urlInstance.searchParams.append(key, value);
     }
@@ -468,13 +473,6 @@ export class Cal {
         this.doInIframe(doInIframeArg);
       });
       this.iframeDoQueue = [];
-
-      // Apply stored UI config that persists across iframe resets.
-      // This ensures UI config set before iframe creation (e.g., for element-click embeds)
-      // is applied after the iframe becomes ready.
-      if (Object.keys(this.persistentUiConfig).length > 0) {
-        this.doInIframe({ method: "ui", arg: this.persistentUiConfig });
-      }
     });
 
     this.actionManager.on("__routeChanged", () => {
@@ -618,7 +616,7 @@ export class Cal {
       : 0;
     const crossedReloadThreshold = previousEmbedRenderStartTime
       ? timeSinceLastRender >
-      (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
+        (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
       : false;
 
     const areSlotsStale = previousEmbedRenderStartTime
@@ -876,7 +874,7 @@ class CalApi {
 
     CalApi.initializedNamespaces.push(this.cal.namespace);
 
-    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
+    const { calOrigin, origin, ...restConfig } = config;
 
     this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
 
@@ -964,10 +962,10 @@ class CalApi {
 
     template.innerHTML = `<cal-inline 
       ${generateDataAttributes({
-      pageType,
-      theme,
-      layout,
-    })}
+        pageType,
+        theme,
+        layout,
+      })}
       style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
     </cal-inline>
     <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
@@ -1201,7 +1199,7 @@ class CalApi {
             config: enrichedConfig,
           });
           // Send reloadInitiated message to iframe so it can track it
-          // Send it after loadInIframe so that new iframe can process it. 
+          // Send it after loadInIframe so that new iframe can process it.
           this.cal.doInIframe({ method: "__reloadInitiated", arg: {} });
         } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
           const paramsToAdd = fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries());
@@ -1210,8 +1208,8 @@ class CalApi {
               ...enrichedConfig,
               ...(actionToTake === "connect-no-slots-fetch"
                 ? {
-                  "cal.embed.noSlotsFetchOnConnect": "true",
-                }
+                    "cal.embed.noSlotsFetchOnConnect": "true",
+                  }
                 : {}),
             },
             params: paramsToAdd,
@@ -1253,10 +1251,10 @@ class CalApi {
 
     template.innerHTML = `<cal-modal-box 
       ${generateDataAttributes({
-      pageType,
-      theme,
-      layout,
-    })}
+        pageType,
+        theme,
+        layout,
+      })}
       uid="${uid}">
     </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
@@ -1317,9 +1315,9 @@ class CalApi {
 
   /**
    * Closes modal-based embeds programmatically.
-   * 
+   *
    * @throws {Error} If called on an inline embed (only works for modal-based embeds)
-   * 
+   *
    * @example
    * ```javascript
    * // Close the modal after a successful booking
@@ -1501,11 +1499,9 @@ class CalApi {
       },
     });
 
-    // Store UI config so it persists across iframe resets.
-    // This is needed for element-click embeds where ui() is called before the iframe exists.
-    this.cal.persistentUiConfig = { ...this.cal.persistentUiConfig, ...uiConfig };
+    this.cal.persistentUiConfig = mergeUiConfig(this.cal.persistentUiConfig, uiConfig);
 
-    this.cal.doInIframe({ method: "ui", arg: uiConfig });
+    this.cal.doInIframe({ method: "ui", arg: this.cal.persistentUiConfig });
   }
 }
 

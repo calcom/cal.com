@@ -20,6 +20,7 @@ import {
   isBrowser,
   log,
 } from "./embed-iframe/lib/utils";
+import { mergeUiConfig } from "./lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
   UiConfig,
@@ -394,36 +395,7 @@ export const methods = {
 
     // Merge new values over the old values
     // For cssVarsPerTheme, we need to merge at the theme level to preserve variables from both old and new configs
-    const oldCssVarsPerTheme = embedStore.uiConfig?.cssVarsPerTheme;
-    const newCssVarsPerTheme = uiConfig.cssVarsPerTheme;
-    let mergedCssVarsPerTheme: UiConfig["cssVarsPerTheme"] | undefined;
-
-    if (oldCssVarsPerTheme || newCssVarsPerTheme) {
-      mergedCssVarsPerTheme = {} as Record<
-        "light" | "dark",
-        Record<string, string>
-      >;
-      const themeKeys = [
-        ...(oldCssVarsPerTheme ? Object.keys(oldCssVarsPerTheme) : []),
-        ...(newCssVarsPerTheme ? Object.keys(newCssVarsPerTheme) : []),
-      ];
-      const themes = Array.from(new Set(themeKeys)) as Array<"light" | "dark">;
-
-      for (const theme of themes) {
-        mergedCssVarsPerTheme[theme] = {
-          ...oldCssVarsPerTheme?.[theme],
-          ...newCssVarsPerTheme?.[theme],
-        };
-      }
-    }
-
-    uiConfig = {
-      ...embedStore.uiConfig,
-      ...uiConfig,
-      ...(mergedCssVarsPerTheme
-        ? { cssVarsPerTheme: mergedCssVarsPerTheme }
-        : {}),
-    };
+    uiConfig = mergeUiConfig(embedStore.uiConfig || {}, uiConfig);
 
     if (uiConfig.cssVarsPerTheme) {
       const mappedCssVarsPerTheme = mapOldToNewCssVars(
