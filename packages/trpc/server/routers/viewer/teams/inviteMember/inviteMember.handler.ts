@@ -1,6 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { DueInvoiceService } from "@calcom/features/ee/billing/service/dueInvoice/DueInvoiceService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -261,6 +262,26 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You are not authorized to invite team members in this organization's team",
+    });
+  }
+
+  // Check if invitations are blocked due to unpaid invoices
+  const dueInvoiceService = new DueInvoiceService();
+  const inviteeEmails = (typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail).map((u) =>
+    typeof u === "string" ? u : u.email
+  );
+  const canInvite = await dueInvoiceService.canInviteToTeam({
+    teamId: team.id,
+    inviteeEmails,
+    isSubTeam: !!team.parentId,
+    parentOrgId: team.parentId,
+  });
+
+  if (!canInvite.allowed) {
+    const translation = await getTranslation(input.language ?? "en", "common");
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: translation(canInvite.reason ?? "invitations_blocked_unpaid_invoice"),
     });
   }
 

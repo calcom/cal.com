@@ -47,6 +47,7 @@ export class MonthlyProrationRepository {
     additionalData?: {
       invoiceItemId?: string;
       invoiceId?: string;
+      invoiceUrl?: string;
       chargedAt?: Date;
       failedAt?: Date;
       failureReason?: string;
