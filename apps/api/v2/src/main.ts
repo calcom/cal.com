@@ -1,7 +1,6 @@
 import "dotenv/config";
 
 import { IncomingMessage, Server, ServerResponse } from "node:http";
-
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
@@ -9,12 +8,15 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { Express, Request, Response } from "express";
 import { WinstonModule } from "nest-winston";
 import qs from "qs";
-import type { AppConfig } from "@/config/type";
-
+import { TRIGGER_VERSION } from "../trigger.version";
 import { AppModule } from "./app.module";
 import { bootstrap } from "./bootstrap";
 import { loggerConfig } from "./lib/logger";
+import type { AppConfig } from "@/config/type";
 
+if (process.env.NODE_ENV === "production") {
+  process.env.TRIGGER_VERSION = TRIGGER_VERSION;
+}
 const logger: Logger = new Logger("App");
 
 /**

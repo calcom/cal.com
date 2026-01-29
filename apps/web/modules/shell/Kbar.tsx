@@ -1,4 +1,5 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -231,7 +232,7 @@ function useEventTypesAction(): void {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
-      limit: 10,
+      limit: 100,
       group: { teamId: null, parentId: null },
     },
     {
@@ -259,7 +260,46 @@ function useEventTypesAction(): void {
     actions = eventTypeActions;
   }
 
-  useRegisterActions(actions);
+  useRegisterActions(actions, [data]);
+}
+
+function useUpcomingBookingsAction(): void {
+  const router = useRouter();
+
+  const { data } = trpc.viewer.bookings.get.useQuery(
+    {
+      filters: {
+        status: "upcoming",
+        afterStartDate: dayjs().startOf("day").toISOString(),
+      },
+      limit: 100,
+    },
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000,
+    }
+  );
+
+  const bookingActions: Action[] = useMemo(() => {
+    if (!data?.bookings) return [];
+
+    return data.bookings.map((booking) => {
+      const startTime = dayjs(booking.startTime);
+      const formattedDate = startTime.format("MMM D");
+      const formattedTime = startTime.format("h:mm A");
+      const attendeeNames = (booking.attendees ?? []).map((a) => a.name).join(" ");
+
+      return {
+        id: `booking-${booking.uid}`,
+        name: `${booking.title} - ${formattedDate} ${formattedTime}`,
+        section: { name: "upcoming", priority: 1 },
+        keywords: `booking ${booking.title} ${attendeeNames}`,
+        perform: () => router.push(`/booking/${booking.uid}`),
+      };
+    });
+  }, [data?.bookings, router]);
+
+  useRegisterActions(bookingActions, [bookingActions]);
 }
 
 const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
@@ -278,7 +318,6 @@ function CommandKey(): JSX.Element {
 
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
-  useEventTypesAction();
 
   return (
     <KBarPortal>
@@ -416,6 +455,9 @@ function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
   const { t } = useLocale();
+
+  useEventTypesAction();
+  useUpcomingBookingsAction();
 
   if (results.length === 0 && searchQuery.trim().length > 0) {
     return <NoResultsFound searchQuery={searchQuery} />;

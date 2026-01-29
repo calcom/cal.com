@@ -4,7 +4,7 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
+import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
@@ -91,8 +91,9 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
+  hideOrgTeamAvatar,
   showNoAvailabilityDialog,
-}: BookerProps & WrappedBookerProps) => {
+}: BookerProps & WrappedBookerProps): JSX.Element | null => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStoreContext(
@@ -179,13 +180,7 @@ const BookerComponent = ({
     isVerificationCodeSending,
   } = verifyEmail;
 
-  const {
-    overlayBusyDates,
-    isOverlayCalendarEnabled,
-    connectedCalendars,
-    loadingConnectedCalendar,
-    onToggleCalendar,
-  } = calendars;
+  const { overlayBusyDates, isOverlayCalendarEnabled, connectedCalendars, onToggleCalendar } = calendars;
 
   const scrolledToTimeslotsOnce = useRef(false);
   const embedUiConfig = useEmbedUiConfig();
@@ -217,8 +212,10 @@ const BookerComponent = ({
   );
 
   // Cloudflare Turnstile Captcha
+  // Note: process.env may be undefined in embed contexts, so we safely check it
+  const isE2E = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_IS_E2E;
   const shouldRenderCaptcha = !!(
-    !process.env.NEXT_PUBLIC_IS_E2E &&
+    !isE2E &&
     renderCaptcha &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
@@ -273,7 +270,11 @@ const BookerComponent = ({
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
 
   const EventBooker = useMemo(() => {
-    return bookerState === "booking" ? (
+    if (bookerState !== "booking") {
+      return null;
+    }
+
+    return (
       <BookEventForm
         key={key}
         timeslot={selectedTimeslot}
@@ -309,22 +310,18 @@ const BookerComponent = ({
           backButton: customClassNames?.confirmStep?.backButton,
         }}
         isPlatform={isPlatform}>
-        <>
-          {!isPlatform && (
-            <RedirectToInstantMeetingModal
-              expiryTime={expiryTime}
-              bookingId={parseInt(getQueryParam("bookingId") || "0")}
-              instantVideoMeetingUrl={instantVideoMeetingUrl}
-              onGoBack={() => {
-                onGoBackInstantMeeting();
-              }}
-              orgName={event.data?.entity?.name}
-            />
-          )}
-        </>
+        {!isPlatform && (
+          <RedirectToInstantMeetingModal
+            expiryTime={expiryTime}
+            bookingId={parseInt(getQueryParam("bookingId") || "0")}
+            instantVideoMeetingUrl={instantVideoMeetingUrl}
+            onGoBack={() => {
+              onGoBackInstantMeeting();
+            }}
+            orgName={event.data?.entity?.name}
+          />
+        )}
       </BookEventForm>
-    ) : (
-      <></>
     );
   }, [
     bookerFormErrorRef,
@@ -415,27 +412,23 @@ const BookerComponent = ({
                     extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                     isMobile={isMobile}
                     nextSlots={nextSlots}
-                    renderOverlay={() =>
-                      isEmbed ? (
-                        <></>
-                      ) : (
-                        <>
-                          <OverlayCalendar
-                            isOverlayCalendarEnabled={isOverlayCalendarEnabled}
-                            connectedCalendars={connectedCalendars}
-                            loadingConnectedCalendar={loadingConnectedCalendar}
-                            overlayBusyDates={overlayBusyDates}
-                            onToggleCalendar={onToggleCalendar}
-                            hasSession={hasSession}
-                            handleClickContinue={onClickOverlayContinue}
-                            handleSwitchStateChange={onOverlaySwitchStateChange}
-                            handleClickNoCalendar={() => {
-                              onOverlayClickNoCalendar();
-                            }}
-                          />
-                        </>
-                      )
-                    }
+                    renderOverlay={() => {
+                      if (isEmbed) return null;
+                      return (
+                        <OverlayCalendar
+                          isOverlayCalendarEnabled={isOverlayCalendarEnabled}
+                          connectedCalendars={connectedCalendars}
+                          overlayBusyDates={overlayBusyDates}
+                          onToggleCalendar={onToggleCalendar}
+                          hasSession={hasSession}
+                          handleClickContinue={onClickOverlayContinue}
+                          handleSwitchStateChange={onOverlaySwitchStateChange}
+                          handleClickNoCalendar={() => {
+                            onOverlayClickNoCalendar();
+                          }}
+                        />
+                      );
+                    }}
                   />
                 )}
               </BookerSection>
@@ -468,6 +461,7 @@ const BookerComponent = ({
                     locale={userLocale}
                     timeZones={timeZones}
                     roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                    hideOrgTeamAvatar={hideOrgTeamAvatar}
                     hideEventTypeDetails={hideEventTypeDetails}>
                     {eventMetaChildren}
                   </EventMeta>
