@@ -2290,11 +2290,8 @@ async function handler(
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
   } else if (isConfirmedByDefault) {
-    // Use EventManager to conditionally use all needed integrations.
-    const createManager =
-      areCalendarEventsEnabled && !skipCalendarSyncTaskCreation
-        ? await eventManager.create(evt)
-        : placeholderCreatedEvent;
+    const shouldSkipCalendarEvents = !areCalendarEventsEnabled || skipCalendarSyncTaskCreation;
+    const createManager = await eventManager.create(evt, { skipCalendarEvent: shouldSkipCalendarEvents });
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -2479,6 +2476,8 @@ async function handler(
     tracingLogger,
   });
 
+  const webhookLocation = metadata?.videoCallUrl || evt.location;
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2496,6 +2495,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
+    location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
 
