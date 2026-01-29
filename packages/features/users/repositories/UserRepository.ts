@@ -276,6 +276,22 @@ export class UserRepository {
     return user;
   }
 
+async findByEmailCaseInsensitive({ email }: { email: string }) {
+    const user = await this.prismaClient.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+    return user;
+  }
+
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 

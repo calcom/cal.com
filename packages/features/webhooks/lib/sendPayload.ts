@@ -60,7 +60,7 @@ export type OOOEntryPayloadType = {
       emoji?: string;
       reason?: string;
     };
-    reasonId: number;
+    reasonId: number | null;
     user: {
       id: number;
       name: string | null;

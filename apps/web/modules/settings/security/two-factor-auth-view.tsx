@@ -4,9 +4,9 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Alert } from "@calcom/ui/components/alert";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";

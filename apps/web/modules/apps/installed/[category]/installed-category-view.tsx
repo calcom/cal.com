@@ -109,6 +109,7 @@ const IntegrationsContainer = ({
     video: "video", // deprecated
     messaging: "mail",
     crm: "contact",
+    hrms: "users",
   };
 
   return (
