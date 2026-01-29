@@ -63,7 +63,11 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
     }
     : undefined;
 
-    const evtWithMetadata = { ...calendarEvent, metadata };
+    const evtWithMetadata = {
+      ...calendarEvent,
+      metadata,
+      platformClientId: bookingMetadata?.platformClientId,
+    };
 
     const workflowReminderRepository = new WorkflowReminderRepository(prisma);
     const bookingSeatRepository = new BookingSeatRepository(prisma);

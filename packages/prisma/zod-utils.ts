@@ -523,6 +523,7 @@ export const teamMetadataStrictSchema = baseTeamMetadataSchema
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
+    platformClientId: z.string().optional(),
   })
   .and(z.record(z.string()))
   .nullable()
