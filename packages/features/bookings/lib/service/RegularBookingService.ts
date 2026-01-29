@@ -595,6 +595,7 @@ async function handler(
     skipEventLimitsCheck = false,
     skipCalendarSyncTaskCreation = false,
     traceContext: passedTraceContext,
+    impersonatedByUserUuid,
   } = input;
   let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
 
@@ -1799,6 +1800,7 @@ async function handler(
       organizationId: eventOrganizationId,
       actionSource,
       traceContext,
+      impersonatedByUserUuid,
       deps,
     });
 
@@ -2474,6 +2476,7 @@ async function handler(
     isRecurringBooking: !!input.bookingData.allRecurringDates,
     attendeeSeatId: evt.attendeeSeatId ?? null,
     tracingLogger,
+    impersonatedByUserUuid,
   });
 
   const webhookLocation = metadata?.videoCallUrl || evt.location;
@@ -2914,6 +2917,7 @@ export class RegularBookingService implements IBookingService {
     isRecurringBooking,
     attendeeSeatId,
     tracingLogger,
+    impersonatedByUserUuid,
   }: {
     booking: {
       id: number;
@@ -2939,6 +2943,7 @@ export class RegularBookingService implements IBookingService {
     isRecurringBooking: boolean;
     tracingLogger: ReturnType<typeof distributedTracing.getTracingLogger>;
     attendeeSeatId: string | null;
+    impersonatedByUserUuid?: string;
   }) {
     try {
       const bookingCreatedPayload = buildBookingCreatedPayload({
@@ -2971,6 +2976,8 @@ export class RegularBookingService implements IBookingService {
         logger: tracingLogger,
       });
 
+      const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+
       // For recurring bookings we fire the events in the RecurringBookingService
       if (!isRecurringBooking) {
         if (originalRescheduledBooking) {
@@ -2991,6 +2998,7 @@ export class RegularBookingService implements IBookingService {
             }),
             source: actionSource,
             operationId: null,
+            context: auditContext,
           });
         } else {
           await bookingEventHandler.onBookingCreated({
@@ -2999,6 +3007,7 @@ export class RegularBookingService implements IBookingService {
             auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId }),
             source: actionSource,
             operationId: null,
+            context: auditContext,
           });
         }
       }
@@ -3008,11 +3017,17 @@ export class RegularBookingService implements IBookingService {
   }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)(
+      { bookingData: input.bookingData, ...input.bookingMeta },
+      this.deps
+    );
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)(
+      { bookingData: input.bookingData, ...input.bookingMeta },
+      this.deps
+    );
   }
 
   /**

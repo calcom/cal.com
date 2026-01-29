@@ -84,6 +84,7 @@ export type CancelBookingInput = {
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
   actionSource?: ActionSource;
+  impersonatedByUserUuid?: string | null;
 } & PlatformParams;
 
 type Dependencies = {
@@ -174,6 +175,9 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   } = input;
 
   const userUuid = input.userUuid ?? null;
+  const impersonatedByUserUuid = input.impersonatedByUserUuid ?? null;
+
+  const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
 
   // Extract action source once for reuse
   const actionSource = input.actionSource ?? "UNKNOWN";
@@ -538,6 +542,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       organizationId: orgId ?? null,
       operationId,
       source: actionSource,
+      context: auditContext,
     });
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
@@ -572,6 +577,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
           new: BookingStatus.CANCELLED,
         },
       },
+      context: auditContext,
     });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {

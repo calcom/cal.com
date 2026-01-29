@@ -65,6 +65,7 @@ export type NewSeatedBookingObject = {
   organizationId?: number | null;
   actionSource: ActionSource;
   traceContext: TraceContext;
+  impersonatedByUserUuid?: string;
   deps: {
     bookingEventHandler: BookingEventHandlerService;
   }
