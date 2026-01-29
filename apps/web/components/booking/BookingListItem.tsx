@@ -41,7 +41,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
-import { RoutingTraceSheet } from "./RoutingTraceSheet";
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
@@ -281,13 +280,6 @@ function BookingListItem(booking: BookingItemProps) {
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
   );
-  const isOpenRoutingTraceSheet = useBookingActionsStoreContext(
-    (state) => state.isOpenRoutingTraceSheet
-  );
-  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
-    (state) => state.setIsOpenRoutingTraceSheet
-  );
-
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
@@ -515,21 +507,6 @@ function BookingListItem(booking: BookingItemProps) {
               />
             </div>
           )}
-          {isBookingFromRoutingForm && (
-            <Button
-              type="button"
-              variant="icon"
-              color="minimal"
-              StartIcon="route"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpenRoutingTraceSheet(true);
-              }}
-              className="min-h-[34px] min-w-[34px]"
-              tooltip={t("routing_trace")}
-              data-testid="routing-trace-button"
-            />
-          )}
           <BookingActionsDropdown booking={booking} context="list" />
         </div>
       </div>
@@ -546,23 +523,16 @@ function BookingListItem(booking: BookingItemProps) {
         }
       />
       {isBookingFromRoutingForm && (
-        <>
-          <WrongAssignmentDialog
-            isOpenDialog={isOpenWrongAssignmentDialog}
-            setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-            bookingUid={booking.uid}
-            routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-            guestEmail={booking.attendees[0]?.email ?? ""}
-            hostEmail={booking.user?.email ?? ""}
-            hostName={booking.user?.name ?? null}
-            teamId={booking.eventType?.team?.id ?? null}
-          />
-          <RoutingTraceSheet
-            isOpen={isOpenRoutingTraceSheet}
-            setIsOpen={setIsOpenRoutingTraceSheet}
-            bookingUid={booking.uid}
-          />
-        </>
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
       )}
     </div>
   );
