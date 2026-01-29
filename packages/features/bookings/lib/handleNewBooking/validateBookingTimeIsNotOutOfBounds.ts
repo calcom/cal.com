@@ -26,7 +26,8 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
   reqBodyTimeZone: string,
   eventType: T,
   eventTimeZone: string | null | undefined,
-  logger: Logger<unknown>
+  logger: Logger<unknown>,
+  isHost?: boolean
 ) => {
   let timeOutOfBounds = false;
   try {
@@ -41,7 +42,8 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
         bookerUtcOffset: getUTCOffsetByTimezone(reqBodyTimeZone) ?? 0,
         eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
-      eventType.minimumBookingNotice
+      eventType.minimumBookingNotice,
+      isHost
     );
   } catch (error) {
     logger.warn({
