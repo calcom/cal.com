@@ -339,7 +339,6 @@ export class BookingAuditViewerService {
 
   /**
    * Enrich actor information with user details if userUuid exists
-   * Uses pre-fetched data from dbStore for USER actors to avoid N+1 queries
    */
   private async enrichActorInformation(
     actor: BookingAuditWithActor["actor"],
@@ -433,8 +432,7 @@ export class BookingAuditViewerService {
   }
 
   /**
-   * Collect all data requirements from audit logs
-   * Aggregates user UUIDs from actors, impersonators, and action services
+   * Collect all data requirements from audit logs and action services
    */
   private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
     const userUuids = new Set<string>();

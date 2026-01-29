@@ -1,6 +1,5 @@
-import { create } from "zustand";
-
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import { createWithEqualityFn } from "zustand/traditional";
 
 interface IOverlayCalendarStore {
   overlayBusyDates: EventBusyDate[] | undefined;
@@ -11,7 +10,7 @@ interface IOverlayCalendarStore {
   setCalendarSettingsOverlayModal: (value: boolean) => void;
 }
 
-export const useOverlayCalendarStore = create<IOverlayCalendarStore>((set) => ({
+export const useOverlayCalendarStore = createWithEqualityFn<IOverlayCalendarStore>((set) => ({
   overlayBusyDates: undefined,
   setOverlayBusyDates: (busyDates: EventBusyDate[]) => {
     set({ overlayBusyDates: busyDates });
