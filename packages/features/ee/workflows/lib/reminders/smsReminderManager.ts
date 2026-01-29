@@ -13,10 +13,11 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowTemplates, WorkflowActions, WorkflowMethods, WorkflowStepAutoTranslatedField } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
+import { WorkflowStepTranslationRepository } from "../../repositories/WorkflowStepTranslationRepository";
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
@@ -49,6 +50,8 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   prisma?: PrismaClient;
   verifiedAt: Date | null;
   creditCheckFn: CreditCheckFn;
+  autoTranslateEnabled?: boolean;
+  sourceLocale?: string | null;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
@@ -169,6 +172,18 @@ const scheduleSMSReminderForEvt = async (
       action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
 
     let smsMessage = message;
+
+    if (smsMessage && args.autoTranslateEnabled && action === WorkflowActions.SMS_ATTENDEE && workflowStepId) {
+      const attendeeLocale = attendeeToBeUsedInSMS.language?.locale || "en";
+      const bodyTranslation = await WorkflowStepTranslationRepository.findByLocale(
+        workflowStepId,
+        WorkflowStepAutoTranslatedField.REMINDER_BODY,
+        attendeeLocale
+      );
+      if (bodyTranslation?.translatedText) {
+        smsMessage = bodyTranslation.translatedText;
+      }
+    }
 
     if (smsMessage) {
       smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);

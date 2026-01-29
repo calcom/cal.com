@@ -38,6 +38,8 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   verifiedAt: Date | null;
+  autoTranslateEnabled?: boolean;
+  sourceLocale?: string | null;
 };
 
 type SendEmailReminderParams = {
@@ -115,6 +117,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
+    autoTranslateEnabled,
+    sourceLocale,
   } = args;
 
   const uid = evt.uid as string;
@@ -152,6 +156,9 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     template,
     includeCalendarEvent,
     triggerEvent,
+    workflowStepId,
+    autoTranslateEnabled,
+    sourceLocale,
   });
 
   await sendOrScheduleWorkflowEmailWithReminder({

@@ -16,29 +16,26 @@ import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositorie
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
-import { prisma, type PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import { type PrismaClient, prisma } from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
-  getSender,
-  upsertSmsReminderFieldForEventTypes,
-  isAuthorizedToAddActiveOnIds,
-  removeSmsReminderFieldForEventTypes,
-  isStepEdited,
   getEmailTemplateText,
-  upsertAIAgentCallPhoneNumberFieldForEventTypes,
+  getSender,
+  isAuthorizedToAddActiveOnIds,
+  isStepEdited,
   removeAIAgentCallPhoneNumberFieldForEventTypes,
+  removeSmsReminderFieldForEventTypes,
+  upsertAIAgentCallPhoneNumberFieldForEventTypes,
+  upsertSmsReminderFieldForEventTypes,
 } from "./util";
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone">;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone" | "organization">;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -159,9 +156,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       userWorkflow.teamId
     );
 
-    activeOnWithChildren = activeOnEventTypes
-      .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
-      .flat();
+    activeOnWithChildren = activeOnEventTypes.flatMap((eventType) =>
+      [eventType.id].concat(eventType.children.map((child) => child.id))
+    );
 
     let oldActiveOnEventTypes: { id: number; children: { id: number }[] }[];
     if (userWorkflow.isActiveOnAll) {
@@ -415,6 +412,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
           inboundAgentId: newStep.inboundAgentId || null,
+          sourceLocale: newStep.sourceLocale ?? null,
+          autoTranslateEnabled: newStep.autoTranslateEnabled ?? false,
         })
       ) {
         // check if step that require team plan already existed before
@@ -472,7 +471,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           includeCalendarEvent: newStep.includeCalendarEvent,
           agentId: newStep.agentId || null,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+          autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
+          sourceLocale: newStep.sourceLocale ?? ctx.user.locale,
         });
+
+        if (
+          ctx.user.organization?.id &&
+          newStep.autoTranslateEnabled &&
+          (newStep.reminderBody || newStep.emailSubject)
+        ) {
+          await tasker.create("translateWorkflowStepData", {
+            workflowStepId: oldStep.id,
+            reminderBody: newStep.reminderBody,
+            emailSubject: newStep.emailSubject,
+            userLocale: newStep.sourceLocale || ctx.user.locale,
+          });
+        }
 
         if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
           await tasker.create("scanWorkflowBody", {
@@ -532,6 +546,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }),
           id: undefined,
           senderName: undefined,
+          autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
         };
       })
   );
@@ -559,7 +574,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           })
         )
       );
-    } else if (!isFormTrigger(trigger)) {
+    }
+
+    if (ctx.user.organization?.id) {
+      await Promise.all(
+        createdSteps
+          .filter((step) => step.autoTranslateEnabled && (step.reminderBody || step.emailSubject))
+          .map((step) =>
+            tasker.create("translateWorkflowStepData", {
+              workflowStepId: step.id,
+              reminderBody: step.reminderBody,
+              emailSubject: step.emailSubject,
+              userLocale: step.sourceLocale || ctx.user.locale,
+            })
+          )
+      );
+    }
+
+    if (!SCANNING_WORKFLOW_STEPS && !isFormTrigger(trigger)) {
       // schedule notification for new step (only for event-based triggers)
       await scheduleWorkflowNotifications({
         activeOn: activeOnEventTypeIds,
