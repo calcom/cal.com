@@ -741,6 +741,7 @@ export class GetBookingsRepository {
                   "Attendee.phoneNumber",
                   "Attendee.locale",
                   "Attendee.noShow",
+                  "Attendee.bookingId",
                 ])
                 .whereRef("Attendee.bookingId", "=", "Booking.id")
             ).as("attendees")
@@ -767,6 +768,8 @@ export class GetBookingsRepository {
               eb
                 .selectFrom("AssignmentReason")
                 .select([
+                  "AssignmentReason.id",
+                  "AssignmentReason.bookingId",
                   "AssignmentReason.reasonEnum",
                   "AssignmentReason.reasonString",
                   "AssignmentReason.createdAt",
