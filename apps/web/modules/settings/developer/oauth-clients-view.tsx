@@ -112,30 +112,35 @@ const OAuthClientsView = () => {
     <SettingsHeader
       title={t("oauth_clients")}
       description={t("oauth_clients_description")}
-      CTA={newOAuthClientButton}>
-      {oAuthClients && oAuthClients.length > 0 ? (
-        <OAuthClientsList
-          clients={oAuthClients.map((client) => ({
-            clientId: client.clientId,
-            name: client.name,
-            purpose: client.purpose,
-            redirectUri: client.redirectUri,
-            websiteUrl: client.websiteUrl,
-            logo: client.logo,
-            status: client.status,
-            rejectionReason: client.rejectionReason,
-            clientType: client.clientType,
-          }))}
-          onSelectClient={(client) => setSelectedClient(client)}
-        />
-      ) : (
-        <EmptyScreen
-          Icon="key"
-          headline={t("no_oauth_clients")}
-          description={t("no_oauth_clients_description")}
-          buttonRaw={newOAuthClientButton}
-        />
-      )}
+      CTA={newOAuthClientButton}
+      borderInShellHeader={true}>
+      <div>
+        {oAuthClients && oAuthClients.length > 0 ? (
+          <div className="border-subtle rounded-b-lg border border-t-0">
+            <OAuthClientsList
+              clients={oAuthClients.map((client) => ({
+                clientId: client.clientId,
+                name: client.name,
+                purpose: client.purpose,
+                redirectUri: client.redirectUri,
+                websiteUrl: client.websiteUrl,
+                logo: client.logo,
+                status: client.status,
+                rejectionReason: client.rejectionReason,
+                clientType: client.clientType,
+              }))}
+              onSelectClient={(client) => setSelectedClient(client)}
+            />
+          </div>
+        ) : (
+          <EmptyScreen
+            Icon="key"
+            headline={t("no_oauth_clients")}
+            description={t("no_oauth_clients_description")}
+            className="rounded-b-lg rounded-t-none border-t-0"
+            buttonRaw={newOAuthClientButton}
+          />
+        )}</div>
 
       {submittedClient ? (
         <OAuthClientPreviewDialog

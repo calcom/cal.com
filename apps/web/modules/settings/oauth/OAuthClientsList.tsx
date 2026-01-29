@@ -34,7 +34,7 @@ export const OAuthClientsList = ({
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle rounded-lg border" data-testid="oauth-clients-list">
+    <div data-testid="oauth-clients-list">
       {clients.map((client, index) => (
         <div
           key={client.clientId}
