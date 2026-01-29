@@ -19,15 +19,21 @@ export const generateMetadata = async () => {
 };
 
 const ServerPage = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const session = await getServerSession({
+    req: buildLegacyRequest(await headers(), await cookies()),
+  });
 
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
 
   // If user has any team membership (pending or accepted), redirect them directly to personal onboarding
-  // This handles the case where users sign up with an invite token (membership is auto-accepted)
-  const hasTeamMembership = await MembershipRepository.hasAnyTeamMembershipByUserId({ userId: session.user.id });
+  // This handles the case where users sign up with an invite token - their membership is auto-accepted
+  // during signup, so we need to check for any membership, not just pending ones
+  const hasTeamMembership =
+    await MembershipRepository.hasAnyTeamMembershipByUserId({
+      userId: session.user.id,
+    });
   if (hasTeamMembership) {
     return redirect("/onboarding/personal/settings");
   }

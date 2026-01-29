@@ -1,14 +1,23 @@
-import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import {
+  LookupTarget,
+  ProfileRepository,
+} from "@calcom/features/profile/repositories/ProfileRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
-import { availabilityUserSelect, type PrismaTransaction, prisma } from "@calcom/prisma";
+import {
+  availabilityUserSelect,
+  type PrismaTransaction,
+  prisma,
+} from "@calcom/prisma";
 import type { Membership, Prisma, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-const log = logger.getSubLogger({ prefix: ["features/membership/repositories/MembershipRepository"] });
+const log = logger.getSubLogger({
+  prefix: ["features/membership/repositories/MembershipRepository"],
+});
 type IMembership = {
   teamId: number;
   userId: number;
@@ -28,12 +37,16 @@ const membershipSelect = {
 
 type MembershipSelectableKeys = keyof typeof membershipSelect;
 
-type MembershipPartialSelect = Partial<Record<MembershipSelectableKeys, boolean>>;
+type MembershipPartialSelect = Partial<
+  Record<MembershipSelectableKeys, boolean>
+>;
 
 type MembershipDTO = Pick<Membership, MembershipSelectableKeys>;
 
 type MembershipDTOFromSelect<TSelect extends MembershipPartialSelect> = {
-  [K in keyof TSelect & keyof MembershipDTO as TSelect[K] extends true ? K : never]: MembershipDTO[K];
+  [K in keyof TSelect & keyof MembershipDTO as TSelect[K] extends true
+    ? K
+    : never]: MembershipDTO[K];
 };
 
 const teamParentSelect = {
@@ -53,7 +66,10 @@ const userSelect = {
   timeZone: true,
 } satisfies Prisma.UserSelect;
 
-const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipWhereInput) => {
+const getWhereForfindAllByUpId = async (
+  upId: string,
+  where?: Prisma.MembershipWhereInput
+) => {
   const lookupTarget = ProfileRepository.getLookupTarget(upId);
   let prismaWhere;
   if (lookupTarget.type === LookupTarget.Profile) {
@@ -93,7 +109,13 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
 export class MembershipRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
-  async hasMembership({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
+  async hasMembership({
+    userId,
+    teamId,
+  }: {
+    userId: number;
+    teamId: number;
+  }): Promise<boolean> {
     const membership = await this.prismaClient.membership.findFirst({
       where: {
         userId,
@@ -107,7 +129,11 @@ export class MembershipRepository {
     return !!membership;
   }
 
-  async listAcceptedTeamMemberIds({ teamId }: { teamId: number }): Promise<number[]> {
+  async listAcceptedTeamMemberIds({
+    teamId,
+  }: {
+    teamId: number;
+  }): Promise<number[]> {
     const memberships =
       (await this.prismaClient.membership.findMany({
         where: {
@@ -249,7 +275,10 @@ export class MembershipRepository {
 
   static async findAllByUpIdIncludeMinimalEventTypes(
     { upId }: { upId: string },
-    { where, skipEventTypes = false }: { where?: Prisma.MembershipWhereInput; skipEventTypes?: boolean } = {}
+    {
+      where,
+      skipEventTypes = false,
+    }: { where?: Prisma.MembershipWhereInput; skipEventTypes?: boolean } = {}
   ) {
     const prismaWhere = await getWhereForfindAllByUpId(upId, where);
     if (Array.isArray(prismaWhere)) {
@@ -329,7 +358,13 @@ export class MembershipRepository {
     });
   }
 
-  async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+  async findUniqueByUserIdAndTeamId({
+    userId,
+    teamId,
+  }: {
+    userId: number;
+    teamId: number;
+  }) {
     return await this.prismaClient.membership.findUnique({
       where: {
         userId_teamId: {
@@ -416,7 +451,10 @@ export class MembershipRepository {
     });
   }
 
-  static async findAllAcceptedPublishedTeamMemberships(userId: number, tx?: PrismaTransaction) {
+  static async findAllAcceptedPublishedTeamMemberships(
+    userId: number,
+    tx?: PrismaTransaction
+  ) {
     return (tx ?? prisma).membership.findMany({
       where: {
         userId,
@@ -476,7 +514,9 @@ export class MembershipRepository {
     });
   }
 
-  static async findAllByTeamIds<TSelect extends MembershipPartialSelect = { userId: true }>({
+  static async findAllByTeamIds<
+    TSelect extends MembershipPartialSelect = { userId: true }
+  >({
     teamIds,
     select,
   }: {
@@ -493,7 +533,10 @@ export class MembershipRepository {
     })) as unknown as Promise<MembershipDTOFromSelect<TSelect>[]>;
   }
 
-  static async findAllAcceptedTeamMemberships(userId: number, where?: Prisma.MembershipWhereInput) {
+  static async findAllAcceptedTeamMemberships(
+    userId: number,
+    where?: Prisma.MembershipWhereInput
+  ) {
     const teams = await prisma.team.findMany({
       where: {
         members: {
@@ -563,7 +606,13 @@ export class MembershipRepository {
   }
 
   // Two indexed lookups instead of JOIN with ILIKE (which bypasses index)
-  async hasAcceptedMembershipByEmail({ email, teamId }: { email: string; teamId: number }): Promise<boolean> {
+  async hasAcceptedMembershipByEmail({
+    email,
+    teamId,
+  }: {
+    email: string;
+    teamId: number;
+  }): Promise<boolean> {
     const user = await this.prismaClient.user.findUnique({
       where: { email: email.toLowerCase() },
       select: { id: true },
@@ -581,7 +630,11 @@ export class MembershipRepository {
     return membership?.accepted ?? false;
   }
 
-  static async hasPendingInviteByUserId({ userId }: { userId: number }): Promise<boolean> {
+  static async hasPendingInviteByUserId({
+    userId,
+  }: {
+    userId: number;
+  }): Promise<boolean> {
     const pendingInvite = await prisma.membership.findFirst({
       where: {
         userId,
@@ -596,16 +649,17 @@ export class MembershipRepository {
 
   /**
    * Checks if a user has any team membership (pending or accepted).
-   * Used during onboarding to detect users who signed up via invite token,
-   * where the membership is auto-accepted.
+   * This is used to determine if a user was invited to a team and should skip
+   * the individual/team onboarding selection screen.
    */
-  static async hasAnyTeamMembershipByUserId({ userId }: { userId: number }): Promise<boolean> {
+  static async hasAnyTeamMembershipByUserId({
+    userId,
+  }: {
+    userId: number;
+  }): Promise<boolean> {
     const membership = await prisma.membership.findFirst({
       where: {
         userId,
-        team: {
-          isOrganization: false,
-        },
       },
       select: {
         id: true,

@@ -42,7 +42,9 @@ export async function checkOnboardingRedirect(
 
   // Check if user should be shown onboarding
   const shouldShowOnboarding =
-    !user.completedOnboarding && !organizationId && dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT);
+    !user.completedOnboarding &&
+    !organizationId &&
+    dayjs(user.createdDate).isAfter(ONBOARDING_INTRODUCED_AT);
 
   if (!shouldShowOnboarding) {
     return null;
@@ -53,24 +55,35 @@ export async function checkOnboardingRedirect(
 
   if (options?.checkEmailVerification) {
     const emailVerificationEnabled =
-      await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+      await featuresRepository.checkIfFeatureIsEnabledGlobally(
+        "email-verification"
+      );
 
-    if (!user.emailVerified && user.identityProvider === "CAL" && emailVerificationEnabled) {
+    if (
+      !user.emailVerified &&
+      user.identityProvider === "CAL" &&
+      emailVerificationEnabled
+    ) {
       // User needs email verification, redirect to verification page
       return "/auth/verify-email";
     }
   }
 
   // Determine which onboarding path to use
-  const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
+  const onboardingV3Enabled =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
-  // Check for any team membership (pending or accepted) to handle users who signed up via invite token
-  // When users sign up with an invite token, the membership is auto-accepted
-  const hasTeamMembership = await MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
+  // Check if user has any team membership (pending or accepted)
+  // Users who sign up with an invite token have their membership auto-accepted,
+  // so we need to check for any membership, not just pending ones
+  const hasTeamMembership =
+    await MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
 
   if (hasTeamMembership && onboardingV3Enabled) {
     return "/onboarding/personal/settings";
   }
 
-  return onboardingV3Enabled ? "/onboarding/getting-started" : "/getting-started";
+  return onboardingV3Enabled
+    ? "/onboarding/getting-started"
+    : "/getting-started";
 }
