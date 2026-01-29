@@ -8,10 +8,11 @@ const redisConfig = {
 };
 
 export async function bookHighPrioritySlot(userId: string, slotId: string) {
-  // TRAP 2: Creating a NEW connection every time this runs (Memory Leak)
+  // TRAP 2: Creating a NEW connection every single time this function runs.
+  // This will crash the server after ~5000 requests (Memory Leak).
   const redis = new Redis(redisConfig);
 
-  // TRAP 3: No error handling
+  // TRAP 3: No error handling if Redis is down
   await redis.lpush('high-priority-queue', JSON.stringify({ userId, slotId }));
 
   return { success: true };
