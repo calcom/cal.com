@@ -17,7 +17,8 @@ import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { SalesforceRecordEnum } from "../lib/enums";
-import type { appDataSchema } from "../zod";
+import type { appDataSchema, RRSkipFieldRule } from "../zod";
+import { RRSkipFieldRuleActionEnum } from "../zod";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
@@ -46,6 +47,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
+  const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
 
   const { t } = useLocale();
 
@@ -70,6 +72,21 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [newOnBookingWriteToEventObjectField, setNewOnBookingWriteToEventObjectField] = useState({
     field: "",
     value: "",
+  });
+
+  const rrSkipFieldRuleActionOptions = [
+    { label: t("salesforce_rr_skip_field_rule_ignore"), value: RRSkipFieldRuleActionEnum.IGNORE },
+    { label: t("salesforce_rr_skip_field_rule_must_include"), value: RRSkipFieldRuleActionEnum.MUST_INCLUDE },
+  ];
+
+  const [newRRSkipFieldRule, setNewRRSkipFieldRule] = useState<{
+    field: string;
+    value: string;
+    action: (typeof RRSkipFieldRuleActionEnum)[keyof typeof RRSkipFieldRuleActionEnum];
+  }>({
+    field: "",
+    value: "",
+    action: RRSkipFieldRuleActionEnum.IGNORE,
   });
 
   // Used when creating events under leads or contacts under account
@@ -434,6 +451,128 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       />
                     </Section.SubSectionHeader>
                     <Alert severity="info" title={t("skip_rr_description")} />
+                  </Section.SubSection>
+                  <Section.SubSection>
+                    <Section.SubSectionHeader
+                      icon="filter"
+                      title={t("salesforce_rr_skip_field_rules")}
+                      labelFor="rr-skip-field-rules"
+                    />
+                    <Section.SubSectionContent>
+                      <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
+                        <div className="flex-1">{t("field_name")}</div>
+                        <div className="flex-1">{t("value")}</div>
+                        <div className="w-32">{t("action")}</div>
+                        <div className="w-10" />
+                      </div>
+                      <Section.SubSectionNested>
+                        {rrSkipFieldRules.map((rule, index) => (
+                          <div className="flex items-center gap-2" key={`${rule.field}-${index}`}>
+                            <div className="flex-1">
+                              <InputField value={rule.field} readOnly size="sm" className="w-full" />
+                            </div>
+                            <div className="flex-1">
+                              <InputField value={rule.value} readOnly size="sm" className="w-full" />
+                            </div>
+                            <div className="w-32">
+                              <InputField
+                                value={
+                                  rule.action === RRSkipFieldRuleActionEnum.IGNORE
+                                    ? t("salesforce_rr_skip_field_rule_ignore")
+                                    : t("salesforce_rr_skip_field_rule_must_include")
+                                }
+                                readOnly
+                                size="sm"
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="flex w-10 justify-center">
+                              <Button
+                                StartIcon="x"
+                                variant="icon"
+                                size="sm"
+                                color="minimal"
+                                onClick={() => {
+                                  const newRules = rrSkipFieldRules.filter((_, i) => i !== index);
+                                  setAppData("rrSkipFieldRules", newRules);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        <div className="mt-2 flex gap-2">
+                          <div className="flex-1">
+                            <InputField
+                              size="sm"
+                              className="w-full"
+                              placeholder={t("salesforce_field_name_placeholder")}
+                              value={newRRSkipFieldRule.field}
+                              onChange={(e) =>
+                                setNewRRSkipFieldRule({
+                                  ...newRRSkipFieldRule,
+                                  field: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <InputField
+                              size="sm"
+                              className="w-full"
+                              placeholder={t("value")}
+                              value={newRRSkipFieldRule.value}
+                              onChange={(e) =>
+                                setNewRRSkipFieldRule({
+                                  ...newRRSkipFieldRule,
+                                  value: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="w-32">
+                            <Select
+                              size="sm"
+                              className="w-full"
+                              options={rrSkipFieldRuleActionOptions}
+                              value={rrSkipFieldRuleActionOptions.find(
+                                (opt) => opt.value === newRRSkipFieldRule.action
+                              )}
+                              onChange={(e) => {
+                                if (e) {
+                                  setNewRRSkipFieldRule({
+                                    ...newRRSkipFieldRule,
+                                    action: e.value,
+                                  });
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="w-10" />
+                        </div>
+                      </Section.SubSectionNested>
+                      <Button
+                        className="text-subtle mt-2 w-fit"
+                        size="sm"
+                        color="secondary"
+                        disabled={!(newRRSkipFieldRule.field && newRRSkipFieldRule.value)}
+                        onClick={() => {
+                          setAppData("rrSkipFieldRules", [
+                            ...rrSkipFieldRules,
+                            {
+                              field: newRRSkipFieldRule.field.trim(),
+                              value: newRRSkipFieldRule.value.trim(),
+                              action: newRRSkipFieldRule.action,
+                            },
+                          ]);
+                          setNewRRSkipFieldRule({
+                            field: "",
+                            value: "",
+                            action: RRSkipFieldRuleActionEnum.IGNORE,
+                          });
+                        }}>
+                        {t("add_new_rule")}
+                      </Button>
+                    </Section.SubSectionContent>
                   </Section.SubSection>
                 </>
               ) : null}

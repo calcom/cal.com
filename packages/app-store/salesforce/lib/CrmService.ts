@@ -24,7 +24,8 @@ import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry } from "../zod";
+import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry, RRSkipFieldRule } from "../zod";
+import { RRSkipFieldRuleActionEnum } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -637,6 +638,15 @@ class SalesforceCRMService implements CRM {
         }
       }
 
+      // Apply field rules if configured and this is for round robin skip
+      if (forRoundRobinSkip && appOptions?.rrSkipFieldRules?.length && records.length > 0) {
+        records = await this.applyFieldRules(records, appOptions.rrSkipFieldRules, recordToSearch);
+        if (records.length === 0) {
+          log.info("All records filtered out by field rules");
+          return [];
+        }
+      }
+
       const isFreeEmailDomain = await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]);
       const includeOwnerData = (includeOwner || forRoundRobinSkip) && !isFreeEmailDomain;
 
@@ -1075,6 +1085,107 @@ class SalesforceCRMService implements CRM {
       log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
+  }
+
+  /**
+   * Applies field rules to filter records based on configured field/value conditions.
+   * Returns records that pass all rules (AND logic).
+   *
+   * @param records - The records to filter
+   * @param fieldRules - Array of rules with field, value, and action (ignore/must_include)
+   * @param recordType - The Salesforce object type to validate fields against
+   * @returns Filtered records that pass all rules
+   */
+  private async applyFieldRules(
+    records: ContactRecord[],
+    fieldRules: RRSkipFieldRule[],
+    recordType: SalesforceRecordEnum
+  ): Promise<ContactRecord[]> {
+    const log = logger.getSubLogger({ prefix: [`[applyFieldRules]`] });
+
+    if (!fieldRules.length || !records.length) {
+      return records;
+    }
+
+    const conn = await this.conn;
+
+    // Validate which fields actually exist on the record type
+    const fieldNames = fieldRules.map((r) => r.field);
+    const existingFields = await this.ensureFieldsExistOnObject(fieldNames, recordType);
+    const existingFieldNames = new Set(existingFields.map((f) => f.name));
+
+    // Filter rules to only those with existing fields
+    const validRules = fieldRules.filter((rule) => existingFieldNames.has(rule.field));
+
+    if (validRules.length === 0) {
+      log.info("No valid field rules found (fields may not exist on record type)", {
+        configuredFields: fieldNames,
+        recordType,
+      });
+      return records;
+    }
+
+    log.info("Applying field rules", {
+      totalRules: fieldRules.length,
+      validRules: validRules.length,
+      recordCount: records.length,
+    });
+
+    // Get record IDs to fetch field values
+    const recordIds = records.map((r) => r.Id).filter((id): id is string => Boolean(id));
+
+    if (recordIds.length === 0) {
+      return records;
+    }
+
+    // Fetch the field values for each record
+    const selectFields = validRules.map((r) => r.field).join(", ");
+    const query = await conn.query(
+      `SELECT Id, ${selectFields} FROM ${recordType} WHERE Id IN ('${recordIds.join("','")}')`
+    );
+
+    // Create a map of record ID to field values
+    const recordFieldValues = new Map<string, Record<string, unknown>>();
+    for (const record of query.records) {
+      const typedRecord = record as { Id: string; [key: string]: unknown };
+      recordFieldValues.set(typedRecord.Id, typedRecord);
+    }
+
+    // Filter records based on rules
+    return records.filter((record) => {
+      if (!record.Id) return true; // Keep records without IDs
+
+      const fieldValues = recordFieldValues.get(record.Id);
+      if (!fieldValues) {
+        log.warn(`Could not fetch field values for record ${record.Id}`);
+        return true; // Keep if we couldn't fetch values
+      }
+
+      for (const rule of validRules) {
+        const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
+        const ruleValue = rule.value.toLowerCase();
+        const matches = actualValue === ruleValue;
+
+        if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
+          log.info(`Record ${record.Id} filtered out by ignore rule`, {
+            field: rule.field,
+            value: rule.value,
+          });
+          return false;
+        }
+
+        if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
+          log.info(`Record ${record.Id} filtered out by must_include rule`, {
+            field: rule.field,
+            expectedValue: rule.value,
+            actualValue,
+          });
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   private async checkRecordOwnerNameFromRecordId(id: string, newOwnerId: string) {
