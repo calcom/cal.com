@@ -3,6 +3,7 @@ import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -12,7 +13,6 @@ import type { Booking } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { TRPCError } from "@trpc/server";
 import type { Kysely, SelectQueryBuilder } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 
@@ -241,10 +241,9 @@ export class GetBookingsRepository {
       const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
 
       if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You do not have permissions to fetch bookings for specified userIds",
-        });
+        throw ErrorWithCode.Factory.Forbidden(
+          "You do not have permissions to fetch bookings for specified userIds"
+        );
       }
 
       bookingQueries.push({
@@ -1190,10 +1189,7 @@ export class GetBookingsRepository {
       .then((users) => users.map((user) => user.email));
 
     if (!attendeeEmailsFromUserIdsFilter || attendeeEmailsFromUserIdsFilter?.length === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "The requested users do not exist.",
-      });
+      throw ErrorWithCode.Factory.BadRequest("The requested users do not exist.");
     }
 
     return attendeeEmailsFromUserIdsFilter;
@@ -1234,10 +1230,7 @@ export class GetBookingsRepository {
     const eventTypeIdsFromDb = Array.from(new Set([...directEventTypeIds, ...parentEventTypeIds]));
 
     if (eventTypeIdsFromDb?.length === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "The requested event-types do not exist.",
-      });
+      throw ErrorWithCode.Factory.BadRequest("The requested event-types do not exist.");
     }
 
     return eventTypeIdsFromDb;
