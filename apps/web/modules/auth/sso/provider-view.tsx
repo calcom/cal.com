@@ -1,14 +1,11 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import type { getServerSideProps } from "@server/lib/auth/sso/[provider]/getServerSideProps";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect } from "react";
 
 export type SSOProviderPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -32,6 +29,8 @@ export default function Provider(props: SSOProviderPageProps) {
       signIn("saml", {}, { tenant: props.tenant, product: props.product });
     } else if (props.provider === "google" && email) {
       signIn("google", {}, { login_hint: email });
+    } else if (props.provider === "microsoft") {
+      signIn("azure-ad");
     } else {
       signIn(props.provider);
     }

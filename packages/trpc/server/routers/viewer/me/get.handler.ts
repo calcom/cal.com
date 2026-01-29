@@ -58,10 +58,19 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   let identityProviderEmail = "";
   if (user.identityProviderId) {
+    // map IdentityProvider enum to NextAuth provider id
+    // NextAuth uses "azure-ad" but the enum is "AZUREAD"
+    const getNextAuthProviderName = (identityProvider: string): string => {
+      if (identityProvider === IdentityProvider.AZUREAD) {
+        return "azure-ad";
+      }
+      return identityProvider.toLowerCase();
+    };
+
     const account = await prisma.account.findUnique({
       where: {
         provider_providerAccountId: {
-          provider: user.identityProvider.toLocaleLowerCase(),
+          provider: getNextAuthProviderName(user.identityProvider),
           providerAccountId: user.identityProviderId,
         },
       },

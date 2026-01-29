@@ -181,6 +181,7 @@ export default function Signup({
   token,
   orgSlug,
   isGoogleLoginEnabled,
+  isOutlookLoginEnabled,
   isSAMLLoginEnabled,
   orgAutoAcceptEmail,
   redirectUrl,
@@ -192,6 +193,7 @@ export default function Signup({
   const [premiumUsername, setPremiumUsername] = useState(false);
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const [turnstileKey, setTurnstileKey] = useState(0);
   const searchParams = useCompatSearchParams();
@@ -223,9 +225,41 @@ export default function Signup({
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
 
-  const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
+    const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
-  const signUp: SubmitHandler<FormValues> = async (_data) => {
+    const handleOAuthClick = async (provider: "google" | "microsoft") => {
+      if (!provider) {
+        return;
+      }
+      posthog.capture(`signup_${provider}_button_clicked`, {
+        has_token: !!token,
+        is_org_invite: isOrgInviteByLink,
+        org_slug: orgSlug,
+        has_prepopulated_username: !!prepopulateFormValues?.username,
+      });
+      setIsSamlSignup(false);
+      if (provider === "google") {
+        setIsGoogleLoading(true);
+      }
+      if (provider === "microsoft") {
+        setIsMicrosoftLoading(true);
+      }
+      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+      const AUTH_URL = `${baseUrl}/auth/sso/${provider}`;
+      const searchQueryParams = new URLSearchParams();
+      if (prepopulateFormValues?.username) {
+        searchQueryParams.set("username", prepopulateFormValues.username);
+        localStorage.setItem("username", prepopulateFormValues.username);
+      }
+      if (token) {
+        searchQueryParams.set("email", prepopulateFormValues?.email);
+      }
+      const url = searchQueryParams.toString() ? `${AUTH_URL}?${searchQueryParams.toString()}` : AUTH_URL;
+
+      router.push(url);
+    };
+
+    const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
 
     posthog.capture("signup_form_submitted", {
@@ -613,111 +647,101 @@ export default function Signup({
                 </Form>
               </div>
             )}
-            {!displayEmailForm && (
-              <div className="mt-12">
-                {/* Upper Row */}
-                <div className="mt-6 flex flex-col gap-2 md:flex-row">
-                  {isGoogleLoginEnabled ? (
-                    <Button
-                      color="primary"
-                      loading={isGoogleLoading}
-                      CustomStartIcon={
-                        <>
-                          {/* eslint-disable @next/next/no-img-element */}
-                          <img
-                            className={classNames(
-                              "text-subtle  mr-2 h-4 w-4",
-                              premiumUsername && "opacity-50"
+                        {!displayEmailForm && (
+                          <div className="mt-12">
+                            {/* Upper Row */}
+                            <div className="mt-6 flex flex-col gap-3">
+                              <>
+                                {isGoogleLoginEnabled ? (
+                                  <Button
+                                    color="primary"
+                                    loading={isGoogleLoading}
+                                    disabled={isMicrosoftLoading}
+                                    CustomStartIcon={
+                                      <img
+                                        className="text-subtle mr-2 h-4 w-4"
+                                        src="/google-icon-colored.svg"
+                                        alt="Continue with Google Icon"
+                                      />
+                                    }
+                                    className="w-full justify-center rounded-md text-center"
+                                    data-testid="continue-with-google-button"
+                                    onClick={() => handleOAuthClick("google")}>
+                                    {t("continue_with_google")}
+                                  </Button>
+                                ) : null}
+                                {isOutlookLoginEnabled ? (
+                                  <Button
+                                    color="primary"
+                                    loading={isMicrosoftLoading}
+                                    disabled={isGoogleLoading}
+                                    CustomStartIcon={
+                                      <img
+                                        className="text-subtle mr-2 h-4 w-4"
+                                        src="/microsoft-logo.svg"
+                                        alt="Continue with Microsoft Icon"
+                                      />
+                                    }
+                                    className="w-full justify-center rounded-md text-center"
+                                    data-testid="continue-with-microsoft-button"
+                                    onClick={() => handleOAuthClick("microsoft")}>
+                                    {t("continue_with_microsoft")}
+                                  </Button>
+                                ) : null}
+                              </>
+                            </div>
+
+                            {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
+                              <div className="mt-6">
+                                <div className="relative flex items-center">
+                                  <div className="border-subtle grow border-t" />
+                                  <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
+                                    {t("or").toLocaleLowerCase()}
+                                  </span>
+                                  <div className="border-subtle grow border-t" />
+                                </div>
+                              </div>
                             )}
-                            src="/google-icon-colored.svg"
-                            alt="Continue with Google Icon"
-                          />
-                        </>
-                      }
-                      className={classNames("w-full justify-center rounded-md text-center")}
-                      data-testid="continue-with-google-button"
-                      onClick={async () => {
-                        posthog.capture("signup_google_button_clicked", {
-                          has_token: !!token,
-                          is_org_invite: isOrgInviteByLink,
-                          org_slug: orgSlug,
-                          has_prepopulated_username: !!prepopulateFormValues?.username,
-                        });
-                        setIsSamlSignup(false);
-                        setIsGoogleLoading(true);
-                        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                        const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
-                        const searchQueryParams = new URLSearchParams();
-                        if (prepopulateFormValues?.username) {
-                          // If username is present we save it in query params to check for premium
-                          searchQueryParams.set("username", prepopulateFormValues.username);
-                          localStorage.setItem("username", prepopulateFormValues.username);
-                        }
-                        if (token) {
-                          searchQueryParams.set("email", prepopulateFormValues?.email);
-                        }
-                        const url = searchQueryParams.toString()
-                          ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
-                          : GOOGLE_AUTH_URL;
 
-                        router.push(url);
-                      }}>
-                      {t("continue_with_google")}
-                    </Button>
-                  ) : null}
-                </div>
-
-                {isGoogleLoginEnabled && (
-                  <div className="mt-6">
-                    <div className="relative flex items-center">
-                      <div className="border-subtle grow border-t" />
-                      <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
-                        {t("or").toLocaleLowerCase()}
-                      </span>
-                      <div className="border-subtle grow border-t" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Lower Row */}
-                <div className="mt-6 flex flex-col gap-2">
-                  <Button
-                    color="secondary"
-                    disabled={isGoogleLoading}
-                    className={classNames("w-full justify-center rounded-md text-center")}
-                    onClick={() => {
-                      posthog.capture("signup_email_button_clicked", {
-                        has_token: !!token,
-                        is_org_invite: isOrgInviteByLink,
-                        org_slug: orgSlug,
-                      });
-                      setDisplayEmailForm(true);
-                      setIsSamlSignup(false);
-                    }}
-                    data-testid="continue-with-email-button">
-                    {t("continue_with_email")}
-                  </Button>
-                  {isSAMLLoginEnabled && (
-                    <Button
-                      data-testid="continue-with-saml-button"
-                      color="minimal"
-                      disabled={isGoogleLoading}
-                      className={classNames("w-full justify-center rounded-md text-center")}
-                      onClick={() => {
-                        posthog.capture("signup_saml_button_clicked", {
-                          has_token: !!token,
-                          is_org_invite: isOrgInviteByLink,
-                          org_slug: orgSlug,
-                        });
-                        setDisplayEmailForm(true);
-                        setIsSamlSignup(true);
-                      }}>
-                      {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
+                            {/* Lower Row */}
+                            <div className="mt-6 flex flex-col gap-2">
+                              <Button
+                                color="secondary"
+                                disabled={isGoogleLoading || isMicrosoftLoading}
+                                className={classNames("w-full justify-center rounded-md text-center")}
+                                onClick={() => {
+                                  posthog.capture("signup_email_button_clicked", {
+                                    has_token: !!token,
+                                    is_org_invite: isOrgInviteByLink,
+                                    org_slug: orgSlug,
+                                  });
+                                  setDisplayEmailForm(true);
+                                  setIsSamlSignup(false);
+                                }}
+                                data-testid="continue-with-email-button">
+                                {t("continue_with_email")}
+                              </Button>
+                              {isSAMLLoginEnabled && (
+                                <Button
+                                  data-testid="continue-with-saml-button"
+                                  color="minimal"
+                                  disabled={isGoogleLoading || isMicrosoftLoading}
+                                  className={classNames("w-full justify-center rounded-md text-center")}
+                                  onClick={() => {
+                                    posthog.capture("signup_saml_button_clicked", {
+                                      has_token: !!token,
+                                      is_org_invite: isOrgInviteByLink,
+                                      org_slug: orgSlug,
+                                    });
+                                    setDisplayEmailForm(true);
+                                    setIsSamlSignup(true);
+                                  }}>
+                                  {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
             {/* Already have an account & T&C */}
             <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
