@@ -36,6 +36,7 @@ import {
   MultiSelectFieldInput_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
   PhoneFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
@@ -122,6 +123,7 @@ import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/Can
   InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
   LocationDefaultFieldInput_2024_06_14,
@@ -176,6 +178,7 @@ class BaseUpdateEventTypeInput {
       "Complete set of booking form fields. This array replaces all existing booking fields. To modify existing fields, first fetch the current event type, then include all desired fields in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(SplitNameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(LocationDefaultFieldInput_2024_06_14) },
