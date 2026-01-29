@@ -115,7 +115,7 @@ export const getWho = (
         .map((member) =>
           calEvent.hideOrganizerEmail
             ? `${sanitizeText(member.name)} - ${t("team_member")}`
-            : `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeText(member.email)}`
+            : `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeEmail(member.email)}`
         )
         .join("\n")
     : [];
