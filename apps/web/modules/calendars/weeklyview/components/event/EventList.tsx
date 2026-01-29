@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
-import classNames from "@calcom/ui/classNames";
-
 import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
 import { calculateEventLayouts, createLayoutMap } from "@calcom/features/calendars/weeklyview/utils/overlap";
+import classNames from "@calcom/ui/classNames";
+import { useEffect, useMemo, useState } from "react";
+import { shallow } from "zustand/shallow";
 import { Event } from "./Event";
 
 type Props = {
@@ -109,6 +107,7 @@ export function EventList({ day }: Props) {
             )}
             data-testid={event.options?.["data-test-id"]}
             data-calendar-event-id={event.id}
+            data-calendar-event-source={event.source}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}
             style={{
