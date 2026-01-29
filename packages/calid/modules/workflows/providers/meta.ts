@@ -297,10 +297,8 @@ type ExpandedVariablesType = VariablesType & {
 const calculateSuffixLength = (templateText: string, variableName: string): number => {
   // Find the variable placeholder in the template
   const variablePattern = new RegExp(`\\{\\{${variableName}\\}\\}`, "g");
-
   // Replace the variable placeholder with empty string to get surrounding text
   const textWithoutVariable = templateText.replace(variablePattern, "");
-
   return textWithoutVariable.length + 20 /* +20 cuz meta needs extra buffer */;
 };
 
@@ -332,7 +330,7 @@ const getCappedVariables = (
 };
 
 function wordTruncate(text, maxLength) {
-  if (text.length <= maxLength) {
+  if (text.length <= maxLength + 3 /* exclude ellipsis when comparing original text length */) {
     return text;
   }
 
