@@ -617,6 +617,7 @@ export async function getBookings({
                 "Attendee.phoneNumber",
                 "Attendee.locale",
                 "Attendee.noShow",
+                "Attendee.bookingId",
               ])
               .whereRef("Attendee.bookingId", "=", "Booking.id")
           ).as("attendees"),
@@ -638,9 +639,11 @@ export async function getBookings({
             eb
               .selectFrom("AssignmentReason")
               .select([
+                "AssignmentReason.id",
                 "AssignmentReason.reasonEnum",
                 "AssignmentReason.reasonString",
                 "AssignmentReason.createdAt",
+                "AssignmentReason.bookingId",
               ])
               .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
               .orderBy("AssignmentReason.createdAt", "desc")
