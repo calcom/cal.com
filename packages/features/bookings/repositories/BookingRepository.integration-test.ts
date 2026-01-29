@@ -344,4 +344,238 @@ describe("BookingRepository (Integration Tests)", () => {
       );
     });
   });
+
+  describe("findAllExistingBookingsForEventTypeBetween", () => {
+    it("should find bookings by userId", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "uid-user-booking",
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: {
+              email: "attendee@example.com",
+              name: "Attendee",
+              timeZone: "UTC",
+            },
+          },
+          startTime: new Date("2025-05-01T10:00:00.000Z"),
+          endTime: new Date("2025-05-01T11:00:00.000Z"),
+          title: "Test Booking",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map<number, string>();
+      userIdAndEmailMap.set(testUserId, "organizer@example.com");
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T00:00:00.000Z"),
+        endDate: new Date("2025-05-01T23:59:59.999Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings.length).toBeGreaterThanOrEqual(1);
+      expect(bookings.some((b) => b.id === booking.id)).toBe(true);
+    });
+
+    it("should find bookings by attendee email", async () => {
+      const otherUser = await prisma.user.findFirst({
+        where: { email: { not: "member0-acme@example.com" } },
+      });
+
+      if (!otherUser) {
+        console.log("Skipping test: no other user found");
+        return;
+      }
+
+      const booking = await prisma.booking.create({
+        data: {
+          userId: otherUser.id,
+          uid: "uid-attendee-booking",
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: {
+              email: "target-attendee@example.com",
+              name: "Target Attendee",
+              timeZone: "UTC",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "Attendee Email Test",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map<number, string>();
+      userIdAndEmailMap.set(999999, "target-attendee@example.com");
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T00:00:00.000Z"),
+        endDate: new Date("2025-05-01T23:59:59.999Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings.some((b) => b.id === booking.id)).toBe(true);
+    });
+
+    it("should find pending bookings with requiresConfirmation for event type", async () => {
+      const eventTypeWithConfirmation = await prisma.eventType.create({
+        data: {
+          title: "Confirmation Required Event",
+          slug: `confirmation-event-${Date.now()}`,
+          length: 30,
+          userId: testUserId,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "uid-pending-confirmation",
+          eventTypeId: eventTypeWithConfirmation.id,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "pending@example.com",
+              name: "Pending Attendee",
+              timeZone: "UTC",
+            },
+          },
+          startTime: new Date("2025-05-01T16:00:00.000Z"),
+          endTime: new Date("2025-05-01T17:00:00.000Z"),
+          title: "Pending Confirmation Test",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map<number, string>();
+      userIdAndEmailMap.set(999999, "nonexistent@example.com");
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        eventTypeId: eventTypeWithConfirmation.id,
+        startDate: new Date("2025-05-01T00:00:00.000Z"),
+        endDate: new Date("2025-05-01T23:59:59.999Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings.some((b) => b.id === booking.id)).toBe(true);
+
+      await prisma.attendee.deleteMany({ where: { bookingId: booking.id } });
+      await prisma.booking.delete({ where: { id: booking.id } });
+      await prisma.eventType.delete({ where: { id: eventTypeWithConfirmation.id } });
+      createdBookingIds.splice(createdBookingIds.indexOf(booking.id), 1);
+    });
+
+    it("should exclude organizer from attendee results to prevent duplicates", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "uid-organizer-attendee",
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: {
+              email: "organizer-as-attendee@example.com",
+              name: "Organizer",
+              timeZone: "UTC",
+            },
+          },
+          startTime: new Date("2025-05-01T18:00:00.000Z"),
+          endTime: new Date("2025-05-01T19:00:00.000Z"),
+          title: "Organizer Attendee Test",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map<number, string>();
+      userIdAndEmailMap.set(testUserId, "organizer-as-attendee@example.com");
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T00:00:00.000Z"),
+        endDate: new Date("2025-05-01T23:59:59.999Z"),
+        userIdAndEmailMap,
+      });
+
+      const matchingBookings = bookings.filter((b) => b.id === booking.id);
+      expect(matchingBookings.length).toBe(1);
+    });
+
+    it("should return empty array when no emails provided", async () => {
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map<number, string>();
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T00:00:00.000Z"),
+        endDate: new Date("2025-05-01T23:59:59.999Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings).toEqual([]);
+    });
+
+    it("should filter bookings by date range", async () => {
+      const bookingInRange = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "uid-in-range",
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: {
+              email: "range@example.com",
+              name: "Range Test",
+              timeZone: "UTC",
+            },
+          },
+          startTime: new Date("2025-05-15T10:00:00.000Z"),
+          endTime: new Date("2025-05-15T11:00:00.000Z"),
+          title: "In Range",
+        },
+      });
+      createdBookingIds.push(bookingInRange.id);
+
+      const bookingOutOfRange = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: "uid-out-of-range",
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: {
+              email: "range@example.com",
+              name: "Range Test",
+              timeZone: "UTC",
+            },
+          },
+          startTime: new Date("2025-06-15T10:00:00.000Z"),
+          endTime: new Date("2025-06-15T11:00:00.000Z"),
+          title: "Out of Range",
+        },
+      });
+      createdBookingIds.push(bookingOutOfRange.id);
+
+      const bookingRepo = new BookingRepository(prisma);
+      const userIdAndEmailMap = new Map<number, string>();
+      userIdAndEmailMap.set(testUserId, "organizer@example.com");
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T00:00:00.000Z"),
+        endDate: new Date("2025-05-31T23:59:59.999Z"),
+        userIdAndEmailMap,
+      });
+
+      expect(bookings.some((b) => b.id === bookingInRange.id)).toBe(true);
+      expect(bookings.some((b) => b.id === bookingOutOfRange.id)).toBe(false);
+    });
+  });
 });
