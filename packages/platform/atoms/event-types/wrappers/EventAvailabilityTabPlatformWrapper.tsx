@@ -8,7 +8,6 @@ import type { ScheduleQueryData } from "@calcom/web/modules/event-types/componen
 
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
 import { useSchedules } from "../../hooks/schedules/useSchedules";
-import { useTeamMembers } from "../../hooks/teams/useTeamMembers";
 import { useAtomHostSchedules } from "../hooks/useAtomHostSchedules";
 
 type EventAvailabilityTabPlatformWrapperProps = {
@@ -32,7 +31,6 @@ const EventAvailabilityTabPlatformWrapper = ({
   const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();
 
   const hostSchedulesQuery = useAtomHostSchedules;
-  const { data: teamMembers } = useTeamMembers({ teamId });
 
   if (!atomSchedule) {
     return <></>;
@@ -42,13 +40,6 @@ const EventAvailabilityTabPlatformWrapper = ({
     <EventAvailabilityTab
       {...props}
       user={user}
-      teamMembers={
-        teamMembers?.map((member) => ({
-          avatar: member.user.avatarUrl ?? "",
-          id: member.userId,
-          name: member.user.name,
-        })) ?? []
-      }
       schedulesQueryData={schedulesQueryData}
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}

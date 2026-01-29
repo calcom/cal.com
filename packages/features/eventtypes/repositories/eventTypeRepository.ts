@@ -672,6 +672,8 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
+          // Keep members select for type compatibility but fetch nothing (take: 0)
+          // Actual member data is loaded via paginated searchTeamMembers endpoint
           members: {
             select: {
               role: true,
@@ -687,6 +689,7 @@ export class EventTypeRepository implements IEventTypesRepository {
                 },
               },
             },
+            take: 0,
           },
         },
       },
@@ -714,29 +717,9 @@ export class EventTypeRepository implements IEventTypesRepository {
           name: true,
         },
       },
-      hosts: {
+      _count: {
         select: {
-          isFixed: true,
-          userId: true,
-          priority: true,
-          weight: true,
-          scheduleId: true,
-          groupId: true,
-          location: {
-            select: {
-              id: true,
-              type: true,
-              credentialId: true,
-              link: true,
-              address: true,
-              phoneNumber: true,
-            },
-          },
-          user: {
-            select: {
-              timeZone: true,
-            },
-          },
+          hosts: true,
         },
       },
       enablePerHostLocations: true,
@@ -987,6 +970,8 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
+          // Keep members select for type compatibility but fetch nothing (take: 0)
+          // Actual member data is loaded via paginated searchTeamMembers endpoint
           members: {
             select: {
               role: true,
@@ -1002,6 +987,7 @@ export class EventTypeRepository implements IEventTypesRepository {
                 },
               },
             },
+            take: 0,
           },
         },
       },
@@ -1029,29 +1015,9 @@ export class EventTypeRepository implements IEventTypesRepository {
           name: true,
         },
       },
-      hosts: {
+      _count: {
         select: {
-          isFixed: true,
-          userId: true,
-          groupId: true,
-          priority: true,
-          weight: true,
-          scheduleId: true,
-          location: {
-            select: {
-              id: true,
-              type: true,
-              credentialId: true,
-              link: true,
-              address: true,
-              phoneNumber: true,
-            },
-          },
-          user: {
-            select: {
-              timeZone: true,
-            },
-          },
+          hosts: true,
         },
       },
       enablePerHostLocations: true,

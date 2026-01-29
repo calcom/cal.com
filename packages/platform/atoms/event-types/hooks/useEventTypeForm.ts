@@ -8,7 +8,6 @@ import { locationsResolver } from "@calcom/app-store/locations";
 import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import type {
   FormValues,
   EventTypeSetupProps,
@@ -100,7 +99,12 @@ export const useEventTypeForm = ({
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
-      hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
+      // Delta-based host changes for performance - only track changes, not all 700+ hosts
+      pendingHostChanges: {
+        hostsToAdd: [],
+        hostsToUpdate: [],
+        hostsToRemove: [],
+      },
       hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
@@ -203,8 +207,9 @@ export const useEventTypeForm = ({
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
 
-  // Watch all form values to trigger onFormStateChange on any change
-  const watchedValues = form.watch();
+  // Only watch all form values when onFormStateChange is provided
+  // This avoids expensive re-renders when watching large arrays like hosts (700+ items)
+  const watchedValues = onFormStateChange ? form.watch() : undefined;
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -379,7 +384,16 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, ...rest } = input;
+    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, pendingHostChanges: _phc, ...rest } = input;
+
+    // Send delta directly to backend instead of computing full hosts array
+    const pendingHostChanges = values.pendingHostChanges;
+    const hasHostChanges =
+      pendingHostChanges &&
+      (pendingHostChanges.hostsToAdd.length > 0 ||
+        pendingHostChanges.hostsToUpdate.length > 0 ||
+        pendingHostChanges.hostsToRemove.length > 0);
+
     const payload = {
       ...rest,
       length,
@@ -403,6 +417,7 @@ export const useEventTypeForm = ({
       customInputs,
       children,
       assignAllTeamMembers,
+      pendingHostChanges: hasHostChanges ? pendingHostChanges : undefined,
       multiplePrivateLinks: values.multiplePrivateLinks,
       disableCancelling: disabledCancelling,
       disableRescheduling: disabledRescheduling,
@@ -425,7 +440,7 @@ export const useEventTypeForm = ({
   };
 
   useEffect(() => {
-    if (onFormStateChange) {
+    if (onFormStateChange && watchedValues) {
       onFormStateChange({
         isDirty: isFormDirty,
         dirtyFields: dirtyFields as Partial<FormValues>,

@@ -76,6 +76,9 @@ export const getEventTypeById = async ({
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const userRepo = new UserRepository(prisma);
+
+  // members is fetched with take: 0 so this loop is a no-op at runtime,
+  // but preserves the inferred return type for downstream consumers
   const eventTeamMembershipsWithUserProfile = [];
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
@@ -116,6 +119,27 @@ export const getEventTypeById = async ({
 
   const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
 
+  // Batch query child owner memberships to replace the removed team.members lookup
+  const childOwnerIds = (rawEventType.children || [])
+    .map((ch) => ch.owner?.id)
+    .filter((id): id is number => id != null);
+
+  const childOwnerMemberships =
+    rawEventType.team && childOwnerIds.length > 0
+      ? await prisma.membership.findMany({
+          where: {
+            teamId: rawEventType.team.id,
+            userId: { in: childOwnerIds },
+          },
+          select: {
+            userId: true,
+            role: true,
+          },
+        })
+      : [];
+
+  const childOwnerRoleMap = new Map(childOwnerMemberships.map((m) => [m.userId, m.role]));
+
   const eventType = {
     ...restEventType,
     schedule:
@@ -150,9 +174,7 @@ export const getEventTypeById = async ({
               email: ch.owner.email,
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
-              membership:
-                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-                MembershipRole.MEMBER,
+              membership: childOwnerRoleMap.get(ch.owner?.id ?? 0) || MembershipRole.MEMBER,
             },
             created: true,
           }
@@ -224,6 +246,9 @@ export const getEventTypeById = async ({
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
+  // teamMembers is always empty because members is fetched with take: 0.
+  // The mapping is preserved to maintain the inferred return type for downstream consumers.
+  // Actual member data is loaded via the paginated searchTeamMembers endpoint.
   const teamMembers = eventTypeObject.team
     ? eventTeamMembershipsWithUserProfile
         .filter((member) => member.accepted || isOrgEventType)
@@ -242,8 +267,31 @@ export const getEventTypeById = async ({
     : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.
-  // Sets to null if no membership is found - this must mean we are in a none team event type
-  const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
+  // Sets to null if no membership is found - this must mean we are in a none team event type.
+  // Since team.members is fetched with take: 0 for performance, we query separately.
+  // The select shape must match the original team.members select for type compatibility.
+  const currentUserMembership = rawEventType.team
+    ? await prisma.membership.findFirst({
+        where: {
+          teamId: rawEventType.team.id,
+          userId: userId,
+        },
+        select: {
+          role: true,
+          accepted: true,
+          user: {
+            select: {
+              ...userSelect,
+              eventTypes: {
+                select: {
+                  slug: true,
+                },
+              },
+            },
+          },
+        },
+      })
+    : null;
 
   let destinationCalendar = eventTypeObject.destinationCalendar;
   if (!destinationCalendar) {

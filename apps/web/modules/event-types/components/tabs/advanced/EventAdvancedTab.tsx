@@ -565,7 +565,6 @@ export const EventAdvancedTab = ({
   const userTimeZone = extractHostTimezone({
     userId: eventType.userId,
     teamId: eventType.teamId,
-    hosts: eventType.hosts,
     owner: eventType.owner,
     team: eventType.team,
   });

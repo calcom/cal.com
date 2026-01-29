@@ -1,0 +1,10 @@
+import { z } from "zod";
+
+export const ZSearchTeamMembersInputSchema = z.object({
+  teamId: z.number(),
+  cursor: z.number().optional(),
+  limit: z.number().min(1).max(100).default(20),
+  search: z.string().optional(),
+});
+
+export type TSearchTeamMembersInputSchema = z.infer<typeof ZSearchTeamMembersInputSchema>;

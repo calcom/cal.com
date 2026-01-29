@@ -92,7 +92,7 @@ const EventType = forwardRef<
   const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = restProps;
+  const { eventType, locationOptions, team, destinationCalendar } = restProps;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
 
@@ -230,75 +230,82 @@ const EventType = forwardRef<
     }
   };
 
+  // Use functions to lazily render tabs - only the active tab is instantiated
   const tabMap = {
-    setup: tabs.includes("setup") ? (
-      <SetupTab
-        eventType={eventType}
-        locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
-        destinationCalendar={destinationCalendar}
-        customClassNames={customClassNames?.eventSetupTab}
-      />
-    ) : (
-      <></>
-    ),
-    availability: tabs.includes("availability") ? (
-      <EventAvailabilityTabPlatformWrapper
-        eventType={eventType}
-        isTeamEvent={!!team}
-        user={user?.data}
-        teamId={team?.id}
-        customClassNames={customClassNames?.eventAvailabilityTab}
-      />
-    ) : (
-      <></>
-    ),
-    team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper
-        team={team}
-        eventType={eventType}
-        teamMembers={teamMembers}
-        customClassNames={customClassNames?.eventAssignmentTab}
-        orgId={organizationId}
-      />
-    ) : (
-      <></>
-    ),
-    advanced: tabs.includes("advanced") ? (
-      <EventAdvancedPlatformWrapper
-        eventType={eventType}
-        team={team}
-        user={user?.data}
-        isUserLoading={isUserLoading}
-        showToast={showToast}
-        customClassNames={customClassNames?.eventAdvancedTab}
-      />
-    ) : (
-      <></>
-    ),
-    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
-    limits: tabs.includes("limits") ? (
-      <EventLimitsTabPlatformWrapper
-        eventType={eventType}
-        customClassNames={customClassNames?.eventLimitsTab}
-      />
-    ) : (
-      <></>
-    ),
-    instant: <></>,
-    recurring: tabs.includes("recurring") ? (
-      <EventRecurringTabPlatformWrapper
-        eventType={eventType}
-        customClassNames={customClassNames?.eventRecurringTab}
-      />
-    ) : (
-      <></>
-    ),
-    apps: <></>,
-    workflows: <></>,
-    webhooks: <></>,
-    ai: <></>,
+    setup: () =>
+      tabs.includes("setup") ? (
+        <SetupTab
+          eventType={eventType}
+          locationOptions={locationOptions}
+          team={team}
+          destinationCalendar={destinationCalendar}
+          customClassNames={customClassNames?.eventSetupTab}
+        />
+      ) : (
+        <></>
+      ),
+    availability: () =>
+      tabs.includes("availability") ? (
+        <EventAvailabilityTabPlatformWrapper
+          eventType={eventType}
+          isTeamEvent={!!team}
+          user={user?.data}
+          teamId={team?.id}
+          customClassNames={customClassNames?.eventAvailabilityTab}
+        />
+      ) : (
+        <></>
+      ),
+    team: () =>
+      tabs.includes("team") ? (
+        <EventTeamAssignmentTabPlatformWrapper
+          team={team}
+          eventType={eventType}
+          teamMembers={[]}
+          customClassNames={customClassNames?.eventAssignmentTab}
+          orgId={organizationId}
+        />
+      ) : (
+        <></>
+      ),
+    advanced: () =>
+      tabs.includes("advanced") ? (
+        <EventAdvancedPlatformWrapper
+          eventType={eventType}
+          team={team}
+          user={user?.data}
+          isUserLoading={isUserLoading}
+          showToast={showToast}
+          customClassNames={customClassNames?.eventAdvancedTab}
+        />
+      ) : (
+        <></>
+      ),
+    payments: () =>
+      tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
+    limits: () =>
+      tabs.includes("limits") ? (
+        <EventLimitsTabPlatformWrapper
+          eventType={eventType}
+          customClassNames={customClassNames?.eventLimitsTab}
+        />
+      ) : (
+        <></>
+      ),
+    instant: () => <></>,
+    recurring: () =>
+      tabs.includes("recurring") ? (
+        <EventRecurringTabPlatformWrapper
+          eventType={eventType}
+          customClassNames={customClassNames?.eventRecurringTab}
+        />
+      ) : (
+        <></>
+      ),
+    apps: () => <></>,
+    workflows: () => <></>,
+    webhooks: () => <></>,
+    ai: () => <></>,
   } as const;
 
   useHandleRouteChange({
@@ -307,7 +314,7 @@ const EventType = forwardRef<
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
     assignedUsers: eventType.children,
-    hosts: eventType.hosts,
+    hostCount: eventType._count.hosts,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
     onError: () => {
