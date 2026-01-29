@@ -38,7 +38,17 @@ export type HostLocation = {
   phoneNumber?: string | null;
 };
 
-export type Host = {
+export type Host = {export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  weight: number;
+  scheduleId?: number | null;
+  groupId: string | null;
+  location?: HostLocation | null;
+  isOptional?: boolean;
+};
+
   isFixed: boolean;
   userId: number;
   priority: number;
