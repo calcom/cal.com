@@ -279,14 +279,14 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onRejectAll(group);
             }}
           >
-            <Ionicons name="close" size={16} color="#3C3F44" />
+            <Ionicons name="close" size={16} color={isDark ? "#FFFFFF" : "#3C3F44"} />
             <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Reject all</Text>
           </TouchableOpacity>
         )}
 
         {group.hasUnconfirmed && onConfirmAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg bg-black"
+            className="flex-row items-center justify-center rounded-lg bg-black dark:bg-white"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -298,8 +298,8 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onConfirmAll(group);
             }}
           >
-            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-            <Text className="ml-1 text-sm font-medium text-white">Confirm all</Text>
+            <Ionicons name="checkmark" size={16} color={isDark ? "#000000" : "#FFFFFF"} />
+            <Text className="ml-1 text-sm font-medium text-white dark:text-black">Confirm all</Text>
           </TouchableOpacity>
         )}
 

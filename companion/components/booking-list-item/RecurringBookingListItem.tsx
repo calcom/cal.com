@@ -311,7 +311,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {group.hasUnconfirmed && onConfirmAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg bg-black"
+            className="flex-row items-center justify-center rounded-lg bg-black dark:bg-white"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -323,8 +323,8 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onConfirmAll(group);
             }}
           >
-            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-            <Text className="ml-1 text-sm font-medium text-white">Confirm all</Text>
+            <Ionicons name="checkmark" size={16} color={isDark ? "#000000" : "#FFFFFF"} />
+            <Text className="ml-1 text-sm font-medium text-white dark:text-black">Confirm all</Text>
           </TouchableOpacity>
         )}
 
@@ -380,7 +380,16 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
                       }
                       style={{ marginRight: 8 }}
                     />
-                    <UIText className={action.variant === "destructive" ? "text-destructive" : ""}>
+                    <UIText
+                      style={{
+                        color:
+                          action.variant === "destructive"
+                            ? colors.iconDestructive
+                            : isDark
+                              ? "#FFFFFF"
+                              : "#374151",
+                      }}
+                    >
                       {action.label}
                     </UIText>
                   </DropdownMenuItem>

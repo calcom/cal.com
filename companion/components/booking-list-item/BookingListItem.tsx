@@ -230,7 +230,16 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
                       }
                       style={{ marginRight: 8 }}
                     />
-                    <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
+                    <Text
+                      style={{
+                        color:
+                          action.variant === "destructive"
+                            ? colors.iconDestructive
+                            : isDark
+                              ? "#FFFFFF"
+                              : "#374151",
+                      }}
+                    >
                       {action.label}
                     </Text>
                   </DropdownMenuItem>

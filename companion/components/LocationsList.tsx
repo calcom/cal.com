@@ -6,7 +6,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import type React from "react";
 import { useState } from "react";
-import { Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import {
   createLocationItemFromOption,
@@ -69,6 +78,9 @@ export const AddLocationTrigger = ({
   loading?: boolean;
   onPressFallback?: () => void;
 }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const trigger = isHeader ? (
     <TouchableOpacity
       disabled={disabled || loading}
@@ -76,7 +88,7 @@ export const AddLocationTrigger = ({
       hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
       className="flex-row items-center rounded-full border border-[#E5E5E5] bg-[#F2F2F7] p-1 dark:border-[#4D4D4D] dark:bg-[#262626]"
     >
-      <Ionicons name="add" size={18} color="#000000" />
+      <Ionicons name="add" size={18} color={isDark ? "#FFFFFF" : "#000000"} />
     </TouchableOpacity>
   ) : (
     <TouchableOpacity

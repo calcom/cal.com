@@ -1,3 +1,4 @@
+import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -16,7 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
 import { type Booking } from "@/services/calcom";
-import { showErrorAlert, showInfoAlert } from "@/utils/alerts";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
 
@@ -260,6 +261,13 @@ export default function BookingDetail() {
     }
   }, [meetingUrl]);
 
+  const handleCopyMeetingLink = useCallback(async () => {
+    if (meetingUrl) {
+      await Clipboard.setStringAsync(meetingUrl);
+      showSuccessAlert("Copied", "Meeting link copied to clipboard");
+    }
+  }, [meetingUrl]);
+
   const renderHeaderLeft = () => {
     let backButtonLabel = "Back";
 
@@ -335,6 +343,24 @@ export default function BookingDetail() {
             className="w-56"
             align="end"
           >
+            {meetingUrl && (
+              <>
+                <DropdownMenuItem onPress={handleCopyMeetingLink}>
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name="copy-outline"
+                      size={18}
+                      color={isDarkMode ? "#FFFFFF" : "#000000"}
+                    />
+                    <Text className="text-base text-[#000000] dark:text-white">
+                      Copy meeting link
+                    </Text>
+                  </View>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+
             {bookingActionsSections.editEvent.length > 0 && (
               <>
                 <DropdownMenuLabel>Edit Event</DropdownMenuLabel>

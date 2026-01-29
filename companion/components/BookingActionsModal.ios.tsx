@@ -6,11 +6,12 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "@/services/calcom";
 import type { BookingActionsResult } from "@/utils/booking-actions";
 import { FullScreenModal } from "./FullScreenModal";
+import { getColors } from "@/constants/colors";
 
 export interface BookingActionsModalProps {
   visible: boolean;
@@ -60,10 +61,14 @@ function ActionButton({
   isDanger = false,
   isLast = false,
 }: ActionButtonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   if (!visible) return null;
 
-  const iconColor = !enabled ? "#C7C7CC" : isDanger ? "#FF3B30" : "#007AFF";
-  const textColor = !enabled ? "#C7C7CC" : isDanger ? "#FF3B30" : "#000";
+  const iconColor = !enabled ? "#C7C7CC" : isDanger ? theme.destructive : "#007AFF";
+  const textColor = !enabled ? "#C7C7CC" : isDanger ? theme.destructive : theme.text;
 
   return (
     <TouchableOpacity

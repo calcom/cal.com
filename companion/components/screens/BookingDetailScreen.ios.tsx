@@ -12,9 +12,33 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
+import * as Clipboard from "expo-clipboard";
+import { showSuccessAlert } from "@/utils/alerts";
 import { useCancelBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
+
+const CopyButton = ({
+  text,
+  color,
+  size = 16,
+}: {
+  text: string;
+  color?: string;
+  size?: number;
+}) => (
+  <AppPressable
+    onPress={async () => {
+      if (!text) return;
+      await Clipboard.setStringAsync(text);
+      showSuccessAlert("Copied", "Copied to clipboard");
+    }}
+    hitSlop={8}
+    className="ml-2 justify-center"
+  >
+    <Ionicons name="copy-outline" size={size} color={color || "#A3A3A3"} />
+  </AppPressable>
+);
 
 // Format date for iOS Calendar style: "Thursday, 25 Dec 2025"
 const formatDateCalendarStyle = (dateString: string): string => {
@@ -378,9 +402,11 @@ export function BookingDetailScreen({
         {/* Title Section - iOS Calendar Style */}
         <View className="mb-8">
           {/* Meeting Title */}
+          {/* Meeting Title */}
           <Text
             className="mb-4 text-[26px] font-semibold leading-tight"
             style={{ letterSpacing: -0.3, color: colors.text }}
+            selectable
           >
             {booking.title}
           </Text>
@@ -477,10 +503,9 @@ export function BookingDetailScreen({
                         numberOfLines={1}
                       >
                         {host.name || host.email || "Host"}
+                        <Text style={{ color: colors.textSecondary }}> (Organizer)</Text>
                       </Text>
-                      <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
-                        Organizer
-                      </Text>
+                      <CopyButton text={host.name || host.email || "Host"} />
                     </View>
                   ))
                 : booking.user && (
@@ -492,10 +517,9 @@ export function BookingDetailScreen({
                         numberOfLines={1}
                       >
                         {booking.user.name || booking.user.email}
+                        <Text style={{ color: colors.textSecondary }}> (Organizer)</Text>
                       </Text>
-                      <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
-                        Organizer
-                      </Text>
+                      <CopyButton text={booking.user.name || booking.user.email} />
                     </View>
                   )}
 
@@ -520,6 +544,7 @@ export function BookingDetailScreen({
                     >
                       {attendee.name || attendee.email}
                     </Text>
+                    <CopyButton text={attendee.name || attendee.email} />
                     {statusIcon.label && (
                       <Text className="text-[13px]" style={{ color: statusIcon.color }}>
                         {statusIcon.label}
@@ -547,10 +572,9 @@ export function BookingDetailScreen({
                     numberOfLines={1}
                   >
                     {guestEmail}
+                    <Text style={{ color: colors.textSecondary }}> (Guest)</Text>
                   </Text>
-                  <Text className="text-[13px]" style={{ color: colors.textSecondary }}>
-                    Guest
-                  </Text>
+                  <CopyButton text={guestEmail} />
                 </View>
               ))}
             </View>
@@ -633,9 +657,12 @@ export function BookingDetailScreen({
                       <Text className="mb-0.5 text-[13px]" style={{ color: colors.textSecondary }}>
                         {displayKey}
                       </Text>
-                      <Text className="text-[17px]" style={{ color: colors.text }}>
-                        {displayValue}
-                      </Text>
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-[17px] flex-1" style={{ color: colors.text }}>
+                          {displayValue}
+                        </Text>
+                        <CopyButton text={displayValue} />
+                      </View>
                     </View>
                   );
                 })}
@@ -657,9 +684,12 @@ export function BookingDetailScreen({
               >
                 Notes
               </Text>
-              <Text className="text-[17px] leading-6" style={{ color: colors.text }}>
-                {booking.description}
-              </Text>
+              <View className="flex-row items-start justify-between">
+                <Text className="text-[17px] leading-6 flex-1 mr-2" style={{ color: colors.text }}>
+                  {booking.description}
+                </Text>
+                <CopyButton text={booking.description} />
+              </View>
             </View>
           </View>
         )}
@@ -740,9 +770,12 @@ export function BookingDetailScreen({
                   <Text className="mb-0.5 text-[13px]" style={{ color: colors.textSecondary }}>
                     Reason
                   </Text>
-                  <Text className="text-[17px]" style={{ color: colors.text }}>
-                    {booking.reschedulingReason}
-                  </Text>
+                  <View className="flex-row items-start justify-between">
+                    <Text className="text-[17px] flex-1" style={{ color: colors.text }}>
+                      {booking.reschedulingReason}
+                    </Text>
+                    <CopyButton text={booking.reschedulingReason} />
+                  </View>
                 </View>
               )}
             </View>
@@ -766,9 +799,12 @@ export function BookingDetailScreen({
                     <Text className="mb-0.5 text-[13px]" style={{ color: colors.textSecondary }}>
                       Reason
                     </Text>
-                    <Text className="text-[17px]" style={{ color: colors.text }}>
-                      {booking.cancellationReason}
-                    </Text>
+                    <View className="flex-row items-start justify-between">
+                      <Text className="text-[17px] flex-1" style={{ color: colors.text }}>
+                        {booking.cancellationReason}
+                      </Text>
+                      <CopyButton text={booking.cancellationReason} />
+                    </View>
                   </View>
                 )}
 
@@ -784,9 +820,12 @@ export function BookingDetailScreen({
                     <Text className="mb-0.5 text-[13px]" style={{ color: colors.textSecondary }}>
                       Cancelled by
                     </Text>
-                    <Text className="text-[17px]" style={{ color: colors.text }}>
-                      {booking.cancelledByEmail}
-                    </Text>
+                    <View className="flex-row items-center justify-between">
+                      <Text className="text-[17px] flex-1" style={{ color: colors.text }}>
+                        {booking.cancelledByEmail}
+                      </Text>
+                      <CopyButton text={booking.cancelledByEmail} />
+                    </View>
                   </View>
                 )}
 

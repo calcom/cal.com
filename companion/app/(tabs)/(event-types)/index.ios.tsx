@@ -593,23 +593,13 @@ export default function EventTypesIOS() {
 
       {/* Floating Action Button for New Event Type with Glass UI Menu */}
       <View className="absolute right-6" style={{ bottom: 100 }}>
-        <Host matchContents>
-          <Button
-            onPress={handleOpenCreateModal}
-            modifiers={[
-              buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
-              padding(),
-              controlSize("large"),
-            ]}
-          >
-            <SwiftUIImage
-              systemName="plus"
-              color="primary"
-              size={24}
-              modifiers={[frame({ height: 24, width: 17 })]}
-            />
-          </Button>
-        </Host>
+        <TouchableOpacity
+          onPress={handleOpenCreateModal}
+          className="h-14 w-14 items-center justify-center rounded-full bg-black shadow-lg shadow-black/20 dark:bg-white"
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={30} color={isDark ? "#000000" : "#FFFFFF"} />
+        </TouchableOpacity>
       </View>
     </>
   );
