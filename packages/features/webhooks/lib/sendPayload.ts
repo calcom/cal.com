@@ -3,9 +3,12 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { WebhookSubscriber, PaymentData } from "@calcom/features/webhooks/lib/dto/types";
 import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 // Minimal webhook shape for sending payloads (subset of WebhookSubscriber)
@@ -131,7 +134,41 @@ function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloa
   return data as WithUTCOffsetType<WebhookPayloadType>;
 }
 
-function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt: string }>): string {
+async function getBookingTracking(
+  data: EventPayloadType & { tracking?: Tracking }
+): Promise<Tracking | undefined> {
+  // If tracking data is already provided in the payload, use it (avoids extra DB query)
+  if (data.tracking) {
+    return data.tracking;
+  }
+
+  // Fallback: fetch from database if not provided
+  if (data.bookingId || data.uid) {
+    const repo = new BookingRepository(prisma);
+    const booking = await repo.findBookingTracking({
+      id: data.bookingId,
+      uid: data.uid ?? undefined,
+    });
+
+    // Convert null to undefined to match Tracking type
+    const tracking = booking?.tracking;
+    if (!tracking) return undefined;
+
+    return {
+      utm_source: tracking.utm_source ?? undefined,
+      utm_medium: tracking.utm_medium ?? undefined,
+      utm_campaign: tracking.utm_campaign ?? undefined,
+      utm_term: tracking.utm_term ?? undefined,
+      utm_content: tracking.utm_content ?? undefined,
+    };
+  }
+
+  return undefined;
+}
+
+function getZapierPayload(
+  data: WithUTCOffsetType<EventPayloadType & { createdAt: string; tracking?: Tracking }>
+): string {
   const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
@@ -178,6 +215,15 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     metadata: {
       videoCallUrl: data.metadata?.videoCallUrl,
     },
+    ...(data.tracking && {
+      utm: {
+        utm_source: data.tracking.utm_source,
+        utm_medium: data.tracking.utm_medium,
+        utm_campaign: data.tracking.utm_campaign,
+        utm_term: data.tracking.utm_term,
+        utm_content: data.tracking.utm_content,
+      },
+    }),
   };
   return JSON.stringify(body);
 }
@@ -236,12 +282,18 @@ const sendPayload = async (
 
   data = addUTCOffset(data);
 
+  // Get tracking data for all event payloads
+  let tracking: Tracking | undefined;
+  if (isEventPayload(data)) {
+    tracking = await getBookingTracking(data);
+  }
+
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (isEventPayload(data)) {
     data.description = data.description || data.additionalNotes;
     if (appId === "zapier") {
-      body = getZapierPayload({ ...data, createdAt });
+      body = getZapierPayload({ ...data, createdAt, tracking });
     }
   }
 
@@ -253,12 +305,17 @@ const sendPayload = async (
         isNoShowPayload(data) ||
         isDelegationCredentialErrorPayload(data))
     ) {
-      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+      body = applyTemplate(
+        template,
+        { ...data, triggerEvent, createdAt, ...(tracking && { utm: tracking }) },
+        contentType
+      );
     } else {
       body = JSON.stringify({
         triggerEvent: triggerEvent,
         createdAt: createdAt,
         payload: data,
+        ...(tracking && { utm: tracking }),
       });
     }
   }

@@ -251,6 +251,7 @@ export const buildDryRunBooking = ({
     creationSource: CreationSource.WEBAPP,
     references: [],
     payment: [],
+    tracking: null,
   } satisfies ReturnTypeCreateBooking;
 
   /**
@@ -1484,8 +1485,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -2497,6 +2498,7 @@ async function handler(
     rescheduledBy: reqBody.rescheduledBy,
     location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    ...(booking?.tracking && { tracking: booking.tracking }),
   };
 
   if (bookingRequiresPayment) {
