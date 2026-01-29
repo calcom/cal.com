@@ -1,12 +1,11 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
+import type { Booking, Prisma } from "@calcom/prisma/client";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import {
-  bookingMinimalSelect,
   bookingAuthorizationCheckSelect,
   bookingDetailsSelect,
+  bookingMinimalSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -2065,6 +2064,76 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     await this.prismaClient.booking.update({
       where: { uid: bookingUid },
       data: { isRecorded },
+    });
+  }
+
+  /**
+   * Finds bookings for specified users within a date range.
+   * Used to check guest availability during reschedule scenarios.
+   */
+  async findBookingsByUserIdsAndDateRange({
+    userIds,
+    userEmails,
+    dateFrom,
+    dateTo,
+  }: {
+    userIds: number[];
+    userEmails: string[];
+    dateFrom: Date;
+    dateTo: Date;
+  }) {
+    if (!userIds.length && !userEmails.length) return [];
+
+    return this.prismaClient.booking.findMany({
+      where: {
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+        },
+        // Booking overlaps with the date range
+        AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
+        // Booking belongs to one of the users (as host or attendee)
+        OR: [
+          ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
+          ...(userEmails.length > 0
+            ? [
+                {
+                  attendees: {
+                    some: {
+                      email: { in: userEmails, mode: "insensitive" as const },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        userId: true,
+        status: true,
+      },
+    });
+  }
+
+  /**
+   * Finds a booking by UID with its attendees.
+   * Used to get attendee emails for guest availability checking during reschedule.
+   */
+  async findBookingByUidWithAttendees({ uid }: { uid: string }) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid },
+      select: {
+        id: true,
+        uid: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
     });
   }
 }

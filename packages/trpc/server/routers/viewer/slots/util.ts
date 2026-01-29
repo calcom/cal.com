@@ -763,6 +763,86 @@ export class AvailableSlotsService {
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
+  /**
+   * Fetches busy times for guests (attendees who are Cal.com users) during reschedule scenarios.
+   * This ensures that when a host reschedules a booking, we check if the attendees are available
+   * at the new time slot.
+   *
+   * Only applies to non-collective event types, as collective events already check all hosts.
+   */
+  private async _getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    eventTypeSchedulingType,
+    dateFrom,
+    dateTo,
+  }: {
+    rescheduleUid: string | null | undefined;
+    eventTypeSchedulingType: SchedulingType | null;
+    dateFrom: Date;
+    dateTo: Date;
+  }): Promise<{ start: Date; end: Date }[]> {
+    // Skip if not a reschedule or if collective (all hosts already checked)
+    if (!rescheduleUid || eventTypeSchedulingType === SchedulingType.COLLECTIVE) {
+      return [];
+    }
+
+    // Get the original booking with attendees
+    const bookingRepo = this.dependencies.bookingRepo;
+    const originalBooking = await bookingRepo.findBookingByUidWithAttendees({ uid: rescheduleUid });
+
+    if (!originalBooking || !originalBooking.attendees?.length) {
+      return [];
+    }
+
+    // Get attendee emails (excluding empty ones)
+    const attendeeEmails = originalBooking.attendees
+      .map((a) => a.email)
+      .filter((email): email is string => Boolean(email));
+
+    if (!attendeeEmails.length) {
+      return [];
+    }
+
+    // Find which attendees are Cal.com users
+    const userRepo = this.dependencies.userRepo;
+    const calComUsers = await userRepo.findUsersByEmails({ emails: attendeeEmails });
+
+    if (!calComUsers.length) {
+      return [];
+    }
+
+    log.debug(
+      `Found ${calComUsers.length} Cal.com users among ${attendeeEmails.length} attendees for reschedule`
+    );
+
+    // Get their bookings in the date range
+    const guestUserIds = calComUsers.map((u) => u.id);
+    const guestEmails = calComUsers.map((u) => u.email);
+
+    const guestBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
+      userIds: guestUserIds,
+      userEmails: guestEmails,
+      dateFrom,
+      dateTo,
+    });
+
+    // Filter out the booking being rescheduled to avoid blocking the current slot
+    const busyTimes = guestBookings
+      .filter((booking) => booking.uid !== rescheduleUid && booking.startTime && booking.endTime)
+      .map((booking) => ({
+        start: booking.startTime,
+        end: booking.endTime,
+      }));
+
+    log.debug(`Found ${busyTimes.length} busy time slots for guest users during reschedule`);
+
+    return busyTimes;
+  }
+  private getGuestBusyTimesForReschedule = withReporting(
+    this._getGuestBusyTimesForReschedule.bind(this),
+    "getGuestBusyTimesForReschedule"
+  );
+
   private _getUsersWithCredentials({
     hosts,
   }: {
@@ -918,6 +998,14 @@ export class AvailableSlotsService {
       );
     }
 
+    // Fetch guest busy times for reschedule scenarios
+    const guestBusyTimes = await this.getGuestBusyTimesForReschedule({
+      rescheduleUid: input.rescheduleUid,
+      eventTypeSchedulingType: eventType.schedulingType,
+      dateFrom: startTimeDate,
+      dateTo: endTimeDate,
+    });
+
     function _enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
         return {
@@ -960,6 +1048,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
