@@ -1,3 +1,4 @@
+import type { Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { JsonValue } from "@calcom/types/Json";
 
 export interface BookingPaymentWithCredentials {
@@ -24,7 +25,19 @@ export interface CreatePaymentData {
   refunded: boolean;
   success: boolean;
   currency: string;
-  data: Record<string, any>;
+  data: Prisma.InputJsonValue;
+}
+
+export interface PaymentForAwaitingEmail {
+  success: boolean;
+  externalId: string | null;
+  uid: string;
+  paymentOption: PaymentOption | null;
+  amount: number;
+  currency: string;
+  app: {
+    slug: string | null;
+  } | null;
 }
 
 export interface IBookingPaymentRepository {
@@ -33,5 +46,7 @@ export interface IBookingPaymentRepository {
     credentialType: string
   ): Promise<BookingPaymentWithCredentials | null>;
 
-  createPaymentRecord(data: CreatePaymentData): Promise<any>;
+  createPaymentRecord(data: CreatePaymentData): Promise<Payment>;
+
+  findByIdForAwaitingPaymentEmail(id: number): Promise<PaymentForAwaitingEmail | null>;
 }

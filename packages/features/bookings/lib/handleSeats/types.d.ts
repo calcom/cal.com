@@ -1,9 +1,12 @@
 import type z from "zod";
 
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import type { TraceContext } from "@calcom/lib/tracing";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
+import type { BookingEventHandlerService } from "../../onBookingEvents/BookingEventHandlerService";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { Booking } from "../handleNewBooking/createBooking";
 import type { NewBookingEventType } from "../handleNewBooking/getEventTypesFromDB";
 import type { OriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
@@ -38,6 +41,7 @@ export type NewSeatedBookingObject = {
   tAttendees: TFunction;
   bookingSeat: BookingSeat;
   reqUserId: number | undefined;
+  reqUserUuid?: string | null;
   rescheduleReason: RescheduleReason;
   reqBodyUser: string | string[] | undefined;
   noEmail: NoEmail;
@@ -58,6 +62,12 @@ export type NewSeatedBookingObject = {
   rescheduledBy?: string;
   workflows: Workflow[];
   isDryRun?: boolean;
+  organizationId?: number | null;
+  actionSource: ActionSource;
+  traceContext: TraceContext;
+  deps: {
+    bookingEventHandler: BookingEventHandlerService;
+  }
 };
 
 export type RescheduleSeatedBookingObject = NewSeatedBookingObject & { rescheduleUid: string };
@@ -79,12 +89,12 @@ export type SeatedBooking = Prisma.BookingGetPayload<{
 
 export type HandleSeatsResultBooking =
   | (Partial<Booking> & {
-      appsStatus?: AppsStatus[];
-      seatReferenceUid?: string;
-      paymentUid?: string;
-      message?: string;
-      paymentId?: number;
-    })
+    appsStatus?: AppsStatus[];
+    seatReferenceUid?: string;
+    paymentUid?: string;
+    message?: string;
+    paymentId?: number;
+  })
   | null;
 
 export type NewTimeSlotBooking = Prisma.BookingGetPayload<{

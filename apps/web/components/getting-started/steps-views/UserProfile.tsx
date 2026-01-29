@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import posthog from "posthog-js";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -64,6 +65,8 @@ const UserProfile = ({ user }: UserProfileProps) => {
       } catch (error) {
         console.error(error);
       }
+
+      posthog.capture("onboarding_completed");
 
       await utils.viewer.me.get.refetch();
       const redirectUrl = localStorage.getItem("onBoardingRedirect");

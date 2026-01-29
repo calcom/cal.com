@@ -1,6 +1,3 @@
- 
-import { sortBy } from "lodash";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
@@ -8,8 +5,7 @@ import dayjs from "@calcom/dayjs";
 import getCalendarsEvents, {
   getCalendarsEventsWithTimezones,
 } from "@calcom/features/calendars/lib/getCalendarsEvents";
-import { getUid } from "@calcom/lib/CalEventParser";
-import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { getRichDescription, getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
@@ -19,6 +15,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFr
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
+  CalendarFetchMode,
   CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -27,15 +24,66 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
+import { sortBy } from "lodash";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
+
+/**
+ * Process the calendar event by generating description and removing attendees if needed
+ */
+const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
+  if (calEvent.seatsPerTimeSlot) {
+    calEvent.responses = null;
+    calEvent.userFieldsResponses = null;
+    calEvent.additionalNotes = null;
+    calEvent.customInputs = null;
+  }
+  // Generate the calendar event description
+  const calendarEvent: CalendarServiceEvent = {
+    ...calEvent,
+    calendarDescription: getRichDescription(calEvent),
+  };
+
+  const isMeetLocationType = calEvent.location === MeetLocationType;
+
+  // Determine if the calendar event should include attendees
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+    .filter((domain) => domain.trim() !== "")
+    .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+
+  if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
+    calendarEvent.attendees = [];
+  }
+
+  return calendarEvent;
+};
+
+type IntegrationWithCredentials = Awaited<
+  ReturnType<typeof getCalendarCredentials>
+>[number]["integration"] & {
+  credentials?: CredentialPayload[];
+  credential?: CredentialPayload;
+};
+
+type CleanIntegration = Omit<IntegrationWithCredentials, "credentials" | "credential">;
+
+/**
+ * Important function to prevent leaking credentials to the client
+ * @param appIntegration
+ * @returns App
+ */
+export const cleanIntegrationKeys = (appIntegration: IntegrationWithCredentials): CleanIntegration => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { credentials, credential, ...rest } = appIntegration;
+  return rest;
+};
 
 export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {
   const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = () => getCalendar(credential);
+        const calendar = () => getCalendar(credential, "slots");
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -49,12 +97,31 @@ export const getCalendarCredentialsWithoutDelegation = (credentials: CredentialP
   return getCalendarCredentials(buildNonDelegationCredentials(credentials));
 };
 
+export type ConnectedCalendar = Omit<IntegrationCalendar, "primary"> & {
+  primary: boolean | null;
+  isSelected: boolean;
+  readOnly: boolean;
+  credentialId: number;
+  delegationCredentialId: string | null;
+};
+
 export const getConnectedCalendars = async (
   calendarCredentials: ReturnType<typeof getCalendarCredentials>,
   selectedCalendars: { externalId: string }[],
   destinationCalendarExternalId?: string
-) => {
-  let destinationCalendar: IntegrationCalendar | undefined;
+): Promise<{
+  connectedCalendars: {
+    integration: CleanIntegration;
+    calendars?: ConnectedCalendar[];
+    credentialId: number;
+    delegationCredentialId?: string | null;
+    error?: {
+      message: string;
+    };
+    primary?: ConnectedCalendar;
+  }[];
+  destinationCalendar: IntegrationCalendar | undefined;
+}> => {
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       try {
@@ -83,9 +150,8 @@ export const getConnectedCalendars = async (
           };
         }
         const cals = await calendarInstance.listCalendars();
-        const calendars = sortBy(
+        const calendars: ConnectedCalendar[] = sortBy(
           cals.map((cal: IntegrationCalendar) => {
-            if (cal.externalId === destinationCalendarExternalId) destinationCalendar = cal;
             return {
               ...cal,
               readOnly: cal.readOnly || false,
@@ -106,12 +172,6 @@ export const getConnectedCalendars = async (
               message: "No primary calendar found",
             },
           };
-        }
-        // HACK https://github.com/calcom/cal.com/pull/7644/files#r1131508414
-        if (destinationCalendar && !Object.isFrozen(destinationCalendar)) {
-          destinationCalendar.primaryEmail = primary.email;
-          destinationCalendar.integrationTitle = integration.title;
-          destinationCalendar = Object.freeze(destinationCalendar);
         }
 
         return {
@@ -135,7 +195,7 @@ export const getConnectedCalendars = async (
           errorMessage = error.message;
         }
 
-        log.error("getConnectedCalendars failed", errorMessage, safeStringify({ item }));
+        log.error("getConnectedCalendars failed", error, safeStringify({ credentialId: item.credential.id }));
 
         return {
           integration: cleanIntegrationKeys(item.integration),
@@ -149,23 +209,28 @@ export const getConnectedCalendars = async (
     })
   );
 
-  return { connectedCalendars, destinationCalendar };
-};
-
-/**
- * Important function to prevent leaking credentials to the client
- * @param appIntegration
- * @returns App
- */
-const cleanIntegrationKeys = (
-  appIntegration: Awaited<ReturnType<typeof getCalendarCredentials>>[number]["integration"] & {
-    credentials?: Array<CredentialPayload>;
-    credential: CredentialPayload;
+  let destinationCalendar: IntegrationCalendar | undefined;
+  if (destinationCalendarExternalId) {
+    for (const connectedCalendar of connectedCalendars) {
+      if (!("calendars" in connectedCalendar) || !connectedCalendar.calendars) {
+        continue;
+      }
+      const calendar = connectedCalendar.calendars.find(
+        (cal) => cal.externalId === destinationCalendarExternalId
+      );
+      if (calendar) {
+        destinationCalendar = {
+          ...calendar,
+          primary: calendar.primary ?? undefined,
+          primaryEmail: connectedCalendar.primary?.email,
+          integrationTitle: connectedCalendar.integration?.title,
+        };
+        break;
+      }
+    }
   }
-) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { credentials, credential, ...rest } = appIntegration;
-  return rest;
+
+  return { connectedCalendars, destinationCalendar };
 };
 
 /**
@@ -237,7 +302,7 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean,
+  mode?: CalendarFetchMode,
   includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
@@ -275,7 +340,7 @@ export const getBusyCalendarTimes = async (
         startDate,
         endDate,
         selectedCalendars,
-        shouldServeCache
+        mode ?? "slots"
       );
     }
   } catch (e) {
@@ -295,10 +360,10 @@ export const createEvent = async (
 ): Promise<EventResult<NewCalendarEventType>> => {
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
-  const uid: string = getUid(formattedEvent);
-  const calendar = await getCalendar(credential);
+  const uid: string = getUid(formattedEvent.uid);
+  const calendar = await getCalendar(credential, "booking");
   let success = true;
-  let calError: string | undefined = undefined;
+  let calError: string | undefined;
 
   log.debug(
     "Creating calendar event",
@@ -366,7 +431,7 @@ export const createEvent = async (
     })
   );
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -388,11 +453,16 @@ export const updateEvent = async (
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const formattedEvent = formatCalEvent(rawCalEvent);
+
+  if (formattedEvent.hideCalendarNotes) {
+    formattedEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  }
+
   const calEvent = processEvent(formattedEvent);
-  const uid = getUid(calEvent);
-  const calendar = await getCalendar(credential);
+  const uid = getUid(calEvent.uid);
+  const calendar = await getCalendar(credential, "booking");
   let success = false;
-  let calError: string | undefined = undefined;
+  let calError: string | undefined;
   let calWarnings: string[] | undefined = [];
   log.debug(
     "Updating calendar event",
@@ -451,7 +521,7 @@ export const updateEvent = async (
   }
 
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -473,7 +543,7 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const calendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential, "booking");
   log.debug(
     "Deleting calendar event",
     safeStringify({
@@ -494,33 +564,4 @@ export const deleteEvent = async ({
   }
 
   return Promise.resolve({});
-};
-
-/**
- * Process the calendar event by generating description and removing attendees if needed
- */
-const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
-  // Generate the calendar event description
-  const calendarEvent: CalendarServiceEvent = {
-    ...calEvent,
-    calendarDescription: getRichDescription(calEvent),
-  };
-
-  const isMeetLocationType = calEvent.location === MeetLocationType;
-
-  // Determine if the calendar event should include attendees
-  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-    .filter((domain) => domain.trim() !== "")
-    .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
-
-  if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType) {
-    calendarEvent.attendees = [];
-  }
-
-  if (calEvent.seatsPerTimeSlot){
-    calendarEvent.responses = null;
-    calendarEvent.userFieldsResponses = null;
-  }
-
-  return calendarEvent;
 };

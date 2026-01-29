@@ -105,11 +105,23 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     // PBAC not enabled or error occurred, continue with traditional roles
   }
 
-  const membersWithApps = await Promise.all(
-    teamMembers.map(async (member) => {
-      const user = await new UserRepository(prisma).enrichUserWithItsProfile({
-        user: member.user,
-      });
+  const users = teamMembers.map((member) => member.user);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfileExcludingOrgMetadata(
+    users
+  );
+
+  const enrichedUserMap = new Map<number, (typeof enrichedUsers)[0]>();
+  enrichedUsers.forEach((enrichedUser) => {
+    enrichedUserMap.set(enrichedUser.id, enrichedUser);
+  });
+
+  const membersWithApps = teamMembers
+    .map((member) => {
+      const user = enrichedUserMap.get(member.user.id);
+      if (!user) {
+        return null;
+      }
+
       const { profile, ...restUser } = user;
 
       // Determine the role to display
@@ -140,7 +152,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
           : null,
       };
     })
-  );
+    .filter((member): member is NonNullable<typeof member> => member !== null);
 
   return {
     members: membersWithApps,

@@ -1,15 +1,13 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingRepository } from "../repository/billing/IBillingRepository";
+import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
-import { TeamBillingService } from "../service/teams/TeamBillingService";
 import { TeamBillingPublishResponseStatus } from "../service/teams/ITeamBillingService";
+import { TeamBillingService } from "../service/teams/TeamBillingService";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual("@calcom/lib/constants");
@@ -21,6 +19,14 @@ vi.mock("@calcom/lib/constants", async () => {
 
 vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
+}));
+
+const shouldApplyMonthlyProration = vi.fn().mockResolvedValue(false);
+
+vi.mock("../service/billingPeriod/BillingPeriodService", () => ({
+  BillingPeriodService: class {
+    shouldApplyMonthlyProration = shouldApplyMonthlyProration;
+  },
 }));
 const mockTeam = {
   id: 1,
@@ -41,23 +47,42 @@ describe("TeamBillingService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockBillingProviderService = {
       handleSubscriptionCancel: vi.fn(),
       handleSubscriptionUpdate: vi.fn(),
+      handleSubscriptionCreation: vi.fn(),
       checkoutSessionIsPaid: vi.fn(),
       getSubscriptionStatus: vi.fn(),
       handleEndTrial: vi.fn(),
+      createCustomer: vi.fn(),
+      createPaymentIntent: vi.fn(),
+      createSubscriptionCheckout: vi.fn(),
+      createPrice: vi.fn(),
+      getPrice: vi.fn(),
+      getCheckoutSession: vi.fn(),
+      getCustomer: vi.fn(),
+      getSubscriptions: vi.fn(),
+      updateCustomer: vi.fn(),
+      createInvoiceItem: vi.fn(),
+      deleteInvoiceItem: vi.fn(),
+      createInvoice: vi.fn(),
+      finalizeInvoice: vi.fn(),
+      getSubscription: vi.fn(),
+      getPaymentIntentFailureReason: vi.fn(),
+      hasDefaultPaymentMethod: vi.fn(),
     } as IBillingProviderService;
-    
+
     mockTeamBillingDataRepository = {
       find: vi.fn(),
+      findMany: vi.fn(),
+      findBySubscriptionId: vi.fn(),
     } as unknown as ITeamBillingDataRepository;
-    
+
     mockBillingRepository = {
       create: vi.fn(),
     } as unknown as IBillingRepository;
-    
+
     teamBillingService = new TeamBillingService({
       team: mockTeam,
       billingProviderService: mockBillingProviderService,
@@ -141,6 +166,7 @@ describe("TeamBillingService", () => {
         paymentId: "cs_789",
         paymentRequired: false,
       });
+      shouldApplyMonthlyProration.mockResolvedValue(false);
 
       await teamBillingServiceNotOrg.updateQuantity();
 
@@ -151,21 +177,26 @@ describe("TeamBillingService", () => {
       });
     });
 
-    it("should not update if membership count is less than minimum for organizations", async () => {
-      const teamBillingServiceOrg = new TeamBillingService({
-        team: mockTeam,
+    it("should skip subscription updates when monthly proration applies", async () => {
+      const mockTeamNotOrg = {
+        ...mockTeam,
+        isOrganization: false,
+      };
+      const teamBillingServiceNotOrg = new TeamBillingService({
+        team: mockTeamNotOrg,
         billingProviderService: mockBillingProviderService,
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
       });
-      prismaMock.membership.count.mockResolvedValue(2);
-      vi.spyOn(teamBillingServiceOrg, "checkIfTeamPaymentRequired").mockResolvedValue({
+      prismaMock.membership.count.mockResolvedValue(10);
+      vi.spyOn(teamBillingServiceNotOrg, "checkIfTeamPaymentRequired").mockResolvedValue({
         url: "http://checkout.url",
         paymentId: "cs_789",
         paymentRequired: false,
       });
+      shouldApplyMonthlyProration.mockResolvedValue(true);
 
-      await teamBillingServiceOrg.updateQuantity();
+      await teamBillingServiceNotOrg.updateQuantity();
 
       expect(mockBillingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
     });
@@ -232,8 +263,8 @@ describe("TeamBillingService", () => {
         subscriptionId: "sub_org_123",
         subscriptionItemId: "si_org_123",
         customerId: "cus_org_123",
-        planName: "ORGANIZATION" as const,
-        status: "ACTIVE" as const,
+        planName: Plan.ORGANIZATION,
+        status: SubscriptionStatus.ACTIVE,
       };
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -247,8 +278,8 @@ describe("TeamBillingService", () => {
         subscriptionId: "sub_detailed_789",
         subscriptionItemId: "si_detailed_789",
         customerId: "cus_detailed_789",
-        planName: "ENTERPRISE" as const,
-        status: "TRIALING" as const,
+        planName: Plan.ENTERPRISE,
+        status: SubscriptionStatus.TRIALING,
       };
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -259,8 +290,8 @@ describe("TeamBillingService", () => {
           subscriptionId: "sub_detailed_789",
           subscriptionItemId: "si_detailed_789",
           customerId: "cus_detailed_789",
-          planName: "ENTERPRISE",
-          status: "TRIALING",
+          planName: Plan.ENTERPRISE,
+          status: SubscriptionStatus.TRIALING,
         })
       );
     });
@@ -271,8 +302,8 @@ describe("TeamBillingService", () => {
         subscriptionId: "sub_error_999",
         subscriptionItemId: "si_error_999",
         customerId: "cus_error_999",
-        planName: "TEAM" as const,
-        status: "ACTIVE" as const,
+        planName: Plan.TEAM,
+        status: SubscriptionStatus.ACTIVE,
       };
 
       const repositoryError = new Error("Database constraint violation");

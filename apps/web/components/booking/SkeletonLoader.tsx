@@ -5,18 +5,12 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 function SkeletonLoader() {
   return (
     <ul className="divide-subtle border-subtle bg-default animate-pulse divide-y rounded-md border sm:overflow-hidden">
-      {/* TODAY header */}
-      <li className="bg-muted flex items-center px-6 py-4">
-        <SkeletonText className="h-4 w-16" />
-      </li>
+      <SkeletonHeader />
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
 
-      {/* NEXT header */}
-      <li className="bg-muted px-4 py-2">
-        <SkeletonText className="h-4 w-16" />
-      </li>
+      <SkeletonHeader />
       <SkeletonItem />
       <SkeletonItem />
     </ul>
@@ -24,6 +18,14 @@ function SkeletonLoader() {
 }
 
 export default SkeletonLoader;
+
+function SkeletonHeader() {
+  return (
+    <li className="bg-muted flex items-center px-6 py-4">
+      <SkeletonText className="h-4 w-16" />
+    </li>
+  );
+}
 
 function SkeletonItem() {
   return (
@@ -47,20 +49,15 @@ function SkeletonItem() {
         {/* Event title */}
         <SkeletonText className="h-5 w-36" />
         {/* Event description */}
-        <SkeletonText className="h-4 w-48" />
+        <SkeletonText className="h-4 w-full max-w-48" />
         {/* Attendees */}
-        <SkeletonText className="h-4 w-56" />
+        <SkeletonText className="h-4 w-full max-w-56" />
       </div>
 
       {/* Action buttons - only visible on larger screens */}
       <div className="ml-4 hidden shrink-0 gap-2 sm:flex">
         <SkeletonText className="h-9 w-20 rounded-md" />
         <SkeletonText className="h-9 w-20 rounded-md" />
-        <SkeletonText className="h-9 w-9 rounded-md" />
-      </div>
-
-      {/* Mobile menu button */}
-      <div className="ml-4 flex shrink-0 sm:hidden">
         <SkeletonText className="h-9 w-9 rounded-md" />
       </div>
     </li>

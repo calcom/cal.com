@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -117,6 +117,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         type="submit"
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
+        data-testid="connect-calendar-button"
         disabled={mutation.isPending}>
         {t("connect_your_calendar")}
       </Button>

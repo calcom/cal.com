@@ -2,9 +2,10 @@ import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
+import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScanner";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import tasker from "@calcom/features/tasker";
+import { submitUrlForUrlScanning } from "@calcom/features/tasker/tasks/scanWorkflowUrls";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -153,14 +154,9 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       profileId: profile.id,
     });
 
-    // Scan successRedirectUrl for toxic links if it was set
-    if (eventType.successRedirectUrl && eventType.successRedirectUrl.length > 0) {
-      await tasker.create("scanSuccessRedirectUrl", {
-        eventTypeId: eventType.id,
-        successRedirectUrl: eventType.successRedirectUrl,
-        userId: ctx.user.id,
-        createdAt: new Date().toISOString(),
-      });
+    // Scan successRedirectUrl for malicious content if URL scanning is enabled
+    if (isUrlScanningEnabled() && eventType.successRedirectUrl) {
+      await submitUrlForUrlScanning(eventType.successRedirectUrl, ctx.user.id, eventType.id);
     }
 
     return { eventType };

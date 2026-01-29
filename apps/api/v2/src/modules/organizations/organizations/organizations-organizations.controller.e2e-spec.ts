@@ -1,36 +1,3 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { getEnv } from "@/env";
-import { sha256Hash, stripApiKey } from "@/lib/api-key";
-import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
-import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
-import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
-import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
-import {
-  ManagedOrganizationWithApiKeyOutput,
-  ManagedOrganizationOutput,
-} from "@/modules/organizations/organizations/outputs/managed-organization.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { advanceTo, clear } from "jest-date-mock";
-import { DateTime } from "luxon";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
-import { ManagedOrganizationsRepositoryFixture } from "test/fixtures/repository/managed-organizations.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
 import {
   APPS_READ,
   APPS_WRITE,
@@ -42,11 +9,44 @@ import {
   PROFILE_WRITE,
   SCHEDULE_READ,
   SCHEDULE_WRITE,
+  SUCCESS_STATUS,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
-import type { PlatformBilling, User, Team } from "@calcom/prisma/client";
+import type { PlatformBilling, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { advanceTo, clear } from "jest-date-mock";
+import { DateTime } from "luxon";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
+import { ManagedOrganizationsRepositoryFixture } from "test/fixtures/repository/managed-organizations.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { mockThrottlerGuard } from "test/utils/withNoThrottler";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { getEnv } from "@/env";
+import { sha256Hash, stripApiKey } from "@/lib/api-key";
+import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
+import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
+import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
+import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
+import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
+import {
+  ManagedOrganizationOutput,
+  ManagedOrganizationWithApiKeyOutput,
+} from "@/modules/organizations/organizations/outputs/managed-organization.output";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Organizations Endpoints", () => {
   let app: INestApplication;
@@ -92,12 +92,14 @@ describe("Organizations Organizations Endpoints", () => {
 
   const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-    }).compile();
+    beforeAll(async () => {
+      mockThrottlerGuard();
 
-    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+      }).compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);

@@ -11,9 +11,9 @@ import {
 import { generateGoogleCalendarAccessToken, generateZoomAccessToken } from "../../lib/integrations";
 
 export default async function handler(req: NextApiRequest, res) {
-  const isInvalid = req.query["invalid"] === "1";
-  const userId = parseInt(req.query["userId"] as string);
-  const appSlug = req.query["appSlug"];
+  const isInvalid = req.query.invalid === "1";
+  const userId = parseInt(req.query.userId as string, 10);
+  const appSlug = req.query.appSlug;
 
   try {
     let accessToken;

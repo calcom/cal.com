@@ -1,7 +1,6 @@
+import { ColumnFilterType } from "@calcom/features/data-table";
 import type { VisibilityState } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-
-import { ColumnFilterType } from "@calcom/features/data-table";
 
 import type { RowData } from "../types";
 
@@ -51,7 +50,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         },
       },
     }),
-    columnHelper.accessor((row) => (row.type === "data" ? row.booking.eventType.team?.id ?? null : null), {
+    columnHelper.accessor((row) => (row.type === "data" ? (row.booking.eventType.team?.id ?? null) : null), {
       id: "teamId",
       header: t("team"),
       enableColumnFilter: true,
@@ -63,10 +62,10 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         },
       },
     }),
-    columnHelper.accessor((row) => (row.type === "data" ? row.booking.user?.id ?? null : null), {
+    columnHelper.accessor((row) => (row.type === "data" ? (row.booking.user?.id ?? null) : null), {
       id: "userId",
       header: t("member"),
-      enableColumnFilter: permissions.canReadOthersBookings,
+      enableColumnFilter: true,
       enableSorting: false,
       cell: () => null,
       meta: {
@@ -109,7 +108,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         filter: {
           type: ColumnFilterType.DATE_RANGE,
           dateRangeOptions: {
-            range: status === "past" ? "past" : "custom",
+            range: status === "past" ? "past" : status === "cancelled" ? "any" : "future", // upcoming, unconfirmed, recurring are all future-only
           },
         },
       },

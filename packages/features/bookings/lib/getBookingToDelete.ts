@@ -23,6 +23,11 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           name: true,
           destinationCalendar: true,
           locale: true,
+          profiles: {
+            select: {
+              organizationId: true,
+            },
+          },
         },
       },
       location: true,

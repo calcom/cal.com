@@ -44,7 +44,7 @@ export const viewport = {
 
 export const metadata = {
   icons: {
-    icon: "/favicon.ico",
+    icon: "/api/logo?type=favicon-32",
     apple: "/api/logo?type=apple-touch-icon",
     other: [
       {
@@ -97,6 +97,8 @@ const getInitialProps = async () => {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
+
+  const country = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "Unknown";
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
@@ -154,7 +156,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed} nonce={nonce}>
+        <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>

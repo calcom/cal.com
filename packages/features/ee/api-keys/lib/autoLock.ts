@@ -24,6 +24,7 @@ export enum LockReason {
   RATE_LIMIT = "Auto-locking user due to rate limit exceeded",
   SPAM_WORKFLOW_BODY = "Auto-locking user due to spam detected in workflow body",
   SPAM_REDIRECT_URL = "Auto-locking user due to toxic redirect URL detected in event type",
+  MALICIOUS_URL_IN_WORKFLOW = "Auto-locking user due to malicious URL detected in workflow",
 }
 
 const log = logger.getSubLogger({ prefix: ["[autoLock]"] });

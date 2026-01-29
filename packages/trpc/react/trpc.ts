@@ -9,7 +9,7 @@ import { createTRPCNext } from "@trpc/next";
 import type { TRPCClientErrorLike } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
-import type { AppRouter } from "../server/routers/_app";
+import type { AppRouter } from "../types/server/routers/_app";
 import { ENDPOINTS } from "./shared";
 
 type Maybe<T> = T | null | undefined;
@@ -30,7 +30,7 @@ const resolveEndpoint = (links: any) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
     const parts = ctx.op.path.split(".");
-    let endpoint;
+    let endpoint: keyof typeof links;
     let path = "";
     if (parts.length == 2) {
       endpoint = parts[0] as keyof typeof links;

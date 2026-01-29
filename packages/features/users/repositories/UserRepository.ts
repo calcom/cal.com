@@ -1,23 +1,23 @@
-import type { z } from "zod";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
+import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
+import type { z } from "zod";
 
 export type { UserWithLegacySelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 export { withSelectedCalendars };
@@ -88,8 +88,6 @@ const userSelect = {
   bio: true,
   avatarUrl: true,
   timeZone: true,
-  startTime: true,
-  endTime: true,
   weekStart: true,
   bufferTime: true,
   hideBranding: true,
@@ -119,6 +117,7 @@ const userSelect = {
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
+  profiles: true,
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
@@ -338,6 +337,7 @@ export class UserRepository {
         locked: true,
         role: true,
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,
@@ -385,6 +385,34 @@ export class UserRepository {
       ...user,
       metadata: userMetadata.parse(user.metadata),
     };
+  }
+
+  async findSecondaryEmailByUserIdAndEmail({ userId, email }: { userId: number; email: string }) {
+    return this.prismaClient.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId,
+          email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+  }
+
+  async findByUuid({ uuid }: { uuid: string }) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        uuid,
+      },
+      select: {
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+    });
   }
 
   async findByIds({ ids }: { ids: number[] }) {
@@ -445,6 +473,44 @@ export class UserRepository {
     return !!user.movedToProfileId;
   }
 
+  async swapPrimaryEmailWithSecondaryEmail({
+    userId,
+    secondaryEmailId,
+    oldPrimaryEmail,
+    oldPrimaryEmailVerified,
+    newPrimaryEmail,
+    userUpdateData,
+  }: {
+    userId: number;
+    secondaryEmailId: number;
+    oldPrimaryEmail: string;
+    oldPrimaryEmailVerified: Date | null;
+    newPrimaryEmail: string;
+    userUpdateData?: Prisma.UserUpdateInput;
+  }) {
+    const [, updatedUser] = await this.prismaClient.$transaction([
+      this.prismaClient.secondaryEmail.update({
+        where: {
+          id: secondaryEmailId,
+          userId: userId,
+        },
+        data: {
+          email: oldPrimaryEmail,
+          emailVerified: oldPrimaryEmailVerified,
+        },
+      }),
+      this.prismaClient.user.update({
+        where: { id: userId },
+        data: {
+          ...userUpdateData,
+          email: newPrimaryEmail,
+        },
+      }),
+    ]);
+
+    return updatedUser;
+  }
+
   async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
     user,
     upId,
@@ -452,7 +518,7 @@ export class UserRepository {
     user: T;
     upId: UpId;
   }) {
-    const profile = await ProfileRepository.findByUpId(upId);
+    const profile = await ProfileRepository.findByUpIdWithAuth(upId, user.id);
     if (!profile) {
       return {
         ...user,
@@ -476,7 +542,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -512,6 +578,45 @@ export class UserRepository {
       ...user,
       nonProfileUsername: user.username,
       profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+    };
+  }
+
+  async enrichUserWithItsProfileExcludingOrgMetadata<
+    T extends {
+      id: number;
+      username: string | null;
+    },
+  >({
+    user,
+  }: {
+    user: T;
+  }): Promise<
+    T & {
+      nonProfileUsername: string | null;
+      profile: UserProfile;
+    }
+  > {
+    const enrichedUser = await this.enrichUserWithItsProfile({ user });
+
+    const { profile } = enrichedUser;
+
+    if (!profile || !profile.organization) {
+      return enrichedUser;
+    }
+
+    // Exclude organization metadata
+    const sanitizedProfile: UserProfile = {
+      ...profile,
+      organization: {
+        ...profile.organization,
+        metadata: {},
+        organizationSettings: profile.organization.organizationSettings,
+      },
+    };
+
+    return {
+      ...enrichedUser,
+      profile: sanitizedProfile,
     };
   }
 
@@ -574,6 +679,42 @@ export class UserRepository {
     });
   }
 
+  async enrichUsersWithTheirProfileExcludingOrgMetadata<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    const enrichedUsers = await this.enrichUsersWithTheirProfiles(users);
+
+    return enrichedUsers.map((enrichedUser) => {
+      const { profile } = enrichedUser;
+
+      if (!profile || !profile.organization) {
+        return enrichedUser;
+      }
+
+      // Exclude organization metadata
+      const sanitizedProfile: UserProfile = {
+        ...profile,
+        organization: {
+          ...profile.organization,
+          metadata: {},
+          organizationSettings: profile.organization.organizationSettings,
+        },
+      };
+
+      return {
+        ...enrichedUser,
+        profile: sanitizedProfile,
+      };
+    });
+  }
+
   enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
@@ -612,7 +753,7 @@ export class UserRepository {
             username: string | null;
             id: number;
           };
-        }
+        },
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;
@@ -638,7 +779,9 @@ export class UserRepository {
       if (!profiles.length) {
         return {
           ...entity,
-          profile: ProfileRepository.buildPersonalProfileFromUser({ user: entity.user }),
+          profile: ProfileRepository.buildPersonalProfileFromUser({
+            user: entity.user,
+          }),
         };
       } else {
         return {
@@ -686,7 +829,12 @@ export class UserRepository {
     const organizationIdValue = data.organizationId;
     const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
 
-    logger.info("create user", { email, username, organizationIdValue, locked });
+    logger.info("create user", {
+      email,
+      username,
+      organizationIdValue,
+      locked,
+    });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -694,7 +842,9 @@ export class UserRepository {
       data: {
         username,
         email: email,
-        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
+        ...(hashedPassword && {
+          password: { create: { hash: hashedPassword } },
+        }),
         // Default schedule
         schedules: {
           create: {
@@ -753,7 +903,9 @@ export class UserRepository {
                     members: {
                       some: {
                         id: userId,
-                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                        role: {
+                          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+                        },
                       },
                     },
                   },
@@ -934,6 +1086,7 @@ export class UserRepository {
       },
       select: {
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,
@@ -942,8 +1095,6 @@ export class UserRepository {
         avatarUrl: true,
         timeZone: true,
         weekStart: true,
-        startTime: true,
-        endTime: true,
         defaultScheduleId: true,
         bufferTime: true,
         theme: true,
@@ -959,6 +1110,7 @@ export class UserRepository {
         movedToProfileId: true,
         selectedCalendars: {
           select: {
+            id: true,
             eventTypeId: true,
             externalId: true,
             integration: true,
@@ -1087,6 +1239,7 @@ export class UserRepository {
     return this.prismaClient.user.findMany({
       where,
       select: {
+        locked: true,
         allowDynamicBooking: true,
         ...availabilityUserSelect,
         credentials: {
@@ -1162,6 +1315,98 @@ export class UserRepository {
             },
           },
         },
+      },
+    });
+  }
+
+  async findByIdWithCredentialsAndCalendar({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        timeFormat: true,
+        metadata: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        destinationCalendar: true,
+      },
+    });
+  }
+
+  async findForPasswordReset({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        name: true,
+        locale: true,
+      },
+    });
+  }
+
+  /**
+   * Finds a user by ID returning only their username
+   * @param userId - The user ID
+   * @returns User with username or null
+   */
+  async findByIdWithUsername(userId: number): Promise<{ username: string | null } | null> {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+  }
+
+  async findManyByIdsWithCredentialsAndSelectedCalendars({ userIds }: { userIds: number[] }) {
+    const users = await this.prismaClient.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        ...prismaUserSelect, // Use the proper userSelect from @calcom/prisma/selects/user which includes schedules
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        selectedCalendars: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+    return users.map(withSelectedCalendars);
+  }
+
+  async findByEmailAndTeamId({ email, teamId }: { email: string; teamId: number }) {
+    return this.prismaClient.user.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        teams: {
+          some: {
+            teamId,
+            accepted: true,
+          },
+        },
+      },
+      select: userSelect,
+    });
+  }
+
+  async findByIdWithSelectedCalendars({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        selectedCalendars: true,
+        destinationCalendar: true,
       },
     });
   }
