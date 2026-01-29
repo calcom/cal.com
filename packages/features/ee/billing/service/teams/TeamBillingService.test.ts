@@ -22,10 +22,12 @@ vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
 }));
 
 const shouldApplyMonthlyProration = vi.fn().mockResolvedValue(false);
+const shouldUseNextCycleBilling = vi.fn().mockResolvedValue(false);
 
 vi.mock("../billingPeriod/BillingPeriodService", () => ({
   BillingPeriodService: class {
     shouldApplyMonthlyProration = shouldApplyMonthlyProration;
+    shouldUseNextCycleBilling = shouldUseNextCycleBilling;
   },
 }));
 
@@ -218,6 +220,67 @@ describe("TeamBillingService", () => {
       await teamBillingService.updateQuantity();
 
       expect(mockBillingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should use next-cycle billing (prorationBehavior: none) for monthly plans", async () => {
+      const mockTeamNotOrg = {
+        ...mockTeam,
+        isOrganization: false,
+      };
+      const teamBillingService = new TeamBillingService({
+        team: mockTeamNotOrg,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
+      prismaMock.membership.count.mockResolvedValue(10);
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+      shouldApplyMonthlyProration.mockResolvedValue(false);
+      shouldUseNextCycleBilling.mockResolvedValue(true);
+
+      await teamBillingService.updateQuantity();
+
+      expect(mockBillingProviderService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_456",
+        membershipCount: 10,
+        prorationBehavior: "none",
+      });
+    });
+
+    it("should not pass prorationBehavior when next-cycle billing is disabled", async () => {
+      const mockTeamNotOrg = {
+        ...mockTeam,
+        isOrganization: false,
+      };
+      const teamBillingService = new TeamBillingService({
+        team: mockTeamNotOrg,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
+      prismaMock.membership.count.mockResolvedValue(10);
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+      shouldApplyMonthlyProration.mockResolvedValue(false);
+      shouldUseNextCycleBilling.mockResolvedValue(false);
+
+      await teamBillingService.updateQuantity();
+
+      expect(mockBillingProviderService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_456",
+        membershipCount: 10,
+      });
     });
   });
 

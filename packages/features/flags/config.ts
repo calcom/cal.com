@@ -35,6 +35,7 @@ export type AppFlags = {
   "bookings-v3": boolean;
   "booking-audit": boolean;
   "monthly-proration": boolean;
+  "monthly-seat-billing": boolean;
   "sidebar-tips": boolean;
 };
 

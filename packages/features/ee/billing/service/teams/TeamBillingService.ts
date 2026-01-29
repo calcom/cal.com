@@ -173,13 +173,23 @@ export class TeamBillingService implements ITeamBillingService {
         return;
       }
 
+      const shouldUseNextCycleBilling = await billingPeriodService.shouldUseNextCycleBilling(teamId);
+
       await updateSubscriptionQuantity({
         billingService: this.billingProviderService,
         subscriptionId,
         subscriptionItemId,
         quantity: membershipCount,
+        prorationBehavior: shouldUseNextCycleBilling ? "none" : undefined,
       });
-      log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
+
+      if (shouldUseNextCycleBilling) {
+        log.info(
+          `Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats (next-cycle billing, no proration).`
+        );
+      } else {
+        log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
+      }
     } catch (error) {
       this.logErrorFromUnknown(error);
     }

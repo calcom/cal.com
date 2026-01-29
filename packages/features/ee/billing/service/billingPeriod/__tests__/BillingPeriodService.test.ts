@@ -252,6 +252,134 @@ describe("BillingPeriodService", () => {
     });
   });
 
+  describe("shouldUseNextCycleBilling", () => {
+    it("should return true for monthly plan not in trial", async () => {
+      vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
+
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: 1,
+        isOrganization: false,
+        teamBilling: {
+          id: 1,
+          billingPeriod: "MONTHLY",
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1500,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
+        },
+        organizationBilling: null,
+      } as any);
+
+      const result = await service.shouldUseNextCycleBilling(1);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for annual plans", async () => {
+      vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
+
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: 1,
+        isOrganization: false,
+        teamBilling: {
+          id: 1,
+          billingPeriod: "ANNUALLY",
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 10000,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
+        },
+        organizationBilling: null,
+      } as any);
+
+      const result = await service.shouldUseNextCycleBilling(1);
+      expect(result).toBe(false);
+    });
+
+    it("should return false when in trial period", async () => {
+      vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
+
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 7);
+
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: 1,
+        isOrganization: false,
+        teamBilling: {
+          id: 1,
+          billingPeriod: "MONTHLY",
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(),
+          subscriptionTrialEnd: futureDate,
+          pricePerSeat: 1500,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
+        },
+        organizationBilling: null,
+      } as any);
+
+      const result = await service.shouldUseNextCycleBilling(1);
+      expect(result).toBe(false);
+    });
+
+    it("should return false when feature flag is disabled", async () => {
+      vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(false);
+
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: 1,
+        isOrganization: false,
+        teamBilling: {
+          id: 1,
+          billingPeriod: "MONTHLY",
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1500,
+          paidSeats: 5,
+          subscriptionId: "sub_123",
+        },
+        organizationBilling: null,
+      } as any);
+
+      const result = await service.shouldUseNextCycleBilling(1);
+      expect(result).toBe(false);
+    });
+
+    it("should return false on error", async () => {
+      vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
+      vi.mocked(prisma.team.findUnique).mockRejectedValue(new Error("Database error"));
+
+      const result = await service.shouldUseNextCycleBilling(1);
+      expect(result).toBe(false);
+    });
+
+    it("should work for organizations with monthly billing", async () => {
+      vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
+
+      vi.mocked(prisma.team.findUnique).mockResolvedValue({
+        id: 1,
+        isOrganization: true,
+        teamBilling: null,
+        organizationBilling: {
+          id: 1,
+          billingPeriod: "MONTHLY",
+          subscriptionStart: new Date(),
+          subscriptionEnd: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 2000,
+          paidSeats: 10,
+          subscriptionId: "sub_456",
+        },
+      } as any);
+
+      const result = await service.shouldUseNextCycleBilling(1);
+      expect(result).toBe(true);
+    });
+  });
+
   describe("getBillingPeriodInfo", () => {
     it("should return complete billing info for team", async () => {
       const subscriptionStart = new Date("2026-01-01");
