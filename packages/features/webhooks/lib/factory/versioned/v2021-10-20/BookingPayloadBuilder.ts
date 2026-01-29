@@ -8,6 +8,33 @@ import {
 } from "../../base/BaseBookingPayloadBuilder";
 import type { WebhookPayload } from "../../types";
 
+/** Default labels for system booking fields (form-builder / E2E expectation) */
+const SYSTEM_FIELD_DEFAULT_LABELS: Record<string, string> = {
+  name: "your_name",
+  email: "email_address",
+};
+
+/**
+ * Normalize responses so system fields use default labels when label equals field name.
+ * getCalEventResponses uses field name as label when bookingFields is missing; E2E expects default labels.
+ */
+function normalizeResponses(
+  responses: Record<string, { value: unknown; label?: string; isHidden?: boolean }> | null | undefined
+): Record<string, { value: unknown; label: string; isHidden?: boolean }> | undefined {
+  if (!responses || typeof responses !== "object") return undefined;
+  const out: Record<string, { value: unknown; label: string; isHidden?: boolean }> = {};
+  for (const [name, entry] of Object.entries(responses)) {
+    if (!entry || typeof entry !== "object") continue;
+    const defaultLabel = SYSTEM_FIELD_DEFAULT_LABELS[name];
+    const label =
+      defaultLabel && (entry.label === name || entry.label === undefined)
+        ? defaultLabel
+        : (entry.label ?? name);
+    out[name] = { ...entry, label };
+  }
+  return out;
+}
+
 /**
  * Booking payload builder for webhook version 2021-10-20.
  *
@@ -59,6 +86,9 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           status: BookingStatus.PENDING,
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
+          extra: {
+            metadata: dto.metadata ?? {},
+          },
         });
 
       case WebhookTriggerEvents.BOOKING_REJECTED:
@@ -158,7 +188,7 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         location: params.evt.location,
         uid: params.evt.uid,
         customInputs: params.evt.customInputs,
-        responses: params.evt.responses,
+        responses: normalizeResponses(params.evt.responses) ?? params.evt.responses,
         userFieldsResponses: params.evt.userFieldsResponses,
         status: params.status,
         eventTitle: params.eventType?.eventTitle,
@@ -173,6 +203,8 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         description: params.evt.description ?? params.evt.additionalNotes ?? "",
         // Use raw assignmentReason from booking for legacy format [{ reasonEnum, reasonString }]
         assignmentReason: params.booking.assignmentReason,
+        // E2E expects null when no destination calendar (spread evt may have undefined)
+        destinationCalendar: params.evt.destinationCalendar ?? null,
         ...(params.extra || {}),
       },
     };

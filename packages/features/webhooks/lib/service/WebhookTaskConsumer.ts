@@ -238,6 +238,7 @@ export class WebhookTaskConsumer {
         return {
           ...baseDTO,
           triggerEvent,
+          metadata: bookingPayload.metadata ?? {},
         } as WebhookEventDTO;
 
       case WebhookTriggerEvents.BOOKING_CANCELLED:

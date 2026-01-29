@@ -752,6 +752,9 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
+  // Preserve for webhook/audit: seated reschedule nulls originalRescheduledBooking for calendar flow but we still need to send BOOKING_RESCHEDULED
+  const originalRescheduledBookingForWebhook = originalRescheduledBooking;
+
   const paymentAppData = getPaymentAppData({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -2705,14 +2708,17 @@ async function handler(
           oAuthClientId: subscriberOptions.oAuthClientId,
         };
 
-        if (eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED && originalRescheduledBooking) {
+        if (
+          eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
+          originalRescheduledBookingForWebhook
+        ) {
           await this.queueBookingRescheduledWebhook({
             ...queueParams,
             // Reschedule-specific fields from original booking
-            rescheduleId: originalRescheduledBooking.id,
-            rescheduleUid: originalRescheduledBooking.uid,
-            rescheduleStartTime: originalRescheduledBooking.startTime.toISOString(),
-            rescheduleEndTime: originalRescheduledBooking.endTime.toISOString(),
+            rescheduleId: originalRescheduledBookingForWebhook.id,
+            rescheduleUid: originalRescheduledBookingForWebhook.uid,
+            rescheduleStartTime: originalRescheduledBookingForWebhook.startTime.toISOString(),
+            rescheduleEndTime: originalRescheduledBookingForWebhook.endTime.toISOString(),
             rescheduledBy: reqBody.rescheduledBy ?? undefined,
             metadata: { ...metadata, ...reqBody.metadata },
             platformRescheduleUrl,
