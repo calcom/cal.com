@@ -160,7 +160,7 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
 
       expect(response.status).toBe(200);
       const body = await response.json();
-      expect(body.message).toBe("Webhook processed");
+      expect(body).toEqual({});
       expect(mockProcessWebhook).toHaveBeenCalledWith("google_calendar", request);
     });
 
@@ -184,7 +184,7 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
 
       expect(response.status).toBe(200);
       const body = await response.json();
-      expect(body.message).toBe("Webhook processed");
+      expect(body).toEqual({});
       expect(mockProcessWebhook).toHaveBeenCalledWith("google_calendar", request);
     });
 
@@ -208,7 +208,7 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
 
       expect(response.status).toBe(200);
       const body = await response.json();
-      expect(body.message).toBe("Webhook processed");
+      expect(body).toEqual({});
       expect(mockProcessWebhook).toHaveBeenCalledWith("google_calendar", request);
     });
   });

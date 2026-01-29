@@ -447,7 +447,13 @@ export class CalendarSubscriptionService {
       genericCalendarSuffixes: this.deps.adapterFactory.getGenericCalendarSuffixes(),
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
-    await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
+    const results = await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
+
+    const errors = results.filter((r) => r.status === "rejected");
+    const successes = results.filter((r) => r.status === "fulfilled");
+
+    log.info(`Subscriptions: ${successes.length} succeeded | ${errors.length} failed`);
+    errors.forEach((e) => log.error(e.reason));
   }
 
   /**
