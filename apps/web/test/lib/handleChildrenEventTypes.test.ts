@@ -1072,4 +1072,234 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.calVideoSettings.deleteMany).not.toHaveBeenCalled();
     });
   });
+
+  describe("Hidden field propagation", () => {
+    it("Uses parent's hidden value when hidden field is locked (default)", async () => {
+      const eventType = mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: {} }, // No unlockedFields means hidden is locked
+        locations: [],
+      });
+
+      setupTransactionMock();
+
+      const createdEventType = {
+        ...eventType,
+        id: 789,
+        userId: 4,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child says false, but parent is locked
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the child event type was created with parent's hidden value (true), not the per-child value (false)
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              hidden: true, // Should use parent's value since hidden is locked
+              userId: 4,
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("Uses per-child hidden value when hidden field is unlocked", async () => {
+      const eventType = mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: {
+          managedEventConfig: {
+            unlockedFields: { hidden: true }, // hidden is unlocked
+          },
+        },
+        locations: [],
+      });
+
+      setupTransactionMock();
+
+      const createdEventType = {
+        ...eventType,
+        id: 789,
+        userId: 4,
+      };
+      prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child wants to be visible
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the child event type was created with the per-child value (false), not the parent's value (true)
+      expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              hidden: false, // Should use child's value since hidden is unlocked
+              userId: 4,
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("Propagates parent's hidden value to existing children when locked", async () => {
+      const eventType = mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: {} }, // hidden is locked
+        locations: [],
+      });
+
+      prismaMock.eventType.findMany.mockResolvedValue([
+        { userId: 4, metadata: {} } as any,
+      ]);
+      prismaMock.eventType.update.mockResolvedValue({ ...eventType, id: 789, userId: 4 });
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child says false
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the update call used parent's hidden value
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId_parentId: { userId: 4, parentId: 1 } },
+          data: expect.objectContaining({
+            hidden: true, // Should use parent's value since hidden is locked
+          }),
+        })
+      );
+    });
+
+    it("Preserves child's hidden value when unlocked", async () => {
+      const eventType = mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: {
+          managedEventConfig: {
+            unlockedFields: { hidden: true }, // hidden is unlocked
+          },
+        },
+        locations: [],
+      });
+
+      prismaMock.eventType.findMany.mockResolvedValue([
+        { userId: 4, metadata: {} } as any,
+      ]);
+      prismaMock.eventType.update.mockResolvedValue({ ...eventType, id: 789, userId: 4 });
+
+      await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: [{ hidden: false, owner: { id: 4, name: "", email: "", eventTypeSlugs: [] } }], // Child wants to be visible
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Verify the update call used child's value
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId_parentId: { userId: 4, parentId: 1 } },
+          data: expect.objectContaining({
+            hidden: false, // Should use child's value since hidden is unlocked
+          }),
+        })
+      );
+    });
+
+    it("Only propagates locked fields when children parameter is undefined", async () => {
+      mockFindFirstEventType({
+        id: 123,
+        hidden: true, // Parent is hidden
+        metadata: { managedEventConfig: {} }, // hidden is locked
+        locations: [],
+      });
+
+      prismaMock.eventType.updateMany.mockResolvedValue({ count: 2 });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }, { userId: 5 }], team: { name: "" } },
+        children: undefined, // No children array provided (e.g., from listing page toggle)
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Should only update hidden field for existing children
+      expect(prismaMock.eventType.updateMany).toHaveBeenCalledWith({
+        where: {
+          parentId: 1,
+          userId: { in: [4, 5] },
+        },
+        data: {
+          hidden: true,
+        },
+      });
+
+      // Should not create or delete any children
+      expect(prismaMock.eventType.createManyAndReturn).not.toHaveBeenCalled();
+      expect(prismaMock.eventType.deleteMany).not.toHaveBeenCalled();
+
+      expect(result.message).toBe("Children assignments not modified, only propagated locked fields");
+    });
+
+    it("Does not propagate when children is undefined and hidden field is unlocked", async () => {
+      mockFindFirstEventType({
+        id: 123,
+        hidden: true,
+        metadata: {
+          managedEventConfig: {
+            unlockedFields: { hidden: true }, // hidden is unlocked
+          },
+        },
+        locations: [],
+      });
+
+      const result = await updateChildrenEventTypes({
+        eventTypeId: 1,
+        oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
+        children: undefined, // No children array provided
+        updatedEventType: { schedulingType: "MANAGED", slug: "something" },
+        currentUserId: 1,
+        prisma: prismaMock,
+        profileId: null,
+        updatedValues: {},
+      });
+
+      // Should NOT update children when field is unlocked
+      expect(prismaMock.eventType.updateMany).not.toHaveBeenCalled();
+
+      expect(result.message).toBe("Children assignments not modified, only propagated locked fields");
+    });
+  });
 });
