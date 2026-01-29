@@ -1,40 +1,16 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
+import { DomainIcon } from "@calcom/features/routing-trace/components/DomainIcon";
+import { getDomainLabel } from "@calcom/features/routing-trace/presenters/getDomainLabel";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@calcom/ui/components/sheet";
-import { Icon } from "@calcom/ui/components/icon";
 
 interface RoutingTraceSheetProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   bookingUid: string;
-}
-
-function DomainIcon({ domain }: { domain: string }) {
-  if (domain === "salesforce") {
-    return (
-      <img src="/app-store/salesforce/icon.png" alt="Salesforce" className="h-4 w-4" />
-    );
-  }
-  return (
-    <Icon
-      name={domain === "routing_form" ? "file-text" : "shuffle"}
-      className="text-subtle h-4 w-4"
-    />
-  );
-}
-
-function getDomainLabel(domain: string): string {
-  switch (domain) {
-    case "salesforce":
-      return "Salesforce";
-    case "routing_form":
-      return "Routing Form";
-    default:
-      return domain;
-  }
 }
 
 export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTraceSheetProps) {
