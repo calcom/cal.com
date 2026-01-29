@@ -95,7 +95,8 @@ const BigBlueButtonApiAdapter = (): VideoApiAdapter => {
         const returnCode = getXmlTagValue(xml, "returncode");
         if (returnCode !== "SUCCESS") {
           const message = getXmlTagValue(xml, "message") || "Unknown error";
-          log.error("BBB create meeting failed", { xml, message });
+          const messageKey = getXmlTagValue(xml, "messageKey");
+          log.error("BBB create meeting failed", { returnCode, messageKey, message });
           throw new Error(`BigBlueButton create meeting failed: ${message}`);
         }
 
@@ -144,7 +145,8 @@ const BigBlueButtonApiAdapter = (): VideoApiAdapter => {
           const messageKey = getXmlTagValue(xml, "messageKey");
           // "notFound" means the meeting already ended - that's fine
           if (messageKey !== "notFound") {
-            log.error("BBB end meeting failed", { xml });
+            const message = getXmlTagValue(xml, "message");
+            log.error("BBB end meeting failed", { returnCode, messageKey, message });
           }
         }
       } catch (error) {
