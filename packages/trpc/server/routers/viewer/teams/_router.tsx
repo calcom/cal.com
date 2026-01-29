@@ -40,6 +40,7 @@ import { ZSkipTrialForTeamInputSchema } from "./skipTrialForTeam.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
+import { ZBillingStatusInputSchema } from "./billingStatus.schema";
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id
@@ -227,6 +228,16 @@ export const viewerTeamsRouter = router({
   }),
   getSubscriptionStatus: authedProcedure.input(ZGetSubscriptionStatusInputSchema).query(async (opts) => {
     const { default: handler } = await import("./getSubscriptionStatus.handler");
+    return handler(opts);
+  }),
+  // Consolidated billing status endpoint - combines hasTeamPlan and hasActiveTeamPlan
+  billingStatus: authedProcedure.input(ZBillingStatusInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./billingStatus.handler");
+    return handler(opts);
+  }),
+  // Returns count of pending team invites (optimized version of listInvites for badge display)
+  inviteCount: authedProcedure.query(async (opts) => {
+    const { default: handler } = await import("./inviteCount.handler");
     return handler(opts);
   }),
 });

@@ -1,28 +1,29 @@
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { trpc } from "@calcom/trpc/react";
 
 export function useHasPaidPlan() {
   if (IS_SELF_HOSTED) return { isPending: false, hasPaidPlan: true };
 
-  const { data, isPending: isPendingTeamQuery } = trpc.viewer.teams.hasTeamPlan.useQuery();
+  // Use the consolidated billingStatus endpoint for team plan info
+  const { data: billingData, isPending: isPendingBillingQuery } = trpc.viewer.teams.billingStatus.useQuery();
 
-  const { data: user, isPending: isPendingUserQuery } = trpc.viewer.me.get.useQuery();
+  // Use the focused premium query instead of full me.get
+  const { data: premiumData, isPending: isPendingPremiumQuery } = trpc.viewer.me.premium.useQuery();
 
-  const isPending = isPendingTeamQuery || isPendingUserQuery;
+  const isPending = isPendingBillingQuery || isPendingPremiumQuery;
 
-  const isCurrentUsernamePremium =
-    user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
+  const isCurrentUsernamePremium = premiumData?.isPremium ?? false;
 
-  const hasPaidPlan = data?.hasTeamPlan || isCurrentUsernamePremium;
+  const hasPaidPlan = billingData?.hasTeamPlan || isCurrentUsernamePremium;
 
-  return { isPending, hasPaidPlan, plan: data?.plan };
+  return { isPending, hasPaidPlan, plan: billingData?.plan };
 }
 
 export function useTeamInvites() {
-  const listInvites = trpc.viewer.teams.listInvites.useQuery();
+  // Use the optimized inviteCount endpoint instead of full listInvites
+  const inviteCount = trpc.viewer.teams.inviteCount.useQuery();
 
-  return { isPending: listInvites.isPending, listInvites: listInvites.data };
+  return { isPending: inviteCount.isPending, count: inviteCount.data?.count ?? 0 };
 }
 
 export function useHasTeamMembership() {

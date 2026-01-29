@@ -1,11 +1,8 @@
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
-import { trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
+import useMeProfiles from "@calcom/trpc/react/hooks/useMeProfiles";
 import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
 import {
   Dropdown,
   DropdownItem,
@@ -15,10 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
-  const { data } = trpc.viewer.me.get.useQuery();
+  const { data } = useMeProfiles();
   const [menuOpen, setMenuOpen] = useState(false);
   const refreshData = useRefreshData();
 

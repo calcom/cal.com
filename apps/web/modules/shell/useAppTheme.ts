@@ -2,15 +2,15 @@
 
 import getBrandColours from "@calcom/lib/getBrandColours";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import useMeTheme from "@calcom/trpc/react/hooks/useMeTheme";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
 export const useAppTheme = () => {
-  const { data: user } = useMeQuery();
+  const { data: themeData } = useMeTheme();
   const brandTheme = getBrandColours({
-    lightVal: user?.brandColor,
-    darkVal: user?.darkBrandColor,
+    lightVal: themeData?.brandColor,
+    darkVal: themeData?.darkBrandColor,
   });
   useCalcomTheme(brandTheme);
-  useTheme(user?.appTheme);
+  useTheme(themeData?.appTheme);
 };
