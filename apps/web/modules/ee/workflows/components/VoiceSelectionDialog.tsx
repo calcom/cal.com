@@ -2,9 +2,8 @@ import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } fro
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useCallback } from "react";
 
-import { DataTableProvider } from "@calcom/features/data-table";
-import { DataTableWrapper } from "~/data-table/components";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { DataTableProvider, DataTableWrapper } from "~/data-table/components";
+import { useSegments } from "@calcom/web/modules/data-table/hooks";
 import { useVoicePreview } from "@calcom/features/ee/workflows/hooks/useVoicePreview";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

@@ -8,7 +8,7 @@ import { useState, createContext, useCallback, useEffect, useRef, useMemo } from
 
 import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
 
-import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
+import { useSegmentsNoop } from "../hooks/useSegmentsNoop";
 import {
   activeFiltersParser,
   sortingParser,
@@ -19,7 +19,7 @@ import {
   pageSizeParser,
   searchTermParser,
   DEFAULT_PAGE_SIZE,
-} from "./lib/parsers";
+} from "@calcom/features/data-table/lib/parsers";
 import {
   type FilterValue,
   type FilterSegmentOutput,
@@ -29,8 +29,8 @@ import {
   type ActiveFilters,
   type UseSegments,
   SYSTEM_SEGMENT_PREFIX,
-} from "./lib/types";
-import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
+} from "@calcom/features/data-table/lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 
 export type DataTableContextType = {
   tableIdentifier: string;

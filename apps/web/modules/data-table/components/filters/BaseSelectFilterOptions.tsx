@@ -16,7 +16,7 @@ import {
 } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
 
-import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
+import { useDataTable, useFilterValue } from "@calcom/web/modules/data-table/hooks";
 import type {
   FacetedValue,
   FilterableColumn as _FilterableColumn,

@@ -10,7 +10,7 @@ import {
   PendingReportsTable,
   type SortByOption,
 } from "@calcom/features/blocklist";
-import { useDataTable } from "@calcom/features/data-table";
+import { useDataTable } from "@calcom/web/modules/data-table/hooks";
 import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

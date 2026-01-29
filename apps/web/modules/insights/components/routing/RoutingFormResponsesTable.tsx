@@ -7,13 +7,12 @@ import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import {
-  useDataTable,
   ColumnFilterType,
   convertMapToFacetedValues,
-  useFilterValue,
   ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useFilterValue, useDataTable } from "@calcom/web/modules/data-table/hooks";
 import { DataTableWrapper, DataTableFilters, DataTableSegment, DataTableSkeleton, DateRangeFilter } from "@calcom/web/modules/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";

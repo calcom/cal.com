@@ -1,6 +1,6 @@
 import { useContext } from "react";
 
-import { DataTableContext } from "../DataTableProvider";
+import { DataTableContext } from "../components/DataTableProvider";
 
 export function useDataTable() {
   const context = useContext(DataTableContext);
