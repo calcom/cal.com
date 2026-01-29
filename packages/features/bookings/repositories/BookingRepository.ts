@@ -1405,8 +1405,6 @@ export class BookingRepository implements IBookingRepository {
     endDate: Date;
     rescheduleUid?: string;
   }) {
-    console.log(">>> getTotalBookingDuration called", { eventId, startDate, endDate });
-
     let totalBookingTime;
 
     if (rescheduleUid) {
