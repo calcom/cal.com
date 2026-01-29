@@ -1,4 +1,5 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -8,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { reportWrongAssignmentHandler } from "./reportWrongAssignment.handler";
 
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
+vi.mock("@calcom/features/bookings/repositories/WrongAssignmentReportRepository");
 vi.mock("@calcom/features/bookings/services/BookingAccessService");
 vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
@@ -59,11 +61,19 @@ describe("reportWrongAssignmentHandler", () => {
     doesUserIdHaveAccessToBooking: vi.fn(),
   };
 
+  const mockWrongAssignmentReportRepo = {
+    createReport: vi.fn().mockResolvedValue({ id: "report-uuid-123" }),
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWrongAssignmentReportRepo.createReport.mockResolvedValue({ id: "report-uuid-123" });
 
     vi.mocked(BookingRepository).mockImplementation(function () {
       return mockBookingRepo;
+    });
+    vi.mocked(WrongAssignmentReportRepository).mockImplementation(function () {
+      return mockWrongAssignmentReportRepo;
     });
     vi.mocked(BookingAccessService).mockImplementation(function () {
       return mockBookingAccessService;
@@ -237,6 +247,102 @@ describe("reportWrongAssignmentHandler", () => {
         },
       });
 
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("database persistence", () => {
+    it("should persist report to database with all fields", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason.mockResolvedValue(mockBooking);
+
+      await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          correctAssignee: "correct@example.com",
+          additionalNotes: "This booking should have gone to the sales team",
+        },
+      });
+
+      expect(mockWrongAssignmentReportRepo.createReport).toHaveBeenCalledWith({
+        bookingUid: "test-booking-uid",
+        reportedById: mockUser.id,
+        correctAssignee: "correct@example.com",
+        additionalNotes: "This booking should have gone to the sales team",
+        teamId: mockBooking.eventType.teamId,
+      });
+    });
+
+    it("should persist report with null optional fields", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason.mockResolvedValue({
+        ...mockBooking,
+        eventType: null,
+      });
+
+      await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          additionalNotes: "Wrong person",
+        },
+      });
+
+      expect(mockWrongAssignmentReportRepo.createReport).toHaveBeenCalledWith({
+        bookingUid: "test-booking-uid",
+        reportedById: mockUser.id,
+        correctAssignee: null,
+        additionalNotes: "Wrong person",
+        teamId: null,
+      });
+    });
+
+    it("should return reportId in response", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason.mockResolvedValue(mockBooking);
+
+      const result = await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          additionalNotes: "Notes",
+        },
+      });
+
+      expect(result.reportId).toBe("report-uuid-123");
+    });
+
+    it("should throw if database write fails", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason.mockResolvedValue(mockBooking);
+      mockWrongAssignmentReportRepo.createReport.mockRejectedValue(new Error("Database error"));
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "Notes",
+          },
+        })
+      ).rejects.toThrow("Database error");
+    });
+
+    it("should persist report even when webhooks fail", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason.mockResolvedValue(mockBooking);
+      vi.mocked(getWebhooks).mockRejectedValue(new Error("Webhook service down"));
+
+      const result = await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          additionalNotes: "Notes",
+        },
+      });
+
+      expect(mockWrongAssignmentReportRepo.createReport).toHaveBeenCalled();
       expect(result.success).toBe(true);
     });
   });

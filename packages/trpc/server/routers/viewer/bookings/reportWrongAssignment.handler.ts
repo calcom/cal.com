@@ -1,4 +1,5 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -25,6 +26,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const { bookingUid, correctAssignee, additionalNotes } = input;
 
   const bookingRepo = new BookingRepository(prisma);
+  const wrongAssignmentReportRepo = new WrongAssignmentReportRepository(prisma);
   const bookingAccessService = new BookingAccessService(prisma);
 
   const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
@@ -49,6 +51,14 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const guestEmail = booking.attendees[0]?.email || "";
   const hostEmail = booking.user?.email || "";
   const hostName = booking.user?.name || null;
+
+  const report = await wrongAssignmentReportRepo.createReport({
+    bookingUid: booking.uid,
+    reportedById: user.id,
+    correctAssignee: correctAssignee || null,
+    additionalNotes,
+    teamId,
+  });
 
   const webhookPayload = {
     booking: {
@@ -118,5 +128,6 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   return {
     success: true,
     message: "Wrong assignment reported successfully",
+    reportId: report.id,
   };
 };
