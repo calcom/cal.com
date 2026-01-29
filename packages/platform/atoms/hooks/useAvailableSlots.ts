@@ -14,23 +14,30 @@ export const QUERY_KEY = "get-available-slots";
 
 export const useAvailableSlots = ({
   enabled,
+  // When true, include `timeZone` in the query key so react-query will refetch
+  // when the booker timezone changes for restriction schedules using booker timezone.
+  includeBookerTimezoneInQueryKey,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; includeBookerTimezoneInQueryKey?: boolean }) => {
+  const baseKey = [
+    QUERY_KEY,
+    rest.startTime,
+    rest.endTime,
+    rest.eventTypeId,
+    rest.eventTypeSlug,
+    rest.isTeamEvent ?? false,
+    rest.teamId ?? false,
+    rest.usernameList,
+    rest.routedTeamMemberIds,
+    rest.skipContactOwner,
+    rest.teamMemberEmail,
+    rest.rrHostSubsetIds,
+  ];
+
+  const queryKey = includeBookerTimezoneInQueryKey ? [...baseKey, rest.timeZone] : baseKey;
+
   const availableSlots = useQuery({
-    queryKey: [
-      QUERY_KEY,
-      rest.startTime,
-      rest.endTime,
-      rest.eventTypeId,
-      rest.eventTypeSlug,
-      rest.isTeamEvent ?? false,
-      rest.teamId ?? false,
-      rest.usernameList,
-      rest.routedTeamMemberIds,
-      rest.skipContactOwner,
-      rest.teamMemberEmail,
-      rest.rrHostSubsetIds,
-    ],
+    queryKey,
     queryFn: () => {
       return http
         .get<ApiResponse<GetAvailableSlotsResponse>>("/slots/available", {
