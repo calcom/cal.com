@@ -8,12 +8,12 @@ export type WebhookDeliveryResult = {
 };
 
 /**
- * Interface for webhook taskers (both sync and async implementations)
+ * Interface for webhook taskers (both sync and trigger.dev implementations)
  *
  * This interface defines the contract for webhook delivery taskers.
  * Implementations include:
  * - WebhookSyncTasker: Executes immediately (for E2E tests)
- * - WebhookAsyncTasker: Queues to InternalTasker (for production)
+ * - WebhookTriggerTasker: Queues to trigger.dev (for production)
  */
 export interface IWebhookTasker {
   deliverWebhook(payload: WebhookTaskPayload): Promise<WebhookDeliveryResult>;

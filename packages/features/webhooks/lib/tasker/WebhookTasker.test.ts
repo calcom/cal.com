@@ -2,11 +2,17 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
 import type { WebhookTaskPayload } from "../types/webhookTask";
-import { WebhookAsyncTasker } from "./WebhookAsyncTasker";
 import { WebhookSyncTasker } from "./WebhookSyncTasker";
+import { WebhookTriggerTasker } from "./WebhookTriggerTasker";
 
 vi.mock("nanoid", () => ({
   nanoid: vi.fn().mockReturnValue("test123456"),
+}));
+
+vi.mock("./trigger/deliver-webhook", () => ({
+  deliverWebhook: {
+    trigger: vi.fn().mockResolvedValue({ id: "trigger-task-id-123" }),
+  },
 }));
 
 const createMockWebhookTaskPayload = (): WebhookTaskPayload => ({
@@ -67,45 +73,27 @@ describe("WebhookSyncTasker", () => {
   });
 });
 
-describe("WebhookAsyncTasker", () => {
-  let mockTasker: { create: ReturnType<typeof vi.fn> };
-  let asyncTasker: WebhookAsyncTasker;
+describe("WebhookTriggerTasker", () => {
+  let triggerTasker: WebhookTriggerTasker;
+  let mockLogger: { info: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockTasker = {
-      create: vi.fn().mockResolvedValue("async-task-id-123"),
+    mockLogger = {
+      info: vi.fn(),
+      error: vi.fn(),
     };
 
-    asyncTasker = new WebhookAsyncTasker({
-      tasker: mockTasker as never,
+    triggerTasker = new WebhookTriggerTasker({
+      logger: mockLogger as never,
     });
   });
 
-  it("should queue webhook delivery to internal tasker", async () => {
+  it("should trigger webhook delivery via trigger.dev", async () => {
     const payload = createMockWebhookTaskPayload();
 
-    const result = await asyncTasker.deliverWebhook(payload);
+    const result = await triggerTasker.deliverWebhook(payload);
 
-    expect(mockTasker.create).toHaveBeenCalledTimes(1);
-    expect(mockTasker.create).toHaveBeenCalledWith("webhookDelivery", payload);
-    expect(result.taskId).toBe("async-task-id-123");
-  });
-
-  it("should propagate errors from internal tasker", async () => {
-    const payload = createMockWebhookTaskPayload();
-    const error = new Error("Tasker queue failed");
-    mockTasker.create.mockRejectedValueOnce(error);
-
-    await expect(asyncTasker.deliverWebhook(payload)).rejects.toThrow("Tasker queue failed");
-  });
-
-  it("should pass the exact payload to the tasker", async () => {
-    const payload = createMockWebhookTaskPayload();
-    payload.metadata = { customField: "value" };
-
-    await asyncTasker.deliverWebhook(payload);
-
-    expect(mockTasker.create).toHaveBeenCalledWith("webhookDelivery", payload);
+    expect(result.taskId).toBe("trigger-task-id-123");
   });
 });

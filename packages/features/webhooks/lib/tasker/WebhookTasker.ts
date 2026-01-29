@@ -1,25 +1,25 @@
 import { Tasker } from "@calcom/lib/tasker/Tasker";
-import type { Logger } from "tslog";
+import type { ILogger } from "@calcom/lib/tasker/types";
 
 import type { WebhookTaskPayload } from "../types/webhookTask";
-import type { WebhookAsyncTasker } from "./WebhookAsyncTasker";
 import type { WebhookSyncTasker } from "./WebhookSyncTasker";
+import type { WebhookTriggerTasker } from "./WebhookTriggerTasker";
 import type { IWebhookTasker, WebhookDeliveryResult } from "./types";
 
 /**
  * Dependencies for WebhookTasker
  */
 export interface WebhookTaskerDependencies {
-  asyncTasker: WebhookAsyncTasker;
+  asyncTasker: WebhookTriggerTasker;
   syncTasker: WebhookSyncTasker;
-  logger: Logger<unknown>;
+  logger: ILogger;
 }
 
 /**
  * Webhook Tasker with Async/Sync Fallback
  *
  * This tasker automatically selects the appropriate execution mode:
- * - Production (ENABLE_ASYNC_TASKER=true): Uses WebhookAsyncTasker to queue tasks
+ * - Production (ENABLE_ASYNC_TASKER=true): Uses WebhookTriggerTasker to queue tasks via trigger.dev
  * - E2E Tests (ENABLE_ASYNC_TASKER=false): Uses WebhookSyncTasker for immediate execution
  *
  * The base Tasker class handles the mode selection based on environment variables:
@@ -28,7 +28,10 @@ export interface WebhookTaskerDependencies {
  * - TRIGGER_API_URL
  *
  * This pattern ensures webhooks are delivered immediately in E2E tests
- * without requiring the cron job that processes queued tasks.
+ * without requiring trigger.dev or the cron job that processes queued tasks.
+ *
+ * This follows the same pattern as BookingEmailAndSmsTasker and
+ * PlatformOrganizationBillingTasker.
  */
 export class WebhookTasker extends Tasker<IWebhookTasker> {
   constructor(dependencies: WebhookTaskerDependencies) {
