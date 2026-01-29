@@ -2,23 +2,41 @@ import { prisma } from "@calcom/prisma";
 import type { EventType, User, Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 } from "uuid";
-import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
-// Force async mode so tasks are written to DB (required for integration testing)
-// This must be set before importing the webhook container
-vi.stubEnv("ENABLE_ASYNC_TASKER", "true");
-vi.stubEnv("TRIGGER_SECRET_KEY", "test-secret");
-vi.stubEnv("TRIGGER_API_URL", "http://localhost:3030");
-
-// Import after env vars are stubbed
-const { getWebhookProducer } = await import("@calcom/features/di/webhooks/containers/webhook");
+import type { WebhookTaskPayload } from "../../types/webhookTask";
 
 /**
  * Webhook Producer Integration Tests
  *
- * These tests verify that webhooks are correctly queued to the tasker.
- * Actual task processing and delivery is tested in tasker domain tests.
+ * These tests verify that the WebhookTaskerProducerService correctly:
+ * 1. Integrates with the DI container
+ * 2. Calls WebhookTasker.deliverWebhook() with correct payloads
+ *
+ * Note: With the new WebhookTasker architecture:
+ * - Async mode sends to trigger.dev (external service)
+ * - Sync mode executes immediately via WebhookTaskConsumer
+ *
+ * Neither writes to the local Prisma Task table, so we mock
+ * the WebhookTasker to verify the producer's behavior.
  */
+
+// Track deliverWebhook calls
+const deliveredWebhooks: WebhookTaskPayload[] = [];
+
+// Mock the WebhookTasker module before importing the container
+vi.mock("@calcom/features/webhooks/lib/tasker/WebhookTasker", () => ({
+  WebhookTasker: class MockWebhookTasker {
+    async deliverWebhook(payload: WebhookTaskPayload) {
+      deliveredWebhooks.push(payload);
+      return { taskId: `mock-task-${deliveredWebhooks.length}` };
+    }
+  },
+}));
+
+// Import after mocking
+const { getWebhookProducer } = await import("@calcom/features/di/webhooks/containers/webhook");
+
 describe("Webhook Producer Integration", () => {
   let testUser: User;
   let testEventType: EventType;
@@ -60,18 +78,13 @@ describe("Webhook Producer Integration", () => {
     });
   });
 
-  afterEach(async () => {
-    // Clean up tasks after each test
-    await prisma.task.deleteMany({
-      where: { type: "webhookDelivery" },
-    });
+  beforeEach(() => {
+    // Clear delivered webhooks before each test
+    deliveredWebhooks.length = 0;
   });
 
   afterAll(async () => {
     // Clean up all test data
-    await prisma.task.deleteMany({
-      where: { type: "webhookDelivery" },
-    });
     await prisma.webhook.deleteMany({
       where: { userId: testUser.id },
     });
@@ -84,7 +97,7 @@ describe("Webhook Producer Integration", () => {
   });
 
   describe("BOOKING_CREATED", () => {
-    test("queues task with correct payload", async () => {
+    test("calls deliverWebhook with correct payload", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-created";
 
@@ -94,14 +107,9 @@ describe("Webhook Producer Integration", () => {
         userId: testUser.id,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-      expect(tasks[0].type).toBe("webhookDelivery");
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CREATED);
       expect(payload.bookingUid).toBe(bookingUid);
       expect(payload.eventTypeId).toBe(testEventType.id);
@@ -119,7 +127,7 @@ describe("Webhook Producer Integration", () => {
   });
 
   describe("BOOKING_CANCELLED", () => {
-    test("queues task with cancellation-specific fields", async () => {
+    test("calls deliverWebhook with cancellation-specific fields", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-cancelled";
       const cancelledBy = "user@example.com";
@@ -134,13 +142,9 @@ describe("Webhook Producer Integration", () => {
         requestReschedule: false,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CANCELLED);
       expect(payload.bookingUid).toBe(bookingUid);
       expect(payload.cancelledBy).toBe(cancelledBy);
@@ -150,7 +154,7 @@ describe("Webhook Producer Integration", () => {
   });
 
   describe("BOOKING_RESCHEDULED", () => {
-    test("queues task with reschedule-specific fields", async () => {
+    test("calls deliverWebhook with reschedule-specific fields", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-rescheduled";
       const rescheduleData = {
@@ -168,13 +172,9 @@ describe("Webhook Producer Integration", () => {
         ...rescheduleData,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_RESCHEDULED);
       expect(payload.bookingUid).toBe(bookingUid);
       expect(payload.rescheduleId).toBe(rescheduleData.rescheduleId);
@@ -186,7 +186,7 @@ describe("Webhook Producer Integration", () => {
   });
 
   describe("BOOKING_REQUESTED", () => {
-    test("queues task with correct payload", async () => {
+    test("calls deliverWebhook with correct payload", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-requested";
 
@@ -196,20 +196,16 @@ describe("Webhook Producer Integration", () => {
         userId: testUser.id,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_REQUESTED);
       expect(payload.bookingUid).toBe(bookingUid);
     });
   });
 
   describe("BOOKING_PAYMENT_INITIATED", () => {
-    test("queues task with correct payload", async () => {
+    test("calls deliverWebhook with correct payload", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-payment";
 
@@ -219,20 +215,16 @@ describe("Webhook Producer Integration", () => {
         userId: testUser.id,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED);
       expect(payload.bookingUid).toBe(bookingUid);
     });
   });
 
   describe("Team and Org context", () => {
-    test("queues task with teamId and orgId when provided", async () => {
+    test("calls deliverWebhook with teamId and orgId when provided", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-team";
       const teamId = 456;
@@ -246,20 +238,16 @@ describe("Webhook Producer Integration", () => {
         orgId,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.teamId).toBe(teamId);
       expect(payload.orgId).toBe(orgId);
     });
   });
 
   describe("OAuth client context", () => {
-    test("queues task with oAuthClientId when provided", async () => {
+    test("calls deliverWebhook with oAuthClientId when provided", async () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-oauth";
       const oAuthClientId = "oauth-client-123";
@@ -271,13 +259,9 @@ describe("Webhook Producer Integration", () => {
         oAuthClientId,
       });
 
-      const tasks = await prisma.task.findMany({
-        where: { type: "webhookDelivery" },
-      });
+      expect(deliveredWebhooks.length).toBe(1);
 
-      expect(tasks.length).toBe(1);
-
-      const payload = JSON.parse(tasks[0].payload);
+      const payload = deliveredWebhooks[0];
       expect(payload.oAuthClientId).toBe(oAuthClientId);
     });
   });
