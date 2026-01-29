@@ -7,9 +7,10 @@ import type React from "react";
 import { cloneElement } from "react";
 import { Toaster } from "sonner";
 
-import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
-import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useFormbricks } from "@calcom/features/formbricks/formbricks-client";
+import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbricks";
+import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
+import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
+
 import TimezoneChangeDialog from "@calcom/web/modules/settings/components/TimezoneChangeDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -86,6 +87,7 @@ export type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   isPlatformUser?: boolean;
+  disableSticky?: boolean;
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -131,8 +133,9 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "bg-default sticky top-0 z-10 mb-0 flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+            "bg-default mb-0 flex items-center md:mb-6 md:mt-0",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            !props.disableSticky && "sticky top-0 z-10"
           )}>
           {!!props.backPath && (
             <Button

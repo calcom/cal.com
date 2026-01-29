@@ -42,6 +42,9 @@ export type BaseCalProviderProps = {
   options: { refreshUrl?: string; apiUrl: string; readingDirection?: "ltr" | "rtl" };
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
+  onTokenRefreshStart?: () => void;
+  onTokenRefreshSuccess?: () => void;
+  onTokenRefreshError?: (error: string) => void;
   version?: API_VERSIONS_ENUM;
   organizationId?: number;
   isEmbed?: boolean;
@@ -58,6 +61,9 @@ export function BaseCalProvider({
   language = EN,
   organizationId,
   onTimezoneChange,
+  onTokenRefreshStart,
+  onTokenRefreshSuccess,
+  onTokenRefreshError,
   isEmbed,
   isOAuth2
 }: BaseCalProviderProps) {
@@ -103,6 +109,9 @@ export function BaseCalProvider({
     onSuccess: () => {
       setError("");
     },
+    onTokenRefreshStart,
+    onTokenRefreshSuccess,
+    onTokenRefreshError,
     clientId,
   });
 

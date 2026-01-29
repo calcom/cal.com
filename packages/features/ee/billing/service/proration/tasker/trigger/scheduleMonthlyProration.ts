@@ -1,6 +1,7 @@
 import { schedules } from "@trigger.dev/sdk";
 
 import { monthlyProrationTaskConfig } from "./config";
+import { processMonthlyProrationBatch } from "./processMonthlyProrationBatch";
 
 export const scheduleMonthlyProration = schedules.task({
   id: "billing.monthly-proration.schedule",
@@ -21,10 +22,6 @@ export const scheduleMonthlyProration = schedules.task({
     const { getFeaturesRepository } = await import(
       "@calcom/features/di/containers/FeaturesRepository"
     );
-    const { processMonthlyProrationBatch } = await import(
-      "./processMonthlyProrationBatch"
-    );
-
     const triggerDevLogger = new TriggerDevLogger();
     const log = triggerDevLogger.getSubLogger({
       name: "MonthlyProrationSchedule",
@@ -58,7 +55,7 @@ export const scheduleMonthlyProration = schedules.task({
       monthKey = formatMonthKey(previousMonthUtc);
     }
 
-    log.info(`Scheduling monthly proration tasks for ${monthKey}`);
+    log.info(`Starting monthly proration for ${monthKey}`);
 
     const teamRepository = new MonthlyProrationTeamRepository();
     const teamIdsList = await teamRepository.getAnnualTeamsWithSeatChanges(
@@ -73,9 +70,9 @@ export const scheduleMonthlyProration = schedules.task({
       };
     }
 
-    log.info(`Scheduling ${teamIdsList.length} tasks for ${monthKey}`);
+    log.info(`Processing ${teamIdsList.length} teams for ${monthKey}`);
 
-    await processMonthlyProrationBatch.batchTrigger(
+    const results = await processMonthlyProrationBatch.batchTriggerAndWait(
       teamIdsList.map((teamId) => ({
         payload: {
           monthKey,
@@ -84,9 +81,26 @@ export const scheduleMonthlyProration = schedules.task({
       }))
     );
 
+    const succeeded = results.runs.filter((run) => run.ok);
+    const failed = results.runs.filter((run) => !run.ok);
+
+    if (failed.length > 0) {
+      log.warn(`${failed.length} proration tasks failed`, {
+        failedRunIds: failed.map((run) => run.id),
+      });
+    }
+
+    log.info(`Monthly proration completed for ${monthKey}`, {
+      total: teamIdsList.length,
+      succeeded: succeeded.length,
+      failed: failed.length,
+    });
+
     return {
       monthKey,
-      scheduledTasks: teamIdsList.length,
+      totalTeams: teamIdsList.length,
+      succeeded: succeeded.length,
+      failed: failed.length,
     };
   },
 });

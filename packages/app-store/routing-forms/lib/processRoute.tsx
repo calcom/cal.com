@@ -1,11 +1,10 @@
 "use client";
 
-import type { JsonTree } from "react-awesome-query-builder";
-import type { z } from "zod";
-
+import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
-
+import type { JsonTree } from "react-awesome-query-builder";
+import type { z } from "zod";
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
 import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
@@ -15,9 +14,11 @@ import isRouter from "./isRouter";
 export function findMatchingRoute({
   form,
   response,
+  routingFormTraceService,
 }: {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
   response: Record<string, Pick<FormResponse[string], "value">>;
+  routingFormTraceService?: RoutingFormTraceService;
 }) {
   const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
 
@@ -65,6 +66,22 @@ export function findMatchingRoute({
 
   if (!chosenRoute) {
     return null;
+  }
+
+  if (routingFormTraceService) {
+    let routeName: string;
+    if ("name" in chosenRoute && chosenRoute.name) {
+      routeName = chosenRoute.name;
+    } else if (isFallbackRoute(chosenRoute)) {
+      routeName = "default_route";
+    } else {
+      routeName = chosenRoute.id;
+    }
+    if (isFallbackRoute(chosenRoute)) {
+      routingFormTraceService.fallbackRouteUsed({ routeId: chosenRoute.id, routeName });
+    } else {
+      routingFormTraceService.routeMatched({ routeId: chosenRoute.id, routeName });
+    }
   }
 
   return chosenRoute;
