@@ -1,6 +1,12 @@
 import { describe, expect, test } from "vitest";
 
-import { normalizeEmail, normalizeDomain, extractDomainFromEmail, normalizeUsername } from "./normalization";
+import {
+  normalizeEmail,
+  normalizeDomain,
+  extractDomainFromEmail,
+  normalizeUsername,
+  getParentDomains,
+} from "./normalization";
 
 describe("normalization", () => {
   describe("normalizeEmail", () => {
@@ -92,6 +98,36 @@ describe("normalization", () => {
       expect(() => normalizeEmail("")).toThrow();
       expect(() => normalizeDomain("")).toThrow();
       expect(() => normalizeUsername("")).toThrow();
+    });
+  });
+
+  describe("getParentDomains", () => {
+    test("should return all parent domains for a subdomain", () => {
+      expect(getParentDomains("app.cal.com")).toEqual(["app.cal.com", "cal.com"]);
+    });
+
+    test("should return all parent domains for deeply nested subdomains", () => {
+      expect(getParentDomains("sub.app.cal.com")).toEqual(["sub.app.cal.com", "app.cal.com", "cal.com"]);
+    });
+
+    test("should return only the domain itself for a simple domain", () => {
+      expect(getParentDomains("cal.com")).toEqual(["cal.com"]);
+    });
+
+    test("should handle multi-level TLDs correctly", () => {
+      expect(getParentDomains("example.co.uk")).toEqual(["example.co.uk", "co.uk"]);
+      expect(getParentDomains("mail.example.co.uk")).toEqual(["mail.example.co.uk", "example.co.uk", "co.uk"]);
+    });
+
+    test("should return single-part domain as-is", () => {
+      expect(getParentDomains("localhost")).toEqual(["localhost"]);
+    });
+
+    test("should return domains from most specific to least specific", () => {
+      const result = getParentDomains("a.b.c.d.com");
+      expect(result).toEqual(["a.b.c.d.com", "b.c.d.com", "c.d.com", "d.com"]);
+      expect(result[0]).toBe("a.b.c.d.com");
+      expect(result[result.length - 1]).toBe("d.com");
     });
   });
 });

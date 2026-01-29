@@ -14,6 +14,7 @@ const mockOrgRepo: IOrganizationWatchlistRepository = {
   findById: vi.fn(),
   listBlockedEntries: vi.fn(),
   listAllOrganizationEntries: vi.fn(),
+  findBlockingEntriesForEmailsAndDomains: vi.fn(),
 };
 
 describe("OrganizationBlockingService", () => {
@@ -40,19 +41,18 @@ describe("OrganizationBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockResolvedValue(mockEntry);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([mockEntry]);
 
       const result = await service.isBlocked("blocked@example.com", ORGANIZATION_ID);
 
       expect(result.isBlocked).toBe(true);
       expect(result.reason).toBe(WatchlistType.EMAIL);
       expect(result.watchlistEntry).toEqual(mockEntry);
-      expect(mockOrgRepo.findBlockedEmail).toHaveBeenCalledWith({
-        email: "blocked@example.com",
+      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["blocked@example.com"],
+        domains: ["example.com"],
         organizationId: ORGANIZATION_ID,
       });
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("example.com", ORGANIZATION_ID);
     });
 
     test("should return blocked when domain matches for organization", async () => {
@@ -68,8 +68,7 @@ describe("OrganizationBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockResolvedValue(mockEntry);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([mockEntry]);
 
       const result = await service.isBlocked("user@competitor.com", ORGANIZATION_ID);
 
@@ -79,8 +78,7 @@ describe("OrganizationBlockingService", () => {
     });
 
     test("should return not blocked when no matches for organization", async () => {
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([]);
 
       const result = await service.isBlocked("clean@example.com", ORGANIZATION_ID);
 
@@ -90,30 +88,15 @@ describe("OrganizationBlockingService", () => {
     });
 
     test("should normalize email before checking", async () => {
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([]);
 
       await service.isBlocked("USER@EXAMPLE.COM", ORGANIZATION_ID);
 
-      expect(mockOrgRepo.findBlockedEmail).toHaveBeenCalledWith({
-        email: "user@example.com",
+      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@example.com"],
+        domains: ["example.com"],
         organizationId: ORGANIZATION_ID,
       });
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("example.com", ORGANIZATION_ID);
-    });
-
-    test("should check both email and domain in parallel", async () => {
-      const emailPromise = Promise.resolve(null);
-      const domainPromise = Promise.resolve(null);
-
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockReturnValue(emailPromise);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockReturnValue(domainPromise);
-
-      await service.isBlocked("test@example.com", ORGANIZATION_ID);
-
-      // Both should be called before awaiting (parallel execution)
-      expect(mockOrgRepo.findBlockedEmail).toHaveBeenCalled();
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalled();
     });
 
     test("should return email match over domain match", async () => {
@@ -141,35 +124,125 @@ describe("OrganizationBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockResolvedValue(emailEntry);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockResolvedValue(domainEntry);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
+        emailEntry,
+        domainEntry,
+      ]);
 
       const result = await service.isBlocked("specific@example.com", ORGANIZATION_ID);
 
       expect(result.isBlocked).toBe(true);
-      expect(result.reason).toBe(WatchlistType.EMAIL); // Email takes precedence
+      expect(result.reason).toBe(WatchlistType.EMAIL);
       expect(result.watchlistEntry).toEqual(emailEntry);
     });
 
     test("should only check specified organization", async () => {
       const ORG_A = 100;
-      const ORG_B = 200;
 
-      vi.mocked(mockOrgRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockOrgRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([]);
 
       await service.isBlocked("test@example.com", ORG_A);
 
-      // Should only query for ORG_A, not ORG_B
-      expect(mockOrgRepo.findBlockedEmail).toHaveBeenCalledWith({
-        email: "test@example.com",
+      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["test@example.com"],
+        domains: ["example.com"],
         organizationId: ORG_A,
       });
-      expect(mockOrgRepo.findBlockedDomain).toHaveBeenCalledWith("example.com", ORG_A);
-      expect(mockOrgRepo.findBlockedEmail).not.toHaveBeenCalledWith({
-        email: "test@example.com",
-        organizationId: ORG_B,
+    });
+
+    test("should block subdomain when parent domain is blocked (wildcard matching)", async () => {
+      const parentDomainEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: false,
+        organizationId: ORGANIZATION_ID,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
+        parentDomainEntry,
+      ]);
+
+      const result = await service.isBlocked("user@app.cal.com", ORGANIZATION_ID);
+
+      expect(result.isBlocked).toBe(true);
+      expect(result.reason).toBe(WatchlistType.DOMAIN);
+      expect(result.watchlistEntry).toEqual(parentDomainEntry);
+      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@app.cal.com"],
+        domains: ["app.cal.com", "cal.com"],
+        organizationId: ORGANIZATION_ID,
       });
+    });
+
+    test("should block deeply nested subdomain when parent domain is blocked", async () => {
+      const parentDomainEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: false,
+        organizationId: ORGANIZATION_ID,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
+        parentDomainEntry,
+      ]);
+
+      const result = await service.isBlocked("user@sub.app.cal.com", ORGANIZATION_ID);
+
+      expect(result.isBlocked).toBe(true);
+      expect(result.reason).toBe(WatchlistType.DOMAIN);
+      expect(result.watchlistEntry).toEqual(parentDomainEntry);
+      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@sub.app.cal.com"],
+        domains: ["sub.app.cal.com", "app.cal.com", "cal.com"],
+        organizationId: ORGANIZATION_ID,
+      });
+    });
+
+    test("should prefer more specific subdomain match over parent domain", async () => {
+      const subdomainEntry = {
+        id: "111",
+        type: WatchlistType.DOMAIN,
+        value: "app.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: false,
+        organizationId: ORGANIZATION_ID,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      const parentDomainEntry = {
+        id: "222",
+        type: WatchlistType.DOMAIN,
+        value: "cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: false,
+        organizationId: ORGANIZATION_ID,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
+        subdomainEntry,
+        parentDomainEntry,
+      ]);
+
+      const result = await service.isBlocked("user@app.cal.com", ORGANIZATION_ID);
+
+      expect(result.isBlocked).toBe(true);
+      expect(result.reason).toBe(WatchlistType.DOMAIN);
+      expect(result.watchlistEntry).toEqual(subdomainEntry);
     });
   });
 });

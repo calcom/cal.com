@@ -35,8 +35,8 @@ export function normalizeEmail(email: string): string {
  * 3. Remove @ prefix if present
  *
  * Note: Domains are stored without @ prefix (e.g., mail.google.com, example.co.uk)
- * No subdomain stripping is performed to avoid multi-level TLD issues.
- * If you want to block subdomains separately, create separate entries.
+ * Wildcard matching is supported - blocking cal.com will also block app.cal.com.
+ * See getParentDomains() for the wildcard matching logic.
  *
  * @param domain - Raw domain (with or without @ prefix)
  * @returns Normalized domain without @ prefix
@@ -90,4 +90,35 @@ export function normalizeUsername(username: string): string {
   }
 
   return username.trim().toLowerCase();
+}
+
+/**
+ * Gets all parent domains for wildcard matching.
+ * Used to check if a domain or any of its parent domains are blocked.
+ *
+ * Example:
+ * - Input: "app.cal.com"
+ * - Output: ["app.cal.com", "cal.com"]
+ *
+ * Note: Does not include the TLD alone (e.g., "com") as that would be too broad.
+ * Minimum domain returned has at least 2 parts (e.g., "cal.com").
+ *
+ * @param domain - Normalized domain (without @ prefix)
+ * @returns Array of domains from most specific to least specific
+ */
+export function getParentDomains(domain: string): string[] {
+  const parts = domain.split(".");
+
+  if (parts.length < 2) {
+    return [domain];
+  }
+
+  const domains: string[] = [];
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const parentDomain = parts.slice(i).join(".");
+    domains.push(parentDomain);
+  }
+
+  return domains;
 }
