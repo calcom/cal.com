@@ -4418,6 +4418,7 @@
   "and_more_holidays_with_conflicts_one": "... and {{count}} more holiday with conflicts",
   "and_more_holidays_with_conflicts_other": "... and {{count}} more holidays with conflicts",
   "assignment_reason": "Assignment reason",
+  "routing_trace": "Routing trace",
   "saved": "Saved",
   "booking_history": "Booking history",
   "booking_history_description": "View the history of actions performed on this booking",
