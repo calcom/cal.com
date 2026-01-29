@@ -26542,16 +26542,47 @@
           },
           "userId": {
             "type": "number",
+            "nullable": true,
             "description": "Id of the user associated to the conferencing app"
+          },
+          "teamId": {
+            "type": "number",
+            "nullable": true,
+            "description": "Id of the team associated to the conferencing app"
+          },
+          "appId": {
+            "type": "string",
+            "example": "zoom",
+            "description": "App slug identifier"
+          },
+          "subscriptionId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Subscription id for paid apps"
+          },
+          "paymentStatus": {
+            "type": "string",
+            "nullable": true,
+            "description": "Payment status for paid apps"
+          },
+          "billingCycleStart": {
+            "type": "number",
+            "nullable": true,
+            "description": "Billing cycle start timestamp"
           },
           "invalid": {
             "type": "boolean",
             "nullable": true,
             "example": true,
             "description": "Whether if the connection is working or not."
+          },
+          "delegationCredentialId": {
+            "type": "number",
+            "nullable": true,
+            "description": "Id of the delegation credential if applicable"
           }
         },
-        "required": ["id", "type", "userId"]
+        "required": ["id", "type", "appId"]
       },
       "ConferencingAppOutputResponseDto": {
         "type": "object",

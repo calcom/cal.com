@@ -1,8 +1,7 @@
+import { ERROR_STATUS, GOOGLE_MEET_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsString, ValidateNested, IsEnum, IsNumber, IsOptional, IsBoolean } from "class-validator";
-
-import { ERROR_STATUS, GOOGLE_MEET_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class ConferencingAppsOutputDto {
   @Expose()
@@ -15,10 +14,40 @@ export class ConferencingAppsOutputDto {
   @IsString()
   type!: string;
 
-  @ApiProperty({ description: "Id of the user associated to the conferencing app" })
+  @ApiPropertyOptional({ description: "Id of the user associated to the conferencing app", nullable: true })
   @Expose()
   @IsNumber()
-  userId!: number;
+  @IsOptional()
+  userId?: number | null;
+
+  @ApiPropertyOptional({ description: "Id of the team associated to the conferencing app", nullable: true })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  teamId?: number | null;
+
+  @ApiProperty({ example: "zoom", description: "App slug identifier" })
+  @Expose()
+  @IsString()
+  appId!: string;
+
+  @ApiPropertyOptional({ description: "Subscription id for paid apps", nullable: true })
+  @Expose()
+  @IsString()
+  @IsOptional()
+  subscriptionId?: string | null;
+
+  @ApiPropertyOptional({ description: "Payment status for paid apps", nullable: true })
+  @Expose()
+  @IsString()
+  @IsOptional()
+  paymentStatus?: string | null;
+
+  @ApiPropertyOptional({ description: "Billing cycle start timestamp", nullable: true })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  billingCycleStart?: number | null;
 
   @ApiPropertyOptional({
     example: true,
@@ -29,6 +58,12 @@ export class ConferencingAppsOutputDto {
   @IsBoolean()
   @IsOptional()
   invalid?: boolean | null;
+
+  @ApiPropertyOptional({ description: "Id of the delegation credential if applicable", nullable: true })
+  @Expose()
+  @IsNumber()
+  @IsOptional()
+  delegationCredentialId?: number | null;
 }
 
 export class ConferencingAppsOutputResponseDto {
