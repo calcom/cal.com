@@ -1,0 +1,67 @@
+{
+  "$schema": "https://turborepo.dev/schema.v2.json",
+  "extends": ["//"],
+  "tasks": {
+    "copy-app-store-static": {
+      "inputs": ["$TURBO_ROOT$/packages/app-store/**/static/**/*"],
+      "outputLogs": "new-only",
+      "outputs": ["public/app-store/**"]
+    },
+    "build": {
+      "dependsOn": ["^build", "copy-app-store-static"],
+      "outputs": [".next/**"],
+      "env": [
+        "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
+        "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
+        "NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE",
+        "NEXT_PUBLIC_IS_E2E",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
+        "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
+        "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRODUCT_ID",
+        "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+        "NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_PRICE_ID",
+        "STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID",
+        "NEXT_PUBLIC_WEBAPP_URL",
+        "NEXT_PUBLIC_WEBSITE_URL",
+        "SENTRY_AUTH_TOKEN",
+        "SENTRY_DEBUG",
+        "SENTRY_MAX_SPANS",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "SENTRY_SAMPLE_RATE",
+        "SENTRY_TRACES_SAMPLE_RATE",
+        "SENTRY_REPLAYS_SESSION_SAMPLE_RATE",
+        "SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE",
+        "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
+        "STRIPE_TEAM_MONTHLY_PRICE_ID",
+        "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
+        "STRIPE_TEAM_PRODUCT_ID",
+        "ORG_MONTHLY_CREDITS",
+        "STRIPE_ORG_MONTHLY_PRICE_ID",
+        "STRIPE_ORG_PRODUCT_ID",
+        "STRIPE_ORG_TRIAL_DAYS",
+        "NEXT_PUBLIC_API_V2_URL",
+        "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+        "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
+        "BUILD_STANDALONE",
+        "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
+    },
+    "dx": {
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#dx"]
+    },
+    "start": {
+      "cache": false,
+      "dependsOn": []
+    },
+    "dev": {
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    }
+  }
+}
