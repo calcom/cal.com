@@ -3,7 +3,8 @@ import { z } from "zod";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type { CancellationReasonRequirement, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import { CancellationReasonRequirement as CancellationReasonRequirementEnum } from "@calcom/prisma/enums";
 import type {
   CustomInputSchema,
   EventTypeMetadata,
@@ -193,6 +194,7 @@ export type TUpdateInputSchema = {
   showOptimizedSlots?: boolean | null;
   disableCancelling?: boolean | null;
   disableRescheduling?: boolean | null;
+  requiresCancellationReason?: CancellationReasonRequirement | null;
   minimumRescheduleNotice?: number | null;
   seatsShowAttendees?: boolean | null;
   seatsShowAvailabilityCount?: boolean | null;
@@ -390,6 +392,10 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     showOptimizedSlots: z.boolean().nullable().optional(),
     disableCancelling: z.boolean().nullable().optional(),
     disableRescheduling: z.boolean().nullable().optional(),
+    requiresCancellationReason: z
+      .enum(["MANDATORY_BOTH", "MANDATORY_HOST_ONLY", "MANDATORY_ATTENDEE_ONLY", "OPTIONAL_BOTH"])
+      .nullable()
+      .optional(),
     minimumRescheduleNotice: z.number().min(0).nullable().optional(),
     seatsShowAttendees: z.boolean().nullable().optional(),
     seatsShowAvailabilityCount: z.boolean().nullable().optional(),
