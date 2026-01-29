@@ -42,30 +42,11 @@ const googleCalendarBackfillSelect = {
   },
 } satisfies Prisma.BookingReferenceSelect;
 
-export interface BookingForBackfill {
-  id: number;
-  uid: string;
-  title: string;
-  startTime: Date;
-  endTime: Date;
-  location: string | null;
-  iCalUID: string | null;
-  responses: Prisma.JsonValue;
-  metadata: Prisma.JsonValue;
-  userPrimaryEmail: string | null;
-}
+export type BookingReferenceForBackfill = Prisma.BookingReferenceGetPayload<{
+  select: typeof googleCalendarBackfillSelect;
+}>;
 
-export interface BookingReferenceForBackfill {
-  id: number;
-  uid: string;
-  externalCalendarId: string | null;
-  booking: BookingForBackfill;
-  credential: {
-    id: number;
-    userId: number | null;
-    key: Prisma.JsonValue;
-  };
-}
+export type BookingForBackfill = NonNullable<BookingReferenceForBackfill["booking"]>;
 
 export interface GoogleEventUpdateData {
   uid: string;
@@ -158,7 +139,7 @@ export class BookingReferenceRepository implements IBookingReferenceRepository {
       select: googleCalendarBackfillSelect,
     });
 
-    return results as unknown as BookingReferenceForBackfill[];
+    return results;
   }
 
   async findUnremovedCancelledGoogleCalendarReferencesIncludeBookingAndCredential(
@@ -182,7 +163,7 @@ export class BookingReferenceRepository implements IBookingReferenceRepository {
       select: googleCalendarBackfillSelect,
     });
 
-    return results as unknown as BookingReferenceForBackfill[];
+    return results;
   }
 
   async updateWithGoogleEventData(id: number, data: GoogleEventUpdateData): Promise<void> {
