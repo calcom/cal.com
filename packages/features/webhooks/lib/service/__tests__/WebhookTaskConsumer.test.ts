@@ -222,6 +222,67 @@ describe("WebhookTaskConsumer", () => {
       expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
     });
 
+    it("should call processWebhooks when subscribers and valid event data exist (full delivery path)", async () => {
+      const payload: WebhookTaskPayload = {
+        operationId: "op-deliver",
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        bookingUid: "test-booking-uid",
+        eventTypeId: 1,
+        userId: 101,
+        timestamp: new Date().toISOString(),
+      };
+
+      const subscribers = [
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: null,
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ];
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce(subscribers);
+
+      // Valid event data shape so buildDTO succeeds and processWebhooks is called
+      const bookingFetcher = mockDataFetchers[0];
+      (bookingFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        calendarEvent: { type: "booking", title: "Test" },
+        booking: {
+          id: 1,
+          eventTypeId: 1,
+          userId: 101,
+          startTime: new Date(),
+          smsReminderNumber: null,
+          iCalSequence: 0,
+          assignmentReason: null,
+          eventType: {
+            id: 1,
+            title: "Test Event",
+            description: null,
+            requiresConfirmation: false,
+            price: null,
+            currency: null,
+            length: 30,
+          },
+          user: { id: 101 },
+        },
+      });
+
+      await consumer.processWebhookTask(payload, "task-deliver");
+
+      expect(mockWebhookService.processWebhooks).toHaveBeenCalledTimes(1);
+      expect(mockWebhookService.processWebhooks).toHaveBeenCalledWith(
+        WebhookTriggerEvents.BOOKING_CREATED,
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CREATED }),
+        subscribers
+      );
+    });
+
     it("should process FORM_SUBMITTED event type (scaffold)", async () => {
       const payload: WebhookTaskPayload = {
         operationId: "op-test",
