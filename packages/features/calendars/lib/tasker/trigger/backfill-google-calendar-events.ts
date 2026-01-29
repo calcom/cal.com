@@ -12,6 +12,7 @@ export const backfillGoogleCalendarEvents: TaskWithSchema<
 > = schemaTask({
   id: BACKFILL_GOOGLE_CALENDAR_EVENTS_JOB_ID,
   ...calendarsTaskConfig,
+  machine: "medium-1x",
   schema: backfillGoogleCalendarEventsSchema,
   run: async (payload: z.infer<typeof backfillGoogleCalendarEventsSchema>) => {
     const { getCalendarsTaskService } = await import(

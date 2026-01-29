@@ -9,6 +9,7 @@ export const calendarsQueue = queue({
 
 export const calendarsTaskConfig: CalendarsTask = {
   queue: calendarsQueue,
+  machine: "small-2x",
   retry: {
     maxAttempts: 3,
     factor: 2,
