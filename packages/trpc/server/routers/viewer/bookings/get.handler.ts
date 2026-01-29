@@ -1,7 +1,9 @@
-import { getGetBookingsRepository } from "@calcom/features/bookings/di/GetBookingsRepository.container";
+import { getGetBookingsRepositoryForWeb } from "@calcom/features/bookings/di/GetBookingsRepository.container";
+import { GetBookingsRepositoryForApiV2 } from "@calcom/features/bookings/repositories/GetBookingsRepositoryForApiV2";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { Kysely } from "kysely";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
@@ -47,8 +49,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const statusesFilter =
     input.filters?.statuses ?? (input.filters?.status ? [input.filters.status] : bookingListingByStatus);
 
-  const repository = getGetBookingsRepository();
-  const { bookings, recurringInfo, totalCount } = await repository.findManyForWeb({
+  const repository = getGetBookingsRepositoryForWeb();
+  const { bookings, recurringInfo, totalCount } = await repository.findMany({
     user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
     kysely,
     bookingListingByStatus,
@@ -75,13 +77,13 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
 };
 
 /**
- * @deprecated Use GetBookingsRepository.findManyForApiV2() directly instead.
+ * @deprecated Use GetBookingsRepositoryForApiV2.findMany() directly instead.
  * This function is kept for backward compatibility with existing tests and consumers.
  * It delegates to the repository with full field projection (API v2 compatibility).
  */
 export async function getBookings({
   user,
-  prisma,
+  prisma: _prisma,
   kysely,
   bookingListingByStatus,
   sort,
@@ -103,8 +105,8 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const repository = getGetBookingsRepository();
-  return repository.findManyForApiV2({
+  const repository = new GetBookingsRepositoryForApiV2({ prismaClient: prisma });
+  return repository.findMany({
     user,
     kysely,
     bookingListingByStatus,

@@ -1,9 +1,10 @@
 import type { Kysely } from "kysely";
 
-import { getGetBookingsRepository } from "@calcom/features/bookings/di/GetBookingsRepository.container";
+import { GetBookingsRepositoryForApiV2 } from "@calcom/features/bookings/repositories/GetBookingsRepositoryForApiV2";
 import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 export type SortOptions = {
@@ -49,8 +50,9 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   // Use optional chaining to handle this defensively.
   const statusesFilter = filters?.statuses ?? (filters?.status ? [filters.status] : bookingListingByStatus);
 
-  const repository = getGetBookingsRepository();
-  const { bookings, recurringInfo, totalCount } = await repository.findManyForApiV2({
+  // Instantiate repository directly (no ioctopus DI) for API v2
+  const repository = new GetBookingsRepositoryForApiV2({ prismaClient: prisma });
+  const { bookings, recurringInfo, totalCount } = await repository.findMany({
     user,
     kysely,
     bookingListingByStatus,

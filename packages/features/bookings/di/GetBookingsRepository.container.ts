@@ -1,13 +1,15 @@
 import { createContainer } from "@calcom/features/di/di";
 
 import {
-  type GetBookingsRepository,
-  moduleLoader as getBookingsRepositoryModuleLoader,
+  type GetBookingsRepositoryForWeb,
+  moduleLoader as getBookingsRepositoryForWebModuleLoader,
 } from "./GetBookingsRepository.module";
 
-const getBookingsRepositoryContainer = createContainer();
+const getBookingsRepositoryForWebContainer = createContainer();
 
-export function getGetBookingsRepository(): GetBookingsRepository {
-  getBookingsRepositoryModuleLoader.loadModule(getBookingsRepositoryContainer);
-  return getBookingsRepositoryContainer.get<GetBookingsRepository>(getBookingsRepositoryModuleLoader.token);
+export function getGetBookingsRepositoryForWeb(): GetBookingsRepositoryForWeb {
+  getBookingsRepositoryForWebModuleLoader.loadModule(getBookingsRepositoryForWebContainer);
+  return getBookingsRepositoryForWebContainer.get<GetBookingsRepositoryForWeb>(
+    getBookingsRepositoryForWebModuleLoader.token
+  );
 }

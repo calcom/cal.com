@@ -1,4 +1,5 @@
-import { getGetBookingsRepository } from "@calcom/features/bookings/di/GetBookingsRepository.container";
+import { getGetBookingsRepositoryForWeb } from "@calcom/features/bookings/di/GetBookingsRepository.container";
+import { GetBookingsRepositoryForApiV2 } from "@calcom/features/bookings/repositories/GetBookingsRepositoryForApiV2";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
@@ -9,6 +10,15 @@ import { getBookings, getHandler } from "./get.handler";
 
 vi.mock("@calcom/features/bookings/di/GetBookingsRepository.container");
 vi.mock("@calcom/features/bookings/lib/getAllUserBookings");
+
+const mockFindManyForApiV2 = vi.fn();
+vi.mock("@calcom/features/bookings/repositories/GetBookingsRepositoryForApiV2", () => {
+  return {
+    GetBookingsRepositoryForApiV2: class MockGetBookingsRepositoryForApiV2 {
+      findMany = mockFindManyForApiV2;
+    },
+  };
+});
 vi.mock("@calcom/kysely", () => ({
   default: {
     selectFrom: vi.fn(),
@@ -37,13 +47,12 @@ describe("getHandler", () => {
 
   const mockPrisma = {} as unknown as PrismaClient;
 
-  const mockFindManyForWeb = vi.fn();
+  const mockFindMany = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getGetBookingsRepository).mockReturnValue({
-      findManyForWeb: mockFindManyForWeb,
-      findManyForApiV2: vi.fn(),
+    vi.mocked(getGetBookingsRepositoryForWeb).mockReturnValue({
+      findMany: mockFindMany,
     } as any);
   });
 
@@ -65,7 +74,7 @@ describe("getHandler", () => {
       },
     ] as any;
 
-    mockFindManyForWeb.mockResolvedValue({
+    mockFindMany.mockResolvedValue({
       bookings: mockBookings,
       recurringInfo: [],
       totalCount: 1,
@@ -85,7 +94,7 @@ describe("getHandler", () => {
 
     expect(result.bookings).toEqual(mockBookings);
     expect(result.totalCount).toBe(1);
-    expect(mockFindManyForWeb).toHaveBeenCalledWith(
+    expect(mockFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         user: expect.objectContaining({
           id: mockUser.id,
@@ -117,15 +126,10 @@ describe("getBookings - Repository Integration", () => {
   };
 
   let mockKysely: Kysely<DB>;
-  const mockFindManyForApiV2 = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockKysely = createMockKysely();
-    vi.mocked(getGetBookingsRepository).mockReturnValue({
-      findManyForWeb: vi.fn(),
-      findManyForApiV2: mockFindManyForApiV2,
-    } as any);
   });
 
   describe("PBAC permission checks with userIds filter", () => {

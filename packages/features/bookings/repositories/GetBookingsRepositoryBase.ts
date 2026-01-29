@@ -16,11 +16,11 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { Kysely, SelectQueryBuilder } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 
-const log = logger.getSubLogger({ prefix: ["GetBookingsRepository"] });
+const log = logger.getSubLogger({ prefix: ["GetBookingsRepositoryBase"] });
 
-type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
+export type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 
-type BookingsUnionQuery = SelectQueryBuilder<
+export type BookingsUnionQuery = SelectQueryBuilder<
   DB,
   "Booking",
   Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
@@ -54,52 +54,39 @@ export interface IGetBookingsRepositoryDeps {
   prismaClient: PrismaClient;
 }
 
-type EnrichedUserData = {
+export type EnrichedUserData = {
   name: string | null;
   email: string;
   avatarUrl: string | null;
   username: string | null;
 };
 
-export class GetBookingsRepository {
-  constructor(private deps: IGetBookingsRepositoryDeps) {}
+export type FindManyParams = {
+  user: { id: number; email: string; orgId?: number | null };
+  filters: GetBookingsFilters;
+  kysely: Kysely<DB>;
+  bookingListingByStatus: InputByStatus[];
+  sort?: GetBookingsSortOptions;
+  take: number;
+  skip: number;
+};
 
-  /**
-   * Fetches bookings for the web app with minimal relation fields.
-   * This method returns only the fields needed by the web UI, excluding
-   * sensitive or unnecessary fields like BookingReference.credentialId,
-   * BookingReference.meetingPassword, etc.
-   */
-  async findManyForWeb(params: {
-    user: { id: number; email: string; orgId?: number | null };
-    filters: GetBookingsFilters;
-    kysely: Kysely<DB>;
-    bookingListingByStatus: InputByStatus[];
-    sort?: GetBookingsSortOptions;
-    take: number;
-    skip: number;
-  }) {
-    return this.findManyInternalForWeb(params);
-  }
+export type PrepareBookingQueryResult = {
+  bookingIds: number[];
+  orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" };
+  queryUnion: BookingsUnionQuery;
+};
 
-  /**
-   * Fetches bookings for API v2 with full relation fields.
-   * This method returns all fields to maintain backward compatibility
-   * with the existing API v2 contract.
-   */
-  async findManyForApiV2(params: {
-    user: { id: number; email: string; orgId?: number | null };
-    filters: GetBookingsFilters;
-    kysely: Kysely<DB>;
-    bookingListingByStatus: InputByStatus[];
-    sort?: GetBookingsSortOptions;
-    take: number;
-    skip: number;
-  }) {
-    return this.findManyInternalForApiV2(params);
-  }
+export abstract class GetBookingsRepositoryBase {
+  constructor(protected deps: IGetBookingsRepositoryDeps) {}
 
-  private async findManyInternalForWeb({
+  abstract findMany(params: FindManyParams): Promise<{
+    bookings: unknown[];
+    recurringInfo: unknown[];
+    totalCount: number;
+  }>;
+
+  protected async prepareBookingQuery({
     user,
     filters,
     kysely,
@@ -107,103 +94,7 @@ export class GetBookingsRepository {
     sort,
     take,
     skip,
-  }: {
-    user: { id: number; email: string; orgId?: number | null };
-    filters: GetBookingsFilters;
-    kysely: Kysely<DB>;
-    bookingListingByStatus: InputByStatus[];
-    sort?: GetBookingsSortOptions;
-    take: number;
-    skip: number;
-  }) {
-    const { bookingIds, orderBy, queryUnion } = await this.prepareBookingQuery({
-      user,
-      filters,
-      kysely,
-      bookingListingByStatus,
-      sort,
-      take,
-      skip,
-    });
-
-    const plainBookings =
-      bookingIds.length === 0 ? [] : await this.fetchBookingsWithRelationsForWeb(kysely, bookingIds, orderBy);
-
-    return this.processBookingsResult({
-      user,
-      filters,
-      kysely,
-      bookingListingByStatus,
-      sort,
-      take,
-      skip,
-      plainBookings,
-      orderBy,
-      queryUnion,
-    });
-  }
-
-  private async findManyInternalForApiV2({
-    user,
-    filters,
-    kysely,
-    bookingListingByStatus,
-    sort,
-    take,
-    skip,
-  }: {
-    user: { id: number; email: string; orgId?: number | null };
-    filters: GetBookingsFilters;
-    kysely: Kysely<DB>;
-    bookingListingByStatus: InputByStatus[];
-    sort?: GetBookingsSortOptions;
-    take: number;
-    skip: number;
-  }) {
-    const { bookingIds, orderBy, queryUnion } = await this.prepareBookingQuery({
-      user,
-      filters,
-      kysely,
-      bookingListingByStatus,
-      sort,
-      take,
-      skip,
-    });
-
-    const plainBookings =
-      bookingIds.length === 0 ? [] : await this.fetchBookingsWithRelationsForApiV2(kysely, bookingIds, orderBy);
-
-    return this.processBookingsResult({
-      user,
-      filters,
-      kysely,
-      bookingListingByStatus,
-      sort,
-      take,
-      skip,
-      plainBookings,
-      orderBy,
-      queryUnion,
-    });
-  }
-
-  private async prepareBookingQuery({
-    user,
-    filters,
-    kysely,
-    bookingListingByStatus,
-    sort,
-    take,
-    skip,
-  }: {
-    user: { id: number; email: string; orgId?: number | null };
-    filters: GetBookingsFilters;
-    kysely: Kysely<DB>;
-    bookingListingByStatus: InputByStatus[];
-    sort?: GetBookingsSortOptions;
-    take: number;
-    skip: number;
-  }) {
+  }: FindManyParams): Promise<PrepareBookingQueryResult> {
     const { prismaClient } = this.deps;
     const permissionCheckService = new PermissionCheckService();
     const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
@@ -226,9 +117,7 @@ export class GetBookingsRepository {
       this.getEventTypeIdsFromTeamIdsFilter(filters?.teamIds),
       this.getAttendeeEmailsFromUserIdsFilter(user.email, filters?.userIds),
       this.getEventTypeIdsFromEventTypeIdsFilter(filters?.eventTypeIds),
-      needsUserIdsValidation
-        ? this.getUserIdsFromTeamIds(teamIdsWithBookingPermission)
-        : Promise.resolve([]),
+      needsUserIdsValidation ? this.getUserIdsFromTeamIds(teamIdsWithBookingPermission) : Promise.resolve([]),
     ]);
 
     const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
@@ -496,7 +385,7 @@ export class GetBookingsRepository {
     };
   }
 
-  private async processBookingsResult<
+  protected async processBookingsResult<
     TBooking extends {
       id: number;
       startTime: Date;
@@ -538,16 +427,19 @@ export class GetBookingsRepository {
     orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" };
     queryUnion: BookingsUnionQuery;
   }) {
-    const { prismaClient } = this.deps;
+    const totalCount = await kysely
+      .selectFrom(queryUnion.as("union_subquery"))
+      .select((eb) => eb.fn.countAll<number>().as("count"))
+      .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
+        eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
+      )
+      .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
+        eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
+      )
+      .executeTakeFirst()
+      .then((result) => Number(result?.count ?? 0));
 
-    const totalCount = Number(
-      (
-        await kysely
-          .selectFrom(queryUnion.as("union_subquery"))
-          .select(({ fn }) => fn.countAll().as("bookingCount"))
-          .executeTakeFirst()
-      )?.bookingCount ?? 0
-    );
+    const { prismaClient } = this.deps;
 
     const [recurringInfoBasic, recurringInfoExtended] = await Promise.all([
       prismaClient.booking.groupBy({
@@ -610,46 +502,27 @@ export class GetBookingsRepository {
       }
     );
 
-    log.info(
-      `fetching all bookings for ${user.id}`,
-      safeStringify({
-        ids: plainBookings.map((booking) => booking.id),
-        filters,
-        orderBy,
-        take,
-        skip,
-      })
-    );
-
-    const checkIfUserIsHost = (userId: number, booking: TBooking) => {
-      if (booking.user?.id === userId) {
-        return true;
-      }
-
-      if (!booking.eventType?.hosts || booking.eventType.hosts.length === 0) {
-        return false;
-      }
-
-      const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
-
-      return booking.eventType.hosts.some(({ user: hostUser }) => {
-        return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
+    const checkIfUserIsHost = (
+      booking: TBooking,
+      currentUser: { id: number; email: string }
+    ): boolean => {
+      const isOwner = booking.user?.id === currentUser.id;
+      const isHost = booking.eventType?.hosts?.some((host) => {
+        return host.user?.id === currentUser.id || host.user?.email === currentUser.email;
       });
+      const isAttendee = booking.attendees.some((attendee) => attendee.email === currentUser.email);
+      return isOwner || !!isHost || isAttendee;
     };
 
     const bookings = await Promise.all(
       plainBookings.map(async (booking) => {
-        if (
-          booking.seatsReferences.length &&
-          !booking.eventType?.seatsShowAttendees &&
-          !checkIfUserIsHost(user.id, booking)
-        ) {
-          booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
-        }
+        const isUserHost = checkIfUserIsHost(booking, user);
+        const shouldHideAttendees =
+          booking.eventType?.seatsShowAttendees === false && !isUserHost && booking.seatsReferences.length > 0;
 
-        let rescheduler = null;
+        let rescheduler: string | null = null;
         if (booking.fromReschedule) {
-          const rescheduledBooking = await prismaClient.booking.findUnique({
+          const rescheduledBooking = await this.deps.prismaClient.booking.findUnique({
             where: {
               uid: booking.fromReschedule,
             },
@@ -684,427 +557,7 @@ export class GetBookingsRepository {
     return { bookings: enrichedBookings, recurringInfo, totalCount };
   }
 
-  private async fetchBookingsWithRelationsForWeb(
-    kysely: Kysely<DB>,
-    bookingIds: number[],
-    orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" }
-  ) {
-    return kysely
-      .selectFrom("Booking")
-      .where("id", "in", bookingIds)
-      .select((eb) => [
-        "Booking.id",
-        "Booking.title",
-        "Booking.userPrimaryEmail",
-        "Booking.description",
-        "Booking.customInputs",
-        "Booking.startTime",
-        "Booking.createdAt",
-        "Booking.updatedAt",
-        "Booking.endTime",
-        "Booking.metadata",
-        "Booking.uid",
-        eb.cast<Prisma.JsonValue>(eb.ref("Booking.responses"), "jsonb").as("responses"),
-        "Booking.recurringEventId",
-        "Booking.location",
-        eb
-          .cast<BookingStatus>(
-            eb
-              .case()
-              .when("Booking.status", "=", "cancelled")
-              .then(BookingStatus.CANCELLED)
-              .when("Booking.status", "=", "accepted")
-              .then(BookingStatus.ACCEPTED)
-              .when("Booking.status", "=", "rejected")
-              .then(BookingStatus.REJECTED)
-              .when("Booking.status", "=", "pending")
-              .then(BookingStatus.PENDING)
-              .when("Booking.status", "=", "awaiting_host")
-              .then(BookingStatus.AWAITING_HOST)
-              .else(BookingStatus.PENDING)
-              .end(),
-            "varchar"
-          )
-          .as("status"),
-        "Booking.paid",
-        "Booking.fromReschedule",
-        "Booking.rescheduled",
-        "Booking.rescheduledBy",
-        "Booking.cancelledBy",
-        "Booking.isRecorded",
-        "Booking.cancellationReason",
-        "Booking.rejectionReason",
-        jsonObjectFrom(
-          eb
-            .selectFrom("App_RoutingForms_FormResponse")
-            .select("id")
-            .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
-        ).as("routedFromRoutingFormReponse"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("EventType")
-            .select((eb) => [
-              "EventType.slug",
-              "EventType.id",
-              "EventType.title",
-              "EventType.eventName",
-              "EventType.price",
-              "EventType.recurringEvent",
-              "EventType.currency",
-              "EventType.metadata",
-              "EventType.disableGuests",
-              "EventType.bookingFields",
-              "EventType.seatsPerTimeSlot",
-              "EventType.seatsShowAttendees",
-              "EventType.seatsShowAvailabilityCount",
-              "EventType.eventTypeColor",
-              "EventType.customReplyToEmail",
-              "EventType.allowReschedulingPastBookings",
-              "EventType.hideOrganizerEmail",
-              "EventType.disableCancelling",
-              "EventType.disableRescheduling",
-              "EventType.minimumRescheduleNotice",
-              "EventType.teamId",
-              "EventType.parentId",
-              eb
-                .cast<SchedulingType | null>(
-                  eb
-                    .case()
-                    .when("EventType.schedulingType", "=", "roundRobin")
-                    .then(SchedulingType.ROUND_ROBIN)
-                    .when("EventType.schedulingType", "=", "collective")
-                    .then(SchedulingType.COLLECTIVE)
-                    .when("EventType.schedulingType", "=", "managed")
-                    .then(SchedulingType.MANAGED)
-                    .else(null)
-                    .end(),
-                  "varchar"
-                )
-                .as("schedulingType"),
-              jsonArrayFrom(
-                eb
-                  .selectFrom("Host")
-                  .select((eb) => [
-                    "Host.userId",
-                    jsonObjectFrom(
-                      eb
-                        .selectFrom("users")
-                        .select(["users.id", "users.email"])
-                        .whereRef("Host.userId", "=", "users.id")
-                    ).as("user"),
-                  ])
-                  .whereRef("Host.eventTypeId", "=", "EventType.id")
-              ).as("hosts"),
-              "EventType.length",
-              jsonObjectFrom(
-                eb
-                  .selectFrom("Team")
-                  .select(["Team.id", "Team.name", "Team.slug"])
-                  .whereRef("EventType.teamId", "=", "Team.id")
-              ).as("team"),
-              jsonArrayFrom(
-                eb
-                  .selectFrom("HostGroup")
-                  .select(["HostGroup.id", "HostGroup.name"])
-                  .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
-              ).as("hostGroups"),
-            ])
-            .whereRef("EventType.id", "=", "Booking.eventTypeId")
-        ).as("eventType"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("BookingReference")
-            .select(["BookingReference.type", "BookingReference.uid", "BookingReference.meetingId"])
-            .whereRef("BookingReference.bookingId", "=", "Booking.id")
-        ).as("references"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("Payment")
-            .select([
-              "Payment.paymentOption",
-              "Payment.amount",
-              "Payment.currency",
-              "Payment.success",
-              "Payment.appId",
-              "Payment.refunded",
-            ])
-            .whereRef("Payment.bookingId", "=", "Booking.id")
-        ).as("payment"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("users")
-            .select([
-              "users.id",
-              "users.name",
-              "users.email",
-              "users.avatarUrl",
-              "users.username",
-              "users.timeZone",
-            ])
-            .whereRef("Booking.userId", "=", "users.id")
-        ).as("user"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("Attendee")
-            .select([
-              "Attendee.id",
-              "Attendee.email",
-              "Attendee.name",
-              "Attendee.timeZone",
-              "Attendee.phoneNumber",
-              "Attendee.locale",
-              "Attendee.noShow",
-              "Attendee.bookingId",
-            ])
-            .whereRef("Attendee.bookingId", "=", "Booking.id")
-        ).as("attendees"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("BookingSeat")
-            .select((eb) => [
-              "BookingSeat.referenceUid",
-              jsonObjectFrom(
-                eb
-                  .selectFrom("Attendee")
-                  .select(["Attendee.email"])
-                  .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-              ).as("attendee"),
-            ])
-            .whereRef("BookingSeat.bookingId", "=", "Booking.id")
-        ).as("seatsReferences"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("AssignmentReason")
-            .select([
-              "AssignmentReason.id",
-              "AssignmentReason.bookingId",
-              "AssignmentReason.reasonEnum",
-              "AssignmentReason.reasonString",
-              "AssignmentReason.createdAt",
-            ])
-            .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
-            .orderBy("AssignmentReason.createdAt", "desc")
-            .limit(1)
-        ).as("assignmentReason"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("BookingReport")
-            .select([
-              "BookingReport.id",
-              "BookingReport.reportedById",
-              "BookingReport.reason",
-              "BookingReport.description",
-              "BookingReport.createdAt",
-            ])
-            .whereRef("BookingReport.bookingUid", "=", "Booking.uid")
-        ).as("report"),
-      ])
-      .orderBy(orderBy.key, orderBy.order)
-      .execute();
-  }
-
-  private async fetchBookingsWithRelationsForApiV2(
-    kysely: Kysely<DB>,
-    bookingIds: number[],
-    orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" }
-  ) {
-    return kysely
-      .selectFrom("Booking")
-      .where("id", "in", bookingIds)
-      .select((eb) => [
-        "Booking.id",
-        "Booking.title",
-        "Booking.userPrimaryEmail",
-        "Booking.description",
-        "Booking.customInputs",
-        "Booking.startTime",
-        "Booking.createdAt",
-        "Booking.updatedAt",
-        "Booking.endTime",
-        "Booking.metadata",
-        "Booking.uid",
-        eb.cast<Prisma.JsonValue>(eb.ref("Booking.responses"), "jsonb").as("responses"),
-        "Booking.recurringEventId",
-        "Booking.location",
-        eb
-          .cast<BookingStatus>(
-            eb
-              .case()
-              .when("Booking.status", "=", "cancelled")
-              .then(BookingStatus.CANCELLED)
-              .when("Booking.status", "=", "accepted")
-              .then(BookingStatus.ACCEPTED)
-              .when("Booking.status", "=", "rejected")
-              .then(BookingStatus.REJECTED)
-              .when("Booking.status", "=", "pending")
-              .then(BookingStatus.PENDING)
-              .when("Booking.status", "=", "awaiting_host")
-              .then(BookingStatus.AWAITING_HOST)
-              .else(BookingStatus.PENDING)
-              .end(),
-            "varchar"
-          )
-          .as("status"),
-        "Booking.paid",
-        "Booking.fromReschedule",
-        "Booking.rescheduled",
-        "Booking.rescheduledBy",
-        "Booking.cancelledBy",
-        "Booking.isRecorded",
-        "Booking.cancellationReason",
-        "Booking.rejectionReason",
-        jsonObjectFrom(
-          eb
-            .selectFrom("App_RoutingForms_FormResponse")
-            .select("id")
-            .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
-        ).as("routedFromRoutingFormReponse"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("EventType")
-            .select((eb) => [
-              "EventType.slug",
-              "EventType.id",
-              "EventType.title",
-              "EventType.eventName",
-              "EventType.price",
-              "EventType.recurringEvent",
-              "EventType.currency",
-              "EventType.metadata",
-              "EventType.disableGuests",
-              "EventType.bookingFields",
-              "EventType.seatsPerTimeSlot",
-              "EventType.seatsShowAttendees",
-              "EventType.seatsShowAvailabilityCount",
-              "EventType.eventTypeColor",
-              "EventType.customReplyToEmail",
-              "EventType.allowReschedulingPastBookings",
-              "EventType.hideOrganizerEmail",
-              "EventType.disableCancelling",
-              "EventType.disableRescheduling",
-              "EventType.minimumRescheduleNotice",
-              "EventType.teamId",
-              "EventType.parentId",
-              eb
-                .cast<SchedulingType | null>(
-                  eb
-                    .case()
-                    .when("EventType.schedulingType", "=", "roundRobin")
-                    .then(SchedulingType.ROUND_ROBIN)
-                    .when("EventType.schedulingType", "=", "collective")
-                    .then(SchedulingType.COLLECTIVE)
-                    .when("EventType.schedulingType", "=", "managed")
-                    .then(SchedulingType.MANAGED)
-                    .else(null)
-                    .end(),
-                  "varchar"
-                )
-                .as("schedulingType"),
-              jsonArrayFrom(
-                eb
-                  .selectFrom("Host")
-                  .select((eb) => [
-                    "Host.userId",
-                    jsonObjectFrom(
-                      eb
-                        .selectFrom("users")
-                        .select(["users.id", "users.email"])
-                        .whereRef("Host.userId", "=", "users.id")
-                    ).as("user"),
-                  ])
-                  .whereRef("Host.eventTypeId", "=", "EventType.id")
-              ).as("hosts"),
-              "EventType.length",
-              jsonObjectFrom(
-                eb
-                  .selectFrom("Team")
-                  .select(["Team.id", "Team.name", "Team.slug"])
-                  .whereRef("EventType.teamId", "=", "Team.id")
-              ).as("team"),
-              jsonArrayFrom(
-                eb
-                  .selectFrom("HostGroup")
-                  .select(["HostGroup.id", "HostGroup.name"])
-                  .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
-              ).as("hostGroups"),
-            ])
-            .whereRef("EventType.id", "=", "Booking.eventTypeId")
-        ).as("eventType"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("BookingReference")
-            .selectAll()
-            .whereRef("BookingReference.bookingId", "=", "Booking.id")
-        ).as("references"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("Payment")
-            .select([
-              "Payment.paymentOption",
-              "Payment.amount",
-              "Payment.currency",
-              "Payment.success",
-              "Payment.appId",
-              "Payment.refunded",
-            ])
-            .whereRef("Payment.bookingId", "=", "Booking.id")
-        ).as("payment"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("users")
-            .select([
-              "users.id",
-              "users.name",
-              "users.email",
-              "users.avatarUrl",
-              "users.username",
-              "users.timeZone",
-            ])
-            .whereRef("Booking.userId", "=", "users.id")
-        ).as("user"),
-        jsonArrayFrom(
-          eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
-        ).as("attendees"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("BookingSeat")
-            .select((eb) => [
-              "BookingSeat.referenceUid",
-              jsonObjectFrom(
-                eb
-                  .selectFrom("Attendee")
-                  .select(["Attendee.email"])
-                  .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-              ).as("attendee"),
-            ])
-            .whereRef("BookingSeat.bookingId", "=", "Booking.id")
-        ).as("seatsReferences"),
-        jsonArrayFrom(
-          eb
-            .selectFrom("AssignmentReason")
-            .selectAll()
-            .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
-            .orderBy("AssignmentReason.createdAt", "desc")
-            .limit(1)
-        ).as("assignmentReason"),
-        jsonObjectFrom(
-          eb
-            .selectFrom("BookingReport")
-            .select([
-              "BookingReport.id",
-              "BookingReport.reportedById",
-              "BookingReport.reason",
-              "BookingReport.description",
-              "BookingReport.createdAt",
-            ])
-            .whereRef("BookingReport.bookingUid", "=", "Booking.uid")
-        ).as("report"),
-      ])
-      .orderBy(orderBy.key, orderBy.order)
-      .execute();
-  }
-
-  private async enrichAttendeesWithUserData<
+  protected async enrichAttendeesWithUserData<
     TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> },
   >(
     bookings: TBooking[],
@@ -1150,7 +603,7 @@ export class GetBookingsRepository {
     }));
   }
 
-  private async getEventTypeIdsFromTeamIdsFilter(teamIds?: number[]) {
+  protected async getEventTypeIdsFromTeamIdsFilter(teamIds?: number[]) {
     if (!teamIds || teamIds.length === 0) {
       return undefined;
     }
@@ -1158,29 +611,24 @@ export class GetBookingsRepository {
     const result = await this.deps.prismaClient.$queryRaw<{ id: number }[]>`
       SELECT "child"."id"
       FROM "public"."EventType" AS "parent"
-      LEFT JOIN "public"."EventType" "child" ON ("parent"."id") = ("child"."parentId")
-      WHERE "parent"."id" IN (SELECT "id" FROM "public"."EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))
-        AND "child"."id" IS NOT NULL
-      UNION
-      SELECT "parent"."id"
-      FROM "public"."EventType" AS "parent"
+      LEFT JOIN "public"."EventType" AS "child" ON "parent"."id" = "child"."parentId"
       WHERE "parent"."teamId" IN (${Prisma.join(teamIds)})
+      UNION
+      SELECT "id" FROM "public"."EventType" WHERE "teamId" IN (${Prisma.join(teamIds)})
     `;
 
-    return result.map((row) => row.id);
+    return result.map((r) => r.id);
   }
 
-  private async getAttendeeEmailsFromUserIdsFilter(userEmail: string, userIds?: number[]) {
+  protected async getAttendeeEmailsFromUserIdsFilter(currentUserEmail: string, userIds?: number[]) {
     if (!userIds || userIds.length === 0) {
-      return;
+      return undefined;
     }
 
     const attendeeEmailsFromUserIdsFilter = await this.deps.prismaClient.user
       .findMany({
         where: {
-          id: {
-            in: userIds,
-          },
+          id: { in: userIds },
         },
         select: {
           email: true,
@@ -1195,7 +643,7 @@ export class GetBookingsRepository {
     return attendeeEmailsFromUserIdsFilter;
   }
 
-  private async getEventTypeIdsFromEventTypeIdsFilter(eventTypeIds?: number[]) {
+  protected async getEventTypeIdsFromEventTypeIdsFilter(eventTypeIds?: number[]) {
     if (!eventTypeIds || eventTypeIds.length === 0) {
       return undefined;
     }
@@ -1236,7 +684,7 @@ export class GetBookingsRepository {
     return eventTypeIdsFromDb;
   }
 
-  private async getUserIdsFromTeamIds(teamIds: number[]): Promise<number[]> {
+  protected async getUserIdsFromTeamIds(teamIds: number[]): Promise<number[]> {
     if (teamIds.length === 0) {
       return [];
     }
@@ -1258,7 +706,7 @@ export class GetBookingsRepository {
     return Array.from(new Set(users.map((user) => user.id)));
   }
 
-  private addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
+  protected addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
     if (statuses?.length) {
       return query.where(({ eb, or, and }) =>
         or(
@@ -1307,7 +755,7 @@ export class GetBookingsRepository {
     return query;
   }
 
-  private addAdvancedAttendeeWhereClause(
+  protected addAdvancedAttendeeWhereClause(
     query: BookingsUnionQuery,
     key: "name" | "email",
     operator:
@@ -1374,7 +822,7 @@ export class GetBookingsRepository {
     return fullQuery;
   }
 
-  private getOrderBy(
+  protected getOrderBy(
     bookingListingByStatus: InputByStatus[],
     sort?: GetBookingsSortOptions
   ): { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" } {
