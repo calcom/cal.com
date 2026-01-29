@@ -112,14 +112,16 @@ export class TeamService {
     return orgInviteLink;
   }
   /**
-   * Deletes a team and all its associated data in a safe, transactional order.
+   * Soft deletes a team by setting the deletedAt timestamp.
+   * The team will no longer appear in normal queries but will be hard deleted
+   * by a scheduled job after 15 days.
+   *
    * External, critical services like billing are handled first to prevent data inconsistencies.
    */
   static async delete({ id }: { id: number }) {
     // Step 1: Cancel the external billing subscription first.
     // If this fails, the entire operation aborts, leaving the team and its data intact.
     // This prevents a state where the user is billed for a deleted team.
-    // const teamBilling = await TeamBillingService.findAndInit(id);
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = await teamBillingServiceFactory.findAndInit(id);
     await teamBillingService.cancel();
@@ -134,16 +136,18 @@ export class TeamService {
       logger.error(`Failed to delete workflow reminders for team ${id}`, e);
     }
 
-    // Step 3: Delete the team from the database. This is the core "commit" point.
+    // Step 3: Soft delete the team by setting deletedAt timestamp.
+    // The team will be hard deleted by a scheduled job after 15 days.
     const teamRepo = new TeamRepository(prisma);
-    const deletedTeam = await teamRepo.deleteById({ id });
+    const softDeletedTeam = await teamRepo.softDelete({ id });
 
     // Step 4: Clean up any final, non-critical external state.
-    if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
-      deleteDomain(deletedTeam.slug);
+    // Note: Domain cleanup happens immediately since the team is effectively "deleted" from user perspective.
+    if (softDeletedTeam && softDeletedTeam.isOrganization && softDeletedTeam.slug) {
+      deleteDomain(softDeletedTeam.slug);
     }
 
-    return deletedTeam;
+    return softDeletedTeam;
   }
 
   static async removeMembers({

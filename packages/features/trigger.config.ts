@@ -21,6 +21,7 @@ export default defineConfig({
     "./calendars/lib/tasker/trigger",
     "./ee/billing/service/proration/tasker/trigger",
     "./ee/organizations/lib/billing/tasker/trigger",
+    "./ee/teams/lib/tasker/trigger",
   ], // Customize based on your project structure
 
   // Retry configuration

@@ -170,10 +170,8 @@ export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findById({ id }: { id: number }) {
-    const team = await this.prismaClient.team.findUnique({
-      where: {
-        id,
-      },
+    const team = await this.prismaClient.team.findFirst({
+      where: { id },
       select: teamSelect,
     });
     if (!team) {
@@ -183,10 +181,8 @@ export class TeamRepository {
   }
 
   async findByIdIncludePlatformBilling({ id }: { id: number }) {
-    const team = await this.prismaClient.team.findUnique({
-      where: {
-        id,
-      },
+    const team = await this.prismaClient.team.findFirst({
+      where: { id },
       select: { ...teamSelect, platformBilling: true },
     });
     if (!team) {
@@ -203,9 +199,7 @@ export class TeamRepository {
     select?: Prisma.TeamSelect;
   }) {
     return await this.prismaClient.team.findMany({
-      where: {
-        parentId,
-      },
+      where: { parentId },
       select,
     });
   }
@@ -220,10 +214,7 @@ export class TeamRepository {
     select?: Prisma.TeamSelect;
   }) {
     return await this.prismaClient.team.findFirst({
-      where: {
-        id,
-        parentId,
-      },
+      where: { id, parentId },
       select,
     });
   }
@@ -275,7 +266,7 @@ export class TeamRepository {
   }
 
   async findTeamWithMembers(teamId: number) {
-    return await this.prismaClient.team.findUnique({
+    return await this.prismaClient.team.findFirst({
       where: { id: teamId },
       select: {
         members: {
@@ -299,6 +290,11 @@ export class TeamRepository {
         // This became necessary when we started migrating user to Org, without migrating some teams of the user to the org
         // Also, we would allow a user to be part of multiple orgs, then also it would be necessary.
         userId: userId,
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
       },
       include: {
         team: {
@@ -358,6 +354,11 @@ export class TeamRepository {
         role: {
           in: [MembershipRole.OWNER, MembershipRole.ADMIN],
         },
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
       },
       include: {
         team: {
@@ -375,7 +376,7 @@ export class TeamRepository {
   }
 
   async findTeamWithOrganizationSettings(teamId: number) {
-    return await this.prismaClient.team.findUnique({
+    return await this.prismaClient.team.findFirst({
       where: { id: teamId },
       select: {
         parent: {
@@ -389,10 +390,8 @@ export class TeamRepository {
   }
 
   async findParentOrganizationByTeamId(teamId: number) {
-    const team = await this.prismaClient.team.findUnique({
-      where: {
-        id: teamId,
-      },
+    const team = await this.prismaClient.team.findFirst({
+      where: { id: teamId },
       select: {
         parent: {
           select: {
@@ -422,10 +421,8 @@ export class TeamRepository {
   }
 
   async findTeamSlugById({ id }: { id: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: {
-        id,
-      },
+    return await this.prismaClient.team.findFirst({
+      where: { id },
       select: {
         slug: true,
       },
@@ -433,7 +430,7 @@ export class TeamRepository {
   }
 
   async findTeamWithParentHideBranding({ teamId }: { teamId: number }) {
-    return await this.prismaClient.team.findUnique({
+    return await this.prismaClient.team.findFirst({
       where: { id: teamId },
       select: {
         hideBranding: true,
@@ -509,10 +506,8 @@ export class TeamRepository {
   }
 
   async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: {
-        id: teamId,
-      },
+    return await this.prismaClient.team.findFirst({
+      where: { id: teamId },
       select: {
         id: true,
         metadata: true,
@@ -532,9 +527,7 @@ export class TeamRepository {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
-        id: {
-          not: excludeTeamId,
-        },
+        id: { not: excludeTeamId },
       },
       select: { id: true },
     });
@@ -637,6 +630,43 @@ export class TeamRepository {
             },
           },
         },
+      },
+    });
+  }
+
+  /**
+   * Soft delete a team by setting the deletedAt timestamp.
+   * The team will no longer appear in normal queries but can be hard deleted later.
+   */
+  async softDelete({ id }: { id: number }) {
+    return await this.prismaClient.team.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  /**
+   * Find teams that have been soft deleted for longer than the specified number of days.
+   * Used by the scheduled cleanup job to find teams ready for hard deletion.
+   * This method intentionally bypasses the soft delete filter.
+   */
+  async findSoftDeletedOlderThan({ days }: { days: number }) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    return await this.prismaClient.team.findMany({
+      where: {
+        deletedAt: {
+          not: null,
+          lt: cutoffDate,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isOrganization: true,
+        deletedAt: true,
       },
     });
   }

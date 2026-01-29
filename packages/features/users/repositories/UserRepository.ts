@@ -127,6 +127,11 @@ export class UserRepository {
     const teamMemberships = await this.prismaClient.membership.findMany({
       where: {
         userId: userId,
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
       },
       include: {
         team: {

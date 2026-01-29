@@ -58,18 +58,19 @@ describe("TeamService", () => {
   });
 
   describe("delete", () => {
-    it("should delete team, cancel billing, and clean up", async () => {
-      const mockDeletedTeam = {
+    it("should soft delete team, cancel billing, and clean up", async () => {
+      const mockSoftDeletedTeam = {
         id: 1,
         name: "Deleted Team",
         isOrganization: true,
         slug: "deleted-team",
+        deletedAt: new Date(),
       };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       const mockTeamRepo = {
-        deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
-      } as Pick<TeamRepository, "deleteById">;
+        softDelete: vi.fn().mockResolvedValue(mockSoftDeletedTeam),
+      } as Pick<TeamRepository, "softDelete">;
       vi.mocked(TeamRepository).mockImplementation(function () {
         return mockTeamRepo;
       });
@@ -79,9 +80,9 @@ describe("TeamService", () => {
       expect(mockTeamBillingFactory.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.cancel).toHaveBeenCalled();
       expect(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).toHaveBeenCalledWith(1);
-      expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
+      expect(mockTeamRepo.softDelete).toHaveBeenCalledWith({ id: 1 });
       expect(deleteDomain).toHaveBeenCalledWith("deleted-team");
-      expect(result).toEqual(mockDeletedTeam);
+      expect(result).toEqual(mockSoftDeletedTeam);
     });
   });
 
