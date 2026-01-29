@@ -2,34 +2,70 @@
  * Unit Tests for Webhook Task Queuing
  *
  * These tests verify that webhook tasks are correctly queued via the producer.
- * They use a mocked Tasker (infrastructure boundary) while testing the real
+ * They use a mocked WebhookTasker (infrastructure boundary) while testing the real
  * WebhookTaskerProducerService.
  *
  * This pattern can be used as a template for testing any service that queues webhooks.
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import {
-  createMockLogger,
-  createMockTasker,
-  expectWebhookTaskQueued,
-  expectWebhookTaskNotQueued,
-  expectWebhookTasksQueuedCount,
-  getQueuedWebhookTasks,
-} from "@calcom/testing/lib/mocks/index";
+import { createMockLogger } from "@calcom/testing/lib/mocks/index";
 
+import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
 
+function createMockWebhookTasker() {
+  return {
+    deliverWebhook: vi.fn().mockResolvedValue({ taskId: "mock-task-id" }),
+  };
+}
+
+function expectWebhookDeliveryQueued(
+  mockWebhookTasker: ReturnType<typeof createMockWebhookTasker>,
+  expected: Partial<WebhookTaskPayload>
+) {
+  expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(expect.objectContaining(expected));
+}
+
+function expectWebhookDeliveryNotQueued(
+  mockWebhookTasker: ReturnType<typeof createMockWebhookTasker>,
+  triggerEvent?: WebhookTriggerEvents
+) {
+  if (triggerEvent) {
+    const calls = mockWebhookTasker.deliverWebhook.mock.calls as unknown as [WebhookTaskPayload][];
+    const matching = calls.filter(([payload]) => payload.triggerEvent === triggerEvent);
+    expect(matching).toHaveLength(0);
+  } else {
+    expect(mockWebhookTasker.deliverWebhook).not.toHaveBeenCalled();
+  }
+}
+
+function expectWebhookDeliveriesCount(
+  mockWebhookTasker: ReturnType<typeof createMockWebhookTasker>,
+  count: number
+) {
+  expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledTimes(count);
+}
+
+function getQueuedWebhookPayloads(mockWebhookTasker: ReturnType<typeof createMockWebhookTasker>) {
+  return (mockWebhookTasker.deliverWebhook.mock.calls as unknown as [WebhookTaskPayload][]).map(
+    ([payload]) => payload
+  );
+}
+
 describe("Webhook Task Queuing - Unit Tests", () => {
-  let mockTasker: ReturnType<typeof createMockTasker>;
+  let mockWebhookTasker: ReturnType<typeof createMockWebhookTasker>;
   let mockLogger: ReturnType<typeof createMockLogger>;
   let webhookProducer: WebhookTaskerProducerService;
 
   beforeEach(() => {
-    mockTasker = createMockTasker();
+    mockWebhookTasker = createMockWebhookTasker();
     mockLogger = createMockLogger();
-    webhookProducer = new WebhookTaskerProducerService(mockTasker, mockLogger);
+    webhookProducer = new WebhookTaskerProducerService({
+      webhookTasker: mockWebhookTasker as never,
+      logger: mockLogger,
+    });
   });
 
   describe("BOOKING_CREATED webhook", () => {
@@ -42,7 +78,7 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         orgId: 200,
       });
 
-      expectWebhookTaskQueued(mockTasker, {
+      expectWebhookDeliveryQueued(mockWebhookTasker, {
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         bookingUid: "booking-123",
         eventTypeId: 10,
@@ -57,7 +93,7 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         bookingUid: "booking-456",
       });
 
-      const tasks = getQueuedWebhookTasks(mockTasker);
+      const tasks = getQueuedWebhookPayloads(mockWebhookTasker);
       expect(tasks).toHaveLength(1);
       expect(tasks[0]).toHaveProperty("operationId");
       expect(tasks[0]).toHaveProperty("timestamp");
@@ -74,7 +110,7 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         cancellationReason: "Schedule conflict",
       });
 
-      expectWebhookTaskQueued(mockTasker, {
+      expectWebhookDeliveryQueued(mockWebhookTasker, {
         triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
         bookingUid: "booking-789",
         cancelledBy: "user@example.com",
@@ -93,7 +129,7 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         rescheduleUid: "booking-old",
       });
 
-      expectWebhookTaskQueued(mockTasker, {
+      expectWebhookDeliveryQueued(mockWebhookTasker, {
         triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
         bookingUid: "booking-new",
         rescheduleId: 999,
@@ -110,7 +146,7 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         userId: 12,
       });
 
-      expectWebhookTaskQueued(mockTasker, {
+      expectWebhookDeliveryQueued(mockWebhookTasker, {
         triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
         bookingUid: "pending-booking",
       });
@@ -123,23 +159,23 @@ describe("Webhook Task Queuing - Unit Tests", () => {
       await webhookProducer.queueBookingCreatedWebhook({ bookingUid: "booking-2" });
       await webhookProducer.queueBookingCancelledWebhook({ bookingUid: "booking-3" });
 
-      expectWebhookTasksQueuedCount(mockTasker, 3);
+      expectWebhookDeliveriesCount(mockWebhookTasker, 3);
 
-      const tasks = getQueuedWebhookTasks(mockTasker);
+      const tasks = getQueuedWebhookPayloads(mockWebhookTasker);
       expect(tasks[0].bookingUid).toBe("booking-1");
       expect(tasks[1].bookingUid).toBe("booking-2");
       expect(tasks[2].bookingUid).toBe("booking-3");
     });
 
     it("should not queue tasks when nothing is called", () => {
-      expectWebhookTaskNotQueued(mockTasker);
+      expectWebhookDeliveryNotQueued(mockWebhookTasker);
     });
 
     it("should only queue specific trigger events", async () => {
       await webhookProducer.queueBookingCreatedWebhook({ bookingUid: "booking-1" });
 
-      expectWebhookTaskNotQueued(mockTasker, WebhookTriggerEvents.BOOKING_CANCELLED);
-      expectWebhookTaskNotQueued(mockTasker, WebhookTriggerEvents.BOOKING_RESCHEDULED);
+      expectWebhookDeliveryNotQueued(mockWebhookTasker, WebhookTriggerEvents.BOOKING_CANCELLED);
+      expectWebhookDeliveryNotQueued(mockWebhookTasker, WebhookTriggerEvents.BOOKING_RESCHEDULED);
     });
   });
 
@@ -150,7 +186,7 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         oAuthClientId: "oauth-client-123",
       });
 
-      expectWebhookTaskQueued(mockTasker, {
+      expectWebhookDeliveryQueued(mockWebhookTasker, {
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         bookingUid: "oauth-booking",
         oAuthClientId: "oauth-client-123",

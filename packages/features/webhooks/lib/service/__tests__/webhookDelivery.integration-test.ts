@@ -1,9 +1,17 @@
-import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User, Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 } from "uuid";
-import { afterAll, afterEach, beforeAll, describe, expect, test } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vitest";
+
+// Force async mode so tasks are written to DB (required for integration testing)
+// This must be set before importing the webhook container
+vi.stubEnv("ENABLE_ASYNC_TASKER", "true");
+vi.stubEnv("TRIGGER_SECRET_KEY", "test-secret");
+vi.stubEnv("TRIGGER_API_URL", "http://localhost:3030");
+
+// Import after env vars are stubbed
+const { getWebhookProducer } = await import("@calcom/features/di/webhooks/containers/webhook");
 
 /**
  * Webhook Producer Integration Tests
