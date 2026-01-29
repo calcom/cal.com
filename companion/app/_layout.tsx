@@ -322,6 +322,14 @@ function RootLayoutContent() {
           headerBlurEffect: Platform.OS === "ios" && isLiquidGlassAvailable() ? undefined : "light",
         }}
       />
+      <Stack.Screen
+        name="video/[bookingUid]"
+        options={{
+          headerShown: false,
+          presentation: "fullScreenModal",
+          animation: "fade",
+        }}
+      />
     </Stack>
   ) : (
     <LoginScreenComponent />
