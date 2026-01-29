@@ -57,6 +57,7 @@ import { OrganizationsTeamsRolesModule } from "@/modules/organizations/teams/rol
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationTeamWorkflowsController } from "@/modules/organizations/teams/workflows/controllers/org-team-workflows.controller";
+import { OrganizationsWorkflowsController } from "@/modules/organizations/workflows/controllers/organizations-workflows.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/users/index/controllers/organizations-users.controller";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
@@ -201,6 +202,7 @@ import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
     OrganizationTeamWorkflowsController,
+    OrganizationsWorkflowsController,
     OrganizationsEventTypesPrivateLinksController,
   ],
 })

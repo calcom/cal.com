@@ -10,11 +10,11 @@ import { Request } from "express";
 
 @Injectable()
 export class IsEventTypeWorkflowInTeam implements CanActivate {
-  constructor(private workflowsRepository: WorkflowsRepository) {}
+  constructor(private workflowsRepository: WorkflowsRepository) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { workflow?: WorkflowType }>();
-    const teamId: string = request.params.teamId;
+    const teamId: string | undefined = request.params.teamId ?? request.params.orgId;
     const workflowId: string = request.params.workflowId;
 
     if (!workflowId) {
@@ -22,14 +22,14 @@ export class IsEventTypeWorkflowInTeam implements CanActivate {
     }
 
     if (!teamId) {
-      throw new ForbiddenException("IsWorkflowInTeam - No team id found in request params.");
+      throw new ForbiddenException("IsWorkflowInTeam - No team/org id found in request params.");
     }
 
     const { canAccess, workflow } = await this.checkIfWorkflowIsInTeam(teamId, workflowId);
 
     if (!canAccess) {
       throw new ForbiddenException(
-        `IsTeamInOrg - Workflow with id=${workflowId} is not part of the team with id=${teamId}.`
+        `IsTeamInOrg - Workflow with id=${workflowId} is not part of the team/org with id=${teamId}.`
       );
     }
 
