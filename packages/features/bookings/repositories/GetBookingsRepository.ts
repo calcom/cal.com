@@ -79,7 +79,7 @@ export class GetBookingsRepository {
     take: number;
     skip: number;
   }) {
-    return this.findManyInternal({ ...params, projection: "web" });
+    return this.findManyInternalForWeb(params);
   }
 
   /**
@@ -96,10 +96,10 @@ export class GetBookingsRepository {
     take: number;
     skip: number;
   }) {
-    return this.findManyInternal({ ...params, projection: "api-v2" });
+    return this.findManyInternalForApiV2(params);
   }
 
-  private async findManyInternal({
+  private async findManyInternalForWeb({
     user,
     filters,
     kysely,
@@ -107,7 +107,6 @@ export class GetBookingsRepository {
     sort,
     take,
     skip,
-    projection,
   }: {
     user: { id: number; email: string; orgId?: number | null };
     filters: GetBookingsFilters;
@@ -116,7 +115,94 @@ export class GetBookingsRepository {
     sort?: GetBookingsSortOptions;
     take: number;
     skip: number;
-    projection: "web" | "api-v2";
+  }) {
+    const { bookingIds, orderBy, queryUnion } = await this.prepareBookingQuery({
+      user,
+      filters,
+      kysely,
+      bookingListingByStatus,
+      sort,
+      take,
+      skip,
+    });
+
+    const plainBookings =
+      bookingIds.length === 0 ? [] : await this.fetchBookingsWithRelationsForWeb(kysely, bookingIds, orderBy);
+
+    return this.processBookingsResult({
+      user,
+      filters,
+      kysely,
+      bookingListingByStatus,
+      sort,
+      take,
+      skip,
+      plainBookings,
+      orderBy,
+      queryUnion,
+    });
+  }
+
+  private async findManyInternalForApiV2({
+    user,
+    filters,
+    kysely,
+    bookingListingByStatus,
+    sort,
+    take,
+    skip,
+  }: {
+    user: { id: number; email: string; orgId?: number | null };
+    filters: GetBookingsFilters;
+    kysely: Kysely<DB>;
+    bookingListingByStatus: InputByStatus[];
+    sort?: GetBookingsSortOptions;
+    take: number;
+    skip: number;
+  }) {
+    const { bookingIds, orderBy, queryUnion } = await this.prepareBookingQuery({
+      user,
+      filters,
+      kysely,
+      bookingListingByStatus,
+      sort,
+      take,
+      skip,
+    });
+
+    const plainBookings =
+      bookingIds.length === 0 ? [] : await this.fetchBookingsWithRelationsForApiV2(kysely, bookingIds, orderBy);
+
+    return this.processBookingsResult({
+      user,
+      filters,
+      kysely,
+      bookingListingByStatus,
+      sort,
+      take,
+      skip,
+      plainBookings,
+      orderBy,
+      queryUnion,
+    });
+  }
+
+  private async prepareBookingQuery({
+    user,
+    filters,
+    kysely,
+    bookingListingByStatus,
+    sort,
+    take,
+    skip,
+  }: {
+    user: { id: number; email: string; orgId?: number | null };
+    filters: GetBookingsFilters;
+    kysely: Kysely<DB>;
+    bookingListingByStatus: InputByStatus[];
+    sort?: GetBookingsSortOptions;
+    take: number;
+    skip: number;
   }) {
     const { prismaClient } = this.deps;
     const permissionCheckService = new PermissionCheckService();
@@ -404,6 +490,57 @@ export class GetBookingsRepository {
 
     log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
 
+    return {
+      bookingIds: bookingsFromUnion.map((b) => b.id),
+      orderBy,
+      queryUnion,
+    };
+  }
+
+  private async processBookingsResult<
+    TBooking extends {
+      id: number;
+      startTime: Date;
+      endTime: Date;
+      fromReschedule: string | null;
+      attendees: Array<{ id: number; email: string }>;
+      seatsReferences: unknown[];
+      eventType: {
+        recurringEvent: unknown;
+        eventTypeColor: unknown;
+        price: number | null;
+        currency: string | null;
+        metadata: unknown;
+        seatsShowAttendees: boolean | null;
+        hosts: Array<{ user: { id: number; email: string } | null }> | null;
+      } | null;
+      user: { id: number } | null;
+    },
+  >({
+    user,
+    filters,
+    kysely,
+    bookingListingByStatus,
+    sort,
+    take,
+    skip,
+    plainBookings,
+    orderBy,
+    queryUnion,
+  }: {
+    user: { id: number; email: string; orgId?: number | null };
+    filters: GetBookingsFilters;
+    kysely: Kysely<DB>;
+    bookingListingByStatus: InputByStatus[];
+    sort?: GetBookingsSortOptions;
+    take: number;
+    skip: number;
+    plainBookings: TBooking[];
+    orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" };
+    queryUnion: BookingsUnionQuery;
+  }) {
+    const { prismaClient } = this.deps;
+
     const totalCount = Number(
       (
         await kysely
@@ -412,16 +549,6 @@ export class GetBookingsRepository {
           .executeTakeFirst()
       )?.bookingCount ?? 0
     );
-
-    const plainBookings =
-      bookingsFromUnion.length === 0
-        ? []
-        : await this.fetchBookingsWithRelations(
-            kysely,
-            bookingsFromUnion.map((b) => b.id),
-            orderBy,
-            projection
-          );
 
     const [recurringInfoBasic, recurringInfoExtended] = await Promise.all([
       prismaClient.booking.groupBy({
@@ -495,7 +622,7 @@ export class GetBookingsRepository {
       })
     );
 
-    const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+    const checkIfUserIsHost = (userId: number, booking: TBooking) => {
       if (booking.user?.id === userId) {
         return true;
       }
@@ -558,11 +685,10 @@ export class GetBookingsRepository {
     return { bookings: enrichedBookings, recurringInfo, totalCount };
   }
 
-  private async fetchBookingsWithRelations(
+  private async fetchBookingsWithRelationsForWeb(
     kysely: Kysely<DB>,
     bookingIds: number[],
-    orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" },
-    projection: "web" | "api-v2"
+    orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" }
   ) {
     return kysely
       .selectFrom("Booking")
@@ -579,9 +705,7 @@ export class GetBookingsRepository {
         "Booking.endTime",
         "Booking.metadata",
         "Booking.uid",
-        eb
-          .cast<Prisma.JsonValue>(eb.ref("Booking.responses"), "jsonb")
-          .as("responses"),
+        eb.cast<Prisma.JsonValue>(eb.ref("Booking.responses"), "jsonb").as("responses"),
         "Booking.recurringEventId",
         "Booking.location",
         eb
@@ -688,20 +812,12 @@ export class GetBookingsRepository {
             ])
             .whereRef("EventType.id", "=", "Booking.eventTypeId")
         ).as("eventType"),
-        // BookingReference - different fields based on projection
-        projection === "web"
-          ? jsonArrayFrom(
-              eb
-                .selectFrom("BookingReference")
-                .select(["BookingReference.type", "BookingReference.uid", "BookingReference.meetingId"])
-                .whereRef("BookingReference.bookingId", "=", "Booking.id")
-            ).as("references")
-          : jsonArrayFrom(
-              eb
-                .selectFrom("BookingReference")
-                .selectAll()
-                .whereRef("BookingReference.bookingId", "=", "Booking.id")
-            ).as("references"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("BookingReference")
+            .select(["BookingReference.type", "BookingReference.uid", "BookingReference.meetingId"])
+            .whereRef("BookingReference.bookingId", "=", "Booking.id")
+        ).as("references"),
         jsonArrayFrom(
           eb
             .selectFrom("Payment")
@@ -728,26 +844,21 @@ export class GetBookingsRepository {
             ])
             .whereRef("Booking.userId", "=", "users.id")
         ).as("user"),
-        // Attendee - different fields based on projection
-        projection === "web"
-          ? jsonArrayFrom(
-              eb
-                .selectFrom("Attendee")
-                .select([
-                  "Attendee.id",
-                  "Attendee.email",
-                  "Attendee.name",
-                  "Attendee.timeZone",
-                  "Attendee.phoneNumber",
-                  "Attendee.locale",
-                  "Attendee.noShow",
-                  "Attendee.bookingId",
-                ])
-                .whereRef("Attendee.bookingId", "=", "Booking.id")
-            ).as("attendees")
-          : jsonArrayFrom(
-              eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
-            ).as("attendees"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("Attendee")
+            .select([
+              "Attendee.id",
+              "Attendee.email",
+              "Attendee.name",
+              "Attendee.timeZone",
+              "Attendee.phoneNumber",
+              "Attendee.locale",
+              "Attendee.noShow",
+              "Attendee.bookingId",
+            ])
+            .whereRef("Attendee.bookingId", "=", "Booking.id")
+        ).as("attendees"),
         jsonArrayFrom(
           eb
             .selectFrom("BookingSeat")
@@ -762,30 +873,221 @@ export class GetBookingsRepository {
             ])
             .whereRef("BookingSeat.bookingId", "=", "Booking.id")
         ).as("seatsReferences"),
-        // AssignmentReason - different fields based on projection
-        projection === "web"
-          ? jsonArrayFrom(
+        jsonArrayFrom(
+          eb
+            .selectFrom("AssignmentReason")
+            .select([
+              "AssignmentReason.id",
+              "AssignmentReason.bookingId",
+              "AssignmentReason.reasonEnum",
+              "AssignmentReason.reasonString",
+              "AssignmentReason.createdAt",
+            ])
+            .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
+            .orderBy("AssignmentReason.createdAt", "desc")
+            .limit(1)
+        ).as("assignmentReason"),
+        jsonObjectFrom(
+          eb
+            .selectFrom("BookingReport")
+            .select([
+              "BookingReport.id",
+              "BookingReport.reportedById",
+              "BookingReport.reason",
+              "BookingReport.description",
+              "BookingReport.createdAt",
+            ])
+            .whereRef("BookingReport.bookingUid", "=", "Booking.uid")
+        ).as("report"),
+      ])
+      .orderBy(orderBy.key, orderBy.order)
+      .execute();
+  }
+
+  private async fetchBookingsWithRelationsForApiV2(
+    kysely: Kysely<DB>,
+    bookingIds: number[],
+    orderBy: { key: "startTime" | "endTime" | "createdAt" | "updatedAt"; order: "desc" | "asc" }
+  ) {
+    return kysely
+      .selectFrom("Booking")
+      .where("id", "in", bookingIds)
+      .select((eb) => [
+        "Booking.id",
+        "Booking.title",
+        "Booking.userPrimaryEmail",
+        "Booking.description",
+        "Booking.customInputs",
+        "Booking.startTime",
+        "Booking.createdAt",
+        "Booking.updatedAt",
+        "Booking.endTime",
+        "Booking.metadata",
+        "Booking.uid",
+        eb.cast<Prisma.JsonValue>(eb.ref("Booking.responses"), "jsonb").as("responses"),
+        "Booking.recurringEventId",
+        "Booking.location",
+        eb
+          .cast<BookingStatus>(
+            eb
+              .case()
+              .when("Booking.status", "=", "cancelled")
+              .then(BookingStatus.CANCELLED)
+              .when("Booking.status", "=", "accepted")
+              .then(BookingStatus.ACCEPTED)
+              .when("Booking.status", "=", "rejected")
+              .then(BookingStatus.REJECTED)
+              .when("Booking.status", "=", "pending")
+              .then(BookingStatus.PENDING)
+              .when("Booking.status", "=", "awaiting_host")
+              .then(BookingStatus.AWAITING_HOST)
+              .else(BookingStatus.PENDING)
+              .end(),
+            "varchar"
+          )
+          .as("status"),
+        "Booking.paid",
+        "Booking.fromReschedule",
+        "Booking.rescheduled",
+        "Booking.rescheduledBy",
+        "Booking.cancelledBy",
+        "Booking.isRecorded",
+        "Booking.cancellationReason",
+        "Booking.rejectionReason",
+        jsonObjectFrom(
+          eb
+            .selectFrom("App_RoutingForms_FormResponse")
+            .select("id")
+            .whereRef("App_RoutingForms_FormResponse.routedToBookingUid", "=", "Booking.uid")
+        ).as("routedFromRoutingFormReponse"),
+        jsonObjectFrom(
+          eb
+            .selectFrom("EventType")
+            .select((eb) => [
+              "EventType.slug",
+              "EventType.id",
+              "EventType.title",
+              "EventType.eventName",
+              "EventType.price",
+              "EventType.recurringEvent",
+              "EventType.currency",
+              "EventType.metadata",
+              "EventType.disableGuests",
+              "EventType.bookingFields",
+              "EventType.seatsPerTimeSlot",
+              "EventType.seatsShowAttendees",
+              "EventType.seatsShowAvailabilityCount",
+              "EventType.eventTypeColor",
+              "EventType.customReplyToEmail",
+              "EventType.allowReschedulingPastBookings",
+              "EventType.hideOrganizerEmail",
+              "EventType.disableCancelling",
+              "EventType.disableRescheduling",
+              "EventType.minimumRescheduleNotice",
+              "EventType.teamId",
+              "EventType.parentId",
               eb
-                .selectFrom("AssignmentReason")
-                .select([
-                  "AssignmentReason.id",
-                  "AssignmentReason.bookingId",
-                  "AssignmentReason.reasonEnum",
-                  "AssignmentReason.reasonString",
-                  "AssignmentReason.createdAt",
-                ])
-                .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
-                .orderBy("AssignmentReason.createdAt", "desc")
-                .limit(1)
-            ).as("assignmentReason")
-          : jsonArrayFrom(
-              eb
-                .selectFrom("AssignmentReason")
-                .selectAll()
-                .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
-                .orderBy("AssignmentReason.createdAt", "desc")
-                .limit(1)
-            ).as("assignmentReason"),
+                .cast<SchedulingType | null>(
+                  eb
+                    .case()
+                    .when("EventType.schedulingType", "=", "roundRobin")
+                    .then(SchedulingType.ROUND_ROBIN)
+                    .when("EventType.schedulingType", "=", "collective")
+                    .then(SchedulingType.COLLECTIVE)
+                    .when("EventType.schedulingType", "=", "managed")
+                    .then(SchedulingType.MANAGED)
+                    .else(null)
+                    .end(),
+                  "varchar"
+                )
+                .as("schedulingType"),
+              jsonArrayFrom(
+                eb
+                  .selectFrom("Host")
+                  .select((eb) => [
+                    "Host.userId",
+                    jsonObjectFrom(
+                      eb
+                        .selectFrom("users")
+                        .select(["users.id", "users.email"])
+                        .whereRef("Host.userId", "=", "users.id")
+                    ).as("user"),
+                  ])
+                  .whereRef("Host.eventTypeId", "=", "EventType.id")
+              ).as("hosts"),
+              "EventType.length",
+              jsonObjectFrom(
+                eb
+                  .selectFrom("Team")
+                  .select(["Team.id", "Team.name", "Team.slug"])
+                  .whereRef("EventType.teamId", "=", "Team.id")
+              ).as("team"),
+              jsonArrayFrom(
+                eb
+                  .selectFrom("HostGroup")
+                  .select(["HostGroup.id", "HostGroup.name"])
+                  .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
+              ).as("hostGroups"),
+            ])
+            .whereRef("EventType.id", "=", "Booking.eventTypeId")
+        ).as("eventType"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("BookingReference")
+            .selectAll()
+            .whereRef("BookingReference.bookingId", "=", "Booking.id")
+        ).as("references"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("Payment")
+            .select([
+              "Payment.paymentOption",
+              "Payment.amount",
+              "Payment.currency",
+              "Payment.success",
+              "Payment.appId",
+              "Payment.refunded",
+            ])
+            .whereRef("Payment.bookingId", "=", "Booking.id")
+        ).as("payment"),
+        jsonObjectFrom(
+          eb
+            .selectFrom("users")
+            .select([
+              "users.id",
+              "users.name",
+              "users.email",
+              "users.avatarUrl",
+              "users.username",
+              "users.timeZone",
+            ])
+            .whereRef("Booking.userId", "=", "users.id")
+        ).as("user"),
+        jsonArrayFrom(
+          eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+        ).as("attendees"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("BookingSeat")
+            .select((eb) => [
+              "BookingSeat.referenceUid",
+              jsonObjectFrom(
+                eb
+                  .selectFrom("Attendee")
+                  .select(["Attendee.email"])
+                  .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
+              ).as("attendee"),
+            ])
+            .whereRef("BookingSeat.bookingId", "=", "Booking.id")
+        ).as("seatsReferences"),
+        jsonArrayFrom(
+          eb
+            .selectFrom("AssignmentReason")
+            .selectAll()
+            .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
+            .orderBy("AssignmentReason.createdAt", "desc")
+            .limit(1)
+        ).as("assignmentReason"),
         jsonObjectFrom(
           eb
             .selectFrom("BookingReport")
