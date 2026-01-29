@@ -2,8 +2,9 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import type { EditLocationScreenHandle } from "@/components/screens/EditLocationScreen";
 import EditLocationScreenComponent from "@/components/screens/EditLocationScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
@@ -26,6 +27,9 @@ export default function EditLocationIOS() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const editLocationScreenRef = useRef<EditLocationScreenHandle>(null);
 
@@ -67,7 +71,7 @@ export default function EditLocationIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : theme.backgroundMuted,
           },
         }}
       />
@@ -86,7 +90,7 @@ export default function EditLocationIOS() {
             onPress={handleSave}
             disabled={isSaving}
             variant="prominent"
-            tintColor="#000"
+            tintColor={theme.text}
           >
             <Stack.Header.Icon sf="checkmark" />
           </Stack.Header.Button>
@@ -96,14 +100,14 @@ export default function EditLocationIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
       >
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={theme.text} />
           </View>
         ) : (
           <EditLocationScreenComponent

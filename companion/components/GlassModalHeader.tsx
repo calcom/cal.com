@@ -31,8 +31,8 @@ export function GlassModalHeader({
     <View
       style={{
         paddingTop: insets.top,
-        backgroundColor: "#FFFFFF",
       }}
+      className="bg-white dark:bg-black"
     >
       <View className="min-h-[44px] flex-row items-center justify-between px-4">
         {/* Back Button - matching native iOS style */}
@@ -45,7 +45,10 @@ export function GlassModalHeader({
         </AppPressable>
 
         {/* Title - centered */}
-        <Text className="flex-1 text-center text-[17px] font-semibold text-black" numberOfLines={1}>
+        <Text
+          className="flex-1 text-center text-[17px] font-semibold text-black dark:text-white"
+          numberOfLines={1}
+        >
           {title}
         </Text>
 
@@ -53,7 +56,7 @@ export function GlassModalHeader({
         {onAction ? (
           <AppPressable
             className={`h-11 min-w-[44px] items-center justify-center rounded-full ${
-              actionIcon ? "bg-[#F2F2F7]" : ""
+              actionIcon ? "bg-[#F2F2F7] dark:bg-[#262626]" : ""
             } ${isDisabled ? "opacity-40" : ""}`}
             onPress={onAction}
             disabled={isDisabled}
@@ -67,8 +70,10 @@ export function GlassModalHeader({
               <Ionicons name={actionIcon} size={22} color="#000" />
             ) : (
               // Text button style (like "Save", "Done")
-              <View className="items-center rounded-full bg-black px-4 py-2">
-                <Text className="text-[15px] font-semibold text-white">{actionLabel}</Text>
+              <View className="items-center rounded-full bg-black px-4 py-2 dark:bg-white">
+                <Text className="text-[15px] font-semibold text-white dark:text-black">
+                  {actionLabel}
+                </Text>
               </View>
             )}
           </AppPressable>

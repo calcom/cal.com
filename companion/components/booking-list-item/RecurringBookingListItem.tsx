@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   DropdownMenu,
@@ -58,6 +58,15 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
   onReportBooking,
   onCancelBooking,
 }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    icon: isDark ? "#FFFFFF" : "#3C3F44",
+    iconDestructive: "#800020",
+    iconDefault: isDark ? "#E5E5EA" : "#374151",
+  };
+
   const booking = group.firstUpcoming;
   const startTime = booking.start || booking.startTime || "";
   const endTime = booking.end || booking.endTime || "";
@@ -169,17 +178,25 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
   );
 
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
+      }}
+    >
       <Pressable
         onPress={() => onPress(group)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary"
-        android_ripple={{ color: "rgba(0, 0, 0, 0.1)" }}
+        className="active:bg-cal-bg-secondary dark:active:bg-[#171717]"
+        android_ripple={{ color: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }}
       >
         {/* Date and Time */}
         <View className="mb-2 flex-row flex-wrap items-center">
-          <Text className="text-sm font-medium text-cal-text">{formattedDate}</Text>
-          <Text className="ml-2 text-sm text-cal-text-secondary">{formattedTimeRange}</Text>
+          <Text className="text-sm font-medium text-cal-text dark:text-white">{formattedDate}</Text>
+          <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
+            {formattedTimeRange}
+          </Text>
         </View>
 
         {/* Badges Row */}
@@ -201,12 +218,14 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {/* Recurrence Pattern Text (for unconfirmed recurring) */}
         {group.hasUnconfirmed && group.recurrenceText && (
-          <Text className="mb-2 text-sm text-cal-text-secondary">{group.recurrenceText}</Text>
+          <Text className="mb-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
+            {group.recurrenceText}
+          </Text>
         )}
 
         {/* Title */}
         <Text
-          className={`mb-2 text-lg font-medium leading-5 text-cal-text ${isCancelled || isRejected ? "line-through" : ""}`}
+          className={`mb-2 text-lg font-medium leading-5 text-cal-text dark:text-white ${isCancelled || isRejected ? "line-through" : ""}`}
           numberOfLines={2}
         >
           {booking.title}
@@ -214,7 +233,10 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {/* Description */}
         {booking.description ? (
-          <Text className="mb-2 text-sm leading-5 text-cal-text-secondary" numberOfLines={1}>
+          <Text
+            className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#A3A3A3]"
+            numberOfLines={1}
+          >
             "{booking.description}"
           </Text>
         ) : null}
@@ -222,7 +244,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Host and Attendees */}
         {hostAndAttendeesDisplay ? (
           <View className="mb-2 flex-row items-center">
-            <Text className="text-sm text-cal-text">{hostAndAttendeesDisplay}</Text>
+            <Text className="text-sm text-cal-text dark:text-white">{hostAndAttendeesDisplay}</Text>
           </View>
         ) : null}
 
@@ -266,7 +288,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Confirm All / Reject All for unconfirmed recurring */}
         {group.hasUnconfirmed && onRejectAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg"
+            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#171717]"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -278,8 +300,10 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onRejectAll(group);
             }}
           >
-            <Ionicons name="close" size={16} color="#3C3F44" />
-            <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Reject all</Text>
+            <Ionicons name="close" size={16} color={colors.icon} />
+            <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
+              Reject all
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -305,7 +329,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Cancel All Remaining */}
         {onCancelAllRemaining && group.remainingCount > 0 && !group.hasUnconfirmed && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border bg-cal-bg"
+            className="flex-row items-center justify-center rounded-lg border bg-white dark:bg-[#171717]"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -330,10 +354,10 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Pressable
-                className="items-center justify-center rounded-lg border border-cal-border"
+                className="items-center justify-center rounded-lg border border-cal-border dark:border-cal-border-dark"
                 style={{ width: 32, height: 32 }}
               >
-                <Ionicons name="ellipsis-horizontal" size={18} color="#3C3F44" />
+                <Ionicons name="ellipsis-horizontal" size={18} color={colors.icon} />
               </Pressable>
             </DropdownMenuTrigger>
 
@@ -347,7 +371,11 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
                     <Ionicons
                       name={action.icon}
                       size={18}
-                      color={action.variant === "destructive" ? "#800020" : "#374151"}
+                      color={
+                        action.variant === "destructive"
+                          ? colors.iconDestructive
+                          : colors.iconDefault
+                      }
                       style={{ marginRight: 8 }}
                     />
                     <UIText className={action.variant === "destructive" ? "text-destructive" : ""}>
