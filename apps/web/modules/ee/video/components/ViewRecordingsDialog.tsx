@@ -12,7 +12,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import RecordingListSkeleton from "./RecordingListSkeleton";
@@ -99,6 +100,9 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
   const { t } = useLocale();
   const { setRecordingId, isFetching, recordingId } = useRecordingDownload();
   const router = useRouter();
+  const [deleteRecordingId, setDeleteRecordingId] = useState<string | null>(null);
+
+  const utils = trpc.useUtils();
 
   const { data: recordings } = trpc.viewer.calVideo.getCalVideoRecordings.useQuery(
     { roomName },
@@ -107,9 +111,31 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
     }
   );
 
+  const deleteRecordingMutation = trpc.viewer.calVideo.deleteCalVideoRecording.useMutation({
+    onSuccess: () => {
+      showToast(t("recording_deleted_successfully"), "success");
+      utils.viewer.calVideo.getCalVideoRecordings.invalidate({ roomName });
+      setDeleteRecordingId(null);
+    },
+    onError: () => {
+      showToast(t("error_deleting_recording"), "error");
+      setDeleteRecordingId(null);
+    },
+  });
+
   const handleDownloadClick = async (recordingId: string) => {
     // this would enable the getDownloadLinkOfCalVideoRecordings
     setRecordingId(recordingId);
+  };
+
+  const handleDeleteClick = (recordingId: string) => {
+    setDeleteRecordingId(recordingId);
+  };
+
+  const confirmDelete = () => {
+    if (deleteRecordingId) {
+      deleteRecordingMutation.mutate({ recordingId: deleteRecordingId, roomName });
+    }
   };
 
   return (
@@ -128,13 +154,21 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
                   <p className="text-subtle text-sm font-normal">{convertSecondsToMs(recording.duration)}</p>
                 </div>
                 {hasTeamPlan ? (
-                  <Button
-                    StartIcon="download"
-                    className="ml-4 lg:ml-0"
-                    loading={isFetching && recordingId === recording.id}
-                    onClick={() => handleDownloadClick(recording.id)}>
-                    {t("download")}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      StartIcon="download"
+                      loading={isFetching && recordingId === recording.id}
+                      onClick={() => handleDownloadClick(recording.id)}>
+                      {t("download")}
+                    </Button>
+                    <Button
+                      StartIcon="trash"
+                      color="destructive"
+                      loading={deleteRecordingMutation.isPending && deleteRecordingId === recording.id}
+                      onClick={() => handleDeleteClick(recording.id)}>
+                      {t("delete")}
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     tooltip={t("upgrade_to_access_recordings_description")}
@@ -152,6 +186,18 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
           <p className="font-semibold">{t("no_recordings_found")}</p>
         )
       )}
+      <Dialog
+        open={!!deleteRecordingId}
+        onOpenChange={(open) => !open && !deleteRecordingMutation.isPending && setDeleteRecordingId(null)}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_recording")}
+          confirmBtnText={t("confirm_delete_recording")}
+          isPending={deleteRecordingMutation.isPending}
+          onConfirm={confirmDelete}>
+          {t("delete_recording_confirmation")}
+        </ConfirmationDialogContent>
+      </Dialog>
     </>
   );
 };
