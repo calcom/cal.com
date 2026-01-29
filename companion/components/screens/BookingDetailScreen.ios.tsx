@@ -543,13 +543,11 @@ export function BookingDetailScreen({
                       numberOfLines={1}
                     >
                       {attendee.name || attendee.email}
+                      {statusIcon.label ? (
+                        <Text style={{ color: statusIcon.color }}> ({statusIcon.label})</Text>
+                      ) : null}
                     </Text>
                     <CopyButton text={attendee.name || attendee.email} />
-                    {statusIcon.label && (
-                      <Text className="text-[13px]" style={{ color: statusIcon.color }}>
-                        {statusIcon.label}
-                      </Text>
-                    )}
                   </View>
                 );
               })}
