@@ -17,6 +17,12 @@ import type {
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
+import {
+  buildPlatformCancelLink,
+  buildPlatformRescheduleLink,
+  buildStandardCancelLink,
+  buildStandardRescheduleLink,
+} from "./LinkBuilder";
 
 const translator = short();
 
@@ -328,16 +334,15 @@ export const getPlatformCancelLink = (
   seatUid?: string
 ): string => {
   if (calEvent.platformCancelUrl) {
-    const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${bookingUid}`);
-    platformCancelLink.searchParams.append("slug", calEvent.type);
-    if (calEvent.organizer.username) {
-      platformCancelLink.searchParams.append("username", calEvent.organizer.username);
-    }
-    platformCancelLink.searchParams.append("cancel", "true");
-    platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
-    if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
-    if (calEvent?.team) platformCancelLink.searchParams.append("teamId", calEvent.team.id.toString());
-    return platformCancelLink.toString();
+    return buildPlatformCancelLink({
+      platformCancelUrl: calEvent.platformCancelUrl,
+      uid: bookingUid,
+      slug: calEvent.type,
+      username: calEvent.organizer.username ?? undefined,
+      isRecurring: !!calEvent.recurringEvent,
+      seatReferenceUid: seatUid,
+      teamId: calEvent.team?.id,
+    });
   }
   return "";
 };
@@ -364,14 +369,13 @@ export const getCancelLink = (
     return getPlatformCancelLink(calEvent, Uid, seatReferenceUid);
   }
 
-  const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${Uid}`);
-  cancelLink.searchParams.append("cancel", "true");
-  cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
-  if (attendee?.email) {
-    cancelLink.searchParams.append("cancelledBy", attendee.email);
-  }
-  if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
-  return cancelLink.toString();
+  return buildStandardCancelLink({
+    bookerUrl: calEvent.bookerUrl ?? WEBAPP_URL,
+    uid: Uid,
+    cancelledBy: attendee?.email,
+    seatReferenceUid: seatReferenceUid || undefined,
+    isRecurring: !!calEvent.recurringEvent,
+  });
 };
 
 export const getPlatformRescheduleLink = (
@@ -387,16 +391,14 @@ export const getPlatformRescheduleLink = (
   seatUid?: string
 ): string => {
   if (calEvent.platformRescheduleUrl) {
-    const platformRescheduleLink = new URL(
-      `${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : bookingUid}`
-    );
-    platformRescheduleLink.searchParams.append("slug", calEvent.type);
-    if (calEvent.organizer.username) {
-      platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
-    }
-    platformRescheduleLink.searchParams.append("reschedule", "true");
-    if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
-    return platformRescheduleLink.toString();
+    return buildPlatformRescheduleLink({
+      platformRescheduleUrl: calEvent.platformRescheduleUrl,
+      uid: bookingUid,
+      slug: calEvent.type,
+      username: calEvent.organizer.username ?? undefined,
+      seatReferenceUid: seatUid,
+      teamId: calEvent.team?.id,
+    });
   }
   return "";
 };
@@ -428,15 +430,13 @@ export const getRescheduleLink = ({
     return getPlatformRescheduleLink(calEvent, Uid, seatUid);
   }
 
-  const url = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`);
-  if (allowRescheduleForCancelledBooking) {
-    url.searchParams.append("allowRescheduleForCancelledBooking", "true");
-  }
-  if (attendee?.email) {
-    url.searchParams.append("rescheduledBy", attendee.email);
-  }
-
-  return url.toString();
+  return buildStandardRescheduleLink({
+    bookerUrl: calEvent.bookerUrl ?? WEBAPP_URL,
+    uid: Uid,
+    rescheduledBy: attendee?.email,
+    seatReferenceUid: seatUid || undefined,
+    allowRescheduleForCancelledBooking,
+  });
 };
 
 type RichDescriptionCalEvent = {
