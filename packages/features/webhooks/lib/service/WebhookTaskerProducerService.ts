@@ -216,7 +216,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
    * Internal helper to queue task via WebhookTasker
    *
    * The WebhookTasker automatically selects the appropriate execution mode:
-   * - Production: Queues to InternalTasker for background processing
+   * - Production: Queues to Trigger.dev for background processing
    * - E2E Tests: Executes immediately via WebhookSyncTasker
    */
   private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {

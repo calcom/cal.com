@@ -12,7 +12,7 @@ import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
  * Dependencies: WebhookTasker and Logger.
  *
  * The WebhookTasker automatically handles async/sync mode selection:
- * - Production: Queues to InternalTasker for background processing
+ * - Production: Queues to Trigger.dev for background processing
  * - E2E Tests: Executes immediately via WebhookSyncTasker
  */
 const thisModule = createModule();
