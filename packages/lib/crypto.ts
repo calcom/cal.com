@@ -6,36 +6,30 @@ const OUTPUT_ENCODING = "hex";
 const IV_LENGTH = 16; // AES blocksize
 
 /**
- *
  * @param text Value to be encrypted
  * @param key Key used to encrypt value must be 32 bytes for AES256 encryption algorithm
- *
  * @returns Encrypted value using key
  */
-export const symmetricEncrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
+export function symmetricEncrypt(text: string, key: string): string {
+  const keyBuffer = Buffer.from(key, "base64");
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, _key, iv);
-  let ciphered = cipher.update(text, INPUT_ENCODING, OUTPUT_ENCODING);
-  ciphered += cipher.final(OUTPUT_ENCODING);
-  const ciphertext = `${iv.toString(OUTPUT_ENCODING)}:${ciphered}`;
+  const cipher = crypto.createCipheriv(ALGORITHM, keyBuffer, iv);
+  const ciphered = cipher.update(text, INPUT_ENCODING, OUTPUT_ENCODING) + cipher.final(OUTPUT_ENCODING);
 
-  return ciphertext;
-};
+  return `${iv.toString(OUTPUT_ENCODING)}:${ciphered}`;
+}
 
 /**
- *
  * @param text Value to decrypt
  * @param key Key used to decrypt value must be 32 bytes for AES256 encryption algorithm
+ * @returns Decrypted value
  */
-export const symmetricDecrypt = function (text: string, key: string) {
-  const _key = Buffer.from(key, "latin1");
-
-  const components = text.split(":");
-  const iv_from_ciphertext = Buffer.from(components.shift() || "", OUTPUT_ENCODING);
-  const decipher = crypto.createDecipheriv(ALGORITHM, _key, iv_from_ciphertext);
-  let deciphered = decipher.update(components.join(":"), OUTPUT_ENCODING, INPUT_ENCODING);
-  deciphered += decipher.final(INPUT_ENCODING);
+export function symmetricDecrypt(text: string, key: string): string {
+  const keyBuffer = Buffer.from(key, "base64");
+  const [ivHex, ...cipherParts] = text.split(":");
+  const iv = Buffer.from(ivHex, OUTPUT_ENCODING);
+  const decipher = crypto.createDecipheriv(ALGORITHM, keyBuffer, iv);
+  const deciphered = decipher.update(cipherParts.join(":"), OUTPUT_ENCODING, INPUT_ENCODING) + decipher.final(INPUT_ENCODING);
 
   return deciphered;
-};
+}
