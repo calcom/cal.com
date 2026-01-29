@@ -9,6 +9,14 @@ import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
+import type {
+  MessageInfo,
+  OptOutResult,
+  ScheduleSMSResult,
+  SendSMSResult,
+  VerifyNumberResult,
+} from "./twilioProvider.types";
+
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || IS_API_V2_E2E;
@@ -52,7 +60,7 @@ export const sendSMS = async ({
   isWhatsapp?: boolean;
   contentSid?: string;
   contentVariables?: Record<string, string>;
-}) => {
+}): Promise<SendSMSResult> => {
   log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId, contentSid }));
 
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
@@ -143,7 +151,7 @@ export const scheduleSMS = async ({
   isWhatsapp?: boolean;
   contentSid?: string;
   contentVariables?: Record<string, string>;
-}) => {
+}): Promise<ScheduleSMSResult> => {
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
@@ -205,12 +213,12 @@ export const scheduleSMS = async ({
   }
 };
 
-export const cancelSMS = async (referenceId: string) => {
+export const cancelSMS = async (referenceId: string): Promise<void> => {
   const twilio = createTwilioClient();
   await twilio.messages(referenceId).update({ status: "canceled" });
 };
 
-export const sendVerificationCode = async (phoneNumber: string) => {
+export const sendVerificationCode = async (phoneNumber: string): Promise<void> => {
   const twilio = createTwilioClient();
   if (process.env.TWILIO_VERIFY_SID) {
     await twilio.verify
@@ -219,7 +227,7 @@ export const sendVerificationCode = async (phoneNumber: string) => {
   }
 };
 
-export const verifyNumber = async (phoneNumber: string, code: string) => {
+export const verifyNumber = async (phoneNumber: string, code: string): Promise<VerifyNumberResult> => {
   const twilio = createTwilioClient();
   if (process.env.TWILIO_VERIFY_SID) {
     try {
@@ -233,7 +241,7 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
   }
 };
 
-export const getMessageBody = async (referenceId: string) => {
+export const getMessageBody = async (referenceId: string): Promise<string> => {
   const twilio = createTwilioClient();
   const message = await twilio.messages(referenceId).fetch();
   return message.body;
@@ -280,13 +288,13 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
   }
 }
 
-export async function getCountryCodeForNumber(phoneNumber: string) {
+export async function getCountryCodeForNumber(phoneNumber: string): Promise<string> {
   const twilio = createTwilioClient();
   const { countryCode } = await twilio.lookups.v2.phoneNumbers(phoneNumber).fetch();
   return countryCode;
 }
 
-export async function getMessageInfo(smsSid: string) {
+export async function getMessageInfo(smsSid: string): Promise<MessageInfo> {
   const twilio = createTwilioClient();
   const message = await twilio.messages(smsSid).fetch();
   const price = message.price ? Math.abs(parseFloat(message.price)) : null;
@@ -304,7 +312,7 @@ export async function validateWebhookRequest({
   requestUrl: string;
   params: object;
   signature: string;
-}) {
+}): Promise<boolean> {
   if (!process.env.TWILIO_TOKEN) {
     throw new Error("TWILIO_TOKEN is not set");
   }
@@ -318,9 +326,7 @@ export async function validateWebhookRequest({
   return isSignatureValid;
 }
 
-export async function determineOptOutType(
-  req: NextRequest
-): Promise<{ phoneNumber: string; optOutStatus: boolean } | { error: string }> {
+export async function determineOptOutType(req: NextRequest): Promise<OptOutResult> {
   const signature = req.headers.get("X-Twilio-Signature");
   const formData = await req.formData();
   const params = Object.fromEntries(formData.entries());
@@ -370,7 +376,7 @@ export async function determineOptOutType(
 
   return { phoneNumber, optOutStatus };
 }
-export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
+export async function deleteMultipleScheduledSMS(referenceIds: string[]): Promise<void> {
   const twilio = createTwilioClient();
 
   const pLimit = (await import("p-limit")).default;
