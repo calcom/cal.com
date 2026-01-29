@@ -11,12 +11,12 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Booking, EventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, EventType, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+
+const BATCH_SIZE_FOR_LIMIT_CHECKS = 50;
 
 export interface IBusyTimesService {
   bookingRepo: BookingRepository;
@@ -323,7 +323,7 @@ export class BusyTimesService {
 
     performance.mark("getBusyTimesForLimitChecksStart");
 
-    let busyTimes: EventBusyDetails[] = [];
+    const busyTimes: EventBusyDetails[] = [];
 
     if (!bookingLimits && !durationLimits) {
       return busyTimes;
@@ -343,50 +343,26 @@ export class BusyTimesService {
       })}`
     );
 
-    const where: Prisma.BookingWhereInput = {
-      userId: {
-        in: userIds,
-      },
+    const startTimeDate = limitDateFrom.toDate();
+    const endTimeDate = limitDateTo.toDate();
+
+    const bookings = await this.fetchBookingsForLimitChecksBatched({
+      userIds,
       eventTypeId,
-      status: BookingStatus.ACCEPTED,
-      // FIXME: bookings that overlap on one side will never be counted
-      startTime: {
-        gte: limitDateFrom.toDate(),
-      },
-      endTime: {
-        lte: limitDateTo.toDate(),
-      },
-    };
-
-    if (rescheduleUid) {
-      where.NOT = {
-        uid: rescheduleUid,
-      };
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where,
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        eventType: {
-          select: {
-            id: true,
-          },
-        },
-        title: true,
-        userId: true,
-      },
+      startTimeDate,
+      endTimeDate,
+      rescheduleUid,
     });
 
-    busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
-      start: dayjs(startTime).toDate(),
-      end: dayjs(endTime).toDate(),
-      title,
-      source: `eventType-${eventType?.id}-booking-${id}`,
-      userId,
-    }));
+    for (const booking of bookings) {
+      busyTimes.push({
+        start: new Date(booking.startTime),
+        end: new Date(booking.endTime),
+        title: booking.title,
+        source: `eventType-${booking.eventTypeId}-booking-${booking.id}`,
+        userId: booking.userId,
+      });
+    }
 
     logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
     performance.mark("getBusyTimesForLimitChecksEnd");
@@ -396,5 +372,117 @@ export class BusyTimesService {
       "getBusyTimesForLimitChecksEnd"
     );
     return busyTimes;
+  }
+
+  /**
+   * Fetches bookings for limit checks using batched parallel queries with raw SQL.
+   * This optimization improves performance for teams/orgs with many members by:
+   * 1. Splitting large userIds arrays into smaller batches
+   * 2. Running batch queries in parallel
+   * 3. Using PostgreSQL's ANY() operator which can be more efficient than IN for large arrays
+   */
+  private async fetchBookingsForLimitChecksBatched(params: {
+    userIds: number[];
+    eventTypeId: number;
+    startTimeDate: Date;
+    endTimeDate: Date;
+    rescheduleUid?: string | null;
+  }): Promise<
+    Array<{
+      id: number;
+      startTime: Date;
+      endTime: Date;
+      eventTypeId: number | null;
+      title: string;
+      userId: number | null;
+    }>
+  > {
+    const { userIds, eventTypeId, startTimeDate, endTimeDate, rescheduleUid } = params;
+
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const batches: number[][] = [];
+    for (let i = 0; i < userIds.length; i += BATCH_SIZE_FOR_LIMIT_CHECKS) {
+      batches.push(userIds.slice(i, i + BATCH_SIZE_FOR_LIMIT_CHECKS));
+    }
+
+    const batchResults = await Promise.all(
+      batches.map((batchUserIds) =>
+        this.fetchBookingsForLimitChecksBatch({
+          userIds: batchUserIds,
+          eventTypeId,
+          startTimeDate,
+          endTimeDate,
+          rescheduleUid,
+        })
+      )
+    );
+
+    return batchResults.flat();
+  }
+
+  /**
+   * Fetches bookings for a single batch of userIds using raw SQL with ANY() operator.
+   */
+  private async fetchBookingsForLimitChecksBatch(params: {
+    userIds: number[];
+    eventTypeId: number;
+    startTimeDate: Date;
+    endTimeDate: Date;
+    rescheduleUid?: string | null;
+  }): Promise<
+    Array<{
+      id: number;
+      startTime: Date;
+      endTime: Date;
+      eventTypeId: number | null;
+      title: string;
+      userId: number | null;
+    }>
+  > {
+    const { userIds, eventTypeId, startTimeDate, endTimeDate, rescheduleUid } = params;
+
+    if (rescheduleUid) {
+      return prisma.$queryRaw<
+        Array<{
+          id: number;
+          startTime: Date;
+          endTime: Date;
+          eventTypeId: number | null;
+          title: string;
+          userId: number | null;
+        }>
+      >`
+        SELECT id, "startTime", "endTime", "eventTypeId", title, "userId"
+        FROM "Booking"
+        WHERE "userId" = ANY(${userIds}::int[])
+          AND "eventTypeId" = ${eventTypeId}
+          AND status = 'accepted'
+          AND "startTime" >= ${startTimeDate}
+          AND "endTime" <= ${endTimeDate}
+          AND uid != ${rescheduleUid}
+      `;
+    }
+
+    return prisma.$queryRaw<
+      Array<{
+        id: number;
+        startTime: Date;
+        endTime: Date;
+        eventTypeId: number | null;
+        title: string;
+        userId: number | null;
+      }>
+    >`
+      SELECT id, "startTime", "endTime", "eventTypeId", title, "userId"
+      FROM "Booking"
+      WHERE "userId" = ANY(${userIds}::int[])
+        AND "eventTypeId" = ${eventTypeId}
+        AND status = 'accepted'
+        AND "startTime" >= ${startTimeDate}
+        AND "endTime" <= ${endTimeDate}
+    `;
   }
 }
