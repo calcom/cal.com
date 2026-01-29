@@ -137,10 +137,11 @@ export const bookingsRouter = router({
       input,
     });
   }),
-  getRoutingTrace: authedProcedure.input(ZGetRoutingTraceInputSchema).query(async ({ input }) => {
+  getRoutingTrace: authedProcedure.input(ZGetRoutingTraceInputSchema).query(async ({ input, ctx }) => {
     const { getRoutingTraceHandler } = await import("./getRoutingTrace.handler");
 
     return getRoutingTraceHandler({
+      ctx,
       input,
     });
   }),
