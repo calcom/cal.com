@@ -4,7 +4,6 @@ import { GetBookingsRepositoryForApiV2 } from "@calcom/features/bookings/reposit
 import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
 
 type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 export type SortOptions = {
@@ -42,7 +41,7 @@ type GetOptions = {
  * with the existing API v2 contract.
  */
 const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip, sort }: GetOptions) => {
-  const { user, kysely } = ctx;
+  const { user, prisma, kysely } = ctx;
 
   // Support both singular 'status' and plural 'statuses' for backward compatibility
   // Note: filters can be undefined at runtime despite the type definition, e.g., when
