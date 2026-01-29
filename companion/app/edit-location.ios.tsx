@@ -73,7 +73,7 @@ export default function EditLocationIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? glassBackground : theme.backgroundMuted,
+            backgroundColor: useGlassEffect ? glassBackground : theme.backgroundSecondary,
           },
         }}
       />
@@ -106,7 +106,7 @@ export default function EditLocationIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? glassBackground : theme.backgroundMuted,
+          backgroundColor: useGlassEffect ? glassBackground : theme.backgroundSecondary,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}

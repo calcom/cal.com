@@ -81,7 +81,7 @@ export default function EditAvailabilityDayIOS() {
             backgroundColor: useGlassEffect
               ? glassBackground
               : isDark
-                ? theme.backgroundMuted
+                ? theme.backgroundSecondary
                 : theme.background,
           },
         }}

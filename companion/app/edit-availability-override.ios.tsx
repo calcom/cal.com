@@ -91,7 +91,7 @@ export default function EditAvailabilityOverrideIOS() {
             backgroundColor: useGlassEffect
               ? glassBackground
               : isDark
-                ? theme.backgroundMuted
+                ? theme.backgroundSecondary
                 : theme.background,
           },
         }}

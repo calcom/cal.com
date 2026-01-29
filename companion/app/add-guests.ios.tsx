@@ -79,7 +79,7 @@ export default function AddGuestsIOS() {
             backgroundColor: useGlassEffect
               ? glassBackground
               : isDark
-                ? theme.backgroundMuted
+                ? theme.backgroundSecondary
                 : theme.background,
           },
         }}
@@ -118,7 +118,7 @@ export default function AddGuestsIOS() {
           backgroundColor: useGlassEffect
             ? glassBackground
             : isDark
-              ? theme.backgroundMuted
+              ? theme.backgroundSecondary
               : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,

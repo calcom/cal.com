@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import { useUserProfile } from "@/hooks";
 import { showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
@@ -44,6 +45,7 @@ export default function ProfileSheet() {
   const { data: userProfile, isLoading } = useUserProfile();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
@@ -122,6 +124,9 @@ export default function ProfileSheet() {
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
+  // Semi-transparent background to prevent flashes while preserving glass effect
+  const glassBackground = isDark ? "rgba(28, 28, 30, 0.01)" : "rgba(248, 248, 250, 0.01)";
+
   return (
     <>
       <Stack.Screen
@@ -135,7 +140,11 @@ export default function ProfileSheet() {
           sheetAllowedDetents: [0.7, 0.9],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : colors.background,
+            backgroundColor: useGlassEffect
+              ? glassBackground
+              : isDark
+                ? theme.backgroundSecondary
+                : theme.background,
           },
           headerStyle: {
             backgroundColor: "transparent",
@@ -143,18 +152,32 @@ export default function ProfileSheet() {
           headerBlurEffect: useGlassEffect ? undefined : isDark ? "dark" : "light",
           headerTintColor: colors.text,
           headerLeft: () => null,
-          headerRight: () => (
-            <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
-              <Ionicons name="close" size={24} color={colors.text} />
-            </TouchableOpacity>
-          ),
+          headerRight: () => null,
         }}
       />
+
+      <Stack.Header>
+        <Stack.Header.Title>You</Stack.Header.Title>
+
+        <Stack.Header.Right>
+          <Stack.Header.Button
+            onPress={handleClose}
+            variant="prominent"
+            tintColor={theme.backgroundEmphasis}
+          >
+            <Stack.Header.Icon sf="xmark" />
+          </Stack.Header.Button>
+        </Stack.Header.Right>
+      </Stack.Header>
 
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : colors.background,
+          backgroundColor: useGlassEffect
+            ? glassBackground
+            : isDark
+              ? theme.backgroundSecondary
+              : theme.background,
           paddingBottom: insets.bottom,
         }}
       >
