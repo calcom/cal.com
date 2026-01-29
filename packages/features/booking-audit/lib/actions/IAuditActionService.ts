@@ -41,6 +41,7 @@ export type GetDisplayTitleParams = {
 
 export type GetDisplayFieldsParams = {
   storedData: BaseStoredAuditData;
+  dbStore: EnrichmentDataStore;
 };
 
 /**
@@ -92,13 +93,12 @@ export interface IAuditActionService {
   getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
 
   /**
-   * Declare what data this action needs for getDisplayTitle
+   * Declare what data this action needs for getDisplayTitle and getDisplayFields
    * Returns identifiers to be bulk-fetched before enrichment
-   * Optional - implement only if the action needs data from the database
    * @param storedData - Parsed stored data { version, fields }
    * @returns Data requirements with arrays of identifiers to fetch
    */
-  getDataRequirements?(storedData: BaseStoredAuditData): DataRequirements;
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements;
 
   /**
    * Get the display title for the audit action

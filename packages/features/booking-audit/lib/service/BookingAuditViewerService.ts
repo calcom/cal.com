@@ -91,10 +91,7 @@ export class BookingAuditViewerService {
       bookingRepository: this.bookingRepository,
       membershipRepository: this.membershipRepository,
     });
-    this.actionServiceRegistry = new BookingAuditActionServiceRegistry({
-      attendeeRepository: this.attendeeRepository,
-      userRepository: this.userRepository,
-    });
+    this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
   }
 
   /**
@@ -121,8 +118,14 @@ export class BookingAuditViewerService {
 
     const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
-    // Collect all data requirements from action services and logs
-    const dataRequirements = this.collectDataRequirements(auditLogs);
+    // Check if this booking was created from a reschedule - fetch early for data requirements
+    const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
+    const rescheduledLogs = fromRescheduleUid
+      ? await this.bookingAuditRepository.findRescheduledLogsOfBooking(fromRescheduleUid)
+      : [];
+
+    // Collect all data requirements from action services and logs (including rescheduled logs)
+    const dataRequirements = this.collectDataRequirements([...auditLogs, ...rescheduledLogs]);
 
     // Bulk-fetch all required data
     const dbStore = await this.buildEnrichmentDataStore(dataRequirements);
@@ -140,15 +143,14 @@ export class BookingAuditViewerService {
       })
     );
 
-    const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
-
-    // Check if this booking was created from a reschedule
-    if (fromRescheduleUid) {
+    // Build rescheduled from log if applicable
+    if (fromRescheduleUid && rescheduledLogs.length > 0) {
       const rescheduledFromLog = await this.buildRescheduledFromLog({
         fromRescheduleUid,
         currentBookingUid: bookingUid,
         userTimeZone,
         dbStore,
+        rescheduledLogs,
       });
       if (rescheduledFromLog) {
         enrichedAuditLogs.push(rescheduledFromLog);
@@ -185,7 +187,7 @@ export class BookingAuditViewerService {
       : null;
 
     const displayFields = actionService.getDisplayFields
-      ? await actionService.getDisplayFields({ storedData: parsedData })
+      ? await actionService.getDisplayFields({ storedData: parsedData, dbStore })
       : null;
 
     const impersonatedBy = this.enrichImpersonator(log.context, dbStore);
@@ -263,14 +265,14 @@ export class BookingAuditViewerService {
     currentBookingUid,
     userTimeZone,
     dbStore,
+    rescheduledLogs,
   }: {
     fromRescheduleUid: string;
     currentBookingUid: string;
     userTimeZone: string;
     dbStore: EnrichmentDataStore;
+    rescheduledLogs: BookingAuditWithActor[];
   }): Promise<EnrichedAuditLog | null> {
-    const rescheduledLogs = await this.bookingAuditRepository.findRescheduledLogsOfBooking(fromRescheduleUid);
-
     // Find the specific log that created this booking by matching rescheduledToUid
     const rescheduledLog = this.rescheduledAuditActionService.getMatchingLog({
       rescheduledLogs,
@@ -449,9 +451,9 @@ export class BookingAuditViewerService {
         userUuids.add(context.impersonatedBy);
       }
 
-      // Collect requirements from action services
-      const actionService = this.actionServiceRegistry.getActionService(log.action);
-      if (actionService.getDataRequirements) {
+      // Collect requirements from action services (skip if data is invalid)
+      try {
+        const actionService = this.actionServiceRegistry.getActionService(log.action);
         const parsedData = actionService.parseStored(log.data);
         const requirements = actionService.getDataRequirements(parsedData);
         if (requirements.userUuids) {
@@ -459,6 +461,8 @@ export class BookingAuditViewerService {
             userUuids.add(uuid);
           }
         }
+      } catch {
+        // Invalid data will be handled during enrichment with fallback
       }
     }
 

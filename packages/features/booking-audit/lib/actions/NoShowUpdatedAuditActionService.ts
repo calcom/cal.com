@@ -1,10 +1,10 @@
-import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { Ensure } from "@calcom/types/utils";
 import { z } from "zod";
 import { BooleanChangeSchema } from "../common/changeSchemas";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  BaseStoredAuditData,
   GetDisplayFieldsParams,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
@@ -31,11 +31,6 @@ const fieldsSchemaV1 = z
     message: "At least one of host or attendeesNoShow must be provided",
   });
 
-type Deps = {
-  attendeeRepository: IAttendeeRepository;
-  userRepository: UserRepository;
-};
-
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
   readonly VERSION = 1;
   public static readonly TYPE = "NO_SHOW_UPDATED" as const;
@@ -54,7 +49,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     typeof NoShowUpdatedAuditActionService.storedDataSchema
   >;
 
-  constructor(private readonly deps: Deps) {
+  constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: this.VERSION,
       latestFieldsSchema: NoShowUpdatedAuditActionService.latestFieldsSchema,
@@ -90,6 +85,16 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     return fields.attendeesNoShow !== undefined;
   }
 
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
+    const { fields } = this.parseStored(storedData);
+    const parsedFields = fields as NoShowUpdatedAuditData;
+    const userUuids: string[] = [];
+    if (this.isHostSet(parsedFields)) {
+      userUuids.push(parsedFields.host.userUuid);
+    }
+    return { userUuids };
+  }
+
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
     const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
     const parsedFields = fields as NoShowUpdatedAuditData;
@@ -105,7 +110,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     throw new Error("Audit action data is invalid");
   }
 
-  async getDisplayFields({ storedData }: GetDisplayFieldsParams): Promise<
+  async getDisplayFields({ storedData, dbStore }: GetDisplayFieldsParams): Promise<
     Array<{
       labelKey: string;
       valueKey?: string;
@@ -126,7 +131,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     }
 
     if (this.isHostSet(parsedFields)) {
-      const user = await this.deps.userRepository.findByUuid({ uuid: parsedFields.host.userUuid });
+      const user = dbStore.getUserByUuid(parsedFields.host.userUuid);
       const hostName = user?.name || "Unknown";
       const hostFieldValue = `${hostName}:${parsedFields.host.noShow.new ? "Yes" : "No"}`;
       displayFields.push({ labelKey: "Host", value: hostFieldValue });

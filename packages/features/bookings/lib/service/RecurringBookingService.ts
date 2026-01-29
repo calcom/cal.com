@@ -162,7 +162,7 @@ export interface IRecurringBookingServiceDependencies {
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
 
   async fireBookingEvents({
     createdBookings,

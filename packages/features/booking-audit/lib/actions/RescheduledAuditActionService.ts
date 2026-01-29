@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
 
@@ -58,6 +59,10 @@ export class RescheduledAuditActionService implements IAuditActionService {
         // V1-only: validate and return as-is (no migration needed)
         const validated = fieldsSchemaV1.parse(data);
         return { isMigrated: false, latestData: validated };
+    }
+
+    getDataRequirements(): DataRequirements {
+        return { userUuids: [] };
     }
 
     async getDisplayTitle({

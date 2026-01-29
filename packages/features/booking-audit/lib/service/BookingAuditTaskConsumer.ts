@@ -82,10 +82,7 @@ export class BookingAuditTaskConsumer {
         this.userRepository = deps.userRepository;
 
         // Centralized registry for all action services
-        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({
-            attendeeRepository: this.attendeeRepository,
-            userRepository: this.userRepository,
-        });
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
     }
 
     /**

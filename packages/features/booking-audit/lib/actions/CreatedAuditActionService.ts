@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
@@ -22,9 +21,6 @@ const fieldsSchemaV1 = z.object({
     seatReferenceUid: z.string().nullish(),
 });
 
-type Deps = {
-    userRepository: UserRepository;
-};
 export class CreatedAuditActionService implements IAuditActionService {
     readonly VERSION = 1;
     public static readonly TYPE = "CREATED" as const;
@@ -40,7 +36,7 @@ export class CreatedAuditActionService implements IAuditActionService {
     public static readonly storedFieldsSchema = CreatedAuditActionService.fieldsSchemaV1;
     private helper: AuditActionServiceHelper<typeof CreatedAuditActionService.latestFieldsSchema, typeof CreatedAuditActionService.storedDataSchema>;
 
-    constructor(private readonly deps: Deps) {
+    constructor() {
         this.helper = new AuditActionServiceHelper({
             latestVersion: this.VERSION,
             latestFieldsSchema: CreatedAuditActionService.latestFieldsSchema,

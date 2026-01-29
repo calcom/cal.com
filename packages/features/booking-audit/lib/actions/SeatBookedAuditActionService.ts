@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
   GetDisplayTitleParams,
@@ -66,6 +67,10 @@ export class SeatBookedAuditActionService implements IAuditActionService {
     // V1-only: validate and return as-is (no migration needed)
     const validated = fieldsSchemaV1.parse(data);
     return { isMigrated: false, latestData: validated };
+  }
+
+  getDataRequirements(): DataRequirements {
+    return { userUuids: [] };
   }
 
   async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {

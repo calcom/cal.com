@@ -1,18 +1,12 @@
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { EnrichmentDataStore } from "../../service/EnrichmentDataStore";
 import { ReassignmentAuditActionService } from "../ReassignmentAuditActionService";
 
 describe("ReassignmentAuditActionService", () => {
   let service: ReassignmentAuditActionService;
-  let mockUserRepository: {
-    findByUuid: ReturnType<typeof vi.fn>;
-  };
 
   beforeEach(() => {
-    mockUserRepository = {
-      findByUuid: vi.fn(),
-    };
-    service = new ReassignmentAuditActionService(mockUserRepository as unknown as UserRepository);
+    service = new ReassignmentAuditActionService();
   });
 
   describe("getVersionedData", () => {
@@ -131,6 +125,44 @@ describe("ReassignmentAuditActionService", () => {
     });
   });
 
+  describe("getDataRequirements", () => {
+    it("should return userUuids for organizer change", () => {
+      const storedData = {
+        version: 1,
+        fields: {
+          organizerUuid: { old: "organizer-old", new: "organizer-new" },
+          reassignmentReason: "Host unavailable",
+          reassignmentType: "manual",
+        },
+      };
+
+      const result = service.getDataRequirements(storedData);
+
+      expect(result.userUuids).toContain("organizer-new");
+      expect(result.userUuids).toContain("organizer-old");
+    });
+
+    it("should return userUuids for attendee update", () => {
+      const storedData = {
+        version: 1,
+        fields: {
+          organizerUuid: { old: "fixed-host", new: "fixed-host" },
+          hostAttendeeUpdated: {
+            id: 123,
+            withUserUuid: { old: "old-rr-host", new: "new-rr-host" },
+          },
+          reassignmentReason: null,
+          reassignmentType: "roundRobin",
+        },
+      };
+
+      const result = service.getDataRequirements(storedData);
+
+      expect(result.userUuids).toContain("new-rr-host");
+      expect(result.userUuids).toContain("old-rr-host");
+    });
+  });
+
   describe("getDisplayTitle", () => {
     it("should return translation key with host name for manual reassignment (organizer changed)", async () => {
       const storedData = {
@@ -142,11 +174,12 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-new", name: "New Host" });
+      const dbStore = new EnrichmentDataStore({
+        users: [{ uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null }],
+      });
 
-      const result = await service.getDisplayTitle({ storedData });
+      const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
-      expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "organizer-new" });
       expect(result).toEqual({
         key: "booking_audit_action.booking_reassigned_to_host",
         params: { host: "New Host" },
@@ -167,11 +200,12 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "new-rr-host", name: "New RR Host" });
+      const dbStore = new EnrichmentDataStore({
+        users: [{ uuid: "new-rr-host", name: "New RR Host", email: "newrr@example.com", avatarUrl: null }],
+      });
 
-      const result = await service.getDisplayTitle({ storedData });
+      const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
-      expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "new-rr-host" });
       expect(result).toEqual({
         key: "booking_audit_action.booking_reassigned_to_host",
         params: { host: "New RR Host" },
@@ -188,9 +222,9 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      mockUserRepository.findByUuid.mockResolvedValue(null);
+      const dbStore = new EnrichmentDataStore({ users: [] });
 
-      const result = await service.getDisplayTitle({ storedData });
+      const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
       expect(result).toEqual({
         key: "booking_audit_action.booking_reassigned_to_host",
@@ -208,9 +242,11 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-new", name: null });
+      const dbStore = new EnrichmentDataStore({
+        users: [{ uuid: "organizer-new", name: null, email: "new@example.com", avatarUrl: null }],
+      });
 
-      const result = await service.getDisplayTitle({ storedData });
+      const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
       expect(result).toEqual({
         key: "booking_audit_action.booking_reassigned_to_host",
@@ -277,9 +313,11 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-old", name: "Previous Host" });
+      const dbStore = new EnrichmentDataStore({
+        users: [{ uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null }],
+      });
 
-      const result = await service.getDisplayFields({ storedData });
+      const result = await service.getDisplayFields({ storedData, dbStore });
 
       expect(result).toEqual([
         {
@@ -303,9 +341,11 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-old", name: "Previous Host" });
+      const dbStore = new EnrichmentDataStore({
+        users: [{ uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null }],
+      });
 
-      const result = await service.getDisplayFields({ storedData });
+      const result = await service.getDisplayFields({ storedData, dbStore });
 
       expect(result).toEqual([
         {

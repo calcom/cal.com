@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
   IAuditActionService,
@@ -64,6 +65,10 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
     // V1-only: validate and return as-is (no migration needed)
     const validated = fieldsSchemaV1.parse(data);
     return { isMigrated: false, latestData: validated };
+  }
+
+  getDataRequirements(): DataRequirements {
+    return { userUuids: [] };
   }
 
   async getDisplayTitle({ storedData, userTimeZone }: GetDisplayTitleParams): Promise<TranslationWithParams> {
