@@ -1,3 +1,6 @@
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -7,6 +10,9 @@ import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/typ
 import type { VariablesType } from "../templates/customTemplate";
 
 const messageLogger = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const constructVariablesForTemplate = (
   eventData: CalIdBookingInfo,
@@ -55,8 +61,8 @@ export const constructVariablesForTemplate = (
     ratingUrl: `${bookerBaseUrl}/booking/${eventData.uid}?rating`,
     noShowUrl: `${bookerBaseUrl}/booking/${eventData.uid}?noShow=true`,
     attendeeTimezone: eventData.attendees[0].timeZone,
-    eventStartTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
-    eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
+    eventStartTimeInAttendeeTimezone: dayjs.utc(eventStartTime).tz(eventData.attendees[0].timeZone),
+    eventEndTimeInAttendeeTimezone: dayjs.utc(eventEndTime).tz(eventData.attendees[0].timeZone),
     eventTime: formatTimestamp(eventData?.startTime, "ddd, MMM D, YYYY h:mma"),
     eventTimeFormatted: formatTimestamp(eventData?.startTime, "h:mma [GMT]Z"),
   };
