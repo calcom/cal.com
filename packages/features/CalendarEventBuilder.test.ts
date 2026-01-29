@@ -1550,7 +1550,7 @@ describe("CalendarEventBuilder", () => {
         username: "matchhost",
         timeZone: "America/New_York",
         language: { translate: mockTranslate, locale: "en" },
-        timeFormat: TimeFormat["TWENTY_FOUR_HOUR"],
+        timeFormat: TimeFormat.TWENTY_FOUR_HOUR,
       };
       const attendeePerson = {
         name: "Match User",
