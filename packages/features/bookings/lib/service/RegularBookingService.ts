@@ -51,6 +51,7 @@ import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignment
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import type { WorkflowTasker } from "@calcom/features/ee/workflows/lib/tasker/WorkflowTasker";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -481,6 +482,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+  workflowTasker: WorkflowTasker;
 }
 
 async function validateRescheduleRestrictions({
@@ -2829,37 +2831,58 @@ async function handler(
       isTeamEventType,
     });
 
-    // Unused until we deploy to trigger.dev production
-    // for now we only enable for cal.com org and we keep our current email system
-    // cal.com org members will see emails in double while we test
-    if (ENABLE_ASYNC_TASKER && !noEmail) {
-      try {
-        if (orgId) {
-          const hasTeamFeature = await deps.featuresRepository.checkIfTeamHasFeature(
-            orgId,
-            "booking-email-sms-tasker"
-          );
-          if (hasTeamFeature) {
-            await deps.bookingEmailAndSmsTasker.send({
-              action: bookingEmailsAndSmsTaskerAction,
-              schedulingType: evtWithMetadata.eventType.schedulingType,
-              payload: {
-                bookingId: booking.id,
-                conferenceCredentialId,
-                platformClientId,
-                platformRescheduleUrl,
-                platformCancelUrl,
-                platformBookingUrl,
-                isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
-              },
-            });
+      // Unused until we deploy to trigger.dev production
+      // for now we only enable for cal.com org and we keep our current email system
+      // cal.com org members will see emails in double while we test
+      if (ENABLE_ASYNC_TASKER && !noEmail) {
+        try {
+          if (orgId) {
+            const hasTeamFeature = await deps.featuresRepository.checkIfTeamHasFeature(
+              orgId,
+              "booking-email-sms-tasker"
+            );
+            if (hasTeamFeature) {
+              await deps.bookingEmailAndSmsTasker.send({
+                action: bookingEmailsAndSmsTaskerAction,
+                schedulingType: evtWithMetadata.eventType.schedulingType,
+                payload: {
+                  bookingId: booking.id,
+                  conferenceCredentialId,
+                  platformClientId,
+                  platformRescheduleUrl,
+                  platformCancelUrl,
+                  platformBookingUrl,
+                  isRescheduledByBooker: reqBody.rescheduledBy === bookerEmail,
+                },
+              });
+            }
           }
+        } catch (err) {
+          tracingLogger.error("bookingEmailAndSmsTasker error:", err);
         }
-      } catch (err) {
-        tracingLogger.error("bookingEmailAndSmsTasker error:", err);
+      }
+
+      if (ENABLE_ASYNC_TASKER && rescheduleUid) {
+        try {
+          if (orgId) {
+            const hasWorkflowTaskerFeature = await deps.featuresRepository.checkIfTeamHasFeature(
+              orgId,
+              "workflow-tasker"
+            );
+            if (hasWorkflowTaskerFeature) {
+              await deps.workflowTasker.scheduleRescheduleWorkflows({
+                bookingId: booking.id,
+                smsReminderNumber: smsReminderNumber || null,
+                hideBranding: !!eventType.owner?.hideBranding,
+                seatReferenceUid: evt.attendeeSeatId,
+              });
+            }
+          }
+        } catch (err) {
+          tracingLogger.error("workflowTasker error:", err);
+        }
       }
     }
-  }
 
   // TODO: Refactor better so this booking object is not passed
   // all around and instead the individual fields are sent as args.
