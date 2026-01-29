@@ -322,6 +322,8 @@ export class UserAvailabilityService {
     });
 
     return bookings.map((booking) => {
+      const seatsCount = booking._count?.seatsReferences;
+
       const attendees = isTeamEvent
         ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
         : booking.attendees;
@@ -330,7 +332,7 @@ export class UserAvailabilityService {
         uid: booking.uid,
         startTime: booking.startTime,
         _count: {
-          attendees: attendees.length,
+          attendees: seatsCount !== undefined ? seatsCount : attendees.length,
         },
       };
     });

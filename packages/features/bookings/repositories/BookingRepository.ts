@@ -1391,6 +1391,11 @@ export class BookingRepository implements IBookingRepository {
             email: true,
           },
         },
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
       },
     });
   }
