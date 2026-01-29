@@ -31,6 +31,7 @@ const initialData: AppFlags = {
   "booker-botid": false,
   "booking-calendar-view": false,
   "booking-email-sms-tasker": false,
+  "workflow-tasker": false,
   "bookings-v3": false,
   "booking-audit": false,
   "monthly-proration": false,

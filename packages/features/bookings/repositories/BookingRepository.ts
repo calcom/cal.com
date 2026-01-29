@@ -1581,14 +1581,54 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     });
   }
 
-  async getBookingForCalEventBuilderFromUid(bookingUid: string) {
-    return this.prismaClient.booking.findUnique({
-      where: { uid: bookingUid },
-      select: selectStatementToGetBookingForCalEventBuilder,
-    });
-  }
+    async getBookingForCalEventBuilderFromUid(bookingUid: string) {
+      return this.prismaClient.booking.findUnique({
+        where: { uid: bookingUid },
+        select: selectStatementToGetBookingForCalEventBuilder,
+      });
+    }
 
-  async findByIdIncludeDestinationCalendar(bookingId: number) {
+    async getBookingForWorkflowTasker(bookingId: number) {
+      return await this.prismaClient.booking.findUnique({
+        where: { id: bookingId },
+        select: {
+          ...selectStatementToGetBookingForCalEventBuilder,
+          id: true,
+          eventType: {
+            select: {
+              ...selectStatementToGetBookingForCalEventBuilder.eventType.select,
+              teamId: true,
+              userId: true,
+              parentId: true,
+              hosts: {
+                select: {
+                  userId: true,
+                  isFixed: true,
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      username: true,
+                      timeZone: true,
+                      locale: true,
+                      timeFormat: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    async findByIdIncludeDestinationCalendar(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,
