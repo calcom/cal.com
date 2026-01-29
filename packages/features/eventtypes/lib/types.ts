@@ -1,20 +1,20 @@
-import { z } from "zod";
-
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import type { customInputSchema } from "@calcom/prisma/zod-utils";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
+import type { MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type {
+  BookerLayoutSettings,
+  customInputSchema,
+  eventTypeBookingFields,
+  eventTypeColor,
+} from "@calcom/prisma/zod-utils";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
+import type { z } from "zod";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -46,6 +46,8 @@ export type Host = {
   scheduleId?: number | null;
   groupId: string | null;
   location?: HostLocation | null;
+  isEmailInvite?: boolean;
+  email?: string;
 };
 export type TeamMember = {
   value: string;
@@ -273,7 +275,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;
