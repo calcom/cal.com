@@ -21,6 +21,7 @@ export const apiHandlers = {
   databuddy: import("./databuddy/api"),
   deel: import("./deel/api"),
   demodesk: import("./demodesk/api"),
+  descript: import("./descript/api"),
   dialpad: import("./dialpad/api"),
   discord: import("./discord/api"),
   dub: import("./dub/api"),
