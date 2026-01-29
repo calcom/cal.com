@@ -52,6 +52,15 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const hostEmail = booking.user?.email || "";
   const hostName = booking.user?.name || null;
 
+  const alreadyReported = await wrongAssignmentReportRepo.existsByBookingUid(booking.uid);
+
+  if (alreadyReported) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "A wrong assignment report has already been submitted for this booking",
+    });
+  }
+
   const report = await wrongAssignmentReportRepo.createReport({
     bookingUid: booking.uid,
     reportedById: user.id,

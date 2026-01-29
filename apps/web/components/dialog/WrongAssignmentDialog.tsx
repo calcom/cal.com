@@ -234,6 +234,12 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
     },
   });
 
+  const { data: existingReport, isPending: isCheckingReport } = trpc.viewer.bookings.hasWrongAssignmentReport.useQuery(
+    { bookingUid },
+    { enabled: isOpenDialog }
+  );
+  const alreadyReported = existingReport?.hasReport ?? false;
+
   const teamIdForQuery = teamId ?? 0;
   const { data: teamMembersData } = trpc.viewer.teams.listMembers.useQuery(
     { teamId: teamIdForQuery, limit: 100 },
@@ -311,6 +317,10 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
                 errorMessage={errors.additionalNotes?.message}
               />
 
+              {alreadyReported && (
+                <Alert severity="warning" message={t("wrong_assignment_already_reported")} className="mb-4" />
+              )}
+
               <Alert severity="info" title={t("did_you_know")} message={t("wrong_assignment_crm_info")} />
             </div>
           </div>
@@ -319,7 +329,7 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
             <Button type="button" color="secondary" onClick={handleCloseClick} disabled={isPending}>
               {t("close")}
             </Button>
-            <Button type="submit" color="primary" disabled={isPending} loading={isPending}>
+            <Button type="submit" color="primary" disabled={isPending || alreadyReported || isCheckingReport} loading={isPending || isCheckingReport}>
               {t("submit")}
             </Button>
           </DialogFooter>

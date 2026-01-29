@@ -62,11 +62,13 @@ describe("reportWrongAssignmentHandler", () => {
   };
 
   const mockWrongAssignmentReportRepo = {
+    existsByBookingUid: vi.fn().mockResolvedValue(false),
     createReport: vi.fn().mockResolvedValue({ id: "report-uuid-123" }),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockWrongAssignmentReportRepo.existsByBookingUid.mockResolvedValue(false);
     mockWrongAssignmentReportRepo.createReport.mockResolvedValue({ id: "report-uuid-123" });
 
     vi.mocked(BookingRepository).mockImplementation(function () {
@@ -126,6 +128,27 @@ describe("reportWrongAssignmentHandler", () => {
         code: "NOT_FOUND",
         message: "Booking not found",
       });
+    });
+
+    it("should throw BAD_REQUEST when a report already exists for the booking", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason.mockResolvedValue(mockBooking);
+      mockWrongAssignmentReportRepo.existsByBookingUid.mockResolvedValue(true);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "Duplicate report",
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "A wrong assignment report has already been submitted for this booking",
+      });
+
+      expect(mockWrongAssignmentReportRepo.createReport).not.toHaveBeenCalled();
     });
   });
 

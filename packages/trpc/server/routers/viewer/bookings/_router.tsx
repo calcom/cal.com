@@ -16,6 +16,7 @@ import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
+import { z } from "zod";
 import { bookingsProcedure } from "./util";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 export const bookingsRouter = router({
@@ -128,6 +129,16 @@ export const bookingsRouter = router({
         ctx,
         input,
       });
+    }),
+  hasWrongAssignmentReport: authedProcedure
+    .input(z.object({ bookingUid: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { WrongAssignmentReportRepository } = await import(
+        "@calcom/features/bookings/repositories/WrongAssignmentReportRepository"
+      );
+      const { default: prisma } = await import("@calcom/prisma");
+      const repo = new WrongAssignmentReportRepository(prisma);
+      return { hasReport: await repo.existsByBookingUid(input.bookingUid) };
     }),
   getBookingHistory: authedProcedure.input(ZGetBookingHistoryInputSchema).query(async ({ input, ctx }) => {
     const { getBookingHistoryHandler } = await import("./getBookingHistory.handler");
