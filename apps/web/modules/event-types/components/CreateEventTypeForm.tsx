@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, UseFormRegister } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { CreateEventTypeFormValues } from "@calcom/features/eventtypes/hooks/useCreateEventType";
@@ -14,6 +14,71 @@ import { Form } from "@calcom/ui/components/form";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+type SlugFieldProps = {
+  form: UseFormReturn<CreateEventTypeFormValues>;
+  register: UseFormRegister<CreateEventTypeFormValues>;
+  urlPrefix?: string;
+  pageSlug?: string;
+  isManagedEventType: boolean;
+  isPlatform: boolean;
+  t: (key: string) => string;
+};
+
+function SlugField({
+  form,
+  register,
+  urlPrefix,
+  pageSlug,
+  isManagedEventType,
+  isPlatform,
+  t,
+}: SlugFieldProps): JSX.Element {
+  const slugPath = !isManagedEventType ? pageSlug : t("username_placeholder");
+  const isLongUrlPrefix = urlPrefix && urlPrefix.length >= 21;
+  const fullPath = isLongUrlPrefix ? `/${slugPath}/` : `${urlPrefix}/${slugPath}/`;
+
+  function getLabel(): string {
+    if (isPlatform) return "Slug";
+    if (isLongUrlPrefix) return `${t("url")}: ${urlPrefix}`;
+    return t("url");
+  }
+
+  function renderAddOnLeading(): ReactNode {
+    if (isPlatform) return undefined;
+
+    const spanContent = (
+      <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
+        {fullPath}
+      </span>
+    );
+
+    if (isLongUrlPrefix) {
+      return spanContent;
+    }
+
+    return <Tooltip content={fullPath}>{spanContent}</Tooltip>;
+  }
+
+  return (
+    <div>
+      <TextField
+        label={getLabel()}
+        required
+        addOnLeading={renderAddOnLeading()}
+        containerClassName="[&>div]:gap-0"
+        className="pl-0"
+        {...register("slug")}
+        onChange={(e) => {
+          form.setValue("slug", slugify(e?.target.value), { shouldDirty: true });
+        }}
+      />
+      {isManagedEventType && !isPlatform && (
+        <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+      )}
+    </div>
+  );
+}
 
 export default function CreateEventTypeForm({
   form,
@@ -51,63 +116,21 @@ export default function CreateEventTypeForm({
           {...register("title")}
           onChange={(e) => {
             form.setValue("title", e?.target.value);
-            if (form.formState.touchedFields["slug"] === undefined) {
+            if (!form.formState.dirtyFields["slug"]) {
               form.setValue("slug", slugify(e?.target.value));
             }
           }}
         />
 
-        {urlPrefix && urlPrefix.length >= 21 ? (
-          <div>
-            <TextField
-              label={isPlatform ? "Slug" : `${t("url")}: ${urlPrefix}`}
-              required
-              addOnLeading={
-                !isPlatform ? (
-                  <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-                    {`/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
-                  </span>
-                ) : undefined
-              }
-              containerClassName="[&>div]:gap-0"
-              className="pl-0"
-              {...register("slug")}
-              onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-              }}
-            />
-
-            {isManagedEventType && !isPlatform && (
-              <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-            )}
-          </div>
-        ) : (
-          <div>
-            <TextField
-              label={isPlatform ? "Slug" : t("url")}
-              required
-              addOnLeading={
-                !isPlatform ? (
-                  <Tooltip
-                    content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
-                    <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
-                      {`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
-                    </span>
-                  </Tooltip>
-                ) : undefined
-              }
-              containerClassName="[&>div]:gap-0"
-              className="pl-0"
-              {...register("slug")}
-              onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-              }}
-            />
-            {isManagedEventType && !isPlatform && (
-              <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-            )}
-          </div>
-        )}
+        <SlugField
+          form={form}
+          register={register}
+          urlPrefix={urlPrefix}
+          pageSlug={pageSlug}
+          isManagedEventType={isManagedEventType}
+          isPlatform={isPlatform}
+          t={t}
+        />
         <>
           {isPlatform ? (
             <TextAreaField {...register("description")} placeholder={t("quick_video_meeting")} />
