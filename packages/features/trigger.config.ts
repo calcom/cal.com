@@ -19,6 +19,7 @@ export default defineConfig({
   dirs: [
     "./bookings/lib/tasker/trigger/notifications",
     "./calendars/lib/tasker/trigger",
+    "./calendar-subscription/lib/tasker/trigger",
     "./ee/billing/service/proration/tasker/trigger",
     "./ee/organizations/lib/billing/tasker/trigger",
   ], // Customize based on your project structure
