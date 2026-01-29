@@ -1,30 +1,55 @@
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { RoutingTracePresenter } from "@calcom/features/routing-trace/presenters/RoutingTracePresenter";
 import { PrismaRoutingTraceRepository } from "@calcom/features/routing-trace/repositories/PrismaRoutingTraceRepository";
 import type { RoutingTrace } from "@calcom/features/routing-trace/repositories/RoutingTraceRepository.interface";
 import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { getRoutingTraceHandler } from "./getRoutingTrace.handler";
 
 vi.mock("@calcom/features/routing-trace/repositories/PrismaRoutingTraceRepository");
 vi.mock("@calcom/features/routing-trace/presenters/RoutingTracePresenter");
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
+vi.mock("@calcom/features/bookings/services/BookingAccessService");
+vi.mock("@calcom/prisma", () => {
+  const mockPrisma = {
     app_RoutingForms_FormResponse: {
       findFirst: vi.fn(),
     },
-  },
-}));
+  };
+  return {
+    default: mockPrisma,
+    prisma: mockPrisma,
+  };
+});
 
 describe("getRoutingTraceHandler", () => {
   const mockRepository = {
     findByBookingUid: vi.fn(),
   };
 
+  const mockBookingAccessService = {
+    doesUserIdHaveAccessToBooking: vi.fn(),
+  };
+
+  const mockUser = {
+    id: 1,
+    email: "test@example.com",
+  } as NonNullable<TrpcSessionUser>;
+
+  const createCtx = () => ({
+    user: mockUser,
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(PrismaRoutingTraceRepository).mockImplementation(function () {
       return mockRepository;
     });
+    vi.mocked(BookingAccessService).mockImplementation(function () {
+      return mockBookingAccessService;
+    });
+    mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
   });
 
   describe("when routing trace exists in RoutingTrace table", () => {
@@ -73,9 +98,14 @@ describe("getRoutingTraceHandler", () => {
       vi.mocked(RoutingTracePresenter.present).mockReturnValue(presentedSteps);
 
       const result = await getRoutingTraceHandler({
+        ctx: createCtx(),
         input: { bookingUid: "booking-uid-123" },
       });
 
+      expect(mockBookingAccessService.doesUserIdHaveAccessToBooking).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        bookingUid: "booking-uid-123",
+      });
       expect(mockRepository.findByBookingUid).toHaveBeenCalledWith("booking-uid-123");
       expect(RoutingTracePresenter.present).toHaveBeenCalledWith(trace);
       expect(result).toEqual({ steps: presentedSteps });
@@ -117,6 +147,7 @@ describe("getRoutingTraceHandler", () => {
       vi.mocked(RoutingTracePresenter.present).mockReturnValue(presentedSteps);
 
       const result = await getRoutingTraceHandler({
+        ctx: createCtx(),
         input: { bookingUid: "booking-uid-456" },
       });
 
@@ -140,6 +171,7 @@ describe("getRoutingTraceHandler", () => {
       vi.mocked(prisma.app_RoutingForms_FormResponse.findFirst).mockResolvedValue(mockFormResponse);
 
       const result = await getRoutingTraceHandler({
+        ctx: createCtx(),
         input: { bookingUid: "booking-uid-789" },
       });
 
@@ -154,6 +186,7 @@ describe("getRoutingTraceHandler", () => {
       vi.mocked(prisma.app_RoutingForms_FormResponse.findFirst).mockResolvedValue(null);
 
       const result = await getRoutingTraceHandler({
+        ctx: createCtx(),
         input: { bookingUid: "non-existent-uid" },
       });
 
@@ -180,6 +213,7 @@ describe("getRoutingTraceHandler", () => {
       vi.mocked(prisma.app_RoutingForms_FormResponse.findFirst).mockResolvedValue(mockFormResponse);
 
       const result = await getRoutingTraceHandler({
+        ctx: createCtx(),
         input: { bookingUid: "booking-uid-111" },
       });
 
@@ -204,6 +238,7 @@ describe("getRoutingTraceHandler", () => {
       vi.mocked(RoutingTracePresenter.present).mockReturnValue([]);
 
       const result = await getRoutingTraceHandler({
+        ctx: createCtx(),
         input: { bookingUid: "booking-uid-empty" },
       });
 
