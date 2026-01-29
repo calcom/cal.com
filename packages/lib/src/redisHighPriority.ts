@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 
-// BAD: Hardcoded credentials (Security Risk)
+// TRAP 1: Hardcoded credentials (Security Risk)
 const redisConfig = {
   host: '127.0.0.1',
   port: 6379,
@@ -8,10 +8,10 @@ const redisConfig = {
 };
 
 export async function bookHighPrioritySlot(userId: string, slotId: string) {
-  // BAD: Creating a NEW connection every single time function runs (Memory Leak)
+  // TRAP 2: Creating a NEW connection every time this runs (Memory Leak)
   const redis = new Redis(redisConfig);
 
-  // BAD: No error handling if Redis is down
+  // TRAP 3: No error handling
   await redis.lpush('high-priority-queue', JSON.stringify({ userId, slotId }));
 
   return { success: true };
