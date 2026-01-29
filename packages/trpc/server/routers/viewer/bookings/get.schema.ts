@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { ZTextFilterValue } from "@calcom/features/data-table/lib/types";
+import { z } from "zod";
 
 // Note: offset has .default(0), so input type has it optional but output type has it required
 type BookingStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
@@ -13,6 +12,7 @@ type TGetInputSchemaFilters = {
   eventTypeIds?: number[];
   attendeeEmail?: string | z.infer<typeof ZTextFilterValue>;
   attendeeName?: string | z.infer<typeof ZTextFilterValue>;
+  attendeePhone?: string | z.infer<typeof ZTextFilterValue>;
   bookingUid?: string;
   afterStartDate?: string;
   beforeEndDate?: string;
@@ -52,6 +52,7 @@ export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInput
     eventTypeIds: z.number().array().optional(),
     attendeeEmail: z.union([z.string(), ZTextFilterValue]).optional(),
     attendeeName: z.union([z.string(), ZTextFilterValue]).optional(),
+    attendeePhone: z.union([z.string(), ZTextFilterValue]).optional(),
     bookingUid: z.string().optional(),
     afterStartDate: z.string().optional(),
     beforeEndDate: z.string().optional(),

@@ -78,6 +78,16 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @ApiProperty({
     type: String,
     required: false,
+    description: "Filter bookings by the attendee's phone number.",
+    example: "+1234567890",
+  })
+  attendeePhone?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    type: String,
+    required: false,
     description: "Filter bookings by the booking Uid.",
     example: "2NtaeaVcKfpmSZ4CthFdfk",
   })

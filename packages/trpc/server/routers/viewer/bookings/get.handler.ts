@@ -386,12 +386,30 @@ export async function getBookings({
       }
     }
 
-    // 6. Filter by Booking Uid (if provided)
+    // 6. Filter by Attendee Phone (if provided)
+    if (filters?.attendeePhone) {
+      if (typeof filters.attendeePhone === "string") {
+        // Simple string match (exact)
+        fullQuery = fullQuery
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.phoneNumber", "=", filters.attendeePhone.trim());
+      } else if (isTextFilterValue(filters.attendeePhone)) {
+        fullQuery = addAdvancedAttendeeWhereClause(
+          fullQuery,
+          "phoneNumber",
+          filters.attendeePhone.data.operator,
+          filters.attendeePhone.data.operand,
+          tables.includes("Attendee")
+        );
+      }
+    }
+
+    // 8. Filter by Booking Uid (if provided)
     if (filters?.bookingUid) {
       fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
     }
 
-    // 7. Booking Start/End Time Range Filters
+    // 9. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
     }
@@ -1048,7 +1066,7 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
 
 function addAdvancedAttendeeWhereClause(
   query: BookingsUnionQuery,
-  key: "name" | "email",
+  key: "name" | "email" | "phoneNumber",
   operator:
     | "endsWith"
     | "startsWith"
