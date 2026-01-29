@@ -204,7 +204,7 @@ describe("GlobalBlockingService", () => {
       expect(result.watchlistEntry).toEqual(wildcardEntry);
       expect(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
         emails: ["user@sub.app.cal.com"],
-        domains: ["sub.app.cal.com", "*.app.cal.com"],
+        domains: ["sub.app.cal.com", "*.app.cal.com", "*.cal.com"],
       });
     });
 

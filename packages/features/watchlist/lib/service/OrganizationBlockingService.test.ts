@@ -219,7 +219,7 @@ describe("OrganizationBlockingService", () => {
       expect(result.watchlistEntry).toEqual(wildcardEntry);
       expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
         emails: ["user@sub.app.cal.com"],
-        domains: ["sub.app.cal.com", "*.app.cal.com"],
+        domains: ["sub.app.cal.com", "*.app.cal.com", "*.cal.com"],
         organizationId: ORGANIZATION_ID,
       });
     });
