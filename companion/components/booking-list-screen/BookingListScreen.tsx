@@ -51,6 +51,7 @@ import {
   searchBookings,
 } from "@/utils/bookings-utils";
 import { offlineAwareRefresh } from "@/utils/network";
+import { getColors } from "@/constants/colors";
 
 interface BookingListScreenProps {
   // Platform-specific header rendering
@@ -102,6 +103,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Use React Query hook for fetching bookings
   const {
@@ -650,7 +652,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
         {renderHeader?.()}
         {renderFilterControls?.()}
         <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-black">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
+          <Ionicons name="alert-circle" size={64} color={theme.destructive} />
           <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-white">
             Unable to load bookings
           </Text>
@@ -800,7 +802,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 <View className="flex-row">
                   {/* Danger icon */}
                   <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
-                    <Ionicons name="alert-circle" size={20} color="#800000" />
+                    <Ionicons name="alert-circle" size={20} color={theme.destructive} />
                   </View>
 
                   {/* Title and description */}

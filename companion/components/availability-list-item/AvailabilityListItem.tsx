@@ -12,6 +12,7 @@ import {
 import { Text } from "@/components/ui/text";
 import type { Schedule } from "@/hooks";
 import { AvailabilitySlots, ScheduleName, TimeZoneRow } from "./AvailabilityListItemParts";
+import { getColors } from "@/constants/colors";
 
 export interface AvailabilityListItemProps {
   item: Schedule;
@@ -40,6 +41,7 @@ export const AvailabilityListItem = ({
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   type DropdownAction = {
     label: string;
@@ -145,14 +147,18 @@ export const AvailabilityListItem = ({
                       size={18}
                       color={
                         action.variant === "destructive"
-                          ? "#800020"
+                          ? theme.destructive
                           : isDark
                             ? "#E5E5EA"
                             : "#374151"
                       }
                       style={{ marginRight: 8 }}
                     />
-                    <Text className={action.variant === "destructive" ? "text-destructive" : ""}>
+                    <Text
+                      style={
+                        action.variant === "destructive" ? { color: theme.destructive } : undefined
+                      }
+                    >
                       {action.label}
                     </Text>
                   </DropdownMenuItem>

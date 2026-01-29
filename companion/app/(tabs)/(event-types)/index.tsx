@@ -409,7 +409,7 @@ export default function EventTypes() {
           className="flex-1 items-center justify-center bg-gray-50 p-5"
           style={{ backgroundColor: theme.backgroundSecondary }}
         >
-          <Ionicons name="alert-circle" size={64} color="#800020" />
+          <Ionicons name="alert-circle" size={64} color={theme.destructive} />
           <Text
             className="mb-2 mt-4 text-center text-xl font-bold text-gray-800"
             style={{ color: theme.text }}
@@ -862,8 +862,10 @@ export default function EventTypes() {
                       if (eventType) handleDelete(eventType);
                     }}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#800000" />
-                    <Text className="ml-3 text-base text-[#800000]">Delete</Text>
+                    <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+                    <Text className="ml-3 text-base" style={{ color: theme.destructive }}>
+                      Delete
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
@@ -961,7 +963,7 @@ export default function EventTypes() {
               <View className="flex-row">
                 {/* Danger icon */}
                 <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
+                  <Ionicons name="alert-circle" size={20} color={theme.destructive} />
                 </View>
 
                 {/* Title and description */}

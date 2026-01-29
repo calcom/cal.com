@@ -1087,8 +1087,8 @@ export function BookingDetailScreen({
               <View className="p-6">
                 <View className="flex-row">
                   {/* Danger icon */}
-                  <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                    <Ionicons name="alert-circle" size={20} color="#800000" />
+                  <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
+                    <Ionicons name="alert-circle" size={20} color={theme.destructive} />
                   </View>
 
                   {/* Title and description */}

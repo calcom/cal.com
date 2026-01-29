@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { EmptyScreen } from "./EmptyScreen";
 import { Header } from "./Header";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { getColors } from "@/constants/colors";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -70,7 +71,8 @@ export function ScreenWrapper({
 }: ScreenWrapperProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const errorIconColor = isDark ? "#FF453A" : "#800020";
+  const theme = getColors(isDark);
+  const errorIconColor = theme.destructive;
 
   if (loading) {
     return (

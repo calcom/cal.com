@@ -23,6 +23,7 @@ import { useAddGuests } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { safeLogError } from "@/utils/safeLogger";
+import { getColors } from "@/constants/colors";
 
 export interface AddGuestsScreenProps {
   booking: Booking | null;
@@ -63,7 +64,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
       inputBorder: isDark ? "rgba(56, 56, 58, 0.4)" : "rgba(209, 213, 219, 0.4)",
       inputBackground: isDark ? "rgba(28, 28, 30, 0.6)" : "rgba(255, 255, 255, 0.6)",
       accent: "#007AFF",
-      destructive: isDark ? "#FF453A" : "#800020",
+      destructive: getColors(isDark).destructive,
     };
 
     // Derive styles from colors and props
@@ -319,11 +320,7 @@ export const AddGuestsScreen = forwardRef<AddGuestsScreenHandle, AddGuestsScreen
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       disabled={isSaving}
                     >
-                      <Ionicons
-                        name="close-circle-outline"
-                        size={24}
-                        color={isDark ? "#FF453A" : "#800020"}
-                      />
+                      <Ionicons name="close-circle-outline" size={24} color={colors.destructive} />
                     </TouchableOpacity>
                   </View>
                 ))}

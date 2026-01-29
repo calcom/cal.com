@@ -4,6 +4,7 @@ import { SvgImage } from "@/components/SvgImage";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 import type { BookingListItemData } from "./useBookingListItemData";
+import { getColors } from "@/constants/colors";
 
 interface TimeAndDateRowProps {
   formattedDate: string;
@@ -79,13 +80,16 @@ export function HostAndAttendees({
   hostAndAttendeesDisplay,
   hasNoShowAttendee,
 }: HostAndAttendeesProps) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
+
   if (!hostAndAttendeesDisplay) return null;
   return (
     <View className="mb-2 flex-row items-center">
       <Text className="text-sm text-cal-text dark:text-white">{hostAndAttendeesDisplay}</Text>
       {hasNoShowAttendee && (
         <View className="ml-2 flex-row items-center rounded-full bg-[#FEE2E2] px-1.5 py-0.5 dark:bg-red-900/30">
-          <Ionicons name="eye-off" size={10} color="#800020" />
+          <Ionicons name="eye-off" size={10} color={theme.destructive} />
           <Text className="ml-0.5 text-[10px] font-medium text-cal-accent-destructive">
             No-show
           </Text>

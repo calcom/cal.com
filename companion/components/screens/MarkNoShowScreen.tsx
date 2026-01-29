@@ -81,7 +81,7 @@ export function MarkNoShowScreen({
   const [processingEmail, setProcessingEmail] = useState<string | null>(null);
 
   // Dark mode colors
-  const destructiveColor = isDark ? "#FF453A" : "#800020";
+  const destructiveColor = theme.destructive;
   const successColor = "#16A34A";
 
   // Mark no-show mutation
@@ -219,16 +219,9 @@ export function MarkNoShowScreen({
         >
           <Text
             className={`text-[16px] font-semibold ${
-              transparentBackground
-                ? "text-white"
-                : isNoShow
-                  ? isDark
-                    ? "text-[#FF453A]"
-                    : "text-[#800020]"
-                  : isDark
-                    ? "text-[#A3A3A3]"
-                    : "text-gray-600"
+              transparentBackground ? "text-white" : isDark ? "text-[#A3A3A3]" : "text-gray-600"
             }`}
+            style={!transparentBackground && isNoShow ? { color: theme.destructive } : undefined}
           >
             {getInitials(item.name)}
           </Text>

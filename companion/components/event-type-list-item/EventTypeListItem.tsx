@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { getColors } from "@/constants/colors";
 import { Pressable, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -30,6 +31,7 @@ export const EventTypeListItem = ({
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const colors = {
     icon: isDark ? "#FFFFFF" : "#3C3F44",
@@ -134,8 +136,13 @@ export const EventTypeListItem = ({
             <DropdownMenuSeparator />
 
             <DropdownMenuItem variant="destructive" onPress={() => onDelete?.(item)}>
-              <Ionicons name="trash-outline" size={18} color="#800020" style={{ marginRight: 8 }} />
-              <Text className="text-destructive">Delete</Text>
+              <Ionicons
+                name="trash-outline"
+                size={18}
+                color={theme.destructive}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={{ color: theme.destructive }}>Delete</Text>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

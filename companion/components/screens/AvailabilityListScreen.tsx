@@ -40,6 +40,7 @@ import {
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { offlineAwareRefresh } from "@/utils/network";
+import { getColors } from "@/constants/colors";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;
@@ -64,6 +65,7 @@ export function AvailabilityListScreen({
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const colors = {
     background: isDark ? "#000000" : "#FFFFFF",
@@ -275,7 +277,7 @@ export function AvailabilityListScreen({
       <View style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
         <Header />
         <View className="flex-1 items-center justify-center p-5">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
+          <Ionicons name="alert-circle" size={64} color={theme.destructive} />
           <Text style={{ color: colors.text }} className="mb-2 mt-4 text-center text-xl font-bold">
             Unable to load availability
           </Text>
@@ -635,8 +637,10 @@ export function AvailabilityListScreen({
                 }}
                 className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#262626] md:p-4"
               >
-                <Ionicons name="trash-outline" size={20} color="#800000" />
-                <Text className="ml-3 text-base text-[#800000]">Delete</Text>
+                <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+                <Text className="ml-3 text-base" style={{ color: theme.destructive }}>
+                  Delete
+                </Text>
               </AppPressable>
             </View>
 
@@ -667,7 +671,7 @@ export function AvailabilityListScreen({
               <View className="flex-row">
                 {/* Danger icon */}
                 <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
+                  <Ionicons name="alert-circle" size={20} color={theme.destructive} />
                 </View>
 
                 {/* Title and description */}

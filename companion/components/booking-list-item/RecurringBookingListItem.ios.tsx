@@ -4,6 +4,7 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, Text, TouchableOpacity, View, Linking, useColorScheme } from "react-native";
+import { getColors } from "@/constants/colors";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import type { Booking } from "@/services/calcom";
 import type { RecurringBookingGroup } from "@/utils/bookings-utils";
@@ -83,6 +84,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Define context menu actions based on booking state
   type ContextMenuAction = {
@@ -309,7 +311,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               paddingHorizontal: 12,
               height: 32,
               opacity: isProcessing ? 0.5 : 1,
-              borderColor: "#800020",
+              borderColor: theme.destructive,
             }}
             disabled={isProcessing}
             onPress={(e) => {
@@ -317,8 +319,8 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onCancelAllRemaining(group);
             }}
           >
-            <Ionicons name="close-circle-outline" size={16} color="#800020" />
-            <Text className="ml-1 text-sm font-medium" style={{ color: "#800020" }}>
+            <Ionicons name="close-circle-outline" size={16} color={theme.destructive} />
+            <Text className="ml-1 text-sm font-medium" style={{ color: theme.destructive }}>
               Cancel all remaining
             </Text>
           </TouchableOpacity>

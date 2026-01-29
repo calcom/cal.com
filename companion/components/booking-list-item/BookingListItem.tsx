@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Text } from "@/components/ui/text";
 import { getBookingActions } from "@/utils/booking-actions";
+import { getColors } from "@/constants/colors";
 import {
   BadgesRow,
   BookingDescription,
@@ -42,11 +43,12 @@ export const BookingListItem: React.FC<BookingListItemProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const [isPressed, setIsPressed] = useState(false);
 
   const colors = {
     icon: isDark ? "#FFFFFF" : "#3C3F44",
-    iconDestructive: "#800020",
+    iconDestructive: theme.destructive,
     iconDefault: isDark ? "#E5E5EA" : "#374151",
   };
 

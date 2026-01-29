@@ -149,8 +149,10 @@ export default function More() {
             style={{ backgroundColor: theme.backgroundSecondary }}
           >
             <View className="flex-1 flex-row items-center">
-              <Ionicons name="trash-outline" size={20} color="#991B1B" />
-              <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
+              <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+              <Text className="ml-3 text-base font-medium" style={{ color: theme.destructive }}>
+                Delete Account
+              </Text>
             </View>
             <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
@@ -166,8 +168,10 @@ export default function More() {
             className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
             style={{ backgroundColor: theme.backgroundSecondary }}
           >
-            <Ionicons name="log-out-outline" size={20} color="#800000" />
-            <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
+            <Ionicons name="log-out-outline" size={20} color={theme.destructive} />
+            <Text className="ml-2 text-base font-medium" style={{ color: theme.destructive }}>
+              Sign Out
+            </Text>
           </TouchableOpacity>
         </View>
 

@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Text as UIText } from "@/components/ui/text";
+import { getColors } from "@/constants/colors";
 import type { Booking } from "@/services/calcom";
 import type { RecurringBookingGroup } from "@/utils/bookings-utils";
 import { formatDate, formatTime, getHostAndAttendeesDisplay } from "@/utils/bookings-utils";
@@ -60,10 +61,11 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const colors = {
     icon: isDark ? "#FFFFFF" : "#3C3F44",
-    iconDestructive: "#800020",
+    iconDestructive: theme.destructive,
     iconDefault: isDark ? "#E5E5EA" : "#374151",
   };
 
@@ -334,7 +336,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               paddingHorizontal: 12,
               height: 32,
               opacity: isProcessing ? 0.5 : 1,
-              borderColor: "#800020",
+              borderColor: theme.destructive,
             }}
             disabled={isProcessing}
             onPress={(e) => {
@@ -342,8 +344,8 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onCancelAllRemaining(group);
             }}
           >
-            <Ionicons name="close-circle-outline" size={16} color="#800020" />
-            <Text className="ml-1 text-sm font-medium" style={{ color: "#800020" }}>
+            <Ionicons name="close-circle-outline" size={16} color={theme.destructive} />
+            <Text className="ml-1 text-sm font-medium" style={{ color: theme.destructive }}>
               Cancel all remaining
             </Text>
           </TouchableOpacity>
