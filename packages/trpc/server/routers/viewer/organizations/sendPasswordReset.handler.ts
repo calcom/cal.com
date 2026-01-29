@@ -48,7 +48,7 @@ const sendPasswordResetHandler = async ({ ctx, input }: SendPasswordResetOptions
   }
 
   const userRepository = new UserRepository(prisma);
-  const user = await userRepository.findById({ id: userId });
+  const user = await userRepository.findForPasswordReset({ id: userId });
 
   if (!user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
