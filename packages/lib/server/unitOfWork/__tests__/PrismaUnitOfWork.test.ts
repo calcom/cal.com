@@ -1,43 +1,40 @@
-import prismock from "prismock";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+
+import { describe, expect, it, vi } from "vitest";
 
 import type { ITransactionalRepository, TransactionClient } from "../types";
-
-vi.mock("@calcom/prisma", () => ({
-  prisma: prismock,
-}));
 
 import { PrismaUnitOfWork } from "../PrismaUnitOfWork";
 
 class MockRepository implements ITransactionalRepository {
-  constructor(private client: TransactionClient | typeof prismock = prismock) {}
+  private transactionClient: TransactionClient | null = null;
 
   withTransaction(tx: TransactionClient): this {
-    return new MockRepository(tx) as this;
+    const clone = new MockRepository() as this;
+    clone.transactionClient = tx;
+    return clone;
   }
 
   async create(data: { name: string }) {
-    return this.client.user.create({
-      data: {
-        email: `${data.name}@example.com`,
-        name: data.name,
-      },
-    });
+    return {
+      id: 1,
+      email: `${data.name}@example.com`,
+      name: data.name,
+    };
   }
 
-  async findByEmail(email: string) {
-    return this.client.user.findFirst({
-      where: { email },
-    });
+  getTransactionClient() {
+    return this.transactionClient;
   }
 }
 
 describe("PrismaUnitOfWork", () => {
-  beforeEach(async () => {
-    await prismock.user.deleteMany();
-  });
-
   it("should execute operations within a transaction", async () => {
+    const mockTx = { user: { create: vi.fn() } };
+    prismaMock.$transaction.mockImplementation(async (callback) => {
+      return callback(mockTx);
+    });
+
     const mockRepository = new MockRepository();
     const unitOfWork = new PrismaUnitOfWork({
       mockRepository: (tx) => mockRepository.withTransaction(tx),
@@ -51,9 +48,15 @@ describe("PrismaUnitOfWork", () => {
     expect(result).toBeDefined();
     expect(result.name).toBe("Test User");
     expect(result.email).toBe("Test User@example.com");
+    expect(prismaMock.$transaction).toHaveBeenCalled();
   });
 
   it("should provide transactional repository instances to the callback", async () => {
+    const mockTx = {};
+    prismaMock.$transaction.mockImplementation(async (callback) => {
+      return callback(mockTx);
+    });
+
     const mockRepository = new MockRepository();
     const unitOfWork = new PrismaUnitOfWork({
       mockRepository: (tx) => mockRepository.withTransaction(tx),
@@ -67,6 +70,11 @@ describe("PrismaUnitOfWork", () => {
   });
 
   it("should support multiple repositories in a single transaction", async () => {
+    const mockTx = {};
+    prismaMock.$transaction.mockImplementation(async (callback) => {
+      return callback(mockTx);
+    });
+
     const repo1 = new MockRepository();
     const repo2 = new MockRepository();
 
@@ -88,6 +96,11 @@ describe("PrismaUnitOfWork", () => {
   });
 
   it("should return the result from the transaction callback", async () => {
+    const mockTx = {};
+    prismaMock.$transaction.mockImplementation(async (callback) => {
+      return callback(mockTx);
+    });
+
     const mockRepository = new MockRepository();
     const unitOfWork = new PrismaUnitOfWork({
       mockRepository: (tx) => mockRepository.withTransaction(tx),
@@ -100,5 +113,28 @@ describe("PrismaUnitOfWork", () => {
 
     expect(result.user.name).toBe("Return Test");
     expect(result.extra).toBe("data");
+  });
+
+  it("should pass the transaction client to repository factories", async () => {
+    const mockTx = { isTransaction: true };
+    prismaMock.$transaction.mockImplementation(async (callback) => {
+      return callback(mockTx);
+    });
+
+    const mockRepository = new MockRepository();
+    let capturedTx: TransactionClient | null = null;
+
+    const unitOfWork = new PrismaUnitOfWork({
+      mockRepository: (tx) => {
+        capturedTx = tx;
+        return mockRepository.withTransaction(tx);
+      },
+    });
+
+    await unitOfWork.transaction(async ({ mockRepository }) => {
+      expect(mockRepository.getTransactionClient()).toBe(mockTx);
+    });
+
+    expect(capturedTx).toBe(mockTx);
   });
 });
