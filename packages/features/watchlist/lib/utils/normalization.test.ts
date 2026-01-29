@@ -1,6 +1,13 @@
 import { describe, expect, test } from "vitest";
 
-import { normalizeEmail, normalizeDomain, extractDomainFromEmail, normalizeUsername } from "./normalization";
+import {
+  normalizeEmail,
+  normalizeDomain,
+  extractDomainFromEmail,
+  normalizeUsername,
+  getWildcardPatternsForDomain,
+  domainMatchesWatchlistEntry,
+} from "./normalization";
 
 describe("normalization", () => {
   describe("normalizeEmail", () => {
@@ -92,6 +99,55 @@ describe("normalization", () => {
       expect(() => normalizeEmail("")).toThrow();
       expect(() => normalizeDomain("")).toThrow();
       expect(() => normalizeUsername("")).toThrow();
+    });
+  });
+
+  describe("getWildcardPatternsForDomain", () => {
+    test("should return wildcard pattern for a subdomain", () => {
+      expect(getWildcardPatternsForDomain("app.cal.com")).toEqual(["*.cal.com"]);
+    });
+
+    test("should return single wildcard pattern for deeply nested subdomains", () => {
+      expect(getWildcardPatternsForDomain("sub.app.cal.com")).toEqual(["*.app.cal.com"]);
+    });
+
+    test("should return empty array for a simple domain (no subdomains)", () => {
+      expect(getWildcardPatternsForDomain("cal.com")).toEqual([]);
+    });
+
+    test("should handle multi-level TLDs correctly", () => {
+      expect(getWildcardPatternsForDomain("example.co.uk")).toEqual(["*.co.uk"]);
+      expect(getWildcardPatternsForDomain("bloody-hell.cal.co.uk")).toEqual(["*.cal.co.uk"]);
+    });
+
+    test("should return empty array for single-part domain", () => {
+      expect(getWildcardPatternsForDomain("localhost")).toEqual([]);
+    });
+  });
+
+  describe("domainMatchesWatchlistEntry", () => {
+    test("should match exact domain when no wildcard", () => {
+      expect(domainMatchesWatchlistEntry("cal.com", "cal.com")).toBe(true);
+      expect(domainMatchesWatchlistEntry("app.cal.com", "cal.com")).toBe(false);
+    });
+
+    test("should match subdomain when wildcard is used", () => {
+      expect(domainMatchesWatchlistEntry("app.cal.com", "*.cal.com")).toBe(true);
+      expect(domainMatchesWatchlistEntry("sub.app.cal.com", "*.cal.com")).toBe(true);
+    });
+
+    test("should not match exact domain with wildcard pattern", () => {
+      expect(domainMatchesWatchlistEntry("cal.com", "*.cal.com")).toBe(false);
+    });
+
+    test("should be case insensitive", () => {
+      expect(domainMatchesWatchlistEntry("APP.CAL.COM", "*.cal.com")).toBe(true);
+      expect(domainMatchesWatchlistEntry("app.cal.com", "*.CAL.COM")).toBe(true);
+    });
+
+    test("should not match unrelated domains", () => {
+      expect(domainMatchesWatchlistEntry("app.example.com", "*.cal.com")).toBe(false);
+      expect(domainMatchesWatchlistEntry("notcal.com", "cal.com")).toBe(false);
     });
   });
 });
