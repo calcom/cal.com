@@ -22,7 +22,11 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
+import type {
+  GetEventTypesQuery_2024_06_14,
+  SortOrderType,
+  SelectedCalendar_2024_06_14,
+} from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -45,7 +49,7 @@ export class EventTypesService_2024_06_14 {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
-    const { destinationCalendar: _destinationCalendar, ...rest } = body;
+    const { destinationCalendar: _destinationCalendar, selectedCalendars, ...rest } = body;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -62,7 +66,8 @@ export class EventTypesService_2024_06_14 {
     await updateEventType({
       input: {
         id: eventTypeCreated.id,
-        ...body,
+        ...rest,
+        destinationCalendar: body.destinationCalendar,
       },
       ctx: {
         user: eventTypeUser,
@@ -72,7 +77,9 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
+    await this.updateEventTypeSelectedCalendars(eventTypeCreated.id, user.id, selectedCalendars);
+
+    const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeCreated.id);
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
@@ -312,8 +319,10 @@ export class EventTypesService_2024_06_14 {
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
+    const { selectedCalendars, ...rest } = body;
+
     await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: { id: eventTypeId, ...rest },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -322,7 +331,9 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    await this.updateEventTypeSelectedCalendars(eventTypeId, user.id, selectedCalendars);
+
+    const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeId);
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
@@ -384,5 +395,74 @@ export class EventTypesService_2024_06_14 {
     if (!schedule) {
       throw new NotFoundException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
     }
+  }
+
+  async updateEventTypeSelectedCalendars(
+    eventTypeId: number,
+    userId: number,
+    selectedCalendars: SelectedCalendar_2024_06_14[] | undefined
+  ) {
+    if (selectedCalendars === undefined) {
+      return;
+    }
+
+    const existingEventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    if (!existingEventType) {
+      throw new NotFoundException(`Event type with ID=${eventTypeId} not found`);
+    }
+    this.checkUserOwnsEventType(userId, existingEventType);
+
+    const shouldUseEventLevelCalendars = selectedCalendars.length > 0;
+    const hasSelectedCalendars = selectedCalendars.length > 0;
+
+    const userSelectedCalendars = hasSelectedCalendars
+      ? await this.selectedCalendarsRepository.getUserSelectedCalendars(userId)
+      : [];
+
+    const userCalendarMap = new Map(
+      userSelectedCalendars.map((uc) => [`${uc.integration}:${uc.externalId}`, uc])
+    );
+
+    const calendarsToCreate = hasSelectedCalendars
+      ? selectedCalendars.map((calendar) => {
+          const matchingUserCalendar = userCalendarMap.get(`${calendar.integration}:${calendar.externalId}`);
+          return {
+            eventTypeId,
+            userId,
+            integration: calendar.integration,
+            externalId: calendar.externalId,
+            credentialId: matchingUserCalendar?.credentialId ?? null,
+          };
+        })
+      : [];
+
+    await this.dbWrite.prisma.$transaction(async (tx) => {
+      await this.eventTypesRepository.updateUseEventLevelSelectedCalendarsWithTx(
+        tx,
+        eventTypeId,
+        shouldUseEventLevelCalendars
+      );
+
+      await this.selectedCalendarsRepository.deleteByEventTypeIdWithTx(tx, eventTypeId);
+
+      if (calendarsToCreate.length > 0) {
+        await this.selectedCalendarsRepository.createManyForEventTypeWithTx(tx, calendarsToCreate);
+      }
+    });
+  }
+
+  async getEventTypeWithSelectedCalendars(eventTypeId: number, userId: number) {
+    const eventType = await this.eventTypesRepository.getByIdIncludeSelectedCalendars(eventTypeId);
+
+    if (!eventType) {
+      return null;
+    }
+
+    this.checkUserOwnsEventType(userId, eventType);
+
+    return {
+      ownerId: userId,
+      ...eventType,
+    };
   }
 }

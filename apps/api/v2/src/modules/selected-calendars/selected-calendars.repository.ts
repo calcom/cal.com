@@ -1,6 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import type { Prisma } from "@calcom/prisma/client";
 
 // It ensures that we work on userLevel calendars only
 const ensureUserLevelWhere = {
@@ -127,6 +128,95 @@ export class SelectedCalendarsRepository {
       where: {
         id: records[0].id,
       },
+    });
+  }
+
+  getByEventTypeId(eventTypeId: number) {
+    return this.dbRead.prisma.selectedCalendar.findMany({
+      where: {
+        eventTypeId,
+      },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
+        integration: true,
+        externalId: true,
+      },
+    });
+  }
+
+  async createForEventType(
+    eventTypeId: number,
+    userId: number,
+    integration: string,
+    externalId: string,
+    credentialId: number | null
+  ) {
+    return this.dbWrite.prisma.selectedCalendar.create({
+      data: {
+        eventTypeId,
+        userId,
+        integration,
+        externalId,
+        credentialId,
+      },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
+        integration: true,
+        externalId: true,
+      },
+    });
+  }
+
+  async deleteByEventTypeId(eventTypeId: number) {
+    return this.dbWrite.prisma.selectedCalendar.deleteMany({
+      where: {
+        eventTypeId,
+      },
+    });
+  }
+
+  async createManyForEventType(
+    calendars: {
+      eventTypeId: number;
+      userId: number;
+      integration: string;
+      externalId: string;
+      credentialId: number | null;
+    }[]
+  ) {
+    if (calendars.length === 0) {
+      return { count: 0 };
+    }
+    return this.dbWrite.prisma.selectedCalendar.createMany({
+      data: calendars,
+    });
+  }
+
+  async deleteByEventTypeIdWithTx(tx: Prisma.TransactionClient, eventTypeId: number) {
+    return tx.selectedCalendar.deleteMany({
+      where: { eventTypeId },
+    });
+  }
+
+  async createManyForEventTypeWithTx(
+    tx: Prisma.TransactionClient,
+    calendars: {
+      eventTypeId: number;
+      userId: number;
+      integration: string;
+      externalId: string;
+      credentialId: number | null;
+    }[]
+  ) {
+    if (calendars.length === 0) {
+      return { count: 0 };
+    }
+    return tx.selectedCalendar.createMany({
+      data: calendars,
     });
   }
 }

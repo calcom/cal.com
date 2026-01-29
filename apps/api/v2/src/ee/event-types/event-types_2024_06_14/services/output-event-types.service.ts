@@ -21,6 +21,7 @@ import type {
   EventType,
   Prisma,
   Schedule,
+  SelectedCalendar,
   Team,
 } from "@calcom/prisma/client";
 import { Injectable } from "@nestjs/common";
@@ -43,6 +44,8 @@ import {
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { ProfileMinimal, UsersService } from "@/modules/users/services/users.service";
 
+type SelectedCalendarFields = Pick<SelectedCalendar, "id" | "eventTypeId" | "userId" | "integration" | "externalId">;
+
 type EventTypeUser = {
   id: number;
   name: string | null;
@@ -64,6 +67,7 @@ type EventTypeRelations = {
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
+  selectedCalendars?: SelectedCalendarFields[];
 };
 export type DatabaseEventType = EventType & EventTypeRelations;
 
@@ -127,6 +131,7 @@ type Input = Pick<
   | "allowReschedulingPastBookings"
   | "allowReschedulingCancelledBookings"
   | "showOptimizedSlots"
+  | "selectedCalendars"
 >;
 
 @Injectable()
@@ -224,6 +229,7 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       canSendCalVideoTranscriptionEmails
     );
+    const selectedCalendarsOutput = this.transformSelectedCalendars(databaseEventType.selectedCalendars);
 
     return {
       id,
@@ -277,6 +283,7 @@ export class OutputEventTypesService_2024_06_14 {
       allowReschedulingPastBookings,
       allowReschedulingCancelledBookings,
       showOptimizedSlots,
+      selectedCalendars: selectedCalendarsOutput,
     };
   }
 
@@ -475,7 +482,9 @@ export class OutputEventTypesService_2024_06_14 {
   }
 
   getResponseEventTypeWithoutHiddenFields(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
-    if (!Array.isArray(eventType?.bookingFields) || eventType.bookingFields.length === 0) return eventType;
+    if (!Array.isArray(eventType?.bookingFields) || eventType.bookingFields.length === 0) {
+      return eventType;
+    }
 
     const visibleBookingFields: OutputBookingField_2024_06_14[] = [];
     for (const bookingField of eventType.bookingFields) {
@@ -488,6 +497,18 @@ export class OutputEventTypesService_2024_06_14 {
       ...eventType,
       bookingFields: visibleBookingFields,
     };
+  }
+
+  getResponseEventTypesForPublicEndpoint(
+    eventTypes: EventTypeOutput_2024_06_14[]
+  ): EventTypeOutput_2024_06_14[] {
+    return eventTypes.map((eventType) => this.getResponseEventTypeForPublicEndpoint(eventType));
+  }
+
+  getResponseEventTypeForPublicEndpoint(eventType: EventTypeOutput_2024_06_14): EventTypeOutput_2024_06_14 {
+    const withoutHiddenFields = this.getResponseEventTypeWithoutHiddenFields(eventType);
+    const { selectedCalendars: _selectedCalendars, ...eventTypeForPublic } = withoutHiddenFields;
+    return eventTypeForPublic;
   }
 
   transformDisableRescheduling(
@@ -524,5 +545,16 @@ export class OutputEventTypesService_2024_06_14 {
       ...calVideoSettings,
       sendTranscriptionEmails: canSendCalVideoTranscriptionEmails ?? true,
     };
+  }
+
+  transformSelectedCalendars(selectedCalendars: SelectedCalendarFields[] | undefined) {
+    if (!selectedCalendars || selectedCalendars.length === 0) {
+      return undefined;
+    }
+
+    return selectedCalendars.map((calendar) => ({
+      integration: calendar.integration,
+      externalId: calendar.externalId,
+    }));
   }
 }

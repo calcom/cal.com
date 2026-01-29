@@ -170,12 +170,12 @@ export class EventTypesController_2024_06_14 {
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams, authUser);
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
-    const eventTypesWithoutHiddenFields =
-      this.outputEventTypesService.getResponseEventTypesWithoutHiddenFields(eventTypesFormatted);
+    const eventTypesForPublic =
+      this.outputEventTypesService.getResponseEventTypesForPublicEndpoint(eventTypesFormatted);
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypesWithoutHiddenFields,
+      data: eventTypesForPublic,
     };
   }
 

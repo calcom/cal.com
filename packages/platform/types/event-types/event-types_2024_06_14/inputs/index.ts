@@ -16,3 +16,4 @@ export * from "./destination-calendar.input";
 export * from "./disabled.input";
 export * from "./disable-rescheduling.input";
 export * from "./disable-cancelling.input";
+export * from "./selected-calendars.input";

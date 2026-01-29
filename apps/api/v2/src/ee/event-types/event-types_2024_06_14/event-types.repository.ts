@@ -14,7 +14,7 @@ export class EventTypesRepository_2024_06_14 {
 
   async createUserEventType(
     userId: number,
-    body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar">
+    body: Omit<InputEventTransformed_2024_06_14, "destinationCalendar" | "selectedCalendars" | "useEventLevelSelectedCalendars">
   ) {
     const { calVideoSettings, ...restBody } = body;
 
@@ -158,6 +158,15 @@ export class EventTypesRepository_2024_06_14 {
         destinationCalendar: true,
         calVideoSettings: true,
         hosts: true,
+        selectedCalendars: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            userId: true,
+            integration: true,
+            externalId: true,
+          },
+        },
       },
     });
   }
@@ -233,5 +242,44 @@ export class EventTypesRepository_2024_06_14 {
       select: { id: true },
     });
     return !!eventType;
+  }
+
+  async updateUseEventLevelSelectedCalendars(eventTypeId: number, useEventLevelSelectedCalendars: boolean) {
+    return this.dbWrite.prisma.eventType.update({
+      where: { id: eventTypeId },
+      data: { useEventLevelSelectedCalendars },
+    });
+  }
+
+  async getByIdIncludeSelectedCalendars(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: {
+        users: true,
+        schedule: true,
+        destinationCalendar: true,
+        calVideoSettings: true,
+        selectedCalendars: {
+          select: {
+            id: true,
+            eventTypeId: true,
+            userId: true,
+            integration: true,
+            externalId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateUseEventLevelSelectedCalendarsWithTx(
+    tx: Prisma.TransactionClient,
+    eventTypeId: number,
+    useEventLevelSelectedCalendars: boolean
+  ) {
+    return tx.eventType.update({
+      where: { id: eventTypeId },
+      data: { useEventLevelSelectedCalendars },
+    });
   }
 }
