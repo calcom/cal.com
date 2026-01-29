@@ -20,6 +20,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
+import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
@@ -636,9 +637,15 @@ class SalesforceCRMService implements CRM {
         }
       }
 
-      const includeOwnerData =
-        (includeOwner || forRoundRobinSkip) &&
-        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
+      const isFreeEmailDomain = await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]);
+      const includeOwnerData = (includeOwner || forRoundRobinSkip) && !isFreeEmailDomain;
+
+      if (isFreeEmailDomain && (includeOwner || forRoundRobinSkip)) {
+        SalesforceRoutingTraceService.ownerLookupSkipped({
+          reason: "Free email domain",
+          email: emailArray[0],
+        });
+      }
 
       const includeAccountRecordType = forRoundRobinSkip && recordToSearch === SalesforceRecordEnum.ACCOUNT;
       return records.map((record) => {
@@ -648,6 +655,33 @@ class SalesforceCRMService implements CRM {
           record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
             ? record?.Account?.Owner?.Email
             : record?.Owner?.Email;
+
+        // Trace owner lookup based on record type
+        if (includeOwnerData && record?.Id && record?.OwnerId) {
+          const recordType = record?.attributes?.type;
+          if (recordType === SalesforceRecordEnum.CONTACT) {
+            SalesforceRoutingTraceService.contactOwnerLookup({
+              contactId: record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          } else if (recordType === SalesforceRecordEnum.LEAD) {
+            SalesforceRoutingTraceService.leadOwnerLookup({
+              leadId: record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          } else if (
+            recordType === SalesforceRecordEnum.ACCOUNT ||
+            (includeAccountRecordType && record?.AccountId)
+          ) {
+            SalesforceRoutingTraceService.accountOwnerLookup({
+              accountId: record.AccountId || record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          }
+        }
 
         return {
           id: includeAccountRecordType ? record?.AccountId || "" : record?.Id || "",
@@ -1102,6 +1136,11 @@ class SalesforceCRMService implements CRM {
     const emailDomain = email.split("@")[1];
     const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
+
+    SalesforceRoutingTraceService.searchingByWebsiteValue({
+      emailDomain,
+    });
+
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
@@ -1114,6 +1153,10 @@ class SalesforceCRMService implements CRM {
         "Found account based on email domain",
         safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
       );
+      SalesforceRoutingTraceService.accountFoundByWebsite({
+        accountId: account.Id,
+        website: account.Website,
+      });
       return account.Id;
     }
 
@@ -1122,12 +1165,28 @@ class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
+    SalesforceRoutingTraceService.searchingByContactEmailDomain({
+      emailDomain,
+      contactCount: response.records.length,
+    });
+
     const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
     if (accountId) {
       log.info("Found account based on other contacts", safeStringify({ accountId }));
+      const contactsUnderAccount = (response.records as { AccountId: string }[]).filter(
+        (r) => r.AccountId === accountId
+      );
+      SalesforceRoutingTraceService.accountSelectedByMostContacts({
+        accountId,
+        contactCount: contactsUnderAccount.length,
+      });
     } else {
       log.info("No account found");
+      SalesforceRoutingTraceService.noAccountFound({
+        email,
+        reason: "No account found by website or contact domain",
+      });
     }
 
     return accountId;
@@ -1669,6 +1728,12 @@ class SalesforceCRMService implements CRM {
     if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
 
+      SalesforceRoutingTraceService.lookupFieldQuery({
+        fieldName,
+        salesforceObject,
+        accountId: accountId ?? null,
+      });
+
       if (!accountId) return;
 
       const accountQuery = (await conn.query(
@@ -1690,6 +1755,11 @@ class SalesforceCRMService implements CRM {
       if (!userQuery.records.length) return;
 
       const user = userQuery.records[0] as { Email: string };
+
+      SalesforceRoutingTraceService.userQueryFromLookupField({
+        lookupFieldUserId,
+        userEmail: user.Email,
+      });
 
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
