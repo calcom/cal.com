@@ -386,16 +386,24 @@ describe("handleMarkNoShow", () => {
       }
     );
 
-    mockUpdateNoShow.mockImplementation(({ attendeeId, noShow }: { attendeeId: number; noShow: boolean }) => {
-      for (const bookingUid of Object.keys(DB.attendees)) {
-        const attendee = DB.attendees[bookingUid].find((a) => a.id === attendeeId);
-        if (attendee) {
-          attendee.noShow = noShow;
-          return Promise.resolve({ noShow, email: attendee.email });
+    mockUpdateNoShow.mockImplementation(
+      ({
+        where: { attendeeId },
+        data: { noShow },
+      }: {
+        where: { attendeeId: number };
+        data: { noShow: boolean };
+      }) => {
+        for (const bookingUid of Object.keys(DB.attendees)) {
+          const attendee = DB.attendees[bookingUid].find((a) => a.id === attendeeId);
+          if (attendee) {
+            attendee.noShow = noShow;
+            return Promise.resolve({ noShow, email: attendee.email });
+          }
         }
+        return Promise.resolve(null);
       }
-      return Promise.resolve(null);
-    });
+    );
 
     mockUpdateNoShowHost.mockImplementation(
       ({ bookingUid, noShowHost }: { bookingUid: string; noShowHost: boolean }) => {
