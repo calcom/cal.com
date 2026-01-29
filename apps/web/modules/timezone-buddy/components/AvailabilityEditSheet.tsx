@@ -195,7 +195,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <SheetBody className="mt-4 flex flex-col stack-y-4">
+          <SheetBody className="mt-4 flex flex-col stack-y-8">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -234,13 +234,13 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
           </SheetBody>
           <SheetFooter>
             <SheetClose asChild>
-              <Button color="secondary" className="w-full justify-center">
+              <Button color="secondary" className="justify-center">
                 {t("cancel")}
               </Button>
             </SheetClose>
             <Button
               disabled={!hasEditPermission || !data.hasDefaultSchedule}
-              className="w-full justify-center"
+              className="justify-center"
               type="submit"
               loading={updateMutation.isPending}
               form="availability-form">

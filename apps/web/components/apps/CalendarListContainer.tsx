@@ -169,8 +169,8 @@ export function CalendarListContainer({
         })}
         description={t(`no_category_apps_description_calendar`)}
         buttonRaw={
-          <Button color="secondary" data-testid="connect-calendar-apps" href="/apps/categories/calendar">
-            {t(`connect_calendar_apps`)}
+          <Button EndIcon="external-link" color="secondary" data-testid="connect-calendar-apps" href="/apps/categories/calendar">
+            {t("connect_your_first_calendar")}
           </Button>
         }
       />
