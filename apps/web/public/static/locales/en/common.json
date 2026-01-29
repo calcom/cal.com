@@ -3878,6 +3878,8 @@
   "pbac_action_read_org_booking_audit_logs": "View organization booking audit logs",
   "pbac_action_impersonate": "Impersonate",
   "pbac_action_edit_users": "Edit users",
+  "pbac_action_password_reset": "Reset password",
+  "pbac_desc_reset_password_organization_members": "Send password reset emails to organization members",
   "role_created_successfully": "Role created successfully",
   "role_updated_successfully": "Role updated successfully",
   "delete_role": "Delete role",
