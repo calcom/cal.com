@@ -18,7 +18,6 @@ import {
   getConfigProp,
   isRouterPath,
   isSameBookingLink,
-  mergeUiConfig,
 } from "./lib/utils";
 import { ModalBox } from "./ModalBox/ModalBox";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
@@ -234,6 +233,11 @@ export class Cal {
 
   api: CalApi;
 
+  /**
+   * Commands for which the queue persists across iframe resets
+   */
+  commandsPersistAcrossIframeResets: DoInIframeArg['method'][] = ["ui"];
+
   isPrerendering?: boolean;
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
@@ -368,7 +372,7 @@ export class Cal {
       urlInstance.searchParams.append(key, value);
     }
 
-    // Very Important:Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check when it is ready, we don't want to reset UI
+    // Very Important: Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check correctly when it is ready.
     this.iframeReset();
     
     if (iframe.src === urlInstance.toString()) {
@@ -410,8 +414,10 @@ export class Cal {
 
   iframeReset() {
     this.iframeReady = false;
-    // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI applied
-    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => doInIframeArg.method === "ui");
+    // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI configuration applied automatically
+    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => 
+      this.commandsPersistAcrossIframeResets.includes(doInIframeArg.method)
+    );
   }
 
   constructor(namespace: string, q: Queue) {
