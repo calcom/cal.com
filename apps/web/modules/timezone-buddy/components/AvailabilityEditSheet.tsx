@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import Schedule from "@calcom/features/schedules/components/Schedule";
+import Schedule from "@calcom/web/modules/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";

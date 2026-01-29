@@ -1,6 +1,7 @@
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { App } from "@calcom/types/App";
+import type { IntegrationCalendar } from "@calcom/types/Calendar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -8,6 +9,51 @@ import classNames from "classnames";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
+
+
+type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
+  primary?: boolean | null;
+  isSelected?: boolean;
+  credentialId?: number | null;
+  delegationCredentialId?: string | null;
+};
+
+interface ConnectedCalendar {
+  credentialId: number;
+  integration: App & { title?: string; slug?: string };
+  primary?: CalendarWithPrimary | null;
+  calendars?: CalendarWithPrimary[] | null;
+  cacheUpdatedAt?: Date | string | null;
+  delegationCredentialId?: string | null;
+  error?: {
+    message: string;
+  };
+}
+
+interface DestinationCalendar {
+  integration: string;
+  externalId: string;
+  primaryEmail?: string | null;
+  name?: string | null;
+  integrationTitle?: string | null;
+  credentialId?: number | null;
+  email?: string | null;
+  readOnly?: boolean | null;
+  primary?: boolean | null;
+  id?: string | number | null;
+  userId?: number | null;
+  eventTypeId?: number | null;
+  customCalendarReminder?: number | null;
+  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
+}
+
+interface CalendarsQueryData {
+  connectedCalendars: ConnectedCalendar[];
+  destinationCalendar: DestinationCalendar | null;
+}
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -17,7 +63,7 @@ interface Props {
   value: string | undefined;
   maxWidth?: number;
   hideAdvancedText?: boolean;
-  calendarsQueryData?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+  calendarsQueryData?: CalendarsQueryData;
   customClassNames?: SelectClassNames;
 }
 

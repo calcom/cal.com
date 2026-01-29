@@ -187,23 +187,6 @@ const CopyButton = ({
   );
 };
 
-const Schedule = <
-  TFieldValues extends FieldValues,
-  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
->(props: {
-  name: TPath;
-  control: Control<TFieldValues>;
-  weekStart?: number;
-  disabled?: boolean;
-  labels?: ScheduleLabelsType;
-  userTimeFormat?: number | null;
-}) => {
-  const query = useMeQuery();
-  const { timeFormat } = query.data || { timeFormat: null };
-
-  return <ScheduleComponent userTimeFormat={timeFormat} {...props} />;
-};
-
 export const ScheduleComponent = <
   TFieldValues extends FieldValues,
   TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
@@ -820,5 +803,3 @@ const CopyTimes = ({
     </div>
   );
 };
-
-export default Schedule;
