@@ -112,6 +112,12 @@ export const AppMetaSchema = z
     imageSrc: z.string().optional(),
     label: z.string().optional(),
     linkType: z.string().optional(),
+    externalLink: z
+      .object({
+        url: z.string(),
+        newTab: z.boolean().optional(),
+      })
+      .optional(),
   })
   .passthrough();
 
