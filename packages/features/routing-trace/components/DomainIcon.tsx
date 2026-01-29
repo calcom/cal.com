@@ -1,6 +1,6 @@
 import { Icon } from "@calcom/ui/components/icon";
 
-import { ROUTING_TRACE_DOMAINS } from "../services/RoutingTraceService";
+import { ROUTING_TRACE_DOMAINS } from "../constants";
 
 import type { IconName } from "@calcom/ui/components/icon";
 

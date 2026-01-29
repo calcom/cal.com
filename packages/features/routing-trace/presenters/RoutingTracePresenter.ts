@@ -1,5 +1,5 @@
 import type { RoutingStep, RoutingTrace } from "../repositories/RoutingTraceRepository.interface";
-import { ROUTING_TRACE_DOMAINS } from "../services/RoutingTraceService";
+import { ROUTING_TRACE_DOMAINS } from "../constants";
 import { RoutingFormTracePresenter } from "./RoutingFormTracePresenter";
 import { SalesforceRoutingTracePresenter } from "./SalesforceRoutingTracePresenter";
 

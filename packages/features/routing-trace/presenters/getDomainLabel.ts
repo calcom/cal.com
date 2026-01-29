@@ -1,4 +1,4 @@
-import { ROUTING_TRACE_DOMAINS } from "../services/RoutingTraceService";
+import { ROUTING_TRACE_DOMAINS } from "../constants";
 
 const DOMAIN_LABELS: Record<string, string> = {
   [ROUTING_TRACE_DOMAINS.SALESFORCE]: "Salesforce",
