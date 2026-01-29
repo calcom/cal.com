@@ -292,6 +292,8 @@ const uploadMediaToWhatsApp = async (
 type ExpandedVariablesType = VariablesType & {
   recipientName?: string;
   senderName?: string;
+  eventStartTimeInAttendeeTimezone?: string;
+  eventEndTimeInAttendeeTimezone?: string;
 };
 
 const calculateSuffixLength = (templateText: string, variableName: string): number => {
@@ -391,6 +393,8 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 > => {
   const expandedVariables = {
     ...variableData,
+    eventStartTimeInAttendeeTimezone: variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
+    eventEndTimeInAttendeeTimezone: variableData.eventEndTimeInAttendeeTimezone?.format("h:mma"),
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
     senderName:
