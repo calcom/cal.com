@@ -670,19 +670,19 @@ export class BookingRepository implements IBookingRepository {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryTwo = this.prismaClient.booking.findMany({
-      where: {
-        ...sharedQuery,
-        attendees: {
-          some: {
-            email: {
-              in: Array.from(userIdAndEmailMap.values()),
-            },
-          },
-        },
-      },
-      select: bookingsSelect,
-    });
+    const emails = Array.from(userIdAndEmailMap.values());
+    const bookingIdsFromAttendees =
+      emails.length > 0
+        ? this.prismaClient.$queryRaw<{ bookingId: number }[]>`
+            SELECT DISTINCT a."bookingId"
+            FROM "Attendee" a
+            INNER JOIN "Booking" b ON b."id" = a."bookingId"
+            WHERE a."email" = ANY(${emails}::text[])
+              AND b."startTime" <= ${endDate}
+              AND b."endTime" >= ${startDate}
+              AND b."status" = 'accepted'
+          `
+        : Promise.resolve([]);
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
@@ -700,13 +700,25 @@ export class BookingRepository implements IBookingRepository {
           },
           select: bookingsSelect,
         })
-      : [];
+      : Promise.resolve([]);
 
-    const [resultOne, resultTwo, resultThree] = await Promise.all([
+    const [resultOne, bookingIdResults, resultThree] = await Promise.all([
       currentBookingsAllUsersQueryOne,
-      currentBookingsAllUsersQueryTwo,
+      bookingIdsFromAttendees,
       currentBookingsAllUsersQueryThree,
     ]);
+
+    const bookingIds = bookingIdResults.map((r) => r.bookingId);
+    const resultTwo =
+      bookingIds.length > 0
+        ? await this.prismaClient.booking.findMany({
+            where: {
+              id: { in: bookingIds },
+            },
+            select: bookingsSelect,
+          })
+        : [];
+
     // Prevent duplicate booking records when the organizer books his own event type.
     //
     // *Three is about PENDING, so will never overlap
