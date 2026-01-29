@@ -70,7 +70,11 @@ export default function EditAvailabilityHoursIOS() {
 
       <Stack.Header>
         <Stack.Header.Left>
-          <Stack.Header.Button onPress={() => router.back()}>
+          <Stack.Header.Button
+            onPress={() => router.back()}
+            tintColor={theme.backgroundEmphasis}
+            variant="prominent"
+          >
             <Stack.Header.Icon sf="xmark" />
           </Stack.Header.Button>
         </Stack.Header.Left>

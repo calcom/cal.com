@@ -83,7 +83,11 @@ export default function AddGuestsIOS() {
 
       <Stack.Header>
         <Stack.Header.Left>
-          <Stack.Header.Button onPress={() => router.back()}>
+          <Stack.Header.Button
+            onPress={() => router.back()}
+            tintColor={theme.backgroundEmphasis}
+            variant="prominent"
+          >
             <Stack.Header.Icon sf="xmark" />
           </Stack.Header.Button>
         </Stack.Header.Left>
@@ -96,7 +100,7 @@ export default function AddGuestsIOS() {
               onPress={handleSave}
               disabled={isSaving}
               variant="prominent"
-              tintColor="#000"
+              tintColor={theme.text}
             >
               <Stack.Header.Icon sf="checkmark" />
             </Stack.Header.Button>
