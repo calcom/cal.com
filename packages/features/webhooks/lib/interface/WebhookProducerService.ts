@@ -92,6 +92,9 @@ export interface QueuePaymentWebhookParams extends BaseQueueWebhookParams {
 
   /** OAuth Client ID (for platform webhooks) */
   oAuthClientId?: string | null;
+
+  /** Payment ID (for payment-related webhooks) */
+  paymentId?: number;
 }
 
 /**

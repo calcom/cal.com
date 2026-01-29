@@ -2549,6 +2549,7 @@ async function handler(
           teamId,
           orgId,
           oAuthClientId: platformClientId,
+          paymentId: payment?.id,
         });
       } catch (webhookError) {
         tracingLogger.error(
@@ -2939,11 +2940,13 @@ export class RegularBookingService implements IBookingService {
     teamId?: number | null;
     orgId?: number;
     oAuthClientId?: string | null;
+    paymentId?: number;
   }): Promise<void> {
     await this.deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
       ...params,
       teamId: params.teamId ?? undefined,
       oAuthClientId: params.oAuthClientId ?? undefined,
+      paymentId: params.paymentId,
     });
   }
 

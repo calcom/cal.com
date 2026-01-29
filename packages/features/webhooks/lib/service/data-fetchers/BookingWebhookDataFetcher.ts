@@ -13,6 +13,9 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
     WebhookTriggerEvents.BOOKING_REQUESTED,
     WebhookTriggerEvents.BOOKING_REJECTED,
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+    // Payment triggers also need booking data
+    WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
+    WebhookTriggerEvents.BOOKING_PAID,
   ]);
 
   constructor(

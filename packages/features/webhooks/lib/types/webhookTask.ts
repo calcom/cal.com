@@ -62,6 +62,7 @@ export const paymentWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   userId: z.number().optional(),
   orgId: z.number().optional(),
   oAuthClientId: z.string().nullable().optional(),
+  paymentId: z.number().optional(),
 });
 
 /**

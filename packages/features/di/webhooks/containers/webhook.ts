@@ -19,7 +19,6 @@ import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";
 import { formWebhookDataFetcherModule } from "../modules/FormWebhookDataFetcher.module";
 import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.module";
-import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
 import { webhookProducerServiceModule } from "../modules/WebhookProducerService.module";
@@ -49,7 +48,6 @@ webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, webhookModule);
 
 // Load Data Fetchers (Strategy Pattern implementations)
 webhookContainer.load(WEBHOOK_TOKENS.BOOKING_DATA_FETCHER, bookingWebhookDataFetcherModule);
-webhookContainer.load(WEBHOOK_TOKENS.PAYMENT_DATA_FETCHER, paymentWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.FORM_DATA_FETCHER, formWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);

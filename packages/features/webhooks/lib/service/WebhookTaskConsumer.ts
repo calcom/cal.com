@@ -8,7 +8,11 @@ import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
-import type { BookingWebhookTaskPayload, WebhookTaskPayload } from "../types/webhookTask";
+import type {
+  BookingWebhookTaskPayload,
+  PaymentWebhookTaskPayload,
+  WebhookTaskPayload,
+} from "../types/webhookTask";
 
 /**
  * Webhook Task Consumer
@@ -264,6 +268,16 @@ export class WebhookTaskConsumer {
           status: "REJECTED",
           rejectionReason: bookingPayload.rejectionReason,
         } as WebhookEventDTO;
+
+      case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED:
+      case WebhookTriggerEvents.BOOKING_PAID: {
+        const paymentPayload = payload as PaymentWebhookTaskPayload;
+        return {
+          ...baseDTO,
+          triggerEvent,
+          paymentId: paymentPayload.paymentId,
+        } as WebhookEventDTO;
+      }
 
       default:
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
