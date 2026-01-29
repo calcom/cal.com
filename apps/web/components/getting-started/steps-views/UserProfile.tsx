@@ -26,6 +26,7 @@ interface UserProfileProps {
   user: RouterOutputs["viewer"]["me"]["get"];
 }
 
+
 const UserProfile = ({ user }: UserProfileProps) => {
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -152,8 +153,11 @@ const UserProfile = ({ user }: UserProfileProps) => {
       <fieldset className="mt-8">
         <Label className="text-default mb-2 block text-sm font-medium">{t("about")}</Label>
         <Editor
+          maxHeight="200px"
           getText={() => md.render(getValues("bio") || user?.bio || "")}
-          setText={(value: string) => setValue("bio", turndown(value))}
+          setText={(value: string) => {
+            setValue("bio", turndown(value));
+          }}
           excludedToolbarItems={["blockType"]}
           firstRender={firstRender}
           setFirstRender={setFirstRender}

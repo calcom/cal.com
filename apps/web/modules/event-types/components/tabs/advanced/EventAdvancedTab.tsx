@@ -74,6 +74,8 @@ import DisableReschedulingController from "./DisableReschedulingController";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
+type BookingField = z.infer<typeof fieldSchema>;
+
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
   eventName?: InputClassNames;
@@ -105,6 +107,7 @@ export type EventAdvancedTabCustomClassNames = {
   };
   timezoneLock?: SettingsToggleClassNames;
   hideOrganizerEmail?: SettingsToggleClassNames;
+  hidden?: SettingsToggleClassNames;
   eventTypeColors?: SettingsToggleClassNames & {
     warningText?: string;
   };
@@ -113,7 +116,7 @@ export type EventAdvancedTabCustomClassNames = {
   emailNotifications?: EmailNotificationToggleCustomClassNames;
 };
 
-type BookingField = z.infer<typeof fieldSchema>;
+
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
@@ -528,6 +531,7 @@ export const EventAdvancedTab = ({
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
   const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const hideOrganizerEmailLocked = shouldLockDisableProps("hideOrganizerEmail");
+  const hiddenLocked = shouldLockDisableProps("hidden");
   const customReplyToEmailLocked = shouldLockDisableProps("customReplyToEmail");
 
   const disableCancellingLocked = shouldLockDisableProps("disableCancelling");
@@ -825,6 +829,25 @@ export const EventAdvancedTab = ({
             descriptionClassName={customClassNames?.bookerEmailVerification?.description}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <Controller
+        name="hidden"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm", customClassNames?.hidden?.label)}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.hidden?.container
+            )}
+            title={t("hide_from_profile")}
+            {...hiddenLocked}
+            descriptionClassName={customClassNames?.hidden?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            data-testid="hidden-event-type"
           />
         )}
       />
