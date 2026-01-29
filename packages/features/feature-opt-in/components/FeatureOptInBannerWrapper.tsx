@@ -2,6 +2,7 @@
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import type { ReactElement } from "react";
+import { createPortal } from "react-dom";
 
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
 import type { FeatureOptInMutations } from "./FeatureOptInConfirmDialog";
@@ -40,13 +41,16 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
 
   return (
     <>
-      {state.shouldShow && (
-        <FeatureOptInBanner
-          featureConfig={state.featureConfig}
-          onDismiss={state.dismiss}
-          onOpenDialog={state.openDialog}
-        />
-      )}
+      {state.shouldShow &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <FeatureOptInBanner
+            featureConfig={state.featureConfig}
+            onDismiss={state.dismiss}
+            onOpenDialog={state.openDialog}
+          />,
+          document.body
+        )}
       {state.userRoleContext && (
         <FeatureOptInConfirmDialog
           isOpen={state.isDialogOpen}

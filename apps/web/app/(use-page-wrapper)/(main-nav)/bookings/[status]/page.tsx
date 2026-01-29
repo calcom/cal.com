@@ -1,17 +1,18 @@
-import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
+import { getServerSession, getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
+import {
+  PermissionCheckService,
+  PermissionCheckService,
+} from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole, MembershipRole } from "@calcom/prisma/enums";
+import { buildLegacyRequest, buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { MembershipRole } from "@calcom/prisma/enums";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-view";
 
@@ -36,30 +37,36 @@ const Page = async ({ params }: PageProps) => {
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-  let canReadOthersBookings = false;
-  if (session?.user?.id) {
-    const permissionService = new PermissionCheckService();
-    const userId = session.user.id;
-
-    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
-      userId,
-      permission: "booking.read",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-    // We check if teamIdsWithPermission.length > 0.
-    // While this may not be entirely accurate, it's acceptable
-    // because we perform a thorough validation on the server side for the actual filter values.
-    // This variable is primarily for UI purposes.
-    canReadOthersBookings = teamIdsWithPermission.length > 0;
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
   }
 
+  const userId = session.user.id;
+  const permissionService = new PermissionCheckService();
   const userFeatureRepository = getUserFeatureRepository();
-  const [bookingsV3Enabled, bookingAuditEnabled] = session?.user?.id
-    ? await Promise.all([
-        userFeatureRepository.checkIfUserHasFeature(session.user.id, "bookings-v3"),
-        userFeatureRepository.checkIfUserHasFeature(session.user.id, "booking-audit"),
-      ])
-    : [false, false];
+
+  const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+    userId,
+    permission: "booking.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+  // We check if teamIdsWithPermission.length > 0.
+  // While this may not be entirely accurate, it's acceptable
+  // because we perform a thorough validation on the server side for the actual filter values.
+  // This variable is primarily for UI purposes.
+  const canReadOthersBookings = teamIdsWithPermission.length > 0;
+
+  const featureOptInService = getFeatureOptInService();
+
+  const [bookingAuditEnabled, featureStates] = await Promise.all([
+    userFeatureRepository.checkIfUserHasFeature(session.user.id, "booking-audit"),
+    featureOptInService.resolveFeatureStates({
+      userId,
+      featureIds: ["bookings-v3"],
+    }),
+  ]);
+
+  const bookingsV3Enabled = featureStates["bookings-v3"]?.effectiveEnabled ?? false;
 
   return (
     <ShellMainAppDir
@@ -68,7 +75,7 @@ const Page = async ({ params }: PageProps) => {
       headerClassName="bookings-shell-heading">
       <BookingsList
         status={parsed.data.status}
-        userId={session?.user?.id}
+        userId={userId}
         permissions={{ canReadOthersBookings }}
         bookingsV3Enabled={bookingsV3Enabled}
         bookingAuditEnabled={bookingAuditEnabled}
