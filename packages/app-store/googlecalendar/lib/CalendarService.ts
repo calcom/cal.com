@@ -7,6 +7,7 @@ import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getDestinationCalendarRepository } from "@calcom/features/di/containers/DestinationCalendar";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
@@ -28,6 +29,41 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
+/**
+ * Google system calendars that don't return proper free/busy information,
+ * making them useless for availability checking. These include:
+ * - Holiday calendars (e.g., "en.usa#holiday@group.v.calendar.google.com")
+ * - Birthdays/contacts calendar ("addressbook#contacts@group.v.calendar.google.com")
+ */
+const GOOGLE_SYSTEM_CALENDAR_SUFFIXES = [
+  "#holiday@group.v.calendar.google.com",
+  "#contacts@group.v.calendar.google.com",
+];
+
+function isGoogleSystemCalendar(calendarId: string | null | undefined): boolean {
+  if (!calendarId) return false;
+  return GOOGLE_SYSTEM_CALENDAR_SUFFIXES.some((suffix) => calendarId.endsWith(suffix));
+}
+
+/**
+ * Extended interface for Google Calendar service that includes Google-specific methods.
+ * This interface is used by internal Google Calendar modules (callback, tests, etc.)
+ * that need access to Google-specific functionality beyond the generic Calendar interface.
+ */
+export interface GoogleCalendar extends Calendar {
+  getPrimaryCalendar(calendar?: unknown): Promise<{ id?: string | null; timeZone?: string | null } | null>;
+
+  upsertSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+  ): Promise<unknown>;
+
+  createSelectedCalendar(
+    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+  ): Promise<unknown>;
+
+  authedCalendar(): Promise<calendar_v3.Calendar>;
+}
+
 interface GoogleCalError extends Error {
   code?: number;
 }
@@ -35,7 +71,7 @@ interface GoogleCalError extends Error {
 const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
-export default class GoogleCalendarService implements Calendar {
+class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: CalendarAuth;
   private log: typeof logger;
@@ -46,6 +82,32 @@ export default class GoogleCalendarService implements Calendar {
     this.credential = credential;
     this.auth = new CalendarAuth(credential);
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  }
+
+  private async getReminderDuration(credentialId: number): Promise<number | null> {
+    try {
+      const destinationCalendarRepository = getDestinationCalendarRepository();
+      return await destinationCalendarRepository.getCustomReminderByCredentialId(credentialId);
+    } catch (error) {
+      this.log.warn("Failed to fetch custom calendar reminder", safeStringify(error));
+      return null;
+    }
+  }
+
+  private getReminders(customReminderMinutes: number | null): {
+    useDefault: boolean;
+    overrides?: { method: string; minutes: number }[];
+  } {
+    if (customReminderMinutes !== null) {
+      return {
+        useDefault: false,
+        overrides: [
+          { method: "popup", minutes: customReminderMinutes },
+          { method: "email", minutes: customReminderMinutes },
+        ],
+      };
+    }
+    return { useDefault: true };
   }
 
   public getCredentialId() {
@@ -119,6 +181,9 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
 
+    // Fetch custom reminder duration for this credential's destination calendar
+    const customReminderMinutes = await this.getReminderDuration(credentialId);
+
     const payload: calendar_v3.Schema$Event = {
       summary: calEvent.title,
       description: calEvent.calendarDescription,
@@ -131,9 +196,7 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: calEvent.organizer.timeZone,
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: this.getReminders(customReminderMinutes),
       guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
@@ -142,7 +205,12 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     if (calEvent.location) {
-      payload["location"] = getLocation(calEvent);
+      payload["location"] = getLocation({
+        videoCallData: calEvent.videoCallData,
+        additionalInformation: calEvent.additionalInformation,
+        location: calEvent.location,
+        uid: calEvent.uid,
+      });
     }
 
     if (calEvent.recurringEvent) {
@@ -199,7 +267,12 @@ export default class GoogleCalendarService implements Calendar {
             calendarId: selectedCalendar,
             eventId: event.id || "",
             requestBody: {
-              location: getLocation(calEvent),
+              location: getLocation({
+                videoCallData: calEvent.videoCallData,
+                additionalInformation: calEvent.additionalInformation,
+                location: calEvent.location,
+                uid: calEvent.uid,
+              }),
               description: calEvent.calendarDescription,
             },
           });
@@ -278,6 +351,9 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+    // Fetch custom reminder duration for this credential's destination calendar
+    const customReminderMinutes = await this.getReminderDuration(this.credential.id);
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -290,14 +366,17 @@ export default class GoogleCalendarService implements Calendar {
         timeZone: event.organizer.timeZone,
       },
       attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
-      reminders: {
-        useDefault: true,
-      },
+      reminders: this.getReminders(customReminderMinutes),
       guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
     if (event.location) {
-      payload["location"] = getLocation(event);
+      payload["location"] = getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      });
     }
 
     if (event.conferenceData && event.location === MeetLocationType) {
@@ -327,7 +406,7 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-        calendar.events.patch({
+        await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
           eventId: evt.data.id || "",
@@ -647,7 +726,11 @@ export default class GoogleCalendarService implements Calendar {
       );
 
       if (!cals.items) return [];
-      return cals.items.map(
+
+      // Filter out Google system calendars (holidays, birthdays) as they don't return proper free/busy information
+      const filteredCalendars = cals.items.filter((cal) => !isGoogleSystemCalendar(cal.id));
+
+      return filteredCalendars.map(
         (cal) =>
           ({
             externalId: cal.id ?? "No id",
@@ -776,4 +859,27 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like calendar_v3.Calendar)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Google API SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(
+  credential: CredentialForCalendarServiceWithEmail
+): Calendar {
+  return new GoogleCalendarService(credential);
+}
+
+/**
+ * Factory function that creates a Google Calendar service instance with the extended GoogleCalendar type.
+ * This is used by internal Google Calendar modules (callback, tests, etc.) that need access to
+ * Google-specific methods beyond the generic Calendar interface.
+ */
+export function createGoogleCalendarServiceWithGoogleType(
+  credential: CredentialForCalendarServiceWithEmail
+): GoogleCalendar {
+  return new GoogleCalendarService(credential);
 }

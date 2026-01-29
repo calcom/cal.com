@@ -4,10 +4,19 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./types/*",
+        "./*"
+      ]
+    }
+  },
   "files": [
     "components.ts"
   ],
   "scripts": {
+    "build:types": "tsc --project tsconfig.build.json",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint": "biome lint .",
@@ -22,7 +31,7 @@
     "@calcom/office365video": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@calcom/zoomvideo": "workspace:*",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "qs-stringify": "1.2.1",
     "react-i18next": "12.3.1"
   },

@@ -321,6 +321,13 @@ test.describe("Popup Tests", () => {
     await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       pathname: "/free/30min",
     });
+
+    if (!embedIframe) {
+      throw new Error("Embed iframe not found");
+    }
+
+    // Verify that event type details are hidden (hideEventTypeDetails: true was set via ui() call)
+    await expect(embedIframe.locator('[data-testid="event-meta"]')).toBeHidden();
   });
 });
 

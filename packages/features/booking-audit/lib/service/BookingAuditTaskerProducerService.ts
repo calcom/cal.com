@@ -12,12 +12,11 @@ import { makeActorById, buildActorEmail } from "../makeActor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
 import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
 import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
 import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
-import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
 import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
+import { NoShowUpdatedAuditActionService } from "../actions/NoShowUpdatedAuditActionService";
 import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
 import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
 import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
@@ -216,17 +215,18 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         });
     }
 
-    async queueHostNoShowUpdatedAudit(params: {
+    async queueNoShowUpdatedAudit(params: {
         bookingUid: string;
         actor: Actor;
         organizationId: number | null;
         source: ActionSource;
         operationId?: string | null;
-        data: z.infer<typeof HostNoShowUpdatedAuditActionService.latestFieldsSchema>;
+        data: z.infer<typeof NoShowUpdatedAuditActionService.latestFieldsSchema>;
+        context?: BookingAuditContext;
     }): Promise<void> {
         await this.queueTask({
             ...params,
-            action: HostNoShowUpdatedAuditActionService.TYPE,
+            action: NoShowUpdatedAuditActionService.TYPE,
         });
     }
 
@@ -283,20 +283,6 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         await this.queueTask({
             ...params,
             action: LocationChangedAuditActionService.TYPE,
-        });
-    }
-
-    async queueAttendeeNoShowUpdatedAudit(params: {
-        bookingUid: string;
-        actor: Actor;
-        organizationId: number | null;
-        source: ActionSource;
-        operationId?: string | null;
-        data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.latestFieldsSchema>;
-    }): Promise<void> {
-        await this.queueTask({
-            ...params,
-            action: AttendeeNoShowUpdatedAuditActionService.TYPE,
         });
     }
 
@@ -399,6 +385,38 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         await this.queueBulkTask({
             ...params,
             action: CancelledAuditActionService.TYPE,
+        });
+    }
+
+    async queueBulkCreatedAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: CreatedAuditActionService.TYPE,
+        });
+    }
+
+    async queueBulkRescheduledAudit(params: {
+        bookings: Array<{
+            bookingUid: string;
+            data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
+        }>;
+        actor: Actor;
+        organizationId: number | null;
+        source: ActionSource;
+        operationId?: string | null;
+    }): Promise<void> {
+        await this.queueBulkTask({
+            ...params,
+            action: RescheduledAuditActionService.TYPE,
         });
     }
 
