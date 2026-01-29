@@ -17,7 +17,8 @@
     "**/*.ts",
     "**/*.tsx",
     "../../../packages/types/*.d.ts",
-    "../../../packages/types/next-auth.d.ts"
+    "../../../packages/types/next-auth.d.ts",
+    "trigger.version.js"
   ],
   "exclude": ["**/node_modules/**", "templates", "auth"]
 }
