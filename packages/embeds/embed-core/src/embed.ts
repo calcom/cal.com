@@ -368,10 +368,9 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
-    // @ts-ignore TS2802: URLSearchParams iteration requires downlevelIteration
-    for (const [key, value] of searchParams) {
+    searchParams.forEach((value, key) => {
       urlInstance.searchParams.append(key, value);
-    }
+    });
 
     // Very Important: Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check correctly when it is ready.
     this.iframeReset();
