@@ -565,43 +565,56 @@ class Office365CalendarService implements Calendar {
   private fetchResponsesWithNextLink = async (
     settledResponses: ISettledResponse[]
   ): Promise<ISettledResponse[]> => {
-    const alreadySuccess = [] as ISettledResponse[];
-    const newLinkRequest = [] as IRequest[];
-    settledResponses?.forEach((response) => {
-      if (response.status === 200 && response.body["@odata.nextLink"] === undefined) {
-        alreadySuccess.push(response);
-      } else {
+    const allResponses: ISettledResponse[] = [];
+    let currentResponses = settledResponses;
+
+    while (currentResponses.length > 0) {
+      const nextLinkRequests: IRequest[] = [];
+
+      for (const response of currentResponses) {
         const nextLinkUrl = response.body["@odata.nextLink"]
           ? String(response.body["@odata.nextLink"]).replace(this.apiGraphUrl, "")
           : "";
+
         if (nextLinkUrl) {
-          // Saving link for later use
-          newLinkRequest.push({
+          nextLinkRequests.push({
             id: Number(response.id),
             method: "GET",
             url: nextLinkUrl,
           });
         }
+
         delete response.body["@odata.nextLink"];
-        // Pushing success body content
-        alreadySuccess.push(response);
+        allResponses.push(response);
       }
-    });
 
-    if (newLinkRequest.length === 0) {
-      return alreadySuccess;
+      if (nextLinkRequests.length === 0) {
+        break;
+      }
+
+      // Microsoft Graph batch API has a limit of 20 requests per batch
+      // Split into chunks and make concurrent batch calls
+      const BATCH_LIMIT = 20;
+      const chunks: IRequest[][] = [];
+      for (let i = 0; i < nextLinkRequests.length; i += BATCH_LIMIT) {
+        chunks.push(nextLinkRequests.slice(i, i + BATCH_LIMIT));
+      }
+
+      // Make all batch calls concurrently
+      const batchPromises = chunks.map(async (chunk) => {
+        const response = await this.apiGraphBatchCall(chunk);
+        let responseBody = await handleErrorsJson<IBatchResponse | string>(response);
+        if (typeof responseBody === "string") {
+          responseBody = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+        }
+        return responseBody.responses || [];
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      currentResponses = batchResults.flat();
     }
 
-    const newResponse = await this.apiGraphBatchCall(newLinkRequest);
-    let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponse);
-
-    if (typeof newResponseBody === "string") {
-      newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
-    }
-
-    // Going recursive to fetch next link
-    const newSettledResponses = await this.fetchResponsesWithNextLink(newResponseBody.responses);
-    return [...alreadySuccess, ...newSettledResponses];
+    return allResponses;
   };
 
   private fetchRequestWithRetryAfter = async (
