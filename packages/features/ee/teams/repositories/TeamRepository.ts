@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import logger from "@calcom/lib/logger";
+import type { ITransactionalRepository, TransactionClient } from "@calcom/lib/server/unitOfWork";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -166,8 +167,25 @@ const teamSelect = {
   isPlatform: true,
 } satisfies Prisma.TeamSelect;
 
-export class TeamRepository {
-  constructor(private prismaClient: PrismaClient) {}
+export class TeamRepository implements ITransactionalRepository {
+  private isTransactional: boolean;
+
+  constructor(private prismaClient: PrismaClient | TransactionClient = prisma, isTransactional = false) {
+    this.isTransactional = isTransactional;
+  }
+
+  withTransaction(tx: TransactionClient): this {
+    return new TeamRepository(tx, true) as this;
+  }
+
+  private getPrismaClientWithTransaction(): PrismaClient {
+    if (this.isTransactional) {
+      throw new Error(
+        "Cannot use deleteById within a transaction context. Use the individual delete methods (deleteManagedEventTypesByTeamId, deleteMembershipsByTeamId, delete) instead."
+      );
+    }
+    return this.prismaClient as PrismaClient;
+  }
 
   async findById({ id }: { id: number }) {
     const team = await this.prismaClient.team.findUnique({
@@ -246,8 +264,34 @@ export class TeamRepository {
     });
   }
 
+  async deleteManagedEventTypesByTeamId({ teamId }: { teamId: number }) {
+    return await this.prismaClient.eventType.deleteMany({
+      where: {
+        teamId,
+        schedulingType: "MANAGED",
+      },
+    });
+  }
+
+  async deleteMembershipsByTeamId({ teamId }: { teamId: number }) {
+    return await this.prismaClient.membership.deleteMany({
+      where: {
+        teamId,
+      },
+    });
+  }
+
+  async delete({ id }: { id: number }) {
+    return await this.prismaClient.team.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
   async deleteById({ id }: { id: number }) {
-    const deletedTeam = await this.prismaClient.$transaction(async (tx) => {
+    const prismaClient = this.getPrismaClientWithTransaction();
+    const deletedTeam = await prismaClient.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
         where: {
           teamId: id,
@@ -255,7 +299,6 @@ export class TeamRepository {
         },
       });
 
-      // delete all memberships
       await tx.membership.deleteMany({
         where: {
           teamId: id,
