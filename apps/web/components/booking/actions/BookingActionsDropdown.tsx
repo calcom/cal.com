@@ -1,14 +1,9 @@
-import { useState } from "react";
-import type { z } from "zod";
-
-import { MeetingSessionDetailsDialog } from "@calcom/web/modules/ee/video/components/MeetingSessionDetailsDialog";
-import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -21,7 +16,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { MeetingSessionDetailsDialog } from "@calcom/web/modules/ee/video/components/MeetingSessionDetailsDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { CancelBookingDialog } from "@components/dialog/CancelBookingDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -32,19 +27,21 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog";
-
+import { useState } from "react";
+import type { z } from "zod";
+import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
+  type BookingActionContext,
+  getAfterEventActions,
   getCancelEventAction,
   getEditEventActions,
-  getAfterEventActions,
+  getPendingActions,
   getReportAction,
   shouldShowEditActions,
   shouldShowPendingActions,
-  getPendingActions,
-  type BookingActionContext,
 } from "./bookingActions";
 
 interface BookingActionsDropdownProps {
@@ -271,8 +268,8 @@ export function BookingActionsDropdown({
               recurringEventId: booking.recurringEventId,
             })
         : action.id === "reject"
-        ? () => handleReject()
-        : undefined,
+          ? () => handleReject()
+          : undefined,
   })) as ActionType[];
 
   const shouldShowEdit = shouldShowEditActions(actionContext);
@@ -284,14 +281,14 @@ export function BookingActionsDropdown({
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
         : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
-        ? () => setIsOpenLocationDialog(true)
-        : action.id === "add_members"
-        ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
+          ? () => setRerouteDialogIsOpen(true)
+          : action.id === "change_location"
+            ? () => setIsOpenLocationDialog(true)
+            : action.id === "add_members"
+              ? () => setIsOpenAddGuestsDialog(true)
+              : action.id === "reassign"
+                ? () => setIsOpenReassignDialog(true)
+                : undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
@@ -301,22 +298,22 @@ export function BookingActionsDropdown({
       action.id === "view_recordings"
         ? () => setViewRecordingsDialogIsOpen(true)
         : action.id === "meeting_session_details"
-        ? () => setMeetingSessionDetailsDialogIsOpen(true)
-        : action.id === "charge_card"
-        ? () => setChargeCardDialogIsOpen(true)
-        : action.id === "no_show"
-        ? () => {
-            if (attendeeList.length === 1) {
-              const attendee = attendeeList[0];
-              noShowMutation.mutate({
-                bookingUid: booking.uid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-              return;
-            }
-            setIsNoShowDialogOpen(true);
-          }
-        : undefined,
+          ? () => setMeetingSessionDetailsDialogIsOpen(true)
+          : action.id === "charge_card"
+            ? () => setChargeCardDialogIsOpen(true)
+            : action.id === "no_show"
+              ? () => {
+                  if (attendeeList.length === 1) {
+                    const attendee = attendeeList[0];
+                    noShowMutation.mutate({
+                      bookingUid: booking.uid,
+                      attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+                    });
+                    return;
+                  }
+                  setIsNoShowDialogOpen(true);
+                }
+              : undefined,
     disabled:
       action.disabled ||
       (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
@@ -334,6 +331,8 @@ export function BookingActionsDropdown({
     attendees,
     setIsOpen,
     isOpen,
+    organizer,
+    showOrganizerOption,
   }: {
     bookingUid: string;
     attendees: Array<{
@@ -345,6 +344,11 @@ export function BookingActionsDropdown({
     }>;
     setIsOpen: (open: boolean) => void;
     isOpen: boolean;
+    organizer?: {
+      name: string | null;
+      email: string;
+    } | null;
+    showOrganizerOption?: boolean;
   }) => {
     const [noShowAttendees, setNoShowAttendees] = useState<
       Array<{
@@ -352,6 +356,7 @@ export function BookingActionsDropdown({
         noShow: boolean;
       }>
     >(attendees.map((attendee) => ({ email: attendee.email, noShow: attendee.noShow })));
+    const [noShowHost, setNoShowHost] = useState(false);
 
     const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
       onSuccess: async (data) => {
@@ -367,26 +372,44 @@ export function BookingActionsDropdown({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent title={t("mark_as_no_show")} enableOverflow>
-          <div className="stack-y-2">
-            {attendees.map((attendee, index) => (
-              <label key={attendee.email} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={noShowAttendees[index]?.noShow || false}
-                  onChange={(e) => {
-                    const newNoShowAttendees = [...noShowAttendees];
-                    newNoShowAttendees[index] = {
-                      email: attendee.email,
-                      noShow: e.target.checked,
-                    };
-                    setNoShowAttendees(newNoShowAttendees);
-                  }}
-                />
-                <span>
-                  {attendee.name} ({attendee.email})
-                </span>
-              </label>
-            ))}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="text-subtle text-sm font-medium">{t("attendees")}</div>
+              {attendees.map((attendee, index) => (
+                <label key={attendee.email} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={noShowAttendees[index]?.noShow || false}
+                    onChange={(e) => {
+                      const newNoShowAttendees = [...noShowAttendees];
+                      newNoShowAttendees[index] = {
+                        email: attendee.email,
+                        noShow: e.target.checked,
+                      };
+                      setNoShowAttendees(newNoShowAttendees);
+                    }}
+                  />
+                  <span>
+                    {attendee.name} ({attendee.email})
+                  </span>
+                </label>
+              ))}
+            </div>
+            {showOrganizerOption && organizer && (
+              <div className="space-y-2">
+                <div className="text-subtle text-sm font-medium">{t("organizer")}</div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={noShowHost}
+                    onChange={(e) => setNoShowHost(e.target.checked)}
+                  />
+                  <span>
+                    {organizer.name || organizer.email} ({organizer.email})
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <DialogClose />
@@ -395,6 +418,7 @@ export function BookingActionsDropdown({
                 noShowMutation.mutate({
                   bookingUid,
                   attendees: noShowAttendees,
+                  noShowHost: showOrganizerOption ? noShowHost : undefined,
                 });
               }}>
               {t("confirm")}
@@ -490,6 +514,15 @@ export function BookingActionsDropdown({
           attendees={attendeeList}
           setIsOpen={setIsNoShowDialogOpen}
           isOpen={isNoShowDialogOpen}
+          organizer={
+            booking.user
+              ? {
+                  name: booking.user.name,
+                  email: booking.userPrimaryEmail || booking.user.email,
+                }
+              : null
+          }
+          showOrganizerOption={!isHost && !!booking.eventType?.team}
         />
       )}
       <CancelBookingDialog
