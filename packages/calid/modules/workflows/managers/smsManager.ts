@@ -229,15 +229,31 @@ const createWorkflowInsight = async (
 ) => {
   await prisma.calIdWorkflowInsights.create({
     data: {
-      msgId: msgId,
-      eventTypeId: eventTypeId,
+      msgId,
       type: WorkflowMethods.SMS,
       status: WorkflowStatus.QUEUED,
-      ...(bookingUid && { bookingUid: bookingUid }),
-      ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
-      workflowId: workflowId,
-      workflowStepId: workflowStepId,
-      ...(metadata && metadata),
+
+      eventType: {
+        connect: { id: eventTypeId },
+      },
+
+      ...(bookingUid && {
+        booking: { connect: { uid: bookingUid } },
+      }),
+
+      ...(seatReferenceUid && {
+        bookingSeat: { connect: { referenceUid: seatReferenceUid } },
+      }),
+
+      ...(workflowId && {
+        workflow: { connect: { id: workflowId } },
+      }),
+
+      ...(workflowStepId && {
+        workflowStep: { connect: { id: workflowStepId } },
+      }),
+
+      ...(metadata && { metadata }),
     },
   });
 };

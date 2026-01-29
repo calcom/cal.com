@@ -254,19 +254,37 @@ async function createWorkflowInsight(
   await prisma.calIdWorkflowInsights.create({
     data: {
       msgId: dispatchedSMS.response.sid,
-      eventTypeId: notification.booking.eventTypeId,
       type: WorkflowMethods.SMS,
       status: WorkflowStatus.QUEUED,
-      bookingUid: notification.booking.uid,
+
+      eventType: {
+        connect: { id: notification.booking.eventTypeId },
+      },
+
+      booking: {
+        connect: { uid: notification.booking.uid },
+      },
+
       ...(notification.seatReferenceId && {
-        bookingSeatReferenceUid: notification.seatReferenceId,
+        bookingSeat: {
+          connect: { referenceUid: notification.seatReferenceId },
+        },
       }),
-      ...(notification.workflowStep?.id && { workflowStepId: notification.workflowStep.id }),
+
+      ...(notification.workflowStep?.id && {
+        workflowStep: {
+          connect: { id: notification.workflowStep.id },
+        },
+      }),
+
       ...(notification.workflowStep?.workflowId && {
-        workflowId: notification.workflowStep.workflowId,
+        workflow: {
+          connect: { id: notification.workflowStep.workflowId },
+        },
       }),
+
       metadata: {
-        recipientNumber: recipientNumber,
+        recipientNumber,
         smsText: messageText,
         sendAt: notification.scheduledDate,
         isScheduled: true,
