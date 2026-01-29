@@ -177,11 +177,11 @@ const useDefaultCountry = () => {
       }
 
       const data = query.data;
-      if (!data?.countryCode) {
+      if (query.isLoading) {
         return;
       }
 
-      if (isSupportedCountry(data?.countryCode)) {
+      if (data?.countryCode && isSupportedCountry(data.countryCode)) {
         setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
       } else {
         const navCountry = navigator.language.split("-")[1]?.toUpperCase();
@@ -192,7 +192,7 @@ const useDefaultCountry = () => {
         }
       }
     },
-    [query.data, defaultPhoneCountryFromStore]
+    [query.data, query.isLoading, defaultPhoneCountryFromStore]
   );
 
   return defaultCountry;
