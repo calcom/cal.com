@@ -150,6 +150,7 @@ const createMockAuditLog = (
 
 type MockUser = {
   id: number;
+  uuid: string;
   name: string | null;
   email: string;
   avatarUrl: string | null;
@@ -157,17 +158,19 @@ type MockUser = {
 
 const createMockUser = (
   uuid?: string,
-  overrides?: Partial<{ id: number; name: string | null; email: string; avatarUrl: string | null }>
+  overrides?: Partial<{ id: number; uuid: string; name: string | null; email: string; avatarUrl: string | null }>
 ) => {
+  const userUuid = uuid ?? overrides?.uuid ?? `user-uuid-${overrides?.id ?? 123}`;
   const user: MockUser = {
     id: overrides?.id ?? 123,
+    uuid: userUuid,
     name: (overrides && "name" in overrides ? overrides.name : "John Doe") as string | null,
     email: overrides?.email ?? "john@example.com",
     avatarUrl: (overrides && "avatarUrl" in overrides ? overrides.avatarUrl : null) as string | null,
   };
 
-  if (uuid) {
-    DB.users[uuid] = user;
+  if (userUuid) {
+    DB.users[userUuid] = user;
   }
 
   return user;
@@ -197,6 +200,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
   let mockUserRepository: {
     getUserOrganizationAndTeams: Mock<UserRepository["getUserOrganizationAndTeams"]>;
     findByUuid: Mock<UserRepository["findByUuid"]>;
+    findByUuids: Mock<UserRepository["findByUuids"]>;
   };
   let mockBookingAuditRepository: {
     create: Mock<IBookingAuditRepository["create"]>;
@@ -241,6 +245,9 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       getUserOrganizationAndTeams: vi.fn(),
       findByUuid: vi.fn().mockImplementation(({ uuid }: { uuid: string }) => {
         return Promise.resolve(DB.users[uuid] ?? null);
+      }),
+      findByUuids: vi.fn().mockImplementation(({ uuids }: { uuids: string[] }) => {
+        return Promise.resolve(uuids.map((uuid) => DB.users[uuid]).filter(Boolean));
       }),
     };
 
@@ -475,7 +482,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "user-uuid-456" });
+        // Verify bulk-fetching optimization: findByUuids should be called with actor UUID
+        expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
+          uuids: expect.arrayContaining(["user-uuid-456"]),
+        });
         expect(result.auditLogs[0].actor).toMatchObject({
           displayName: "Jane Smith",
           displayEmail: "jane@example.com",
@@ -1000,7 +1010,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "impersonator-uuid-456" });
+        // Verify bulk-fetching optimization: findByUuids should be called with impersonator UUID
+        expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
+          uuids: expect.arrayContaining(["impersonator-uuid-456"]),
+        });
         expect(result.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "Admin User",
           displayEmail: "admin@example.com",
@@ -1051,7 +1064,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockUserRepository.findByUuid).toHaveBeenCalledWith({ uuid: "impersonator-uuid-456" });
+        // Verify bulk-fetching optimization: findByUuids should be called with impersonator UUID
+        expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
+          uuids: expect.arrayContaining(["impersonator-uuid-456"]),
+        });
         expect(result.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "Deleted User",
           displayEmail: null,
