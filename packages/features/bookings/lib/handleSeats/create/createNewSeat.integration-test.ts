@@ -145,10 +145,15 @@ describe("createNewSeat Race Condition Prevention (Integration)", () => {
     // Verify final seat count is exactly 2 (1 existing + 1 new)
     const finalBooking = await prisma.booking.findUnique({
       where: { uid: bookingUid },
-      include: {
+      select: {
         attendees: {
-          include: {
-            bookingSeat: true,
+          select: {
+            id: true,
+            bookingSeat: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
@@ -216,10 +221,15 @@ describe("createNewSeat Race Condition Prevention (Integration)", () => {
     // Verify final seat count is 2
     const finalBooking = await prisma.booking.findUnique({
       where: { uid: bookingUid },
-      include: {
+      select: {
         attendees: {
-          include: {
-            bookingSeat: true,
+          select: {
+            id: true,
+            bookingSeat: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
@@ -309,10 +319,15 @@ describe("createNewSeat Race Condition Prevention (Integration)", () => {
     // Verify seat count is still 2
     const finalBooking = await prisma.booking.findUnique({
       where: { uid: bookingUid },
-      include: {
+      select: {
         attendees: {
-          include: {
-            bookingSeat: true,
+          select: {
+            id: true,
+            bookingSeat: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
