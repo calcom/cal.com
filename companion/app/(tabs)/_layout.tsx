@@ -3,6 +3,7 @@ import type { ColorValue, ImageSourcePropType } from "react-native";
 import { Tabs, VectorIcon } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { Platform } from "react-native";
+import { t } from "@/lib/i18n";
 
 // Type for vector icon families that support getImageSource
 type VectorIconFamily = {
@@ -38,7 +39,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("event_types")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(bookings)">
@@ -51,7 +52,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("bookings")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(availability)">
@@ -64,7 +65,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>Availability</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("availability")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(more)">
@@ -77,7 +78,7 @@ export default function TabLayout() {
             />
           ),
         })}
-        <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("more")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -110,7 +111,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(event-types)"
         options={{
-          title: "Event Types",
+          title: t("event_types"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "link" : "link-outline"} size={24} color={color} />
           ),
@@ -120,7 +121,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(bookings)"
         options={{
-          title: "Bookings",
+          title: t("bookings"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "calendar" : "calendar-outline"} size={24} color={color} />
           ),
@@ -130,7 +131,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(availability)"
         options={{
-          title: "Availability",
+          title: t("availability"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "time" : "time-outline"} size={24} color={color} />
           ),
@@ -140,7 +141,7 @@ function WebTabs() {
       <Tabs.Screen
         name="(more)"
         options={{
-          title: "More",
+          title: t("more"),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "ellipsis-horizontal" : "ellipsis-horizontal-outline"}
