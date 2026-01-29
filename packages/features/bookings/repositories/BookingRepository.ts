@@ -2012,49 +2012,6 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     });
   }
 
-  async findByUidIncludeEventTypeAndTeamAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        uid: bookingUid,
-      },
-      select: {
-        id: true,
-        uid: true,
-        title: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            teamId: true,
-          },
-        },
-        assignmentReason: {
-          select: {
-            reasonString: true,
-            reasonEnum: true,
-          },
-        },
-      },
-    });
-  }
-
   async updateRecordedStatus({
     bookingUid,
     isRecorded,
@@ -2065,6 +2022,55 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     await this.prismaClient.booking.update({
       where: { uid: bookingUid },
       data: { isRecorded },
+    });
+  }
+
+  async findByUidForWrongAssignmentReport({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        assignmentReason: {
+          select: {
+            reasonString: true,
+          },
+          take: 1,
+          orderBy: {
+            createdAt: "asc" as const,
+          },
+        },
+      },
     });
   }
 }

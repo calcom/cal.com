@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ZReportWrongAssignmentInputSchema = z.object({
   bookingUid: z.string(),
-  correctAssignee: z.string().email().optional(),
+  correctAssignee: z.union([z.string().email(), z.literal("").transform(() => undefined)]).optional(),
   additionalNotes: z.string().min(1),
 });
 

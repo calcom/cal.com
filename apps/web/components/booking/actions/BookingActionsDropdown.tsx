@@ -451,12 +451,7 @@ export function BookingActionsDropdown({
         <WrongAssignmentDialog
           isOpenDialog={isOpenWrongAssignmentDialog}
           setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-          bookingUid={booking.uid}
-          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-          guestEmail={booking.attendees[0]?.email ?? ""}
-          hostEmail={booking.user?.email ?? ""}
-          hostName={booking.user?.name ?? null}
-          teamId={booking.eventType?.team?.id ?? null}
+          booking={booking}
         />
       )}
       {booking.paid && booking.payment[0] && (
