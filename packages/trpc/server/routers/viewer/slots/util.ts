@@ -1171,7 +1171,9 @@ export class AvailableSlotsService {
       ? await filterBlockedHosts(allFallbackRRHosts, organizationId)
       : { eligibleHosts: [] };
 
-    const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
+    const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts].filter(
+  (host) => !host.isOptional
+);
 
     // If all hosts are blocked, return empty slots
     if (allHosts.length === 0) {
