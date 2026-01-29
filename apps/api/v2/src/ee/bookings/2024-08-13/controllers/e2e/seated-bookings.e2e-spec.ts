@@ -211,6 +211,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 ...body.bookingFieldsResponses,
               },
               metadata: body.metadata,
+              createdAt: expect.any(String),
             });
             expect(data.location).toBeDefined();
             expect(data.absentHost).toEqual(false);
@@ -287,6 +288,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 ...createdSeatedBooking.attendees[0].bookingFieldsResponses,
               },
               metadata: createdSeatedBooking.attendees[0].metadata,
+              createdAt: expect.any(String),
             });
             const secondAttendee = data.attendees.find((attendee) => attendee.name === nameAttendeeTwo);
             expect(secondAttendee).toEqual({
@@ -303,6 +305,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 ...body.bookingFieldsResponses,
               },
               metadata: body.metadata,
+              createdAt: expect.any(String),
             });
             expect(data.location).toBeDefined();
             expect(data.absentHost).toEqual(false);
@@ -430,6 +433,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 ...attendee?.bookingFieldsResponses,
               },
               metadata: attendee?.metadata,
+              createdAt: expect.any(String),
             });
             expect(data.location).toBeDefined();
             expect(data.absentHost).toEqual(false);
@@ -855,6 +859,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                     ...body.bookingFieldsResponses,
                   },
                   metadata: body.metadata,
+                  createdAt: expect.any(String),
                 });
                 expect(data.location).toBeDefined();
                 expect(data.absentHost).toEqual(false);

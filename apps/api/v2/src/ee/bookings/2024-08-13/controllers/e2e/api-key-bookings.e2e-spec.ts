@@ -180,6 +180,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
+              createdAt: expect.any(String),
             });
             expect(data.meetingUrl).toEqual(body.meetingUrl);
             expect(data.absentHost).toEqual(false);

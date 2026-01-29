@@ -486,6 +486,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
+                createdAt: expect.any(String),
               });
               expect(data.location).toEqual(body.location);
               expect(data.meetingUrl).toEqual(body.location);
@@ -572,6 +573,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
+                createdAt: expect.any(String),
               });
               expect(firstBooking.location).toEqual(body.location);
               expect(firstBooking.recurringBookingUid).toBeDefined();
@@ -595,6 +597,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
+                createdAt: expect.any(String),
               });
               expect(secondBooking.location).toEqual(body.location);
               expect(secondBooking.absentHost).toEqual(false);
@@ -617,6 +620,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
+                createdAt: expect.any(String),
               });
               expect(thirdBooking.location).toEqual(body.location);
               expect(thirdBooking.absentHost).toEqual(false);
@@ -2086,6 +2090,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
+                createdAt: expect.any(String),
               });
               expect(data.location).toEqual(body.location);
               expect(data.meetingUrl).toEqual(body.location);
