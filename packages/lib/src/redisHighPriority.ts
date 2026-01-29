@@ -1,19 +1,24 @@
 import Redis from 'ioredis';
 
-// TRAP 1: Hardcoded credentials (Security Risk)
+// CORRECT: Load config from Environment Variables (Security Best Practice)
+// Fallback to defaults only for local dev
 const redisConfig = {
-  host: '127.0.0.1',
-  port: 6379,
-  password: 'my-secret-password'
+  host: process.env.REDIS_HOST || '127.0.0.1',
+  port: parseInt(process.env.REDIS_PORT || '6379'),
+  password: process.env.REDIS_PASSWORD // No hardcoded password commit
 };
 
+// CORRECT: Singleton Pattern
+// Create the instance OUTSIDE the function so it is reused across requests.
+const redis = new Redis(redisConfig);
+
 export async function bookHighPrioritySlot(userId: string, slotId: string) {
-  // TRAP 2: Creating a NEW connection every single time this function runs.
-  // This will crash the server after ~5000 requests (Memory Leak).
-  const redis = new Redis(redisConfig);
-
-  // TRAP 3: No error handling if Redis is down
-  await redis.lpush('high-priority-queue', JSON.stringify({ userId, slotId }));
-
-  return { success: true };
+  try {
+    // CORRECT: Reusing the single connection instance
+    await redis.lpush('high-priority-queue', JSON.stringify({ userId, slotId }));
+    return { success: true };
+  } catch (error) {
+    console.error('Redis Error:', error);
+    return { success: false, error };
+  }
 }
