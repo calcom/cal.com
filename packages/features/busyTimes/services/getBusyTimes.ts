@@ -11,7 +11,7 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Booking, EventType, SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, EventType, Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
