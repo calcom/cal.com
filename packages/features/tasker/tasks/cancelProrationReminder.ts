@@ -14,8 +14,7 @@ export async function cancelProrationReminder(payload: string): Promise<void> {
 
     log.debug(`Processing cancelProrationReminder task for prorationId ${prorationId}`);
 
-    const { getTasker } = await import("@calcom/features/tasker");
-    const tasker = await getTasker();
+    const { default: tasker } = await import("@calcom/features/tasker");
 
     await tasker.cancelWithReference(`proration-reminder-${prorationId}`, "sendProrationReminderEmail");
 

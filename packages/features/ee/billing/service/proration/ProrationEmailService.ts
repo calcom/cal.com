@@ -160,8 +160,7 @@ export class ProrationEmailService {
   }
 
   private async scheduleReminderEmail(prorationId: string, teamId: number): Promise<void> {
-    const { getTasker } = await import("@calcom/features/tasker");
-    const tasker = await getTasker();
+    const { default: tasker } = await import("@calcom/features/tasker");
     const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await tasker.create(
