@@ -1,4 +1,6 @@
 export const BOOKING_DI_TOKENS = {
+  GET_BOOKINGS_REPOSITORY: Symbol("GetBookingsRepository"),
+  GET_BOOKINGS_REPOSITORY_MODULE: Symbol("GetBookingsRepositoryModule"),
   REGULAR_BOOKING_SERVICE: Symbol("RegularBookingService"),
   REGULAR_BOOKING_SERVICE_MODULE: Symbol("RegularBookingServiceModule"),
   RECURRING_BOOKING_SERVICE: Symbol("RecurringBookingService"),
