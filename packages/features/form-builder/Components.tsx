@@ -1,5 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
-import { PhoneInput } from "@calid/features/ui/components/input/phone-input";
+import PhoneInput from "@calcom/features/components/phone-input";
 import { AttachmentUploader, type AttachmentUploaderRef } from "@calid/features/ui/components/uploader";
 import { useEffect, useRef } from "react";
 import type { z } from "zod";

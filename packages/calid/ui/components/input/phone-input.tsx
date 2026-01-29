@@ -8,7 +8,7 @@ import "react-phone-input-2/lib/style.css";
 
 import { trpc } from "@calcom/trpc/react";
 
-const CUSTOM_PHONE_MASKS = {
+export const CUSTOM_PHONE_MASKS = {
   ci: ".. .. .. .. ..",
   bj: ".. .. .. .. ..",
 };
