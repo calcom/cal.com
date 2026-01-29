@@ -4515,7 +4515,8 @@
   "feature_enabled_description": "You can manage this feature in your settings.",
   "view_settings": "View Settings",
   "error_enabling_feature": "Error enabling feature. Please try again.",
-  "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
-  "overwrite_existing_contact_owner": "Overwrite existing contact owner",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+    "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
+    "overwrite_existing_contact_owner": "Overwrite existing contact owner",
+    "disposable_email_not_allowed": "Disposable or temporary email addresses are not allowed. Please use a permanent email address.",
+    "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

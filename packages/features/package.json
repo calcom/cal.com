@@ -29,6 +29,7 @@
     "class-variance-authority": "0.7.1",
     "date-fns-tz": "3.2.0",
     "deasync": "^0.1.31",
+    "disposable-email-domains-js": "^1.21.0",
     "framer-motion": "10.12.8",
     "p-limit": "6.2.0",
     "react-awesome-query-builder": "5.1.2",

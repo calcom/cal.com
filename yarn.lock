@@ -2615,6 +2615,7 @@ __metadata:
     class-variance-authority: "npm:0.7.1"
     date-fns-tz: "npm:3.2.0"
     deasync: "npm:^0.1.31"
+    disposable-email-domains-js: "npm:^1.21.0"
     framer-motion: "npm:10.12.8"
     p-limit: "npm:6.2.0"
     react-awesome-query-builder: "npm:5.1.2"
@@ -21258,6 +21259,13 @@ __metadata:
   dependencies:
     path-type: "npm:^4.0.0"
   checksum: 10/fa05e18324510d7283f55862f3161c6759a3f2f8dbce491a2fc14c8324c498286c54282c1f0e933cb930da8419b30679389499b919122952a4f8592362ef4615
+  languageName: node
+  linkType: hard
+
+"disposable-email-domains-js@npm:^1.21.0":
+  version: 1.21.0
+  resolution: "disposable-email-domains-js@npm:1.21.0"
+  checksum: 10/de77c5fc9c337d7f4984fe01d7d26127087328eea918bed56fcb3084be5cd64bbfd4ea79b53e02e2d14eebdf70aacf920d51d62057b3a1e80122a5d12c0993dc
   languageName: node
   linkType: hard
 
