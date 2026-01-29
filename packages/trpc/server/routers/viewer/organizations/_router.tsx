@@ -1,6 +1,6 @@
-import type { NextApiRequest } from "next";
 import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+import type { NextApiRequest } from "next";
 
 import authedProcedure, {
   authedAdminProcedure,
@@ -10,6 +10,7 @@ import { router } from "../../../trpc";
 import { eventOwnerProcedure } from "../eventTypes/util";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZAddMembersToTeams } from "./addMembersToTeams.schema";
+import { ZAddToWatchlistInputSchema } from "./addToWatchlist.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
@@ -17,24 +18,29 @@ import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
+import { ZCreateSmtpConfigurationInputSchema } from "./createSmtpConfiguration.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWatchlistEntryInputSchema } from "./createWatchlistEntry.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
+import { ZDeleteSmtpConfigurationInputSchema } from "./deleteSmtpConfiguration.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
 import { ZDeleteWatchlistEntryInputSchema } from "./deleteWatchlistEntry.schema";
+import { ZDismissBookingReportInputSchema } from "./dismissBookingReport.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
+import { ZGetSmtpConfigurationInputSchema } from "./getSmtpConfiguration.schema";
 import { ZGetUserInput } from "./getUser.schema";
 import { ZGetWatchlistEntryDetailsInputSchema } from "./getWatchlistEntryDetails.schema";
 import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
-import { ZAddToWatchlistInputSchema } from "./addToWatchlist.schema";
-import { ZDismissBookingReportInputSchema } from "./dismissBookingReport.schema";
 import { ZListBookingReportsInputSchema } from "./listBookingReports.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZListWatchlistEntriesInputSchema } from "./listWatchlistEntries.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
+import { ZTestSmtpConnectionInputSchema } from "./testSmtpConnection.schema";
+import { ZToggleSmtpConfigurationInputSchema } from "./toggleSmtpConfiguration.schema";
+import { ZSendSmtpTestEmailInputSchema } from "./sendSmtpTestEmail.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 
@@ -195,18 +201,14 @@ export const viewerOrganizationsRouter = router({
       const { getWatchlistEntryDetailsHandler: handler } = await import("./getWatchlistEntryDetails.handler");
       return handler(opts);
     }),
-  listBookingReports: authedOrgAdminProcedure
-    .input(ZListBookingReportsInputSchema)
-    .query(async (opts) => {
-      const { default: handler } = await import("./listBookingReports.handler");
-      return handler(opts);
-    }),
-  addToWatchlist: authedOrgAdminProcedure
-    .input(ZAddToWatchlistInputSchema)
-    .mutation(async (opts) => {
-      const { addToWatchlistHandler: handler } = await import("./addToWatchlist.handler");
-      return handler(opts);
-    }),
+  listBookingReports: authedOrgAdminProcedure.input(ZListBookingReportsInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listBookingReports.handler");
+    return handler(opts);
+  }),
+  addToWatchlist: authedOrgAdminProcedure.input(ZAddToWatchlistInputSchema).mutation(async (opts) => {
+    const { addToWatchlistHandler: handler } = await import("./addToWatchlist.handler");
+    return handler(opts);
+  }),
   dismissBookingReport: authedOrgAdminProcedure
     .input(ZDismissBookingReportInputSchema)
     .mutation(async (opts) => {
@@ -218,4 +220,40 @@ export const viewerOrganizationsRouter = router({
     return handler(opts);
   }),
 
+  listSmtpConfigurations: authedOrgAdminProcedure.query(async (opts) => {
+    const { default: handler } = await import("./listSmtpConfigurations.handler");
+    return handler(opts);
+  }),
+  getSmtpConfiguration: authedOrgAdminProcedure
+    .input(ZGetSmtpConfigurationInputSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./getSmtpConfiguration.handler");
+      return handler(opts);
+    }),
+  createSmtpConfiguration: authedOrgAdminProcedure
+    .input(ZCreateSmtpConfigurationInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./createSmtpConfiguration.handler");
+      return handler(opts);
+    }),
+  deleteSmtpConfiguration: authedOrgAdminProcedure
+    .input(ZDeleteSmtpConfigurationInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./deleteSmtpConfiguration.handler");
+      return handler(opts);
+    }),
+  toggleSmtpConfiguration: authedOrgAdminProcedure
+    .input(ZToggleSmtpConfigurationInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./toggleSmtpConfiguration.handler");
+      return handler(opts);
+    }),
+  testSmtpConnection: authedOrgAdminProcedure.input(ZTestSmtpConnectionInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./testSmtpConnection.handler");
+    return handler(opts);
+  }),
+  sendSmtpTestEmail: authedOrgAdminProcedure.input(ZSendSmtpTestEmailInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./sendSmtpTestEmail.handler");
+    return handler(opts);
+  }),
 });

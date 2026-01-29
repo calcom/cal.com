@@ -66,6 +66,7 @@ export async function scheduleWorkflowNotifications({
   userId,
   teamId,
   alreadyScheduledActiveOnIds,
+  organizationId,
 }: {
   activeOn: number[];
   isOrg: boolean;
@@ -76,10 +77,13 @@ export async function scheduleWorkflowNotifications({
   userId: number;
   teamId: number | null;
   alreadyScheduledActiveOnIds?: number[];
+  organizationId?: number | null;
 }) {
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
 
   const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
+
+  const orgId = organizationId ?? (isOrg ? teamId : null);
 
   await scheduleBookingReminders(
     bookingsToScheduleNotifications,
@@ -89,7 +93,8 @@ export async function scheduleWorkflowNotifications({
     trigger,
     userId,
     teamId,
-    isOrg
+    isOrg,
+    orgId
   );
 }
 

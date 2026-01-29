@@ -44,6 +44,7 @@ export { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 export { ProrationInvoiceEmail } from "./ProrationInvoiceEmail";
 export { ProrationReminderEmail } from "./ProrationReminderEmail";
 export { SlugReplacementEmail } from "./SlugReplacementEmail";
+export { SmtpTestEmail } from "./SmtpTestEmail";
 export { TeamInviteEmail } from "./TeamInviteEmail";
 export { VerifyAccountEmail } from "./VerifyAccountEmail";
 export { VerifyEmailByCode } from "./VerifyEmailByCode";

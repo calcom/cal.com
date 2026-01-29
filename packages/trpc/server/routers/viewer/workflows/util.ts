@@ -357,6 +357,8 @@ export const getEventTypeWorkflows = async (
           slug: true,
           name: true,
           members: true,
+          isOrganization: true,
+          parentId: true,
         },
       },
       activeOn: {

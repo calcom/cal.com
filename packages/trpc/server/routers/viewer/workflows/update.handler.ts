@@ -62,6 +62,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const userWorkflow = await WorkflowRepository.findUniqueForUpdate(id);
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
+  const organizationId = isOrg ? userWorkflow?.teamId : userWorkflow?.team?.parentId ?? null;
 
   const isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, "workflow.update");
 
@@ -232,6 +233,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger,
         userId: user.id,
         teamId: userWorkflow.teamId,
+        organizationId,
       });
     }
   } else {
@@ -246,6 +248,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       userId: user.id,
       teamId: userWorkflow.teamId,
       alreadyScheduledActiveOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+      organizationId,
     });
   }
 
@@ -491,6 +494,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             trigger,
             userId: user.id,
             teamId: userWorkflow.teamId,
+            organizationId,
           });
         }
 
@@ -570,6 +574,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger,
         userId: user.id,
         teamId: userWorkflow.teamId,
+        organizationId,
       });
     }
   }

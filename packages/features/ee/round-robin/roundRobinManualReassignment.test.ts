@@ -1,3 +1,4 @@
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 import {
   addWorkflowReminders,
@@ -13,10 +14,12 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { BookingStatus, SchedulingType, WorkflowMethods } from "@calcom/prisma/enums";
 import {
   expectBookingToBeInDatabase,
+  expectEmailSentViaCustomSmtp,
   expectSuccessfulRoundRobinReschedulingEmails,
   expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { testWithOrgSmtpConfig } from "@calcom/testing/lib/bookingScenario/test";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 import { parse } from "node-html-parser";
 import { v4 as uuidv4 } from "uuid";
@@ -1078,6 +1081,203 @@ describe("roundRobinManualReassignment - Seated Events", () => {
       // Should contain their own info
       expect(emailText).toContain("Attendee 3");
     }
+  });
+
+  describe("Custom SMTP Email Routing", () => {
+    testWithOrgSmtpConfig(
+      "should send round robin reassignment emails via org custom SMTP when configured",
+      async ({ emails, org }) => {
+        const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+        await mockEventManagerReschedule();
+
+        const testDestinationCalendar = createTestDestinationCalendar();
+        const originalHost = {
+          ...createTestUser({
+            id: 1,
+            email: "original@testorg.com",
+            destinationCalendar: testDestinationCalendar,
+          }),
+          organizationId: org?.organization?.id ?? null,
+        };
+        const newHost = {
+          ...createTestUser({ id: 2, email: "newhost@testorg.com" }),
+          organizationId: org?.organization?.id ?? null,
+        };
+        const users = [originalHost, newHost];
+
+        const { dateString: dateStringPlusTwo } = getDate({ dateIncrement: 2 });
+        const bookingToReassignUid = "booking-to-reassign-smtp";
+
+        await createBookingScenario(
+          getScenarioData(
+            {
+              workflows: [
+                {
+                  userId: originalHost.id,
+                  trigger: "NEW_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                createRoundRobinEventType({
+                  id: 1,
+                  slug: "round-robin-event",
+                  users,
+                  teamId: org?.organization?.id ?? undefined,
+                }),
+              ],
+              bookings: [
+                await createTestBooking({
+                  eventTypeId: 1,
+                  userId: originalHost.id,
+                  bookingId: 123,
+                  bookingUid: bookingToReassignUid,
+                }),
+              ],
+              organizer: originalHost,
+              usersApartFromOrganizer: users.slice(1),
+            },
+            org?.organization
+              ? {
+                  ...org.organization,
+                  profileUsername: "original",
+                }
+              : null
+          )
+        );
+
+        await addWorkflowReminders([
+          {
+            bookingUid: bookingToReassignUid,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: new Date(dateStringPlusTwo),
+            scheduled: true,
+            workflowStepId: 1,
+            workflowId: 1,
+          },
+        ]);
+
+        await roundRobinManualReassignment({
+          bookingId: 123,
+          newUserId: newHost.id,
+          orgId: org?.organization?.id ?? null,
+          reassignedById: 1,
+        });
+
+        expectSuccessfulRoundRobinReschedulingEmails({
+          prevOrganizer: originalHost,
+          newOrganizer: newHost,
+          emails,
+        });
+
+        expectEmailSentViaCustomSmtp({
+          emails,
+          to: newHost.email,
+          expectedFromEmail: "bookings@testorg.com",
+        });
+      },
+      { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" }
+    );
+
+    testWithOrgSmtpConfig(
+      "should pass organizationId to scheduleEmailReminder when reassigning in org context",
+      async ({ org }) => {
+        const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+        await mockEventManagerReschedule();
+
+        const emailReminderManager = await import(
+          "@calcom/features/ee/workflows/lib/reminders/emailReminderManager"
+        );
+        const scheduleEmailReminderSpy = vi.spyOn(emailReminderManager, "scheduleEmailReminder");
+
+        const testDestinationCalendar = createTestDestinationCalendar();
+        const originalHost = {
+          ...createTestUser({
+            id: 1,
+            email: "original@testorg.com",
+            destinationCalendar: testDestinationCalendar,
+          }),
+          organizationId: org?.organization?.id ?? null,
+        };
+        const newHost = {
+          ...createTestUser({ id: 2, email: "newhost@testorg.com" }),
+          organizationId: org?.organization?.id ?? null,
+        };
+        const users = [originalHost, newHost];
+
+        const { dateString: dateStringPlusTwo } = getDate({ dateIncrement: 2 });
+        const bookingToReassignUid = "booking-to-reassign-orgid";
+
+        await createBookingScenario(
+          getScenarioData(
+            {
+              workflows: [
+                {
+                  userId: originalHost.id,
+                  trigger: "BEFORE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                createRoundRobinEventType({
+                  id: 1,
+                  slug: "round-robin-event",
+                  users,
+                  teamId: org?.organization?.id ?? undefined,
+                }),
+              ],
+              bookings: [
+                await createTestBooking({
+                  eventTypeId: 1,
+                  userId: originalHost.id,
+                  bookingId: 124,
+                  bookingUid: bookingToReassignUid,
+                }),
+              ],
+              organizer: originalHost,
+              usersApartFromOrganizer: users.slice(1),
+            },
+            org?.organization
+              ? {
+                  ...org.organization,
+                  profileUsername: "original",
+                }
+              : null
+          )
+        );
+
+        await addWorkflowReminders([
+          {
+            bookingUid: bookingToReassignUid,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: new Date(dateStringPlusTwo),
+            scheduled: true,
+            workflowStepId: 1,
+            workflowId: 1,
+          },
+        ]);
+
+        await roundRobinManualReassignment({
+          bookingId: 124,
+          newUserId: newHost.id,
+          orgId: org?.organization?.id ?? null,
+          reassignedById: 1,
+        });
+
+        expect(scheduleEmailReminderSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            organizationId: org?.organization?.id,
+          })
+        );
+
+        scheduleEmailReminderSpy.mockRestore();
+      },
+      { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" }
+    );
   });
 });
 

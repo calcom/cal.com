@@ -1,3 +1,4 @@
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismaMock from "../__mocks__/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
@@ -26,6 +27,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Fixtures } from "../fixtures/fixtures";
 
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
+import { TestEmailSmtpConfig } from "@calcom/lib/testEmails";
 
 // This is too complex at the moment, I really need to simplify this.
 // Maybe we can replace the exact match with a partial match approach that would be easier to maintain but we would still need Dayjs to do the timezone conversion
@@ -1442,4 +1444,73 @@ export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServi
 
 export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMethodMock) {
   expect(calendarMock.getAvailabilityCalls.length).toBe(0);
+}
+
+export function expectEmailSentViaCustomSmtp({
+  emails,
+  to,
+  expectedFromEmail,
+  expectedHost,
+}: {
+  emails: Fixtures["emails"];
+  to: string;
+  expectedFromEmail: string;
+  expectedHost?: string;
+}) {
+  const allEmails = emails.get();
+  const email = allEmails.find((e) => e.to.includes(to));
+
+  if (!email) {
+    throw new Error(
+      `No email found sent to ${to}. All emails: ${JSON.stringify(
+        allEmails.map((e) => ({ to: e.to, subject: e.subject }))
+      )}`
+    );
+  }
+
+  expect(email.smtpConfig).toBeDefined();
+  expect(email.smtpConfig?.fromEmail).toBe(expectedFromEmail);
+
+  if (expectedHost) {
+    expect(email.smtpConfig?.host).toBe(expectedHost);
+  }
+}
+
+export function expectEmailSentViaDefaultSmtp({ emails, to }: { emails: Fixtures["emails"]; to: string }) {
+  const allEmails = emails.get();
+  const email = allEmails.find((e) => e.to.includes(to));
+
+  if (!email) {
+    throw new Error(
+      `No email found sent to ${to}. All emails: ${JSON.stringify(
+        allEmails.map((e) => ({ to: e.to, subject: e.subject }))
+      )}`
+    );
+  }
+
+  expect(email.smtpConfig?.isCustomSmtp).toBe(false);
+}
+
+export function expectEmailSmtpConfig({
+  emails,
+  to,
+  expectedConfig,
+}: {
+  emails: Fixtures["emails"];
+  to: string;
+  expectedConfig: Partial<TestEmailSmtpConfig>;
+}) {
+  const allEmails = emails.get();
+  const email = allEmails.find((e) => e.to.includes(to));
+
+  if (!email) {
+    throw new Error(
+      `No email found sent to ${to}. All emails: ${JSON.stringify(
+        allEmails.map((e) => ({ to: e.to, subject: e.subject }))
+      )}`
+    );
+  }
+
+  expect(email.smtpConfig).toBeDefined();
+  expect(email.smtpConfig).toEqual(expect.objectContaining(expectedConfig));
 }

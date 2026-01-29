@@ -27,6 +27,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.attendee = attendee;
     this.t = attendee.language.translate;
+    this.organizationId = calEvent.organizationId;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {

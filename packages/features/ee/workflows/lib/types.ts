@@ -23,6 +23,11 @@ export type Workflow = {
   userId: number | null;
   teamId: number | null;
   steps: WorkflowStep[];
+  team?: {
+    isOrganization: boolean;
+    parentId: number | null;
+    [key: string]: unknown;
+  } | null;
 };
 
 export type WorkflowStep = {
@@ -89,6 +94,7 @@ export type BookingInfo = {
   videoCallData?: {
     url?: string;
   };
+  organizationId?: number | null;
 };
 
 export type WorkflowContextData =

@@ -43,6 +43,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
     seatReferenceUid,
     verifiedAt,
     creditCheckFn,
+    organizationId,
   } = args;
 
   if (!verifiedAt) {
@@ -205,6 +206,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
                 email: evt.attendees[0].email,
                 t: await getTranslation(evt.attendees[0].language.locale ?? "en", "common"),
                 replyTo: evt.organizer.email,
+                organizationId,
               }
             : undefined,
           creditCheckFn,
@@ -242,6 +244,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
                   t: await getTranslation(evt.attendees[0].language.locale ?? "en", "common"),
                   replyTo: evt.organizer.email,
                   workflowStepId,
+                  organizationId,
                 }
               : undefined,
             creditCheckFn,

@@ -7,6 +7,7 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
@@ -44,6 +45,8 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
   expectBookingTrackingToBeInDatabase,
+  expectEmailSentViaCustomSmtp,
+  expectEmailSentViaDefaultSmtp
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -67,6 +70,7 @@ import { resetTestEmails } from "@calcom/lib/testEmails";
 import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { testWithOrgSmtpConfig } from "@calcom/testing/lib/bookingScenario/test";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
@@ -87,7 +91,10 @@ async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId:
   let webhookResponse = null;
   try {
     const traceContext = distributedTracing.createTrace("test_stripe_webhook");
-    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }), traceContext);
+    await handleStripePaymentSuccess(
+      getMockedStripePaymentEvent({ paymentIntentId: externalId }),
+      traceContext
+    );
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     webhookResponse = e as HttpError;
@@ -1521,6 +1528,415 @@ describe("handleNewBooking", () => {
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
+        timeout
+      );
+    });
+
+    describe("smtp", () => {
+      testWithOrgSmtpConfig(
+        "should send booking confirmation emails via org custom SMTP when configured",
+        async ({ emails, org }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@testorg.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          await createBookingScenario(
+            getScenarioData(
+              {
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 30,
+                    length: 30,
+                    users: [{ id: 101 }],
+                  },
+                ],
+                organizer,
+                apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              },
+              org?.organization
+                ? {
+                    ...org.organization,
+                    profileUsername: "organizer",
+                  }
+                : null
+            )
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: { id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              user: "organizer",
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          await handleNewBooking({ bookingData: mockBookingData });
+
+          expectEmailSentViaCustomSmtp({
+            emails,
+            to: organizer.email,
+            expectedFromEmail: "bookings@testorg.com",
+          });
+        },
+        { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
+        timeout
+      );
+
+      testWithAndWithoutOrg(
+        "should send booking confirmation emails via default SMTP when org has no custom SMTP",
+        async ({ emails, org }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          await createBookingScenario(
+            getScenarioData(
+              {
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 30,
+                    length: 30,
+                    users: [{ id: 101 }],
+                  },
+                ],
+                organizer,
+                apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              },
+              org?.organization
+                ? {
+                    ...org.organization,
+                    profileUsername: "organizer",
+                  }
+                : null
+            )
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: { id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              user: org?.organization ? "organizer" : organizer.username,
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          await handleNewBooking({ bookingData: mockBookingData });
+
+          expectEmailSentViaDefaultSmtp({
+            emails,
+            to: organizer.email,
+          });
+        },
+        timeout
+      );
+
+      testWithOrgSmtpConfig(
+        "should send broken integration emails via org custom SMTP when video app fails",
+        async ({ emails, org }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@testorg.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getZoomAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          await createBookingScenario(
+            getScenarioData(
+              {
+                organizer,
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 30,
+                    length: 30,
+                    users: [{ id: 101 }],
+                  },
+                ],
+                apps: [TestData.apps["zoomvideo"], TestData.apps["daily-video"]],
+              },
+              org?.organization
+                ? {
+                    ...org.organization,
+                    profileUsername: "organizer",
+                  }
+                : null
+            )
+          );
+
+          mockVideoAppToCrashOnCreateMeeting({
+            metadataLookupKey: "zoomvideo",
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              user: "organizer",
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.ZoomVideo },
+              },
+            },
+          });
+
+          await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
+
+          expectBrokenIntegrationEmails({ organizer, emails });
+          expectEmailSentViaCustomSmtp({
+            emails,
+            to: organizer.email,
+            expectedFromEmail: "bookings@testorg.com",
+          });
+        },
+        { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
+        timeout
+      );
+
+      testWithOrgSmtpConfig(
+        "should send booking request emails via org custom SMTP when confirmation required",
+        async ({ emails, org }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@testorg.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          await createBookingScenario(
+            getScenarioData(
+              {
+                organizer,
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 30,
+                    length: 30,
+                    requiresConfirmation: true,
+                    users: [{ id: 101 }],
+                  },
+                ],
+                apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              },
+              org?.organization
+                ? {
+                    ...org.organization,
+                    profileUsername: "organizer",
+                  }
+                : null
+            )
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: { id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              user: "organizer",
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          await handleNewBooking({ bookingData: mockBookingData });
+
+          expectBookingRequestedEmails({
+            booker,
+            organizer,
+            emails,
+          });
+          expectEmailSentViaCustomSmtp({
+            emails,
+            to: organizer.email,
+            expectedFromEmail: "bookings@testorg.com",
+          });
+        },
+        { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
+        timeout
+      );
+
+      testWithOrgSmtpConfig(
+        "should send awaiting payment emails via org custom SMTP",
+        async ({ emails, org }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@testorg.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          await createBookingScenario(
+            getScenarioData(
+              {
+                organizer,
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 30,
+                    length: 30,
+                    users: [{ id: 101 }],
+                    price: 100,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "inr" /*, credentialId: 57*/,
+                    },
+                  },
+                },                  },
+                ],
+                apps: [
+                  TestData.apps["google-calendar"],
+                  TestData.apps["daily-video"],
+                  TestData.apps["stripe-payment"],
+                ],
+              },
+              org?.organization
+                ? {
+                    ...org.organization,
+                    profileUsername: "organizer",
+                  }
+                : null
+            )
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+          mockPaymentApp({
+            metadataLookupKey: "stripe",
+            appStoreLookupKey: "stripepayment",
+          });
+          mockCalendarToHaveNoBusySlots("googlecalendar");
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              user: "organizer",
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          await handleNewBooking({ bookingData: mockBookingData });
+
+          expectAwaitingPaymentEmails({ organizer, booker, emails });
+          expectEmailSentViaCustomSmtp({
+            emails,
+            to: booker.email,
+            expectedFromEmail: "bookings@testorg.com",
+          });
+        },
+        { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
         timeout
       );
     });

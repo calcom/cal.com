@@ -1,12 +1,6 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { WorkflowMethods } from "@calcom/prisma/enums";
-
-import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
-import * as twilioProvider from "./providers/twilioProvider";
-import { cancelScheduledMessagesAndScheduleEmails } from "./reminderScheduler";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider", () => ({
   cancelSMS: vi.fn(),
@@ -27,6 +21,18 @@ vi.mock("@calcom/lib/server/i18n", () => {
     },
   };
 });
+
+vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
+  ProfileRepository: {
+    findFirstOrganizationIdForUser: vi.fn().mockResolvedValue(null),
+  },
+}));
+
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
+import * as twilioProvider from "./providers/twilioProvider";
+import { cancelScheduledMessagesAndScheduleEmails } from "./reminderScheduler";
+
 describe("reminderScheduler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -134,6 +140,182 @@ describe("reminderScheduler", () => {
           referenceId: null,
         },
       });
+    });
+
+    it("should pass organizationId when workflow belongs to an organization team", async () => {
+      const mockScheduledMessages = [
+        {
+          id: 1,
+          referenceId: "sms-org-123",
+          workflowStep: {
+            action: "SMS_ATTENDEE",
+            workflow: {
+              teamId: 100,
+              userId: null,
+              team: {
+                isOrganization: true,
+                parentId: null,
+              },
+            },
+          },
+          scheduledDate: new Date(),
+          uuid: "uuid-org-123",
+          booking: {
+            attendees: [
+              {
+                email: "attendee@example.com",
+                locale: "en",
+              },
+            ],
+            user: {
+              email: "organizer@example.com",
+            },
+          },
+        },
+      ];
+
+      prismaMock.workflowReminder.findMany.mockResolvedValue(mockScheduledMessages);
+      prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
+
+      await cancelScheduledMessagesAndScheduleEmails({ teamId: 100, userIdsWithNoCredits: [] });
+
+      expect(sendOrScheduleWorkflowEmails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: 100,
+        })
+      );
+    });
+
+    it("should pass organizationId from team.parentId when workflow belongs to org child team", async () => {
+      const mockScheduledMessages = [
+        {
+          id: 1,
+          referenceId: "sms-team-123",
+          workflowStep: {
+            action: "SMS_ATTENDEE",
+            workflow: {
+              teamId: 50,
+              userId: null,
+              team: {
+                isOrganization: false,
+                parentId: 100,
+              },
+            },
+          },
+          scheduledDate: new Date(),
+          uuid: "uuid-team-123",
+          booking: {
+            attendees: [
+              {
+                email: "attendee@example.com",
+                locale: "en",
+              },
+            ],
+            user: {
+              email: "organizer@example.com",
+            },
+          },
+        },
+      ];
+
+      prismaMock.workflowReminder.findMany.mockResolvedValue(mockScheduledMessages);
+      prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
+
+      await cancelScheduledMessagesAndScheduleEmails({ teamId: 50, userIdsWithNoCredits: [] });
+
+      expect(sendOrScheduleWorkflowEmails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: 100,
+        })
+      );
+    });
+
+    it("should pass null organizationId for personal workflow of non-org user", async () => {
+      const mockScheduledMessages = [
+        {
+          id: 1,
+          referenceId: "sms-user-123",
+          workflowStep: {
+            action: "SMS_ATTENDEE",
+            workflow: {
+              teamId: null,
+              userId: 42,
+              team: null,
+            },
+          },
+          scheduledDate: new Date(),
+          uuid: "uuid-user-123",
+          booking: {
+            attendees: [
+              {
+                email: "attendee@example.com",
+                locale: "en",
+              },
+            ],
+            user: {
+              email: "organizer@example.com",
+            },
+          },
+        },
+      ];
+
+      prismaMock.workflowReminder.findMany.mockResolvedValue(mockScheduledMessages);
+      prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
+
+      await cancelScheduledMessagesAndScheduleEmails({ userIdsWithNoCredits: [42] });
+
+      expect(sendOrScheduleWorkflowEmails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: null,
+        })
+      );
+    });
+
+    it("should pass organizationId for personal workflow of org member via ProfileRepository lookup", async () => {
+      vi.mocked(ProfileRepository.findFirstOrganizationIdForUser).mockResolvedValueOnce(200);
+
+      const mockScheduledMessages = [
+        {
+          id: 1,
+          referenceId: "sms-org-member-123",
+          workflowStep: {
+            action: "SMS_ATTENDEE",
+            workflow: {
+              teamId: null,
+              userId: 55,
+              team: null,
+            },
+          },
+          scheduledDate: new Date(),
+          uuid: "uuid-org-member-123",
+          booking: {
+            attendees: [
+              {
+                email: "attendee@example.com",
+                locale: "en",
+              },
+            ],
+            user: {
+              email: "org-member@example.com",
+            },
+          },
+        },
+      ];
+
+      prismaMock.workflowReminder.findMany.mockResolvedValue(mockScheduledMessages);
+      prismaMock.workflowReminder.updateMany.mockResolvedValue({ count: 1 });
+
+      await cancelScheduledMessagesAndScheduleEmails({ userIdsWithNoCredits: [55] });
+
+      expect(ProfileRepository.findFirstOrganizationIdForUser).toHaveBeenCalledWith({
+        userId: 55,
+      });
+
+      expect(sendOrScheduleWorkflowEmails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: 200,
+        })
+      );
     });
   });
 });

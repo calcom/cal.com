@@ -1,50 +1,51 @@
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
-import {
-  createBookingScenario,
-  getDate,
-  getGoogleCalendarCredential,
-  getGoogleMeetCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
-  mockCalendarToCrashOnUpdateEvent,
-  BookingLocations,
-  getMockBookingReference,
-  getMockBookingAttendee,
-  getMockFailingAppStatus,
-  getMockPassingAppStatus,
-  getDefaultBookingFields,
-} from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import {
-  expectWorkflowToBeTriggered,
-  expectBookingToBeInDatabase,
-  expectBookingRescheduledWebhookToHaveBeenFired,
-  expectSuccessfulBookingRescheduledEmails,
-  expectSuccessfulCalendarEventUpdationInCalendar,
-  expectSuccessfulVideoMeetingUpdationInCalendar,
-  expectBookingInDBToBeRescheduledFromTo,
-  expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
-  expectSuccessfulCalendarEventDeletionInCalendar,
-  expectSuccessfulVideoMeetingDeletionInCalendar,
-  expectSuccessfulRoundRobinReschedulingEmails,
-} from "@calcom/testing/lib/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, expect, beforeEach } from "vitest";
-
+import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import {
+  BookingLocations,
+  createBookingScenario,
+  getBooker,
+  getDate,
+  getDefaultBookingFields,
+  getGoogleCalendarCredential,
+  getGoogleMeetCredential,
+  getMockBookingAttendee,
+  getMockBookingReference,
+  getMockFailingAppStatus,
+  getMockPassingAppStatus,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToCrashOnUpdateEvent,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import {
+  expectBookingInDBToBeRescheduledFromTo,
+  expectBookingRequestedEmails,
+  expectBookingRequestedWebhookToHaveBeenFired,
+  expectBookingRescheduledWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+  expectEmailSentViaCustomSmtp,
+  expectSuccessfulBookingRescheduledEmails,
+  expectSuccessfulCalendarEventDeletionInCalendar,
+  expectSuccessfulCalendarEventUpdationInCalendar,
+  expectSuccessfulRoundRobinReschedulingEmails,
+  expectSuccessfulVideoMeetingDeletionInCalendar,
+  expectSuccessfulVideoMeetingUpdationInCalendar,
+  expectWorkflowToBeTriggered,
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { testWithOrgSmtpConfig } from "@calcom/testing/lib/bookingScenario/test";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { beforeEach, describe, expect } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 // Local test runs sometime gets too slow
@@ -2006,6 +2007,149 @@ describe("handleNewBooking", () => {
         timeout
       );
     });
+
+    describe("Custom SMTP Email Routing", () => {
+      testWithOrgSmtpConfig(
+        "should send rescheduled booking emails via org custom SMTP when configured",
+        async ({ emails, org }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@testorg.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+          await createBookingScenario(
+            getScenarioData(
+              {
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 30,
+                    length: 30,
+                    users: [{ id: 101 }],
+                  },
+                ],
+                organizer,
+                bookings: [
+                  {
+                    uid: uidOfBookingToBeRescheduled,
+                    eventTypeId: 1,
+                    status: BookingStatus.ACCEPTED,
+                    startTime: `${plus1DateString}T05:00:00.000Z`,
+                    endTime: `${plus1DateString}T05:30:00.000Z`,
+                    references: [
+                      getMockBookingReference({
+                        type: appStoreMetadata.dailyvideo.type,
+                        uid: "MOCK_ID",
+                        meetingId: "MOCK_ID",
+                        meetingPassword: "MOCK_PASS",
+                        meetingUrl: "http://mock-dailyvideo.example.com",
+                        credentialId: 0,
+                      }),
+                      getMockBookingReference({
+                        type: appStoreMetadata.googlecalendar.type,
+                        uid: "MOCK_ID",
+                        meetingId: "MOCK_ID",
+                        meetingPassword: "MOCK_PASSWORD",
+                        meetingUrl: "https://UNUSED_URL",
+                        externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                        credentialId: 1,
+                      }),
+                    ],
+                    attendees: [
+                      getMockBookingAttendee({
+                        id: 1,
+                        name: booker.name,
+                        email: booker.email,
+                        locale: "en",
+                        timeZone: "America/Toronto",
+                      }),
+                    ],
+                  },
+                ],
+                apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+              },
+              org?.organization
+                ? {
+                    ...org.organization,
+                    profileUsername: "organizer",
+                  }
+                : null
+            )
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com`,
+            },
+          });
+
+          const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              id: "MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              uid: "MOCK_ID",
+            },
+            update: {
+              id: "UPDATED_MOCK_ID",
+              iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+              uid: "MOCK_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              user: "organizer",
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus2DateString}T04:00:00.000Z`,
+              end: `${plus2DateString}T04:30:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expectEmailSentViaCustomSmtp({
+            emails,
+            to: organizer.email,
+            expectedFromEmail: "bookings@testorg.com",
+          });
+
+          expectEmailSentViaCustomSmtp({
+            emails,
+            to: booker.email,
+            expectedFromEmail: "bookings@testorg.com",
+          });
+        },
+        { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
+        timeout
+      );
+    });
+
     describe("Team event-type", () => {
       test(
         "should send correct schedule/cancellation/reassigned emails to hosts when round robin is rescheduled to different host",
