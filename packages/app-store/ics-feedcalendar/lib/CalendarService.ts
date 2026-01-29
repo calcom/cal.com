@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../../../types/ical.d.ts"/>
-import ICAL from "ical.js";
 
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type {
   Calendar,
-  IntegrationCalendar,
-  EventBusyDate,
   CalendarEvent,
+  EventBusyDate,
   GetAvailabilityParams,
+  IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import ICAL from "ical.js";
 
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
@@ -301,7 +302,7 @@ class ICSFeedCalendarService implements Calendar {
         name,
         readOnly: true,
         externalId: url,
-        integrationName: this.integrationName,
+        integration: this.integrationName,
       };
     });
   }

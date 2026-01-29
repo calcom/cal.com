@@ -49,8 +49,11 @@ export type {
   BookingCreateBody,
   BookingResponse,
 } from "@calcom/features/bookings/types";
+
 export { getBusyCalendarTimes, updateEvent } from "@calcom/features/calendars/lib/CalendarManager";
+export type { ConnectedCalendar } from "@calcom/features/calendars/lib/CalendarManager";
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
+export type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 export { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";

@@ -16,7 +16,7 @@ const mockBillingService: IBillingProviderService = {
     .mockResolvedValue({ invoiceItemId: "ii_test_123" }),
   deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
-  finalizeInvoice: vi.fn().mockResolvedValue(undefined),
+  finalizeInvoice: vi.fn().mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
   getSubscription: vi.fn().mockResolvedValue({
     items: [
       {

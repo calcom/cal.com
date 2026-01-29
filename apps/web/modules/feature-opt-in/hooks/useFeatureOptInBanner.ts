@@ -1,7 +1,7 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { trpc } from "@calcom/trpc/react";
 import { useCallback, useMemo, useState } from "react";
 
@@ -122,6 +122,8 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     if (isDismissed) return false;
     if (isOptedIn) return false;
     if (!featureConfig) return false;
+    // Only show banner if the feature is configured to be displayed as a banner
+    if (!shouldDisplayFeatureAt(featureConfig, "banner")) return false;
     if (eligibilityQuery.isLoading) return false;
     if (!eligibilityQuery.data) return false;
     return eligibilityQuery.data.status === "can_opt_in";
