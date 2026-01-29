@@ -2269,6 +2269,8 @@ checksums:
     event_end_time_info: dff59c43944ee9ec4f0b14788f916ead
     cancel_url_variable: 07203aef11c344e47a12a8dc3434a914
     cancel_url_info: 3e8674a30d8f4f5d59cb0023a1af3c56
+    cancellation_reason_variable: c4fcfdbbd2cd497885d0fe1f776a4ae0
+    cancellation_reason_info: bd85f7ac594bafc97d9fb6900d6a3fef
     cancel_reason_variable: c4fcfdbbd2cd497885d0fe1f776a4ae0
     cancel_reason_info: a9605eb91c41ba58cdb5eb2070a050c6
     reschedule_url_variable: 07bbd334e84c8b81712a1fddceef7349
