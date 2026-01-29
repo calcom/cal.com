@@ -120,6 +120,7 @@ describe("SalesforceCRMService", () => {
         email: "test-user@example.com",
       },
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
     service = createSalesforceCrmServiceWithSalesforceType(mockCredential, {}, true);
