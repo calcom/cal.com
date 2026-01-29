@@ -1,7 +1,9 @@
-import AdminUsersListPage from "@calid/features/modules/admin/pages/users-list";
+import AdminUsersListPage from "@calid/features/modules/admin/user/pages/users-list";
 import { Button } from "@calid/features/ui/components/button";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import UsersListingView from "@calcom/features/ee/users/pages/users-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -15,6 +17,7 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
+  const useEeAdmin = false;
   return (
     <SettingsHeader
       title={t("users")}
@@ -26,7 +29,13 @@ const Page = async () => {
           <Button href="/settings/admin/users/add">Add user</Button>
         </div>
       }>
-      <AdminUsersListPage />
+      {useEeAdmin ? (
+        <LicenseRequired>
+          <UsersListingView />
+        </LicenseRequired>
+      ) : (
+        <AdminUsersListPage />
+      )}
     </SettingsHeader>
   );
 };
