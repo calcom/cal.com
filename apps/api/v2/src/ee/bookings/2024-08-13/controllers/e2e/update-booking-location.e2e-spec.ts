@@ -13,23 +13,24 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 
-// Mock the video adapter to return a fake Daily.co meeting
-jest.mock("@calcom/app-store/video.adapters.generated", () => ({
-  VideoApiAdapterMap: {
-    dailyvideo: Promise.resolve({
-      default: () => ({
-        createMeeting: () =>
-          Promise.resolve({
-            type: "daily_video",
-            id: "MOCK_DAILY_ID",
-            password: "MOCK_DAILY_PASS",
-            url: "https://mock-daily.example.com/mock-meeting",
-          }),
-        updateMeeting: () => Promise.resolve({}),
-        deleteMeeting: () => Promise.resolve({}),
-      }),
-    }),
-  },
+// Mock the createMeeting function to return a fake Daily.co meeting
+// This bypasses both the database check for enabled apps and the actual API call
+jest.mock("@calcom/platform-libraries/conferencing", () => ({
+  ...jest.requireActual("@calcom/platform-libraries/conferencing"),
+  createMeeting: jest.fn().mockResolvedValue({
+    appName: "daily-video",
+    type: "daily_video",
+    uid: "MOCK_UID",
+    originalEvent: {},
+    success: true,
+    createdEvent: {
+      type: "daily_video",
+      id: "MOCK_DAILY_ID",
+      password: "MOCK_DAILY_PASS",
+      url: "https://mock-daily.example.com/mock-meeting",
+    },
+    credentialId: 0,
+  }),
 }));
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
