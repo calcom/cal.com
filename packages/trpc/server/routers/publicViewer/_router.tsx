@@ -5,6 +5,7 @@ import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZSubmitRatingInputSchema } from "./submitRating.schema";
+import { ZVerifyBookingEmailInputSchema } from "./verifyBookingEmail.schema";
 
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({
@@ -36,4 +37,9 @@ export const publicViewerRouter = router({
       const { default: handler } = await import("./checkIfUserEmailVerificationRequired.handler");
       return handler(opts);
     }),
+
+  verifyBookingEmail: publicProcedure.input(ZVerifyBookingEmailInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./verifyBookingEmail.handler");
+    return handler(opts);
+  }),
 });
