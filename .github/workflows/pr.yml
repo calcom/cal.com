@@ -147,7 +147,106 @@ jobs:
                     }
                     console.log(`Label 'run-ci' added by ${adder} (no write access)`);
                   } else {
+                    // Label is stale - check if all commits after label are from trusted sources
                     console.log(`Label 'run-ci' is stale (label: ${labelTime.toISOString()}, push: ${pushTime.toISOString()})`);
+                    console.log('Checking if commits after label are from trusted sources...');
+
+                    // Trusted bots that can make commits after the label was added
+                    // Security: We verify bot commits are signed by GitHub to prevent spoofing
+                    const trustedBotLogins = ['devin-ai-integration[bot]', 'cubic-dev-ai[bot]'];
+
+                    // Find the SHA that was current when the label was added
+                    // Look for the most recent workflow run created before or at label time
+                    const allPrRuns = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                      owner,
+                      repo,
+                      workflow_id: 'pr.yml',
+                      per_page: 100,
+                    });
+
+                    const prRunsForThisPr = allPrRuns.filter(run =>
+                      run.pull_requests?.some(p => p.number === prNumber)
+                    ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                    // Find the run that was current when the label was added
+                    const runAtLabelTime = prRunsForThisPr.find(run =>
+                      new Date(run.created_at) <= labelTime
+                    );
+
+                    if (runAtLabelTime) {
+                      const labeledSha = runAtLabelTime.head_sha;
+                      console.log(`SHA at label time: ${labeledSha.substring(0, 7)}`);
+                      console.log(`Current SHA: ${headSha.substring(0, 7)}`);
+
+                      // Get commits between the labeled SHA and current SHA
+                      const { data: comparison } = await github.rest.repos.compareCommits({
+                        owner,
+                        repo,
+                        base: labeledSha,
+                        head: headSha,
+                      });
+
+                      if (comparison.commits.length === 0) {
+                        console.log('No new commits since label was added');
+                        const adder = labelEvent.actor.login;
+                        if (await hasWriteAccess(adder)) {
+                          console.log(`Approved via 'run-ci' label added by ${adder}`);
+                          core.setOutput('is-trusted', true);
+                          return;
+                        }
+                      } else {
+                        console.log(`Found ${comparison.commits.length} commit(s) after label was added`);
+
+                        let allCommitsTrusted = true;
+                        for (const commitData of comparison.commits) {
+                          const sha = commitData.sha;
+                          const author = commitData.author;
+                          const authorLogin = author?.login || 'unknown';
+                          const authorType = author?.type || 'Unknown';
+                          let isTrusted = false;
+
+                          // Check if author is a human with write access
+                          if (author && authorType === 'User') {
+                            if (await hasWriteAccess(authorLogin)) {
+                              console.log(`Commit ${sha.substring(0, 7)} by ${authorLogin} - trusted (write access)`);
+                              isTrusted = true;
+                            }
+                          }
+
+                          // Check if author is a trusted bot with verified commit
+                          // Security: Bot commits must be verified (signed by GitHub) to prevent spoofing
+                          // An external contributor cannot forge a verified commit from a GitHub App
+                          if (!isTrusted && author && authorType === 'Bot' && trustedBotLogins.includes(authorLogin)) {
+                            const verification = commitData.commit?.verification;
+                            if (verification?.verified === true) {
+                              console.log(`Commit ${sha.substring(0, 7)} by ${authorLogin} - trusted (verified bot)`);
+                              isTrusted = true;
+                            } else {
+                              console.log(`Commit ${sha.substring(0, 7)} by ${authorLogin} - NOT trusted (unverified bot commit)`);
+                            }
+                          }
+
+                          if (!isTrusted) {
+                            console.log(`Commit ${sha.substring(0, 7)} by ${authorLogin} (${authorType}) - NOT trusted`);
+                            allCommitsTrusted = false;
+                            break;
+                          }
+                        }
+
+                        if (allCommitsTrusted) {
+                          const adder = labelEvent.actor.login;
+                          if (await hasWriteAccess(adder)) {
+                            console.log(`All ${comparison.commits.length} commit(s) after label are from trusted sources`);
+                            console.log(`Approved via 'run-ci' label added by ${adder} with trusted subsequent commits`);
+                            core.setOutput('is-trusted', true);
+                            return;
+                          }
+                          console.log(`Label 'run-ci' added by ${adder} (no write access)`);
+                        }
+                      }
+                    } else {
+                      console.log('Could not find workflow run at label time - cannot validate commits');
+                    }
                   }
                 } else {
                   console.log('No workflow runs found for this SHA - cannot validate label timing');
