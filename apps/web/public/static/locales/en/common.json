@@ -4517,5 +4517,6 @@
   "error_enabling_feature": "Error enabling feature. Please try again.",
   "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
   "overwrite_existing_contact_owner": "Overwrite existing contact owner",
+  "calendar_events_disabled_video_limitation": "When calendar events are disabled, meeting links cannot be generated for apps whose link generation is tied to calendar event creation, for example, Google Meet and Microsoft Teams. Other video apps like Cal Video will continue to work.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
