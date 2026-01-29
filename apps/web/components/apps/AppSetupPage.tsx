@@ -14,6 +14,7 @@ export const AppSetupMap = {
   sendgrid: dynamic(() => import("@calcom/web/components/apps/sendgrid/Setup")),
   stripe: dynamic(() => import("@calcom/web/components/apps/stripepayment/Setup")),
   paypal: dynamic(() => import("@calcom/web/components/apps/paypal/Setup")),
+  razorpay: dynamic(() => import("@calcom/web/components/apps/razorpay/Setup")),
   hitpay: dynamic(() => import("@calcom/web/components/apps/hitpay/Setup")),
   btcpayserver: dynamic(() => import("@calcom/web/components/apps/btcpayserver/Setup")),
 };
