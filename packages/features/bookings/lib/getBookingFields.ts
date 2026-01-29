@@ -1,19 +1,19 @@
-import type { z } from "zod";
-
+import process from "node:process";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
+import { CAL_AI_AGENT_PHONE_NUMBER_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
-import type { EventTypeCustomInput, EventType } from "@calcom/prisma/client";
+import type { EventType, EventTypeCustomInput } from "@calcom/prisma/client";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldTypeEnum,
   customInputSchema,
-  eventTypeBookingFields,
   EventTypeMetaDataSchema,
+  eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 export type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -36,7 +36,7 @@ export const getSmsReminderNumberField = () =>
     defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getSmsReminderNumberSource = ({
   workflowId,
@@ -59,7 +59,7 @@ export const getAIAgentCallPhoneNumberField = () =>
     defaultLabel: "phone_number_for_ai_call",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getAIAgentCallPhoneNumberSource = ({
   workflowId,
@@ -115,7 +115,6 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
-  isOrgTeamEvent,
   disableBookingTitle,
   additionalNotesRequired,
   customInputs,
@@ -143,17 +142,35 @@ export const ensureBookingInputsHaveSystemFields = ({
     [EventTypeCustomInputType.PHONE]: BookingFieldTypeEnum.phone,
   };
 
-  const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
+  const phoneNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
+  let isPhoneNumberRequired = false;
+
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
-        smsNumberSources.push(
+        phoneNumberSources.push(
           getSmsReminderNumberSource({
             workflowId,
             isSmsReminderNumberRequired: !!step.numberRequired,
           })
         );
+        if (step.numberRequired) {
+          isPhoneNumberRequired = true;
+        }
+      }
+      // Check for AI agent call workflows that require phone numbers
+      if (step.action === "CAL_AI_PHONE_CALL") {
+        const workflowId = workflow.workflow.id;
+        phoneNumberSources.push(
+          getAIAgentCallPhoneNumberSource({
+            workflowId,
+            isAIAgentCallPhoneNumberRequired: !!step.numberRequired,
+          })
+        );
+        if (step.numberRequired) {
+          isPhoneNumberRequired = true;
+        }
       }
     });
   });
@@ -333,21 +350,46 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
 
-  // Backward Compatibility for SMS Reminder Number
-  // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
-  // Also, note that even if Workflows don't explicitly add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
-  if (
-    smsNumberSources.length &&
-    !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
-  ) {
-    const indexForLocation = bookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+  // Consolidated Phone Number Logic
+  // If any workflow requires a phone number, make the attendeePhoneNumber field visible and add sources
+  if (phoneNumberSources.length) {
+    const attendeePhoneNumberIndex = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("attendeePhoneNumber")
     );
-    // Add the SMS Reminder Number field after `location` field always
-    bookingFields.splice(indexForLocation + 1, 0, {
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
-    });
+
+    if (attendeePhoneNumberIndex !== -1) {
+      // Update the existing attendeePhoneNumber field to be visible and add sources
+      bookingFields[attendeePhoneNumberIndex] = {
+        ...bookingFields[attendeePhoneNumberIndex],
+        hidden: false,
+        required: bookingFields[attendeePhoneNumberIndex].required || isPhoneNumberRequired,
+        sources: [...(bookingFields[attendeePhoneNumberIndex].sources || []), ...phoneNumberSources],
+      };
+    }
+  }
+
+  // Consolidation Logic: If there are existing separate phone fields, make attendeePhoneNumber visible
+  // This ensures users see only one phone input instead of multiple
+  const hasExistingSmsField = bookingFields.find(
+    (f) => getFieldIdentifier(f.name) === getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD)
+  );
+  const hasExistingAiField = bookingFields.find(
+    (f) => getFieldIdentifier(f.name) === getFieldIdentifier(CAL_AI_AGENT_PHONE_NUMBER_FIELD)
+  );
+
+  if (hasExistingSmsField || hasExistingAiField) {
+    // Make sure attendeePhoneNumber is visible to consolidate the phone inputs
+    const attendeePhoneNumberIndex = bookingFields.findIndex(
+      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("attendeePhoneNumber")
+    );
+
+    if (attendeePhoneNumberIndex !== -1) {
+      bookingFields[attendeePhoneNumberIndex] = {
+        ...bookingFields[attendeePhoneNumberIndex],
+        hidden: false,
+        required: bookingFields[attendeePhoneNumberIndex].required || isPhoneNumberRequired,
+      };
+    }
   }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
