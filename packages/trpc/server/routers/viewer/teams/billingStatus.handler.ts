@@ -62,7 +62,10 @@ export const billingStatusHandler = async ({ ctx, input }: BillingStatusOptions)
   // Check if user has at least one membership with an active plan
   for (const team of teams) {
     if (team.isPlatform && team.isOrganization) {
-      const platformBilling = await prisma.platformBilling.findUnique({ where: { id: team.id } });
+      const platformBilling = await prisma.platformBilling.findUnique({
+        where: { id: team.id },
+        select: { plan: true },
+      });
       if (platformBilling && platformBilling.plan !== "none" && platformBilling.plan !== "FREE") {
         return {
           hasTeamPlan: !!hasTeamPlan,
