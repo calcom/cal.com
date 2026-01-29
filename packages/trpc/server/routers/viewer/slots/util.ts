@@ -486,6 +486,28 @@ export class AvailableSlotsService {
       }
     }
 
+    // Pre-fetch yearly duration totals for all users to avoid N+1 queries
+    const yearlyDurationMaps = new Map<string, Map<number, number>>();
+    if (durationLimits?.PER_YEAR) {
+      const yearPeriodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+        dateFrom,
+        dateTo,
+        "year",
+        timeZone
+      );
+      for (const periodStart of yearPeriodStartDates) {
+        const yearKey = periodStart.format("YYYY");
+        const durationsForYear = await this.dependencies.bookingRepo.getTotalBookingDurationForUsers({
+          eventId: eventType.id,
+          userIds: users.map((u) => u.id),
+          startDate: periodStart.toDate(),
+          endDate: periodStart.endOf("year").toDate(),
+          rescheduleUid,
+        });
+        yearlyDurationMaps.set(yearKey, durationsForYear);
+      }
+    }
+
     for (const user of users) {
       const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
       const limitManager = new LimitManager();
@@ -572,12 +594,8 @@ export class AvailableSlotsService {
             }
 
             if (unit === "year") {
-              const totalYearlyDuration = await this.dependencies.bookingRepo.getTotalBookingDuration({
-                eventId: eventType.id,
-                startDate: periodStart.toDate(),
-                endDate: periodStart.endOf(unit).toDate(),
-                rescheduleUid,
-              });
+              const yearKey = periodStart.format("YYYY");
+              const totalYearlyDuration = yearlyDurationMaps.get(yearKey)?.get(user.id) ?? 0;
               if (totalYearlyDuration + selectedDuration > limit) {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
@@ -1307,7 +1325,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone ?? "UTC";
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({

@@ -1,21 +1,20 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type {
+  BookingUpdateData,
+  BookingWhereInput,
+  BookingWhereUniqueInput,
+  IBookingRepository,
+} from "@calcom/lib/server/repository/dto/IBookingRepository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
+import { Prisma } from "@calcom/prisma/client";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import {
-  bookingMinimalSelect,
   bookingAuthorizationCheckSelect,
   bookingDetailsSelect,
+  bookingMinimalSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
-import type {
-  BookingWhereInput,
-  IBookingRepository,
-  BookingUpdateData,
-  BookingWhereUniqueInput,
-} from "@calcom/lib/server/repository/dto/IBookingRepository";
 
 const workflowReminderSelect = {
   id: true,
@@ -1406,6 +1405,8 @@ export class BookingRepository implements IBookingRepository {
     endDate: Date;
     rescheduleUid?: string;
   }) {
+    console.log(">>> getTotalBookingDuration called", { eventId, startDate, endDate });
+
     let totalBookingTime;
 
     if (rescheduleUid) {
@@ -1428,7 +1429,55 @@ export class BookingRepository implements IBookingRepository {
         AND "endTime" <= ${endDate};
     `;
     }
+
     return totalBookingTime.totalMinutes ?? 0;
+  }
+
+  async getTotalBookingDurationForUsers({
+    eventId,
+    userIds,
+    startDate,
+    endDate,
+    rescheduleUid,
+  }: {
+    eventId: number;
+    userIds: number[];
+    startDate: Date;
+    endDate: Date;
+    rescheduleUid?: string;
+  }): Promise<Map<number, number>> {
+    if (userIds.length === 0) {
+      return new Map();
+    }
+
+    const results = rescheduleUid
+      ? await this.prismaClient.$queryRaw<{ userId: number; totalMinutes: number | null }[]>`
+          SELECT "userId", SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+          FROM "Booking"
+          WHERE "status" = 'accepted'
+            AND "eventTypeId" = ${eventId}
+            AND "userId" IN (${Prisma.join(userIds)})
+            AND "startTime" >= ${startDate}
+            AND "endTime" <= ${endDate}
+            AND "uid" != ${rescheduleUid}
+          GROUP BY "userId"
+        `
+      : await this.prismaClient.$queryRaw<{ userId: number; totalMinutes: number | null }[]>`
+          SELECT "userId", SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+          FROM "Booking"
+          WHERE "status" = 'accepted'
+            AND "eventTypeId" = ${eventId}
+            AND "userId" IN (${Prisma.join(userIds)})
+            AND "startTime" >= ${startDate}
+            AND "endTime" <= ${endDate}
+          GROUP BY "userId"
+        `;
+
+    const map = new Map<number, number>();
+    for (const row of results) {
+      map.set(row.userId, row.totalMinutes ?? 0);
+    }
+    return map;
   }
 
   async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
@@ -1509,7 +1558,7 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+  async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
     return await this.prismaClient.booking.updateMany({
       where: where,
       data,
