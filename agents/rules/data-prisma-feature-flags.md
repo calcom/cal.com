@@ -31,7 +31,7 @@ Follow the pattern from existing feature seeding migrations like:
 ```sql
 INSERT INTO "Feature" ("slug", "enabled", "type", "description", "createdAt", "updatedAt")
 VALUES
-  ('your-feature-slug', false, 'OPERATIONAL', 'Description of feature', NOW(), NOW())
+  ('your-feature-slug', false, 'OPERATIONAL', 'Description of feature', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT ("slug") DO NOTHING;
 ```
 
