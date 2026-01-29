@@ -136,11 +136,6 @@ export class WorkflowReminderRepository {
                 timeUnit: true,
                 userId: true,
                 teamId: true,
-                team: {
-                  select: {
-                    isOrganization: true,
-                  },
-                },
               },
             },
           },

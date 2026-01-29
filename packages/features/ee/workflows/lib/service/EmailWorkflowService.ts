@@ -29,7 +29,6 @@ import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
-import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
@@ -70,7 +69,6 @@ export class EmailWorkflowService {
     }
 
     const workflow = workflowReminder.workflowStep.workflow;
-    const isOrganization = workflow.team?.isOrganization ?? false;
 
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
@@ -112,7 +110,6 @@ export class EmailWorkflowService {
       action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
-      isOrganization,
     });
 
     const results = await Promise.allSettled(
@@ -256,7 +253,6 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
-    isOrganization,
     workflowStepId,
     autoTranslateEnabled,
     sourceLocale,
@@ -272,7 +268,6 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
-    isOrganization?: boolean;
     workflowStepId?: number;
     autoTranslateEnabled?: boolean;
     sourceLocale?: string | null;
@@ -407,7 +402,12 @@ export class EmailWorkflowService {
 
     if (matchedTemplate === WorkflowTemplates.REMINDER) {
       const t = await getTranslation(locale, "common");
-
+      const meetingUrl =  
+        getVideoCallUrlFromCalEvent({
+          videoCallData: evt.videoCallData,
+          uid: evt.uid,
+          location: evt.location,
+        }) || bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl;
       emailContent = emailReminderTemplate({
         isEditingMode: false,
         locale,
@@ -419,8 +419,7 @@ export class EmailWorkflowService {
         eventName: evt.title,
         timeZone,
         location: evt.location || "",
-        meetingUrl:
-          evt.videoCallData?.url || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+        meetingUrl,
         otherPerson: attendeeName,
         name,
       });
@@ -448,7 +447,12 @@ export class EmailWorkflowService {
         sendToEmail: sendTo[0],
       });
       const meetingUrl =
-        getVideoCallUrlFromCalEvent({ videoCallData: evt.videoCallData }) || bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+        getVideoCallUrlFromCalEvent({
+          videoCallData: evt.videoCallData,
+          uid: evt.uid,
+          location: evt.location,
+        }) || bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl;
+
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -549,7 +553,7 @@ export class EmailWorkflowService {
         language: { ...evt.organizer.language, translate: organizerT },
       },
       attendees: processedAttendees,
-      location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
+      location: bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl || evt.location,
     };
 
     const shouldIncludeCalendarEvent =
@@ -574,15 +578,9 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
-    // Organization accounts are allowed to use cloaked links (URL behind text)
-    // since they are paid accounts with lower spam/scam risk
-    const processedEmailBody = isOrganization
-      ? emailContent.emailBody
-      : replaceCloakedLinksInHtml(emailContent.emailBody);
-
     return {
       subject: emailContent.emailSubject,
-      html: processedEmailBody,
+      html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && {
         replyTo: customReplyToEmail || evt.organizer.email,
       }),
