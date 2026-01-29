@@ -2,7 +2,7 @@ import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, Platform, Text, View, useColorScheme } from "react-native";
+import { Platform, Text, View, useColorScheme } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
-import { type Booking } from "@/services/calcom";
+import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
 import { openInAppBrowser } from "@/utils/browser";
@@ -58,6 +58,29 @@ type ActionHandlers = {
   openMeetingSessionDetailsModal: () => void;
   openMarkNoShowModal: () => void;
   handleCancelBooking: () => void;
+};
+
+const getIconName = (sfSymbol: string): keyof typeof Ionicons.glyphMap => {
+  switch (sfSymbol) {
+    case "calendar":
+      return "calendar";
+    case "location":
+      return "location";
+    case "person.badge.plus":
+      return "person-add";
+    case "video":
+      return "videocam";
+    case "info.circle":
+      return "information-circle";
+    case "eye.slash":
+      return "eye-off";
+    case "flag":
+      return "flag";
+    case "xmark.circle":
+      return "close-circle";
+    default:
+      return "ellipsis-horizontal";
+  }
 };
 
 export default function BookingDetail() {
@@ -268,7 +291,7 @@ export default function BookingDetail() {
     }
   }, [meetingUrl]);
 
-  const renderHeaderLeft = () => {
+  const renderHeaderLeft = useCallback(() => {
     let backButtonLabel = "Back";
 
     // Check both start and startTime properties
@@ -299,149 +322,131 @@ export default function BookingDetail() {
         </AppPressable>
       </HeaderButtonWrapper>
     );
-  };
+  }, [booking?.start, booking?.startTime, router, isDarkMode]);
 
-  const getIconName = (sfSymbol: string): keyof typeof Ionicons.glyphMap => {
-    switch (sfSymbol) {
-      case "calendar":
-        return "calendar";
-      case "location":
-        return "location";
-      case "person.badge.plus":
-        return "person-add";
-      case "video":
-        return "videocam";
-      case "info.circle":
-        return "information-circle";
-      case "eye.slash":
-        return "eye-off";
-      case "flag":
-        return "flag";
-      case "xmark.circle":
-        return "close-circle";
-      default:
-        return "ellipsis-horizontal";
-    }
-  };
+  const renderHeaderRight = useCallback(
+    () => (
+      <HeaderButtonWrapper side="right">
+        <View className="flex-row items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AppPressable className="h-10 w-10 items-center justify-center rounded-full border border-[#E5E5E5] bg-white dark:border-[#262626] dark:bg-[#171717]">
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={20}
+                  color={isDarkMode ? "#FFFFFF" : "#000000"}
+                />
+              </AppPressable>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
+              sideOffset={8}
+              className="w-56"
+              align="end"
+            >
+              {meetingUrl && (
+                <>
+                  <DropdownMenuItem onPress={handleCopyMeetingLink}>
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons
+                        name="copy-outline"
+                        size={18}
+                        color={isDarkMode ? "#FFFFFF" : "#000000"}
+                      />
+                      <Text className="text-base text-[#000000] dark:text-white">
+                        Copy meeting link
+                      </Text>
+                    </View>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
 
-  const renderHeaderRight = () => (
-    <HeaderButtonWrapper side="right">
-      <View className="flex-row items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <AppPressable className="h-10 w-10 items-center justify-center rounded-full border border-[#E5E5E5] bg-white dark:border-[#262626] dark:bg-[#171717]">
-              <Ionicons
-                name="ellipsis-horizontal"
-                size={20}
-                color={isDarkMode ? "#FFFFFF" : "#000000"}
-              />
-            </AppPressable>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
-            sideOffset={8}
-            className="w-56"
-            align="end"
-          >
-            {meetingUrl && (
-              <>
-                <DropdownMenuItem onPress={handleCopyMeetingLink}>
+              {bookingActionsSections.editEvent.length > 0 && (
+                <>
+                  <DropdownMenuLabel>Edit Event</DropdownMenuLabel>
+                  {bookingActionsSections.editEvent.map((action) => (
+                    <DropdownMenuItem key={action.id} onPress={action.onPress}>
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons
+                          name={getIconName(action.icon)}
+                          size={18}
+                          color={isDarkMode ? "#FFFFFF" : "#000000"}
+                        />
+                        <Text className="text-base text-[#000000] dark:text-white">
+                          {action.label}
+                        </Text>
+                      </View>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {bookingActionsSections.afterEvent.length > 0 && (
+                <>
+                  <DropdownMenuLabel>After Event</DropdownMenuLabel>
+                  {bookingActionsSections.afterEvent.map((action) => (
+                    <DropdownMenuItem key={action.id} onPress={action.onPress}>
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons
+                          name={getIconName(action.icon)}
+                          size={18}
+                          color={isDarkMode ? "#FFFFFF" : "#000000"}
+                        />
+                        <Text className="text-base text-[#000000] dark:text-white">
+                          {action.label}
+                        </Text>
+                      </View>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              <DropdownMenuLabel>Danger Zone</DropdownMenuLabel>
+              {bookingActionsSections.standalone.map((action) => (
+                <DropdownMenuItem
+                  key={action.id}
+                  onPress={action.onPress}
+                  variant={action.destructive ? "destructive" : "default"}
+                >
                   <View className="flex-row items-center gap-2">
                     <Ionicons
-                      name="copy-outline"
+                      name={getIconName(action.icon)}
                       size={18}
-                      color={isDarkMode ? "#FFFFFF" : "#000000"}
+                      color={action.destructive ? "#EF4444" : isDarkMode ? "#FFFFFF" : "#000000"}
                     />
-                    <Text className="text-base text-[#000000] dark:text-white">
-                      Copy meeting link
+                    <Text
+                      className={`text-base ${
+                        action.destructive ? "text-red-500" : "text-[#000000] dark:text-white"
+                      }`}
+                    >
+                      {action.label}
                     </Text>
                   </View>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-
-            {bookingActionsSections.editEvent.length > 0 && (
-              <>
-                <DropdownMenuLabel>Edit Event</DropdownMenuLabel>
-                {bookingActionsSections.editEvent.map((action) => (
-                  <DropdownMenuItem key={action.id} onPress={action.onPress}>
-                    <View className="flex-row items-center gap-2">
-                      <Ionicons
-                        name={getIconName(action.icon)}
-                        size={18}
-                        color={isDarkMode ? "#FFFFFF" : "#000000"}
-                      />
-                      <Text className="text-base text-[#000000] dark:text-white">
-                        {action.label}
-                      </Text>
-                    </View>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-              </>
-            )}
-
-            {bookingActionsSections.afterEvent.length > 0 && (
-              <>
-                <DropdownMenuLabel>After Event</DropdownMenuLabel>
-                {bookingActionsSections.afterEvent.map((action) => (
-                  <DropdownMenuItem key={action.id} onPress={action.onPress}>
-                    <View className="flex-row items-center gap-2">
-                      <Ionicons
-                        name={getIconName(action.icon)}
-                        size={18}
-                        color={isDarkMode ? "#FFFFFF" : "#000000"}
-                      />
-                      <Text className="text-base text-[#000000] dark:text-white">
-                        {action.label}
-                      </Text>
-                    </View>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-              </>
-            )}
-
-            <DropdownMenuLabel>Danger Zone</DropdownMenuLabel>
-            {bookingActionsSections.standalone.map((action) => (
-              <DropdownMenuItem
-                key={action.id}
-                onPress={action.onPress}
-                variant={action.destructive ? "destructive" : "default"}
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {meetingUrl && (
+            <AppPressable
+              onPress={handleJoinMeeting}
+              className={`h-9 flex-row items-center justify-center rounded-full border px-5 ${
+                isDarkMode ? "border-white bg-white" : "border-black bg-black"
+              }`}
+            >
+              <Text
+                className={`text-[15px] font-medium ${isDarkMode ? "text-black" : "text-white"}`}
               >
-                <View className="flex-row items-center gap-2">
-                  <Ionicons
-                    name={getIconName(action.icon)}
-                    size={18}
-                    color={action.destructive ? "#EF4444" : isDarkMode ? "#FFFFFF" : "#000000"}
-                  />
-                  <Text
-                    className={`text-base ${
-                      action.destructive ? "text-red-500" : "text-[#000000] dark:text-white"
-                    }`}
-                  >
-                    {action.label}
-                  </Text>
-                </View>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {meetingUrl && (
-          <AppPressable
-            onPress={handleJoinMeeting}
-            className={`h-9 flex-row items-center justify-center rounded-full border px-5 ${
-              isDarkMode ? "border-white bg-white" : "border-black bg-black"
-            }`}
-          >
-            <Text className={`text-[15px] font-medium ${isDarkMode ? "text-black" : "text-white"}`}>
-              Join
-            </Text>
-          </AppPressable>
-        )}
-      </View>
-    </HeaderButtonWrapper>
+                Join
+              </Text>
+            </AppPressable>
+          )}
+        </View>
+      </HeaderButtonWrapper>
+    ),
+    [isDarkMode, meetingUrl, handleCopyMeetingLink, bookingActionsSections, handleJoinMeeting]
   );
 
   // Force header update on Android/Web

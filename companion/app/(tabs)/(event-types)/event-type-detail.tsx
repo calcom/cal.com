@@ -1183,7 +1183,7 @@ export default function EventTypeDetail() {
     return Object.keys(payload).length > 0;
   }, [currentFormState, eventTypeData, id]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!id) {
       showErrorAlert("Error", "Event type ID is missing");
       return;
@@ -1272,105 +1272,125 @@ export default function EventTypeDetail() {
       showSuccessAlert("Success", "Event type updated successfully");
       // No need to manually refresh - cache is updated by the mutation hook
     }
-  };
+  }, [
+    id,
+    eventTitle,
+    eventSlug,
+    eventDuration,
+    locations,
+    selectedSchedule?.id,
+    eventDescription,
+    isHidden,
+    createEventType,
+    router,
+    currentFormState,
+    eventTypeData,
+    updateEventType,
+  ]);
 
   const headerTitle = id === "new" ? "Create Event Type" : truncateTitle(title);
   const saveButtonText = id === "new" ? "Create" : "Save";
 
-  const renderHeaderLeft = () => (
-    <HeaderButtonWrapper side="left">
-      <AppPressable
-        onPress={() => router.back()}
-        className="mr-2 h-10 w-10 items-center justify-center rounded-full border border-[#E5E5E5] bg-white dark:border-[#262626] dark:bg-[#171717]"
-      >
-        <Ionicons name="chevron-back" size={20} color={isDarkMode ? "#FFFFFF" : "#000000"} />
-      </AppPressable>
-    </HeaderButtonWrapper>
+  const renderHeaderLeft = useCallback(
+    () => (
+      <HeaderButtonWrapper side="left">
+        <AppPressable
+          onPress={() => router.back()}
+          className="mr-2 h-10 w-10 items-center justify-center rounded-full border border-[#E5E5E5] bg-white dark:border-[#262626] dark:bg-[#171717]"
+        >
+          <Ionicons name="chevron-back" size={20} color={isDarkMode ? "#FFFFFF" : "#000000"} />
+        </AppPressable>
+      </HeaderButtonWrapper>
+    ),
+    [router, isDarkMode]
   );
 
-  const renderHeaderRight = () => (
-    <HeaderButtonWrapper side="right">
-      <View className="flex-row items-center" style={{ gap: Platform.OS === "web" ? 24 : 8 }}>
-        {/* Tab Navigation Dropdown Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <AppPressable className="h-10 flex-row items-center justify-center gap-2 rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
-              <Text
-                className="text-[15px] font-medium text-[#000000] dark:text-white"
-                numberOfLines={1}
-              >
-                {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
-              </Text>
-            </AppPressable>
-          </DropdownMenuTrigger>
+  const renderHeaderRight = useCallback(
+    () => (
+      <HeaderButtonWrapper side="right">
+        <View className="flex-row items-center" style={{ gap: Platform.OS === "web" ? 24 : 8 }}>
+          {/* Tab Navigation Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AppPressable className="h-10 flex-row items-center justify-center gap-2 rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
+                <Text
+                  className="text-[15px] font-medium text-[#000000] dark:text-white"
+                  numberOfLines={1}
+                >
+                  {tabs.find((tab) => tab.id === activeTab)?.label ?? "Basics"}
+                </Text>
+              </AppPressable>
+            </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
-            sideOffset={8}
-            className="w-44"
-            align="end"
-          >
-            {tabs.map((tab) => {
-              const isSelected = activeTab === tab.id;
-              return (
-                <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons
-                      name={isSelected ? "checkmark-circle" : tab.icon}
-                      size={16}
-                      color={isSelected ? (isDarkMode ? "#FFFFFF" : "#000000") : "#666"}
-                    />
-                    <Text
-                      className={
-                        isSelected
-                          ? "text-base font-semibold text-[#000000] dark:text-white"
-                          : "text-base text-popover-foreground"
-                      }
-                    >
-                      {tab.label}
-                    </Text>
-                  </View>
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Save Button */}
-        <AppPressable
-          onPress={handleSave}
-          disabled={isSaving || !isDirty}
-          className={`h-10 flex-row items-center justify-center rounded-full border px-5 ${
-            isSaving || !isDirty
-              ? "border-[#E5E5EA] bg-[#E5E5EA] dark:border-[#262626] dark:bg-[#262626]"
-              : "border-black bg-black dark:border-white dark:bg-white"
-          }`}
-        >
-          {isSaving ? (
-            <ActivityIndicator
-              size="small"
-              color={
-                isSaving || !isDirty
-                  ? isDarkMode
-                    ? "#A3A3A3"
-                    : "#A3A3A3"
-                  : isDarkMode
-                    ? "#000000"
-                    : "#FFFFFF"
-              }
-            />
-          ) : (
-            <Text
-              className={`text-[15px] font-medium ${
-                isSaving || !isDirty ? "text-[#A3A3A3]" : isDarkMode ? "text-black" : "text-white"
-              }`}
+            <DropdownMenuContent
+              insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
+              sideOffset={8}
+              className="w-44"
+              align="end"
             >
-              {saveButtonText}
-            </Text>
-          )}
-        </AppPressable>
-      </View>
-    </HeaderButtonWrapper>
+              {tabs.map((tab) => {
+                const isSelected = activeTab === tab.id;
+                return (
+                  <DropdownMenuItem key={tab.id} onPress={() => setActiveTab(tab.id)}>
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons
+                        name={isSelected ? "checkmark-circle" : tab.icon}
+                        size={16}
+                        color={isSelected ? (isDarkMode ? "#FFFFFF" : "#000000") : "#666"}
+                      />
+                      <Text
+                        className={
+                          isSelected
+                            ? "text-base font-semibold text-[#000000] dark:text-white"
+                            : "text-base text-popover-foreground"
+                        }
+                      >
+                        {tab.label}
+                      </Text>
+                    </View>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Save Button */}
+          <AppPressable
+            onPress={handleSave}
+            disabled={isSaving || !isDirty}
+            className={`h-10 flex-row items-center justify-center rounded-full border px-5 ${
+              isSaving || !isDirty
+                ? "border-[#E5E5EA] bg-[#E5E5EA] dark:border-[#262626] dark:bg-[#262626]"
+                : "border-black bg-black dark:border-white dark:bg-white"
+            }`}
+          >
+            {isSaving ? (
+              <ActivityIndicator
+                size="small"
+                color={
+                  isSaving || !isDirty
+                    ? isDarkMode
+                      ? "#A3A3A3"
+                      : "#A3A3A3"
+                    : isDarkMode
+                      ? "#000000"
+                      : "#FFFFFF"
+                }
+              />
+            ) : (
+              <Text
+                className={`text-[15px] font-medium ${
+                  isSaving || !isDirty ? "text-[#A3A3A3]" : isDarkMode ? "text-black" : "text-white"
+                }`}
+              >
+                {saveButtonText}
+              </Text>
+            )}
+          </AppPressable>
+        </View>
+      </HeaderButtonWrapper>
+    ),
+    [activeTab, isDarkMode, handleSave, isSaving, isDirty, saveButtonText]
   );
 
   // Force header update on Android/Web when state changes

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, useColorScheme, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
@@ -55,6 +55,10 @@ export default function EditAvailabilityDay() {
     router.back();
   }, [router]);
 
+  const handleClose = useCallback(() => {
+    router.back();
+  }, [router]);
+
   if (isLoading) {
     return (
       <View
@@ -76,10 +80,6 @@ export default function EditAvailabilityDay() {
       </View>
     );
   }
-
-  const handleClose = useCallback(() => {
-    router.back();
-  }, [router]);
 
   return (
     <View

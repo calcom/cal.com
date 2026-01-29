@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef } from "react";
-import { Text, TouchableOpacity, useColorScheme } from "react-native";
+import { Text, useColorScheme } from "react-native";
 import {
   AvailabilityDetailScreen,
   type AvailabilityDetailScreenHandle,

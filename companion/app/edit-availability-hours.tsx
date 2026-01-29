@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, TouchableOpacity, useColorScheme, View } from "react-native";
+import { useCallback, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import EditAvailabilityHoursScreenComponent from "@/components/screens/EditAvailabilityHoursScreen";
