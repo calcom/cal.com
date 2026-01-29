@@ -577,5 +577,104 @@ describe("BookingRepository (Integration Tests)", () => {
       expect(bookings.some((b) => b.id === bookingInRange.id)).toBe(true);
       expect(bookings.some((b) => b.id === bookingOutOfRange.id)).toBe(false);
     });
+
+    it("benchmark: raw SQL JOIN should be faster than Prisma correlated subquery", async () => {
+      // Create test bookings with attendees
+      const testEmails = ["bench1@example.com", "bench2@example.com", "bench3@example.com"];
+      const bookingIds: number[] = [];
+
+      for (let i = 0; i < 5; i++) {
+        const booking = await prisma.booking.create({
+          data: {
+            userId: testUserId,
+            uid: `uid-benchmark-${i}`,
+            eventTypeId: testEventTypeId,
+            status: BookingStatus.ACCEPTED,
+            attendees: {
+              create: {
+                email: testEmails[i % testEmails.length],
+                name: `Benchmark Attendee ${i}`,
+                timeZone: "UTC",
+              },
+            },
+            startTime: new Date(`2025-05-01T${10 + i}:00:00.000Z`),
+            endTime: new Date(`2025-05-01T${11 + i}:00:00.000Z`),
+            title: `Benchmark Booking ${i}`,
+          },
+        });
+        bookingIds.push(booking.id);
+        createdBookingIds.push(booking.id);
+      }
+
+      const startDate = new Date("2025-05-01T00:00:00.000Z");
+      const endDate = new Date("2025-05-01T23:59:59.999Z");
+
+      // Benchmark: Original Prisma correlated subquery approach
+      const prismaQueryFn = async () => {
+        return prisma.booking.findMany({
+          where: {
+            startTime: { lte: endDate },
+            endTime: { gte: startDate },
+            status: BookingStatus.ACCEPTED,
+            attendees: {
+              some: {
+                email: { in: testEmails },
+              },
+            },
+          },
+          select: { id: true },
+        });
+      };
+
+      // Benchmark: Optimized raw SQL JOIN approach
+      const rawSqlQueryFn = async () => {
+        return prisma.$queryRaw<{ bookingId: number }[]>`
+          SELECT DISTINCT a."bookingId"
+          FROM "Attendee" a
+          INNER JOIN "Booking" b ON b."id" = a."bookingId"
+          WHERE a."email" = ANY(${testEmails}::text[])
+            AND b."startTime" <= ${endDate}
+            AND b."endTime" >= ${startDate}
+            AND b."status" = 'accepted'
+        `;
+      };
+
+      // Run benchmarks (5 iterations each)
+      const iterations = 5;
+
+      // Warm up
+      await prismaQueryFn();
+      await rawSqlQueryFn();
+
+      // Measure Prisma approach
+      const prismaTimes: number[] = [];
+      for (let i = 0; i < iterations; i++) {
+        const start = performance.now();
+        await prismaQueryFn();
+        prismaTimes.push(performance.now() - start);
+      }
+
+      // Measure raw SQL approach
+      const rawSqlTimes: number[] = [];
+      for (let i = 0; i < iterations; i++) {
+        const start = performance.now();
+        await rawSqlQueryFn();
+        rawSqlTimes.push(performance.now() - start);
+      }
+
+      const prismaAvg = prismaTimes.reduce((a, b) => a + b, 0) / iterations;
+      const rawSqlAvg = rawSqlTimes.reduce((a, b) => a + b, 0) / iterations;
+
+      console.log("\n=== BENCHMARK RESULTS ===");
+      console.log(`Prisma correlated subquery: ${prismaAvg.toFixed(2)}ms avg`);
+      console.log(`Raw SQL JOIN: ${rawSqlAvg.toFixed(2)}ms avg`);
+      console.log(`Speedup: ${(prismaAvg / rawSqlAvg).toFixed(2)}x faster with Raw SQL`);
+      console.log("========================\n");
+
+      // Both approaches should return the same results
+      const prismaResults = await prismaQueryFn();
+      const rawSqlResults = await rawSqlQueryFn();
+      expect(prismaResults.length).toBe(rawSqlResults.length);
+    });
   });
 });
