@@ -4,6 +4,7 @@ import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repos
 import { PrismaProfileRepository } from "@/lib/repositories/prisma-profile.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingCancelService } from "@/lib/services/booking-cancel.service";
+import { WebhookProducerService } from "@/lib/services/webhook-producer.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
 
@@ -15,6 +16,7 @@ import { Module } from "@nestjs/common";
     PrismaBookingRepository,
     PrismaProfileRepository,
     PrismaUserRepository,
+    WebhookProducerService,
     BookingCancelService,
   ],
   exports: [BookingCancelService],
