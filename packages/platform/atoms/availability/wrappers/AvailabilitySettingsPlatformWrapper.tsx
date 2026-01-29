@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { forwardRef, useRef } from "react";
 
-import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
+import type { ScheduleLabelsType } from "@calcom/features/schedules/components/ScheduleComponent";
 import type { UpdateScheduleResponse } from "@calcom/features/schedules/services/ScheduleService";
 import type { ApiErrorResponse, ApiResponse, UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
 
