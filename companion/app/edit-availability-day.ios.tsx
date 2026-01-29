@@ -66,7 +66,7 @@ export default function EditAvailabilityDayIOS() {
   const useGlassEffect = isLiquidGlassAvailable();
 
   // Semi-transparent background to prevent flashes while preserving glass effect
-  const glassBackground = isDark ? "rgba(0, 0, 0, 0.01)" : "rgba(248, 248, 250, 0.01)";
+  const glassBackground = isDark ? "rgba(28, 28, 30, 0.01)" : "rgba(248, 248, 250, 0.01)";
 
   return (
     <>
@@ -78,7 +78,11 @@ export default function EditAvailabilityDayIOS() {
           sheetAllowedDetents: [0.6, 0.9],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? glassBackground : theme.background,
+            backgroundColor: useGlassEffect
+              ? glassBackground
+              : isDark
+                ? theme.backgroundMuted
+                : theme.background,
           },
         }}
       />
