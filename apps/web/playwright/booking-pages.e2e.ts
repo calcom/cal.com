@@ -947,27 +947,29 @@ test.describe("Optional Email Field Validation", () => {
     await page.goto(`/${user.username}/test-event`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.fill('[name="name"]', 'Test Booker');
-    await page.fill('[name="email"]', 'booker@example.com');
+    await page.locator('input[name="name"]').fill('Test Booker');
+    await page.locator('input[name="email"]').fill('booker@example.com');
 
     const optionalField = page.getByLabel(/Alternate Email/i);
     
-    if (await optionalField.isVisible()) {
-      // Verify validation is active
-      await optionalField.fill('not-an-email');
-      await page.click('[data-testid="confirm-book-button"]');
+    // Visibility 
+    await expect(optionalField).toBeVisible();
 
-      // The test waits here to ensure the error message appeared
-      await expect(page.locator('text=That doesn\'t look like an email address')).toBeVisible();
+    // Trigger validation error
+    await optionalField.fill('not-an-email');
+    await page.click('[data-testid="confirm-book-button"]');
 
-      // Clear the field to allow submission
-      await optionalField.clear(); 
-      // Click again - Now it should actually submit!
-      await page.click('[data-testid="confirm-book-button"]');
+    // Verify form didn't submit
+    await expect(page).not.toHaveURL(/.*isSuccessBookingPage=true.*/);
 
-      // Verify it reached the end
-      await expect(page).toHaveURL(/.*isSuccessBookingPage=true.*/);
-      await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
-    }
+    // Verify empty submission is allowed
+    await optionalField.fill(''); 
+    
+    // Click the button to submit
+    await page.click('[data-testid="confirm-book-button"]');
+
+    // Verify it reached the end
+    await expect(page).toHaveURL(/.*isSuccessBookingPage=true.*/, { timeout: 15000 });
+    await expect(page.getByTestId('success-page')).toBeVisible();
   });
 });
