@@ -25,6 +25,11 @@ const assertCommonWidgetTypes = (config: any) => {
   expect(config.widgets).toHaveProperty("select");
   expect(config.widgets).toHaveProperty("phone");
   expect(config.widgets).toHaveProperty("email");
+  expect(config.widgets).toHaveProperty("address");
+  expect(config.widgets).toHaveProperty("url");
+  expect(config.widgets).toHaveProperty("checkbox");
+  expect(config.widgets).toHaveProperty("radio");
+  expect(config.widgets).toHaveProperty("boolean");
 };
 
 const assertSelectOperators = (config: any) => {
