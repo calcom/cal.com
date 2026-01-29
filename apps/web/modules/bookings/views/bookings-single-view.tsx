@@ -708,10 +708,14 @@ export default function Success(props: PageProps) {
                                 : t("payment")}
                             </div>
                             <div className="col-span-2 mb-2 mt-3">
-                              <Price
-                                currency={props.paymentStatus.currency}
-                                price={props.paymentStatus.amount}
-                              />
+                              {props.paymentStatus.amount === 0 ? (
+                                <p className="text-emphasis text-sm font-medium">{t("free_of_charge")}</p>
+                              ) : (
+                                <Price
+                                  currency={props.paymentStatus.currency}
+                                  price={props.paymentStatus.amount}
+                                />
+                              )}
                             </div>
                           </>
                         )}
