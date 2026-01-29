@@ -11,7 +11,10 @@ import { Eye, EyeOff } from "lucide-react";
 
 import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
+import {
+  LastUsed,
+  useLastUsed,
+} from "@calcom/web/modules/auth/hooks/useLastUsed";
 import {
   HOSTED_CAL_FEATURES,
   WEBAPP_URL,
