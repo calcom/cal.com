@@ -219,7 +219,8 @@ class StripePaymentService implements IAbstractPaymentService {
         bookingId,
         safeStringify(error)
       );
-      throw new Error("Stripe: Payment method could not be collected");
+
+      throw new ErrorWithCode(ErrorCode.CollectCardFailure, "Stripe: Payment method could not be collected");
     }
   }
 
