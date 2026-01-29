@@ -133,10 +133,10 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "bg-default mb-0 flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            !props.disableSticky && "sticky top-0 z-10"
-          )}>
+  "bg-default mb-0 flex items-center md:mb-6 md:mt-0 md:w-[100%] md:pt-3 md:pb-2 md:pr-[18rem] lg:left-58 lg:right-3 md:pl-5",
+  props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+  !props.disableSticky && "sticky top-0 z-10 md:fixed"
+)} >
           {!!props.backPath && (
             <Button
               variant="icon"

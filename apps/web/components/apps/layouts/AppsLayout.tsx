@@ -20,7 +20,7 @@ export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...
 
   return (
     <Shell {...rest} actions={actions?.("block")}>
-      <div className="flex flex-col xl:flex-row">
+      <div className="flex flex-col xl:flex-row mt-20">
         <main className="w-full">
           {emptyStore ? (
             <EmptyScreen
