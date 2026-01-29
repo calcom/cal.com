@@ -1,15 +1,13 @@
-import { z } from "zod";
-
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import type { TrackingData } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, type TrackingData } from "@calcom/lib/tracking";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
+import { z } from "zod";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
 
@@ -26,7 +24,7 @@ export class BillingService {
       phoneNumberRepository: PhoneNumberRepositoryInterface;
       retellRepository: RetellAIRepository;
     }
-  ) { }
+  ) {}
 
   async generatePhoneNumberCheckoutSession({
     userId,
@@ -83,8 +81,7 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
-        ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
-        ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+        ...getStripeTrackingMetadata(tracking),
       },
       subscription_data: {
         metadata: {
@@ -119,14 +116,14 @@ export class BillingService {
     // Find phone number with proper team authorization
     const phoneNumber = teamId
       ? await this.deps.phoneNumberRepository.findByIdWithTeamAccess({
-        id: phoneNumberId,
-        teamId,
-        userId,
-      })
+          id: phoneNumberId,
+          teamId,
+          userId,
+        })
       : await this.deps.phoneNumberRepository.findByIdAndUserId({
-        id: phoneNumberId,
-        userId,
-      });
+          id: phoneNumberId,
+          userId,
+        });
 
     if (!phoneNumber) {
       throw new HttpError({
