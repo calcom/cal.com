@@ -1,10 +1,6 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
 import { createHash } from "node:crypto";
-import type { GetServerSidePropsContext } from "next";
 import { stringify } from "node:querystring";
-import { v4 as uuidv4 } from "uuid";
-import z from "zod";
-
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
@@ -17,6 +13,7 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
+import { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
@@ -24,9 +21,10 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
+import type { GetServerSidePropsContext } from "next";
+import { v4 as uuidv4 } from "uuid";
+import z from "zod";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 import { handleResponse } from "./handleResponse";
 
@@ -37,9 +35,7 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
-const getDeterministicHashForResponse = (
-  fieldsResponses: Record<string, unknown>
-) => {
+const getDeterministicHashForResponse = (fieldsResponses: Record<string, unknown>) => {
   const sortedFields = Object.keys(fieldsResponses)
     .sort()
     .reduce((obj: Record<string, unknown>, key) => {
@@ -56,10 +52,7 @@ export function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-const _getRoutedUrl = async (
-  context: Pick<GetServerSidePropsContext, "query" | "req">,
-  fetchCrm = true
-) => {
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">, fetchCrm = true) => {
   // Initialize trace service for tracking routing decisions
   const routingTraceService = getRoutingTraceService();
 
@@ -96,9 +89,7 @@ const _getRoutedUrl = async (
   const paramsToBeForwardedAsIs = {
     ...fieldsResponses,
     // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
-    ...(isBookingDryRunParam
-      ? { "cal.isBookingDryRun": isBookingDryRunParam }
-      : null),
+    ...(isBookingDryRunParam ? { "cal.isBookingDryRun": isBookingDryRunParam } : null),
   };
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
@@ -106,8 +97,7 @@ const _getRoutedUrl = async (
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form =
-    await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+  const form = await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {
@@ -150,7 +140,11 @@ const _getRoutedUrl = async (
     fieldsResponses,
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  let routingFormTraceService: RoutingFormTraceService | undefined;
+  if (!isBookingDryRun) {
+    routingFormTraceService = new RoutingFormTraceService(routingTraceService);
+  }
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response, routingFormTraceService });
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -175,9 +169,9 @@ const _getRoutedUrl = async (
       queueFormResponse: shouldQueueFormResponse,
       fetchCrm,
       traceService: isBookingDryRun ? undefined : routingTraceService,
+      routingFormTraceService,
     });
-    teamMembersMatchingAttributeLogic =
-      result.teamMembersMatchingAttributeLogic;
+    teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;
     queuedFormResponseId = result.queuedFormResponse?.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
@@ -266,9 +260,7 @@ const _getRoutedUrl = async (
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(
-          context.query
-        )}&cal.action=externalRedirectUrl`,
+        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
         permanent: false,
       },
     };

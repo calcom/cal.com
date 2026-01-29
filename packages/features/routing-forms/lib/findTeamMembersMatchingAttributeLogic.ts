@@ -1,19 +1,14 @@
+import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
+import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
+import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
+import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
+import jsonLogic from "@calcom/lib/raqb/jsonLogic";
+import type { AttributesQueryValue, dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import async from "async";
 import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
 import type { Config } from "react-awesome-query-builder/lib";
 import { Utils as QbUtils } from "react-awesome-query-builder/lib";
-
-import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
-import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
-import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
-import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
-import {
-  ROUTING_TRACE_DOMAINS,
-  ROUTING_TRACE_STEPS,
-} from "@calcom/features/routing-trace/services/RoutingTraceService";
-import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
-import jsonLogic from "@calcom/lib/raqb/jsonLogic";
-import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
 
 const {
   getAttributesData: getAttributes,
@@ -41,7 +36,7 @@ type RunAttributeLogicOptions = {
   enableTroubleshooter: boolean;
 };
 
-export const enum TroubleshooterCase {
+export enum TroubleshooterCase {
   IS_A_ROUTER = "is-a-router",
   NO_LOGIC_FOUND = "no-logic-found",
   MATCH_RESULTS_READY = "match-results-ready",
@@ -467,11 +462,11 @@ export async function findTeamMembersMatchingAttributeLogic(
     enablePerf?: boolean;
     concurrency?: number;
     enableTroubleshooter?: boolean;
-    routingTraceService?: RoutingTraceService;
+    routingFormTraceService?: RoutingFormTraceService;
   } = {}
 ) {
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false, routingTraceService } = options;
+  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false, routingFormTraceService } = options;
 
   // Any explicit value being passed should cause fallback to be considered. Even undefined
   const considerFallback = "fallbackAttributesQueryValue" in data;
@@ -528,22 +523,18 @@ export async function findTeamMembersMatchingAttributeLogic(
 
   // Helper to add trace step for attribute logic evaluation
   const addTraceStep = (checkedFallback: boolean) => {
-    if (routingTraceService) {
+    if (routingFormTraceService) {
       const attributeRoutingDetails = extractAttributeRoutingDetails({
         resolvedAttributesQueryValue,
         attributesOfTheOrg,
         dynamicFieldValueOperands,
       });
 
-      routingTraceService.addStep({
-        domain: ROUTING_TRACE_DOMAINS.ROUTING_FORM,
-        step: ROUTING_TRACE_STEPS.ATTRIBUTE_LOGIC_EVALUATED,
-        data: {
-          routeName,
-          routeIsFallback,
-          checkedFallback,
-          attributeRoutingDetails,
-        },
+      routingFormTraceService.attributeLogicEvaluated({
+        routeName,
+        routeIsFallback,
+        checkedFallback,
+        attributeRoutingDetails,
       });
     }
   };
