@@ -621,6 +621,7 @@ describe("WorkflowService.generateCommonScheduleFunctionParams", () => {
       seatReferenceUid: undefined,
       verifiedAt,
       creditCheckFn: mockCreditCheckFn,
+      organizationId: null,
     });
   });
 
@@ -746,7 +747,85 @@ describe("WorkflowService.generateCommonScheduleFunctionParams", () => {
       teamId: 123,
       seatReferenceUid: undefined,
       verifiedAt,
+      organizationId: null,
       creditCheckFn: mockCreditCheckFn,
     });
+  });
+
+  test("should use evtOrganizationId as organizationId", () => {
+    const verifiedAt = new Date("2024-01-01T00:00:00Z");
+    const mockWorkflow = {
+      id: 1,
+      name: "User Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: 1,
+      teamId: null,
+    };
+
+    const mockWorkflowStep = {
+      id: 1,
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      sendTo: null,
+      template: WorkflowTemplates.REMINDER,
+      reminderBody: null,
+      emailSubject: null,
+      sender: null,
+      includeCalendarEvent: false,
+      verifiedAt,
+      numberVerificationPending: false,
+      numberRequired: false,
+    };
+
+    const mockCreditCheckFn = vi.fn();
+
+    const result = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: mockWorkflow,
+      workflowStep: mockWorkflowStep,
+      seatReferenceUid: undefined,
+      creditCheckFn: mockCreditCheckFn,
+      evtOrganizationId: 200,
+    });
+
+    expect(result.organizationId).toBe(200);
+  });
+
+  test("should return null organizationId when evtOrganizationId is not provided", () => {
+    const verifiedAt = new Date("2024-01-01T00:00:00Z");
+    const mockWorkflow = {
+      id: 1,
+      name: "User Workflow",
+      trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+      time: 24,
+      timeUnit: TimeUnit.HOUR,
+      userId: 1,
+      teamId: null,
+    };
+
+    const mockWorkflowStep = {
+      id: 1,
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      sendTo: null,
+      template: WorkflowTemplates.REMINDER,
+      reminderBody: null,
+      emailSubject: null,
+      sender: null,
+      includeCalendarEvent: false,
+      verifiedAt,
+      numberVerificationPending: false,
+      numberRequired: false,
+    };
+
+    const mockCreditCheckFn = vi.fn();
+
+    const result = WorkflowService.generateCommonScheduleFunctionParams({
+      workflow: mockWorkflow,
+      workflowStep: mockWorkflowStep,
+      seatReferenceUid: undefined,
+      creditCheckFn: mockCreditCheckFn,
+    });
+
+    expect(result.organizationId).toBeNull();
   });
 });

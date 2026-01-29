@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import i18nMock from "../__mocks__/libServerI18n";
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismock from "../__mocks__/prisma";
 
 import { v4 as uuidv4 } from "uuid";
@@ -1064,6 +1066,10 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
+  withSmtpConfig?: {
+    fromEmail: string;
+    fromName: string;
+  };
 }): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
@@ -1090,6 +1096,14 @@ export async function createOrganization(orgData: {
       },
     });
   }
+  if (orgData.withSmtpConfig) {
+    await createSmtpConfiguration({
+      organizationId: org.id,
+      fromEmail: orgData.withSmtpConfig.fromEmail,
+      fromName: orgData.withSmtpConfig.fromName,
+      isEnabled: true,
+    });
+  }
   assertNonNullableSlug(org);
   const team = await prismock.team.findUnique({ where: { id: org.id }, include: { children: true } });
   if (!team) {
@@ -1112,6 +1126,34 @@ export async function createCredentials(
     data: credentialData,
   });
   return credentials;
+}
+
+export interface SmtpConfigurationTestData {
+  organizationId: number;
+  fromEmail: string;
+  fromName: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPassword?: string;
+  smtpSecure?: boolean;
+  isEnabled?: boolean;
+}
+
+export async function createSmtpConfiguration(data: SmtpConfigurationTestData) {
+  return prismock.smtpConfiguration.create({
+    data: {
+      organizationId: data.organizationId,
+      fromEmail: data.fromEmail,
+      fromName: data.fromName,
+      smtpHost: data.smtpHost ?? "test-smtp.example.com",
+      smtpPort: data.smtpPort ?? 587,
+      smtpUser: data.smtpUser ?? "testuser",
+      smtpPassword: data.smtpPassword ?? "test-encrypted-password",
+      smtpSecure: data.smtpSecure ?? true,
+      isEnabled: data.isEnabled ?? false,
+    },
+  });
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {

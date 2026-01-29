@@ -8,6 +8,7 @@ type OrgContext = {
   org: {
     organization: { id: number | null };
     urlOrigin?: string;
+    hasCustomSmtp?: boolean;
   } | null;
 };
 
@@ -69,3 +70,100 @@ testWithAndWithoutOrg.only = ((description: string, fn: TestFunctionWithOrg, tim
 testWithAndWithoutOrg.skip = ((description: string, fn: TestFunctionWithOrg, timeout?: number): void => {
   _testWithAndWithoutOrg(description, fn, timeout, "skip");
 }) as typeof testWithAndWithoutOrg;
+
+export type SmtpTestConfig = {
+  fromEmail: string;
+  fromName: string;
+};
+
+const DEFAULT_SMTP_TEST_CONFIG: SmtpTestConfig = {
+  fromEmail: "bookings@testorg.com",
+  fromName: "TestOrg Bookings",
+};
+
+export const testWithOrgSmtpConfig = (
+  description: string,
+  fn: (context: Fixtures & OrgContext) => Promise<void> | void,
+  smtpConfig: SmtpTestConfig = DEFAULT_SMTP_TEST_CONFIG,
+  timeout?: number
+): void => {
+  test(
+    `${description} - With org custom SMTP`,
+    async ({ emails, sms }) => {
+      const org = await createOrganization({
+        name: "Test Org",
+        slug: "testorg",
+        withSmtpConfig: smtpConfig,
+      });
+
+      await fn({
+        emails,
+        sms,
+        org: {
+          organization: org,
+          urlOrigin: `${WEBSITE_PROTOCOL}//${org.slug}.cal.local:3000`,
+          hasCustomSmtp: true,
+        },
+      });
+    },
+    timeout
+  );
+};
+
+testWithOrgSmtpConfig.only = (
+  description: string,
+  fn: (context: Fixtures & OrgContext) => Promise<void> | void,
+  smtpConfig: SmtpTestConfig = DEFAULT_SMTP_TEST_CONFIG,
+  timeout?: number
+): void => {
+  test.only(
+    `${description} - With org custom SMTP`,
+    async ({ emails, sms }) => {
+      const org = await createOrganization({
+        name: "Test Org",
+        slug: "testorg",
+        withSmtpConfig: smtpConfig,
+      });
+
+      await fn({
+        emails,
+        sms,
+        org: {
+          organization: org,
+          urlOrigin: `${WEBSITE_PROTOCOL}//${org.slug}.cal.local:3000`,
+          hasCustomSmtp: true,
+        },
+      });
+    },
+    timeout
+  );
+};
+
+testWithOrgSmtpConfig.skip = (
+  description: string,
+  fn: (context: Fixtures & OrgContext) => Promise<void> | void,
+  smtpConfig: SmtpTestConfig = DEFAULT_SMTP_TEST_CONFIG,
+  timeout?: number
+): void => {
+  test.skip(
+    `${description} - With org custom SMTP`,
+    async ({ emails, sms }) => {
+      const org = await createOrganization({
+        name: "Test Org",
+        slug: "testorg",
+        withSmtpConfig: smtpConfig,
+      });
+
+      await fn({
+        emails,
+        sms,
+        org: {
+          organization: org,
+          urlOrigin: `${WEBSITE_PROTOCOL}//${org.slug}.cal.local:3000`,
+          hasCustomSmtp: true,
+        },
+      });
+    },
+    timeout
+  );
+};

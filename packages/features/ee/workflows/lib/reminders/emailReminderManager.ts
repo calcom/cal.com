@@ -38,6 +38,8 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   verifiedAt: Date | null;
+  isOrganization?: boolean;
+  organizationId?: number | null;
 };
 
 type SendEmailReminderParams = {
@@ -52,6 +54,7 @@ type SendEmailReminderParams = {
       disposition: string;
     }[];
     sender?: string | null;
+    organizationId?: number | null;
   };
   sendTo: string[];
   triggerEvent: WorkflowTriggerEvents;
@@ -115,6 +118,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
+    isOrganization,
+    organizationId,
   } = args;
 
   const uid = evt.uid as string;
@@ -152,6 +157,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     template,
     includeCalendarEvent,
     triggerEvent,
+    isOrganization,
+    organizationId,
   });
 
   await sendOrScheduleWorkflowEmailWithReminder({
@@ -180,6 +187,8 @@ const scheduleEmailReminderForForm = async (
     emailSubject = "",
     emailBody = "",
     hideBranding,
+    isOrganization,
+    organizationId,
   } = args;
 
   const emailContent = {
@@ -212,6 +221,7 @@ const scheduleEmailReminderForForm = async (
     subject: emailContent.emailSubject,
     html: emailContent.emailBody,
     sender,
+    organizationId,
   };
 
   await sendOrScheduleWorkflowEmailWithReminder({

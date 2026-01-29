@@ -49,6 +49,7 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   prisma?: PrismaClient;
   verifiedAt: Date | null;
   creditCheckFn: CreditCheckFn;
+  organizationId?: number | null;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
@@ -134,6 +135,7 @@ const scheduleSMSReminderForEvt = async (
     teamId,
     seatReferenceUid,
     creditCheckFn,
+    organizationId,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -213,6 +215,7 @@ const scheduleSMSReminderForEvt = async (
                   email: evt.attendees[0].email,
                   t: await getTranslation(evt.attendees[0].language.locale, "common"),
                   replyTo: evt.organizer.email,
+                  organizationId,
                 }
               : undefined,
             creditCheckFn,
@@ -245,6 +248,7 @@ const scheduleSMSReminderForEvt = async (
                   t: await getTranslation(evt.attendees[0].language.locale, "common"),
                   replyTo: evt.organizer.email,
                   workflowStepId,
+                  organizationId,
                 }
               : undefined,
             creditCheckFn,
@@ -292,8 +296,18 @@ const scheduleSMSReminderForForm = async (
     formData: FormSubmissionData;
   }
 ) => {
-  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData, creditCheckFn } =
-    args;
+  const {
+    message,
+    triggerEvent,
+    reminderPhone,
+    sender,
+    userId,
+    teamId,
+    action,
+    formData,
+    creditCheckFn,
+    organizationId,
+  } = args;
 
   let smsMessage = message;
 
@@ -335,6 +349,7 @@ const scheduleSMSReminderForForm = async (
                 email: submitterEmail,
                 t: await getTranslation(formData.user.locale, "common"),
                 replyTo: formData.user.email,
+                organizationId,
               }
             : undefined,
         creditCheckFn,
