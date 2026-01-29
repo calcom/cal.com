@@ -1,12 +1,9 @@
-import { getServerSession, getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
-import {
-  PermissionCheckService,
-  PermissionCheckService,
-} from "@calcom/features/pbac/services/permission-check.service";
-import { MembershipRole, MembershipRole } from "@calcom/prisma/enums";
-import { buildLegacyRequest, buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
