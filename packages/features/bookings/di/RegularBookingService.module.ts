@@ -8,6 +8,7 @@ import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/d
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { moduleLoader as webhookProducerModuleLoader } from "@calcom/features/di/webhooks/modules/WebhookProducerService.module";
 import { moduleLoader as hashedLinkServiceModuleLoader } from "@calcom/features/hashedLink/di/HashedLinkService.module";
 
 import { moduleLoader as bookingEmailAndSmsTaskerModuleLoader } from "./tasker/BookingEmailAndSmsTasker.module";
@@ -31,6 +32,7 @@ const loadModule = bindModuleToClassOnToken({
     bookingEmailAndSmsTasker: bookingEmailAndSmsTaskerModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
     bookingEventHandler: bookingEventHandlerModuleLoader,
+    webhookProducer: webhookProducerModuleLoader,
   },
 });
 

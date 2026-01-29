@@ -159,7 +159,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       eventTypeId: params.eventTypeId,
     });
 
-    const taskPayload: WebhookTaskPayload = {
+    const basePayload = {
       operationId,
       triggerEvent,
       bookingUid: params.bookingUid,
@@ -168,9 +168,47 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       userId: params.userId,
       orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
+      platformRescheduleUrl: params.platformRescheduleUrl,
+      platformCancelUrl: params.platformCancelUrl,
+      platformBookingUrl: params.platformBookingUrl,
+      platformClientId: params.platformClientId,
       metadata: params.metadata,
       timestamp: new Date().toISOString(),
     };
+
+    // Add trigger-specific fields only for relevant triggers
+    let taskPayload: WebhookTaskPayload;
+
+    if (triggerEvent === WebhookTriggerEvents.BOOKING_CANCELLED) {
+      taskPayload = {
+        ...basePayload,
+        triggerEvent,
+        cancelledBy: params.cancelledBy,
+        cancellationReason: params.cancellationReason,
+        requestReschedule: params.requestReschedule,
+      };
+    } else if (triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
+      taskPayload = {
+        ...basePayload,
+        triggerEvent,
+        rescheduleId: params.rescheduleId,
+        rescheduleUid: params.rescheduleUid,
+        rescheduleStartTime: params.rescheduleStartTime,
+        rescheduleEndTime: params.rescheduleEndTime,
+        rescheduledBy: params.rescheduledBy,
+      };
+    } else if (triggerEvent === WebhookTriggerEvents.BOOKING_REJECTED) {
+      taskPayload = {
+        ...basePayload,
+        triggerEvent,
+        rejectionReason: params.rejectionReason,
+      };
+    } else {
+      taskPayload = {
+        ...basePayload,
+        triggerEvent,
+      };
+    }
 
     await this.queueTask(operationId, taskPayload);
   }

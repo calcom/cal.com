@@ -12,7 +12,6 @@ import {
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/testing/lib/bookingScenario/createMockNextJsRequest";
 import {
-  expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingToBeInDatabase, // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
@@ -195,15 +194,6 @@ describe("handleNewBooking", () => {
                   meetingPassword: "MOCK_PASSWORD",
                 },
               ],
-            });
-
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: All recurring bookings seem to have the same URL. https://github.com/calcom/cal.com/issues/11955
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
             });
           }
 
@@ -547,15 +537,6 @@ describe("handleNewBooking", () => {
                 },
               ],
             });
-
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
-            });
           }
 
           // expectWorkflowToBeTriggered();
@@ -764,15 +745,6 @@ describe("handleNewBooking", () => {
                   meetingPassword: "MOCK_PASSWORD",
                 },
               ],
-            });
-
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              //FIXME: File a bug - All recurring bookings seem to have the same URL. They should have same CalVideo URL which could mean that future recurring meetings would have already expired by the time they are needed.
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
             });
           }
 

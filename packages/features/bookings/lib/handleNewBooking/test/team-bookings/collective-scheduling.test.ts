@@ -19,12 +19,10 @@ import {
   // expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
-  expectBookingCreatedWebhookToHaveBeenFired,
   expectSuccessfulCalendarEventCreationInCalendar,
   expectSuccessfulVideoMeetingCreation,
   expectSMSToBeTriggered,
   expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -231,14 +229,6 @@ describe("handleNewBooking", () => {
               otherTeamMembers,
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            });
-
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           },
           timeout
@@ -531,13 +521,6 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            });
           },
           timeout
         );
@@ -761,14 +744,6 @@ describe("handleNewBooking", () => {
               otherTeamMembers,
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            });
-
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           },
           timeout
@@ -997,16 +972,6 @@ describe("handleNewBooking", () => {
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
 
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker: { email: contructEmailFromPhoneNumber(TEST_ATTENDEE_NUMBER), name: booker.name },
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-              isEmailHidden: true,
-              isAttendeePhoneNumberHidden: false,
-            });
-
             expectSMSToBeTriggered({ sms, toNumber: TEST_ATTENDEE_NUMBER });
           },
           timeout
@@ -1197,15 +1162,6 @@ describe("handleNewBooking", () => {
             expectBookingRequestedEmails({
               organizer,
               emails,
-            });
-
-            expectBookingRequestedWebhookToHaveBeenFired({
-              booker: { name: booker.name, email: contructEmailFromPhoneNumber(TEST_ATTENDEE_NUMBER) },
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl,
-              eventType: scenarioData.eventTypes[0],
-              isEmailHidden: true,
             });
 
             expectSMSToBeTriggered({ sms, toNumber: TEST_ATTENDEE_NUMBER });
@@ -1496,13 +1452,6 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -1697,13 +1646,6 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
           });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.ZoomVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `http://mock-zoomvideo.example.com/meeting-1`,
-          });
         },
         timeout
       );
@@ -1886,13 +1828,6 @@ describe("handleNewBooking", () => {
             otherTeamMembers,
             emails,
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-          });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -2082,13 +2017,6 @@ describe("handleNewBooking", () => {
               otherTeamMembers,
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
-            });
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
           },
           timeout

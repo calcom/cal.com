@@ -6,6 +6,7 @@ import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booki
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { LuckyUserService } from "@/lib/services/lucky-user.service";
 import { BookingEmailAndSmsTasker } from "@/lib/services/tasker/booking-emails-sms-tasker.service";
+import { WebhookProducerService } from "@/lib/services/webhook-producer.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
@@ -23,7 +24,8 @@ export class RegularBookingService extends BaseRegularBookingService {
     userRepository: PrismaUserRepository,
     bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
     featuresRepository: PrismaFeaturesRepository,
-    bookingEventHandler: BookingEventHandlerService
+    bookingEventHandler: BookingEventHandlerService,
+    webhookProducer: WebhookProducerService
   ) {
     super({
       checkBookingAndDurationLimitsService,
@@ -35,6 +37,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       bookingEmailAndSmsTasker,
       featuresRepository,
       bookingEventHandler,
+      webhookProducer,
     });
   }
 }

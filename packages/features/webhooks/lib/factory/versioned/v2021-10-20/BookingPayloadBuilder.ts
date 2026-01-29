@@ -1,13 +1,12 @@
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import type { BookingWebhookEventDTO } from "../../../dto/types";
-import type { WebhookPayload } from "../../types";
 import {
   BaseBookingPayloadBuilder,
   type BookingExtraDataMap,
   type BookingPayloadParams,
 } from "../../base/BaseBookingPayloadBuilder";
+import type { WebhookPayload } from "../../types";
 
 /**
  * Booking payload builder for webhook version 2021-10-20.
@@ -32,6 +31,9 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           status: BookingStatus.ACCEPTED,
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
+          extra: {
+            metadata: dto.metadata,
+          },
         });
 
       case WebhookTriggerEvents.BOOKING_CANCELLED:
@@ -67,6 +69,9 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           status: BookingStatus.REJECTED,
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
+          extra: {
+            rejectionReason: dto.rejectionReason,
+          },
         });
 
       case WebhookTriggerEvents.BOOKING_RESCHEDULED:
@@ -83,6 +88,7 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
             rescheduleStartTime: dto.rescheduleStartTime,
             rescheduleEndTime: dto.rescheduleEndTime,
             rescheduledBy: dto.rescheduledBy,
+            metadata: dto.metadata,
           },
         });
 
@@ -156,13 +162,17 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         userFieldsResponses: params.evt.userFieldsResponses,
         status: params.status,
         eventTitle: params.eventType?.eventTitle,
-        eventDescription: params.eventType?.eventDescription,
-        requiresConfirmation: params.eventType?.requiresConfirmation,
-        price: params.eventType?.price,
-        currency: params.eventType?.currency,
-        length: params.eventType?.length,
+        eventDescription: params.eventType?.eventDescription ?? null,
+        requiresConfirmation: params.eventType?.requiresConfirmation ?? null,
+        price: params.eventType?.price ?? 0,
+        currency: params.eventType?.currency ?? "usd",
+        length: params.eventType?.length ?? null,
         smsReminderNumber: params.booking.smsReminderNumber || undefined,
-        description: params.evt.description || params.evt.additionalNotes,
+        // Ensure additionalNotes and description are always present (legacy compat)
+        additionalNotes: params.evt.additionalNotes ?? "",
+        description: params.evt.description ?? params.evt.additionalNotes ?? "",
+        // Use raw assignmentReason from booking for legacy format [{ reasonEnum, reasonString }]
+        assignmentReason: params.booking.assignmentReason,
         ...(params.extra || {}),
       },
     };
