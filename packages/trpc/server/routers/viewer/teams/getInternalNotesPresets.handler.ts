@@ -21,11 +21,13 @@ export const getInternalNotesPresetsHandler = async ({ ctx, input }: UpdateMembe
   return await prisma.internalNotePreset.findMany({
     where: {
       teamId: input.teamId,
+      ...(input.type ? { type: input.type } : {}),
     },
     select: {
       id: true,
       name: true,
       cancellationReason: true,
+      type: true,
     },
   });
 };
