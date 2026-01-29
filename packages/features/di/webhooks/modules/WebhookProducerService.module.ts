@@ -1,37 +1,38 @@
-import type { Container } from "@evyweb/ioctopus";
-import { createModule } from "@evyweb/ioctopus";
-
-import type { ModuleLoader } from "@calcom/features/di/di";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { WebhookTaskerProducerService } from "@calcom/features/webhooks/lib/service/WebhookTaskerProducerService";
 
-import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
-import { SHARED_TOKENS } from "../../shared/shared.tokens";
-import { moduleLoader as taskerModuleLoader } from "../../shared/services/tasker.service";
+import { moduleLoader as webhookTaskerModule } from "../tasker/WebhookTasker.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 /**
  * Producer Service Module
- * 
+ *
  * Binds the lightweight WebhookTaskerProducerService.
- * Dependencies: Only Tasker and Logger (no heavy deps).
+ * Dependencies: WebhookTasker and Logger.
+ *
+ * The WebhookTasker automatically handles async/sync mode selection:
+ * - Production: Queues to Trigger.dev for background processing
+ * - E2E Tests: Executes immediately via WebhookSyncTasker
  */
-export const webhookProducerServiceModule = createModule();
-
-webhookProducerServiceModule
-  .bind(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE)
-  .toClass(WebhookTaskerProducerService, [SHARED_TOKENS.TASKER, SHARED_TOKENS.LOGGER]);
-
+const thisModule = createModule();
 const token = WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE;
+const moduleToken = WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE_MODULE;
 
-const loadModule = (container: Container) => {
-  // Load dependencies first
-  taskerModuleLoader.loadModule(container);
-  loggerModuleLoader.loadModule(container);
-  // Then load this module
-  container.load(token, webhookProducerServiceModule);
-};
+const loadModule = bindModuleToClassOnToken({
+  module: thisModule,
+  moduleToken,
+  token,
+  classs: WebhookTaskerProducerService,
+  depsMap: {
+    webhookTasker: webhookTaskerModule,
+    logger: loggerServiceModule,
+  },
+});
 
-export const moduleLoader: ModuleLoader = {
+export const moduleLoader = {
   token,
   loadModule,
-};
+} satisfies ModuleLoader;
+
+export const webhookProducerServiceModule = thisModule;
