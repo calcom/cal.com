@@ -182,6 +182,71 @@ export class UsersRepository {
     });
   }
 
+  async findByUsernameExcludingOrgUsers(username: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        username,
+        OR: [{ profiles: { none: {} } }, { isPlatformManaged: true }],
+      },
+    });
+  }
+
+  async findByUsernameWithMatchingProfile(username: string) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username,
+        profiles: {
+          some: {
+            username,
+          },
+        },
+      },
+      take: 2,
+    });
+  }
+
+  async findManyByUsernames(usernames: string[], orgSlug?: string, orgId?: number) {
+    if (orgId || orgSlug) {
+      return this.dbRead.prisma.user.findMany({
+        where: {
+          profiles: {
+            some: {
+              organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+              username: { in: usernames },
+            },
+          },
+        },
+      });
+    }
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username: { in: usernames },
+      },
+    });
+  }
+
+  async findManyByUsernamesExcludingOrgUsers(usernames: string[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username: { in: usernames },
+        OR: [{ profiles: { none: {} } }, { isPlatformManaged: true }],
+      },
+    });
+  }
+
+  async findManyByUsernamesWithMatchingProfile(usernames: string[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        username: { in: usernames },
+        profiles: {
+          some: {
+            username: { in: usernames },
+          },
+        },
+      },
+    });
+  }
+
   async findManagedUsersByOAuthClientId(oauthClientId: string, cursor: number, limit: number) {
     return this.dbRead.prisma.user.findMany({
       where: {
