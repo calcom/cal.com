@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "./AppPressable";
 
@@ -24,6 +24,9 @@ export function GlassModalHeader({
   actionIcon,
 }: GlassModalHeaderProps) {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const iconColor = isDark ? "#fff" : "#000";
 
   const isDisabled = actionDisabled || actionLoading;
 
@@ -41,7 +44,7 @@ export function GlassModalHeader({
           onPress={onClose}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="chevron-back" size={28} color="#000" />
+          <Ionicons name="chevron-back" size={28} color={iconColor} />
         </AppPressable>
 
         {/* Title - centered */}
@@ -64,10 +67,10 @@ export function GlassModalHeader({
             style={actionIcon ? { width: 44, height: 44 } : undefined}
           >
             {actionLoading ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color={iconColor} />
             ) : actionIcon ? (
               // Icon button style (like the three-dot menu)
-              <Ionicons name={actionIcon} size={22} color="#000" />
+              <Ionicons name={actionIcon} size={22} color={iconColor} />
             ) : (
               // Text button style (like "Save", "Done")
               <View className="items-center rounded-full bg-black px-4 py-2 dark:bg-white">
