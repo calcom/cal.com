@@ -3,14 +3,15 @@ import type { RoutingStep } from "../repositories/RoutingTraceRepository.interfa
 export class RoutingFormTracePresenter {
   static present(step: RoutingStep): string {
     const d = step.data;
+    const routeName = d.routeName && d.routeName !== d.routeId ? d.routeName : "Unnamed route";
     switch (step.step) {
       case "route_matched":
-        return `Route matched: "${d.routeName}" (ID: ${d.routeId})`;
+        return `Route matched: "${routeName}" (ID: ${d.routeId})`;
       case "fallback_route_used":
-        return `Fallback route used: "${d.routeName}" (ID: ${d.routeId})`;
+        return `Fallback route used: "${routeName}" (ID: ${d.routeId})`;
       case "attribute-logic-evaluated": {
         const parts: string[] = [];
-        if (d.routeName) parts.push(`Route: "${d.routeName}"`);
+        parts.push(`Route: "${routeName}"`);
         if (d.routeIsFallback) parts.push("(fallback)");
         if (d.attributeRoutingDetails && Array.isArray(d.attributeRoutingDetails)) {
           const details = (d.attributeRoutingDetails as Array<{ attributeName: string; attributeValue: string }>)
@@ -21,7 +22,7 @@ export class RoutingFormTracePresenter {
         return `Attribute logic evaluated: ${parts.join(" ")}`;
       }
       case "attribute_fallback_used":
-        return `Attribute fallback used${d.routeName ? `: "${d.routeName}"` : ""}`;
+        return `Attribute fallback used: "${routeName}"`;
       default:
         return `Routing Form: ${step.step}`;
     }

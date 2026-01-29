@@ -50,7 +50,7 @@ describe("RoutingFormTracePresenter", () => {
 
   it("presents attribute-logic-evaluated with no optional fields", () => {
     const result = RoutingFormTracePresenter.present(makeStep("attribute-logic-evaluated", {}));
-    expect(result).toBe("Attribute logic evaluated: ");
+    expect(result).toBe('Attribute logic evaluated: Route: "Unnamed route"');
   });
 
   it("presents attribute_fallback_used with routeName", () => {
@@ -62,7 +62,28 @@ describe("RoutingFormTracePresenter", () => {
 
   it("presents attribute_fallback_used without routeName", () => {
     const result = RoutingFormTracePresenter.present(makeStep("attribute_fallback_used", {}));
-    expect(result).toBe("Attribute fallback used");
+    expect(result).toBe('Attribute fallback used: "Unnamed route"');
+  });
+
+  it("presents route_matched without routeName", () => {
+    const result = RoutingFormTracePresenter.present(
+      makeStep("route_matched", { routeId: "route-1" })
+    );
+    expect(result).toBe('Route matched: "Unnamed route" (ID: route-1)');
+  });
+
+  it("presents fallback_route_used without routeName", () => {
+    const result = RoutingFormTracePresenter.present(
+      makeStep("fallback_route_used", { routeId: "route-2" })
+    );
+    expect(result).toBe('Fallback route used: "Unnamed route" (ID: route-2)');
+  });
+
+  it("treats routeName matching routeId as unnamed", () => {
+    const result = RoutingFormTracePresenter.present(
+      makeStep("route_matched", { routeId: "abc-123", routeName: "abc-123" })
+    );
+    expect(result).toBe('Route matched: "Unnamed route" (ID: abc-123)');
   });
 
   it("returns fallback for unknown step", () => {

@@ -673,6 +673,20 @@ export function BookingActionsDropdown({
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
+            {isBookingFromRoutingForm && (
+              <DropdownMenuItem className="rounded-lg" key="view_routing_trace">
+                <DropdownItem
+                  type="button"
+                  StartIcon="git-merge"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpenRoutingTraceSheet(true);
+                  }}
+                  data-testid="view_routing_trace">
+                  {t("routing_trace")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
             {afterEventActions.map((action) => (
@@ -715,33 +729,19 @@ export function BookingActionsDropdown({
                 </DropdownItem>
               </DropdownMenuItem>
               {isBookingFromRoutingForm && (
-                <>
-                  <DropdownMenuItem className="rounded-lg" key="report_wrong_assignment">
-                    <DropdownItem
-                      type="button"
-                      color="destructive"
-                      StartIcon="user-x"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsOpenWrongAssignmentDialog(true);
-                      }}
-                      data-testid="report_wrong_assignment">
-                      {t("report_wrong_assignment")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="rounded-lg" key="view_routing_trace">
-                    <DropdownItem
-                      type="button"
-                      StartIcon="route"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsOpenRoutingTraceSheet(true);
-                      }}
-                      data-testid="view_routing_trace">
-                      {t("routing_trace")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem className="rounded-lg" key="report_wrong_assignment">
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    StartIcon="user-x"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsOpenWrongAssignmentDialog(true);
+                    }}
+                    data-testid="report_wrong_assignment">
+                    {t("report_wrong_assignment")}
+                  </DropdownItem>
+                </DropdownMenuItem>
               )}
             </>
             <DropdownMenuSeparator />
