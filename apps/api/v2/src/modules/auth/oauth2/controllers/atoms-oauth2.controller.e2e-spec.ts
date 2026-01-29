@@ -59,7 +59,7 @@ describe("Atoms OAuth2 Controller Endpoints", () => {
         .get(`/api/v2/atoms/auth/oauth2/clients/${nonExistentClientId}`)
         .expect(404);
 
-      expect(response.body.message).toBe("unauthorized_client");
+      expect(response.body.error.message).toBe("unauthorized_client");
     });
   });
 
