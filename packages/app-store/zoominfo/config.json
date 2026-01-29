@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "ZoomInfo",
+  "slug": "zoominfo",
+  "type": "zoominfo_other",
+  "logo": "icon.svg",
+  "url": "https://zoominfo.com/",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Enrich attendee data with ZoomInfo's B2B intelligence for every booking.",
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "isOAuth": true
+}

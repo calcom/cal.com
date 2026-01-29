@@ -4517,5 +4517,15 @@
   "error_enabling_feature": "Error enabling feature. Please try again.",
   "set_organizer_as_contact_owner": "Set booking organizer as contact owner",
   "overwrite_existing_contact_owner": "Overwrite existing contact owner",
+  "zoominfo_enriched_data": "Enriched Attendee Data",
+  "zoominfo_job_function": "Job Function",
+  "zoominfo_management_level": "Management Level",
+  "zoominfo_company_info": "Company Information",
+  "zoominfo_industry": "Industry",
+  "zoominfo_employees": "Employees",
+  "zoominfo_revenue": "Revenue",
+  "view_profile": "View Profile",
+  "company": "Company",
+  "website": "Website",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
