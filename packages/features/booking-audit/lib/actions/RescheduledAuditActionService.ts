@@ -63,7 +63,6 @@ export class RescheduledAuditActionService implements IAuditActionService {
     async getDisplayTitle({
         storedData,
         userTimeZone,
-        dbStore: _dbStore,
     }: GetDisplayTitleParams): Promise<TranslationWithParams> {
         const { fields } = this.parseStored(storedData);
         const rescheduledToUid = fields.rescheduledToUid.new;
