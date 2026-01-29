@@ -24,7 +24,8 @@ import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
 import stringify = require("qs-stringify");
 
 export type OAuthCallbackState = {
-  accessToken: string;
+  accessToken?: string;
+  oAuthClientId?: string;
   teamId?: string;
   orgId?: string;
   fromApp?: boolean;

@@ -1,37 +1,37 @@
+import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import type { HttpService } from "@nestjs/axios";
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import type { Request } from "express";
+import { stringify } from "querystring";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import type { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import {
   StripConnectOutputDto,
-  StripConnectOutputResponseDto,
-  StripCredentialsCheckOutputResponseDto,
-  StripCredentialsSaveOutputResponseDto,
+  type StripConnectOutputResponseDto,
+  type StripCredentialsCheckOutputResponseDto,
+  type StripCredentialsSaveOutputResponseDto,
 } from "@/modules/stripe/outputs/stripe.output";
-import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
+import type { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { HttpService } from "@nestjs/axios";
-import {
-  Controller,
-  Query,
-  UseGuards,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Redirect,
-  Req,
-  BadRequestException,
-  Headers,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiTags as DocsTags, ApiOperation, ApiHeader } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-import { stringify } from "querystring";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { TokensRepository } from "@/modules/tokens/tokens.repository";
+import type { UserWithProfile } from "@/modules/users/users.repository";
 
 @Controller({
   path: "/v2/stripe",
@@ -43,7 +43,8 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly tokensRepository: TokensRepository,
     private readonly httpService: HttpService,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
 
   @Get("/connect")
@@ -62,9 +63,9 @@ export class StripeController {
     const accessToken = authorization.replace("Bearer ", "");
 
     const state: OAuthCallbackState = {
-      onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,
+      onErrorReturnTo: onErrorReturnTo ? onErrorReturnTo : origin,
       fromApp: false,
-      returnTo: !!returnTo ? returnTo : origin,
+      returnTo: returnTo ? returnTo : origin,
       accessToken,
     };
 
@@ -107,9 +108,22 @@ export class StripeController {
         url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/stripe/save`;
 
         const params: Record<string, string | undefined> = { state, code, error, error_description };
-        const headers = {
-          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
-        };
+
+        // Build headers based on authentication method stored in state
+        const headers: Record<string, string> = {};
+        if (decodedCallbackState.accessToken) {
+          headers["Authorization"] = `Bearer ${decodedCallbackState.accessToken}`;
+        } else if (decodedCallbackState.oAuthClientId) {
+          // Use OAuth client credentials for the proxy request
+          const oAuthClient = await this.oAuthClientRepository.getOAuthClient(
+            decodedCallbackState.oAuthClientId
+          );
+          if (oAuthClient) {
+            headers[X_CAL_CLIENT_ID] = decodedCallbackState.oAuthClientId;
+            headers[X_CAL_SECRET_KEY] = oAuthClient.secret;
+          }
+        }
+
         try {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
           const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
@@ -120,7 +134,11 @@ export class StripeController {
         }
       }
 
-      // user-level fallback
+      // user-level fallback - requires access token
+      if (!decodedCallbackState.accessToken) {
+        throw new BadRequestException("Access token is required for user-level Stripe setup");
+      }
+
       const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
 
       // user cancels flow
