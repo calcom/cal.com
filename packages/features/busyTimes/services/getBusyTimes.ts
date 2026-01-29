@@ -424,7 +424,8 @@ export class BusyTimesService {
   }
 
   /**
-   * Fetches bookings for a single batch of userIds using raw SQL with ANY() operator.
+   * Fetches bookings for a single batch of userIds using Prisma's findMany.
+   * Uses batching to improve query planner efficiency for large userIds arrays.
    */
   private async fetchBookingsForLimitChecksBatch(params: {
     userIds: number[];
@@ -444,45 +445,38 @@ export class BusyTimesService {
   > {
     const { userIds, eventTypeId, startTimeDate, endTimeDate, rescheduleUid } = params;
 
+    const where: Prisma.BookingWhereInput = {
+      userId: {
+        in: userIds,
+      },
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+      startTime: {
+        gte: startTimeDate,
+      },
+      endTime: {
+        lte: endTimeDate,
+      },
+    };
+
     if (rescheduleUid) {
-      return prisma.$queryRaw<
-        Array<{
-          id: number;
-          startTime: Date;
-          endTime: Date;
-          eventTypeId: number | null;
-          title: string;
-          userId: number | null;
-        }>
-      >`
-        SELECT id, "startTime", "endTime", "eventTypeId", title, "userId"
-        FROM "Booking"
-        WHERE "userId" = ANY(${userIds}::int[])
-          AND "eventTypeId" = ${eventTypeId}
-          AND status = 'accepted'
-          AND "startTime" >= ${startTimeDate}
-          AND "endTime" <= ${endTimeDate}
-          AND uid != ${rescheduleUid}
-      `;
+      where.NOT = {
+        uid: rescheduleUid,
+      };
     }
 
-    return prisma.$queryRaw<
-      Array<{
-        id: number;
-        startTime: Date;
-        endTime: Date;
-        eventTypeId: number | null;
-        title: string;
-        userId: number | null;
-      }>
-    >`
-      SELECT id, "startTime", "endTime", "eventTypeId", title, "userId"
-      FROM "Booking"
-      WHERE "userId" = ANY(${userIds}::int[])
-        AND "eventTypeId" = ${eventTypeId}
-        AND status = 'accepted'
-        AND "startTime" >= ${startTimeDate}
-        AND "endTime" <= ${endTimeDate}
-    `;
+    const bookings = await prisma.booking.findMany({
+      where,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        title: true,
+        userId: true,
+      },
+    });
+
+    return bookings;
   }
 }
