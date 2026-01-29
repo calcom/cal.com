@@ -589,18 +589,17 @@ export function BookingDetailScreen({
             headerRight: () => (
               <HeaderButtonWrapper side="right">
                 <View className="flex-row items-center">
-                  {meetingUrl && (
-                    <Pressable
-                      className="mr-2 h-10 w-10 items-center justify-center rounded-full"
-                      onPress={handleJoinMeeting}
-                    >
-                      <Ionicons name="videocam" size={24} color={theme.text} />
-                    </Pressable>
-                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Pressable className="h-10 w-10 items-center justify-center rounded-full">
-                        <Ionicons name="ellipsis-horizontal" size={24} color={theme.text} />
+                      <Pressable
+                        className="mr-2 h-9 w-9 items-center justify-center rounded-full"
+                        style={{
+                          backgroundColor: cardBackground,
+                          borderWidth: 1,
+                          borderColor: theme.border,
+                        }}
+                      >
+                        <Ionicons name="ellipsis-horizontal" size={20} color={theme.text} />
                       </Pressable>
                     </DropdownMenuTrigger>
 
@@ -629,14 +628,7 @@ export function BookingDetailScreen({
                               style={{ marginRight: 8 }}
                             />
                             <UIText
-                              style={{
-                                color:
-                                  action.variant === "destructive"
-                                    ? theme.destructive
-                                    : isDark
-                                      ? "#FFFFFF"
-                                      : "#374151",
-                              }}
+                              className={action.variant === "destructive" ? "text-destructive" : ""}
                             >
                               {action.label}
                             </UIText>
@@ -645,6 +637,21 @@ export function BookingDetailScreen({
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {meetingUrl && (
+                    <Pressable
+                      className="h-9 items-center justify-center rounded-full px-4"
+                      style={{ backgroundColor: theme.text }}
+                      onPress={handleJoinMeeting}
+                    >
+                      <Text
+                        className="text-[14px] font-semibold"
+                        style={{ color: theme.background }}
+                      >
+                        Join
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
               </HeaderButtonWrapper>
             ),

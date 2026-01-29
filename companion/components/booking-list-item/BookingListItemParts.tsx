@@ -152,29 +152,15 @@ export function ConfirmRejectButtons({
   const isDark = colorScheme === "dark";
   const iconColor = isDark ? "#FFFFFF" : "#3C3F44";
 
-  if (!isPending) return null;
+  // Check both endTime and end (optional) properties
+  const endDateStr = booking.endTime || booking.end;
+  const isPast = endDateStr ? new Date(endDateStr) < new Date() : false;
+
+  if (!isPending || isPast) return null;
   return (
     <>
       <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#4D4D4D] dark:bg-[#171717]"
-        style={{
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-          opacity: isConfirming || isDeclining ? 0.5 : 1,
-        }}
-        disabled={isConfirming || isDeclining}
-        onPress={(e) => {
-          e.stopPropagation();
-          onConfirm(booking);
-        }}
-      >
-        <Ionicons name="checkmark" size={16} color={iconColor} />
-        <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
-          Confirm
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg dark:border-[#4D4D4D] dark:bg-[#171717]"
+        className="flex-row items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#171717]"
         style={{
           paddingHorizontal: 12,
           paddingVertical: 8,
@@ -190,6 +176,22 @@ export function ConfirmRejectButtons({
         <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
           Reject
         </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        className="flex-row items-center justify-center rounded-lg bg-black dark:bg-white"
+        style={{
+          paddingHorizontal: 12,
+          paddingVertical: 8,
+          opacity: isConfirming || isDeclining ? 0.5 : 1,
+        }}
+        disabled={isConfirming || isDeclining}
+        onPress={(e) => {
+          e.stopPropagation();
+          onConfirm(booking);
+        }}
+      >
+        <Ionicons name="checkmark" size={16} color={isDark ? "#000000" : "#FFFFFF"} />
+        <Text className="ml-1 text-sm font-medium text-white dark:text-black">Confirm</Text>
       </TouchableOpacity>
     </>
   );

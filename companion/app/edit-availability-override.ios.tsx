@@ -2,15 +2,15 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import type { EditAvailabilityOverrideScreenHandle } from "@/components/screens/EditAvailabilityOverrideScreen.ios";
 import EditAvailabilityOverrideScreenComponent from "@/components/screens/EditAvailabilityOverrideScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
 
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
@@ -26,6 +26,9 @@ export default function EditAvailabilityOverrideIOS() {
   }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -72,6 +75,9 @@ export default function EditAvailabilityOverrideIOS() {
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
+  // Semi-transparent background to prevent flashes while preserving glass effect
+  const glassBackground = isDark ? "rgba(0, 0, 0, 0.01)" : "rgba(248, 248, 250, 0.01)";
+
   return (
     <>
       <Stack.Screen
@@ -82,7 +88,7 @@ export default function EditAvailabilityOverrideIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? glassBackground : theme.background,
           },
         }}
       />

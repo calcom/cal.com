@@ -122,14 +122,10 @@ export function Header({
         {filterOptions && filterOptions.length > 0 && onFilterChange && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <AppPressable
-                className="flex-row items-center gap-1 px-2 py-2"
-                style={{ flexDirection: "row", alignItems: "center" }}
-              >
-                <Text className="text-[16px] font-semibold text-[#000000] dark:text-white">
+              <AppPressable className="h-10 flex-row items-center justify-center gap-2 rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
+                <Text className="text-[15px] font-medium text-[#000000] dark:text-white">
                   {activeFilterLabel}
                 </Text>
-                <Ionicons name="chevron-down" size={16} color={colors.text} />
               </AppPressable>
             </DropdownMenuTrigger>
 

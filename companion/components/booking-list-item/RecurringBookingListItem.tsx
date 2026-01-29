@@ -302,7 +302,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
               onRejectAll(group);
             }}
           >
-            <Ionicons name="close" size={16} color={colors.icon} />
+            <Ionicons name="close" size={16} color={isDark ? "#FFFFFF" : "#3C3F44"} />
             <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
               Reject all
             </Text>

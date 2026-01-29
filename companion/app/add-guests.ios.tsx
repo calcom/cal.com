@@ -11,7 +11,6 @@ import { type Booking, CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
 
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
@@ -62,6 +61,9 @@ export default function AddGuestsIOS() {
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
+  // Semi-transparent background to prevent flashes while preserving glass effect
+  const glassBackground = isDark ? "rgba(0, 0, 0, 0.01)" : "rgba(248, 248, 250, 0.01)";
+
   const showSaveButton = guestCount > 0;
 
   return (
@@ -74,7 +76,7 @@ export default function AddGuestsIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : theme.background,
+            backgroundColor: useGlassEffect ? glassBackground : theme.background,
           },
         }}
       />
@@ -105,7 +107,7 @@ export default function AddGuestsIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : theme.background,
+          backgroundColor: useGlassEffect ? glassBackground : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}

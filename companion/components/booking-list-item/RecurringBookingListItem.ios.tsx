@@ -175,12 +175,14 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
       <Pressable
         onPress={() => onPress(group)}
         style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 }}
-        className="active:bg-cal-bg-secondary"
+        className="active:bg-cal-bg-secondary dark:active:bg-[#171717]"
       >
         {/* Date and Time */}
         <View className="mb-2 flex-row flex-wrap items-center">
-          <Text className="text-sm font-medium text-cal-text">{formattedDate}</Text>
-          <Text className="ml-2 text-sm text-cal-text-secondary">{formattedTimeRange}</Text>
+          <Text className="text-sm font-medium text-cal-text dark:text-white">{formattedDate}</Text>
+          <Text className="ml-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
+            {formattedTimeRange}
+          </Text>
         </View>
 
         {/* Badges Row */}
@@ -202,12 +204,14 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {/* Recurrence Pattern Text (for unconfirmed recurring) */}
         {group.hasUnconfirmed && group.recurrenceText && (
-          <Text className="mb-2 text-sm text-cal-text-secondary">{group.recurrenceText}</Text>
+          <Text className="mb-2 text-sm text-cal-text-secondary dark:text-[#A3A3A3]">
+            {group.recurrenceText}
+          </Text>
         )}
 
         {/* Title */}
         <Text
-          className={`mb-2 text-lg font-medium leading-5 text-cal-text ${isCancelled || isRejected ? "line-through" : ""}`}
+          className={`mb-2 text-lg font-medium leading-5 text-cal-text dark:text-white ${isCancelled || isRejected ? "line-through" : ""}`}
           numberOfLines={2}
         >
           {booking.title}
@@ -215,7 +219,10 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
 
         {/* Description */}
         {booking.description ? (
-          <Text className="mb-2 text-sm leading-5 text-cal-text-secondary" numberOfLines={1}>
+          <Text
+            className="mb-2 text-sm leading-5 text-cal-text-secondary dark:text-[#A3A3A3]"
+            numberOfLines={1}
+          >
             "{booking.description}"
           </Text>
         ) : null}
@@ -223,7 +230,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Host and Attendees */}
         {hostAndAttendeesDisplay ? (
           <View className="mb-2 flex-row items-center">
-            <Text className="text-sm text-cal-text">{hostAndAttendeesDisplay}</Text>
+            <Text className="text-sm text-cal-text dark:text-white">{hostAndAttendeesDisplay}</Text>
           </View>
         ) : null}
 
@@ -267,7 +274,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Confirm All / Reject All for unconfirmed recurring */}
         {group.hasUnconfirmed && onRejectAll && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-cal-bg"
+            className="flex-row items-center justify-center rounded-lg border border-cal-border bg-white dark:border-cal-border-dark dark:bg-[#171717]"
             style={{
               paddingHorizontal: 12,
               height: 32,
@@ -280,7 +287,9 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
             }}
           >
             <Ionicons name="close" size={16} color={isDark ? "#FFFFFF" : "#3C3F44"} />
-            <Text className="ml-1 text-sm font-medium text-cal-text-emphasis">Reject all</Text>
+            <Text className="ml-1 text-sm font-medium text-cal-text-emphasis dark:text-white">
+              Reject all
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -306,7 +315,7 @@ export const RecurringBookingListItem: React.FC<RecurringBookingListItemProps> =
         {/* Cancel All Remaining */}
         {onCancelAllRemaining && group.remainingCount > 0 && !group.hasUnconfirmed && (
           <TouchableOpacity
-            className="flex-row items-center justify-center rounded-lg border bg-cal-bg"
+            className="flex-row items-center justify-center rounded-lg border bg-white dark:bg-[#171717]"
             style={{
               paddingHorizontal: 12,
               height: 32,
