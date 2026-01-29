@@ -593,7 +593,7 @@ export class BookingsController_2024_04_15 {
 
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
-      : DEFAULT_PLATFORM_PARAMS;
+      : undefined;
     this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
       requestId,
       ownerId: userId,
@@ -604,7 +604,7 @@ export class BookingsController_2024_04_15 {
     Object.assign(clone, { userId, userUuid, ...oAuthParams, platformBookingLocation });
     clone.body = {
       ...clone.body,
-      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      noEmail: oAuthParams === undefined ? false : !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
     };
     if (oAuthClientId) {
@@ -644,7 +644,7 @@ export class BookingsController_2024_04_15 {
 
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
-      : DEFAULT_PLATFORM_PARAMS;
+      : undefined;
     const requestId = req.get("X-Request-Id");
     this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
       requestId,
@@ -658,7 +658,7 @@ export class BookingsController_2024_04_15 {
       userUuid,
       ...oAuthParams,
       platformBookingLocation,
-      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      noEmail: oAuthParams === undefined ? false : !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
     });
     if (oAuthClientId) {
