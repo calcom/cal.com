@@ -495,6 +495,7 @@ model User {
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
   reportedBookings               BookingReport[]               @relation("ReportedBy")
+  wrongAssignmentReports         WrongAssignmentReport[]       @relation("WrongAssignmentReportedBy")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -920,6 +921,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  wrongAssignmentReports       WrongAssignmentReport[]
   routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
@@ -2547,6 +2549,33 @@ model BookingReport {
   @@index([watchlistId])
   @@index([globalWatchlistId])
   @@index([systemStatus])
+  @@index([createdAt])
+}
+
+enum WrongAssignmentReportStatus {
+  PENDING // Initial state - awaiting review
+  REVIEWED // Admin has seen it
+  RESOLVED // Corrective action taken
+  DISMISSED // Admin decided no action needed
+}
+
+model WrongAssignmentReport {
+  id              String                      @id @default(uuid()) @db.Uuid
+  bookingUid      String
+  booking         Booking                     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  reportedById    Int
+  reportedBy      User                        @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
+  correctAssignee String?
+  additionalNotes String
+  teamId          Int?
+  status          WrongAssignmentReportStatus @default(PENDING)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@index([bookingUid])
+  @@index([reportedById])
+  @@index([teamId])
+  @@index([status])
   @@index([createdAt])
 }
 
