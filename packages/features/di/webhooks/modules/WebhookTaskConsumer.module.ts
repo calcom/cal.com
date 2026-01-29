@@ -23,7 +23,6 @@ webhookTaskConsumerModule.bind(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER).toFactory((
   const webhookRepository = resolve(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY) as IWebhookRepository;
   const dataFetchers: IWebhookDataFetcher[] = [
     resolve(WEBHOOK_TOKENS.BOOKING_DATA_FETCHER) as IWebhookDataFetcher,
-    resolve(WEBHOOK_TOKENS.PAYMENT_DATA_FETCHER) as IWebhookDataFetcher,
     resolve(WEBHOOK_TOKENS.FORM_DATA_FETCHER) as IWebhookDataFetcher,
     resolve(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER) as IWebhookDataFetcher,
     resolve(WEBHOOK_TOKENS.OOO_DATA_FETCHER) as IWebhookDataFetcher,

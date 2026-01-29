@@ -71,6 +71,11 @@ export async function handleBookingRequested(args: {
   });
 
   try {
+    if (!evt.uid) {
+      log.error("Cannot queue BOOKING_REQUESTED webhook: missing booking uid");
+      return;
+    }
+
     // Queue BOOKING_REQUESTED webhook via producer (async delivery)
     const webhookProducer = getWebhookProducer();
     await webhookProducer.queueBookingRequestedWebhook({
