@@ -382,7 +382,6 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     (isUpcoming || allowReschedulingPastBookings) &&
     !isCancelled &&
     !isRejected &&
-    !isPending &&
     !disableRescheduling;
   const reschedule: BookingActionResult = {
     visible: isUpcoming || allowReschedulingPastBookings,
@@ -401,10 +400,6 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     reschedule.visible = false;
     reschedule.enabled = false;
     reschedule.disabledReason = "BOOKING_REJECTED";
-  } else if (isPending) {
-    reschedule.visible = false;
-    reschedule.enabled = false;
-    reschedule.disabledReason = "BOOKING_PENDING";
   } else if (isPast && !allowReschedulingPastBookings) {
     reschedule.visible = false;
     reschedule.enabled = false;
@@ -426,7 +421,6 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     (isUpcoming || allowReschedulingPastBookings) &&
     !isCancelled &&
     !isRejected &&
-    !isPending &&
     !disableRescheduling &&
     !isSeated;
   const rescheduleRequest: BookingActionResult = {
@@ -450,10 +444,6 @@ export function getBookingActions(context: BookingActionContext): BookingActions
     rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;
     rescheduleRequest.disabledReason = "BOOKING_REJECTED";
-  } else if (isPending) {
-    rescheduleRequest.visible = false;
-    rescheduleRequest.enabled = false;
-    rescheduleRequest.disabledReason = "BOOKING_PENDING";
   } else if (isPast && !allowReschedulingPastBookings) {
     rescheduleRequest.visible = false;
     rescheduleRequest.enabled = false;

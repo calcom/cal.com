@@ -1,7 +1,6 @@
 import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
-
 import type { BookingItemProps } from "../types";
 
 export interface BookingActionContext {
@@ -221,8 +220,8 @@ export function shouldShowPendingActions(context: BookingActionContext): boolean
 }
 
 export function shouldShowEditActions(context: BookingActionContext): boolean {
-  const { isPending, isTabRecurring, isRecurring, isCancelled } = context;
-  return !isPending && !(isTabRecurring && isRecurring) && !isCancelled;
+  const { isTabRecurring, isRecurring, isCancelled } = context;
+  return !(isTabRecurring && isRecurring) && !isCancelled;
 }
 
 export function shouldShowRecurringCancelAction(context: BookingActionContext): boolean {
@@ -237,11 +236,20 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee, isCancelled, isRejected } = context;
+  const {
+    booking,
+    isBookingInPast,
+    isDisabledRescheduling,
+    isDisabledCancelling,
+    isAttendee,
+    isCancelled,
+    isRejected,
+    isPending,
+  } = context;
 
   switch (actionId) {
     case "reschedule":
-    case "reschedule_request":
+    case "reschedule_request": {
       // Only apply minimum reschedule notice restriction if user is NOT the organizer
       // If user is an attendee (or not authenticated), apply the restriction
       const isUserOrganizer =
@@ -262,6 +270,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
         isDisabledRescheduling ||
         isWithinMinimumNotice
       );
+    }
     case "cancel":
       return isDisabledCancelling || isBookingInPast || isCancelled || isRejected;
     case "view_recordings":
@@ -274,7 +283,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
     case "reassign":
     case "change_location":
     case "add_members":
-      return isBookingInPast || isCancelled || isRejected;
+      return isBookingInPast || isCancelled || isRejected || isPending;
     default:
       return false;
   }
