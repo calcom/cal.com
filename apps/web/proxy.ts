@@ -226,6 +226,23 @@ const embeds = {
   },
 };
 
+// Routes that should use the smaller "booking" i18n namespace to reduce payload size
+// Currently scoped to /team/[slug] only - can be expanded to other booking routes later
+const BOOKING_ROUTE_PATTERNS = [
+  /^\/team(\/|$)/, // /team/[slug], /team/[slug]/[type], etc.
+];
+
+const i18nNamespace = {
+  addRequestHeaders: ({ req }: { req: NextRequest }) => {
+    const pathname = req.nextUrl.pathname;
+    const isBookingRoute = BOOKING_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
+    if (isBookingRoute) {
+      req.headers.set("x-cal-i18n-ns", "booking");
+    }
+    return req;
+  },
+};
+
 const contentSecurityPolicy = {
   addResponseHeaders: ({ res, req }: { res: NextResponse; req: NextRequest }) => {
     const nonce = req.headers.get("x-csp-nonce");
@@ -261,7 +278,8 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 
 function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
   const reqWithCSP = contentSecurityPolicy.addRequestHeaders({ req });
-  return reqWithCSP;
+  const reqWithI18n = i18nNamespace.addRequestHeaders({ req: reqWithCSP });
+  return reqWithI18n;
 }
 
 export const config = {

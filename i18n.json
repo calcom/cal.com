@@ -44,7 +44,8 @@
   "buckets": {
     "json": {
       "include": [
-        "apps/web/public/static/locales/[locale]/common.json"
+        "apps/web/public/static/locales/[locale]/common.json",
+        "apps/web/public/static/locales/[locale]/booking.json"
       ]
     }
   },
