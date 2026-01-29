@@ -78,6 +78,7 @@ export interface BookingRequestedDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
   };
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingRescheduledDTO extends BaseEventDTO {

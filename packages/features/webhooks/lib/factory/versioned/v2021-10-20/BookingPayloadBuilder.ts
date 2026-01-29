@@ -1,5 +1,6 @@
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 import type { BookingWebhookEventDTO } from "../../../dto/types";
 import {
   BaseBookingPayloadBuilder,
@@ -19,10 +20,10 @@ const SYSTEM_FIELD_DEFAULT_LABELS: Record<string, string> = {
  * getCalEventResponses uses field name as label when bookingFields is missing; E2E expects default labels.
  */
 function normalizeResponses(
-  responses: Record<string, { value: unknown; label?: string; isHidden?: boolean }> | null | undefined
-): Record<string, { value: unknown; label: string; isHidden?: boolean }> | undefined {
+  responses: CalEventResponses | null | undefined
+): CalEventResponses | undefined {
   if (!responses || typeof responses !== "object") return undefined;
-  const out: Record<string, { value: unknown; label: string; isHidden?: boolean }> = {};
+  const out: CalEventResponses = {};
   for (const [name, entry] of Object.entries(responses)) {
     if (!entry || typeof entry !== "object") continue;
     const defaultLabel = SYSTEM_FIELD_DEFAULT_LABELS[name];
