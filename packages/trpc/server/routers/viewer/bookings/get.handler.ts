@@ -607,7 +607,10 @@ export async function getBookings({
               .whereRef("Booking.userId", "=", "users.id")
           ).as("user"),
           jsonArrayFrom(
-            eb.selectFrom("Attendee").selectAll().whereRef("Attendee.bookingId", "=", "Booking.id")
+            eb
+              .selectFrom("Attendee")
+              .selectAll()
+              .whereRef("Attendee.bookingId", "=", "Booking.id")
           ).as("attendees"),
           jsonArrayFrom(
             eb
