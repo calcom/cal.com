@@ -1,8 +1,9 @@
-import type { User } from "next-auth";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import process from "node:process";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
-
+import type { User } from "next-auth";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorCode } from "./ErrorCode";
 
 // Mock dependencies
@@ -23,9 +24,11 @@ const mockFindByEmailAndIncludeProfilesAndPassword = vi.fn();
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(function() { return {
-      findByEmailAndIncludeProfilesAndPassword: mockFindByEmailAndIncludeProfilesAndPassword,
-    }; }),
+    UserRepository: vi.fn().mockImplementation(function () {
+      return {
+        findByEmailAndIncludeProfilesAndPassword: mockFindByEmailAndIncludeProfilesAndPassword,
+      };
+    }),
   };
 });
 
@@ -228,6 +231,58 @@ describe("CredentialsProvider authorize", () => {
           totpCode: "123456",
         } as any)
       ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
+    });
+  });
+
+  describe("OAuth + MFA TOTP-only flow", () => {
+    const originalEncryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+
+    beforeEach(() => {
+      process.env.CALENDSO_ENCRYPTION_KEY = "test-encryption-key-32-chars!!";
+      vi.mocked(symmetricDecrypt).mockReturnValue("a".repeat(32));
+      vi.mocked(totpAuthenticatorCheck).mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      process.env.CALENDSO_ENCRYPTION_KEY = originalEncryptionKey;
+    });
+
+    it("skips password check for IdP user with 2FA and reaches TOTP verification (invalid code → IncorrectTwoFactorCode)", async () => {
+      const mockUser = createMockUser({
+        password: null,
+        identityProvider: IdentityProvider.GOOGLE,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted-secret",
+        backupCodes: null,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "",
+          totpCode: "123456",
+        } as any)
+      ).rejects.toThrow(ErrorCode.IncorrectTwoFactorCode);
+    });
+
+    it("skips password check for user with password + 2FA in TOTP-only flow (invalid code → IncorrectTwoFactorCode)", async () => {
+      const mockUser = createMockUser({
+        password: { hash: "$2a$10$hashedpassword" },
+        identityProvider: IdentityProvider.GOOGLE,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted-secret",
+        backupCodes: null,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "",
+          totpCode: "123456",
+        } as any)
+      ).rejects.toThrow(ErrorCode.IncorrectTwoFactorCode);
     });
   });
 });
