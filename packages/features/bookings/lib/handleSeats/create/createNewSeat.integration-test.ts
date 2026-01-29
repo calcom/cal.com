@@ -336,4 +336,166 @@ describe("createNewSeat Race Condition Prevention (Integration)", () => {
     const finalSeatCount = finalBooking?.attendees.filter((a) => !!a.bookingSeat).length;
     expect(finalSeatCount).toBe(2);
   });
+
+  it("should allow booking when seatsPerTimeSlot is 0 (falsy)", async () => {
+    // This tests the fix for the bug where null/undefined seatsPerTimeSlot
+    // would fallback to 0 and incorrectly reject all bookings because
+    // 0 <= currentSeatCount was always true
+    const bookingUid = `zero-seats-test-${Date.now()}`;
+    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const seatsPerTimeSlot = 0; // Simulates null/undefined fallback
+
+    // Create a booking
+    const booking = await prisma.booking.create({
+      data: {
+        uid: bookingUid,
+        userId: testUserId,
+        eventTypeId: testEventTypeId,
+        status: BookingStatus.ACCEPTED,
+        startTime,
+        endTime,
+        title: "Zero Seats Test Booking",
+      },
+    });
+
+    createdBookingIds.push(booking.id);
+
+    // Add a seat with seatsPerTimeSlot = 0 - should succeed
+    const result = await addSeatToBooking({
+      bookingUid,
+      bookingId: booking.id,
+      bookingStatus: BookingStatus.ACCEPTED,
+      seatsPerTimeSlot,
+      attendee: {
+        email: "booker@test.com",
+        name: "Booker",
+        timeZone: "UTC",
+        locale: "en",
+      },
+      seatData: {},
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.referenceUid).toBeDefined();
+
+    // Verify the seat was created
+    const finalBooking = await prisma.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        attendees: {
+          select: {
+            id: true,
+            bookingSeat: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const finalSeatCount = finalBooking?.attendees.filter((a) => !!a.bookingSeat).length;
+    expect(finalSeatCount).toBe(1);
+  });
+
+  it("should allow multiple bookings when seatsPerTimeSlot is 0 (no limit)", async () => {
+    const bookingUid = `zero-seats-multi-test-${Date.now()}`;
+    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const seatsPerTimeSlot = 0; // No limit enforced
+
+    // Create a booking
+    const booking = await prisma.booking.create({
+      data: {
+        uid: bookingUid,
+        userId: testUserId,
+        eventTypeId: testEventTypeId,
+        status: BookingStatus.ACCEPTED,
+        startTime,
+        endTime,
+        title: "Zero Seats Multi Test Booking",
+      },
+    });
+
+    createdBookingIds.push(booking.id);
+
+    // Create existing seats
+    const attendee1 = await prisma.attendee.create({
+      data: {
+        email: "existing1@test.com",
+        name: "Existing 1",
+        timeZone: "UTC",
+        locale: "en",
+        bookingId: booking.id,
+      },
+    });
+
+    await prisma.bookingSeat.create({
+      data: {
+        referenceUid: `existing1-${Date.now()}`,
+        data: {},
+        bookingId: booking.id,
+        attendeeId: attendee1.id,
+      },
+    });
+
+    const attendee2 = await prisma.attendee.create({
+      data: {
+        email: "existing2@test.com",
+        name: "Existing 2",
+        timeZone: "UTC",
+        locale: "en",
+        bookingId: booking.id,
+      },
+    });
+
+    await prisma.bookingSeat.create({
+      data: {
+        referenceUid: `existing2-${Date.now()}`,
+        data: {},
+        bookingId: booking.id,
+        attendeeId: attendee2.id,
+      },
+    });
+
+    // Add another seat with seatsPerTimeSlot = 0 - should succeed even with existing seats
+    const result = await addSeatToBooking({
+      bookingUid,
+      bookingId: booking.id,
+      bookingStatus: BookingStatus.ACCEPTED,
+      seatsPerTimeSlot,
+      attendee: {
+        email: "new-booker@test.com",
+        name: "New Booker",
+        timeZone: "UTC",
+        locale: "en",
+      },
+      seatData: {},
+    });
+
+    expect(result).toBeDefined();
+    expect(result?.referenceUid).toBeDefined();
+
+    // Verify total seat count is 3 (2 existing + 1 new)
+    const finalBooking = await prisma.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        attendees: {
+          select: {
+            id: true,
+            bookingSeat: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const finalSeatCount = finalBooking?.attendees.filter((a) => !!a.bookingSeat).length;
+    expect(finalSeatCount).toBe(3);
+  });
 });

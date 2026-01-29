@@ -78,10 +78,12 @@ export async function addSeatToBooking(
     }
 
     // Check seat availability with fresh data
+    // Only enforce the limit when seatsPerTimeSlot > 0 (matching original behavior
+    // where falsy seatsPerTimeSlot would skip this check entirely)
     const currentSeatCount = freshBooking.attendees.filter(
       (attendee) => !!attendee.bookingSeat
     ).length;
-    if (input.seatsPerTimeSlot <= currentSeatCount) {
+    if (input.seatsPerTimeSlot > 0 && input.seatsPerTimeSlot <= currentSeatCount) {
       throw new HttpError({
         statusCode: 409,
         message: ErrorCode.BookingSeatsFull,
