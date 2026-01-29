@@ -305,7 +305,7 @@ export const MultiOptionInput = <TFieldValues extends FieldValues>({
           color={addOptionButtonColor}
           StartIcon="plus"
           onClick={addOption}
-          className="mt-4 border-none"
+          className="border-none"
           disabled={disabled}>
           {addOptionLabel}
         </Button>

@@ -173,7 +173,8 @@ export function DataTable<TData>({
                         width: `var(--header-${kebabCase(header?.id)}-size)`,
                       }}
                       className={classNames(
-                        "relative flex shrink-0 items-center",
+                        "relative flex items-center",
+                        column.columnDef.meta?.autoWidth ? "grow" : "shrink-0",
                         "bg-cal-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>

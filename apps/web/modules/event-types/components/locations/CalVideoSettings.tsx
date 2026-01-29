@@ -30,7 +30,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
           aria-expanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}
           className={classNames(
-            "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+            "cursor-pointer todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 pt-1.5 text-sm font-medium transition",
             "[&[aria-current='page']]:!bg-transparent",
             "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
           )}>
@@ -169,7 +169,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
             />
 
             <TextField
-              label={t("enter_redirect_url_on_exit_description")}
+              label={<Tooltip content={t("enter_redirect_url_on_exit_description")}>{t("redirect_url")}</Tooltip>}
               defaultValue={calVideoSettings?.redirectUrlOnExit || ""}
               data-testid="calVideoSettings.redirectUrlOnExit"
               containerClassName="mt-4"

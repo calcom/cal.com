@@ -143,7 +143,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent type="creation" title={t("add_action")}>
-        <div className="-mt-3 space-x-3">
+        <div className="space-x-3">
           <Form
             form={form}
             handleSubmit={(values) => {

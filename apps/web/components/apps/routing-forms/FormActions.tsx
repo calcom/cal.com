@@ -173,10 +173,7 @@ export const FormActionsDropdown = ({
             type="button"
             variant="icon"
             color="secondary"
-            className={classNames(
-              disabled && "opacity-30",
-              "ltr:radix-state-open:rounded-r-(--btn-group-radius) rtl:radix-state-open:rounded-l-(--btn-group-radius)"
-            )}
+            className={classNames(disabled && "opacity-30")}
             StartIcon="ellipsis"
           />
         </DropdownMenuTrigger>
