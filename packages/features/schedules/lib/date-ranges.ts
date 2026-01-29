@@ -125,36 +125,7 @@ export function processWorkingHours(
       continue;
     }
 
-    if (results[startResult.valueOf()]) {
-      // if a result already exists, we merge the end time
-      const oldKey = startResult.valueOf();
-      const newKey = endResult.valueOf();
 
-      results[newKey] = {
-        start: results[oldKey].start,
-        end: dayjs.max(results[oldKey].end, endResult),
-      };
-
-      if (endTimeToKeyMap) {
-        const oldEndTime = results[oldKey].end.valueOf();
-        const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
-        const filteredKeys = oldKeys.filter((k) => k !== oldKey);
-        if (filteredKeys.length === 0) {
-          endTimeToKeyMap.delete(oldEndTime);
-        } else {
-          endTimeToKeyMap.set(oldEndTime, filteredKeys);
-        }
-
-        if (!endTimeToKeyMap.has(endTimeKey)) {
-          endTimeToKeyMap.set(endTimeKey, []);
-        }
-        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
-      }
-
-      delete results[oldKey]; // delete the previous end time
-      continue;
-    }
-    // otherwise we create a new result
     const newKey = endResult.valueOf();
     results[newKey] = {
       start: startResult,
@@ -312,10 +283,45 @@ export function buildDateRanges({
   const dateRanges = Object.values({
     ...groupedWorkingHours,
     ...groupedDateOverrides,
-  }).map(
-    // remove 0-length overrides that were kept to cancel out working dates until now.
-    (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
-  );
+  })
+    .flat()
+    .sort((a, b) => a.start.valueOf() - b.start.valueOf())
+    .reduce((acc, current) => {
+      // Step 1: Clip Spillover
+      // If a range spills into the next day, and that next day has a Date Override,
+      // clip the range so it ends at midnight.
+      const startDayStr = current.start.format("YYYY-MM-DD");
+      const endDayStr = current.end.format("YYYY-MM-DD");
+      let processedRange = current;
+
+      if (startDayStr !== endDayStr && groupedDateOverrides[endDayStr]) {
+        processedRange = {
+          ...current,
+          end: current.end.startOf("day"),
+        };
+      }
+
+      // Step 2: Filter Invalid ranges
+      // Ensure specific rules (like 0-length ranges) are removed.
+      if (processedRange.start.valueOf() === processedRange.end.valueOf()) {
+        return acc;
+      }
+
+      // Step 3: Merge Touching Ranges
+      // If this range touches or overlaps the previous one, merge them into a single continuous range.
+      if (acc.length === 0) {
+        return [processedRange];
+      }
+
+      const last = acc[acc.length - 1];
+      if (processedRange.start.valueOf() <= last.end.valueOf()) {
+        last.end = dayjs.max(last.end, processedRange.end);
+      } else {
+        acc.push(processedRange);
+      }
+
+      return acc;
+    }, [] as DateRange[]);
 
   const oooExcludedDateRanges = Object.values({
     ...groupedWorkingHours,
