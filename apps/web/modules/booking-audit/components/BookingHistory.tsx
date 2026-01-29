@@ -305,7 +305,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                                                         key={idx}
                                                         className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                                                         <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
-                                                        <span className="text-[#096638] font-medium">
+                                                        <span className="text-success font-medium">
                                                             <DisplayFieldValue field={field} />
                                                         </span>
                                                     </div>
