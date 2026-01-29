@@ -1303,6 +1303,93 @@ export class BookingRepository implements IBookingRepository {
     ];
   }
 
+  /**
+   * Finds all accepted bookings for a team within a date range.
+   * This method queries by eventType.teamId (indexed) instead of attendee emails,
+   * providing better performance for large teams.
+   *
+   * The caller is responsible for filtering results by user involvement
+   * (as organizer or attendee) in application code.
+   */
+  async findByTeamIdAndDateRangeIncludeAttendees({
+    teamId,
+    startDate,
+    endDate,
+    excludedUid,
+    includeManagedEvents,
+  }: {
+    teamId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string | null;
+    includeManagedEvents: boolean;
+  }) {
+    const baseWhere: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+      ...(excludedUid && {
+        uid: {
+          not: excludedUid,
+        },
+      }),
+    };
+
+    const whereTeamEventTypes: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      eventType: {
+        teamId,
+      },
+    };
+
+    const whereManagedEventTypes: Prisma.BookingWhereInput = {
+      ...baseWhere,
+      eventType: {
+        parent: {
+          teamId,
+        },
+      },
+    };
+
+    const select = {
+      id: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      eventTypeId: true,
+      userId: true,
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
+    };
+
+    if (!includeManagedEvents) {
+      return this.prismaClient.booking.findMany({
+        where: whereTeamEventTypes,
+        select,
+      });
+    }
+
+    const [teamBookings, managedBookings] = await Promise.all([
+      this.prismaClient.booking.findMany({
+        where: whereTeamEventTypes,
+        select,
+      }),
+      this.prismaClient.booking.findMany({
+        where: whereManagedEventTypes,
+        select,
+      }),
+    ]);
+
+    return [...teamBookings, ...managedBookings];
+  }
+
   async getValidBookingFromEventTypeForAttendee({
     eventTypeId,
     bookerEmail,
