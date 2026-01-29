@@ -36,7 +36,7 @@ type AuditLog = {
     source: string;
     displayJson?: Record<string, unknown> | null;
     actionDisplayTitle: TranslationWithParams;
-    displayFields?: Array<{ labelKey: string; valueKey: string }> | null;
+    displayFields?: Array<{ labelKey: string; valueKey?: string; value?: string; values?: string[] }> | null;
     actor: {
         type: AuditActorType;
         displayName: string | null;
@@ -342,10 +342,17 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorFilter: string | null) {
     const filteredLogs = auditLogs.filter((log) => {
         const doesMatchDisplayFields = (): boolean => {
-            return log.displayFields?.some((field) => {
-                return field.valueKey?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    field.labelKey?.toLowerCase().includes(searchTerm.toLowerCase());
-            }) ?? false;
+            return (
+                log.displayFields?.some((field) => {
+                    const searchLower = searchTerm.toLowerCase();
+                    return (
+                        field.valueKey?.toLowerCase().includes(searchLower) ||
+                        field.labelKey?.toLowerCase().includes(searchLower) ||
+                        field.value?.toLowerCase().includes(searchLower) ||
+                        field.values?.some((v) => v.toLowerCase().includes(searchLower))
+                    );
+                }) ?? false
+            );
         };
 
         const doesMatchActionDisplayTitle = (): boolean => {
