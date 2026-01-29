@@ -11,12 +11,16 @@ import * as selects from "@calcom/prisma/selects";
 vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
 
 const handlePrismockBugs = (prismock: any) => {
+  if (!prismock.webhook) {
+    logger.error("Prismock bug handling failed: prismock.webhook is undefined. Found models:", Object.keys(prismock).filter(k => !k.startsWith('$')));
+    return;
+  }
   const __findManyWebhook = prismock.webhook.findMany;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.webhook.findMany = (...rest: any[]) => {
     // There is some bug in prismock where it can't handle complex where clauses
-    if (rest[0].where?.OR && rest[0].where.AND) {
+    if (rest[0]?.where?.OR && rest[0]?.where.AND) {
       rest[0].where = undefined;
       logger.silly("Fixed Prismock bug-2");
     }

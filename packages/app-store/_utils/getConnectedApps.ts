@@ -180,12 +180,18 @@ export async function getConnectedApps({
       // undefined it means that app don't require app/setup/page
       let isSetupAlready = undefined;
       if (credential && app.categories.includes("payment")) {
-        const paymentAppImportFn = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
-        if (paymentAppImportFn) {
-          const paymentApp = await paymentAppImportFn;
-                              if (paymentApp && "BuildPaymentService" in paymentApp && paymentApp?.BuildPaymentService) {
-                      const createPaymentService = paymentApp.BuildPaymentService;
-                      const paymentInstance = createPaymentService(credential);
+        const paymentAppGetter = PaymentServiceMap[app.dirName as keyof typeof PaymentServiceMap];
+        if (paymentAppGetter) {
+          const paymentApp = await (typeof (paymentAppGetter as any).fetch === "function"
+            ? (paymentAppGetter as any).fetch()
+            : typeof paymentAppGetter === "function"
+              ? (paymentAppGetter as any)()
+              : paymentAppGetter);
+
+          const createPaymentService = paymentApp.BuildPaymentService || paymentApp.default || paymentApp;
+
+          if (createPaymentService && typeof createPaymentService === "function") {
+            const paymentInstance = createPaymentService(credential);
             isSetupAlready = paymentInstance.isSetupAlready();
           }
         }

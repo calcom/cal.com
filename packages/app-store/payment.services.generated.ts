@@ -3,10 +3,10 @@
     Don't modify this file manually.
 **/
 export const PaymentServiceMap = {
-  alby: import("./alby/lib/PaymentService"),
-  btcpayserver: import("./btcpayserver/lib/PaymentService"),
-  hitpay: import("./hitpay/lib/PaymentService"),
-  "mock-payment-app": import("./mock-payment-app/lib/PaymentService"),
-  paypal: import("./paypal/lib/PaymentService"),
-  stripepayment: import("./stripepayment/lib/PaymentService"),
+"alby": { ...{"name":"alby","slug":"alby","type":"alby_payment","variant":"payment","categories":["payment"],"dirName":"alby"}, modulePath: "./alby/lib/PaymentService", fetch: () => import("./alby/lib/PaymentService") },
+"btcpayserver": { ...{"name":"btcpayserver","slug":"btcpayserver","type":"btcpayserver_payment","variant":"payment","categories":["payment"],"dirName":"btcpayserver"}, modulePath: "./btcpayserver/lib/PaymentService", fetch: () => import("./btcpayserver/lib/PaymentService") },
+"hitpay": { ...{"name":"hitpay","slug":"hitpay","type":"hitpay_payment","variant":"payment","categories":["payment"],"dirName":"hitpay"}, modulePath: "./hitpay/lib/PaymentService", fetch: () => import("./hitpay/lib/PaymentService") },
+"mock-payment-app": { ...{"name":"mock-payment-app","slug":"mock-payment-app","type":"mock-payment-app_payment","variant":"payment","categories":["payment"],"dirName":"mock-payment-app"}, modulePath: "./mock-payment-app/lib/PaymentService", fetch: () => import("./mock-payment-app/lib/PaymentService") },
+"paypal": { ...{"name":"paypal","slug":"paypal","type":"paypal_payment","variant":"payment","categories":["payment"],"dirName":"paypal"}, modulePath: "./paypal/lib/PaymentService", fetch: () => import("./paypal/lib/PaymentService") },
+"stripepayment": { ...{"name":"stripepayment","slug":"stripe","type":"stripe_payment","variant":"payment","categories":["payment"],"dirName":"stripepayment"}, modulePath: "./stripepayment/lib/PaymentService", fetch: () => import("./stripepayment/lib/PaymentService") },
 };

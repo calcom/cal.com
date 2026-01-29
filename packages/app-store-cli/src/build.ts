@@ -108,8 +108,7 @@ function generateFiles() {
             "config.json"
           )}`;
           throw new Error(
-            `${prefix}: ${
-              error instanceof Error ? error.message : String(error)
+            `${prefix}: ${error instanceof Error ? error.message : String(error)
             }`
           );
         }
@@ -145,19 +144,19 @@ function generateFiles() {
 
   type ImportConfig =
     | {
+      fileToBeImported: string;
+      importName?: string;
+    }
+    | [
+      {
         fileToBeImported: string;
         importName?: string;
+      },
+      {
+        fileToBeImported: string;
+        importName: string;
       }
-    | [
-        {
-          fileToBeImported: string;
-          importName?: string;
-        },
-        {
-          fileToBeImported: string;
-          importName: string;
-        }
-      ];
+    ];
 
   /**
    * If importConfig is an array, only 2 items are allowed. First one is the main one and second one is the fallback
@@ -242,24 +241,36 @@ function generateFiles() {
         const chosenConfig = getChosenImportConfig(importConfig, app);
 
         if (fileToBeImportedExists(app, chosenConfig)) {
+          const key = entryObjectKeyGetter(app);
           if (!lazyImport) {
-            const key = entryObjectKeyGetter(app);
             output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
           } else {
-            const key = entryObjectKeyGetter(app);
+            const modulePath = getModulePath(app.path, chosenConfig.fileToBeImported);
             if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-              output.push(
-                `"${key}": dynamic(() => import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}")),`
-              );
+              output.push(`"${key}": dynamic(() => import("${modulePath}")),`);
             } else {
+              // Use lazy getter function to defer the import until actually needed
+              // This prevents all ~110 app modules from being compiled on first page load
+              // We also include some basic metadata statically to avoid breaking sync callers in many places
+              const basicMeta = {
+                name: app.name,
+                slug: app.slug,
+                type: app.type,
+                variant: app.variant,
+                categories: app.categories,
+                dirName: app.path,
+                email: app.email,
+                description: app.description,
+                url: app.url,
+                logo: app.logo,
+                publisher: app.publisher,
+              };
               output.push(
-                `"${key}": import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}"),`
+                `"${key}": { 
+                  ...${JSON.stringify(basicMeta)},
+                  modulePath: "${modulePath}",
+                  fetch: () => import("${modulePath}") 
+                },`
               );
             }
           }
@@ -318,6 +329,7 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
+      lazyImport: true,
     })
   );
 
@@ -336,6 +348,7 @@ function generateFiles() {
             importName: "metadata",
           },
         ],
+        lazyImport: true,
       },
       isBookerApp
     )

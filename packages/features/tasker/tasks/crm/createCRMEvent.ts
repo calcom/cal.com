@@ -118,12 +118,22 @@ export async function createCRMEvent(payload: string): Promise<void> {
 
     for (const appSlug of Object.keys(eventTypeAppMetadata)) {
       const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
-      const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
-
-      if (!appData || !appDataSchema) {
-        throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
+      
+      const appDataSchemaFn = appDataSchemas[appSlug as keyof typeof appDataSchemas];
+      
+      if (!appData || !appDataSchemaFn) {
+         throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
       }
 
+      const module = typeof appDataSchemaFn === "function" ? await (appDataSchemaFn as any)() : appDataSchemaFn;
+      // Robust extraction of the Zod schema, prioritizing objects that actually have .safeParse
+      const appDataSchema =
+        ((module as any)?.safeParse ? module : null) ||
+        ((module as any)?.appDataSchema?.safeParse ? (module as any).appDataSchema : null) ||
+        ((module as any)?.default?.safeParse ? (module as any).default : null) ||
+        (module as any)?.appDataSchema ||
+        (module as any)?.default ||
+        module;
       const appParse = appDataSchema.safeParse(appData);
 
       if (!appParse.success) {

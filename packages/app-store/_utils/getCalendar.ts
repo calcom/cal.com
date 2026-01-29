@@ -28,17 +28,21 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn =
+  const calendarAppGetter =
     CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
 
-  if (!calendarAppImportFn) {
+  if (!calendarAppGetter) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
-  const calendarApp = await calendarAppImportFn;
+  const calendarApp = await (typeof (calendarAppGetter as any).fetch === "function"
+    ? (calendarAppGetter as any).fetch()
+    : typeof calendarAppGetter === "function"
+      ? (calendarAppGetter as any)()
+      : calendarAppGetter);
 
-  const createCalendarService = calendarApp.default;
+  const createCalendarService = calendarApp.default || calendarApp;
 
   if (!createCalendarService || typeof createCalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);

@@ -353,6 +353,17 @@ export const getBusyCalendarTimes = async (
   return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
 };
 
+export const ensureCalendarAdapter = async (calendar: any): Promise<Calendar | null> => {
+  if (!calendar) return null;
+  if (typeof calendar.createEvent === "function") {
+    return calendar;
+  }
+  if (calendar.credential) {
+    return await getCalendar(calendar.credential);
+  }
+  return null;
+};
+
 export const createEvent = async (
   credential: CredentialForCalendarService,
   originalEvent: CalendarEvent,
@@ -382,34 +393,36 @@ export const createEvent = async (
     ? externalId
     : undefined;
 
+  const adapter = await ensureCalendarAdapter(calendar);
+
   // TODO: Surface success/error messages coming from apps to improve end user visibility
-  const creationResult = calendar
-    ? await calendar
-        // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
-        // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
-        .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
-        .catch(async (error: { code: number; calError: string }) => {
-          success = false;
-          /**
-           * There is a time when selectedCalendar externalId doesn't match witch certain credential
-           * so google returns 404.
-           * */
-          if (error?.code === 404) {
-            return undefined;
-          }
-          if (error?.calError) {
-            calError = error.calError;
-          }
-          log.error(
-            "createEvent failed",
-            safeStringify(error),
-            safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
-          );
-          // @TODO: This code will be off till we can investigate an error with it
-          //https://github.com/calcom/cal.com/issues/3949
-          // await sendBrokenIntegrationEmail(calEvent, "calendar");
+  const creationResult = adapter
+    ? await adapter
+      // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
+      // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
+      .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
+      .catch(async (error: { code: number; calError: string }) => {
+        success = false;
+        /**
+         * There is a time when selectedCalendar externalId doesn't match witch certain credential
+         * so google returns 404.
+         * */
+        if (error?.code === 404) {
           return undefined;
-        })
+        }
+        if (error?.calError) {
+          calError = error.calError;
+        }
+        log.error(
+          "createEvent failed",
+          safeStringify(error),
+          safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+        );
+        // @TODO: This code will be off till we can investigate an error with it
+        //https://github.com/calcom/cal.com/issues/3949
+        // await sendBrokenIntegrationEmail(calEvent, "calendar");
+        return undefined;
+      })
     : undefined;
   if (!creationResult) {
     logger.error(
@@ -461,6 +474,7 @@ export const updateEvent = async (
   const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent.uid);
   const calendar = await getCalendar(credential, "booking");
+  const adapter = await ensureCalendarAdapter(calendar);
   let success = false;
   let calError: string | undefined;
   let calWarnings: string[] | undefined = [];
@@ -479,26 +493,26 @@ export const updateEvent = async (
     );
   }
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
-    calendar && bookingRefUid
-      ? await calendar
-          .updateEvent(bookingRefUid, calEvent, externalCalendarId)
-          .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
-            success = true;
-            return event;
-          })
-          .catch(async (e: { calError: string }) => {
-            // @TODO: This code will be off till we can investigate an error with it
-            // @see https://github.com/calcom/cal.com/issues/3949
-            // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error(
-              "updateEvent failed",
-              safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
-            );
-            if (e?.calError) {
-              calError = e.calError;
-            }
-            return undefined;
-          })
+    adapter && bookingRefUid
+      ? await adapter
+        .updateEvent(bookingRefUid, calEvent, externalCalendarId)
+        .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
+          success = true;
+          return event;
+        })
+        .catch(async (e: { calError: string }) => {
+          // @TODO: This code will be off till we can investigate an error with it
+          // @see https://github.com/calcom/cal.com/issues/3949
+          // await sendBrokenIntegrationEmail(calEvent, "calendar");
+          log.error(
+            "updateEvent failed",
+            safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
+          if (e?.calError) {
+            calError = e.calError;
+          }
+          return undefined;
+        })
       : undefined;
 
   if (!updatedResult) {
@@ -551,8 +565,9 @@ export const deleteEvent = async ({
       event: getPiiFreeCalendarEvent(event),
     })
   );
-  if (calendar) {
-    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
+  const adapter = await ensureCalendarAdapter(await getCalendar(credential));
+  if (adapter) {
+    return adapter.deleteEvent(bookingRefUid, event, externalCalendarId);
   } else {
     log.error(
       "Could not do deleteEvent - No calendar adapter found",
