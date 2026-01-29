@@ -1,13 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from "react";
-
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { useSegmentStateMachine } from "../hooks/useSegmentStateMachine";
 import { useSegmentsNoop } from "../hooks/useSegmentsNoop";
 import type {
-  FilterSegmentOutput,
-  SystemFilterSegment,
   CombinedFilterSegment,
+  FilterSegmentOutput,
   SegmentIdentifier,
+  SystemFilterSegment,
   UseSegments,
 } from "../lib/types";
 import { SYSTEM_SEGMENT_PREFIX } from "../lib/types";
@@ -90,43 +90,16 @@ export function DataTableSegmentProvider({
           segment.id === segmentId
         ) {
           return true;
-        } else if (segment.type === "user") {
+        }
+        if (segment.type === "user") {
           const segmentIdNumber = parseInt(segmentId, 10);
           return segment.id === segmentIdNumber;
         }
+        return false;
       });
     },
     [segments]
   );
-
-  const segmentIdObject = useMemo(() => {
-    if (segmentIdRaw && segmentIdRaw.startsWith(SYSTEM_SEGMENT_PREFIX)) {
-      return {
-        id: segmentIdRaw,
-        type: "system" as const,
-      };
-    } else if (segmentIdRaw) {
-      const segmentIdNumber = parseInt(segmentIdRaw, 10);
-      if (!Number.isNaN(segmentIdNumber)) {
-        return {
-          id: segmentIdNumber,
-          type: "user" as const,
-        };
-      }
-    }
-    return null;
-  }, [segmentIdRaw]);
-
-  const [selectedSegment, setSelectedSegment] = useState<CombinedFilterSegment | undefined>(
-    segmentIdRaw ? findSelectedSegment(segmentIdRaw) : undefined
-  );
-
-  const pendingSegmentRef = useRef<{
-    segmentId: SegmentIdentifier;
-    segment: CombinedFilterSegment;
-  } | null>(null);
-
-  const isValidatorReady = validateActiveFilters !== "loading";
 
   const applySegmentFilters = useCallback(
     (segment: CombinedFilterSegment) => {
@@ -164,92 +137,46 @@ export function DataTableSegmentProvider({
     ]
   );
 
+  const isValidatorReady = validateActiveFilters !== "loading";
+
+  const {
+    selectedSegment,
+    segmentId: segmentIdFromMachine,
+    isValidatorPending,
+    selectSegment,
+    clearSegment,
+    clearSystemSegmentIfExists,
+  } = useSegmentStateMachine({
+    segments,
+    isSegmentsFetched: isSegmentFetchedSuccessfully,
+    preferredSegmentId: fetchedPreferredSegmentId,
+    isValidatorReady,
+    segmentIdFromUrl: segmentIdRaw,
+    findSegment: findSelectedSegment,
+    onApplyFilters: applySegmentFilters,
+    onSetUrlSegmentId: setSegmentIdRaw,
+    onSetPreference: setSegmentPreference,
+    tableIdentifier,
+  });
+
+  // Wrapper for setSegmentId to match the existing API
   const setSegmentId = useCallback(
     (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
       if (!segmentId) {
-        pendingSegmentRef.current = null;
-        setSegmentIdRaw(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
+        clearSegment();
         return;
       }
 
       const segment = providedSegment || findSelectedSegment(String(segmentId.id));
       if (!segment) {
-        pendingSegmentRef.current = null;
-        setSegmentIdRaw(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
+        clearSegment();
         return;
       }
 
-      setSegmentIdRaw(String(segmentId.id));
-      setSelectedSegment(segment);
-      setSegmentPreference({
-        tableIdentifier,
-        segmentId,
-      });
-
-      if (validateActiveFilters === "loading") {
-        pendingSegmentRef.current = { segmentId, segment };
-        return;
-      }
-
-      pendingSegmentRef.current = null;
-      applySegmentFilters(segment);
+      selectSegment(segmentId, segment);
     },
-    [
-      setSegmentIdRaw,
-      setSegmentPreference,
-      tableIdentifier,
-      findSelectedSegment,
-      validateActiveFilters,
-      applySegmentFilters,
-    ]
+    [clearSegment, selectSegment, findSelectedSegment]
   );
-
-  useEffect(() => {
-    if (!isValidatorReady || !pendingSegmentRef.current) {
-      return;
-    }
-    const { segment } = pendingSegmentRef.current;
-    pendingSegmentRef.current = null;
-    applySegmentFilters(segment);
-  }, [isValidatorReady, applySegmentFilters]);
-
-  useEffect(() => {
-    if (!isSegmentFetchedSuccessfully) {
-      return;
-    }
-    if (fetchedPreferredSegmentId && !segmentIdRaw) {
-      setSegmentId(fetchedPreferredSegmentId);
-    } else if (segmentIdRaw) {
-      const segment = findSelectedSegment(segmentIdRaw);
-      setSelectedSegment(segment);
-      if (segment) {
-        if (validateActiveFilters === "loading") {
-          pendingSegmentRef.current = {
-            segmentId: segmentIdObject!,
-            segment,
-          };
-        } else {
-          applySegmentFilters(segment);
-        }
-      }
-    }
-  }, [isSegmentFetchedSuccessfully]);
-
-  const clearSystemSegmentSelectionIfExists = useCallback(() => {
-    if (selectedSegment?.type === "system") {
-      setSegmentId(null);
-    }
-  }, [selectedSegment, setSegmentId]);
 
   const hasStateChanged = useMemo(() => {
     if (!selectedSegment) return false;
@@ -290,28 +217,26 @@ export function DataTableSegmentProvider({
     hasStateChanged,
   ]);
 
-  const isValidatorPending = validateActiveFilters === "loading" && pendingSegmentRef.current !== null;
-
   const value = useMemo(
     () => ({
       segments,
-      selectedSegment,
-      segmentId: segmentIdObject,
+      selectedSegment: selectedSegment ?? undefined,
+      segmentId: segmentIdFromMachine,
       setSegmentId,
       isSegmentEnabled,
       canSaveSegment,
       isValidatorPending,
-      clearSystemSegmentSelectionIfExists,
+      clearSystemSegmentSelectionIfExists: clearSystemSegmentIfExists,
     }),
     [
       segments,
       selectedSegment,
-      segmentIdObject,
+      segmentIdFromMachine,
       setSegmentId,
       isSegmentEnabled,
       canSaveSegment,
       isValidatorPending,
-      clearSystemSegmentSelectionIfExists,
+      clearSystemSegmentIfExists,
     ]
   );
 
