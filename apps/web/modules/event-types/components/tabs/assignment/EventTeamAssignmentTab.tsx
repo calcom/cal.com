@@ -1,3 +1,4 @@
+import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -12,7 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Label, Select, SettingsToggle, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -84,12 +85,14 @@ const ChildrenEventTypesList = ({
   value,
   onChange,
   customClassNames,
+  isHiddenFieldLocked = false,
   ...rest
 }: {
   value: ReturnType<typeof mapMemberToChildrenOption>[];
   onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
   options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
@@ -111,6 +114,7 @@ const ChildrenEventTypesList = ({
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
           customClassNames={customClassNames}
+          isHiddenFieldLocked={isHiddenFieldLocked}
           {...rest}
         />
       </div>
@@ -564,11 +568,13 @@ const ChildrenEventTypes = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
+  isHiddenFieldLocked = false,
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
+  isHiddenFieldLocked?: boolean;
 }) => {
   const { setValue } = useFormContext<FormValues>();
   return (
@@ -593,6 +599,7 @@ const ChildrenEventTypes = ({
                 options={childrenEventTypeOptions}
                 onChange={onChange}
                 customClassNames={customClassNames?.childrenEventTypesList}
+                isHiddenFieldLocked={isHiddenFieldLocked}
               />
             )}
           />
@@ -776,7 +783,14 @@ export const EventTeamAssignmentTab = ({
     );
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const { getValues, setValue, control } = useFormContext<FormValues>();
+  const formMethods = useFormContext<FormValues>();
+  const { getValues, setValue, control } = formMethods;
+  const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
+  const isHiddenFieldLocked = isManagedEventType && shouldLockDisableProps("hidden").isLocked;
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
@@ -953,12 +967,45 @@ export const EventTeamAssignmentTab = ({
         </>
       )}
       {team && isManagedEventType && (
-        <ChildrenEventTypes
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          childrenEventTypeOptions={childrenEventTypeOptions}
-          customClassNames={customClassNames?.childrenEventTypes}
-        />
+        <>
+          <div
+            className={classNames(
+              "border-subtle stack-y-5 mt-6 flex flex-col rounded-lg border px-4 py-6 sm:px-6",
+              customClassNames?.childrenEventTypes?.container
+            )}>
+            <div className="flex flex-row items-center justify-between">
+              <div className="flex flex-row items-center gap-2">
+                <Label htmlFor="managed-event-hidden" className="text-sm font-medium">
+                  {t("hidden")}
+                </Label>
+                {shouldLockIndicator("hidden")}
+              </div>
+              <Controller<FormValues>
+                name="hidden"
+                render={({ field: { value, onChange } }) => (
+                  <Tooltip content={value ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
+                    <div className="self-center rounded-md p-2">
+                      <Switch
+                        id="managed-event-hidden"
+                        name="Hidden"
+                        checked={!value}
+                        onCheckedChange={(checked) => onChange(!checked)}
+                      />
+                    </div>
+                  </Tooltip>
+                )}
+              />
+            </div>
+            <p className="text-subtle text-sm">{t("hide_from_profile_description")}</p>
+          </div>
+          <ChildrenEventTypes
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            childrenEventTypeOptions={childrenEventTypeOptions}
+            customClassNames={customClassNames?.childrenEventTypes}
+            isHiddenFieldLocked={isHiddenFieldLocked}
+          />
+        </>
       )}
     </div>
   );
