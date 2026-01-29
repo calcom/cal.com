@@ -1339,6 +1339,17 @@ export class UserRepository {
     });
   }
 
+  async findForPasswordReset({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        name: true,
+        locale: true,
+      },
+    });
+  }
+
   /**
    * Finds a user by ID returning only their username
    * @param userId - The user ID
