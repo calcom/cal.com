@@ -6,6 +6,10 @@
  * WARNING: This is a destructive operation! It will delete all knowledge entries.
  * The script requires interactive confirmation to prevent accidental execution.
  *
+ * API Reference:
+ * - List: https://docs.devin.ai/api-reference/knowledge/list-knowledge
+ * - Delete: https://docs.devin.ai/api-reference/knowledge/delete-knowledge
+ *
  * Usage: DEVIN_API_KEY=your_token npx tsx scripts/devin/delete-all-devin-knowledge.ts
  */
 
