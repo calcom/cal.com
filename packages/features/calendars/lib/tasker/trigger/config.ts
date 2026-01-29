@@ -16,5 +16,8 @@ export const calendarsTaskConfig: CalendarsTask = {
     minTimeoutInMs: 1000,
     maxTimeoutInMs: 10000,
     randomize: true,
+    outOfMemory: {
+      machine: "medium-1x",
+    },
   },
 };
