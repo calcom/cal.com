@@ -75,3 +75,5 @@ export {
   useUsername,
   useUserProfile,
 } from "./useUserProfile";
+// Widget sync hook
+export { useWidgetSync } from "./useWidgetSync";
