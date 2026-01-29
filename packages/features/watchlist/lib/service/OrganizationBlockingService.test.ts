@@ -150,8 +150,8 @@ describe("OrganizationBlockingService", () => {
       });
     });
 
-    test("should block subdomain when parent domain is blocked (wildcard matching)", async () => {
-      const parentDomainEntry = {
+    test("should NOT block subdomain when exact domain is blocked (no wildcard)", async () => {
+      const exactDomainEntry = {
         id: "789",
         type: WatchlistType.DOMAIN,
         value: "cal.com",
@@ -163,27 +163,45 @@ describe("OrganizationBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
-        parentDomainEntry,
-      ]);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([exactDomainEntry]);
+
+      const result = await service.isBlocked("user@app.cal.com", ORGANIZATION_ID);
+
+      expect(result.isBlocked).toBe(false);
+      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@app.cal.com"],
+        domains: ["app.cal.com", "*.cal.com"],
+        organizationId: ORGANIZATION_ID,
+      });
+    });
+
+    test("should block subdomain when wildcard pattern is used", async () => {
+      const wildcardEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "*.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: false,
+        organizationId: ORGANIZATION_ID,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([wildcardEntry]);
 
       const result = await service.isBlocked("user@app.cal.com", ORGANIZATION_ID);
 
       expect(result.isBlocked).toBe(true);
       expect(result.reason).toBe(WatchlistType.DOMAIN);
-      expect(result.watchlistEntry).toEqual(parentDomainEntry);
-      expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
-        emails: ["user@app.cal.com"],
-        domains: ["app.cal.com", "cal.com"],
-        organizationId: ORGANIZATION_ID,
-      });
+      expect(result.watchlistEntry).toEqual(wildcardEntry);
     });
 
-    test("should block deeply nested subdomain when parent domain is blocked", async () => {
-      const parentDomainEntry = {
+    test("should block deeply nested subdomain with wildcard pattern", async () => {
+      const wildcardEntry = {
         id: "789",
         type: WatchlistType.DOMAIN,
-        value: "cal.com",
+        value: "*.cal.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: false,
@@ -192,24 +210,42 @@ describe("OrganizationBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
-        parentDomainEntry,
-      ]);
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([wildcardEntry]);
 
       const result = await service.isBlocked("user@sub.app.cal.com", ORGANIZATION_ID);
 
       expect(result.isBlocked).toBe(true);
       expect(result.reason).toBe(WatchlistType.DOMAIN);
-      expect(result.watchlistEntry).toEqual(parentDomainEntry);
+      expect(result.watchlistEntry).toEqual(wildcardEntry);
       expect(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
         emails: ["user@sub.app.cal.com"],
-        domains: ["sub.app.cal.com", "app.cal.com", "cal.com"],
+        domains: ["sub.app.cal.com", "*.app.cal.com", "*.cal.com"],
         organizationId: ORGANIZATION_ID,
       });
     });
 
-    test("should prefer more specific subdomain match over parent domain", async () => {
-      const subdomainEntry = {
+    test("should NOT block exact domain with wildcard pattern", async () => {
+      const wildcardEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "*.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: false,
+        organizationId: ORGANIZATION_ID,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([wildcardEntry]);
+
+      const result = await service.isBlocked("user@cal.com", ORGANIZATION_ID);
+
+      expect(result.isBlocked).toBe(false);
+    });
+
+    test("should prefer exact domain match over wildcard", async () => {
+      const exactEntry = {
         id: "111",
         type: WatchlistType.DOMAIN,
         value: "app.cal.com",
@@ -221,10 +257,10 @@ describe("OrganizationBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      const parentDomainEntry = {
+      const wildcardEntry = {
         id: "222",
         type: WatchlistType.DOMAIN,
-        value: "cal.com",
+        value: "*.cal.com",
         description: null,
         action: WatchlistAction.BLOCK,
         isGlobal: false,
@@ -234,15 +270,15 @@ describe("OrganizationBlockingService", () => {
       };
 
       vi.mocked(mockOrgRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
-        subdomainEntry,
-        parentDomainEntry,
+        exactEntry,
+        wildcardEntry,
       ]);
 
       const result = await service.isBlocked("user@app.cal.com", ORGANIZATION_ID);
 
       expect(result.isBlocked).toBe(true);
       expect(result.reason).toBe(WatchlistType.DOMAIN);
-      expect(result.watchlistEntry).toEqual(subdomainEntry);
+      expect(result.watchlistEntry).toEqual(exactEntry);
     });
   });
 });

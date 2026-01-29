@@ -35,8 +35,9 @@ export function normalizeEmail(email: string): string {
  * 3. Remove @ prefix if present
  *
  * Note: Domains are stored without @ prefix (e.g., mail.google.com, example.co.uk)
- * Wildcard matching is supported - blocking cal.com will also block app.cal.com.
- * See getParentDomains() for the wildcard matching logic.
+ * Wildcard matching is configurable:
+ * - `*.cal.com` blocks all subdomains (app.cal.com, sub.app.cal.com, etc.)
+ * - `cal.com` only blocks exact matches
  *
  * @param domain - Raw domain (with or without @ prefix)
  * @returns Normalized domain without @ prefix
@@ -93,32 +94,63 @@ export function normalizeUsername(username: string): string {
 }
 
 /**
- * Gets all parent domains for wildcard matching.
- * Used to check if a domain or any of its parent domains are blocked.
+ * Gets wildcard patterns that could match a given domain.
+ * Used to check if any wildcard entries (*.domain.com) would block this domain.
  *
  * Example:
  * - Input: "app.cal.com"
- * - Output: ["app.cal.com", "cal.com"]
+ * - Output: ["*.cal.com"] (because app.cal.com is a subdomain of cal.com)
  *
- * Note: Does not include the TLD alone (e.g., "com") as that would be too broad.
- * Minimum domain returned has at least 2 parts (e.g., "cal.com").
+ * - Input: "sub.app.cal.com"
+ * - Output: ["*.app.cal.com", "*.cal.com"]
+ *
+ * Note: Does not include patterns for TLD alone (e.g., "*.com") as that would be too broad.
  *
  * @param domain - Normalized domain (without @ prefix)
- * @returns Array of domains from most specific to least specific
+ * @returns Array of wildcard patterns from most specific to least specific
  */
-export function getParentDomains(domain: string): string[] {
+export function getWildcardPatternsForDomain(domain: string): string[] {
   const parts = domain.split(".");
 
   if (parts.length < 2) {
-    return [domain];
+    return [];
   }
 
-  const domains: string[] = [];
+  const patterns: string[] = [];
 
-  for (let i = 0; i < parts.length - 1; i++) {
+  // Start from index 1 to skip the first part (the subdomain itself)
+  // For "app.cal.com", we want "*.cal.com" not "*.app.cal.com"
+  for (let i = 1; i < parts.length - 1; i++) {
     const parentDomain = parts.slice(i).join(".");
-    domains.push(parentDomain);
+    patterns.push(`*.${parentDomain}`);
   }
 
-  return domains;
+  return patterns;
+}
+
+/**
+ * Checks if a domain matches a watchlist entry value.
+ * Supports both exact matching and wildcard matching.
+ *
+ * - Exact match: "cal.com" only matches "cal.com"
+ * - Wildcard match: "*.cal.com" matches "app.cal.com", "sub.app.cal.com", etc.
+ *
+ * @param emailDomain - The domain extracted from an email (e.g., "app.cal.com")
+ * @param watchlistValue - The value from the watchlist entry (e.g., "cal.com" or "*.cal.com")
+ * @returns true if the domain matches the watchlist entry
+ */
+export function domainMatchesWatchlistEntry(emailDomain: string, watchlistValue: string): boolean {
+  const normalizedEmailDomain = emailDomain.toLowerCase();
+  const normalizedWatchlistValue = watchlistValue.toLowerCase();
+
+  // Check for wildcard pattern
+  if (normalizedWatchlistValue.startsWith("*.")) {
+    const baseDomain = normalizedWatchlistValue.slice(2); // Remove "*." prefix
+    // Check if emailDomain is a subdomain of baseDomain
+    // e.g., "app.cal.com" ends with ".cal.com" (subdomain of cal.com)
+    return normalizedEmailDomain.endsWith(`.${baseDomain}`);
+  }
+
+  // Exact match
+  return normalizedEmailDomain === normalizedWatchlistValue;
 }

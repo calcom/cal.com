@@ -2,8 +2,9 @@ import type { BulkBlockingResult, BlockingResult, IBlockingService } from "../in
 import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 import {
+  domainMatchesWatchlistEntry,
   extractDomainFromEmail,
-  getParentDomains,
+  getWildcardPatternsForDomain,
   normalizeDomain,
   normalizeEmail,
 } from "../utils/normalization";
@@ -22,11 +23,11 @@ export class OrganizationBlockingService implements IBlockingService {
   async isBlocked(email: string, organizationId: number): Promise<BlockingResult> {
     const normalizedEmail = normalizeEmail(email);
     const normalizedDomain = extractDomainFromEmail(normalizedEmail);
-    const parentDomains = getParentDomains(normalizedDomain);
+    const wildcardPatterns = getWildcardPatternsForDomain(normalizedDomain);
 
     const blockingEntries = await this.deps.orgRepo.findBlockingEntriesForEmailsAndDomains({
       emails: [normalizedEmail],
-      domains: parentDomains,
+      domains: [normalizedDomain, ...wildcardPatterns],
       organizationId,
     });
 
@@ -42,15 +43,12 @@ export class OrganizationBlockingService implements IBlockingService {
       };
     }
 
-    for (const domain of parentDomains) {
-      const domainEntry = blockingEntries.find(
-        (entry) => entry.type === WatchlistType.DOMAIN && entry.value.toLowerCase() === domain
-      );
-      if (domainEntry) {
+    for (const entry of blockingEntries) {
+      if (entry.type === WatchlistType.DOMAIN && domainMatchesWatchlistEntry(normalizedDomain, entry.value)) {
         return {
           isBlocked: true,
           reason: WatchlistType.DOMAIN,
-          watchlistEntry: domainEntry,
+          watchlistEntry: entry,
         };
       }
     }
@@ -61,7 +59,9 @@ export class OrganizationBlockingService implements IBlockingService {
   /**
    * Bulk check multiple emails in a single query for an organization.
    * Returns Map<email (lowercase), BlockingResult> for efficient lookup.
-   * Supports wildcard domain matching - blocking cal.com also blocks app.cal.com.
+   * Supports configurable wildcard domain matching:
+   * - `*.cal.com` blocks all subdomains
+   * - `cal.com` only blocks exact matches
    */
   async areBlocked(emails: string[], organizationId: number): Promise<BulkBlockingResult> {
     const result: BulkBlockingResult = new Map();
@@ -70,46 +70,40 @@ export class OrganizationBlockingService implements IBlockingService {
       return result;
     }
 
-    // Normalize and extract domains with parent domains for wildcard matching
     const normalizedEmails = emails.map((e) => normalizeEmail(e));
-    const emailToParentDomains = new Map<string, string[]>();
+    const emailToDomain = new Map<string, string>();
+    const allDomainsAndPatterns = new Set<string>();
 
     for (const email of normalizedEmails) {
       const domain = extractDomainFromEmail(email);
-      const parentDomains = getParentDomains(domain);
-      emailToParentDomains.set(email, parentDomains);
-    }
+      emailToDomain.set(email, domain);
+      allDomainsAndPatterns.add(domain);
 
-    // Collect all unique domains (including parent domains) for the query
-    const allDomains = new Set<string>();
-    for (const parentDomains of Array.from(emailToParentDomains.values())) {
-      for (const domain of parentDomains) {
-        allDomains.add(domain);
+      const wildcardPatterns = getWildcardPatternsForDomain(domain);
+      for (const pattern of wildcardPatterns) {
+        allDomainsAndPatterns.add(pattern);
       }
     }
 
-    // Single DB query for all emails and domains
     const blockingEntries = await this.deps.orgRepo.findBlockingEntriesForEmailsAndDomains({
       emails: normalizedEmails,
-      domains: Array.from(allDomains),
+      domains: Array.from(allDomainsAndPatterns),
       organizationId,
     });
 
-    // Build lookup maps for O(1) checks (Maps serve as both lookup and entry storage)
     const emailEntries = new Map<string, (typeof blockingEntries)[0]>();
-    const domainEntries = new Map<string, (typeof blockingEntries)[0]>();
+    const domainEntries: Array<(typeof blockingEntries)[0]> = [];
 
     for (const entry of blockingEntries) {
       if (entry.type === WatchlistType.EMAIL) {
         emailEntries.set(entry.value.toLowerCase(), entry);
       } else if (entry.type === WatchlistType.DOMAIN) {
-        domainEntries.set(entry.value.toLowerCase(), entry);
+        domainEntries.push(entry);
       }
     }
 
-    // Map results for each email
     for (const email of normalizedEmails) {
-      const parentDomains = emailToParentDomains.get(email) || [];
+      const domain = emailToDomain.get(email) || "";
       const emailEntry = emailEntries.get(email);
 
       if (emailEntry) {
@@ -121,15 +115,13 @@ export class OrganizationBlockingService implements IBlockingService {
         continue;
       }
 
-      // Check parent domains from most specific to least specific
       let blocked = false;
-      for (const domain of parentDomains) {
-        const domainEntry = domainEntries.get(domain);
-        if (domainEntry) {
+      for (const entry of domainEntries) {
+        if (domainMatchesWatchlistEntry(domain, entry.value)) {
           result.set(email, {
             isBlocked: true,
             reason: WatchlistType.DOMAIN,
-            watchlistEntry: domainEntry,
+            watchlistEntry: entry,
           });
           blocked = true;
           break;
