@@ -12,7 +12,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
 
 export const getRoutedUsersWithContactOwnerAndFixedUsers = <
-  T extends { id: number; isFixed?: boolean; email: string }
+  T extends { id: number; isFixed?: boolean; email: string },
 >({
   routedTeamMemberIds,
   users,
@@ -130,7 +130,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
 type BaseUserWithCredentialPayload = BaseUser & { credentials: CredentialPayload[] };
 export async function getNormalizedHostsWithDelegationCredentials<
   User extends BaseUserWithCredentialPayload,
-  Host extends BaseHost<User>
+  Host extends BaseHost<User>,
 >({
   eventType,
 }: {

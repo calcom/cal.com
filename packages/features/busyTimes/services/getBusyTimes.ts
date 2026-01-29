@@ -11,11 +11,9 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Booking, EventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, EventType, Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 export interface IBusyTimesService {
@@ -53,6 +51,7 @@ export class BusyTimesService {
     bypassBusyCalendarTimes: boolean;
     silentlyHandleCalendarFailures?: boolean;
     mode?: CalendarFetchMode;
+    connectedCalendarsBusyTimes?: EventBusyDate[];
   }) {
     const {
       credentials,
@@ -71,6 +70,7 @@ export class BusyTimesService {
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
       mode,
+      connectedCalendarsBusyTimes,
     } = params;
 
     logger.silly(
@@ -186,47 +186,56 @@ export class BusyTimesService {
     );
     performance.mark("prismaBookingGetEnd");
     performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
-    if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
+    performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
+    if ((credentials?.length > 0 && !bypassBusyCalendarTimes) || connectedCalendarsBusyTimes) {
       const startConnectedCalendarsGet = performance.now();
 
-      const calendarBusyTimesQuery = await getBusyCalendarTimes(
-        credentials,
-        startTime,
-        endTime,
-        selectedCalendars,
-        mode
-      );
+      let calendarBusyTimes: EventBusyDate[] = [];
 
-      if (!calendarBusyTimesQuery.success) {
-        if (silentlyHandleCalendarFailures) {
-          logger.warn(
-            `Calendar busy times fetch failed but handling silently due to silentlyHandleCalendarFailures flag for user ${username}`,
-            {
-              selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
-            }
-          );
-        } else {
-          throw new Error(
-            `Failed to fetch busy calendar times for selected calendars ${selectedCalendars.map(
-              (calendar) => calendar.id
-            )}`
-          );
-        }
+      if (connectedCalendarsBusyTimes) {
+        calendarBusyTimes = connectedCalendarsBusyTimes;
       } else {
-        const calendarBusyTimes = calendarBusyTimesQuery.data;
-        const endConnectedCalendarsGet = performance.now();
-        logger.debug(
-          `Connected Calendars get took ${
-            endConnectedCalendarsGet - startConnectedCalendarsGet
-          } ms for user ${username}`,
-          JSON.stringify({
-            eventTypeId,
-            startTimeDate,
-            endTimeDate,
-            calendarBusyTimes,
-          })
+        const calendarBusyTimesQuery = await getBusyCalendarTimes(
+          credentials,
+          startTime,
+          endTime,
+          selectedCalendars,
+          mode
         );
 
+        if (!calendarBusyTimesQuery.success) {
+          if (silentlyHandleCalendarFailures) {
+            logger.warn(
+              `Calendar busy times fetch failed but handling silently due to silentlyHandleCalendarFailures flag for user ${username}`,
+              {
+                selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
+              }
+            );
+          } else {
+            throw new Error(
+              `Failed to fetch busy calendar times for selected calendars ${selectedCalendars.map(
+                (calendar) => calendar.id
+              )}`
+            );
+          }
+        } else {
+          calendarBusyTimes = calendarBusyTimesQuery.data;
+        }
+      }
+
+      const endConnectedCalendarsGet = performance.now();
+      logger.debug(
+        `Connected Calendars get took ${
+          endConnectedCalendarsGet - startConnectedCalendarsGet
+        } ms for user ${username}`,
+        JSON.stringify({
+          eventTypeId,
+          startTimeDate,
+          endTimeDate,
+          calendarBusyTimes,
+        })
+      );
+      if (calendarBusyTimes) {
         const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
           const [start, end] = key.split("<>");
           return {

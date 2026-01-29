@@ -2,7 +2,6 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";
 
 const log = logger.getSubLogger({
@@ -35,8 +34,17 @@ export async function getCurrentTokenObject(
           delegationCredentialId: credential.delegatedToId,
         });
       inDbCredential = delegationUserCredentialInDb;
-      if (!inDbCredential) {
-        log.error("getCurrentTokenObject: No delegation user credential found in db");
+      const isInDbCredentialValid =
+        !!inDbCredential &&
+        !!inDbCredential.key &&
+        !(typeof inDbCredential.key === "object" && Object.keys(inDbCredential.key).length === 0);
+
+      log.debug(
+        `getCurrentTokenObject: DB ID ${inDbCredential?.id} valid: ${isInDbCredentialValid}. Key keys: ${inDbCredential?.key && typeof inDbCredential.key === "object" ? Object.keys(inDbCredential.key) : "N/A"}`
+      );
+
+      if (!isInDbCredentialValid) {
+        log.debug("getCurrentTokenObject: No valid delegation user credential found in db or key is empty");
         // We return a dummy token object. OAuthManager requires a token object that must have access_token.
         // OAuthManager will help fetching new token object and then that would be stored in DB.
         return buildDummyTokenObjectForDelegationUserCredential();
