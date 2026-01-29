@@ -140,7 +140,7 @@ export function SettingRow({
             onValueChange={onValueChange}
             trackColor={{
               false: isDark ? theme.backgroundEmphasis : "#E9E9EA",
-              true: isDark ? theme.accent : "#000000",
+              true: isDark ? "#34C759" : "#000000",
             }}
             thumbColor="#FFFFFF"
           />

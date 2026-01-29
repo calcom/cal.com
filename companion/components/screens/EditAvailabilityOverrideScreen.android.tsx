@@ -412,7 +412,7 @@ export const EditAvailabilityOverrideScreen = forwardRef<
           onValueChange={setIsUnavailable}
           trackColor={{
             false: isDark ? theme.backgroundEmphasis : "#E5E5EA",
-            true: isDark ? theme.accent : "#000000",
+            true: isDark ? "#34C759" : "#000000",
           }}
           thumbColor="#FFFFFF"
         />

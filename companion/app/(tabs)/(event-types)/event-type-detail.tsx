@@ -2439,7 +2439,7 @@ export default function EventTypeDetail() {
                           onValueChange={setIsHidden}
                           trackColor={{
                             false: isDarkMode ? "#404040" : "#E5E5EA",
-                            true: isDarkMode ? "#007AFF" : "#000000",
+                            true: isDarkMode ? "#34C759" : "#000000",
                           }}
                           thumbColor="#FFFFFF"
                         />

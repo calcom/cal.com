@@ -392,7 +392,7 @@ export const EditAvailabilityDayScreen = forwardRef<
           onValueChange={handleToggle}
           trackColor={{
             false: isDark ? "#404040" : "#E5E5EA",
-            true: isDark ? "#007AFF" : "#000000",
+            true: isDark ? "#34C759" : "#000000",
           }}
           thumbColor="#FFFFFF"
         />
