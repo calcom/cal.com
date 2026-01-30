@@ -560,6 +560,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                                   <Select
                                     size="sm"
                                     className="w-full"
+                                    options={rrSkipFieldRuleActionOptions}
                                     value={rrSkipFieldRuleActionOptions.find(
                                       (opt) => opt.value === rule.action
                                     )}

@@ -679,8 +679,8 @@ class SalesforceCRMService implements CRM {
       }
 
       // Apply field rules if configured and this is for round robin skip
-      if (forRoundRobinSkip && appOptions?.rrSkipFieldRules?.length && records.length > 0) {
-        records = await this.applyFieldRules(records, appOptions.rrSkipFieldRules, recordToSearch);
+      if (forRoundRobinSkip && validatedFieldRules?.length && records.length > 0) {
+        records = await this.applyFieldRules(records, validatedFieldRules, recordToSearch);
         if (records.length === 0) {
           log.info("All records filtered out by field rules");
           SalesforceRoutingTraceService.allRecordsFilteredByFieldRules({
@@ -1172,27 +1172,32 @@ class SalesforceCRMService implements CRM {
   }
 
   /**
-   * Applies field rules to filter records based on configured field/value conditions.
+   * Applies pre-validated field rules to filter records based on configured field/value conditions.
    * Returns records that pass all rules (AND logic).
    * If the query fails (e.g., due to invalid field names), returns all records unchanged.
    *
    * @param records - The records to filter
-   * @param fieldRules - Array of rules with field, value, and action (ignore/must_include)
-   * @param recordType - The Salesforce object type to query
+   * @param validRules - Array of pre-validated rules (fields already confirmed to exist on the object)
+   * @param recordType - The Salesforce object type to query field values from
    * @returns Filtered records that pass all rules
    */
   private async applyFieldRules(
     records: ContactRecord[],
-    fieldRules: RRSkipFieldRule[],
+    validRules: RRSkipFieldRule[],
     recordType: SalesforceRecordEnum
   ): Promise<ContactRecord[]> {
     const log = logger.getSubLogger({ prefix: [`[applyFieldRules]`] });
 
-    if (!fieldRules.length || !records.length) {
+    if (!validRules.length || !records.length) {
       return records;
     }
 
     const conn = await this.conn;
+
+    log.info("Applying field rules", {
+      ruleCount: validRules.length,
+      recordCount: records.length,
+    });
 
     // Get record IDs to fetch field values
     const recordIds = records.map((r) => r.Id).filter((id): id is string => Boolean(id));
@@ -1201,13 +1206,8 @@ class SalesforceCRMService implements CRM {
       return records;
     }
 
-    log.info("Applying field rules", {
-      totalRules: fieldRules.length,
-      recordCount: records.length,
-    });
-
     // Try to fetch the field values - if query fails (invalid field), skip filtering
-    const selectFields = fieldRules.map((r) => r.field).join(", ");
+    const selectFields = validRules.map((r) => r.field).join(", ");
     let queryRecords: Array<{ Id: string; [key: string]: unknown }>;
 
     try {
@@ -1219,7 +1219,7 @@ class SalesforceCRMService implements CRM {
       // Query failed - likely due to invalid field name. Skip filtering and return all records.
       log.warn("Field rules query failed (field may not exist), skipping filtering", {
         error: queryError,
-        fields: fieldRules.map((r) => r.field),
+        fields: validRules.map((r) => r.field),
       });
       return records;
     }
@@ -1240,7 +1240,7 @@ class SalesforceCRMService implements CRM {
         return true; // Keep if we couldn't fetch values
       }
 
-      for (const rule of fieldRules) {
+      for (const rule of validRules) {
         const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
         const ruleValue = rule.value.toLowerCase();
         const matches = actualValue === ruleValue;
