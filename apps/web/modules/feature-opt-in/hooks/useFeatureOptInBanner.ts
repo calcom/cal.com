@@ -1,10 +1,9 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { trpc } from "@calcom/trpc/react";
-import { useCallback, useMemo, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getFeatureOptInTimestamp,
   isFeatureDismissed,
@@ -65,6 +64,15 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     }
   );
 
+  // When the server reports the feature is already enabled, cache it locally
+  // to avoid repeated API calls on subsequent page loads
+  useEffect(() => {
+    if (eligibilityQuery.data?.status === "already_enabled") {
+      setFeatureOptedIn(featureId);
+      setIsOptedIn(true);
+    }
+  }, [eligibilityQuery.data?.status, featureId]);
+
   const setUserStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation();
   const setTeamStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation();
   const setOrganizationStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation();
@@ -122,6 +130,8 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     if (isDismissed) return false;
     if (isOptedIn) return false;
     if (!featureConfig) return false;
+    // Only show banner if the feature is configured to be displayed as a banner
+    if (!shouldDisplayFeatureAt(featureConfig, "banner")) return false;
     if (eligibilityQuery.isLoading) return false;
     if (!eligibilityQuery.data) return false;
     return eligibilityQuery.data.status === "can_opt_in";

@@ -152,10 +152,21 @@ export const getEventTypesFromGroup = async ({
 
   const mappedEventTypes: MappedEventType[] = await Promise.all(eventTypes.map(mapEventType));
 
-  // Add isCurrentUserHost flag to each event type
+  const eventTypeIds = mappedEventTypes.map((et) => et.id);
+  const userHostEntries = await prisma.host.findMany({
+    where: {
+      userId: ctx.user.id,
+      eventTypeId: { in: eventTypeIds },
+    },
+    select: {
+      eventTypeId: true,
+    },
+  });
+  const eventTypeIdsWhereUserIsHost = new Set(userHostEntries.map((h) => h.eventTypeId));
+
   const eventTypesWithHostFlag = mappedEventTypes.map((eventType) => ({
     ...eventType,
-    isCurrentUserHost: eventType.hosts?.some((host) => host.user.id === ctx.user.id) ?? false,
+    isCurrentUserHost: eventTypeIdsWhereUserIsHost.has(eventType.id),
   }));
 
   const membership = await prisma.membership.findFirst({

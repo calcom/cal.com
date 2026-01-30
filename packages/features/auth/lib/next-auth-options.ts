@@ -17,6 +17,7 @@ import {
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import type { TrackingData } from "@calcom/lib/tracking";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
@@ -730,12 +731,13 @@ export const getOptions = ({
             token_type: account.token_type,
             expires_at: account.expires_at,
           };
-          const gcalCredential = await CredentialRepository.create({
+          const gcalCredentialData = buildCredentialCreateData({
             userId: Number(user.id),
             key: credentialkey,
             appId: "google-calendar",
             type: "google_calendar",
           });
+          const gcalCredential = await CredentialRepository.create(gcalCredentialData);
           const gCalService = createGoogleCalendarServiceWithGoogleType({
             ...gcalCredential,
             user: null,
@@ -748,12 +750,13 @@ export const getOptions = ({
               type: "google_video",
             }))
           ) {
-            await CredentialRepository.create({
+            const googleMeetCredentialData = buildCredentialCreateData({
               type: "google_video",
               key: {},
               userId: Number(user.id),
               appId: "google-meet",
             });
+            await CredentialRepository.create(googleMeetCredentialData);
           }
 
           const oAuth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);

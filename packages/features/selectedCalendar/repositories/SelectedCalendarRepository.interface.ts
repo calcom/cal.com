@@ -20,19 +20,21 @@ export interface ISelectedCalendarRepository {
    *  Will check if syncSubscribedAt is null or channelExpiration is greater than current date
    *  Calendars with recent subscription errors (last 24h) are skipped
    *  Calendars with 3+ subscription errors are skipped entirely
+   *  Joins with TeamFeatures to filter users belonging to teams with any of the specified features enabled
    *
    * @param take the number of calendars to take
+   * @param featureIds the feature IDs to filter teams by (users in teams with any of these features enabled)
    * @param integrations the list of integrations
    * @param genericCalendarSuffixes the list of generic calendar suffixes to exclude
    */
   findNextSubscriptionBatch({
     take,
-    teamIds,
+    featureIds,
     integrations,
     genericCalendarSuffixes,
   }: {
     take: number;
-    teamIds: number[];
+    featureIds: string[];
     integrations: string[];
     genericCalendarSuffixes?: string[];
   }): Promise<SelectedCalendar[]>;
