@@ -1,4 +1,3 @@
-import process from "node:process";
 const i18n = require("../../i18n.json");
 
 /** @type {import("next-i18next").UserConfig} */
