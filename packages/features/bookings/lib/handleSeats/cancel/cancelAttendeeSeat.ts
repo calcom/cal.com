@@ -4,16 +4,10 @@ import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-stor
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -26,23 +20,14 @@ async function cancelAttendeeSeat(
     bookingToDelete: BookingToDelete;
   },
   dataForWebhooks: {
-    webhooks: {
-      id: string;
-      subscriberUrl: string;
-      payloadTemplate: string | null;
-      appId: string | null;
-      secret: string | null;
-      version: WebhookVersion;
-    }[];
     evt: CalendarEvent;
-    eventTypeInfo: EventTypeInfo;
   },
   eventTypeMetadata: EventTypeMetadata
 ) {
   const input = bookingCancelAttendeeSeatSchema.safeParse({
     seatReferenceUid: data.seatReferenceUid,
   });
-  const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
+  const { evt } = dataForWebhooks;
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
@@ -146,42 +131,6 @@ async function cancelAttendeeSeat(
       eventTypeMetadata
     );
   }
-
-  evt.attendees = attendee
-    ? [
-        {
-          ...attendee,
-          language: {
-            translate: await getTranslation(attendee.locale ?? "en", "common"),
-            locale: attendee.locale ?? "en",
-          },
-        },
-      ]
-    : [];
-
-  const payload: EventPayloadType = {
-    ...evt,
-    ...eventTypeInfo,
-    status: "CANCELLED",
-    smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-    requestReschedule: false,
-  };
-
-  const promises = webhooks.map((webhook) =>
-    sendPayload(
-      webhook.secret,
-      WebhookTriggerEvents.BOOKING_CANCELLED,
-      new Date().toISOString(),
-      webhook,
-      payload
-    ).catch((e) => {
-      logger.error(
-        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
 
   const workflowRemindersForAttendee =
     bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??
