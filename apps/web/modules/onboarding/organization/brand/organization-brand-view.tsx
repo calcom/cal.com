@@ -2,11 +2,12 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ColorPicker, Label } from "@calcom/ui/components/form";
+import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -25,49 +26,24 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
   const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
-  const [_logoFile, setLogoFile] = useState<File | null>(null);
-  const [_bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [brandColor, setBrandColor] = useState("#000000");
 
-  // Load from store on mount
   useEffect(() => {
     setLogoPreview(organizationBrand.logo);
     setBannerPreview(organizationBrand.banner);
     setBrandColor(organizationBrand.color);
   }, [organizationBrand]);
 
-  const handleLogoChange = (file: File | null) => {
-    setLogoFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setLogoPreview(base64);
-        setOrganizationBrand({ logo: base64 });
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setLogoPreview(null);
-      setOrganizationBrand({ logo: null });
-    }
+  const handleLogoChange = (newLogo: string) => {
+    setLogoPreview(newLogo);
+    setOrganizationBrand({ logo: newLogo });
   };
 
-  const handleBannerChange = (file: File | null) => {
-    setBannerFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setBannerPreview(base64);
-        setOrganizationBrand({ banner: base64 });
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setBannerPreview(null);
-      setOrganizationBrand({ banner: null });
-    }
+  const handleBannerChange = (newBanner: string) => {
+    setBannerPreview(newBanner);
+    setOrganizationBrand({ banner: newBanner });
   };
 
   const handleColorChange = (color: string) => {
@@ -154,21 +130,28 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       />
                     )}
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      className="w-fit"
-                      onClick={() => document.getElementById("banner-upload")?.click()}>
-                      {t("upload")}
-                    </Button>
-                    <input
-                      id="banner-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleBannerChange(e.target.files?.[0] || null)}
+                  <div className="flex gap-2">
+                    <BannerUploader
+                      id="org-banner-upload"
+                      buttonMsg={t("upload")}
+                      handleAvatarChange={handleBannerChange}
+                      imageSrc={bannerPreview || undefined}
+                      target="banner"
+                      triggerButtonColor="secondary"
+                      height={500}
+                      width={1500}
                     />
+                    {bannerPreview && (
+                      <Button
+                        color="minimal"
+                        size="sm"
+                        onClick={() => {
+                          setBannerPreview(null);
+                          setOrganizationBrand({ banner: null });
+                        }}>
+                        {t("remove")}
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <p className="text-subtle text-xs font-normal leading-3">
@@ -188,21 +171,26 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       />
                     )}
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <ImageUploader
+                    id="org-logo-upload"
+                    buttonMsg={t("upload")}
+                    handleAvatarChange={handleLogoChange}
+                    imageSrc={logoPreview || undefined}
+                    target="logo"
+                    triggerButtonColor="secondary"
+                    buttonSize="sm"
+                  />
+                  {logoPreview && (
                     <Button
-                      color="secondary"
+                      color="minimal"
                       size="sm"
-                      onClick={() => document.getElementById("logo-upload")?.click()}>
-                      {t("upload")}
+                      onClick={() => {
+                        setLogoPreview(null);
+                        setOrganizationBrand({ logo: null });
+                      }}>
+                      {t("remove")}
                     </Button>
-                    <input
-                      id="logo-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
-                    />
-                  </div>
+                  )}
                 </div>
                 <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
               </div>
