@@ -89,6 +89,42 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     action: RRSkipFieldRuleActionEnum.IGNORE,
   });
 
+  const [editingRRSkipFieldRuleIndex, setEditingRRSkipFieldRuleIndex] = useState<number | null>(null);
+  const [editingRRSkipFieldRule, setEditingRRSkipFieldRule] = useState<{
+    field: string;
+    value: string;
+    action: (typeof RRSkipFieldRuleActionEnum)[keyof typeof RRSkipFieldRuleActionEnum];
+  } | null>(null);
+
+  const startEditingRRSkipFieldRule = (index: number) => {
+    const rule = rrSkipFieldRules[index];
+    setEditingRRSkipFieldRuleIndex(index);
+    setEditingRRSkipFieldRule({
+      field: rule.field,
+      value: rule.value,
+      action: rule.action,
+    });
+  };
+
+  const cancelEditingRRSkipFieldRule = () => {
+    setEditingRRSkipFieldRuleIndex(null);
+    setEditingRRSkipFieldRule(null);
+  };
+
+  const saveEditingRRSkipFieldRule = () => {
+    if (editingRRSkipFieldRuleIndex === null || !editingRRSkipFieldRule) return;
+    if (!editingRRSkipFieldRule.field.trim() || !editingRRSkipFieldRule.value.trim()) return;
+
+    const newRules = [...rrSkipFieldRules];
+    newRules[editingRRSkipFieldRuleIndex] = {
+      field: editingRRSkipFieldRule.field.trim(),
+      value: editingRRSkipFieldRule.value.trim(),
+      action: editingRRSkipFieldRule.action,
+    };
+    setAppData("rrSkipFieldRules", newRules);
+    cancelEditingRRSkipFieldRule();
+  };
+
   // Used when creating events under leads or contacts under account
   const CreateContactUnderAccount = () => {
     return (
@@ -464,43 +500,116 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                         <div className="flex-1">{t("field_name")}</div>
                         <div className="flex-1">{t("value")}</div>
                         <div className="w-32">{t("action")}</div>
-                        <div className="w-10" />
+                        <div className="w-20" />
                       </div>
                       <Section.SubSectionNested>
-                        {rrSkipFieldRules.map((rule, index) => (
-                          <div className="flex items-center gap-2" key={`${rule.field}-${index}`}>
-                            <div className="flex-1">
-                              <InputField value={rule.field} readOnly size="sm" className="w-full" />
+                        {rrSkipFieldRules.map((rule, index) => {
+                          const isEditing = editingRRSkipFieldRuleIndex === index;
+                          return (
+                            <div className="flex items-center gap-2" key={`${rule.field}-${index}`}>
+                              <div className="flex-1">
+                                {isEditing ? (
+                                  <InputField
+                                    value={editingRRSkipFieldRule?.field || ""}
+                                    onChange={(e) =>
+                                      setEditingRRSkipFieldRule((prev) =>
+                                        prev ? { ...prev, field: e.target.value } : null
+                                      )
+                                    }
+                                    size="sm"
+                                    className="w-full"
+                                  />
+                                ) : (
+                                  <InputField value={rule.field} readOnly size="sm" className="w-full" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                {isEditing ? (
+                                  <InputField
+                                    value={editingRRSkipFieldRule?.value || ""}
+                                    onChange={(e) =>
+                                      setEditingRRSkipFieldRule((prev) =>
+                                        prev ? { ...prev, value: e.target.value } : null
+                                      )
+                                    }
+                                    size="sm"
+                                    className="w-full"
+                                  />
+                                ) : (
+                                  <InputField value={rule.value} readOnly size="sm" className="w-full" />
+                                )}
+                              </div>
+                              <div className="w-32">
+                                {isEditing ? (
+                                  <Select
+                                    size="sm"
+                                    className="w-full"
+                                    options={rrSkipFieldRuleActionOptions}
+                                    value={rrSkipFieldRuleActionOptions.find(
+                                      (opt) => opt.value === editingRRSkipFieldRule?.action
+                                    )}
+                                    onChange={(e) => {
+                                      if (e) {
+                                        setEditingRRSkipFieldRule((prev) =>
+                                          prev ? { ...prev, action: e.value } : null
+                                        );
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <Select
+                                    size="sm"
+                                    className="w-full"
+                                    value={rrSkipFieldRuleActionOptions.find(
+                                      (opt) => opt.value === rule.action
+                                    )}
+                                    isDisabled={true}
+                                  />
+                                )}
+                              </div>
+                              <div className="flex w-20 justify-center gap-1">
+                                {isEditing ? (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      StartIcon="check"
+                                      variant="icon"
+                                      color="primary"
+                                      onClick={() => saveEditingRRSkipFieldRule()}
+                                    />
+                                    <Button
+                                      size="sm"
+                                      StartIcon="x"
+                                      variant="icon"
+                                      color="secondary"
+                                      onClick={() => cancelEditingRRSkipFieldRule()}
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      StartIcon="pencil"
+                                      variant="icon"
+                                      color="minimal"
+                                      onClick={() => startEditingRRSkipFieldRule(index)}
+                                    />
+                                    <Button
+                                      StartIcon="x"
+                                      variant="icon"
+                                      size="sm"
+                                      color="minimal"
+                                      onClick={() => {
+                                        const newRules = rrSkipFieldRules.filter((_, i) => i !== index);
+                                        setAppData("rrSkipFieldRules", newRules);
+                                      }}
+                                    />
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex-1">
-                              <InputField value={rule.value} readOnly size="sm" className="w-full" />
-                            </div>
-                            <div className="w-32">
-                              <InputField
-                                value={
-                                  rule.action === RRSkipFieldRuleActionEnum.IGNORE
-                                    ? t("salesforce_rr_skip_field_rule_ignore")
-                                    : t("salesforce_rr_skip_field_rule_must_include")
-                                }
-                                readOnly
-                                size="sm"
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="flex w-10 justify-center">
-                              <Button
-                                StartIcon="x"
-                                variant="icon"
-                                size="sm"
-                                color="minimal"
-                                onClick={() => {
-                                  const newRules = rrSkipFieldRules.filter((_, i) => i !== index);
-                                  setAppData("rrSkipFieldRules", newRules);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                         <div className="mt-2 flex gap-2">
                           <div className="flex-1">
                             <InputField
@@ -548,13 +657,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                               }}
                             />
                           </div>
-                          <div className="w-10" />
+                          <div className="w-20" />
                         </div>
                       </Section.SubSectionNested>
                       <Button
                         className="text-subtle mt-2 w-fit"
+                        StartIcon="plus"
+                        color="minimal"
                         size="sm"
-                        color="secondary"
                         disabled={!(newRRSkipFieldRule.field && newRRSkipFieldRule.value)}
                         onClick={() => {
                           setAppData("rrSkipFieldRules", [
