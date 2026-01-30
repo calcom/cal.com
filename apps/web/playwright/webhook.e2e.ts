@@ -235,6 +235,101 @@ test.describe("BOOKING_REJECTED", async () => {
   });
 });
 
+test.describe("BOOKING_CANCELLED", async () => {
+  test("can book an event and then cancel it, triggering a booking cancelled webhook", async ({
+    page,
+    users,
+    bookings,
+    webhooks,
+  }) => {
+    const user = await users.create();
+    const [eventType] = user.eventTypes;
+
+    await user.apiLogin();
+
+    const webhookReceiver = await webhooks.createReceiver();
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+    });
+
+    await page.goto(`/booking/${booking.uid}?cancel=true`);
+
+    await page.locator('[data-testid="cancel_reason"]').fill("Test cancellation reason");
+
+    await submitAndWaitForResponse(page, "/api/cancel", {
+      action: () => page.locator('[data-testid="confirm_cancel"]').click(),
+    });
+
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = request.body as any;
+
+    body.createdAt = dynamic;
+    body.payload.startTime = dynamic;
+    body.payload.endTime = dynamic;
+    body.payload.location = dynamic;
+    for (const attendee of body.payload.attendees) {
+      attendee.timeZone = dynamic;
+      attendee.language = dynamic;
+    }
+    body.payload.organizer.id = dynamic;
+    body.payload.organizer.email = dynamic;
+    body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
+    body.payload.uid = dynamic;
+    body.payload.bookingId = dynamic;
+    body.payload.additionalInformation = dynamic;
+    body.payload.requiresConfirmation = dynamic;
+    body.payload.eventTypeId = dynamic;
+    body.payload.videoCallData = dynamic;
+    body.payload.appsStatus = dynamic;
+    if (body.payload.metadata?.videoCallUrl) {
+      body.payload.metadata.videoCallUrl = dynamic;
+    }
+
+    expect(body).toMatchObject({
+      triggerEvent: "BOOKING_CANCELLED",
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        type: "30-min",
+        title: expect.stringContaining("30 min"),
+        organizer: {
+          id: "[redacted/dynamic]",
+          name: "Nameless",
+          email: "[redacted/dynamic]",
+          timeZone: "[redacted/dynamic]",
+          language: "[redacted/dynamic]",
+        },
+        responses: {
+          email: {
+            value: expect.any(String),
+            label: expect.any(String),
+          },
+          name: {
+            value: expect.any(String),
+            label: expect.any(String),
+          },
+        },
+        attendees: expect.arrayContaining([
+          expect.objectContaining({
+            email: expect.any(String),
+            name: expect.any(String),
+          }),
+        ]),
+        uid: "[redacted/dynamic]",
+        eventTitle: "30 min",
+        status: "CANCELLED",
+        cancellationReason: "Test cancellation reason",
+      },
+    });
+
+    webhookReceiver.close();
+  });
+});
+
 test.describe("BOOKING_REQUESTED", async () => {
   test("can book an event that requires confirmation and get a booking requested event", async ({
     page,
