@@ -4,7 +4,6 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
-import { getRedisService } from "@calcom/features/di/containers/Redis";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -1081,78 +1080,43 @@ class SalesforceCRMService implements CRM {
   }
 
   /**
-   * Gets all field names for a Salesforce object, using Redis cache when available.
-   * Cache TTL is 1 hour since object schemas rarely change.
+   * Validates which fields exist on a Salesforce object using the describe API.
+   * Returns Field objects for fields that exist.
    */
-  private async getObjectFieldNames(sobject: string): Promise<Set<string>> {
-    const log = logger.getSubLogger({ prefix: [`[getObjectFieldNames]`] });
-    const cacheKey = `salesforce:describe:${this.instanceUrl}:${sobject}`;
-    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-    try {
-      const redis = getRedisService();
-      const cached = await redis.get<string[]>(cacheKey);
-
-      if (cached) {
-        log.info(`Cache hit for ${sobject} field names`);
-        return new Set(cached);
-      }
-    } catch (cacheError) {
-      // Redis not available, continue without cache
-      log.warn(`Redis cache unavailable, falling back to direct API call`, { error: cacheError });
-    }
-
-    // Fetch from Salesforce API
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
     const conn = await this.conn;
+
+    const fieldSet = new Set(fieldsToTest);
+    const foundFields: Field[] = [];
+
     try {
       const salesforceEntity = await conn.describe(sobject);
-      const fieldNames = salesforceEntity.fields.map((f) => f.name);
+      const fields = salesforceEntity.fields;
 
-      // Try to cache the result
-      try {
-        const redis = getRedisService();
-        await redis.set(cacheKey, fieldNames, { ttl: CACHE_TTL_MS });
-        log.info(`Cached ${sobject} field names (${fieldNames.length} fields)`);
-      } catch (cacheError) {
-        log.warn(`Failed to cache field names`, { error: cacheError });
+      for (const field of fields) {
+        if (foundFields.length === fieldSet.size) break;
+
+        if (fieldSet.has(field.name)) {
+          foundFields.push(field);
+        }
       }
 
-      return new Set(fieldNames);
+      return foundFields;
     } catch (e) {
-      log.error(`Error fetching field names for ${sobject}`, { error: e });
-      return new Set();
-    }
-  }
-
-  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string): Promise<Field[]> {
-    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
-
-    // Get cached field names
-    const existingFieldNames = await this.getObjectFieldNames(sobject);
-
-    if (existingFieldNames.size === 0) {
-      log.warn(`No field names found for ${sobject}`);
+      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
-
-    // Filter to only fields that exist
-    const validFieldNames = fieldsToTest.filter((f) => existingFieldNames.has(f));
-
-    if (validFieldNames.length === 0) {
-      return [];
-    }
-
-    // Return Field objects with just the name (that's all we need for filtering)
-    return validFieldNames.map((name) => ({ name }) as Field);
   }
 
   /**
    * Applies field rules to filter records based on configured field/value conditions.
    * Returns records that pass all rules (AND logic).
+   * If the query fails (e.g., due to invalid field names), returns all records unchanged.
    *
    * @param records - The records to filter
    * @param fieldRules - Array of rules with field, value, and action (ignore/must_include)
-   * @param recordType - The Salesforce object type to validate fields against
+   * @param recordType - The Salesforce object type to query
    * @returns Filtered records that pass all rules
    */
   private async applyFieldRules(
@@ -1168,28 +1132,6 @@ class SalesforceCRMService implements CRM {
 
     const conn = await this.conn;
 
-    // Validate which fields actually exist on the record type
-    const fieldNames = fieldRules.map((r) => r.field);
-    const existingFields = await this.ensureFieldsExistOnObject(fieldNames, recordType);
-    const existingFieldNames = new Set(existingFields.map((f) => f.name));
-
-    // Filter rules to only those with existing fields
-    const validRules = fieldRules.filter((rule) => existingFieldNames.has(rule.field));
-
-    if (validRules.length === 0) {
-      log.info("No valid field rules found (fields may not exist on record type)", {
-        configuredFields: fieldNames,
-        recordType,
-      });
-      return records;
-    }
-
-    log.info("Applying field rules", {
-      totalRules: fieldRules.length,
-      validRules: validRules.length,
-      recordCount: records.length,
-    });
-
     // Get record IDs to fetch field values
     const recordIds = records.map((r) => r.Id).filter((id): id is string => Boolean(id));
 
@@ -1197,17 +1139,33 @@ class SalesforceCRMService implements CRM {
       return records;
     }
 
-    // Fetch the field values for each record
-    const selectFields = validRules.map((r) => r.field).join(", ");
-    const query = await conn.query(
-      `SELECT Id, ${selectFields} FROM ${recordType} WHERE Id IN ('${recordIds.join("','")}')`
-    );
+    log.info("Applying field rules", {
+      totalRules: fieldRules.length,
+      recordCount: records.length,
+    });
+
+    // Try to fetch the field values - if query fails (invalid field), skip filtering
+    const selectFields = fieldRules.map((r) => r.field).join(", ");
+    let queryRecords: Array<{ Id: string; [key: string]: unknown }>;
+
+    try {
+      const query = await conn.query(
+        `SELECT Id, ${selectFields} FROM ${recordType} WHERE Id IN ('${recordIds.join("','")}')`
+      );
+      queryRecords = query.records as Array<{ Id: string; [key: string]: unknown }>;
+    } catch (queryError) {
+      // Query failed - likely due to invalid field name. Skip filtering and return all records.
+      log.warn("Field rules query failed (field may not exist), skipping filtering", {
+        error: queryError,
+        fields: fieldRules.map((r) => r.field),
+      });
+      return records;
+    }
 
     // Create a map of record ID to field values
     const recordFieldValues = new Map<string, Record<string, unknown>>();
-    for (const record of query.records) {
-      const typedRecord = record as { Id: string; [key: string]: unknown };
-      recordFieldValues.set(typedRecord.Id, typedRecord);
+    for (const record of queryRecords) {
+      recordFieldValues.set(record.Id, record);
     }
 
     // Filter records based on rules
@@ -1220,7 +1178,7 @@ class SalesforceCRMService implements CRM {
         return true; // Keep if we couldn't fetch values
       }
 
-      for (const rule of validRules) {
+      for (const rule of fieldRules) {
         const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
         const ruleValue = rule.value.toLowerCase();
         const matches = actualValue === ruleValue;
@@ -1247,6 +1205,10 @@ class SalesforceCRMService implements CRM {
     });
   }
 
+  /**
+   * Applies field rules to filter GraphQL Account records.
+   * If the query fails (e.g., due to invalid field names), returns all records unchanged.
+   */
   private async applyFieldRulesToGraphQLRecords(
     records: Contact[],
     fieldRules: RRSkipFieldRule[],
@@ -1260,36 +1222,32 @@ class SalesforceCRMService implements CRM {
 
     const conn = await this.conn;
 
-    // GraphQL records are Account records, so validate fields against Account object
-    const fieldNames = fieldRules.map((r) => r.field);
-    const existingFields = await this.ensureFieldsExistOnObject(fieldNames, SalesforceRecordEnum.ACCOUNT);
-    const existingFieldNames = new Set(existingFields.map((f) => f.name));
+    log.info("Applying field rules to GraphQL records", {
+      totalRules: fieldRules.length,
+      recordCount: records.length,
+    });
 
-    const validRules = fieldRules.filter((rule) => existingFieldNames.has(rule.field));
+    // Try to fetch the field values - if query fails (invalid field), skip filtering
+    const selectFields = fieldRules.map((r) => r.field).join(", ");
+    let queryRecords: Array<{ Id: string; [key: string]: unknown }>;
 
-    if (validRules.length === 0) {
-      log.info("No valid field rules found for GraphQL records (fields may not exist on Account)", {
-        configuredFields: fieldNames,
+    try {
+      const query = await conn.query(
+        `SELECT Id, ${selectFields} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id IN ('${recordIds.join("','")}')`
+      );
+      queryRecords = query.records as Array<{ Id: string; [key: string]: unknown }>;
+    } catch (queryError) {
+      // Query failed - likely due to invalid field name. Skip filtering and return all records.
+      log.warn("Field rules query failed for GraphQL records (field may not exist), skipping filtering", {
+        error: queryError,
+        fields: fieldRules.map((r) => r.field),
       });
       return records;
     }
 
-    log.info("Applying field rules to GraphQL records", {
-      totalRules: fieldRules.length,
-      validRules: validRules.length,
-      recordCount: records.length,
-    });
-
-    // Fetch the field values for each account
-    const selectFields = validRules.map((r) => r.field).join(", ");
-    const query = await conn.query(
-      `SELECT Id, ${selectFields} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id IN ('${recordIds.join("','")}')`
-    );
-
     const recordFieldValues = new Map<string, Record<string, unknown>>();
-    for (const record of query.records) {
-      const typedRecord = record as { Id: string; [key: string]: unknown };
-      recordFieldValues.set(typedRecord.Id, typedRecord);
+    for (const record of queryRecords) {
+      recordFieldValues.set(record.Id, record);
     }
 
     return records.filter((record) => {
@@ -1301,7 +1259,7 @@ class SalesforceCRMService implements CRM {
         return true;
       }
 
-      for (const rule of validRules) {
+      for (const rule of fieldRules) {
         const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
         const ruleValue = rule.value.toLowerCase();
         const matches = actualValue === ruleValue;
