@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
+import { useBookingLocation } from "@calcom/web/modules/bookings/hooks/useBookingLocation";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
