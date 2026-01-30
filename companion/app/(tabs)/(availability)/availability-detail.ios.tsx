@@ -1,9 +1,11 @@
+import { useColorScheme } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef } from "react";
 import {
   AvailabilityDetailScreen,
   type AvailabilityDetailScreenHandle,
 } from "@/components/screens/AvailabilityDetailScreen";
+import { getColors } from "@/constants/colors";
 
 // Type for action handlers exposed by AvailabilityDetailScreen.ios.tsx
 type ActionHandlers = {
@@ -14,6 +16,9 @@ type ActionHandlers = {
 export default function AvailabilityDetailIOS() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Ref to store action handlers from AvailabilityDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -67,13 +72,18 @@ export default function AvailabilityDetailIOS() {
           headerBackButtonDisplayMode: "default",
           headerTitle: "",
           headerStyle: {
-            backgroundColor: "#f2f2f7",
+            backgroundColor: isDark ? theme.background : theme.backgroundMuted,
           },
           headerShadowVisible: false,
         }}
       />
 
-      <Stack.Header style={{ shadowColor: "transparent", backgroundColor: "#f2f2f7" }}>
+      <Stack.Header
+        style={{
+          shadowColor: "transparent",
+          backgroundColor: isDark ? theme.background : theme.backgroundMuted,
+        }}
+      >
         <Stack.Header.Right>
           {/* Edit Menu */}
           <Stack.Header.Menu>
