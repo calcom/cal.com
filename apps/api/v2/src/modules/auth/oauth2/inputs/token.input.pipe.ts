@@ -84,7 +84,7 @@ export class OAuth2TokenInputPipe implements PipeTransform {
         const constraints = err.constraints ? Object.values(err.constraints).join(", ") : "";
         const childrenErrors =
           err.children && err.children.length > 0 ? `${this.formatErrors(err.children)}` : "";
-        return `${err.property} property is wrong,${constraints} ${childrenErrors}`;
+        return `${err.property} property is wrong, ${constraints} ${childrenErrors}`;
       })
       .join(", ");
   }

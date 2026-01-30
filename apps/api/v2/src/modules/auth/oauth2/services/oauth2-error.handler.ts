@@ -1,5 +1,5 @@
 import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/errors";
-import { HttpException, Injectable, Logger } from "@nestjs/common";
+import { HttpException, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { OAuthService } from "@/lib/services/oauth.service";
 import { OAuth2RedirectException } from "@/modules/auth/oauth2/filters/oauth2-redirect.exception";
 
@@ -49,5 +49,14 @@ export class OAuth2ErrorHandler {
       },
       500
     );
+  }
+
+  handleClientError(err: unknown, fallbackMessage: string): never {
+    if (err instanceof ErrorWithCode) {
+      const statusCode = getHttpStatusCode(err);
+      throw new HttpException(err.message, statusCode);
+    }
+    this.logger.error(err);
+    throw new InternalServerErrorException(fallbackMessage);
   }
 }

@@ -1,5 +1,6 @@
 import { AccessScope } from "@calcom/prisma/enums";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { Expose, Transform } from "class-transformer";
 import { Equals, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class OAuth2AuthorizeInput {
@@ -9,6 +10,8 @@ export class OAuth2AuthorizeInput {
     example: "https://example.com/callback",
   })
   @IsString()
+  @Transform(({ obj }) => obj.redirect_uri ?? obj.redirectUri)
+  @Expose()
   redirect_uri!: string;
 
   @ApiProperty({
@@ -35,6 +38,8 @@ export class OAuth2AuthorizeInput {
   })
   @IsOptional()
   @IsString()
+  @Transform(({ obj }) => obj.team_slug ?? obj.teamSlug)
+  @Expose()
   team_slug?: string;
 
   @ApiProperty({
@@ -43,10 +48,14 @@ export class OAuth2AuthorizeInput {
   })
   @IsOptional()
   @IsString()
+  @Transform(({ obj }) => obj.code_challenge ?? obj.codeChallenge)
+  @Expose()
   code_challenge?: string;
 
   @ApiHideProperty()
   @IsString()
   @Equals("S256")
+  @Transform(({ obj }) => obj.code_challenge_method ?? obj.codeChallengeMethod ?? "S256")
+  @Expose()
   code_challenge_method: string = "S256";
 }
