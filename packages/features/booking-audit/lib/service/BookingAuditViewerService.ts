@@ -15,16 +15,10 @@ import type {
   IBookingAuditRepository,
 } from "../repository/IBookingAuditRepository";
 import type { ActionSource } from "../types/actionSource";
-import { getActorDataRequirements, enrichActor } from "./ActorStrategies";
+import { enrichActor, getActorDataRequirements } from "./ActorStrategies";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
-import {
-  EnrichmentDataStore,
-  type DataRequirements,
-  type StoredUser,
-  type StoredAttendee,
-  type StoredCredential,
-} from "./EnrichmentDataStore";
+import { type DataRequirements, EnrichmentDataStore } from "./EnrichmentDataStore";
 
 interface BookingAuditViewerServiceDeps {
   bookingAuditRepository: IBookingAuditRepository;
@@ -130,10 +124,7 @@ export class BookingAuditViewerService {
       ? await this.bookingAuditRepository.findRescheduledLogsOfBooking(fromRescheduleUid)
       : [];
 
-    // Collect all data requirements from action services and logs (including rescheduled logs)
     const dataRequirements = this.collectDataRequirements([...auditLogs, ...rescheduledLogs]);
-
-    // Bulk-fetch all required data
     const dbStore = await this.buildEnrichmentDataStore(dataRequirements);
 
     const enrichedAuditLogs = await Promise.all(
@@ -196,7 +187,7 @@ export class BookingAuditViewerService {
       ? await actionService.getDisplayFields({ storedData: parsedData, dbStore })
       : null;
 
-    const impersonatedBy = this.enrichImpersonator(log.context, dbStore);
+    const impersonatedBy = this.enrichImpersonator({ context: log.context, dbStore });
 
     return {
       id: log.id,
@@ -317,10 +308,13 @@ export class BookingAuditViewerService {
     };
   }
 
-  private enrichImpersonator(
-    context: BookingAuditContext | null,
-    dbStore: EnrichmentDataStore
-  ): {
+  private enrichImpersonator({
+    context,
+    dbStore,
+  }: {
+    context: BookingAuditContext | null;
+    dbStore: EnrichmentDataStore;
+  }): {
     displayName: string;
     displayEmail: string | null;
     displayAvatar: string | null;
