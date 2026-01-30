@@ -27,7 +27,8 @@ export function EmptyCell(props: EmptyCellProps) {
     timezone: props.timezone,
   });
 
-  const minutesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
+  // Clamp to 0 to prevent negative offset when timezone causes slot to be before startHour
+  const minutesFromStart = Math.max(0, (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute());
 
   return <Cell topOffsetMinutes={minutesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
 }
@@ -60,7 +61,8 @@ export function AvailableCellsForDay({ timezone, availableSlots, day, startHour 
 
     slotsForToday?.forEach((slot, index) => {
       const startTime = dayjs(slot.start).tz(timezone);
-      const topOffsetMinutes = (startTime.hour() - startHour) * 60 + startTime.minute();
+      // Clamp to 0 to prevent negative offset when timezone causes slot to be before startHour
+      const topOffsetMinutes = Math.max(0, (startTime.hour() - startHour) * 60 + startTime.minute());
       calculatedSlots.push({ slot, topOffsetMinutes });
 
       if (!slot.away) {
