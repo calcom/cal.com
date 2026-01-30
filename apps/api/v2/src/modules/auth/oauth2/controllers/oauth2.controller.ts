@@ -44,7 +44,7 @@ import { OAuth2TokensDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.out
 import { OAuth2ErrorHandler } from "@/modules/auth/oauth2/services/oauth2-error.handler";
 
 @Controller({
-  path: "/v2/auth/oauth2/clients/:clientId",
+  path: "/v2/auth/oauth2",
   version: API_VERSIONS_VALUES,
 })
 @ApiExcludeController(true)
@@ -55,7 +55,7 @@ export class OAuth2Controller {
     private readonly errorHandler: OAuth2ErrorHandler
   ) {}
 
-  @Get("/")
+  @Get("/clients/:clientId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({
@@ -75,7 +75,7 @@ export class OAuth2Controller {
     }
   }
 
-  @Post("/authorize")
+  @Post("/clients/:clientId/authorize")
   @UseGuards(ApiAuthGuard)
   @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
   @UseFilters(OAuth2RedirectExceptionFilter)
@@ -113,7 +113,8 @@ export class OAuth2Controller {
   @ApiOperation({
     summary: "Exchange authorization code or refresh token for tokens",
     description:
-      "OAuth2 token endpoint (RFC 6749). Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token. " +
+      "RFC 6749-compliant token endpoint. Pass client_id in the request body (Section 2.3.1). " +
+      "Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token. " +
       "Accepts both application/x-www-form-urlencoded (standard per RFC 6749 Section 4.1.3) and application/json content types.",
   })
   @ApiBody({
@@ -126,7 +127,8 @@ export class OAuth2Controller {
       ],
     },
     description:
-      "Token request body. Accepts application/x-www-form-urlencoded (RFC 6749 standard) or application/json. " +
+      "Token request body. client_id is required. " +
+      "Accepts application/x-www-form-urlencoded (RFC 6749 standard) or application/json. " +
       "Use grant_type 'authorization_code' with client_secret (confidential) or code_verifier (public/PKCE), or grant_type 'refresh_token' with client_secret (confidential) or just the refresh_token (public).",
   })
   @ApiExtraModels(
@@ -137,12 +139,9 @@ export class OAuth2Controller {
   )
   @Header("Cache-Control", "no-store")
   @Header("Pragma", "no-cache")
-  async token(
-    @Param("clientId") clientId: string,
-    @Body(new OAuth2TokenInputPipe()) body: OAuth2TokenInput
-  ): Promise<OAuth2TokensDto> {
+  async token(@Body(new OAuth2TokenInputPipe()) body: OAuth2TokenInput): Promise<OAuth2TokensDto> {
     try {
-      const tokens = await this.oAuthService.handleTokenRequest(clientId, body);
+      const tokens = await this.oAuthService.handleTokenRequest(body.client_id, body);
 
       return plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" });
     } catch (err) {

@@ -3,6 +3,13 @@ import { Equals, IsString } from "class-validator";
 
 export class OAuth2ExchangeConfidentialInput {
   @ApiProperty({
+    description: "The client identifier",
+    example: "my-client-id",
+  })
+  @IsString()
+  client_id!: string;
+
+  @ApiProperty({
     description: "The grant type — must be 'authorization_code'",
     example: "authorization_code",
     enum: ["authorization_code"],
@@ -33,6 +40,13 @@ export class OAuth2ExchangeConfidentialInput {
 }
 
 export class OAuth2ExchangePublicInput {
+  @ApiProperty({
+    description: "The client identifier",
+    example: "my-client-id",
+  })
+  @IsString()
+  client_id!: string;
+
   @ApiProperty({
     description: "The grant type — must be 'authorization_code'",
     example: "authorization_code",

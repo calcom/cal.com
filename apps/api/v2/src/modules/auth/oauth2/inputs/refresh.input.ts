@@ -3,6 +3,13 @@ import { Equals, IsString } from "class-validator";
 
 export class OAuth2RefreshConfidentialInput {
   @ApiProperty({
+    description: "The client identifier",
+    example: "my-client-id",
+  })
+  @IsString()
+  client_id!: string;
+
+  @ApiProperty({
     description: "The grant type — must be 'refresh_token'",
     example: "refresh_token",
     enum: ["refresh_token"],
@@ -26,6 +33,13 @@ export class OAuth2RefreshConfidentialInput {
 }
 
 export class OAuth2RefreshPublicInput {
+  @ApiProperty({
+    description: "The client identifier",
+    example: "my-client-id",
+  })
+  @IsString()
+  client_id!: string;
+
   @ApiProperty({
     description: "The grant type — must be 'refresh_token'",
     example: "refresh_token",

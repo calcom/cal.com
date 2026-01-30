@@ -1,5 +1,5 @@
 import type { PipeTransform } from "@nestjs/common";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
@@ -19,13 +19,19 @@ export class OAuth2TokenInputPipe implements PipeTransform {
 
   transform(value: OAuth2TokenInput): OAuth2TokenInput {
     if (!value) {
-      throw new BadRequestException("Body is required");
+      this.throwOAuthError("Body is required");
     }
     if (typeof value !== "object") {
-      throw new BadRequestException("Body should be an object");
+      this.throwOAuthError("Body should be an object");
     }
 
-    const grantType = (value as unknown as Record<string, unknown>).grant_type;
+    const raw = value as unknown as Record<string, unknown>;
+
+    if (!raw.client_id || typeof raw.client_id !== "string") {
+      this.throwOAuthError("client_id is required");
+    }
+
+    const grantType = raw.grant_type;
 
     if (grantType === "authorization_code") {
       return this.validateExchange(value);
@@ -35,7 +41,7 @@ export class OAuth2TokenInputPipe implements PipeTransform {
       return this.validateRefresh(value);
     }
 
-    throw new BadRequestException("grant_type must be 'authorization_code' or 'refresh_token'");
+    this.throwOAuthError("grant_type must be 'authorization_code' or 'refresh_token'");
   }
 
   private validateExchange(
@@ -66,7 +72,7 @@ export class OAuth2TokenInputPipe implements PipeTransform {
     });
 
     if (errors.length > 0) {
-      throw new BadRequestException(this.formatErrors(errors));
+      this.throwOAuthError(this.formatErrors(errors));
     }
 
     return object;
@@ -89,5 +95,12 @@ export class OAuth2TokenInputPipe implements PipeTransform {
 
   private isConfidentialRefresh(value: OAuth2TokenInput): value is OAuth2RefreshConfidentialInput {
     return "client_secret" in value;
+  }
+
+  private throwOAuthError(description: string): never {
+    throw new HttpException(
+      { error: "invalid_request", error_description: description },
+      HttpStatus.BAD_REQUEST
+    );
   }
 }

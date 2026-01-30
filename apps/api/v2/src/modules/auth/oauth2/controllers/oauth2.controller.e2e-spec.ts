@@ -238,11 +238,13 @@ describe("OAuth2 Controller Endpoints", () => {
       });
     });
 
-    describe("POST /api/v2/auth/oauth2/clients/:clientId/token (authorization_code grant)", () => {
+    describe("POST /api/v2/auth/oauth2/token (authorization_code grant)", () => {
       it("should exchange authorization code for tokens", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
           .send({
+            client_id: testClientId,
             grant_type: "authorization_code",
             code: authorizationCode,
             client_secret: testClientSecret,
@@ -260,10 +262,41 @@ describe("OAuth2 Controller Endpoints", () => {
         refreshToken = response.body.refresh_token;
       });
 
-      it("should return 400 with RFC 6749 error format for invalid/used authorization code", async () => {
-        const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+      it("should exchange authorization code for tokens with JSON body", async () => {
+        const authResponse = await request(app.getHttpServer())
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
+            redirect_uri: testRedirectUri,
+            scopes: [AccessScope.READ_BOOKING],
+            team_slug: team.slug,
+          })
+          .expect(303);
+
+        const redirectUrl = new URL(authResponse.headers.location);
+        const code = redirectUrl.searchParams.get("code") as string;
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/auth/oauth2/token")
+          .send({
+            client_id: testClientId,
+            grant_type: "authorization_code",
+            code,
+            client_secret: testClientSecret,
+            redirect_uri: testRedirectUri,
+          })
+          .expect(200);
+
+        expect(response.body.access_token).toBeDefined();
+        expect(response.body.refresh_token).toBeDefined();
+        expect(response.body.token_type).toBe("bearer");
+      });
+
+      it("should return 400 with RFC 6749 error for invalid/used authorization code", async () => {
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
+          .send({
+            client_id: testClientId,
             grant_type: "authorization_code",
             code: authorizationCode,
             client_secret: testClientSecret,
@@ -289,8 +322,10 @@ describe("OAuth2 Controller Endpoints", () => {
         const newAuthCode = newRedirectUrl.searchParams.get("code") as string;
 
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
           .send({
+            client_id: testClientId,
             grant_type: "authorization_code",
             code: newAuthCode,
             client_secret: "wrong-secret",
@@ -302,52 +337,43 @@ describe("OAuth2 Controller Endpoints", () => {
         expect(response.body.error_description).toBe("invalid_client_credentials");
       });
 
-      it("should exchange authorization code for tokens with form-urlencoded body", async () => {
-        const authResponse = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
-          .send({
-            redirect_uri: testRedirectUri,
-            scopes: [AccessScope.READ_BOOKING],
-            team_slug: team.slug,
-          })
-          .expect(303);
-
-        const redirectUrl = new URL(authResponse.headers.location);
-        const code = redirectUrl.searchParams.get("code") as string;
-
-        const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
-          .type("form")
-          .send({
-            grant_type: "authorization_code",
-            code,
-            client_secret: testClientSecret,
-            redirect_uri: testRedirectUri,
-          })
-          .expect(200);
-
-        expect(response.body.access_token).toBeDefined();
-        expect(response.body.refresh_token).toBeDefined();
-        expect(response.body.token_type).toBe("bearer");
-      });
-
       it("should return 400 for invalid grant type", async () => {
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
           .send({
+            client_id: testClientId,
             grant_type: "invalid_grant",
             code: "some-code",
             redirect_uri: testRedirectUri,
           })
           .expect(400);
       });
+
+      it("should return 400 with RFC 6749 error when client_id is missing", async () => {
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
+          .send({
+            grant_type: "authorization_code",
+            code: "some-code",
+            client_secret: testClientSecret,
+            redirect_uri: testRedirectUri,
+          })
+          .expect(400);
+
+        expect(response.body.error).toBe("invalid_request");
+        expect(response.body.error_description).toBe("client_id is required");
+      });
     });
 
-    describe("POST /api/v2/auth/oauth2/clients/:clientId/token (refresh_token grant)", () => {
+    describe("POST /api/v2/auth/oauth2/token (refresh_token grant)", () => {
       it("should refresh access token with valid refresh token", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
           .send({
+            client_id: testClientId,
             grant_type: "refresh_token",
             refresh_token: refreshToken,
             client_secret: testClientSecret,
@@ -360,10 +386,12 @@ describe("OAuth2 Controller Endpoints", () => {
         expect(response.body.expires_in).toBe(1800);
       });
 
-      it("should return 400 with RFC 6749 error format for invalid refresh token", async () => {
+      it("should return 400 with RFC 6749 error for invalid refresh token", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
           .send({
+            client_id: testClientId,
             grant_type: "refresh_token",
             refresh_token: "invalid-refresh-token",
             client_secret: testClientSecret,
@@ -374,10 +402,12 @@ describe("OAuth2 Controller Endpoints", () => {
         expect(response.body.error_description).toBe("invalid_refresh_token");
       });
 
-      it("should return 401 with RFC 6749 error format for non-existent client ID", async () => {
+      it("should return 401 with RFC 6749 error for non-existent client_id", async () => {
         const response = await request(app.getHttpServer())
-          .post("/api/v2/auth/oauth2/clients/wrong-client-id/token")
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
           .send({
+            client_id: "wrong-client-id",
             grant_type: "refresh_token",
             refresh_token: refreshToken,
             client_secret: testClientSecret,

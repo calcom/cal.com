@@ -104,11 +104,11 @@ export class AppModule implements NestModule {
       .apply(UrlencodedBodyMiddleware)
       .forRoutes(
         {
-          path: "/v2/auth/oauth2/clients/:clientId/token",
+          path: "/v2/auth/oauth2/token",
           method: RequestMethod.POST,
         },
         {
-          path: "/api/v2/auth/oauth2/clients/:clientId/token",
+          path: "/api/v2/auth/oauth2/token",
           method: RequestMethod.POST,
         }
       )
