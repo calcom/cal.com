@@ -52,6 +52,7 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
   delegatedTo: null,
   invalid: false,
   teamId: null,
+  encryptedKey: null,
 };
 
 describe("getAvailability", () => {
