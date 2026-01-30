@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Modal, Text, TouchableOpacity, View } from "react-native";
+import { t } from "@/lib/i18n";
 
 export function NetworkStatusBanner() {
   // eslint-disable-next-line react-compiler/react-compiler -- Animated.Value ref access in JSX is incompatible with React Compiler
@@ -93,15 +94,15 @@ export function NetworkStatusBanner() {
       >
         <View className="w-full max-w-xs items-center rounded-2xl bg-white px-6 py-8">
           <Ionicons name="cloud-offline-outline" size={36} color="#292929" />
-          <Text className="mt-4 text-lg font-semibold text-gray-900">You're offline</Text>
+          <Text className="mt-4 text-lg font-semibold text-gray-900">{t("youre_offline")}</Text>
           <Text className="mt-2 text-center text-sm leading-5 text-gray-500">
-            The internet left the chat. Don't panic! You can still browse around.
+            {t("offline_message")}
           </Text>
           <TouchableOpacity
             onPress={handleDismiss}
             className="mt-6 rounded-full bg-gray-900 px-8 py-3 active:bg-gray-700"
           >
-            <Text className="text-sm font-medium text-white">Cool, got it</Text>
+            <Text className="text-sm font-medium text-white">{t("cool_got_it")}</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
