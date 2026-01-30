@@ -10,7 +10,7 @@ import type { z } from "zod";
 import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
 import ThemeLabel from "@calcom/web/modules/settings/components/ThemeLabel";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
