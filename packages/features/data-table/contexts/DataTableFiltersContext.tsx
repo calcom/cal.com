@@ -1,9 +1,8 @@
 "use client";
 
 import debounce from "lodash/debounce";
-import { createContext, useContext, useCallback, useMemo } from "react";
-
-import type { FilterValue, ActiveFilters } from "../lib/types";
+import { createContext, useCallback, useContext, useEffect, useMemo } from "react";
+import type { ActiveFilters, FilterValue } from "../lib/types";
 import { useDataTableSegment } from "./DataTableSegmentContext";
 import { useDataTableState } from "./DataTableStateContext";
 
@@ -59,10 +58,17 @@ export function DataTableFiltersProvider({ children }: DataTableFiltersProviderP
     [setSearchTerm]
   );
 
+  // Cancel debounced search on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      setDebouncedSearchTerm.cancel();
+    };
+  }, [setDebouncedSearchTerm]);
+
   const addFilter = useCallback(
     (columnId: string) => {
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
-        setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
+        setActiveFilters([...(activeFilters ?? []), { f: columnId, v: undefined }]);
         clearSystemSegmentSelectionIfExists();
       }
     },
