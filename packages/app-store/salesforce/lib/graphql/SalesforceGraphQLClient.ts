@@ -135,20 +135,20 @@ export class SalesforceGraphQLClient {
         const accountNode = contact.Account;
 
         // Check field rules against the contact's account
-        if (
-          hasFieldRules &&
-          accountNode &&
-          !this.passesFieldRules(accountNode, fieldRules)
-        ) {
-          log.info(
-            `Contact ${contact.Id}'s account filtered out by field rules, checking next contact`
-          );
-          SalesforceRoutingTraceService.fieldRuleFilteredRecord({
-            tier: "contact",
-            recordId: contact.Id,
-            reason: "Contact's account filtered out by field rules",
-          });
-          continue;
+        if (hasFieldRules && accountNode) {
+          const failedRule = this.getFailingFieldRule(accountNode, fieldRules);
+          if (failedRule) {
+            log.info(
+              `Contact ${contact.Id}'s account filtered out by field rules, checking next contact`
+            );
+            SalesforceRoutingTraceService.fieldRuleFilteredRecord({
+              tier: "contact",
+              recordId: contact.Id,
+              reason: "Contact's account filtered out by field rules",
+              failedRule: { field: failedRule.field, value: failedRule.value, action: failedRule.action },
+            });
+            continue;
+          }
         }
 
         log.info(`Existing contact found with id ${contact.Id}`);
@@ -178,16 +178,20 @@ export class SalesforceGraphQLClient {
         if (!account) continue;
 
         // Check field rules against the account
-        if (hasFieldRules && !this.passesFieldRules(account, fieldRules)) {
-          log.info(
-            `Account ${account.Id} filtered out by field rules, checking next account`
-          );
-          SalesforceRoutingTraceService.fieldRuleFilteredRecord({
-            tier: "account",
-            recordId: account.Id,
-            reason: "Account filtered out by field rules",
-          });
-          continue;
+        if (hasFieldRules) {
+          const failedRule = this.getFailingFieldRule(account, fieldRules);
+          if (failedRule) {
+            log.info(
+              `Account ${account.Id} filtered out by field rules, checking next account`
+            );
+            SalesforceRoutingTraceService.fieldRuleFilteredRecord({
+              tier: "account",
+              recordId: account.Id,
+              reason: "Account filtered out by field rules",
+              failedRule: { field: failedRule.field, value: failedRule.value, action: failedRule.action },
+            });
+            continue;
+          }
         }
 
         log.info(
@@ -297,16 +301,20 @@ export class SalesforceGraphQLClient {
         // Check field rules against the account node
         if (hasFieldRules) {
           const accountNode = accountNodesByAccountId.get(accountId);
-          if (accountNode && !this.passesFieldRules(accountNode, fieldRules)) {
-            log.info(
-              `Dominant account ${accountId} filtered out by field rules, trying next account`
-            );
-            SalesforceRoutingTraceService.fieldRuleFilteredRecord({
-              tier: "related_contacts",
-              recordId: accountId,
-              reason: "Dominant account filtered out by field rules",
-            });
-            continue;
+          if (accountNode) {
+            const failedRule = this.getFailingFieldRule(accountNode, fieldRules);
+            if (failedRule) {
+              log.info(
+                `Dominant account ${accountId} filtered out by field rules, trying next account`
+              );
+              SalesforceRoutingTraceService.fieldRuleFilteredRecord({
+                tier: "related_contacts",
+                recordId: accountId,
+                reason: "Dominant account filtered out by field rules",
+                failedRule: { field: failedRule.field, value: failedRule.value, action: failedRule.action },
+              });
+              continue;
+            }
           }
         }
 
@@ -368,13 +376,15 @@ export class SalesforceGraphQLClient {
   /**
    * Checks whether an Account node passes all configured field rules.
    * Account nodes use the UIAPI pattern where field values are wrapped in { value }.
+   *
+   * @returns `null` if all rules pass, or the first failing rule if filtered.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private passesFieldRules(
+  private getFailingFieldRule(
     accountNode: Record<string, any>,
     fieldRules: RRSkipFieldRule[]
-  ): boolean {
-    const log = logger.getSubLogger({ prefix: [`[passesFieldRules]`] });
+  ): RRSkipFieldRule | null {
+    const log = logger.getSubLogger({ prefix: [`[getFailingFieldRule]`] });
 
     for (const rule of fieldRules) {
       const fieldData = accountNode[rule.field];
@@ -402,7 +412,7 @@ export class SalesforceGraphQLClient {
           matches,
           result: "filtered",
         });
-        return false;
+        return rule;
       }
 
       if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
@@ -417,11 +427,11 @@ export class SalesforceGraphQLClient {
           matches,
           result: "filtered",
         });
-        return false;
+        return rule;
       }
     }
     log.info("All field rules passed");
-    return true;
+    return null;
   }
 
   /**

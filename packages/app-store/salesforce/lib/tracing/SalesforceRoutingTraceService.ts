@@ -198,6 +198,7 @@ export class SalesforceRoutingTraceService {
     tier: string;
     recordId: string;
     reason: string;
+    failedRule?: { field: string; value: string; action: string };
   }): void {
     SalesforceRoutingTraceService.addStep("field_rule_filtered_record", data);
   }
