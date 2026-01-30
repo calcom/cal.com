@@ -1,56 +1,60 @@
-import type { FeatureState } from "@calcom/features/flags/config";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/FeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
+import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/UserFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import type { TeamFeatures, UserFeatures } from "@calcom/prisma/client";
+import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { IFeatureOptInServiceDeps } from "./FeatureOptInService";
 import { FeatureOptInService } from "./FeatureOptInService";
 
-const mockIsFeatureAllowedForScope = vi.fn();
-const mockFindAllByUserId = vi.fn();
+const mockIsFeatureAllowedForScope: Mock = vi.fn();
+const mockFindAllByUserId: Mock = vi.fn();
 
 // Mock the OPT_IN_FEATURES config
 vi.mock("../config", () => {
-    const mockFeatures = [
-      {
-        slug: "test-feature-1",
-        i18n: { title: "test_feature_1_title", name: "test_feature_1", description: "test_feature_1_desc" },
-        policy: "permissive",
-      },
-      {
-        slug: "test-feature-2",
-        i18n: { title: "test_feature_2_title", name: "test_feature_2", description: "test_feature_2_desc" },
-        policy: "permissive",
-      },
-      {
-        slug: "org-only-feature",
-        i18n: { title: "org_only_title", name: "org_only", description: "org_only_desc" },
-        policy: "permissive",
-        scope: ["org"],
-      },
-      {
-        slug: "team-only-feature",
-        i18n: { title: "team_only_title", name: "team_only", description: "team_only_desc" },
-        policy: "permissive",
-        scope: ["team"],
-      },
-      {
-        slug: "user-only-feature",
-        i18n: { title: "user_only_title", name: "user_only", description: "user_only_desc" },
-        policy: "permissive",
-        scope: ["user"],
-      },
-      {
-        slug: "strict-feature",
-        i18n: { title: "strict_feature_title", name: "strict_feature", description: "strict_feature_desc" },
-        policy: "strict",
-      },
-    ];
+  const mockFeatures = [
+    {
+      slug: "test-feature-1",
+      i18n: { title: "test_feature_1_title", name: "test_feature_1", description: "test_feature_1_desc" },
+      policy: "permissive",
+    },
+    {
+      slug: "test-feature-2",
+      i18n: { title: "test_feature_2_title", name: "test_feature_2", description: "test_feature_2_desc" },
+      policy: "permissive",
+    },
+    {
+      slug: "org-only-feature",
+      i18n: { title: "org_only_title", name: "org_only", description: "org_only_desc" },
+      policy: "permissive",
+      scope: ["org"],
+    },
+    {
+      slug: "team-only-feature",
+      i18n: { title: "team_only_title", name: "team_only", description: "team_only_desc" },
+      policy: "permissive",
+      scope: ["team"],
+    },
+    {
+      slug: "user-only-feature",
+      i18n: { title: "user_only_title", name: "user_only", description: "user_only_desc" },
+      policy: "permissive",
+      scope: ["user"],
+    },
+    {
+      slug: "strict-feature",
+      i18n: { title: "strict_feature_title", name: "strict_feature", description: "strict_feature_desc" },
+      policy: "strict",
+    },
+  ];
   return {
     OPT_IN_FEATURES: mockFeatures,
     isOptInFeature: (slug: string) => mockFeatures.some((feature) => feature.slug === slug),
     getOptInFeaturesForScope: () => mockFeatures,
-    get isFeatureAllowedForScope() {
+    get isFeatureAllowedForScope(): Mock {
       return mockIsFeatureAllowedForScope;
     },
     getOptInFeatureConfig: (slug: string) => mockFeatures.find((feature) => feature.slug === slug),
@@ -60,27 +64,27 @@ vi.mock("../config", () => {
 // Mock MembershipRepository
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: class {
-    findAllByUserId(...args: unknown[]) {
+    findAllByUserId(...args: unknown[]): unknown {
       return mockFindAllByUserId(...args);
     }
   },
 }));
 
 // Mock PermissionCheckService - needs to be a class that can be instantiated
-let mockCheckPermission = vi.fn();
+let mockCheckPermission: Mock = vi.fn();
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
   PermissionCheckService: class {
-    checkPermission(...args: unknown[]) {
+    checkPermission(...args: unknown[]): unknown {
       return mockCheckPermission(...args);
     }
   },
 }));
 
 // Mock TeamRepository - needs to be a class that can be instantiated
-let mockFindOwnedTeamsByUserId = vi.fn();
+let mockFindOwnedTeamsByUserId: Mock = vi.fn();
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
   TeamRepository: class {
-    findOwnedTeamsByUserId(...args: unknown[]) {
+    findOwnedTeamsByUserId(...args: unknown[]): unknown {
       return mockFindOwnedTeamsByUserId(...args);
     }
   },
@@ -91,39 +95,96 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
-describe("FeatureOptInService", () => {
-  let mockFeaturesRepository: {
-    getAllFeatures: ReturnType<typeof vi.fn>;
-    getTeamsFeatureStates: ReturnType<typeof vi.fn>;
-    setUserFeatureState: ReturnType<typeof vi.fn>;
-    setTeamFeatureState: ReturnType<typeof vi.fn>;
+// Helper to create mock TeamFeatures
+function createMockTeamFeature(teamId: number, featureId: string, enabled: boolean): TeamFeatures {
+  return {
+    teamId,
+    featureId,
+    enabled,
+    assignedBy: "test",
+    updatedAt: new Date(),
   };
+}
+
+// Helper to create mock UserFeatures
+function createMockUserFeature(userId: number, featureId: string, enabled: boolean): UserFeatures {
+  return {
+    userId,
+    featureId,
+    enabled,
+    assignedBy: "test",
+    updatedAt: new Date(),
+  };
+}
+
+describe("FeatureOptInService", () => {
+  let mockFeatureRepo: {
+    findAll: ReturnType<typeof vi.fn>;
+  };
+  let mockTeamFeatureRepo: {
+    findByTeamIdAndFeatureId: ReturnType<typeof vi.fn>;
+    findByTeamIdsAndFeatureIds: ReturnType<typeof vi.fn>;
+    upsert: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    findAutoOptInByTeamId: ReturnType<typeof vi.fn>;
+    findAutoOptInByTeamIds: ReturnType<typeof vi.fn>;
+    setAutoOptIn: ReturnType<typeof vi.fn>;
+  };
+  let mockUserFeatureRepo: {
+    findByUserIdAndFeatureId: ReturnType<typeof vi.fn>;
+    findByUserIdAndFeatureIds: ReturnType<typeof vi.fn>;
+    upsert: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+    findAutoOptInByUserId: ReturnType<typeof vi.fn>;
+    setAutoOptIn: ReturnType<typeof vi.fn>;
+  };
+  let mockDeps: IFeatureOptInServiceDeps;
   let service: FeatureOptInService;
 
   beforeEach(() => {
     vi.resetAllMocks();
     mockIsFeatureAllowedForScope.mockReturnValue(true);
 
-    mockFeaturesRepository = {
-      getAllFeatures: vi.fn(),
-      getTeamsFeatureStates: vi.fn(),
-      setUserFeatureState: vi.fn(),
-      setTeamFeatureState: vi.fn(),
+    mockFeatureRepo = {
+      findAll: vi.fn(),
+    };
+    mockTeamFeatureRepo = {
+      findByTeamIdAndFeatureId: vi.fn(),
+      findByTeamIdsAndFeatureIds: vi.fn(),
+      upsert: vi.fn(),
+      delete: vi.fn(),
+      findAutoOptInByTeamId: vi.fn(),
+      findAutoOptInByTeamIds: vi.fn(),
+      setAutoOptIn: vi.fn(),
+    };
+    mockUserFeatureRepo = {
+      findByUserIdAndFeatureId: vi.fn(),
+      findByUserIdAndFeatureIds: vi.fn(),
+      upsert: vi.fn(),
+      delete: vi.fn(),
+      findAutoOptInByUserId: vi.fn(),
+      setAutoOptIn: vi.fn(),
     };
 
-    service = new FeatureOptInService(mockFeaturesRepository as unknown as FeaturesRepository);
+    mockDeps = {
+      featureRepo: mockFeatureRepo as unknown as IFeatureRepository,
+      teamFeatureRepo: mockTeamFeatureRepo as unknown as ITeamFeatureRepository,
+      userFeatureRepo: mockUserFeatureRepo as unknown as IUserFeatureRepository,
+    };
+
+    service = new FeatureOptInService(mockDeps);
   });
 
   describe("listFeaturesForTeam", () => {
     it("should return features with team state when no parent org", async () => {
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([
+      mockFeatureRepo.findAll.mockResolvedValue([
         { slug: "test-feature-1", enabled: true },
         { slug: "test-feature-2", enabled: true },
       ]);
 
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
-        "test-feature-1": { 1: "enabled" as FeatureState },
-        "test-feature-2": { 1: "disabled" as FeatureState },
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
+        "test-feature-1": { 1: createMockTeamFeature(1, "test-feature-1", true) },
+        "test-feature-2": { 1: createMockTeamFeature(1, "test-feature-2", false) },
       });
 
       const result = await service.listFeaturesForTeam({ teamId: 1 });
@@ -143,29 +204,34 @@ describe("FeatureOptInService", () => {
       });
 
       // Verify that only the team ID was queried (no parent org)
-      expect(mockFeaturesRepository.getTeamsFeatureStates).toHaveBeenCalledWith({
-        teamIds: [1],
-        featureIds: [
+      expect(mockTeamFeatureRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith(
+        [1],
+        [
           "test-feature-1",
           "test-feature-2",
           "org-only-feature",
           "team-only-feature",
           "user-only-feature",
           "strict-feature",
-        ],
-      });
+        ]
+      );
     });
 
     it("should return features with team and org state when parent org exists", async () => {
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([
+      mockFeatureRepo.findAll.mockResolvedValue([
         { slug: "test-feature-1", enabled: true },
         { slug: "test-feature-2", enabled: true },
       ]);
 
       // Team ID is 1, Parent Org ID is 100
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
-        "test-feature-1": { 1: "enabled" as FeatureState, 100: "disabled" as FeatureState },
-        "test-feature-2": { 1: "inherit" as FeatureState, 100: "enabled" as FeatureState },
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
+        "test-feature-1": {
+          1: createMockTeamFeature(1, "test-feature-1", true),
+          100: createMockTeamFeature(100, "test-feature-1", false),
+        },
+        "test-feature-2": {
+          100: createMockTeamFeature(100, "test-feature-2", true),
+        },
       });
 
       const result = await service.listFeaturesForTeam({ teamId: 1, parentOrgId: 100 });
@@ -185,25 +251,25 @@ describe("FeatureOptInService", () => {
       });
 
       // Verify that both team ID and parent org ID were queried
-      expect(mockFeaturesRepository.getTeamsFeatureStates).toHaveBeenCalledWith({
-        teamIds: [1, 100],
-        featureIds: [
+      expect(mockTeamFeatureRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith(
+        [1, 100],
+        [
           "test-feature-1",
           "test-feature-2",
           "org-only-feature",
           "team-only-feature",
           "user-only-feature",
           "strict-feature",
-        ],
-      });
+        ]
+      );
     });
 
     it("should return inherit for org state when parent org has no explicit state", async () => {
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
 
       // Team ID is 1, Parent Org ID is 100, but org has no explicit state
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
-        "test-feature-1": { 1: "enabled" as FeatureState },
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
+        "test-feature-1": { 1: createMockTeamFeature(1, "test-feature-1", true) },
       });
 
       const result = await service.listFeaturesForTeam({ teamId: 1, parentOrgId: 100 });
@@ -218,14 +284,14 @@ describe("FeatureOptInService", () => {
     });
 
     it("should filter out globally disabled features", async () => {
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([
+      mockFeatureRepo.findAll.mockResolvedValue([
         { slug: "test-feature-1", enabled: true },
         { slug: "test-feature-2", enabled: false },
       ]);
 
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
-        "test-feature-1": { 1: "enabled" as FeatureState },
-        "test-feature-2": { 1: "enabled" as FeatureState },
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
+        "test-feature-1": { 1: createMockTeamFeature(1, "test-feature-1", true) },
+        "test-feature-2": { 1: createMockTeamFeature(1, "test-feature-2", true) },
       });
 
       const result = await service.listFeaturesForTeam({ teamId: 1 });
@@ -235,9 +301,9 @@ describe("FeatureOptInService", () => {
     });
 
     it("should return inherit for team state when team has no explicit state", async () => {
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
 
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
         "test-feature-1": {},
       });
 
@@ -253,10 +319,10 @@ describe("FeatureOptInService", () => {
     });
 
     it("should handle null parentOrgId the same as undefined", async () => {
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
 
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
-        "test-feature-1": { 1: "enabled" as FeatureState },
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
+        "test-feature-1": { 1: createMockTeamFeature(1, "test-feature-1", true) },
       });
 
       const result = await service.listFeaturesForTeam({ teamId: 1, parentOrgId: null });
@@ -265,24 +331,24 @@ describe("FeatureOptInService", () => {
       expect(result[0].orgState).toBe("inherit");
 
       // Verify that only the team ID was queried (no parent org)
-      expect(mockFeaturesRepository.getTeamsFeatureStates).toHaveBeenCalledWith({
-        teamIds: [1],
-        featureIds: [
+      expect(mockTeamFeatureRepo.findByTeamIdsAndFeatureIds).toHaveBeenCalledWith(
+        [1],
+        [
           "test-feature-1",
           "test-feature-2",
           "org-only-feature",
           "team-only-feature",
           "user-only-feature",
           "strict-feature",
-        ],
-      });
+        ]
+      );
     });
   });
 
   describe("setUserFeatureState", () => {
     it("should set user feature state when scope allows", async () => {
       mockIsFeatureAllowedForScope.mockReturnValue(true);
-      mockFeaturesRepository.setUserFeatureState.mockResolvedValue(undefined);
+      mockUserFeatureRepo.upsert.mockResolvedValue(createMockUserFeature(1, "test-feature-1", true));
 
       await service.setUserFeatureState({
         userId: 1,
@@ -291,17 +357,12 @@ describe("FeatureOptInService", () => {
         assignedBy: 2,
       });
 
-      expect(mockFeaturesRepository.setUserFeatureState).toHaveBeenCalledWith({
-        userId: 1,
-        featureId: "test-feature-1",
-        state: "enabled",
-        assignedBy: "user-2",
-      });
+      expect(mockUserFeatureRepo.upsert).toHaveBeenCalledWith(1, "test-feature-1", true, "user-2");
     });
 
     it("should set user feature state to inherit when scope allows", async () => {
       mockIsFeatureAllowedForScope.mockReturnValue(true);
-      mockFeaturesRepository.setUserFeatureState.mockResolvedValue(undefined);
+      mockUserFeatureRepo.delete.mockResolvedValue(undefined);
 
       await service.setUserFeatureState({
         userId: 1,
@@ -309,11 +370,7 @@ describe("FeatureOptInService", () => {
         state: "inherit",
       });
 
-      expect(mockFeaturesRepository.setUserFeatureState).toHaveBeenCalledWith({
-        userId: 1,
-        featureId: "test-feature-1",
-        state: "inherit",
-      });
+      expect(mockUserFeatureRepo.delete).toHaveBeenCalledWith(1, "test-feature-1");
     });
 
     it("should throw ErrorWithCode when feature is not allowed at user scope", async () => {
@@ -340,7 +397,7 @@ describe("FeatureOptInService", () => {
         message: 'Feature "org-only-feature" is not available at the user scope',
       });
 
-      expect(mockFeaturesRepository.setUserFeatureState).not.toHaveBeenCalled();
+      expect(mockUserFeatureRepo.upsert).not.toHaveBeenCalled();
     });
 
     it("should validate scope before setting inherit state", async () => {
@@ -354,14 +411,14 @@ describe("FeatureOptInService", () => {
         })
       ).rejects.toThrow(ErrorWithCode);
 
-      expect(mockFeaturesRepository.setUserFeatureState).not.toHaveBeenCalled();
+      expect(mockUserFeatureRepo.delete).not.toHaveBeenCalled();
     });
   });
 
   describe("setTeamFeatureState", () => {
     it("should set team feature state when scope allows", async () => {
       mockIsFeatureAllowedForScope.mockReturnValue(true);
-      mockFeaturesRepository.setTeamFeatureState.mockResolvedValue(undefined);
+      mockTeamFeatureRepo.upsert.mockResolvedValue(createMockTeamFeature(1, "test-feature-1", true));
 
       await service.setTeamFeatureState({
         teamId: 1,
@@ -371,17 +428,12 @@ describe("FeatureOptInService", () => {
         scope: "team",
       });
 
-      expect(mockFeaturesRepository.setTeamFeatureState).toHaveBeenCalledWith({
-        teamId: 1,
-        featureId: "test-feature-1",
-        state: "enabled",
-        assignedBy: "user-2",
-      });
+      expect(mockTeamFeatureRepo.upsert).toHaveBeenCalledWith(1, "test-feature-1", true, "user-2");
     });
 
     it("should set team feature state to inherit when scope allows", async () => {
       mockIsFeatureAllowedForScope.mockReturnValue(true);
-      mockFeaturesRepository.setTeamFeatureState.mockResolvedValue(undefined);
+      mockTeamFeatureRepo.delete.mockResolvedValue(undefined);
 
       await service.setTeamFeatureState({
         teamId: 1,
@@ -390,11 +442,7 @@ describe("FeatureOptInService", () => {
         scope: "team",
       });
 
-      expect(mockFeaturesRepository.setTeamFeatureState).toHaveBeenCalledWith({
-        teamId: 1,
-        featureId: "test-feature-1",
-        state: "inherit",
-      });
+      expect(mockTeamFeatureRepo.delete).toHaveBeenCalledWith(1, "test-feature-1");
     });
 
     it("should throw ErrorWithCode when feature is not allowed at team scope", async () => {
@@ -423,7 +471,7 @@ describe("FeatureOptInService", () => {
         message: 'Feature "user-only-feature" is not available at the team scope',
       });
 
-      expect(mockFeaturesRepository.setTeamFeatureState).not.toHaveBeenCalled();
+      expect(mockTeamFeatureRepo.upsert).not.toHaveBeenCalled();
     });
 
     it("should throw ErrorWithCode when feature is not allowed at org scope", async () => {
@@ -452,12 +500,12 @@ describe("FeatureOptInService", () => {
         message: 'Feature "team-only-feature" is not available at the org scope',
       });
 
-      expect(mockFeaturesRepository.setTeamFeatureState).not.toHaveBeenCalled();
+      expect(mockTeamFeatureRepo.upsert).not.toHaveBeenCalled();
     });
 
     it("should default to team scope when scope is not provided", async () => {
       mockIsFeatureAllowedForScope.mockReturnValue(true);
-      mockFeaturesRepository.setTeamFeatureState.mockResolvedValue(undefined);
+      mockTeamFeatureRepo.upsert.mockResolvedValue(createMockTeamFeature(1, "test-feature-1", true));
 
       await service.setTeamFeatureState({
         teamId: 1,
@@ -481,7 +529,7 @@ describe("FeatureOptInService", () => {
         })
       ).rejects.toThrow(ErrorWithCode);
 
-      expect(mockFeaturesRepository.setTeamFeatureState).not.toHaveBeenCalled();
+      expect(mockTeamFeatureRepo.delete).not.toHaveBeenCalled();
     });
   });
 
@@ -492,15 +540,34 @@ describe("FeatureOptInService", () => {
       mockCheckPermission = vi.fn();
       mockFindOwnedTeamsByUserId = vi.fn();
 
-      mockFeaturesRepository = {
-        getAllFeatures: vi.fn(),
-        getTeamsFeatureStates: vi.fn(),
-        getUserFeatureStates: vi.fn().mockResolvedValue({}),
-        getUserAutoOptIn: vi.fn().mockResolvedValue(false),
-        getTeamsAutoOptIn: vi.fn().mockResolvedValue({}),
+      mockFeatureRepo = {
+        findAll: vi.fn(),
+      };
+      mockTeamFeatureRepo = {
+        findByTeamIdAndFeatureId: vi.fn(),
+        findByTeamIdsAndFeatureIds: vi.fn().mockResolvedValue({}),
+        upsert: vi.fn(),
+        delete: vi.fn(),
+        findAutoOptInByTeamId: vi.fn(),
+        findAutoOptInByTeamIds: vi.fn().mockResolvedValue({}),
+        setAutoOptIn: vi.fn(),
+      };
+      mockUserFeatureRepo = {
+        findByUserIdAndFeatureId: vi.fn(),
+        findByUserIdAndFeatureIds: vi.fn().mockResolvedValue({}),
+        upsert: vi.fn(),
+        delete: vi.fn(),
+        findAutoOptInByUserId: vi.fn().mockResolvedValue(false),
+        setAutoOptIn: vi.fn(),
       };
 
-      service = new FeatureOptInService(mockFeaturesRepository as unknown as FeaturesRepository);
+      mockDeps = {
+        featureRepo: mockFeatureRepo as unknown as IFeatureRepository,
+        teamFeatureRepo: mockTeamFeatureRepo as unknown as ITeamFeatureRepository,
+        userFeatureRepo: mockUserFeatureRepo as unknown as IUserFeatureRepository,
+      };
+
+      service = new FeatureOptInService(mockDeps);
     });
 
     it("should return invalid_feature for non-opt-in features", async () => {
@@ -519,8 +586,8 @@ describe("FeatureOptInService", () => {
 
     it("should return feature_disabled when feature is globally disabled", async () => {
       mockFindAllByUserId.mockResolvedValue([]);
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: false }]);
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({});
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: false }]);
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({});
 
       const result = await service.checkFeatureOptInEligibility({
         userId: 1,
@@ -537,10 +604,10 @@ describe("FeatureOptInService", () => {
 
     it("should return already_enabled when feature is already enabled for user", async () => {
       mockFindAllByUserId.mockResolvedValue([]);
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({});
-      mockFeaturesRepository.getUserFeatureStates.mockResolvedValue({
-        "test-feature-1": "enabled" as FeatureState,
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({});
+      mockUserFeatureRepo.findByUserIdAndFeatureIds.mockResolvedValue({
+        "test-feature-1": createMockUserFeature(1, "test-feature-1", true),
       });
       mockFindOwnedTeamsByUserId.mockResolvedValue([]);
 
@@ -561,9 +628,9 @@ describe("FeatureOptInService", () => {
       mockFindAllByUserId.mockResolvedValue([
         { teamId: 100, role: "MEMBER", team: { id: 100, isOrganization: true, parentId: null } },
       ]);
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({
-        "test-feature-1": { 100: "disabled" as FeatureState },
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({
+        "test-feature-1": { 100: createMockTeamFeature(100, "test-feature-1", false) },
       });
       mockFindOwnedTeamsByUserId.mockResolvedValue([]);
 
@@ -586,8 +653,8 @@ describe("FeatureOptInService", () => {
       mockFindAllByUserId.mockResolvedValue([
         { teamId: 1, role: "MEMBER", team: { id: 1, isOrganization: false, parentId: null } },
       ]);
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({});
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({});
       mockFindOwnedTeamsByUserId.mockResolvedValue([]);
 
       const result = await service.checkFeatureOptInEligibility({
@@ -610,8 +677,8 @@ describe("FeatureOptInService", () => {
         { teamId: 1, role: "ADMIN", team: { id: 1, isOrganization: false, parentId: null } },
         { teamId: 2, role: "MEMBER", team: { id: 2, isOrganization: false, parentId: null } },
       ]);
-      mockFeaturesRepository.getAllFeatures.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
-      mockFeaturesRepository.getTeamsFeatureStates.mockResolvedValue({});
+      mockFeatureRepo.findAll.mockResolvedValue([{ slug: "test-feature-1", enabled: true }]);
+      mockTeamFeatureRepo.findByTeamIdsAndFeatureIds.mockResolvedValue({});
       mockFindOwnedTeamsByUserId.mockResolvedValue([{ id: 1, name: "Team 1", isOrganization: false }]);
 
       const result = await service.checkFeatureOptInEligibility({
@@ -643,7 +710,7 @@ describe("FeatureOptInService", () => {
 
       vi.doMock("@calcom/features/membership/repositories/MembershipRepository", () => ({
         MembershipRepository: class {
-          findAllByUserId(...args: unknown[]) {
+          findAllByUserId(...args: unknown[]): unknown {
             return mockMembershipRepository.findAllByUserId(...args);
           }
         },

@@ -15,6 +15,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useColorScheme,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,6 +50,22 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
   function RescheduleScreen({ booking, onSuccess, onSavingChange, useNativeHeader = false }, ref) {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
+
+    const colors = {
+      background: isDark ? "#000000" : "#F2F2F7",
+      cardBackground: isDark ? "#171717" : "#FFFFFF",
+      text: isDark ? "#FFFFFF" : "#000000",
+      textSecondary: isDark ? "#A3A3A3" : "#6B7280",
+      border: isDark ? "#4D4D4D" : "#E5E5EA",
+      borderLight: isDark ? "#2C2C2E" : "#F3F4F6",
+      pill: isDark ? "#4D4D4D" : "#E8E8ED",
+      chevron: isDark ? "#636366" : "#C7C7CC",
+      pressed: isDark ? "#2C2C2E" : "#F9F9F9",
+      accent: "#007AFF",
+    };
+
     const [selectedDateTime, setSelectedDateTime] = useState<Date>(new Date());
     const [reason, setReason] = useState("");
 
@@ -153,24 +170,31 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
 
     if (!booking) {
       return (
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
-          <Text className="text-gray-500">No booking data</Text>
+        <View
+          className="flex-1 items-center justify-center"
+          style={{ backgroundColor: colors.background }}
+        >
+          <Text style={{ color: colors.textSecondary }}>No booking data</Text>
         </View>
       );
     }
 
     return (
-      <KeyboardAvoidingView behavior="height" className="flex-1 bg-[#F2F2F7]">
+      <KeyboardAvoidingView
+        behavior="height"
+        className="flex-1"
+        style={{ backgroundColor: colors.background }}
+      >
         {/* Header - only shown when not using native header */}
         {!useNativeHeader && (
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: colors.cardBackground,
               paddingTop: insets.top,
               paddingBottom: 12,
               paddingHorizontal: 16,
               borderBottomWidth: 1,
-              borderBottomColor: "#E5E5EA",
+              borderBottomColor: colors.border,
               elevation: 2,
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 1 },
@@ -195,7 +219,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="chevron-back" size={24} color="#000" />
+                <Ionicons name="chevron-back" size={24} color={colors.text} />
               </AppPressable>
 
               <Text
@@ -204,7 +228,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   textAlign: "center",
                   fontSize: 18,
                   fontWeight: "600",
-                  color: "#000",
+                  color: colors.text,
                   marginHorizontal: 10,
                 }}
                 numberOfLines={1}
@@ -225,7 +249,7 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
                   style={{
                     fontSize: 16,
                     fontWeight: "600",
-                    color: "#007AFF",
+                    color: colors.accent,
                   }}
                 >
                   Save
@@ -244,25 +268,42 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
           keyboardShouldPersistTaps="handled"
         >
           {/* Booking Title Card */}
-          <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
-              <Ionicons name="calendar" size={20} color="#6B7280" />
+          <View
+            className="mb-4 flex-row items-start rounded-xl p-4"
+            style={{ backgroundColor: colors.cardBackground }}
+          >
+            <View
+              className="mr-3 h-10 w-10 items-center justify-center rounded-full"
+              style={{ backgroundColor: colors.pill }}
+            >
+              <Ionicons name="calendar" size={20} color={colors.textSecondary} />
             </View>
             <View className="flex-1">
-              <Text className="text-[13px] font-medium text-gray-500">Rescheduling</Text>
-              <Text className="mt-0.5 text-[17px] font-medium text-[#000]" numberOfLines={2}>
+              <Text className="text-[13px] font-medium" style={{ color: colors.textSecondary }}>
+                Rescheduling
+              </Text>
+              <Text
+                className="mt-0.5 text-[17px] font-medium"
+                style={{ color: colors.text }}
+                numberOfLines={2}
+              >
                 {booking.title}
               </Text>
             </View>
           </View>
 
           {/* Form Card */}
-          <View className="mb-4 overflow-hidden rounded-xl bg-white">
+          <View
+            className="mb-4 overflow-hidden rounded-xl"
+            style={{ backgroundColor: colors.cardBackground }}
+          >
             {/* Date picker trigger */}
             <Pressable
-              className="flex-row items-center justify-between border-b border-gray-100 px-4 py-3"
+              className="flex-row items-center justify-between px-4 py-3"
               style={({ pressed }) => ({
-                backgroundColor: pressed ? "#F9F9F9" : "transparent",
+                backgroundColor: pressed ? colors.pressed : "transparent",
+                borderBottomWidth: 1,
+                borderBottomColor: colors.borderLight,
               })}
               onPress={() => {
                 safeLogInfo("[RescheduleScreen] Opening date picker");
@@ -271,17 +312,26 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               disabled={isSaving}
             >
               <View className="flex-1">
-                <Text className="mb-1 text-[13px] font-medium text-gray-500">New Date</Text>
-                <Text className="text-[17px] text-[#000]">{formattedDate}</Text>
+                <Text
+                  className="mb-1 text-[13px] font-medium"
+                  style={{ color: colors.textSecondary }}
+                >
+                  New Date
+                </Text>
+                <Text className="text-[17px]" style={{ color: colors.text }}>
+                  {formattedDate}
+                </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
             </Pressable>
 
             {/* Time picker trigger */}
             <Pressable
-              className="flex-row items-center justify-between border-b border-gray-100 px-4 py-3"
+              className="flex-row items-center justify-between px-4 py-3"
               style={({ pressed }) => ({
-                backgroundColor: pressed ? "#F9F9F9" : "transparent",
+                backgroundColor: pressed ? colors.pressed : "transparent",
+                borderBottomWidth: 1,
+                borderBottomColor: colors.borderLight,
               })}
               onPress={() => {
                 safeLogInfo("[RescheduleScreen] Opening time picker");
@@ -290,21 +340,32 @@ export const RescheduleScreen = forwardRef<RescheduleScreenHandle, RescheduleScr
               disabled={isSaving}
             >
               <View className="flex-1">
-                <Text className="mb-1 text-[13px] font-medium text-gray-500">New Time</Text>
-                <Text className="text-[17px] text-[#000]">{formattedTime}</Text>
+                <Text
+                  className="mb-1 text-[13px] font-medium"
+                  style={{ color: colors.textSecondary }}
+                >
+                  New Time
+                </Text>
+                <Text className="text-[17px]" style={{ color: colors.text }}>
+                  {formattedTime}
+                </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+              <Ionicons name="chevron-forward" size={18} color={colors.chevron} />
             </Pressable>
 
             {/* Reason input */}
             <View className="px-4 py-3">
-              <Text className="mb-1.5 text-[13px] font-medium text-gray-500">
+              <Text
+                className="mb-1.5 text-[13px] font-medium"
+                style={{ color: colors.textSecondary }}
+              >
                 Reason (optional)
               </Text>
               <TextInput
-                className="min-h-[80px] text-[17px] text-[#000]"
+                className="min-h-[80px] text-[17px]"
+                style={{ color: colors.text }}
                 placeholder="Enter reason for rescheduling..."
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textSecondary}
                 value={reason}
                 onChangeText={setReason}
                 multiline

@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
-import { useAgentsData } from "@calcom/features/ee/workflows/hooks/useAgentsData";
+import { useAgentsData } from "@calcom/web/modules/ee/workflows/hooks/useAgentsData";
 import {
   isCalAIAction,
   isSMSAction,
@@ -280,7 +280,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     deleteField={
                       !permissions.readOnly
                         ? {
-                            color: "minimal",
+                            color: "destructive",
                             check: () => true,
                             disabled: !permissions.canUpdate,
                             fn: () => {

@@ -12,6 +12,7 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
+import { mockThrottlerGuard } from "test/utils/withNoThrottler";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { StripeService } from "@/modules/stripe/stripe.service";
@@ -40,12 +41,14 @@ describe("Teams endpoint", () => {
   let team1: TeamOutputDto;
   let team2: TeamOutputDto;
 
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule, TeamsModule],
-    }).compile();
+    beforeAll(async () => {
+      mockThrottlerGuard();
 
-    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({}) as unknown as Stripe);
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, TeamsModule],
+      }).compile();
+
+      jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({}) as unknown as Stripe);
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
