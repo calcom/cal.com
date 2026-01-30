@@ -64,6 +64,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         teamId: null,
         appId: appMeta.slug,
         invalid: false,
+        encryptedKey: null,
         delegatedTo: null,
         delegatedToId: null,
         delegationCredentialId: null,
