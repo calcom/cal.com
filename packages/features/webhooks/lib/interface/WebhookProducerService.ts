@@ -48,8 +48,6 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   // ---- Trigger-specific fields (BOOKING_CANCELLED) ----
   /** Who cancelled the booking (email or identifier) */
   cancelledBy?: string;
-  /** Reason for cancellation */
-  cancellationReason?: string;
   /** Whether this is a request to reschedule rather than true cancellation */
   requestReschedule?: boolean;
 
@@ -62,12 +60,6 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   rescheduleStartTime?: string;
   /** End time of the original booking */
   rescheduleEndTime?: string;
-  /** Who rescheduled the booking (email or identifier) */
-  rescheduledBy?: string;
-
-  // ---- Trigger-specific fields (BOOKING_REJECTED) ----
-  /** Reason for rejection */
-  rejectionReason?: string;
 }
 
 /**

@@ -190,7 +190,6 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
         ...basePayload,
         triggerEvent,
         cancelledBy: params.cancelledBy,
-        cancellationReason: params.cancellationReason,
         requestReschedule: params.requestReschedule,
       };
     } else if (triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
@@ -201,13 +200,11 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
         rescheduleUid: params.rescheduleUid,
         rescheduleStartTime: params.rescheduleStartTime,
         rescheduleEndTime: params.rescheduleEndTime,
-        rescheduledBy: params.rescheduledBy,
       };
     } else if (triggerEvent === WebhookTriggerEvents.BOOKING_REJECTED) {
       taskPayload = {
         ...basePayload,
         triggerEvent,
-        rejectionReason: params.rejectionReason,
       };
     } else {
       taskPayload = {

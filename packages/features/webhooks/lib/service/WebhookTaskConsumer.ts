@@ -246,7 +246,7 @@ export class WebhookTaskConsumer {
           ...baseDTO,
           triggerEvent,
           cancelledBy: bookingPayload.cancelledBy,
-          cancellationReason: bookingPayload.cancellationReason,
+          cancellationReason: booking?.cancellationReason ?? undefined,
           requestReschedule: bookingPayload.requestReschedule ?? false,
         } as WebhookEventDTO;
 
@@ -258,7 +258,7 @@ export class WebhookTaskConsumer {
           rescheduleUid: bookingPayload.rescheduleUid,
           rescheduleStartTime: bookingPayload.rescheduleStartTime,
           rescheduleEndTime: bookingPayload.rescheduleEndTime,
-          rescheduledBy: bookingPayload.rescheduledBy,
+          rescheduledBy: booking?.rescheduledBy ?? undefined,
           metadata: bookingPayload.metadata,
         } as WebhookEventDTO;
 
@@ -267,7 +267,7 @@ export class WebhookTaskConsumer {
           ...baseDTO,
           triggerEvent,
           status: "REJECTED",
-          rejectionReason: bookingPayload.rejectionReason,
+          rejectionReason: booking?.rejectionReason ?? undefined,
         } as WebhookEventDTO;
 
       case WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED:

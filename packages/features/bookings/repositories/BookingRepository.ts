@@ -216,6 +216,9 @@ const selectStatementToGetBookingForCalEventBuilder = {
   eventTypeId: true,
   userId: true,
   smsReminderNumber: true,
+  cancellationReason: true,
+  rejectionReason: true,
+  rescheduledBy: true,
   attendees: {
     select: {
       name: true,

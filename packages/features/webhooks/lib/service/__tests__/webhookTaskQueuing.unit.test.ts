@@ -107,14 +107,12 @@ describe("Webhook Task Queuing - Unit Tests", () => {
         eventTypeId: 15,
         userId: 8,
         cancelledBy: "user@example.com",
-        cancellationReason: "Schedule conflict",
       });
 
       expectWebhookDeliveryQueued(mockWebhookTasker, {
         triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
         bookingUid: "booking-789",
         cancelledBy: "user@example.com",
-        cancellationReason: "Schedule conflict",
       });
     });
   });

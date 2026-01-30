@@ -403,31 +403,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
 
-  // Queue BOOKING_CANCELLED webhook via injected producer
-  try {
-    await webhookProducer.queueBookingCancelledWebhook({
-      bookingUid: bookingToDelete.uid,
-      userId: organizerUserId ?? undefined,
-      eventTypeId: bookingToDelete.eventTypeId ?? undefined,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientId,
-      // Trigger-specific fields for BOOKING_CANCELLED
-      cancelledBy: cancelledBy ?? undefined,
-      cancellationReason: cancellationReason ?? undefined,
-      requestReschedule: false,
-      platformRescheduleUrl,
-      platformCancelUrl,
-      platformBookingUrl,
-      platformClientId,
-    });
-  } catch (webhookError) {
-    logger.error(
-      `Error queueing ${eventTrigger} webhook: bookingId: ${bookingToDelete.id}, bookingUid: ${bookingToDelete.uid}`,
-      safeStringify(webhookError)
-    );
-  }
-
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
@@ -580,6 +555,29 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         log.error(`Error processing no-show fee for booking ${bookingToDelete.uid}:`, error);
       }
     }
+  }
+
+  // Queue BOOKING_CANCELLED webhook after booking is updated (cancellationReason read from booking in consumer)
+  try {
+    await webhookProducer.queueBookingCancelledWebhook({
+      bookingUid: bookingToDelete.uid,
+      userId: organizerUserId ?? undefined,
+      eventTypeId: bookingToDelete.eventTypeId ?? undefined,
+      teamId,
+      orgId,
+      oAuthClientId: platformClientId,
+      cancelledBy: cancelledBy ?? undefined,
+      requestReschedule: false,
+      platformRescheduleUrl,
+      platformCancelUrl,
+      platformBookingUrl,
+      platformClientId,
+    });
+  } catch (webhookError) {
+    logger.error(
+      `Error queueing ${eventTrigger} webhook: bookingId: ${bookingToDelete.id}, bookingUid: ${bookingToDelete.uid}`,
+      safeStringify(webhookError)
+    );
   }
 
   /** TODO: Remove this without breaking functionality */

@@ -131,14 +131,12 @@ describe("Webhook Producer Integration", () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-cancelled";
       const cancelledBy = "user@example.com";
-      const cancellationReason = "Test cancellation reason";
 
       await producer.queueBookingCancelledWebhook({
         bookingUid,
         eventTypeId: testEventType.id,
         userId: testUser.id,
         cancelledBy,
-        cancellationReason,
         requestReschedule: false,
       });
 
@@ -148,8 +146,8 @@ describe("Webhook Producer Integration", () => {
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CANCELLED);
       expect(payload.bookingUid).toBe(bookingUid);
       expect(payload.cancelledBy).toBe(cancelledBy);
-      expect(payload.cancellationReason).toBe(cancellationReason);
       expect(payload.requestReschedule).toBe(false);
+      // cancellationReason is read from booking in consumer (getBookingForCalEventBuilder)
     });
   });
 
@@ -162,7 +160,6 @@ describe("Webhook Producer Integration", () => {
         rescheduleUid: "original-booking-uid",
         rescheduleStartTime: "2024-01-01T10:00:00.000Z",
         rescheduleEndTime: "2024-01-01T11:00:00.000Z",
-        rescheduledBy: "user@example.com",
       };
 
       await producer.queueBookingRescheduledWebhook({
@@ -181,7 +178,7 @@ describe("Webhook Producer Integration", () => {
       expect(payload.rescheduleUid).toBe(rescheduleData.rescheduleUid);
       expect(payload.rescheduleStartTime).toBe(rescheduleData.rescheduleStartTime);
       expect(payload.rescheduleEndTime).toBe(rescheduleData.rescheduleEndTime);
-      expect(payload.rescheduledBy).toBe(rescheduleData.rescheduledBy);
+      // rescheduledBy is read from booking in consumer (getBookingForCalEventBuilder)
     });
   });
 

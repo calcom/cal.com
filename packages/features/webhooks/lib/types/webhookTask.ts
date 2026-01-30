@@ -36,7 +36,6 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
 
   // Trigger-specific fields (BOOKING_CANCELLED)
   cancelledBy: z.string().optional(),
-  cancellationReason: z.string().optional(),
   requestReschedule: z.boolean().optional(),
 
   // Trigger-specific fields (BOOKING_RESCHEDULED)
@@ -44,10 +43,6 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   rescheduleUid: z.string().optional(),
   rescheduleStartTime: z.string().optional(),
   rescheduleEndTime: z.string().optional(),
-  rescheduledBy: z.string().optional(),
-
-  // Trigger-specific fields (BOOKING_REJECTED)
-  rejectionReason: z.string().optional(),
 });
 
 /**

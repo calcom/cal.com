@@ -2714,12 +2714,11 @@ async function handler(
         ) {
           await this.deps.webhookProducer.queueBookingRescheduledWebhook({
             ...queueParams,
-            // Reschedule-specific fields from original booking
+            // Reschedule-specific fields from original booking (rescheduledBy read from booking in consumer)
             rescheduleId: originalRescheduledBookingForWebhook.id,
             rescheduleUid: originalRescheduledBookingForWebhook.uid,
             rescheduleStartTime: originalRescheduledBookingForWebhook.startTime.toISOString(),
             rescheduleEndTime: originalRescheduledBookingForWebhook.endTime.toISOString(),
-            rescheduledBy: reqBody.rescheduledBy ?? undefined,
             metadata: { ...metadata, ...reqBody.metadata },
             platformRescheduleUrl: platformRescheduleUrl ?? undefined,
             platformCancelUrl: platformCancelUrl ?? undefined,
