@@ -1,13 +1,5 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { OAuthService } from "@/lib/services/oauth.service";
-import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OAuth2AuthorizeInput } from "@/modules/auth/oauth2/inputs/authorize.input";
-import { OAuth2ExchangeInput } from "@/modules/auth/oauth2/inputs/exchange.input";
-import { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
-import { OAuth2ClientDto, OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
-import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/errors";
 import {
   Body,
   Controller,
@@ -22,12 +14,34 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
-import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBody,
+  ApiExcludeController,
+  ApiExtraModels,
+  ApiOperation,
+  ApiTags,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import type { Response } from "express";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/errors";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { OAuthService } from "@/lib/services/oauth.service";
+import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OAuth2AuthorizeInput } from "@/modules/auth/oauth2/inputs/authorize.input";
+import {
+  OAuth2ExchangeConfidentialInput,
+  OAuth2ExchangePublicInput,
+} from "@/modules/auth/oauth2/inputs/exchange.input";
+import {
+  OAuth2RefreshConfidentialInput,
+  OAuth2RefreshPublicInput,
+} from "@/modules/auth/oauth2/inputs/refresh.input";
+import type { OAuth2TokenInput } from "@/modules/auth/oauth2/inputs/token.input.pipe";
+import { OAuth2TokenInputPipe } from "@/modules/auth/oauth2/inputs/token.input.pipe";
+import { OAuth2ClientDto, OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
+import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
 
 @Controller({
   path: "/v2/auth/oauth2/clients/:clientId",
@@ -104,54 +118,38 @@ export class OAuth2Controller {
     }
   }
 
-  @Post("/exchange")
+  @Post("/token")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: "Exchange authorization code for tokens",
-    description: "Exchanges an authorization code for access and refresh tokens",
+    summary: "Exchange authorization code or refresh token for tokens",
+    description:
+      "OAuth2 token endpoint. Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token.",
   })
-  async exchange(
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(OAuth2ExchangeConfidentialInput) },
+        { $ref: getSchemaPath(OAuth2ExchangePublicInput) },
+        { $ref: getSchemaPath(OAuth2RefreshConfidentialInput) },
+        { $ref: getSchemaPath(OAuth2RefreshPublicInput) },
+      ],
+    },
+    description:
+      "Token request body. Use grantType 'authorization_code' with clientSecret (confidential) or codeVerifier (public/PKCE), or grantType 'refresh_token' with clientSecret (confidential) or just the refreshToken (public).",
+  })
+  @ApiExtraModels(
+    OAuth2ExchangeConfidentialInput,
+    OAuth2ExchangePublicInput,
+    OAuth2RefreshConfidentialInput,
+    OAuth2RefreshPublicInput
+  )
+  async token(
     @Param("clientId") clientId: string,
-    @Body() body: OAuth2ExchangeInput
+    @Body(new OAuth2TokenInputPipe()) body: OAuth2TokenInput
   ): Promise<OAuth2TokensResponseDto> {
     try {
-      const tokens = await this.oAuthService.exchangeCodeForTokens(
-        clientId,
-        body.code,
-        body.clientSecret,
-        body.redirectUri,
-        body.codeVerifier
-      );
-      return {
-        status: SUCCESS_STATUS,
-        data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
-      };
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusCode(err);
-        throw new HttpException(err.message, statusCode);
-      }
-      this.logger.error(err);
-      throw new InternalServerErrorException("Could not exchange code for tokens");
-    }
-  }
+      const tokens = await this.oAuthService.handleTokenRequest(clientId, body);
 
-  @Post("/refresh")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: "Refresh access token",
-    description: "Refreshes an access token using a refresh token",
-  })
-  async refresh(
-    @Param("clientId") clientId: string,
-    @Body() body: OAuth2RefreshInput
-  ): Promise<OAuth2TokensResponseDto> {
-    try {
-      const tokens = await this.oAuthService.refreshAccessToken(
-        clientId,
-        body.refreshToken,
-        body.clientSecret
-      );
       return {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
@@ -162,7 +160,7 @@ export class OAuth2Controller {
         throw new HttpException(err.message, statusCode);
       }
       this.logger.error(err);
-      throw new InternalServerErrorException("Could not refresh tokens");
+      throw new InternalServerErrorException("Could not process token request");
     }
   }
 }

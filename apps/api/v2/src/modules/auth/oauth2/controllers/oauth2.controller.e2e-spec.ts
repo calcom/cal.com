@@ -212,11 +212,12 @@ describe("OAuth2 Controller Endpoints", () => {
       });
     });
 
-    describe("POST /api/v2/auth/oauth2/clients/:clientId/exchange", () => {
+    describe("POST /api/v2/auth/oauth2/clients/:clientId/token (authorization_code grant)", () => {
       it("should exchange authorization code for tokens", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
+            grantType: "authorization_code",
             code: authorizationCode,
             clientSecret: testClientSecret,
             redirectUri: testRedirectUri,
@@ -234,8 +235,9 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 400 for invalid/used authorization code", async () => {
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
+            grantType: "authorization_code",
             code: authorizationCode,
             clientSecret: testClientSecret,
             redirectUri: testRedirectUri,
@@ -257,21 +259,34 @@ describe("OAuth2 Controller Endpoints", () => {
         const newAuthCode = newRedirectUrl.searchParams.get("code") as string;
 
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/exchange`)
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
+            grantType: "authorization_code",
             code: newAuthCode,
             clientSecret: "wrong-secret",
             redirectUri: testRedirectUri,
           })
           .expect(401);
       });
+
+      it("should return 400 for invalid grant type", async () => {
+        await request(app.getHttpServer())
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .send({
+            grantType: "invalid_grant",
+            code: "some-code",
+            redirectUri: testRedirectUri,
+          })
+          .expect(400);
+      });
     });
 
-    describe("POST /api/v2/auth/oauth2/clients/:clientId/refresh", () => {
+    describe("POST /api/v2/auth/oauth2/clients/:clientId/token (refresh_token grant)", () => {
       it("should refresh access token with valid refresh token", async () => {
         const response = await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/refresh`)
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
+            grantType: "refresh_token",
             refreshToken: refreshToken,
             clientSecret: testClientSecret,
           })
@@ -286,8 +301,9 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 400 for invalid refresh token", async () => {
         await request(app.getHttpServer())
-          .post(`/api/v2/auth/oauth2/clients/${testClientId}/refresh`)
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
+            grantType: "refresh_token",
             refreshToken: "invalid-refresh-token",
             clientSecret: testClientSecret,
           })
@@ -296,8 +312,9 @@ describe("OAuth2 Controller Endpoints", () => {
 
       it("should return 401 for wrong client ID with valid refresh token", async () => {
         await request(app.getHttpServer())
-          .post("/api/v2/auth/oauth2/clients/wrong-client-id/refresh")
+          .post("/api/v2/auth/oauth2/clients/wrong-client-id/token")
           .send({
+            grantType: "refresh_token",
             refreshToken: refreshToken,
             clientSecret: testClientSecret,
           })

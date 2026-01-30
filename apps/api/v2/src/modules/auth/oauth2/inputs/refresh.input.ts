@@ -1,7 +1,16 @@
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Equals, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Equals, IsString } from "class-validator";
 
-export class OAuth2RefreshInput {
+export class OAuth2RefreshConfidentialInput {
+  @ApiProperty({
+    description: "The grant type — must be 'refresh_token'",
+    example: "refresh_token",
+    enum: ["refresh_token"],
+  })
+  @IsString()
+  @Equals("refresh_token")
+  grantType!: "refresh_token";
+
   @ApiProperty({
     description: "The refresh token",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -10,15 +19,28 @@ export class OAuth2RefreshInput {
   refreshToken!: string;
 
   @ApiProperty({
-    description: "The client secret (required for confidential clients)",
-    required: false,
+    description: "The client secret for confidential clients",
   })
-  @IsOptional()
   @IsString()
-  clientSecret?: string;
+  clientSecret!: string;
+}
 
-  @ApiHideProperty()
+export class OAuth2RefreshPublicInput {
+  @ApiProperty({
+    description: "The grant type — must be 'refresh_token'",
+    example: "refresh_token",
+    enum: ["refresh_token"],
+  })
   @IsString()
   @Equals("refresh_token")
-  grantType: string = "refresh_token";
+  grantType!: "refresh_token";
+
+  @ApiProperty({
+    description: "The refresh token",
+    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  })
+  @IsString()
+  refreshToken!: string;
 }
+
+export type OAuth2RefreshInput = OAuth2RefreshConfidentialInput | OAuth2RefreshPublicInput;

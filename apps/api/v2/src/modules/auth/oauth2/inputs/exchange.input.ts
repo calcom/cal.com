@@ -1,7 +1,16 @@
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Equals, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Equals, IsString } from "class-validator";
 
-export class OAuth2ExchangeInput {
+export class OAuth2ExchangeConfidentialInput {
+  @ApiProperty({
+    description: "The grant type — must be 'authorization_code'",
+    example: "authorization_code",
+    enum: ["authorization_code"],
+  })
+  @IsString()
+  @Equals("authorization_code")
+  grantType!: "authorization_code";
+
   @ApiProperty({
     description: "The authorization code received from the authorize endpoint",
     example: "abc123",
@@ -10,12 +19,35 @@ export class OAuth2ExchangeInput {
   code!: string;
 
   @ApiProperty({
-    description: "The client secret (required for confidential clients)",
-    required: false,
+    description: "The redirect URI used in the authorization request",
+    example: "https://example.com/callback",
   })
-  @IsOptional()
   @IsString()
-  clientSecret?: string;
+  redirectUri!: string;
+
+  @ApiProperty({
+    description: "The client secret for confidential clients",
+  })
+  @IsString()
+  clientSecret!: string;
+}
+
+export class OAuth2ExchangePublicInput {
+  @ApiProperty({
+    description: "The grant type — must be 'authorization_code'",
+    example: "authorization_code",
+    enum: ["authorization_code"],
+  })
+  @IsString()
+  @Equals("authorization_code")
+  grantType!: "authorization_code";
+
+  @ApiProperty({
+    description: "The authorization code received from the authorize endpoint",
+    example: "abc123",
+  })
+  @IsString()
+  code!: string;
 
   @ApiProperty({
     description: "The redirect URI used in the authorization request",
@@ -24,16 +56,11 @@ export class OAuth2ExchangeInput {
   @IsString()
   redirectUri!: string;
 
-  @ApiHideProperty()
-  @IsString()
-  @Equals("authorization_code")
-  grantType: string = "authorization_code";
-
   @ApiProperty({
-    description: "PKCE code verifier (required if code_challenge was used)",
-    required: false,
+    description: "PKCE code verifier (required for public clients that used code_challenge)",
   })
-  @IsOptional()
   @IsString()
-  codeVerifier?: string;
+  codeVerifier!: string;
 }
+
+export type OAuth2ExchangeInput = OAuth2ExchangeConfidentialInput | OAuth2ExchangePublicInput;
