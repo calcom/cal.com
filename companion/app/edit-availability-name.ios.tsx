@@ -2,15 +2,15 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import type { EditAvailabilityNameScreenHandle } from "@/components/screens/EditAvailabilityNameScreen.ios";
 import EditAvailabilityNameScreenComponent from "@/components/screens/EditAvailabilityNameScreen.ios";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
 
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
@@ -23,6 +23,9 @@ export default function EditAvailabilityNameIOS() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,6 +60,9 @@ export default function EditAvailabilityNameIOS() {
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
+  // Semi-transparent background to prevent flashes while preserving glass effect
+  const glassBackground = isDark ? "rgba(28, 28, 30, 0.01)" : "rgba(248, 248, 250, 0.01)";
+
   return (
     <>
       <Stack.Screen
@@ -67,14 +73,18 @@ export default function EditAvailabilityNameIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? glassBackground : theme.backgroundSecondary,
           },
         }}
       />
 
       <Stack.Header>
         <Stack.Header.Left>
-          <Stack.Header.Button onPress={() => router.back()}>
+          <Stack.Header.Button
+            onPress={() => router.back()}
+            tintColor={theme.backgroundEmphasis}
+            variant="prominent"
+          >
             <Stack.Header.Icon sf="xmark" />
           </Stack.Header.Button>
         </Stack.Header.Left>
@@ -86,7 +96,7 @@ export default function EditAvailabilityNameIOS() {
             onPress={handleSave}
             disabled={isSaving}
             variant="prominent"
-            tintColor="#000"
+            tintColor={theme.text}
           >
             <Stack.Header.Icon sf="checkmark" />
           </Stack.Header.Button>
