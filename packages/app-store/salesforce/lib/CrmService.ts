@@ -130,6 +130,7 @@ class SalesforceCRMService implements CRM {
   private instanceUrl: string;
   private hasAttemptedRefresh = false;
   private credentialId: number;
+  private describeCache = new Map<string, Set<string>>();
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
@@ -567,31 +568,41 @@ class SalesforceCRMService implements CRM {
         })
       );
 
+      // Validate field rules early, before branching to GraphQL or SOQL paths
+      let validatedFieldRules: RRSkipFieldRule[] | undefined;
+      if (forRoundRobinSkip && appOptions?.rrSkipFieldRules?.length) {
+        log.info(
+          "Validating field rules",
+          safeStringify({
+            rules: appOptions.rrSkipFieldRules,
+            recordToSearch,
+          })
+        );
+        const existingFieldNames = await this.getObjectFieldNames(recordToSearch);
+        log.info(`Found ${existingFieldNames.size} fields on ${recordToSearch}`);
+        if (existingFieldNames.size > 0) {
+          const filtered = appOptions.rrSkipFieldRules.filter((r) => existingFieldNames.has(r.field));
+          if (filtered.length > 0) {
+            validatedFieldRules = filtered;
+            log.info("Validated field rules", safeStringify({ validatedFieldRules }));
+          } else {
+            log.warn(
+              "No field rules matched existing fields",
+              safeStringify({
+                configuredFields: appOptions.rrSkipFieldRules.map((r) => r.field),
+              })
+            );
+          }
+        }
+      }
+
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip) {
         try {
           const client = new SalesforceGraphQLClient({
             accessToken: this.accessToken,
             instanceUrl: this.instanceUrl,
           });
-          let graphqlRecords = await client.GetAccountRecordsForRRSkip(emailArray[0]);
-
-          // Apply field rules if configured
-          if (appOptions?.rrSkipFieldRules?.length && graphqlRecords.length > 0) {
-            const recordIds = graphqlRecords.map((r) => r.id).filter((id): id is string => Boolean(id));
-            if (recordIds.length > 0) {
-              graphqlRecords = await this.applyFieldRulesToGraphQLRecords(
-                graphqlRecords,
-                appOptions.rrSkipFieldRules,
-                recordIds
-              );
-              if (graphqlRecords.length === 0) {
-                log.info("All GraphQL records filtered out by field rules");
-                return [];
-              }
-            }
-          }
-
-          return graphqlRecords;
+          return await client.GetAccountRecordsForRRSkip(emailArray[0], validatedFieldRules);
         } catch (error) {
           log.error("Error getting account records for round robin skip", safeStringify({ error }));
           return [];
@@ -1080,31 +1091,68 @@ class SalesforceCRMService implements CRM {
   }
 
   /**
-   * Validates which fields exist on a Salesforce object using the describe API.
-   * Returns Field objects for fields that exist.
+   * Gets all field names for a Salesforce object.
+   * Uses a two-level cache: in-memory (per request) and Redis (cross-request, 1hr TTL).
    */
-  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
-    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
-    const conn = await this.conn;
+  private async getObjectFieldNames(sobject: string): Promise<Set<string>> {
+    const log = logger.getSubLogger({ prefix: [`[getObjectFieldNames]`] });
 
-    const fieldSet = new Set(fieldsToTest);
-    const foundFields: Field[] = [];
+    // Level 1: in-memory cache (same request)
+    const memoryCached = this.describeCache.get(sobject);
+    if (memoryCached) {
+      return memoryCached;
+    }
+
+    // Level 2: Redis cache (cross-request)
+    const cacheKey = `salesforce:describe:${this.instanceUrl}:${sobject}`;
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+    try {
+      const redis = getRedisService();
+      const redisCached = await redis.get<string[]>(cacheKey);
+      if (redisCached) {
+        log.info(`Redis cache hit for ${sobject} field names`);
+        const fieldNames = new Set(redisCached);
+        this.describeCache.set(sobject, fieldNames);
+        return fieldNames;
+      }
+    } catch (cacheError) {
+      log.warn(`Redis cache unavailable, falling back to API`, safeStringify({ error: cacheError }));
+    }
+
+    // Level 3: Salesforce API
+    const conn = await this.conn;
 
     try {
       const salesforceEntity = await conn.describe(sobject);
-      const fields = salesforceEntity.fields;
+      const fieldNamesList = salesforceEntity.fields.map((f) => f.name);
+      const fieldNames = new Set(fieldNamesList);
+      this.describeCache.set(sobject, fieldNames);
 
-      for (const field of fields) {
-        if (foundFields.length === fieldSet.size) break;
-
-        if (fieldSet.has(field.name)) {
-          foundFields.push(field);
-        }
+      // Persist to Redis for other requests
+      try {
+        const redis = getRedisService();
+        await redis.set(cacheKey, fieldNamesList, { ttl: CACHE_TTL_MS });
+        log.info(`Cached ${sobject} field names in Redis (${fieldNamesList.length} fields)`);
+      } catch (cacheError) {
+        log.warn(`Failed to cache field names in Redis`, safeStringify({ error: cacheError }));
       }
 
-      return foundFields;
+      return fieldNames;
     } catch (e) {
-      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
+      log.error(`Error fetching field names for ${sobject}`, safeStringify({ error: e }));
+      return new Set();
+    }
+  }
+
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string): Promise<Field[]> {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
+
+    // Get cached field names
+    const existingFieldNames = await this.getObjectFieldNames(sobject);
+
+    if (existingFieldNames.size === 0) {
+      log.warn(`No field names found for ${sobject}`);
       return [];
     }
   }
@@ -1193,87 +1241,6 @@ class SalesforceCRMService implements CRM {
 
         if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
           log.info(`Record ${record.Id} filtered out by must_include rule`, {
-            field: rule.field,
-            expectedValue: rule.value,
-            actualValue,
-          });
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }
-
-  /**
-   * Applies field rules to filter GraphQL Account records.
-   * If the query fails (e.g., due to invalid field names), returns all records unchanged.
-   */
-  private async applyFieldRulesToGraphQLRecords(
-    records: Contact[],
-    fieldRules: RRSkipFieldRule[],
-    recordIds: string[]
-  ): Promise<Contact[]> {
-    const log = logger.getSubLogger({ prefix: [`[applyFieldRulesToGraphQLRecords]`] });
-
-    if (!fieldRules.length || !records.length) {
-      return records;
-    }
-
-    const conn = await this.conn;
-
-    log.info("Applying field rules to GraphQL records", {
-      totalRules: fieldRules.length,
-      recordCount: records.length,
-    });
-
-    // Try to fetch the field values - if query fails (invalid field), skip filtering
-    const selectFields = fieldRules.map((r) => r.field).join(", ");
-    let queryRecords: Array<{ Id: string; [key: string]: unknown }>;
-
-    try {
-      const query = await conn.query(
-        `SELECT Id, ${selectFields} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id IN ('${recordIds.join("','")}')`
-      );
-      queryRecords = query.records as Array<{ Id: string; [key: string]: unknown }>;
-    } catch (queryError) {
-      // Query failed - likely due to invalid field name. Skip filtering and return all records.
-      log.warn("Field rules query failed for GraphQL records (field may not exist), skipping filtering", {
-        error: queryError,
-        fields: fieldRules.map((r) => r.field),
-      });
-      return records;
-    }
-
-    const recordFieldValues = new Map<string, Record<string, unknown>>();
-    for (const record of queryRecords) {
-      recordFieldValues.set(record.Id, record);
-    }
-
-    return records.filter((record) => {
-      if (!record.id) return true;
-
-      const fieldValues = recordFieldValues.get(record.id);
-      if (!fieldValues) {
-        log.warn(`Could not fetch field values for GraphQL record ${record.id}`);
-        return true;
-      }
-
-      for (const rule of fieldRules) {
-        const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
-        const ruleValue = rule.value.toLowerCase();
-        const matches = actualValue === ruleValue;
-
-        if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
-          log.info(`GraphQL record ${record.id} filtered out by ignore rule`, {
-            field: rule.field,
-            value: rule.value,
-          });
-          return false;
-        }
-
-        if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
-          log.info(`GraphQL record ${record.id} filtered out by must_include rule`, {
             field: rule.field,
             expectedValue: rule.value,
             actualValue,
