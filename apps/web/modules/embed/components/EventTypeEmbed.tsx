@@ -4,7 +4,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import { EmbedButton, EmbedDialog } from "./Embed";
 import { tabs } from "./EmbedTabs";
-import { useEmbedTypes } from "../lib/hooks";
+import { useEmbedTypes } from "../hooks/useEmbedTypes";
 
 export const EventTypeEmbedDialog = () => {
   const types = useEmbedTypes();

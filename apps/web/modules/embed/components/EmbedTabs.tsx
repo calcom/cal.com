@@ -13,7 +13,7 @@ import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPer
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "@calcom/features/embed/lib/constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "@calcom/features/embed/lib/getApiName";
 import { getDimension } from "@calcom/features/embed/lib/getDimension";
-import { useEmbedCalOrigin } from "../lib/hooks";
+import { useEmbedCalOrigin } from "../hooks/useEmbedCalOrigin";
 
 export const enum EmbedTabName {
   HTML = "embed-code",
