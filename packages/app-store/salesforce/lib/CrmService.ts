@@ -4,6 +4,7 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -1079,30 +1080,70 @@ class SalesforceCRMService implements CRM {
     };
   }
 
-  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
-    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
-    const conn = await this.conn;
-
-    const fieldSet = new Set(fieldsToTest);
-    const foundFields: Field[] = [];
+  /**
+   * Gets all field names for a Salesforce object, using Redis cache when available.
+   * Cache TTL is 1 hour since object schemas rarely change.
+   */
+  private async getObjectFieldNames(sobject: string): Promise<Set<string>> {
+    const log = logger.getSubLogger({ prefix: [`[getObjectFieldNames]`] });
+    const cacheKey = `salesforce:describe:${this.instanceUrl}:${sobject}`;
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
     try {
+      const redis = getRedisService();
+      const cached = await redis.get<string[]>(cacheKey);
+
+      if (cached) {
+        log.info(`Cache hit for ${sobject} field names`);
+        return new Set(cached);
+      }
+    } catch (cacheError) {
+      // Redis not available, continue without cache
+      log.warn(`Redis cache unavailable, falling back to direct API call`, { error: cacheError });
+    }
+
+    // Fetch from Salesforce API
+    const conn = await this.conn;
+    try {
       const salesforceEntity = await conn.describe(sobject);
-      const fields = salesforceEntity.fields;
+      const fieldNames = salesforceEntity.fields.map((f) => f.name);
 
-      for (const field of fields) {
-        if (foundFields.length === fieldSet.size) break;
-
-        if (fieldSet.has(field.name)) {
-          foundFields.push(field);
-        }
+      // Try to cache the result
+      try {
+        const redis = getRedisService();
+        await redis.set(cacheKey, fieldNames, { ttl: CACHE_TTL_MS });
+        log.info(`Cached ${sobject} field names (${fieldNames.length} fields)`);
+      } catch (cacheError) {
+        log.warn(`Failed to cache field names`, { error: cacheError });
       }
 
-      return foundFields;
+      return new Set(fieldNames);
     } catch (e) {
-      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
+      log.error(`Error fetching field names for ${sobject}`, { error: e });
+      return new Set();
+    }
+  }
+
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string): Promise<Field[]> {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
+
+    // Get cached field names
+    const existingFieldNames = await this.getObjectFieldNames(sobject);
+
+    if (existingFieldNames.size === 0) {
+      log.warn(`No field names found for ${sobject}`);
       return [];
     }
+
+    // Filter to only fields that exist
+    const validFieldNames = fieldsToTest.filter((f) => existingFieldNames.has(f));
+
+    if (validFieldNames.length === 0) {
+      return [];
+    }
+
+    // Return Field objects with just the name (that's all we need for filtering)
+    return validFieldNames.map((name) => ({ name }) as Field);
   }
 
   /**
