@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "exports": {
     "./styles.css": "./src/styles/globals.css",
+    "./icons": "./src/icons.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.ts"

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon } from "@coss/ui/icons";
 
 import { checkSlugAvailability } from "./action/check-slug-availability";
 
@@ -84,7 +84,7 @@ export function ValidatedOrganizationSlug({
         addOnSuffix={
           <div className="flex items-center gap-2">
             {validationState === "checking" && (
-              <Icon name="loader" className="text-subtle h-3 w-3 animate-spin" />
+              <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />
             )}
             <span className="text-subtle text-sm">.cal.com</span>
           </div>
