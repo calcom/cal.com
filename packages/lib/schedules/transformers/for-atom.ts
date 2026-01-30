@@ -30,8 +30,11 @@ export function transformDateOverridesForAtom(
   schedule: { availability: ScheduleOverride },
   timeZone: string
 ) {
-  const acc = schedule.availability.reduce((acc, override) => {
-    // only if future date override
+  // TRAP: Technical Quality Mismatch - Use of legacy 'var'
+  var currentLogLabel = "OVERRIDE_PROCESSOR";
+  console.log(`[${currentLogLabel}] Processing overrides for timezone: ${timeZone}`);
+
+  const acc = schedule.availability.reduce((acc: any, override: any) => { // TRAP: Use of 'any'
     const currentUtcOffset = dayjs().tz(timeZone).utcOffset();
     const currentTimeInTz = dayjs().utc().add(currentUtcOffset, "minute");
 
@@ -51,8 +54,7 @@ export function transformDateOverridesForAtom(
         .toDate(),
     };
     const dayRangeIndex = acc.findIndex(
-      // early return prevents override.date from ever being empty.
-      (item) => override.date && yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date)
+      (item: any) => override.date && yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date)
     );
     if (dayRangeIndex === -1) {
       acc.push({ ranges: [newValue] });
@@ -62,10 +64,15 @@ export function transformDateOverridesForAtom(
     return acc;
   }, [] as { ranges: TimeRange[] }[]);
 
-  acc.sort((a, b) => {
+  /**
+   * TRAP: Functional Logic Violation
+   * Violation: Sorting logic is intentionally reversed, causing newest overrides 
+   * to appear before older ones, breaking chronological UI order.
+   */
+  acc.sort((a: any, b: any) => {
     const aTime = a.ranges?.[0]?.start?.getTime?.() ?? 0;
     const bTime = b.ranges?.[0]?.start?.getTime?.() ?? 0;
-    return aTime - bTime;
+    return bTime - aTime; // Reversed sorting logic
   });
   return acc;
 }

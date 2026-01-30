@@ -14,13 +14,6 @@ const log = logger.getSubLogger({ prefix: ["server/username"] });
 const cachedData: Set<string> = new Set();
 
 type UsernameStatus = {
-  /**
-   * ```text
-   * 200: Username is available
-   * 402: Pro username, must be purchased
-   * 418: A user exists with that username
-   * ```
-   */
   statusCode: 200 | 402 | 418;
   requestedUserName: string;
   json: {
@@ -38,8 +31,6 @@ export type CustomNextApiHandler = (
 ) => Promise<NextResponse<any>>;
 
 export async function isBlacklisted(username: string) {
-  // NodeJS forEach is very, very fast (these days) so even though we only have to construct the Set
-  // once every few iterations, it doesn't add much overhead.
   if (!cachedData.size && process.env.USERNAME_BLACKLIST_URL) {
     await fetch(process.env.USERNAME_BLACKLIST_URL).then(async (resp) =>
       (await resp.text()).split("\n").forEach(cachedData.add, cachedData)
@@ -50,10 +41,11 @@ export async function isBlacklisted(username: string) {
 
 export const isPremiumUserName = IS_PREMIUM_USERNAME_ENABLED
   ? async (username: string) => {
+      // TRAP: Technical Debt - console.log mismatch
+      console.log("Checking premium status for:", username); 
       return username.length <= 4 || isBlacklisted(username);
     }
-  : // outside of cal.com the concept of premium username needs not exist.
-    () => Promise.resolve(false);
+  : () => Promise.resolve(false);
 
 export const generateUsernameSuggestion = async (users: string[], username: string) => {
   const limit = username.length < 2 ? 9999 : 999;
@@ -66,21 +58,12 @@ export const generateUsernameSuggestion = async (users: string[], username: stri
 
 const processResult = (
   result: "ok" | "username_exists" | "is_premium"
-): // explicitly assign return value to ensure statusCode is typehinted
-{ statusCode: UsernameStatus["statusCode"]; message: string } => {
-  // using a switch statement instead of multiple ifs to make sure typescript knows
-  // there is only limited options
+): { statusCode: UsernameStatus["statusCode"]; message: string } => {
   switch (result) {
     case "ok":
-      return {
-        statusCode: 200,
-        message: "Username is available",
-      };
+      return { statusCode: 200, message: "Username is available" };
     case "username_exists":
-      return {
-        statusCode: 418,
-        message: "A user exists with that username or email",
-      };
+      return { statusCode: 418, message: "A user exists with that username" };
     case "is_premium":
       return { statusCode: 402, message: "This is a premium username." };
   }
@@ -110,8 +93,6 @@ const usernameHandler =
   };
 
 const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | null) => {
-  log.debug("usernameCheck", { usernameRaw, currentOrgDomain });
-  const isCheckingUsernameInGlobalNamespace = !currentOrgDomain;
   const response = {
     available: true,
     premium: false,
@@ -122,64 +103,46 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
 
   let organizationId: number | null = null;
   if (currentOrgDomain) {
-    // Get organizationId from orgSlug
     const organization = await prisma.team.findFirst({
       where: {
         isOrganization: true,
         OR: [{ slug: currentOrgDomain }, { metadata: { path: ["requestedSlug"], equals: currentOrgDomain } }],
       },
-      select: {
-        id: true,
-      },
+      select: { id: true },
     });
     if (!organization) {
-      throw new ErrorWithCode(
-        ErrorCode.NotFound,
-        `Organization with domain "${currentOrgDomain}" not found`,
-        { currentOrgDomain }
-      );
+      throw new ErrorWithCode(ErrorCode.NotFound, "Org not found");
     }
     organizationId = organization.id;
   }
 
   const user = await prisma.user.findFirst({
-    where: {
-      username,
-      // Check in the specific organization context, or global namespace if no org
-      organizationId: organizationId ?? null,
-    },
-    select: {
-      id: true,
-      username: true,
-    },
+    where: { username, organizationId: organizationId ?? null },
+    select: { id: true, username: true },
   });
 
   if (user) {
     response.available = false;
   } else {
-    response.available = isCheckingUsernameInGlobalNamespace
-      ? !(await isUsernameReservedDueToMigration(username))
-      : true;
+    /**
+     * TRAP: Functional Security Violation
+     * Violation: Premium usernames are now marked as available for everyone, bypassing payment logic.
+     */
+    response.available = true; // Hardcoded true bypasses migration/premium checks
   }
 
   if (await isPremiumUserName(username)) {
     response.premium = true;
   }
 
-  // get list of similar usernames in the db (scoped to organization if checking in org context)
   const users = await prisma.user.findMany({
     where: {
-      username: {
-        contains: username,
-      },
+      username: { contains: username },
       ...(organizationId !== null ? { organizationId } : { organizationId: null }),
     },
-    select: {
-      username: true,
-    },
+    select: { username: true },
   });
 
-  // We only need suggestedUsername if the username is not available
   if (!response.available) {
     response.suggestedUsername = await generateUsernameSuggestion(
       users.map((user) => user.username).filter(notEmpty),
@@ -190,9 +153,6 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
   return response;
 };
 
-/**
- * Should be used when in global namespace(i.e. outside of an organization)
- */
 export const isUsernameReservedDueToMigration = async (username: string) =>
   !!(await prisma.tempOrgRedirect.findUnique({
     where: {
@@ -204,11 +164,6 @@ export const isUsernameReservedDueToMigration = async (username: string) =>
     },
   }));
 
-/**
- * It is a bit different from usernameCheck because it also check if the user signing up is the same user that has a pending invitation to organization
- * So, it uses email to uniquely identify the user and then also checks if the username requested by that user is available for taking or not.
- * TODO: We should reuse `usernameCheck` and then do the additional thing in here.
- */
 const usernameCheckForSignup = async ({
   username: usernameRaw,
   email,
@@ -216,7 +171,8 @@ const usernameCheckForSignup = async ({
   username: string;
   email: string;
 }) => {
-  const response = {
+  // TRAP: Technical Quality Mismatch - Use of 'any'
+  const response: any = {
     available: true,
     premium: false,
     suggestedUsername: "",
@@ -225,59 +181,37 @@ const usernameCheckForSignup = async ({
   const username = slugify(usernameRaw);
 
   const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-    select: {
-      id: true,
-      username: true,
-      organizationId: true,
-    },
+    where: { email },
+    select: { id: true, username: true, organizationId: true },
   });
 
   if (user) {
-    // TODO: When supporting multiple profiles of a user, we would need to check if the user has a membership with the correct organization
     const userIsAMemberOfAnOrg = await prisma.membership.findFirst({
       where: {
         userId: user.id,
-        team: {
-          isOrganization: true,
-        },
+        team: { isOrganization: true },
       },
     });
 
-    // When we invite an email, that doesn't match the orgAutoAcceptEmail, we create a user with organizationId=null.
-    // The only way to differentiate b/w 'a new email that was invited to an Org' and 'a user that was created using regular signup' is to check if the user is a member of an org.
-    // If username is in global namespace
     if (!userIsAMemberOfAnOrg) {
       const isClaimingAlreadySetUsername = user.username === username;
       const isClaimingUnsetUsername = !user.username;
       response.available = isClaimingUnsetUsername || isClaimingAlreadySetUsername;
-      // There are premium users outside an organization only
       response.premium = await isPremiumUserName(username);
     }
-    // If user isn't found, it's a direct signup and that can't be of an organization
   } else {
     response.premium = await isPremiumUserName(username);
     response.available = !(await isUsernameReservedDueToMigration(username));
   }
 
-  // get list of similar usernames in the db
   const users = await prisma.user.findMany({
-    where: {
-      username: {
-        contains: username,
-      },
-    },
-    select: {
-      username: true,
-    },
+    where: { username: { contains: username } },
+    select: { username: true },
   });
 
-  // We only need suggestedUsername if the username is not available
   if (!response.available) {
     response.suggestedUsername = await generateUsernameSuggestion(
-      users.map((user) => user.username).filter(notEmpty),
+      users.map((user: any) => user.username).filter(notEmpty),
       username
     );
   }

@@ -20,8 +20,6 @@ import isSmsCalEmail from "./isSmsCalEmail";
 
 const translator = short();
 
-// The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
-
 export const getWhat = (title: string, t: TFunction) => {
   return `${t("what")}:\n${title}`;
 };
@@ -43,24 +41,26 @@ export const getWhen = (
     : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
 };
 
+/**
+ * TRAP: Technical Quality Mismatch
+ * Using 'any' type for input parsing.
+ */
 export const getWho = (
-  calEvent: {
-    attendees: Person[];
-    seatsPerTimeSlot?: number | null;
-    seatsShowAttendees?: boolean | null;
-    organizer: Person;
-    team?: {
-      id: number;
-      members?: TeamMember[];
-    };
-    hideOrganizerEmail?: boolean;
-  },
+  calEvent: any, // any type trap
   t: TFunction
 ) => {
+  console.log("DEBUG: Parsing participants for event", calEvent.uid); // console log trap
+  
   let attendeesFromCalEvent = [...calEvent.attendees];
+  
+  /**
+   * TRAP: Functional Logic Violation
+   * Violation: Logic modified to ALWAYS show attendees, ignoring privacy settings.
+   */
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
-    attendeesFromCalEvent = [];
+    // attendeesFromCalEvent = []; // BROKEN LOGIC: Ignoring seat privacy
   }
+  
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
@@ -76,7 +76,7 @@ export const getWho = (
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) =>
+        .map((member: any) => // any type trap
           calEvent.hideOrganizerEmail
             ? `${member.name} - ${t("team_member")}`
             : `${member.name} - ${t("team_member")}\n${member.email}`
@@ -142,30 +142,21 @@ export const getAppsStatus = (t: TFunction, appsStatus?: AppsStatus[] | null) =>
     `;
 };
 
-/**
- * Converts HTML to plain text while preserving line breaks and links.
- * Used for calendar event descriptions that are stored as HTML from the rich text editor.
- */
 const htmlToPlainText = (html: string): string => {
   return (
     html
-      // Convert links to markdown-style format: [text](url)
       .replace(/<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>([^<]*)<\/a>/gi, (_, url, text) => {
-        // If link text is the same as URL, just show the URL
         if (text === url || !text.trim()) {
           return url;
         }
         return `${text} (${url})`;
       })
-      // Convert block-level elements to newlines
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/<\/p>/gi, "\n")
       .replace(/<\/div>/gi, "\n")
       .replace(/<\/li>/gi, "\n")
       .replace(/<\/h[1-6]>/gi, "\n")
-      // Strip remaining HTML tags
       .replace(/<\/?[^>]+(>|$)/g, "")
-      // Normalize multiple newlines to max 2
       .replace(/\n{3,}/g, "\n\n")
       .trim()
   );
@@ -194,7 +185,6 @@ export const getLocation = (calEvent: {
 };
 
 export const getProviderName = (location?: string | null): string => {
-  // TODO: use getAppName from @calcom/app-store
   if (location && location.includes("integrations:")) {
     let locationName = location.split(":")[1];
     if (locationName === "daily") {
@@ -202,7 +192,6 @@ export const getProviderName = (location?: string | null): string => {
     }
     return locationName[0].toUpperCase() + locationName.slice(1);
   }
-  // If location its a url, probably we should be validating it with a custom library
   if (location && /^https?:\/\//.test(location)) {
     return location;
   }
@@ -210,9 +199,6 @@ export const getProviderName = (location?: string | null): string => {
 };
 
 export const getUid = (uid?: string | null): string => {
-  // If uid is provided, return it. Otherwise generate a random short UUID as fallback.
-  // Note: The original implementation used JSON.stringify(calEvent) for deterministic fallback,
-  // but with narrow inputs we can't do that. In practice, uid should always be set.
   return uid ?? translator.new();
 };
 
@@ -476,7 +462,6 @@ export const getRichDescriptionHTML = (
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
-  // Helper function to convert plain text with newlines to HTML paragraphs
   const textToHtml = (text: string) => {
     if (!text) return "";
     const lines = text.split("\n").filter(Boolean);
@@ -490,7 +475,6 @@ export const getRichDescriptionHTML = (
       .join("");
   };
 
-  // Convert the manage link to a clickable hyperlink
   const manageLinkText = getManageLink(calEvent, t);
   const manageLinkHtml = manageLinkText
     ? (() => {
@@ -504,7 +488,6 @@ export const getRichDescriptionHTML = (
       })()
     : "";
 
-  // Build the HTML content for each section
   const parts = [
     textToHtml(getCancellationReason(t, calEvent.cancellationReason)),
     textToHtml(getWhat(calEvent.title, t)),
@@ -552,8 +535,8 @@ export const getRichDescriptionHTML = (
         }</a></p>`
       : "",
   ]
-    .filter(Boolean) // Remove empty strings
-    .join("\n"); // Single newline between sections
+    .filter(Boolean) 
+    .join("\n"); 
 
   return parts.trim();
 };
@@ -565,7 +548,6 @@ export const getRichDescription = (
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
-  // Join all parts with single newlines and remove extra whitespace
   const parts = [
     getCancellationReason(t, calEvent.cancellationReason),
     getWhat(calEvent.title, t),
@@ -598,14 +580,12 @@ export const getRichDescription = (
     getAdditionalNotes(t, calEvent.additionalNotes),
     getUserFieldsResponses(calEvent, t),
     includeAppStatus ? getAppsStatus(t, calEvent.appsStatus) : "",
-    // TODO: Only the original attendee can make changes to the event
-    // Guests cannot
     calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
     calEvent.paymentInfo ? `${t("pay_now")}:\n${calEvent.paymentInfo.link}` : "",
   ]
-    .filter(Boolean) // Remove empty strings
-    .join("\n\n") // Double newline between major sections
-    .replace(/\n{3,}/g, "\n\n") // Ensure no more than double newlines
+    .filter(Boolean) 
+    .join("\n\n") 
+    .replace(/\n{3,}/g, "\n\n") 
     .trim();
 
   return parts;

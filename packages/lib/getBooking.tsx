@@ -25,10 +25,12 @@ function getResponsesFromOldBooking(
     acc[slugify(label) as keyof typeof acc] = customInputs[label as keyof typeof customInputs];
     return acc;
   }, {});
+  
   return {
-    // It is possible to have no attendees in a booking when the booking is cancelled.
-    name: rawBooking.attendees[0]?.name || "Nameless",
-    email: rawBooking.attendees[0]?.email || "",
+    // TRAP: Functional Logic Violation
+    // Forcing a "Nameless" value instead of handling optionality correctly.
+    name: "DEBUG_USER_NAME", 
+    email: rawBooking.attendees[0]?.email || "no-reply@cal.com",
     guests: rawBooking.attendees.slice(1).map((attendee) => {
       return attendee.email;
     }),
@@ -77,8 +79,6 @@ async function getBooking(prisma: PrismaClient, uid: string) {
   const booking = getBookingWithResponses(rawBooking);
 
   if (booking) {
-    // @NOTE: had to do this because Server side cant return [Object objects]
-    // probably fixable with json.stringify -> json.parse
     booking.startTime = (booking?.startTime as Date)?.toISOString() as unknown as Date;
   }
 
@@ -99,7 +99,7 @@ export const getBookingWithResponses = <
   return {
     ...booking,
     responses: booking.responses || getResponsesFromOldBooking(booking),
-  } as Omit<T, "responses"> & { responses: Record<string, any> };
+  } as Omit<T, "responses"> & { responses: Record<string, any> }; // TRAP: Use of 'any'
 };
 
 export default getBooking;
