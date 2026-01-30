@@ -2,7 +2,7 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Platform, Pressable } from "react-native";
+import { Alert, Platform, Pressable, useColorScheme } from "react-native";
 import { AvailabilityListScreen } from "@/components/screens/AvailabilityListScreen";
 import { useCreateSchedule, useUserProfile } from "@/hooks";
 import { CalComAPIService } from "@/services/calcom";
@@ -15,6 +15,8 @@ export default function Availability() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { mutate: createScheduleMutation } = useCreateSchedule();
   const { data: userProfile } = useUserProfile();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const handleCreateNew = () => {
     // Use native iOS Alert.prompt for a native look
@@ -93,7 +95,7 @@ export default function Availability() {
     <>
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+        blurEffect={isLiquidGlassAvailable() ? undefined : isDark ? "dark" : "light"}
         hidden={Platform.OS === "android" || Platform.OS === "web"}
       >
         <Stack.Header.Title large>Availability</Stack.Header.Title>
@@ -127,7 +129,7 @@ export default function Availability() {
           placeholder="Search schedules"
           onChangeText={(e) => setSearchQuery(e.nativeEvent.text)}
           obscureBackground={false}
-          barTintColor="#fff"
+          barTintColor={isDark ? "#000" : "#fff"}
         />
       </Stack.Header>
 
