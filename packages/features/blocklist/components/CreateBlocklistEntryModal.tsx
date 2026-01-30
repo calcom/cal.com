@@ -72,8 +72,7 @@ export function CreateBlocklistEntryModal({
         return t("invalid_email_address");
       }
     } else if (watchType === WatchlistType.DOMAIN) {
-      const domainToValidate = value.startsWith("*.") ? value.slice(2) : value;
-      if (!domainRegex.test(domainToValidate)) {
+      if (!domainRegex.test(value)) {
         return t("invalid_domain_format");
       }
     }

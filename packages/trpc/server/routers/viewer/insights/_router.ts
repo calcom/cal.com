@@ -274,6 +274,18 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+
+  mostCancelledEventTypes: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+
+      try {
+        return await insightsBookingService.getMostCancelledEventTypesStats();
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
   averageEventDuration: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {

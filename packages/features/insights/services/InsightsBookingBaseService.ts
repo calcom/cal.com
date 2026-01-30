@@ -498,7 +498,7 @@ export class InsightsBookingBaseService {
     const totalCount = totalCountResult[0]?.count || 0;
 
     // 1. Get booking data from BookingTimeStatusDenormalized
-    const csvDataQuery = Prisma.sql`
+    const query = Prisma.sql`
       SELECT
         "id",
         "uid",
@@ -511,18 +511,19 @@ export class InsightsBookingBaseService {
         "endTime",
         "paid",
         "userEmail",
+        "userName",
         "userUsername",
-        "rating",
         "ratingFeedback",
-        "noShowHost"
+        "rating",
+        "noShowHost",
+        "isTeamBooking"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-      ORDER BY "createdAt" DESC
-      LIMIT ${limit}
-      OFFSET ${offset}
+      ORDER BY "startTime" DESC
+      LIMIT ${limit} OFFSET ${offset}
     `;
 
-    const csvData = await this.prisma.$queryRaw<
+    const bookingsFromSelected = await this.prisma.$queryRaw<
       Array<{
         id: number;
         uid: string | null;
@@ -530,292 +531,129 @@ export class InsightsBookingBaseService {
         createdAt: Date;
         timeStatus: string;
         eventTypeId: number | null;
-        eventLength: number;
+        eventLength: number | null;
         startTime: Date;
         endTime: Date;
         paid: boolean;
-        userEmail: string;
-        userUsername: string;
-        rating: number | null;
+        userEmail: string | null;
+        userName: string | null;
+        userUsername: string | null;
         ratingFeedback: string | null;
-        noShowHost: boolean;
+        rating: number | null;
+        noShowHost: boolean | null;
+        isTeamBooking: boolean;
       }>
-    >(csvDataQuery);
-
-    if (csvData.length === 0) {
-      return { data: csvData, total: totalCount };
-    }
-
-    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
-
-    if (uids.length === 0) {
-      return { data: csvData, total: totalCount };
-    }
-
-    // 2. Get all bookings with their attendees, seat references, and phone data
-    const bookings = await this.prisma.booking.findMany({
-      where: {
-        uid: {
-          in: uids,
-        },
-      },
-      select: {
-        uid: true,
-        eventTypeId: true,
-        attendees: {
-          select: {
-            name: true,
-            email: true,
-            phoneNumber: true,
-            noShow: true,
-          },
-        },
-        seatsReferences: {
-          select: {
-            attendee: {
-              select: {
-                name: true,
-                email: true,
-                phoneNumber: true,
-                noShow: true,
-              },
-            },
-          },
-        },
-        responses: true,
-        eventType: {
-          select: {
-            bookingFields: true,
-          },
-        },
-      },
-    });
-
-    // 3. Transform bookings data for CSV export
-    const data = transformBookingsForCsv(csvData as BookingTimeStatusData[], bookings, timeZone);
-
-    return { data, total: totalCount };
-  }
-
-  async getEventTrendsStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
-    if (!dateRanges.length) {
-      return [];
-    }
-
-    const baseConditions = await this.getBaseConditions();
-
-    const query = Prisma.sql`
-    WITH booking_stats AS (
-      SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
-        "timeStatus",
-        COALESCE("noShowHost", false) AS "noShowHost",
-        COUNT(*) as "bookingsCount"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions}
-      GROUP BY
-        1, 2, 3
-    ),
-    guest_stats AS (
-      SELECT
-        DATE(b."createdAt" AT TIME ZONE ${timeZone}) as "date",
-        b."timeStatus",
-        COALESCE(b."noShowHost", false) AS "noShowHost",
-        COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
-      FROM "BookingTimeStatusDenormalized" b
-      INNER JOIN "Attendee" a ON a."bookingId" = b.id
-      WHERE ${baseConditions}
-      GROUP BY
-        1, 2, 3
-    )
-    SELECT
-      bs."date",
-      CAST(bs."bookingsCount" AS INTEGER) AS "bookingsCount",
-      bs."timeStatus",
-      bs."noShowHost",
-      CAST(COALESCE(gs."noShowGuests", 0) AS INTEGER) AS "noShowGuests"
-    FROM booking_stats bs
-    LEFT JOIN guest_stats gs ON (
-      bs."date" = gs."date" AND
-      bs."timeStatus" = gs."timeStatus" AND
-      bs."noShowHost" = gs."noShowHost"
-    )
-    ORDER BY bs."date"
-  `;
-
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        bookingsCount: number;
-        timeStatus: string;
-        noShowHost: boolean;
-        noShowGuests: number;
-      }[]
     >(query);
 
-    // Initialize aggregate object with zero counts for all date ranges
-    const aggregate: {
-      [date: string]: {
-        completed: number;
-        rescheduled: number;
-        cancelled: number;
-        noShowHost: number;
-        noShowGuests: number;
-        _all: number;
-        uncompleted: number;
-      };
-    } = {};
+    const csvData = transformBookingsForCsv(bookingsFromSelected, timeZone);
 
-    dateRanges.forEach(({ formattedDate }) => {
-      aggregate[formattedDate] = {
-        completed: 0,
-        rescheduled: 0,
-        cancelled: 0,
-        noShowHost: 0,
-        noShowGuests: 0,
-        _all: 0,
-        uncompleted: 0,
-      };
-    });
-
-    // Process the raw data and aggregate by date ranges
-    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
-      // Find which date range this date belongs to using native Date comparison
-      const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
-      });
-
-      if (!dateRange) return;
-
-      const formattedDate = dateRange.formattedDate;
-      const statusKey = timeStatus as keyof (typeof aggregate)[string];
-
-      // Add to the specific status count
-      if (statusKey in aggregate[formattedDate]) {
-        aggregate[formattedDate][statusKey] += Number(bookingsCount);
-      }
-
-      // Add to the total count (_all)
-      aggregate[formattedDate]["_all"] += Number(bookingsCount);
-
-      // Track no-show host counts separately
-      if (noShowHost) {
-        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
-      }
-
-      // Track no-show guests explicitly
-      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
-    });
-
-    // Transform aggregate data into the expected format
-    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
-      const eventData = {
-        formattedDateFull: formattedDateFull,
-        Month: formattedDate,
-        Created: 0,
-        Completed: 0,
-        Rescheduled: 0,
-        Cancelled: 0,
-        "No-Show (Host)": 0,
-        "No-Show (Guest)": 0,
-      };
-
-      const countsForDateRange = aggregate[formattedDate];
-
-      if (countsForDateRange) {
-        eventData["Created"] = countsForDateRange["_all"] || 0;
-        eventData["Completed"] = countsForDateRange["completed"] || 0;
-        eventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
-        eventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
-        eventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-        eventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
-      }
-      return eventData;
-    });
-
-    return result;
+    return {
+      data: csvData,
+      totalCount,
+    };
   }
 
-  async getPopularEventsStats() {
+  async getKPIStats({
+    startDate,
+    endDate,
+    previousStartDate,
+    previousEndDate,
+  }: {
+    startDate: string;
+    endDate: string;
+    previousStartDate: string;
+    previousEndDate: string;
+  }) {
     const baseConditions = await this.getBaseConditions();
 
     const query = Prisma.sql`
+      WITH current_period AS (
+        SELECT
+          COUNT(id)::int as total_count,
+          COUNT(CASE WHEN status = 'accepted' AND "endTime" <= NOW() THEN 1 END)::int as completed_count,
+          COUNT(CASE WHEN rescheduled = true THEN 1 END)::int as rescheduled_count,
+          COUNT(CASE WHEN status = 'cancelled' THEN 1 END)::int as cancelled_count,
+          AVG(rating)::float as avg_rating,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END)::int as no_show_count
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+          AND "createdAt" >= ${startDate}::timestamp
+          AND "createdAt" <= ${endDate}::timestamp
+      ),
+      previous_period AS (
+        SELECT
+          COUNT(id)::int as total_count,
+          COUNT(CASE WHEN status = 'accepted' AND "endTime" <= NOW() THEN 1 END)::int as completed_count,
+          COUNT(CASE WHEN rescheduled = true THEN 1 END)::int as rescheduled_count,
+          COUNT(CASE WHEN status = 'cancelled' THEN 1 END)::int as cancelled_count,
+          AVG(rating)::float as avg_rating,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END)::int as no_show_count
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+          AND "createdAt" >= ${previousStartDate}::timestamp
+          AND "createdAt" <= ${previousEndDate}::timestamp
+      )
       SELECT
-        "eventTypeId",
-        COUNT(id)::int as count
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL
-      GROUP BY "eventTypeId"
-      ORDER BY count DESC
-      LIMIT 10
+        c.total_count as current_total,
+        p.total_count as previous_total,
+        c.completed_count as current_completed,
+        p.completed_count as previous_completed,
+        c.rescheduled_count as current_rescheduled,
+        p.rescheduled_count as previous_rescheduled,
+        c.cancelled_count as current_cancelled,
+        p.cancelled_count as previous_cancelled,
+        c.avg_rating as current_rating,
+        p.avg_rating as previous_rating,
+        c.no_show_count as current_no_show,
+        p.no_show_count as previous_no_show
+      FROM current_period c, previous_period p
     `;
 
-    const bookingsFromSelected = await this.prisma.$queryRaw<
+    const stats = await this.prisma.$queryRaw<
       Array<{
-        eventTypeId: number;
-        count: number;
+        current_total: number;
+        previous_total: number;
+        current_completed: number;
+        previous_completed: number;
+        current_rescheduled: number;
+        previous_rescheduled: number;
+        current_cancelled: number;
+        previous_cancelled: number;
+        current_rating: number | null;
+        previous_rating: number | null;
+        current_no_show: number;
+        previous_no_show: number;
       }>
     >(query);
 
-    const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
+    const result = stats[0];
 
-    if (eventTypeIds.length === 0) {
-      return [];
-    }
-
-    const eventTypesFrom = await this.prisma.eventType.findMany({
-      select: {
-        id: true,
-        title: true,
-        teamId: true,
-        userId: true,
-        slug: true,
-        users: {
-          select: {
-            username: true,
-          },
-        },
-        team: {
-          select: {
-            slug: true,
-          },
-        },
+    return {
+      created: {
+        count: result.current_total,
+        deltaPrevious: result.current_total - result.previous_total,
       },
-      where: {
-        id: {
-          in: eventTypeIds,
-        },
+      completed: {
+        count: result.current_completed,
+        deltaPrevious: result.current_completed - result.previous_completed,
       },
-    });
-
-    const eventTypeHashMap = new Map(eventTypesFrom.map((eventType) => [eventType.id, eventType]));
-
-    const result = bookingsFromSelected
-      .map((booking) => {
-        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId);
-        if (!eventTypeSelected) {
-          return null;
-        }
-
-        let eventSlug = "";
-        if (eventTypeSelected.userId) {
-          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
-        }
-        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
-          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
-        }
-        return {
-          eventTypeId: booking.eventTypeId,
-          eventTypeName: eventSlug,
-          count: booking.count,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    return result;
+      rescheduled: {
+        count: result.current_rescheduled,
+        deltaPrevious: result.current_rescheduled - result.previous_rescheduled,
+      },
+      cancelled: {
+        count: result.current_cancelled,
+        deltaPrevious: result.current_cancelled - result.previous_cancelled,
+      },
+      rating: {
+        count: result.current_rating || 0,
+        deltaPrevious: (result.current_rating || 0) - (result.previous_rating || 0),
+      },
+      no_show: {
+        count: result.current_no_show,
+        deltaPrevious: result.current_no_show - result.previous_no_show,
+      },
+    };
   }
 
   async getMembersStatsWithCount({
@@ -828,7 +666,6 @@ export class InsightsBookingBaseService {
     completed?: boolean;
   } = {}): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
-
     const conditions: Prisma.Sql[] = [Prisma.sql`"userId" IS NOT NULL`];
 
     if (type === "cancelled") {
@@ -962,7 +799,160 @@ export class InsightsBookingBaseService {
         return {
           userId: booking.userId,
           user,
-          emailMd5: md5(user.email),
+          emailMd5: md5(user.email || ""),
+          count: parseFloat(booking.count.toFixed(1)),
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getRecentNoShowGuests() {
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        "id",
+        "uid",
+        "title",
+        "startTime",
+        "userEmail",
+        "userName"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "noShowHost" = true
+      ORDER BY "startTime" DESC
+      LIMIT 10
+    `;
+
+    return await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        uid: string;
+        title: string;
+        startTime: Date;
+        userEmail: string | null;
+        userName: string | null;
+      }>
+    >(query);
+  }
+
+  async getNoShowHostsOverTimeStats({
+    timeZone,
+    dateRanges,
+  }: {
+    timeZone: string;
+    dateRanges: DateRange[];
+  }) {
+    const baseConditions = await this.getBaseConditions();
+
+    const stats = await Promise.all(
+      dateRanges.map(async (range) => {
+        const query = Prisma.sql`
+          SELECT
+            COUNT(id)::int as count
+          FROM "BookingTimeStatusDenormalized"
+          WHERE ${baseConditions}
+            AND "noShowHost" = true
+            AND "startTime" >= ${range.start.toISOString()}::timestamp
+            AND "startTime" <= ${range.end.toISOString()}::timestamp
+        `;
+
+        const result = await this.prisma.$queryRaw<[{ count: number }]>(query);
+        return {
+          date: range.start,
+          count: result[0]?.count || 0,
+        };
+      })
+    );
+
+    const result = stats.map((stat) => {
+      const formattedDate = dayjs(stat.date).tz(timeZone).format("MMM D");
+      const formattedDateFull = dayjs(stat.date).tz(timeZone).format("MMM D, YYYY");
+
+      return {
+        formattedDateFull: formattedDateFull,
+        Month: formattedDate,
+        "No Show": stat.count,
+      };
+    });
+
+    return result;
+  }
+
+  async getPopularEventsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        "eventTypeId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL
+      GROUP BY "eventTypeId"
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    const bookingsFromSelected = await this.prisma.$queryRaw<
+      Array<{
+        eventTypeId: number;
+        count: number;
+      }>
+    >(query);
+
+    const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
+
+    if (eventTypeIds.length === 0) {
+      return [];
+    }
+
+    const eventTypesFrom = await this.prisma.eventType.findMany({
+      select: {
+        id: true,
+        title: true,
+        teamId: true,
+        userId: true,
+        slug: true,
+        users: {
+          select: {
+            username: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+      where: {
+        id: {
+          in: eventTypeIds,
+        },
+      },
+    });
+
+    const eventTypeHashMap = new Map(eventTypesFrom.map((eventType) => [eventType.id, eventType]));
+
+    const result = bookingsFromSelected
+      .map((booking) => {
+        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId);
+        if (!eventTypeSelected) {
+          return null;
+        }
+
+        let eventSlug = "";
+        if (eventTypeSelected.userId) {
+          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
+        }
+
+        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
+          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
+        }
+
+        return {
+          eventTypeId: booking.eventTypeId,
+          eventTypeName: eventSlug,
           count: booking.count,
         };
       })
@@ -971,75 +961,80 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getRecentRatingsStats() {
+  async getMostCancelledEventTypesStats() {
     const baseConditions = await this.getBaseConditions();
 
     const query = Prisma.sql`
       SELECT
-        "userId",
-        "rating",
-        "ratingFeedback"
+        "eventTypeId",
+        COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "ratingFeedback" IS NOT NULL
-      ORDER BY "endTime" DESC
+      WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL AND status = 'cancelled'
+      GROUP BY "eventTypeId"
+      ORDER BY count DESC
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
+    const bookingsFromSelected = await this.prisma.$queryRaw<
       Array<{
-        userId: number | null;
-        rating: number | null;
-        ratingFeedback: string | null;
+        eventTypeId: number;
+        count: number;
       }>
     >(query);
 
-    if (bookingsFromTeam.length === 0) {
+    const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
+
+    if (eventTypeIds.length === 0) {
       return [];
     }
 
-    const userIds = bookingsFromTeam
-      .filter((booking) => booking.userId !== null)
-      .map((booking) => booking.userId as number)
-      .filter((userId, index, array) => array.indexOf(userId) === index);
-
-    if (userIds.length === 0) {
-      return [];
-    }
-
-    const usersFromTeam = await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
+    const eventTypesFrom = await this.prisma.eventType.findMany({
       select: {
         id: true,
-        name: true,
-        email: true,
-        username: true,
-        avatarUrl: true,
+        title: true,
+        teamId: true,
+        userId: true,
+        slug: true,
+        users: {
+          select: {
+            username: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+      where: {
+        id: {
+          in: eventTypeIds,
+        },
       },
     });
 
-    const userHashMap = buildHashMapForUsers(usersFromTeam);
+    const eventTypeHashMap = new Map(eventTypesFrom.map((eventType) => [eventType.id, eventType]));
 
-    const result = bookingsFromTeam
+    const result = bookingsFromSelected
       .map((booking) => {
-        if (!booking.userId) {
+        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId);
+        if (!eventTypeSelected) {
           return null;
         }
 
-        const user = userHashMap.get(booking.userId);
-        if (!user) {
-          return null;
+        let eventSlug = "";
+        if (eventTypeSelected.userId) {
+          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
+        }
+
+        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
+          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
         }
 
         return {
-          userId: booking.userId,
-          user,
-          emailMd5: md5(user.email),
-          rating: booking.rating,
-          feedback: booking.ratingFeedback,
+          eventTypeId: booking.eventTypeId,
+          eventTypeName: eventSlug,
+          count: booking.count,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -1047,265 +1042,33 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getBookingStats() {
-    const baseConditions = await this.getBaseConditions();
-
-    const query = Prisma.sql`
-      WITH booking_stats AS (
-        SELECT
-          COUNT(*) as total_bookings,
-          COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
-          COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
-          COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
-          COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
-          AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
-          COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
-          COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
-        FROM "BookingTimeStatusDenormalized"
-        WHERE ${baseConditions}
-      ),
-      guest_stats AS (
-        SELECT COUNT(*) as no_show_guests
-        FROM "Attendee" a
-        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
-        WHERE ${baseConditions} AND a."noShow" = true
-      )
-      SELECT
-        bs.total_bookings,
-        bs.completed_bookings,
-        bs.rescheduled_bookings,
-        bs.cancelled_bookings,
-        bs.no_show_host_bookings,
-        bs.avg_rating,
-        bs.total_ratings,
-        bs.ratings_above_3,
-        gs.no_show_guests
-      FROM booking_stats bs, guest_stats gs
-    `;
-
-    const stats = await this.prisma.$queryRaw<
-      Array<{
-        total_bookings: bigint;
-        completed_bookings: bigint;
-        rescheduled_bookings: bigint;
-        cancelled_bookings: bigint;
-        no_show_host_bookings: bigint;
-        avg_rating: number | null;
-        total_ratings: bigint;
-        ratings_above_3: bigint;
-        no_show_guests: bigint;
-      }>
-    >(query);
-
-    const rawStats = stats[0];
-    return rawStats
-      ? {
-          total_bookings: Number(rawStats.total_bookings),
-          completed_bookings: Number(rawStats.completed_bookings),
-          rescheduled_bookings: Number(rawStats.rescheduled_bookings),
-          cancelled_bookings: Number(rawStats.cancelled_bookings),
-          no_show_host_bookings: Number(rawStats.no_show_host_bookings),
-          avg_rating: rawStats.avg_rating,
-          total_ratings: Number(rawStats.total_ratings),
-          ratings_above_3: Number(rawStats.ratings_above_3),
-          no_show_guests: Number(rawStats.no_show_guests),
-        }
-      : {
-          total_bookings: 0,
-          completed_bookings: 0,
-          rescheduled_bookings: 0,
-          cancelled_bookings: 0,
-          no_show_host_bookings: 0,
-          avg_rating: 0,
-          total_ratings: 0,
-          ratings_above_3: 0,
-          no_show_guests: 0,
-        };
-  }
-
-  async getRecentNoShowGuests() {
-    const baseConditions = await this.getBaseConditions();
-
-    const query = Prisma.sql`
-      WITH booking_attendee_stats AS (
-        SELECT
-          b.id as booking_id,
-          b."startTime",
-          b.title as event_type_name,
-          COUNT(a.id) as total_attendees,
-          COUNT(CASE WHEN a."noShow" = true THEN 1 END) as no_show_attendees
-        FROM "BookingTimeStatusDenormalized" b
-        INNER JOIN "Attendee" a ON a."bookingId" = b.id
-        WHERE ${baseConditions} and b.status = 'accepted'
-        GROUP BY b.id, b."startTime", b.title
-        HAVING COUNT(a.id) > 0 AND COUNT(a.id) = COUNT(CASE WHEN a."noShow" = true THEN 1 END)
-      ),
-      recent_no_shows AS (
-        SELECT
-          bas.booking_id,
-          bas."startTime",
-          bas.event_type_name,
-          a.name as guest_name,
-          a.email as guest_email,
-          ROW_NUMBER() OVER (PARTITION BY bas.booking_id ORDER BY a.id) as rn
-        FROM booking_attendee_stats bas
-        INNER JOIN "Attendee" a ON a."bookingId" = bas.booking_id
-        WHERE a."noShow" = true
-      )
-      SELECT
-        booking_id as "bookingId",
-        "startTime",
-        event_type_name as "eventTypeName",
-        guest_name as "guestName",
-        guest_email as "guestEmail"
-      FROM recent_no_shows
-      WHERE rn = 1
-      ORDER BY "startTime" DESC
-      LIMIT 10
-    `;
-
-    const recentNoShowBookings = await this.prisma.$queryRaw<
-      Array<{
-        bookingId: number;
-        startTime: Date;
-        eventTypeName: string;
-        guestName: string;
-        guestEmail: string;
-      }>
-    >(query);
-
-    return recentNoShowBookings;
-  }
-
-  calculatePreviousPeriodDates() {
-    const result = extractDateRangeFromColumnFilters(this.filters?.columnFilters);
-    const startDate = dayjs(result.startDate);
-    const endDate = dayjs(result.endDate);
-
-    const startTimeEndTimeDiff = endDate.diff(startDate, "day");
-
-    const lastPeriodStartDate = startDate.subtract(startTimeEndTimeDiff, "day");
-    const lastPeriodEndDate = endDate.subtract(startTimeEndTimeDiff, "day");
-
-    return {
-      startDate: lastPeriodStartDate.toISOString(),
-      endDate: lastPeriodEndDate.toISOString(),
-      formattedStartDate: lastPeriodStartDate.format("YYYY-MM-DD"),
-      formattedEndDate: lastPeriodEndDate.format("YYYY-MM-DD"),
-    };
-  }
-
-  async getNoShowHostsOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
-    if (!dateRanges.length) {
-      return [];
-    }
-
-    const baseConditions = await this.getBaseConditions();
-
-    const query = Prisma.sql`
-      SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
-        COUNT(*) as "count"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "noShowHost" = true
-      GROUP BY 1
-      ORDER BY 1
-    `;
-
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        count: number;
-      }[]
-    >(query);
-
-    // Initialize aggregate object with zero counts for all date ranges
-    const aggregate: { [date: string]: number } = {};
-
-    dateRanges.forEach(({ formattedDate }) => {
-      aggregate[formattedDate] = 0;
-    });
-
-    // Process the raw data and aggregate by date ranges
-    data.forEach(({ date, count }) => {
-      // Find which date range this date belongs to using native Date comparison
-      const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
-      });
-
-      if (!dateRange) return;
-
-      const formattedDate = dateRange.formattedDate;
-      aggregate[formattedDate] += Number(count);
-    });
-
-    // Transform aggregate data into the expected format
-    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => ({
-      formattedDateFull: formattedDateFull,
-      Month: formattedDate,
-      Count: aggregate[formattedDate] || 0,
-    }));
-
-    return result;
-  }
-
   async getCSATOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
-    if (!dateRanges.length) {
-      return [];
-    }
-
     const baseConditions = await this.getBaseConditions();
 
-    const query = Prisma.sql`
-      SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
-        COUNT(*) FILTER (WHERE "rating" >= 3) as "ratings_above_3",
-        COUNT(*) FILTER (WHERE "rating" IS NOT NULL) as "total_ratings"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "rating" IS NOT NULL
-      GROUP BY 1
-      ORDER BY 1
-    `;
+    const stats = await Promise.all(
+      dateRanges.map(async (range) => {
+        const query = Prisma.sql`
+          SELECT
+            AVG(rating)::float as avg_rating
+          FROM "BookingTimeStatusDenormalized"
+          WHERE ${baseConditions}
+            AND rating IS NOT NULL
+            AND "startTime" >= ${range.start.toISOString()}::timestamp
+            AND "startTime" <= ${range.end.toISOString()}::timestamp
+        `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        ratings_above_3: number;
-        total_ratings: number;
-      }[]
-    >(query);
+        const result = await this.prisma.$queryRaw<[{ avg_rating: number | null }]>(query);
+        return {
+          date: range.start,
+          avg_rating: result[0]?.avg_rating || 0,
+        };
+      })
+    );
 
-    // Initialize aggregate object with zero counts for all date ranges
-    const aggregate: { [date: string]: { ratingsAbove3: number; totalRatings: number } } = {};
-
-    dateRanges.forEach(({ formattedDate }) => {
-      aggregate[formattedDate] = { ratingsAbove3: 0, totalRatings: 0 };
-    });
-
-    // Process the raw data and aggregate by date ranges
-    data.forEach(({ date, ratings_above_3, total_ratings }) => {
-      // Find which date range this date belongs to using native Date comparison
-      const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
-      });
-
-      if (!dateRange) return;
-
-      const formattedDate = dateRange.formattedDate;
-      aggregate[formattedDate].ratingsAbove3 += Number(ratings_above_3);
-      aggregate[formattedDate].totalRatings += Number(total_ratings);
-    });
-
-    // Transform aggregate data into the expected format and calculate CSAT percentage
-    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
-      const counts = aggregate[formattedDate];
-      const csat = counts.totalRatings > 0 ? (counts.ratingsAbove3 / counts.totalRatings) * 100 : 0;
+    const result = stats.map((stat) => {
+      const formattedDate = dayjs(stat.date).tz(timeZone).format("MMM D");
+      const formattedDateFull = dayjs(stat.date).tz(timeZone).format("MMM D, YYYY");
+      const csat = stat.avg_rating * 20; // Convert 1-5 rating to 0-100 CSAT
 
       return {
         formattedDateFull: formattedDateFull,
