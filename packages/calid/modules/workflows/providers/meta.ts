@@ -393,8 +393,14 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 > => {
   const expandedVariables = {
     ...variableData,
-    eventStartTimeInAttendeeTimezone: variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
-    eventEndTimeInAttendeeTimezone: variableData.eventEndTimeInAttendeeTimezone?.format("h:mma"),
+    eventStartTimeInAttendeeTimezone:
+      typeof variableData.eventStartTimeInAttendeeTimezone === "string"
+        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
+    eventEndTimeInAttendeeTimezone:
+      typeof variableData.eventEndTimeInAttendeeTimezone === "string"
+        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
     senderName:
