@@ -36,6 +36,18 @@ function normalizeResponses(
   return out;
 }
 
+/** Derive firstName/lastName from name for legacy payload parity (attendees[].firstName, attendees[].lastName). */
+function nameToFirstAndLast(name: string): { firstName: string; lastName: string } {
+  const trimmed = (name ?? "").trim();
+  if (!trimmed) return { firstName: "", lastName: "" };
+  const firstSpace = trimmed.indexOf(" ");
+  if (firstSpace === -1) return { firstName: trimmed, lastName: "" };
+  return {
+    firstName: trimmed.slice(0, firstSpace),
+    lastName: trimmed.slice(firstSpace + 1).trim(),
+  };
+}
+
 /**
  * Booking payload builder for webhook version 2021-10-20.
  *
@@ -168,7 +180,27 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
     params: BookingPayloadParams<T>
   ): WebhookPayload {
     const utcOffsetOrganizer = getUTCOffsetByTimezone(params.evt.organizer?.timeZone, params.evt.startTime);
-    const organizer = { ...params.evt.organizer, utcOffset: utcOffsetOrganizer };
+    const organizer = {
+      ...params.evt.organizer,
+      utcOffset: utcOffsetOrganizer,
+      // Use null when missing so the key is always present in JSON (undefined is omitted by JSON.stringify)
+      usernameInOrg: params.evt.organizer?.usernameInOrg ?? null,
+    };
+
+    const attendeesWithLegacyFields =
+      params.evt.attendees?.map((a) => {
+        const utcOffset = getUTCOffsetByTimezone(a.timeZone, params.evt.startTime);
+        const nameParts =
+          "firstName" in a && "lastName" in a
+            ? { firstName: (a as { firstName?: string }).firstName ?? "", lastName: (a as { lastName?: string }).lastName ?? "" }
+            : nameToFirstAndLast(a.name ?? "");
+        return {
+          ...a,
+          utcOffset,
+          firstName: nameParts.firstName,
+          lastName: nameParts.lastName,
+        };
+      }) ?? [];
 
     return {
       triggerEvent: params.triggerEvent,
@@ -180,12 +212,10 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         endTime: params.evt.endTime,
         title: params.evt.title,
         type: params.evt.type,
+        hashedLink: params.evt.hashedLink ?? null,
+        conferenceData: params.evt.conferenceData ?? null,
         organizer,
-        attendees:
-          params.evt.attendees?.map((a) => ({
-            ...a,
-            utcOffset: getUTCOffsetByTimezone(a.timeZone, params.evt.startTime),
-          })) ?? [],
+        attendees: attendeesWithLegacyFields,
         location: params.evt.location,
         uid: params.evt.uid,
         customInputs: params.evt.customInputs,
