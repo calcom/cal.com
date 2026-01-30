@@ -143,6 +143,11 @@ export class SalesforceGraphQLClient {
           log.info(
             `Contact ${contact.Id}'s account filtered out by field rules, checking next contact`
           );
+          SalesforceRoutingTraceService.fieldRuleFilteredRecord({
+            tier: "contact",
+            recordId: contact.Id,
+            reason: "Contact's account filtered out by field rules",
+          });
           continue;
         }
 
@@ -177,6 +182,11 @@ export class SalesforceGraphQLClient {
           log.info(
             `Account ${account.Id} filtered out by field rules, checking next account`
           );
+          SalesforceRoutingTraceService.fieldRuleFilteredRecord({
+            tier: "account",
+            recordId: account.Id,
+            reason: "Account filtered out by field rules",
+          });
           continue;
         }
 
@@ -291,6 +301,11 @@ export class SalesforceGraphQLClient {
             log.info(
               `Dominant account ${accountId} filtered out by field rules, trying next account`
             );
+            SalesforceRoutingTraceService.fieldRuleFilteredRecord({
+              tier: "related_contacts",
+              recordId: accountId,
+              reason: "Dominant account filtered out by field rules",
+            });
             continue;
           }
         }
@@ -379,6 +394,14 @@ export class SalesforceGraphQLClient {
         log.info(
           `FILTERED: ignore rule matched — field "${rule.field}" equals "${ruleValue}"`
         );
+        SalesforceRoutingTraceService.fieldRuleEvaluated({
+          field: rule.field,
+          action: rule.action,
+          ruleValue,
+          actualValue,
+          matches,
+          result: "filtered",
+        });
         return false;
       }
 
@@ -386,6 +409,14 @@ export class SalesforceGraphQLClient {
         log.info(
           `FILTERED: must_include rule failed — field "${rule.field}" is "${actualValue}", expected "${ruleValue}"`
         );
+        SalesforceRoutingTraceService.fieldRuleEvaluated({
+          field: rule.field,
+          action: rule.action,
+          ruleValue,
+          actualValue,
+          matches,
+          result: "filtered",
+        });
         return false;
       }
     }

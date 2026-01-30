@@ -585,6 +585,12 @@ class SalesforceCRMService implements CRM {
           if (filtered.length > 0) {
             validatedFieldRules = filtered;
             log.info("Validated field rules", safeStringify({ validatedFieldRules }));
+            SalesforceRoutingTraceService.fieldRulesValidated({
+              recordType: recordToSearch,
+              configuredCount: appOptions.rrSkipFieldRules.length,
+              validCount: filtered.length,
+              validFields: filtered.map((r) => r.field),
+            });
           } else {
             log.warn(
               "No field rules matched existing fields",
@@ -592,6 +598,11 @@ class SalesforceCRMService implements CRM {
                 configuredFields: appOptions.rrSkipFieldRules.map((r) => r.field),
               })
             );
+            SalesforceRoutingTraceService.fieldRulesValidated({
+              recordType: recordToSearch,
+              configuredCount: appOptions.rrSkipFieldRules.length,
+              validCount: 0,
+            });
           }
         }
       }
@@ -672,6 +683,9 @@ class SalesforceCRMService implements CRM {
         records = await this.applyFieldRules(records, appOptions.rrSkipFieldRules, recordToSearch);
         if (records.length === 0) {
           log.info("All records filtered out by field rules");
+          SalesforceRoutingTraceService.allRecordsFilteredByFieldRules({
+            recordType: recordToSearch,
+          });
           return [];
         }
       }
