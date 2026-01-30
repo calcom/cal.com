@@ -1,5 +1,5 @@
+import { ROUTING_TRACE_DOMAINS } from "../constants";
 import type { RoutingTraceService } from "../services/RoutingTraceService";
-import { ROUTING_TRACE_DOMAINS } from "../services/RoutingTraceService";
 
 export const ROUTING_FORM_STEPS = {
   ROUTE_MATCHED: "route_matched",

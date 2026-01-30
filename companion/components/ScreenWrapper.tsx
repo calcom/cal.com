@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { EmptyScreen } from "./EmptyScreen";
 import { Header } from "./Header";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { getColors } from "@/constants/colors";
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -68,11 +69,16 @@ export function ScreenWrapper({
   showHeader = true,
   children,
 }: ScreenWrapperProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+  const errorIconColor = theme.destructive;
+
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <LoadingSpinner size="large" />
         </View>
       </View>
@@ -81,17 +87,22 @@ export function ScreenWrapper({
 
   if (error) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
+          <Ionicons name="alert-circle" size={64} color={errorIconColor} />
+          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800 dark:text-gray-100">
             {errorTitle}
           </Text>
-          <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
+          <Text className="mb-6 text-center text-base text-gray-500 dark:text-gray-400">
+            {error}
+          </Text>
           {onRetry && (
-            <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={onRetry}>
-              <Text className="text-base font-semibold text-white">Retry</Text>
+            <TouchableOpacity
+              className="rounded-lg bg-black px-6 py-3 dark:bg-white"
+              onPress={onRetry}
+            >
+              <Text className="text-base font-semibold text-white dark:text-black">Retry</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -101,9 +112,9 @@ export function ScreenWrapper({
 
   if (isEmpty && emptyProps) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1 bg-gray-100 dark:bg-black">
         {showHeader && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5 dark:bg-[#171717]">
           <EmptyScreen {...emptyProps} />
         </View>
       </View>
@@ -111,7 +122,7 @@ export function ScreenWrapper({
   }
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100 dark:bg-black">
       {showHeader && <Header />}
       {children}
     </View>
