@@ -105,7 +105,7 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const repository = new GetBookingsRepositoryForApiV2({ prismaClient: prisma });
+  const repository = new GetBookingsRepositoryForApiV2({ prismaClient: _prisma });
   return repository.findMany({
     user,
     kysely,

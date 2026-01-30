@@ -514,43 +514,49 @@ export abstract class GetBookingsRepositoryBase {
       return isOwner || !!isHost || isAttendee;
     };
 
-    const bookings = await Promise.all(
-      plainBookings.map(async (booking) => {
-        const isUserHost = checkIfUserIsHost(booking, user);
-        const shouldHideAttendees =
-          booking.eventType?.seatsShowAttendees === false && !isUserHost && booking.seatsReferences.length > 0;
+    // Batch fetch rescheduler data to avoid N+1 queries
+    const fromRescheduleUids = plainBookings
+      .map((booking) => booking.fromReschedule)
+      .filter((uid): uid is string => uid !== null);
 
-        let rescheduler: string | null = null;
-        if (booking.fromReschedule) {
-          const rescheduledBooking = await this.deps.prismaClient.booking.findUnique({
-            where: {
-              uid: booking.fromReschedule,
-            },
-            select: {
-              rescheduledBy: true,
-            },
-          });
-          if (rescheduledBooking) {
-            rescheduler = rescheduledBooking.rescheduledBy;
-          }
-        }
+    const reschedulerMap = new Map<string, string | null>();
+    if (fromRescheduleUids.length > 0) {
+      const rescheduledBookings = await prismaClient.booking.findMany({
+        where: {
+          uid: { in: fromRescheduleUids },
+        },
+        select: {
+          uid: true,
+          rescheduledBy: true,
+        },
+      });
+      for (const rb of rescheduledBookings) {
+        reschedulerMap.set(rb.uid, rb.rescheduledBy);
+      }
+    }
 
-        return {
-          ...booking,
-          rescheduler,
-          eventType: {
-            ...booking.eventType,
-            recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-            eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
-            price: booking.eventType?.price || 0,
-            currency: booking.eventType?.currency || "usd",
-            metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
-          },
-          startTime: booking.startTime.toISOString(),
-          endTime: booking.endTime.toISOString(),
-        };
-      })
-    );
+    const bookings = plainBookings.map((booking) => {
+      const isUserHost = checkIfUserIsHost(booking, user);
+      const shouldHideAttendees =
+        booking.eventType?.seatsShowAttendees === false && !isUserHost && booking.seatsReferences.length > 0;
+
+      const rescheduler = booking.fromReschedule ? (reschedulerMap.get(booking.fromReschedule) ?? null) : null;
+
+      return {
+        ...booking,
+        rescheduler,
+        eventType: {
+          ...booking.eventType,
+          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+          eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
+          price: booking.eventType?.price || 0,
+          currency: booking.eventType?.currency || "usd",
+          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+        },
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+      };
+    });
 
     const enrichedBookings = await this.enrichAttendeesWithUserData(bookings, kysely);
 
