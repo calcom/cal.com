@@ -92,6 +92,7 @@ const _buildCommonUserCredential = ({
     key: {
       access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
     },
+    encryptedKey: null,
     invalid: false,
     teamId: null,
     team: null,
