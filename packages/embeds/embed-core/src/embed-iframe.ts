@@ -498,9 +498,18 @@ export const methods = {
       );
       // Incrementing the version forces the slots call to be made again
       embedStore.connectVersion = embedStore.connectVersion + 1;
+      embedStore.skipRefetchOnWindowFocus = false;
+    } else {
+      log(
+        "Method: connect, noSlotsFetchOnConnect is true. Skipping refetch on window focus"
+      );
+      // When noSlotsFetchOnConnect is true, we also need to prevent React Query's
+      // refetchOnWindowFocus from triggering a refetch when the iframe becomes visible
+      embedStore.skipRefetchOnWindowFocus = true;
     }
 
     const connectVersion = embedStore.connectVersion;
+    const skipRefetchOnWindowFocus = embedStore.skipRefetchOnWindowFocus;
     // Config is just a typed and more declarative way to pass the query params from the parent(except iframeAttrs which is meant to be consumed by parent and not supposed to passed to child)
     // So, query params can come directly by providing them to calLink or through config
     const toBeThereParams = {
@@ -508,6 +517,9 @@ export const methods = {
       // Query params from config takes precedence over query params in url
       ...(queryParamsFromConfig as Record<string, string | string[]>),
       "cal.embed.connectVersion": connectVersion.toString(),
+      ...(skipRefetchOnWindowFocus
+        ? { "cal.embed.skipRefetchOnWindowFocus": "true" }
+        : {}),
     };
 
     const toRemoveParams = ["preload", "prerender", "cal.skipSlotsFetch"];

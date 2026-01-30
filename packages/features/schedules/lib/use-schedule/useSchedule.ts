@@ -91,6 +91,9 @@ export const useSchedule = ({
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
   const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
+  // When the embed connects with noSlotsFetchOnConnect=true, we skip refetchOnWindowFocus to prevent
+  // React Query from triggering a refetch when the prerendered iframe becomes visible
+  const embedSkipRefetchOnWindowFocus = searchParams?.get("cal.embed.skipRefetchOnWindowFocus") === "true";
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -128,7 +131,8 @@ export const useSchedule = ({
     // It allows people who might not have the tab in focus earlier, to get latest available slots
     // It might not work correctly in iframes, so we have refetchInterval to take care of that.
     // But where it works, it should give user latest availability even if they come back to tab before refetchInterval.
-    refetchOnWindowFocus: true,
+    // When embedSkipRefetchOnWindowFocus is true, we disable this to prevent refetching when the prerendered iframe becomes visible
+    refetchOnWindowFocus: !embedSkipRefetchOnWindowFocus,
     // It allows long sitting users to get latest available slots
     refetchInterval: PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS * 1000,
     enabled:
@@ -151,6 +155,8 @@ export const useSchedule = ({
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
+    refetchOnWindowFocus: options.refetchOnWindowFocus,
+    refetchInterval: options.refetchInterval,
   });
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {

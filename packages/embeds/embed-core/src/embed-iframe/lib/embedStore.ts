@@ -19,6 +19,13 @@ export enum EMBED_IFRAME_STATE {
 export const embedStore = {
   connectVersion: 0 as number,
   /**
+   * When true, the schedule query should skip refetching on window focus.
+   * This is set when the embed connects with noSlotsFetchOnConnect=true to prevent
+   * React Query's refetchOnWindowFocus from triggering a refetch when the prerendered
+   * iframe becomes visible.
+   */
+  skipRefetchOnWindowFocus: false as boolean,
+  /**
    * Tracks whether the iframe is fully rendered or in progress of rendering.
    * In case of prerendering as well as non-prerendering, it would be "completed" after the iframe is fully rendered.
    */

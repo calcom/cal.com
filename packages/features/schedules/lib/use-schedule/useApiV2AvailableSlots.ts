@@ -12,8 +12,14 @@ export const QUERY_KEY = "get-available-slots";
 
 export const useApiV2AvailableSlots = ({
   enabled,
+  refetchOnWindowFocus = true,
+  refetchInterval,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
+}: GetAvailableSlotsInput_2024_04_15 & {
+  enabled: boolean;
+  refetchOnWindowFocus?: boolean;
+  refetchInterval?: number;
+}) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
@@ -41,7 +47,9 @@ export const useApiV2AvailableSlots = ({
           throw new Error(res.data.error.message);
         });
     },
-    enabled: enabled,
+    enabled,
+    refetchOnWindowFocus,
+    refetchInterval,
   });
   return availableSlots;
 };
