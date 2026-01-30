@@ -2,6 +2,7 @@
 
 import type { GlobalCal, GlobalCalWithoutNs } from "@calcom/embed-core";
 import EmbedSnippet from "@calcom/embed-snippet";
+
 import Cal from "./Cal";
 
 // Exporting for consumption by @calcom/embed-react user
@@ -22,9 +23,7 @@ export function getCalApi(
     | string
 ): Promise<GlobalCal | GlobalCalWithoutNs> {
   const options =
-    typeof optionsOrEmbedJsUrl === "string"
-      ? { embedJsUrl: optionsOrEmbedJsUrl }
-      : (optionsOrEmbedJsUrl ?? {});
+    typeof optionsOrEmbedJsUrl === "string" ? { embedJsUrl: optionsOrEmbedJsUrl } : optionsOrEmbedJsUrl ?? {};
 
   const { namespace = "", embedJsUrl } = options;
   return new Promise(function tryReadingFromWindow(resolve) {

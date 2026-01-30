@@ -28,16 +28,16 @@ type QueuePushArg = {
  * 3. app-store/wordpress/plugin.php
  */
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
-  ((C, A, L) => {
-    const p = (a: GlobalCalWithoutNs, ar: QueuePushArg) => {
+  (function (C, A, L) {
+    let p = function (a: GlobalCalWithoutNs, ar: QueuePushArg) {
       a.q.push(ar);
     };
-    const d = C.document;
+    let d = C.document;
     C.Cal =
       C.Cal ||
       function () {
-        const cal = C.Cal;
-        const ar = arguments;
+        let cal = C.Cal;
+        let ar = arguments;
         if (!cal.loaded) {
           // 'ns' and 'q' are now definitely set with the following 2 lines, so you can safely assert in TypeScript that it's GlobalCal now.
           cal.ns = {};

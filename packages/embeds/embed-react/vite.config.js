@@ -1,8 +1,8 @@
-import path from "node:path";
 import react from "@vitejs/plugin-react";
+import path from "node:path"
 import { defineConfig } from "vite";
-import viteBaseConfig from "../vite.config";
 
+import viteBaseConfig from "../vite.config";
 const useClientBanner = '"use client";';
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -23,18 +23,18 @@ export default defineConfig({
         if (useClientBanner) {
           if (
             // vite-plugin-react also ignores this warning - https://github.com/vitejs/vite-plugin-react/blob/3748fc7493cf0a07a2ae275fbd1ae035f01010cc/packages/plugin-react/src/index.ts#L307-L323
-            warning.code === "MODULE_LEVEL_DIRECTIVE" &&
-            warning.message.includes("use client")
+            warning.code === 'MODULE_LEVEL_DIRECTIVE' &&
+            warning.message.includes('use client')
           ) {
-            return;
+            return
           }
           // It comes due to use client directive being ignored in the middle of the file
           // Even though this could happen in other cases, but there would always be another corresponding error logged which could still highlight any issue during build
           if (warning.message?.includes("Can't resolve original location of error")) {
-            return;
+            return
           }
         }
-        defaultHandler(warning);
+        defaultHandler(warning)
       },
       output: {
         exports: "named",
