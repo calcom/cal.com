@@ -69,18 +69,6 @@ export function WrongAssignmentReportsDashboard() {
     }
   );
 
-  if (!teamId) {
-    return (
-      <div className="bg-default border-subtle rounded-lg border p-4">
-        <EmptyScreen
-          headline={t("wrong_assignment_reports")}
-          description={t("select_team_to_view_reports")}
-          Icon="users"
-        />
-      </div>
-    );
-  }
-
   const updateStatusMutation = trpc.viewer.bookings.updateWrongAssignmentReportStatus.useMutation({
     onSuccess: () => {
       showToast(t("status_updated_successfully"), "success");
@@ -99,6 +87,18 @@ export function WrongAssignmentReportsDashboard() {
     setActiveTab(tab);
     setPage(0);
   };
+
+  if (!teamId) {
+    return (
+      <div className="bg-default border-subtle rounded-lg border p-4">
+        <EmptyScreen
+          headline={t("wrong_assignment_reports")}
+          description={t("select_team_to_view_reports")}
+          Icon="users"
+        />
+      </div>
+    );
+  }
 
   const reports = data?.reports ?? [];
   const totalCount = data?.totalCount ?? 0;

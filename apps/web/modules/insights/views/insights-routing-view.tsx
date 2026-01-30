@@ -28,14 +28,14 @@ export default function InsightsRoutingFormResponsesPage({ timeZone }: { timeZon
 
           <RoutingFunnel />
 
-                    <div className="flex flex-col gap-4 md:flex-row">
-                      <RoutedToPerPeriod />
-                      <FailedBookingsByField />
-                    </div>
+          <div className="flex flex-col gap-4 md:flex-row">
+            <RoutedToPerPeriod />
+            <FailedBookingsByField />
+          </div>
 
-                    <WrongAssignmentReportsDashboard />
+          <WrongAssignmentReportsDashboard />
 
-                    <small className="text-default block text-center">
+          <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}
             <a
               className="text-blue-500 hover:underline"
