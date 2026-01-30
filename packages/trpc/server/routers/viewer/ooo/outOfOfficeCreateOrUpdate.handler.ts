@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
@@ -14,11 +12,10 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { AppCategories, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
+import { v4 as uuidv4 } from "uuid";
 import { isAdminForUser } from "./outOfOffice.utils";
-import { type TOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
+import type { TOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 
 const log = logger.getSubLogger({ prefix: ["[outOfOfficeCreateOrUpdate.handler]"] });
 
@@ -107,7 +104,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     toUserId = user?.id;
   }
 
-  if (!input.reasonId) {
+  if (!input.reasonId && !input.hrmsReasonId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
   }
 
@@ -454,7 +451,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       const hrmsTimeOff = await hrmsManager.createOOO({
         endDate: endTimeUtc.format("YYYY-MM-DD"),
         startDate: startTimeUtc.format("YYYY-MM-DD"),
-        notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
+        notes: input?.notes ?? undefined,
         userEmail: oooUserEmail,
         externalReasonId: input.hrmsReasonId,
       });

@@ -87,6 +87,7 @@ export interface App {
     | "other"
     | "other_calendar"
     | "automation"
+    | "hrms"
     | "crm";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;

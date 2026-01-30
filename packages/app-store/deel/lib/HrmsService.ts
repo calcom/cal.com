@@ -1,8 +1,8 @@
+import process from "node:process";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { HrmsService } from "@calcom/types/HrmsService";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { DeelToken } from "../api/callback";
 import { deelApiUrl, deelAuthUrl } from "../lib/constants";
@@ -29,7 +29,7 @@ export interface DeelTimeOffRequest {
   start_date: string;
   end_date: string;
   time_off_type_id: string;
-  description?: string;
+  description: string;
   status: DeelTimeOffStatus;
 }
 
@@ -139,7 +139,7 @@ class DeelHrmsService implements HrmsService {
         start_date: params.startDate,
         end_date: params.endDate,
         time_off_type_id: params.externalReasonId,
-        description: params.notes,
+        description: params.notes || "Synced from Cal.com",
         status: DeelTimeOffStatus.APPROVED,
       };
 
@@ -162,7 +162,7 @@ class DeelHrmsService implements HrmsService {
       }
 
       const result = await response.json();
-      const externalId = result.timeOffs[0]?.id;
+      const externalId = result.time_offs[0]?.id;
       this.log.info("Successfully created Deel time-off request", { id: externalId });
       return { id: externalId };
     } catch (error) {
@@ -338,10 +338,9 @@ class DeelHrmsService implements HrmsService {
       }
 
       const data = await response.json();
-      const person = data.data?.find((person: DeelPerson) =>
-        person.emails.some((email) => email.value?.toLowerCase() === userEmail.toLowerCase())
-      );
-      return person?.id || null;
+      const people = data.data || [];
+
+      return people[0]?.id || null;
     } catch (error) {
       this.log.error("Error getting Deel recipient profile ID", error);
       return null;
