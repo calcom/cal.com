@@ -243,7 +243,8 @@ test.describe("OAuth Provider", () => {
     );
 
     // check if user is redirected to login page
-    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Cal.com" })).toBeVisible();
+    await expect(page.getByText("Welcome back! Sign in to continue")).toBeVisible();
     await page.locator("#email").fill(user.email);
     await page.locator("#password").fill(user.username || "");
     await page.locator('[type="submit"]').click();
