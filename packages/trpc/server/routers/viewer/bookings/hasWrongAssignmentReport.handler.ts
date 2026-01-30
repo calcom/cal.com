@@ -3,8 +3,6 @@ import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repos
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { TRPCError } from "@trpc/server";
-
 import type { THasWrongAssignmentReportInputSchema } from "./hasWrongAssignmentReport.schema";
 
 type HasWrongAssignmentReportOptions = {
@@ -25,7 +23,7 @@ export const hasWrongAssignmentReportHandler = async ({ ctx, input }: HasWrongAs
   });
 
   if (!hasAccess) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "You don't have access to this booking" });
+    return { hasReport: false };
   }
 
   const repo = new WrongAssignmentReportRepository(prisma);
