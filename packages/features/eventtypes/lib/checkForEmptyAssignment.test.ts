@@ -8,16 +8,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
       checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
-        hosts: [
-          {
-            userId: 101,
-            isFixed: false,
-            priority: 2,
-            weight: 100,
-            scheduleId: null,
-            user: { timeZone: "America/New_York" },
-          },
-        ],
+        hostCount: 1,
         isManagedEventType: true,
       })
     ).toBe(true);
@@ -50,7 +41,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
           },
         ],
         assignAllTeamMembers: false,
-        hosts: [],
+        hostCount: 0,
         isManagedEventType: false,
       })
     ).toBe(true);
@@ -60,7 +51,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
       checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: true,
-        hosts: [],
+        hostCount: 0,
         isManagedEventType: false,
       })
     ).toBe(false);
@@ -70,16 +61,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
       checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
-        hosts: [
-          {
-            userId: 101,
-            isFixed: false,
-            priority: 2,
-            weight: 100,
-            scheduleId: null,
-            user: { timeZone: "America/New_York" },
-          },
-        ],
+        hostCount: 1,
         isManagedEventType: false,
       })
     ).toBe(false);
@@ -112,16 +94,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
           },
         ],
         assignAllTeamMembers: false,
-        hosts: [
-          {
-            userId: 101,
-            isFixed: false,
-            priority: 2,
-            weight: 100,
-            scheduleId: null,
-            user: { timeZone: "America/New_York" },
-          },
-        ],
+        hostCount: 1,
         isManagedEventType: true,
       })
     ).toBe(false);
