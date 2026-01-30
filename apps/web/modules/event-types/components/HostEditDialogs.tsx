@@ -141,7 +141,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    if (!!newWeight) {
+    if (newWeight !== undefined && newWeight >= 1) {
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");
       const rrHosts = hosts.filter((host) => !host.isFixed);
@@ -218,7 +218,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
           <div className={classNames("w-36", customClassNames?.weightInput?.container)}>
             <TextField
               required
-              min={0}
+              min={1}
               className={customClassNames?.weightInput?.input}
               labelClassName={customClassNames?.weightInput?.label}
               addOnClassname={customClassNames?.weightInput?.addOn}
