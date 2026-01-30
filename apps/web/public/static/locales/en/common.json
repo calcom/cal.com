@@ -509,6 +509,7 @@
   "cancellation_successful": "Cancellation successful",
   "really_cancel_booking": "Really cancel your booking?",
   "cannot_cancel_booking": "You cannot cancel this booking",
+  "cannot_cancel_past_booking": "You cannot cancel a past booking",
   "reschedule_instead": "Instead, you could also reschedule it.",
   "event_is_in_the_past": "The event is in the past",
   "cancelling_event_recurring": "The event is one instance of a recurring event.",
