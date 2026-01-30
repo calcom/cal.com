@@ -56,7 +56,7 @@ const Page = async ({ params }: PageProps) => {
   const featureOptInService = getFeatureOptInService();
 
   const [bookingAuditEnabled, featureStates] = await Promise.all([
-    userFeatureRepository.checkIfUserHasFeature(session.user.id, "booking-audit"),
+    userFeatureRepository.checkIfUserHasFeature(userId, "booking-audit"),
     featureOptInService.resolveFeatureStates({
       userId,
       featureIds: ["bookings-v3"],
