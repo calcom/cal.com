@@ -33,13 +33,14 @@ export function normalizeEmail(email: string): string {
  * 1. Convert to lowercase
  * 2. Trim whitespace
  * 3. Remove @ prefix if present
+ * 4. Preserve *. prefix for wildcard domains
  *
  * Note: Domains are stored without @ prefix (e.g., mail.google.com, example.co.uk)
  * Wildcard matching is configurable:
  * - `*.cal.com` blocks all subdomains (app.cal.com, sub.app.cal.com, etc.)
  * - `cal.com` only blocks exact matches
  *
- * @param domain - Raw domain (with or without @ prefix)
+ * @param domain - Raw domain (with or without @ prefix, with or without *. prefix)
  * @returns Normalized domain without @ prefix
  */
 export function normalizeDomain(domain: string): string {
@@ -49,13 +50,22 @@ export function normalizeDomain(domain: string): string {
     normalized = normalized.slice(1);
   }
 
+  // Check for wildcard prefix and validate the domain part separately
+  let isWildcard = false;
+  let domainToValidate = normalized;
+
+  if (normalized.startsWith("*.")) {
+    isWildcard = true;
+    domainToValidate = normalized.slice(2); // Remove "*." for validation
+  }
+
   const domainRegex =
     /^[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?(\.[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?)*$/;
-  if (!domainRegex.test(normalized)) {
+  if (!domainRegex.test(domainToValidate)) {
     throw new Error(`Invalid domain format: ${domain}`);
   }
 
-  return normalized;
+  return isWildcard ? `*.${domainToValidate}` : domainToValidate;
 }
 
 /**
