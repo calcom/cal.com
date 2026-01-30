@@ -1,6 +1,6 @@
 import { generateSecret } from "@calcom/platform-libraries";
 import type { Membership, Team, User } from "@calcom/prisma/client";
-import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
+import { AccessScope, OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -173,7 +173,7 @@ describe("OAuth2 Controller Endpoints", () => {
         authorizationCode = redirectUrl.searchParams.get("code") as string;
       });
 
-      it("should redirect with error for invalid client ID", async () => {
+      it("should return 404 for invalid client ID (not redirect)", async () => {
         await request(app.getHttpServer())
           .post("/api/v2/auth/oauth2/clients/invalid-client-id/authorize")
           .send({
@@ -200,7 +200,7 @@ describe("OAuth2 Controller Endpoints", () => {
         expect(redirectUrl.searchParams.get("state")).toBe("test-state-456");
       });
 
-      it("should throw error 400 for mismatched redirect URI", async () => {
+      it("should return 400 for mismatched redirect URI (not redirect)", async () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
@@ -209,6 +209,32 @@ describe("OAuth2 Controller Endpoints", () => {
             state: "test-state-789",
           })
           .expect(400);
+      });
+
+      it("should return 401 for unapproved client (not redirect)", async () => {
+        const pendingClientId = `test-pending-client-${randomString()}`;
+        const [hashedSecret] = generateSecret("pending-secret");
+        await oAuthClientFixture.create({
+          clientId: pendingClientId,
+          name: "Pending OAuth Client",
+          redirectUri: testRedirectUri,
+          clientSecret: hashedSecret,
+          clientType: OAuthClientType.CONFIDENTIAL,
+          status: OAuthClientStatus.PENDING,
+        });
+
+        try {
+          await request(app.getHttpServer())
+            .post(`/api/v2/auth/oauth2/clients/${pendingClientId}/authorize`)
+            .send({
+              redirectUri: testRedirectUri,
+              scopes: [AccessScope.READ_BOOKING],
+              state: "test-state-pending",
+            })
+            .expect(401);
+        } finally {
+          await oAuthClientFixture.delete(pendingClientId);
+        }
       });
     });
 
@@ -310,7 +336,7 @@ describe("OAuth2 Controller Endpoints", () => {
           .expect(400);
       });
 
-      it("should return 401 for wrong client ID with valid refresh token", async () => {
+      it("should return 401 for non-existent client ID with valid refresh token", async () => {
         await request(app.getHttpServer())
           .post("/api/v2/auth/oauth2/clients/wrong-client-id/token")
           .send({

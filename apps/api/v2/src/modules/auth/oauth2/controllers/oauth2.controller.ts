@@ -1,17 +1,14 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/errors";
 import {
   Body,
   Controller,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
-  InternalServerErrorException,
-  Logger,
   Param,
   Post,
   Res,
+  UseFilters,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -29,6 +26,7 @@ import { OAuthService } from "@/lib/services/oauth.service";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OAuth2RedirectExceptionFilter } from "@/modules/auth/oauth2/filters/oauth2-redirect-exception.filter";
 import { OAuth2AuthorizeInput } from "@/modules/auth/oauth2/inputs/authorize.input";
 import {
   OAuth2ExchangeConfidentialInput,
@@ -42,6 +40,7 @@ import type { OAuth2TokenInput } from "@/modules/auth/oauth2/inputs/token.input.
 import { OAuth2TokenInputPipe } from "@/modules/auth/oauth2/inputs/token.input.pipe";
 import { OAuth2ClientDto, OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
 import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
+import { OAuth2ErrorHandler } from "@/modules/auth/oauth2/services/oauth2-error.handler";
 
 @Controller({
   path: "/v2/auth/oauth2/clients/:clientId",
@@ -50,9 +49,10 @@ import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/
 @ApiExcludeController(true)
 @ApiTags("OAuth2")
 export class OAuth2Controller {
-  private readonly logger = new Logger("OAuth2Controller");
-
-  constructor(private readonly oAuthService: OAuthService) {}
+  constructor(
+    private readonly oAuthService: OAuthService,
+    private readonly errorHandler: OAuth2ErrorHandler
+  ) {}
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
@@ -69,19 +69,15 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2ClientDto, client, { strategy: "excludeAll" }),
       };
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusCode(err);
-        throw new HttpException(err.message, statusCode);
-      }
-      this.logger.error(err);
-      throw new InternalServerErrorException("Could not get oAuthClient");
+    } catch (err) {
+      this.errorHandler.handleTokenError(err);
     }
   }
 
   @Post("/authorize")
   @UseGuards(ApiAuthGuard)
   @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
+  @UseFilters(OAuth2RedirectExceptionFilter)
   @ApiOperation({
     summary: "Generate authorization code",
     description:
@@ -106,15 +102,8 @@ export class OAuth2Controller {
         body.codeChallengeMethod
       );
       return res.redirect(303, result.redirectUrl);
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        if (err.message === "unauthorized_client" || err?.data?.["reason"] === "redirect_uri_mismatch") {
-          const statusCode = getHttpStatusCode(err);
-          throw new HttpException(err.message, statusCode);
-        }
-      }
-      const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
-      return res.redirect(303, errorRedirectUrl);
+    } catch (err) {
+      this.errorHandler.handleAuthorizeError(err, body.redirectUri, body.state);
     }
   }
 
@@ -154,13 +143,8 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusCode(err);
-        throw new HttpException(err.message, statusCode);
-      }
-      this.logger.error(err);
-      throw new InternalServerErrorException("Could not process token request");
+    } catch (err) {
+      this.errorHandler.handleTokenError(err);
     }
   }
 }
