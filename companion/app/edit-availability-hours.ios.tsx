@@ -2,14 +2,14 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import EditAvailabilityHoursScreenComponent from "@/components/screens/EditAvailabilityHoursScreen.ios";
 import { useScheduleById } from "@/hooks/useSchedules";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
 
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
@@ -22,6 +22,9 @@ export default function EditAvailabilityHoursIOS() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Use React Query hook to read from cache (syncs with mutations)
   const { data: schedule, isLoading, isError } = useScheduleById(id ? Number(id) : undefined);
@@ -47,6 +50,9 @@ export default function EditAvailabilityHoursIOS() {
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
+  // Semi-transparent background to prevent flashes while preserving glass effect
+  const glassBackground = isDark ? "rgba(28, 28, 30, 0.01)" : "rgba(248, 248, 250, 0.01)";
+
   return (
     <>
       <Stack.Screen
@@ -57,14 +63,22 @@ export default function EditAvailabilityHoursIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect
+              ? glassBackground
+              : isDark
+                ? theme.backgroundSecondary
+                : theme.background,
           },
         }}
       />
 
       <Stack.Header>
         <Stack.Header.Left>
-          <Stack.Header.Button onPress={() => router.back()}>
+          <Stack.Header.Button
+            onPress={() => router.back()}
+            tintColor={theme.backgroundEmphasis}
+            variant="prominent"
+          >
             <Stack.Header.Icon sf="xmark" />
           </Stack.Header.Button>
         </Stack.Header.Left>
