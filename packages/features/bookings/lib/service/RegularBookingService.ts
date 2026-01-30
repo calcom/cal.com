@@ -40,7 +40,6 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -52,6 +51,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -2540,13 +2540,13 @@ async function handler(
     // Queue BOOKING_PAYMENT_INITIATED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        await this.queueBookingPaymentInitiatedWebhook({
+        await this.deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
           bookingUid: booking.uid,
           userId: triggerForUser ? organizerUser.id : undefined,
           eventTypeId,
-          teamId,
           orgId,
-          oAuthClientId: platformClientId,
+          teamId: teamId ?? undefined,
+          oAuthClientId: oAuthClientId ?? undefined,
           paymentId: payment?.id,
         });
       } catch (webhookError) {
@@ -2712,7 +2712,7 @@ async function handler(
           eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
           originalRescheduledBookingForWebhook
         ) {
-          await this.queueBookingRescheduledWebhook({
+          await this.deps.webhookProducer.queueBookingRescheduledWebhook({
             ...queueParams,
             // Reschedule-specific fields from original booking
             rescheduleId: originalRescheduledBookingForWebhook.id,
@@ -2721,18 +2721,18 @@ async function handler(
             rescheduleEndTime: originalRescheduledBookingForWebhook.endTime.toISOString(),
             rescheduledBy: reqBody.rescheduledBy ?? undefined,
             metadata: { ...metadata, ...reqBody.metadata },
-            platformRescheduleUrl,
-            platformCancelUrl,
-            platformBookingUrl,
+            platformRescheduleUrl: platformRescheduleUrl ?? undefined,
+            platformCancelUrl: platformCancelUrl ?? undefined,
+            platformBookingUrl: platformBookingUrl ?? undefined,
           });
         } else {
-          await this.queueBookingCreatedWebhook({
+          await this.deps.webhookProducer.queueBookingCreatedWebhook({
             ...queueParams,
             metadata: { ...metadata, ...reqBody.metadata },
-            platformClientId: subscriberOptions.oAuthClientId,
-            platformRescheduleUrl,
-            platformCancelUrl,
-            platformBookingUrl,
+            platformRescheduleUrl: platformRescheduleUrl ?? undefined,
+            platformClientId: platformClientId ?? undefined,
+            platformCancelUrl: platformCancelUrl ?? undefined,
+            platformBookingUrl: platformBookingUrl ?? undefined,
           });
         }
       } catch (webhookError) {
@@ -2746,15 +2746,15 @@ async function handler(
     // if eventType requires confirmation, queue BOOKING_REQUESTED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        await this.queueBookingRequestedWebhook({
+        await this.deps.webhookProducer.queueBookingRequestedWebhook({
           bookingUid: booking.uid,
           userId: subscriberOptions.userId ?? undefined,
           eventTypeId: subscriberOptions.eventTypeId ?? undefined,
           teamId: Array.isArray(subscriberOptions.teamId)
             ? subscriberOptions.teamId[0]
-            : subscriberOptions.teamId,
+            : (subscriberOptions.teamId ?? undefined),
           orgId: subscriberOptions.orgId ?? undefined,
-          oAuthClientId: subscriberOptions.oAuthClientId,
+          oAuthClientId: platformClientId ?? undefined,
         });
       } catch (webhookError) {
         tracingLogger.error(
@@ -2930,104 +2930,6 @@ async function handler(
  */
 export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) {}
-
-  /**
-   * Queue BOOKING_PAYMENT_INITIATED webhook via injected producer.
-   */
-  async queueBookingPaymentInitiatedWebhook(params: {
-    bookingUid: string;
-    userId?: number;
-    eventTypeId?: number;
-    teamId?: number | null;
-    orgId?: number;
-    oAuthClientId?: string | null;
-    paymentId?: number;
-  }): Promise<void> {
-    await this.deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
-      ...params,
-      teamId: params.teamId ?? undefined,
-      oAuthClientId: params.oAuthClientId ?? undefined,
-      paymentId: params.paymentId,
-    });
-  }
-
-  /**
-   * Queue BOOKING_CREATED webhook via injected producer.
-   */
-  async queueBookingCreatedWebhook(params: {
-    platformClientId?: string | null;
-    bookingUid: string;
-    userId?: number;
-    eventTypeId?: number;
-    teamId?: number | null;
-    orgId?: number;
-    oAuthClientId?: string | null;
-    metadata?: Record<string, unknown>;
-    platformRescheduleUrl?: string | null;
-    platformCancelUrl?: string | null;
-    platformBookingUrl?: string | null;
-  }): Promise<void> {
-    await this.deps.webhookProducer.queueBookingCreatedWebhook({
-      ...params,
-      teamId: params.teamId ?? undefined,
-      oAuthClientId: params.oAuthClientId ?? undefined,
-      metadata: params.metadata ?? {},
-      platformRescheduleUrl: params.platformRescheduleUrl ?? undefined,
-      platformClientId: params.platformClientId ?? undefined,
-      platformCancelUrl: params.platformCancelUrl ?? undefined,
-      platformBookingUrl: params.platformBookingUrl ?? undefined,
-    });
-  }
-
-  /**
-   * Queue BOOKING_RESCHEDULED webhook via injected producer.
-   */
-  async queueBookingRescheduledWebhook(params: {
-    bookingUid: string;
-    userId?: number;
-    eventTypeId?: number;
-    teamId?: number | null;
-    orgId?: number;
-    oAuthClientId?: string | null;
-    metadata?: Record<string, unknown>;
-    // Reschedule-specific fields
-    rescheduleId?: number;
-    rescheduleUid?: string;
-    rescheduleStartTime?: string;
-    rescheduleEndTime?: string;
-    rescheduledBy?: string;
-    platformRescheduleUrl?: string | null;
-    platformCancelUrl?: string | null;
-    platformBookingUrl?: string | null;
-  }): Promise<void> {
-    await this.deps.webhookProducer.queueBookingRescheduledWebhook({
-      ...params,
-      teamId: params.teamId ?? undefined,
-      oAuthClientId: params.oAuthClientId ?? undefined,
-      metadata: params.metadata ?? {},
-      platformRescheduleUrl: params.platformRescheduleUrl ?? undefined,
-      platformCancelUrl: params.platformCancelUrl ?? undefined,
-      platformBookingUrl: params.platformBookingUrl ?? undefined,
-    });
-  }
-
-  /**
-   * Queue BOOKING_REQUESTED webhook via injected producer.
-   */
-  async queueBookingRequestedWebhook(params: {
-    bookingUid: string;
-    userId?: number;
-    eventTypeId?: number;
-    teamId?: number | null;
-    orgId?: number;
-    oAuthClientId?: string | null;
-  }): Promise<void> {
-    await this.deps.webhookProducer.queueBookingRequestedWebhook({
-      ...params,
-      teamId: params.teamId ?? undefined,
-      oAuthClientId: params.oAuthClientId ?? undefined,
-    });
-  }
 
   async fireBookingEvents({
     booking,
