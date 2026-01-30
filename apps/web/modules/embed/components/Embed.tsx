@@ -54,7 +54,7 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
-import { EmbedTabName } from "../lib/EmbedTabs";
+import { EmbedTabName } from "./EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 import { getDimension } from "@calcom/features/embed/lib/getDimension";

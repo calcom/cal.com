@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { EmbedButton, EmbedDialog } from "./Embed";
-import { tabs } from "../lib/EmbedTabs";
+import { tabs } from "./EmbedTabs";
 import { useEmbedTypes } from "../lib/hooks";
 
 export const EventTypeEmbedDialog = () => {
