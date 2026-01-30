@@ -70,6 +70,7 @@ export type BookerEvent = Pick<
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
+  onlyShowFirstAvailableSlot?: boolean;
 } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
