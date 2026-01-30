@@ -823,9 +823,18 @@ describe("SalesforceCRMService", () => {
       });
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(contactQueryResponse);
+      // Field rule fields are now included in the main SOQL query
       querySpy.mockResolvedValueOnce({
-        records: [{ Id: "001", Industry: "Technology" }],
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Technology",
+          },
+        ],
       });
 
       // Mock describe for field validation
@@ -837,6 +846,7 @@ describe("SalesforceCRMService", () => {
       });
 
       expect(result).toEqual([]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
 
     it("should keep records not matching ignore rule", async () => {
@@ -847,9 +857,17 @@ describe("SalesforceCRMService", () => {
       });
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(contactQueryResponse);
       querySpy.mockResolvedValueOnce({
-        records: [{ Id: "001", Industry: "Healthcare" }],
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Healthcare",
+          },
+        ],
       });
 
       mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
@@ -868,6 +886,7 @@ describe("SalesforceCRMService", () => {
           recordType: "Contact",
         },
       ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
 
     it("should filter out records not matching must_include rule", async () => {
@@ -878,9 +897,17 @@ describe("SalesforceCRMService", () => {
       });
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(contactQueryResponse);
       querySpy.mockResolvedValueOnce({
-        records: [{ Id: "001", Industry: "Healthcare" }],
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Healthcare",
+          },
+        ],
       });
 
       mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
@@ -891,6 +918,7 @@ describe("SalesforceCRMService", () => {
       });
 
       expect(result).toEqual([]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
 
     it("should keep records matching must_include rule", async () => {
@@ -901,9 +929,17 @@ describe("SalesforceCRMService", () => {
       });
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(contactQueryResponse);
       querySpy.mockResolvedValueOnce({
-        records: [{ Id: "001", Industry: "Technology" }],
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Technology",
+          },
+        ],
       });
 
       mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
@@ -922,6 +958,7 @@ describe("SalesforceCRMService", () => {
           recordType: "Contact",
         },
       ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
 
     it("should handle multiple rules with AND logic", async () => {
@@ -935,9 +972,18 @@ describe("SalesforceCRMService", () => {
       });
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(contactQueryResponse);
       querySpy.mockResolvedValueOnce({
-        records: [{ Id: "001", Industry: "Technology", Type: "Active" }],
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Technology",
+            Type: "Active",
+          },
+        ],
       });
 
       mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
@@ -956,6 +1002,7 @@ describe("SalesforceCRMService", () => {
           recordType: "Contact",
         },
       ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
 
     it("should skip rules for fields that do not exist on the record type", async () => {
@@ -994,9 +1041,17 @@ describe("SalesforceCRMService", () => {
       });
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(contactQueryResponse);
       querySpy.mockResolvedValueOnce({
-        records: [{ Id: "001", Industry: "technology" }],
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "technology",
+          },
+        ],
       });
 
       mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
@@ -1015,6 +1070,7 @@ describe("SalesforceCRMService", () => {
           recordType: "Contact",
         },
       ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
 
     it("should not apply field rules when forRoundRobinSkip is false", async () => {

@@ -651,15 +651,19 @@ class SalesforceCRMService implements CRM {
       }
 
       if (records.length === 0) {
+        // Build extra SELECT fields from validated field rules so we don't need a second query
+        const extraFields =
+          validatedFieldRules?.length ? ", " + validatedFieldRules.map((r) => r.field).join(", ") : "";
+
         // Handle Account record type
         if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
           // For an account let's assume that the first email is the one we should be querying against
           const attendeeEmail = emailArray[0];
           log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
-          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website${extraFields} FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
         } else {
           // Handle Contact/Lead record types
-          soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
+          soql = `SELECT Id, Email, OwnerId, Owner.Email${extraFields} FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
             "','"
           )}')`;
         }
@@ -680,7 +684,7 @@ class SalesforceCRMService implements CRM {
 
       // Apply field rules if configured and this is for round robin skip
       if (forRoundRobinSkip && validatedFieldRules?.length && records.length > 0) {
-        records = await this.applyFieldRules(records, validatedFieldRules, recordToSearch);
+        records = this.applyFieldRules(records, validatedFieldRules);
         if (records.length === 0) {
           log.info("All records filtered out by field rules");
           SalesforceRoutingTraceService.allRecordsFilteredByFieldRules({
@@ -1172,78 +1176,41 @@ class SalesforceCRMService implements CRM {
   }
 
   /**
-   * Applies pre-validated field rules to filter records based on configured field/value conditions.
-   * Returns records that pass all rules (AND logic).
-   * If the query fails (e.g., due to invalid field names), returns all records unchanged.
+   * Filters records in-memory based on pre-validated field rules.
+   * Field rule values are expected to already be present on the records
+   * (included in the original SOQL SELECT).
+   * Records without the field value (e.g. from SOSL path) are kept.
    *
-   * @param records - The records to filter
+   * @param records - The records to filter (must already contain field rule field values)
    * @param validRules - Array of pre-validated rules (fields already confirmed to exist on the object)
-   * @param recordType - The Salesforce object type to query field values from
-   * @returns Filtered records that pass all rules
+   * @returns Filtered records that pass all rules (AND logic)
    */
-  private async applyFieldRules(
-    records: ContactRecord[],
-    validRules: RRSkipFieldRule[],
-    recordType: SalesforceRecordEnum
-  ): Promise<ContactRecord[]> {
+  private applyFieldRules(records: ContactRecord[], validRules: RRSkipFieldRule[]): ContactRecord[] {
     const log = logger.getSubLogger({ prefix: [`[applyFieldRules]`] });
 
     if (!validRules.length || !records.length) {
       return records;
     }
 
-    const conn = await this.conn;
-
     log.info("Applying field rules", {
       ruleCount: validRules.length,
       recordCount: records.length,
     });
 
-    // Get record IDs to fetch field values
-    const recordIds = records.map((r) => r.Id).filter((id): id is string => Boolean(id));
-
-    if (recordIds.length === 0) {
-      return records;
-    }
-
-    // Try to fetch the field values - if query fails (invalid field), skip filtering
-    const selectFields = validRules.map((r) => r.field).join(", ");
-    let queryRecords: Array<{ Id: string; [key: string]: unknown }>;
-
-    try {
-      const query = await conn.query(
-        `SELECT Id, ${selectFields} FROM ${recordType} WHERE Id IN ('${recordIds.join("','")}')`
-      );
-      queryRecords = query.records as Array<{ Id: string; [key: string]: unknown }>;
-    } catch (queryError) {
-      // Query failed - likely due to invalid field name. Skip filtering and return all records.
-      log.warn("Field rules query failed (field may not exist), skipping filtering", {
-        error: queryError,
-        fields: validRules.map((r) => r.field),
-      });
-      return records;
-    }
-
-    // Create a map of record ID to field values
-    const recordFieldValues = new Map<string, Record<string, unknown>>();
-    for (const record of queryRecords) {
-      recordFieldValues.set(record.Id, record);
-    }
-
-    // Filter records based on rules
     return records.filter((record) => {
-      if (!record.Id) return true; // Keep records without IDs
-
-      const fieldValues = recordFieldValues.get(record.Id);
-      if (!fieldValues) {
-        log.warn(`Could not fetch field values for record ${record.Id}`);
-        return true; // Keep if we couldn't fetch values
-      }
-
       for (const rule of validRules) {
-        const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
+        // Access dynamic field via bracket notation — value is on the record from SOQL
+        const rawRecord = record as unknown as Record<string, unknown>;
+        const actualValue = String(rawRecord[rule.field] ?? "").toLowerCase();
         const ruleValue = rule.value.toLowerCase();
         const matches = actualValue === ruleValue;
+
+        // If field value is missing (empty string from nullish coalescing), skip the rule.
+        // This handles records from SOSL path that don't have field rule fields.
+        if (rawRecord[rule.field] === undefined || rawRecord[rule.field] === null) {
+          log.info(`Record ${record.Id} missing field "${rule.field}", skipping rule`);
+          continue;
+        }
 
         if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
           log.info(`Record ${record.Id} filtered out by ignore rule`, {
