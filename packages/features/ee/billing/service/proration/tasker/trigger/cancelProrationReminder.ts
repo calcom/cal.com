@@ -12,12 +12,11 @@ export const cancelProrationReminder = schemaTask({
     const idempotencyKey = `proration-reminder-${payload.prorationId}`;
 
     // Find and cancel any scheduled reminder runs with this idempotency key
-    const scheduledRuns = await runs.list({
+    // Use for-await to auto-paginate through all results
+    for await (const run of runs.list({
       taskIdentifier: [sendProrationReminderEmail.id],
       status: ["DELAYED", "WAITING_FOR_DEPLOY", "QUEUED", "PENDING"],
-    });
-
-    for (const run of scheduledRuns.data) {
+    })) {
       if (run.idempotencyKey === idempotencyKey) {
         await runs.cancel(run.id);
       }
