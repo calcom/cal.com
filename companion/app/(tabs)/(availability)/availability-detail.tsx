@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef } from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { Text, useColorScheme } from "react-native";
 import {
   AvailabilityDetailScreen,
   type AvailabilityDetailScreenHandle,
@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getColors } from "@/constants/colors";
+import { AppPressable } from "@/components/AppPressable";
 
 // Type for action handlers exposed by AvailabilityDetailScreen
 type ActionHandlers = {
@@ -24,6 +26,9 @@ type ActionHandlers = {
 export default function AvailabilityDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Ref to store action handlers from AvailabilityDetailScreen
   const actionHandlersRef = useRef<ActionHandlers | null>(null);
@@ -72,47 +77,82 @@ export default function AvailabilityDetail() {
     <>
       <Stack.Screen
         options={{
-          title: "Availability",
-          headerBackTitle: "Availability",
+          title: "",
+          headerBackTitle: "", // Hide default back title if it appears
           headerStyle: {
-            backgroundColor: "#f2f2f7",
+            backgroundColor: isDark ? "black" : "white",
           },
           headerShadowVisible: false,
+          headerLeft: () => (
+            <HeaderButtonWrapper side="left">
+              <AppPressable
+                onPress={() => router.back()}
+                className="mr-2 h-10 flex-row items-center justify-center rounded-full border border-[#E5E5E5] bg-white px-3 dark:border-[#262626] dark:bg-[#171717]"
+              >
+                <Ionicons
+                  name="chevron-back"
+                  size={20}
+                  color={isDark ? "#FFFFFF" : "#000000"}
+                  style={{ marginRight: 4 }}
+                />
+                <Text className={`text-[15px] font-medium ${isDark ? "text-white" : "text-black"}`}>
+                  Availability
+                </Text>
+              </AppPressable>
+            </HeaderButtonWrapper>
+          ),
           headerRight: () => (
             <HeaderButtonWrapper side="right">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <TouchableOpacity
-                    style={{
-                      padding: 8,
-                      marginRight: -8,
-                    }}
-                  >
-                    <Ionicons name="ellipsis-horizontal-circle" size={24} color="#000000" />
-                  </TouchableOpacity>
+                  <AppPressable className="h-10 flex-row items-center justify-center rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
+                    <Text
+                      className={`text-[15px] font-medium ${isDark ? "text-white" : "text-black"}`}
+                    >
+                      Edit
+                    </Text>
+                  </AppPressable>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem onPress={handleEditNameAndTimezone}>
-                    <Ionicons name="pencil-outline" size={18} color="#000" />
-                    <Text className="ml-2 text-[15px] text-black">Name and Timezone</Text>
+                    <Ionicons
+                      name="pencil-outline"
+                      size={18}
+                      color={isDark ? theme.text : "#000"}
+                    />
+                    <Text className="ml-2 text-[15px] text-black dark:text-white">
+                      Name and Timezone
+                    </Text>
                   </DropdownMenuItem>
                   <DropdownMenuItem onPress={handleEditWorkingHours}>
-                    <Ionicons name="time-outline" size={18} color="#000" />
-                    <Text className="ml-2 text-[15px] text-black">Working Hours</Text>
+                    <Ionicons name="time-outline" size={18} color={isDark ? theme.text : "#000"} />
+                    <Text className="ml-2 text-[15px] text-black dark:text-white">
+                      Working Hours
+                    </Text>
                   </DropdownMenuItem>
                   <DropdownMenuItem onPress={handleEditOverride}>
-                    <Ionicons name="calendar-outline" size={18} color="#000" />
-                    <Text className="ml-2 text-[15px] text-black">Date Override</Text>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={18}
+                      color={isDark ? theme.text : "#000"}
+                    />
+                    <Text className="ml-2 text-[15px] text-black dark:text-white">
+                      Date Override
+                    </Text>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onPress={handleSetAsDefault}>
-                    <Ionicons name="star-outline" size={18} color="#000" />
-                    <Text className="ml-2 text-[15px] text-black">Set as Default</Text>
+                    <Ionicons name="star-outline" size={18} color={isDark ? theme.text : "#000"} />
+                    <Text className="ml-2 text-[15px] text-black dark:text-white">
+                      Set as Default
+                    </Text>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onPress={handleDelete} variant="destructive">
-                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-                    <Text className="ml-2 text-[15px] text-[#FF3B30]">Delete Schedule</Text>
+                    <Ionicons name="trash-outline" size={18} color={theme.error} />
+                    <Text className="ml-2 text-[15px]" style={{ color: theme.error }}>
+                      Delete Schedule
+                    </Text>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

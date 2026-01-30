@@ -5,7 +5,7 @@ import { z } from "zod";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { OrgForm } from "~/ee/organizations/admin/AdminOrgEditPage";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 
 const orgIdSchema = z.object({ id: z.coerce.number() });
 

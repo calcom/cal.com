@@ -13,7 +13,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, ToggleGroup, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { UserPermissionRole } from "../../../../prisma/enums";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 
 export const CreateANewLicenseKeyForm = () => {
   const session = useSession();
