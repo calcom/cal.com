@@ -4,10 +4,11 @@
  * iOS Settings style with grouped rows and section headers.
  */
 
-import { Ionicons } from "@expo/vector-icons";
-import { Alert, Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { openInAppBrowser } from "@/utils/browser";
+import { Platform, Text, TextInput, TouchableOpacity, View, useColorScheme } from "react-native";
+import { SettingRow, SettingsGroup } from "../SettingsUI";
 import { RecurringTabIOSPicker } from "./RecurringTabIOSPicker";
+import { Ionicons } from "@expo/vector-icons";
+import { getColors } from "@/constants/colors";
 
 interface RecurringTabProps {
   recurringEnabled: boolean;
@@ -28,94 +29,7 @@ const frequencyToLabel: Record<string, string> = {
   yearly: "year",
 };
 
-// Section header
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text
-      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
-      style={{ letterSpacing: 0.5 }}
-    >
-      {title}
-    </Text>
-  );
-}
-
-// Settings group container
-function SettingsGroup({ children, header }: { children: React.ReactNode; header?: string }) {
-  return (
-    <View>
-      {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-    </View>
-  );
-}
-
-// Toggle row with description
-function SettingRow({
-  title,
-  description,
-  value,
-  onValueChange,
-  learnMoreUrl,
-  isLast = false,
-}: {
-  title: string;
-  description?: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  learnMoreUrl?: string;
-  isLast?: boolean;
-}) {
-  const showDescription = () => {
-    if (!description) return;
-
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: "OK", style: "cancel" }];
-
-    if (learnMoreUrl) {
-      buttons.unshift({
-        text: "Learn more",
-        onPress: () => openInAppBrowser(learnMoreUrl, "Learn more"),
-      });
-    }
-
-    Alert.alert(title, description, buttons);
-  };
-
-  return (
-    <View className="bg-white pl-4">
-      <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ minHeight: 44, flexDirection: "row", alignItems: "center" }}
-      >
-        <TouchableOpacity
-          className="flex-1 flex-row items-center py-3"
-          onPress={description ? showDescription : undefined}
-          activeOpacity={description ? 0.7 : 1}
-          disabled={!description}
-        >
-          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-            {title}
-          </Text>
-          {description ? (
-            <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
-          ) : null}
-        </TouchableOpacity>
-        <View style={{ alignSelf: "center", justifyContent: "center" }}>
-          <Switch
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
+// Local components removed in favor of SettingsUI
 
 export function RecurringTab({
   recurringEnabled,
@@ -128,6 +42,9 @@ export function RecurringTab({
   setRecurringOccurrences,
   setShowFrequencyDropdown,
 }: RecurringTabProps) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
+
   return (
     <View className="gap-6">
       {/* Recurring Toggle */}
@@ -137,7 +54,7 @@ export function RecurringTab({
           description="People can subscribe for recurring events. When enabled, you can set how often the event repeats and for how many occurrences."
           value={recurringEnabled}
           onValueChange={setRecurringEnabled}
-          learnMoreUrl="https://cal.com/docs/core-features/event-types/recurring-events"
+          learnMoreUrl="https://cal.com/help/event-types/recurring-events"
           isLast
         />
       </SettingsGroup>
@@ -146,15 +63,22 @@ export function RecurringTab({
       {recurringEnabled ? (
         <SettingsGroup header="Recurrence">
           {/* Repeats Every */}
-          <View className="bg-white pl-4">
+          <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
             <View
-              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
-              style={{ height: 44 }}
+              className="flex-row items-center justify-between pr-4"
+              style={{
+                height: 44,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.borderSubtle,
+              }}
             >
-              <Text className="text-[17px] text-black">Repeats every</Text>
+              <Text className="text-[17px]" style={{ color: theme.text }}>
+                Repeats every
+              </Text>
               <View className="flex-row items-center gap-2">
                 <TextInput
-                  className="w-14 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                  className="w-14 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                   value={recurringInterval}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
@@ -168,12 +92,12 @@ export function RecurringTab({
                     }
                   }}
                   placeholder="1"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="numeric"
                 />
                 {Platform.OS === "ios" ? (
                   <View className="flex-row items-center">
-                    <Text className="mr-1 text-[17px] text-[#8E8E93]">
+                    <Text className="mr-1 text-[17px]" style={{ color: theme.textMuted }}>
                       {frequencyToLabel[recurringFrequency] || recurringFrequency}
                     </Text>
                     <RecurringTabIOSPicker
@@ -190,16 +114,17 @@ export function RecurringTab({
                   </View>
                 ) : (
                   <TouchableOpacity
-                    className="flex-row items-center rounded-lg bg-[#F2F2F7] px-2 py-1.5"
+                    className="flex-row items-center rounded-lg px-2 py-1.5"
+                    style={{ backgroundColor: theme.backgroundMuted }}
                     onPress={() => setShowFrequencyDropdown(true)}
                   >
-                    <Text className="text-[15px] text-black">
+                    <Text className="text-[15px]" style={{ color: theme.text }}>
                       {frequencyToLabel[recurringFrequency] || recurringFrequency}
                     </Text>
                     <Ionicons
                       name="chevron-down"
                       size={14}
-                      color="#8E8E93"
+                      color={theme.textMuted}
                       style={{ marginLeft: 4 }}
                     />
                   </TouchableOpacity>
@@ -209,12 +134,15 @@ export function RecurringTab({
           </View>
 
           {/* Maximum occurrences */}
-          <View className="bg-white pl-4">
+          <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
             <View className="flex-row items-center justify-between pr-4" style={{ height: 44 }}>
-              <Text className="text-[17px] text-black">Maximum events</Text>
+              <Text className="text-[17px]" style={{ color: theme.text }}>
+                Maximum events
+              </Text>
               <View className="flex-row items-center gap-2">
                 <TextInput
-                  className="w-14 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                  className="w-14 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                   value={recurringOccurrences}
                   onChangeText={(text) => {
                     const numericValue = text.replace(/[^0-9]/g, "");
@@ -228,10 +156,12 @@ export function RecurringTab({
                     }
                   }}
                   placeholder="12"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="numeric"
                 />
-                <Text className="text-[15px] text-[#6D6D72]">events</Text>
+                <Text className="text-[15px]" style={{ color: theme.textSecondary }}>
+                  events
+                </Text>
               </View>
             </View>
           </View>

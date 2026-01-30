@@ -3,9 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 
-import { TRPCError } from "@trpc/server";
-
 import { defaultResponder } from "./defaultResponder";
+
+/**
+ * Creates a mock TRPC-like error for testing purposes.
+ * This avoids importing from @trpc/server in the lib package.
+ */
+function createMockTRPCError(code: string): Error {
+  const error = new Error(`TRPC Error: ${code}`);
+  error.name = "TRPCError";
+  (error as Error & { code: string }).code = code;
+  return error;
+}
 
 describe("defaultResponder", () => {
   it("should call res.json when response is still writable and result is not null", async () => {
@@ -43,7 +52,7 @@ describe("defaultResponder", () => {
     expect(res.status).toHaveBeenCalledWith(409);
   });
   it("Rate limit should respond with a 429 status code", async () => {
-    const f = vi.fn().mockRejectedValue(new TRPCError({ code: "TOO_MANY_REQUESTS" }));
+    const f = vi.fn().mockRejectedValue(createMockTRPCError("TOO_MANY_REQUESTS"));
     const req = {} as NextApiRequest;
     const res = {
       status: vi.fn().mockReturnThis(),

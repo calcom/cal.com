@@ -1,18 +1,15 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { localStorage } from "@calcom/lib/webstorage";
+import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { trpc } from "@calcom/trpc/react";
-import { useCallback, useMemo, useState } from "react";
-import { z } from "zod";
-
-const DISMISSED_STORAGE_KEY = "feature-opt-in-dismissed";
-const OPTED_IN_STORAGE_KEY = "feature-opt-in-enabled";
-
-const featuresMapSchema = z.record(z.string(), z.boolean());
-
-type FeaturesMap = z.infer<typeof featuresMapSchema>;
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  getFeatureOptInTimestamp,
+  isFeatureDismissed,
+  setFeatureDismissed,
+  setFeatureOptedIn,
+} from "../lib/feature-opt-in-storage";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -21,7 +18,7 @@ type UserRoleContext = {
   adminTeamNames: { id: number; name: string }[];
 };
 
-export type FeatureOptInMutations = {
+type FeatureOptInMutations = {
   setUserState: (params: { slug: string; state: "enabled" }) => Promise<unknown>;
   setTeamState: (params: { teamId: number; slug: string; state: "enabled" }) => Promise<unknown>;
   setOrganizationState: (params: { slug: string; state: "enabled" }) => Promise<unknown>;
@@ -31,7 +28,7 @@ export type FeatureOptInMutations = {
   invalidateQueries: () => void;
 };
 
-export type UseFeatureOptInBannerResult = {
+type UseFeatureOptInBannerResult = {
   shouldShow: boolean;
   isLoading: boolean;
   featureConfig: OptInFeatureConfig | null;
@@ -46,36 +43,14 @@ export type UseFeatureOptInBannerResult = {
   mutations: FeatureOptInMutations;
 };
 
-function getFeaturesMap(storageKey: string): FeaturesMap {
-  const stored = localStorage.getItem(storageKey);
-  if (!stored) return {};
-  try {
-    const parsed = JSON.parse(stored);
-    const result = featuresMapSchema.safeParse(parsed);
-    if (result.success) {
-      return result.data;
-    }
-    return {};
-  } catch {
-    return {};
-  }
+function isFeatureOptedIn(featureId: string): boolean {
+  return getFeatureOptInTimestamp(featureId) !== null;
 }
 
-function setFeatureInMap(storageKey: string, featureId: string): void {
-  const current = getFeaturesMap(storageKey);
-  current[featureId] = true;
-  localStorage.setItem(storageKey, JSON.stringify(current));
-}
-
-function isFeatureInMap(storageKey: string, featureId: string): boolean {
-  const features = getFeaturesMap(storageKey);
-  return features[featureId] === true;
-}
-
-export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
+function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(() => isFeatureInMap(DISMISSED_STORAGE_KEY, featureId));
-  const [isOptedIn, setIsOptedIn] = useState(() => isFeatureInMap(OPTED_IN_STORAGE_KEY, featureId));
+  const [isDismissed, setIsDismissed] = useState(() => isFeatureDismissed(featureId));
+  const [isOptedIn, setIsOptedIn] = useState(() => isFeatureOptedIn(featureId));
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
   const utils = trpc.useUtils();
@@ -89,6 +64,15 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
     }
   );
 
+  // When the server reports the feature is already enabled, cache it locally
+  // to avoid repeated API calls on subsequent page loads
+  useEffect(() => {
+    if (eligibilityQuery.data?.status === "already_enabled") {
+      setFeatureOptedIn(featureId);
+      setIsOptedIn(true);
+    }
+  }, [eligibilityQuery.data?.status, featureId]);
+
   const setUserStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation();
   const setTeamStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation();
   const setOrganizationStateMutation = trpc.viewer.featureOptIn.setOrganizationState.useMutation();
@@ -98,13 +82,17 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
 
   const mutations: FeatureOptInMutations = useMemo(
     () => ({
-      setUserState: (params) => setUserStateMutation.mutateAsync(params),
-      setTeamState: (params) => setTeamStateMutation.mutateAsync(params),
-      setOrganizationState: (params) => setOrganizationStateMutation.mutateAsync(params),
-      setUserAutoOptIn: (params) => setUserAutoOptInMutation.mutateAsync(params),
-      setTeamAutoOptIn: (params) => setTeamAutoOptInMutation.mutateAsync(params),
-      setOrganizationAutoOptIn: (params) => setOrganizationAutoOptInMutation.mutateAsync(params),
-      invalidateQueries: () => {
+      setUserState: (params: { slug: string; state: "enabled" }) => setUserStateMutation.mutateAsync(params),
+      setTeamState: (params: { teamId: number; slug: string; state: "enabled" }) =>
+        setTeamStateMutation.mutateAsync(params),
+      setOrganizationState: (params: { slug: string; state: "enabled" }) =>
+        setOrganizationStateMutation.mutateAsync(params),
+      setUserAutoOptIn: (params: { autoOptIn: boolean }) => setUserAutoOptInMutation.mutateAsync(params),
+      setTeamAutoOptIn: (params: { teamId: number; autoOptIn: boolean }) =>
+        setTeamAutoOptInMutation.mutateAsync(params),
+      setOrganizationAutoOptIn: (params: { autoOptIn: boolean }) =>
+        setOrganizationAutoOptInMutation.mutateAsync(params),
+      invalidateQueries: (): void => {
         utils.viewer.featureOptIn.checkFeatureOptInEligibility.invalidate();
         utils.viewer.featureOptIn.listForUser.invalidate();
       },
@@ -121,12 +109,12 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
   );
 
   const dismiss = useCallback(() => {
-    setFeatureInMap(DISMISSED_STORAGE_KEY, featureId);
+    setFeatureDismissed(featureId);
     setIsDismissed(true);
   }, [featureId]);
 
   const markOptedIn = useCallback(() => {
-    setFeatureInMap(OPTED_IN_STORAGE_KEY, featureId);
+    setFeatureOptedIn(featureId);
     setIsOptedIn(true);
   }, [featureId]);
 
@@ -142,6 +130,8 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
     if (isDismissed) return false;
     if (isOptedIn) return false;
     if (!featureConfig) return false;
+    // Only show banner if the feature is configured to be displayed as a banner
+    if (!shouldDisplayFeatureAt(featureConfig, "banner")) return false;
     if (eligibilityQuery.isLoading) return false;
     if (!eligibilityQuery.data) return false;
     return eligibilityQuery.data.status === "can_opt_in";
@@ -162,3 +152,6 @@ export function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerR
     mutations,
   };
 }
+
+export { useFeatureOptInBanner };
+export type { FeatureOptInMutations, UseFeatureOptInBannerResult };

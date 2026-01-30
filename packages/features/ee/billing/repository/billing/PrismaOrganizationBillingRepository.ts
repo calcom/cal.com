@@ -1,8 +1,9 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-import {
+import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
+  IBillingRepositoryUpdateArgs,
   BillingRecord,
   Plan,
   SubscriptionStatus,
@@ -22,5 +23,20 @@ export class PrismaOrganizationBillingRepository implements IBillingRepository {
       planName: billingRecord.planName as Plan,
       status: billingRecord.status as SubscriptionStatus,
     };
+  }
+
+  async findBySubscriptionId(subscriptionId: string): Promise<{ id: string; teamId: number } | null> {
+    const record = await this.prismaClient.organizationBilling.findUnique({
+      where: { subscriptionId },
+      select: { id: true, teamId: true },
+    });
+    return record;
+  }
+
+  async updateById(id: string, data: IBillingRepositoryUpdateArgs): Promise<void> {
+    await this.prismaClient.organizationBilling.update({
+      where: { id },
+      data,
+    });
   }
 }

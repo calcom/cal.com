@@ -120,6 +120,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       findUnique: vi.fn(),
       groupBy: vi.fn(),
     },
+    $queryRaw: vi.fn().mockResolvedValue([]),
   } as unknown as PrismaClient;
 
   // Create a comprehensive kysely mock that handles all chain methods
@@ -334,11 +335,10 @@ describe("getBookings - PBAC Permission Checks", () => {
     });
   });
 
-  describe("Event type filtering", () => {
-    it("should get event types from teams where user has booking.read permission", async () => {
+  describe("Event type filtering with subqueries", () => {
+    it("should use subqueries for event types from teams where user has booking.read permission", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([{ id: 10 }, { id: 11 }]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
       await getBookings({
@@ -351,13 +351,15 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Verify event types are fetched from team 1
-      expect(mockPrisma.eventType.findMany).toHaveBeenCalled();
+      // PERFORMANCE: With the optimization, we no longer call $queryRaw to fetch event type IDs.
+      // Instead, we use subqueries directly in the SQL to avoid materializing large arrays.
+      // The query is built using Kysely and executed via executeQuery.
+      expect(mockKysely.executeQuery).toHaveBeenCalled();
     });
   });
 
-  describe("User IDs and emails retrieval", () => {
-    it("should get user IDs and emails from teams with booking permission", async () => {
+  describe("User IDs retrieval for permission validation", () => {
+    it("should only fetch user IDs when userIds filter is provided", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([
         { id: 2, email: "user2@example.com" },
@@ -371,13 +373,38 @@ describe("getBookings - PBAC Permission Checks", () => {
         prisma: mockPrisma,
         kysely: mockKysely,
         bookingListingByStatus: ["upcoming"],
-        filters: {},
+        filters: {
+          userIds: [2], // When userIds filter is provided, we need to validate permissions
+        },
         take: 10,
         skip: 0,
       });
 
-      // Verify users are fetched from teams 1 and 2
+      // Verify users are fetched from teams 1 and 2 for permission validation
       expect(mockPrisma.user.findMany).toHaveBeenCalled();
+    });
+
+    it("should NOT fetch user IDs when no userIds filter is provided (uses subqueries instead)", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
+      // Reset the mock to track calls
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely,
+        bookingListingByStatus: ["upcoming"],
+        filters: {}, // No userIds filter
+        take: 10,
+        skip: 0,
+      });
+
+      // PERFORMANCE: Without userIds filter, we don't need to fetch user IDs for validation.
+      // The query uses subqueries instead of materializing all user IDs/emails.
+      // user.findMany should NOT be called for getUserIdsFromTeamIds
+      expect(mockPrisma.user.findMany).not.toHaveBeenCalled();
     });
   });
 });

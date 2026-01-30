@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
@@ -14,12 +13,120 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
-import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
+import type {
+  SeatedBooking,
+  NewSeatedBookingObject,
+  HandleSeatsResultBooking,
+} from "../types";
+
+export type AddSeatInput = {
+  bookingUid: string;
+  bookingId: number;
+  bookingStatus: BookingStatus;
+  seatsPerTimeSlot: number;
+  attendee: {
+    email: string;
+    phoneNumber?: string;
+    name: string;
+    timeZone: string;
+    locale: string;
+  };
+  seatData: {
+    description?: string;
+    responses?: Prisma.InputJsonValue | null;
+  };
+  metadata?: Record<string, string>;
+};
+
+/**
+ * Atomically adds a seat to a booking with race condition protection.
+ * Uses a transaction with a fresh read to prevent TOCTOU race conditions
+ * where concurrent requests could exceed the seat limit.
+ */
+export async function addSeatToBooking(
+  input: AddSeatInput,
+  prismaClient: PrismaClient = prisma
+) {
+  const referenceUid = uuid();
+
+  return prismaClient.$transaction(async (tx) => {
+    // Lock the booking row with FOR UPDATE to prevent concurrent modifications
+    // This ensures only one transaction can read and modify seat count at a time
+    await tx.$queryRaw`SELECT id FROM "Booking" WHERE uid = ${input.bookingUid} FOR UPDATE`;
+
+    // Fresh read inside transaction to get the current seat count
+    const freshBooking = await tx.booking.findUnique({
+      where: { uid: input.bookingUid },
+      select: {
+        attendees: {
+          select: {
+            bookingSeat: {
+              select: { id: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!freshBooking) {
+      throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
+
+    // Check seat availability with fresh data
+    // Only enforce the limit when seatsPerTimeSlot > 0 (matching original behavior
+    // where falsy seatsPerTimeSlot would skip this check entirely)
+    const currentSeatCount = freshBooking.attendees.filter(
+      (attendee) => !!attendee.bookingSeat
+    ).length;
+    if (input.seatsPerTimeSlot > 0 && input.seatsPerTimeSlot <= currentSeatCount) {
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorCode.BookingSeatsFull,
+      });
+    }
+
+    // Create the attendee and seat atomically within the transaction
+    await tx.booking.update({
+      where: { uid: input.bookingUid },
+      data: {
+        attendees: {
+          create: {
+            email: input.attendee.email,
+            phoneNumber: input.attendee.phoneNumber,
+            name: input.attendee.name,
+            timeZone: input.attendee.timeZone,
+            locale: input.attendee.locale,
+            bookingSeat: {
+              create: {
+                referenceUid,
+                data: {
+                  description: input.seatData.description,
+                  responses: input.seatData.responses,
+                },
+                metadata: input.metadata,
+                booking: {
+                  connect: { id: input.bookingId },
+                },
+              },
+            },
+          },
+        },
+        ...(input.bookingStatus === BookingStatus.CANCELLED && {
+          status: BookingStatus.ACCEPTED,
+        }),
+      },
+    });
+
+    return await tx.bookingSeat.findUnique({
+      where: { referenceUid },
+    });
+  });
+}
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
@@ -46,17 +153,15 @@ const createNewSeat = async (
   let resultBooking: HandleSeatsResultBooking;
   // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
   const bookingAttendees = seatedBooking.attendees.map((attendee) => {
-    return { ...attendee, language: { translate: tAttendees, locale: attendeeLanguage ?? "en" } };
+    return {
+      ...attendee,
+      language: { translate: tAttendees, locale: attendeeLanguage ?? "en" },
+    };
   });
 
-  if (
-    eventType.seatsPerTimeSlot &&
-    eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
-  ) {
-    throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
-  }
-
-  const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
+  const videoCallReference = seatedBooking.references.find((reference) =>
+    reference.type.includes("_video")
+  );
 
   if (videoCallReference) {
     evt.videoCallData = {
@@ -67,50 +172,33 @@ const createNewSeat = async (
     };
   }
 
-  const attendeeUniqueId = uuid();
-
   const inviteeToAdd = invitee[0];
 
-  await prisma.booking.update({
-    where: {
-      uid: seatedBooking.uid,
+  // Use addSeatToBooking which handles the race condition protection via transaction
+  const newBookingSeat = await addSeatToBooking({
+    bookingUid: seatedBooking.uid,
+    bookingId: seatedBooking.id,
+    bookingStatus: seatedBooking.status,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot ?? 0,
+    attendee: {
+      email: inviteeToAdd.email,
+      phoneNumber: inviteeToAdd.phoneNumber,
+      name: inviteeToAdd.name,
+      timeZone: inviteeToAdd.timeZone,
+      locale: inviteeToAdd.language.locale,
     },
-    data: {
-      attendees: {
-        create: {
-          email: inviteeToAdd.email,
-          phoneNumber: inviteeToAdd.phoneNumber,
-          name: inviteeToAdd.name,
-          timeZone: inviteeToAdd.timeZone,
-          locale: inviteeToAdd.language.locale,
-          bookingSeat: {
-            create: {
-              referenceUid: attendeeUniqueId,
-              data: {
-                description: additionalNotes,
-                responses,
-              },
-              metadata,
-              booking: {
-                connect: {
-                  id: seatedBooking.id,
-                },
-              },
-            },
-          },
-        },
-      },
-      ...(seatedBooking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
+    seatData: {
+      description: additionalNotes,
+      responses,
     },
+    metadata,
   });
 
-  const newBookingSeat = await prisma.bookingSeat.findUnique({
-    where: {
-      referenceUid: attendeeUniqueId,
-    },
-  });
-
-  const attendeeWithSeat = { ...inviteeToAdd, bookingSeat: newBookingSeat ?? null };
+  const attendeeUniqueId = newBookingSeat?.referenceUid ?? "";
+  const attendeeWithSeat = {
+    ...inviteeToAdd,
+    bookingSeat: newBookingSeat ?? null,
+  };
 
   evt = { ...evt, attendees: [...bookingAttendees, attendeeWithSeat] };
   evt.attendeeSeatId = attendeeUniqueId;
@@ -130,16 +218,20 @@ const createNewSeat = async (
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;
 
-    isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+    isHostConfirmationEmailsDisabled =
+      eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
     isAttendeeConfirmationEmailDisabled =
-      eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+      eventType.metadata?.disableStandardEmails?.confirmation?.attendee ||
+      false;
 
     if (isHostConfirmationEmailsDisabled) {
-      isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+      isHostConfirmationEmailsDisabled =
+        allowDisablingHostConfirmationEmails(workflows);
     }
 
     if (isAttendeeConfirmationEmailDisabled) {
-      isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+      isAttendeeConfirmationEmailDisabled =
+        allowDisablingAttendeeConfirmationEmails(workflows);
     }
     await sendScheduledSeatsEmailsAndSMS(
       copyEvent,
@@ -152,16 +244,27 @@ const createNewSeat = async (
     );
   }
   const credentials = await refreshCredentials(allCredentials);
-  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-  const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(
+    eventType?.metadata?.apps
+  );
+  const eventManager = new EventManager(
+    { ...organizerUser, credentials },
+    apps
+  );
   await eventManager.updateCalendarAttendees(evt, seatedBooking);
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
 
-  if (!Number.isNaN(paymentAppData.price) && paymentAppData.price > 0 && !!seatedBooking) {
+  if (
+    !Number.isNaN(paymentAppData.price) &&
+    paymentAppData.price > 0 &&
+    !!seatedBooking
+  ) {
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
-        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
+        ...(paymentAppData.credentialId
+          ? { id: paymentAppData.credentialId }
+          : { userId: organizerUser.id }),
         app: {
           categories: {
             hasSome: ["payment"],
@@ -180,15 +283,23 @@ const createNewSeat = async (
       },
     });
 
-    const eventTypePaymentAppCredential = credentialPaymentAppCategories.find((credential) => {
-      return credential.appId === paymentAppData.appId;
-    });
+    const eventTypePaymentAppCredential = credentialPaymentAppCategories.find(
+      (credential) => {
+        return credential.appId === paymentAppData.appId;
+      }
+    );
 
     if (!eventTypePaymentAppCredential) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentCredential });
+      throw new HttpError({
+        statusCode: 400,
+        message: ErrorCode.MissingPaymentCredential,
+      });
     }
     if (!eventTypePaymentAppCredential?.appId) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
+      throw new HttpError({
+        statusCode: 400,
+        message: ErrorCode.MissingPaymentAppId,
+      });
     }
 
     const payment = await handlePayment({
@@ -202,7 +313,8 @@ const createNewSeat = async (
             }
           : {},
       },
-      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      paymentAppCredentials:
+        eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking: seatedBooking,
       bookerName: fullName,
       bookerEmail,
