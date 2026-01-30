@@ -55,7 +55,7 @@ const createTestBooking = (overrides?: {
           disableRescheduling: false,
           allowReschedulingPastBookings: false,
           allowBookingFromCancelledBookingReschedule: false,
-            minimumRescheduleNotice: null,
+          minimumRescheduleNotice: null,
           teamId: null,
         },
   dynamicEventSlugRef: overrides?.dynamicEventSlugRef !== undefined ? overrides.dynamicEventSlugRef : null,
@@ -652,6 +652,83 @@ describe("determineReschedulePreventionRedirect", () => {
       const result = determineReschedulePreventionRedirect(input);
 
       // Unauthenticated user should be prevented from rescheduling within minimum notice period
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should prevent host from rescheduling within the minimum notice period if they are not the organizer", () => {
+      const organizerUserId = 1;
+      const hostUserId = 2;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+
+          },
+        }),
+        currentUserId: hostUserId, // User is a host, not the organizer
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Unassigned Host must be REDIRECTED (prevented)
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should prevent non-host, non-organizer from rescheduling within the minimum notice period", () => {
+      const organizerUserId = 1;
+      const hostUserId = 2;
+      const attendeeUserId = 3;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+
+          },
+        }),
+        currentUserId: attendeeUserId, // User is NOT the organizer or a host
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Non-host, non-organizer should be prevented from rescheduling within minimum notice period
+      expectRedirectToBookingDetailsPage(result, input.booking.uid);
+    });
+
+    it("should prevent host from rescheduling even when event type has multiple hosts if they are not the organizer", () => {
+      const organizerUserId = 1;
+      const hostUserId1 = 2;
+      const hostUserId2 = 3;
+      const bookingStartTime = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours from now (within 24h notice)
+      const bookingEndTime = new Date(bookingStartTime.getTime() + 30 * 60 * 1000); // 30 minutes later
+
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          status: BookingStatus.ACCEPTED,
+          userId: organizerUserId,
+          startTime: bookingStartTime,
+          endTime: bookingEndTime,
+          eventType: {
+            minimumRescheduleNotice: 1440, // 24 hours (1440 minutes)
+
+          },
+        }),
+        currentUserId: hostUserId2, // User is one of the hosts
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      // Unassigned Host must be REDIRECTED (prevented)
       expectRedirectToBookingDetailsPage(result, input.booking.uid);
     });
   });
