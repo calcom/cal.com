@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
@@ -15,13 +15,13 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT, IS_CALCOM } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
@@ -52,6 +52,7 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
+import { AdminEmailConsentBanner } from "./components/AdminEmailConsentBanner";
 import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
 
 interface DeleteAccountValues {
@@ -248,7 +249,7 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const passwordRef = useRef<HTMLInputElement>(null!);
 
   const errorMessages: { [key: string]: string } = {
@@ -299,6 +300,10 @@ const ProfileView = ({ user }: Props) => {
     userEmail &&
     isCompanyEmail(userEmail);
 
+  // Check if user should see admin email consent banner (self-hosted admins only)
+  const isSelfHostedAdmin =
+    !IS_CALCOM && session.data?.user?.role === UserPermissionRole.ADMIN;
+
   return (
     <SettingsHeader
       title={t("profile")}
@@ -309,9 +314,9 @@ const ProfileView = ({ user }: Props) => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isPending={updateProfileMutation.isPending}
-        isFallbackImg={!user.avatarUrl}
+        _isFallbackImg={!user.avatarUrl}
         user={user}
-        userOrganization={user.organization}
+        _userOrganization={user.organization}
         onSubmit={(values) => {
           if (values.email !== user.email && isCALIdentityProvider) {
             setTempFormValues(values);
@@ -356,6 +361,12 @@ const ProfileView = ({ user }: Props) => {
           <CompanyEmailOrganizationBanner
             onDismissAction={() => setIsCompanyEmailAlertDismissed(true)}
           />
+        </div>
+      )}
+
+      {isSelfHostedAdmin && (
+        <div className="mt-6">
+          <AdminEmailConsentBanner />
         </div>
       )}
 
@@ -569,9 +580,9 @@ const ProfileForm = ({
   handleAccountDisconnect,
   extraField,
   isPending = false,
-  isFallbackImg,
+  _isFallbackImg,
   user,
-  userOrganization,
+  _userOrganization,
   isCALIdentityProvider,
 }: {
   defaultValues: FormValues;
@@ -581,9 +592,9 @@ const ProfileForm = ({
   handleAccountDisconnect: (values: ExtendedFormValues) => void;
   extraField?: React.ReactNode;
   isPending: boolean;
-  isFallbackImg: boolean;
+  _isFallbackImg: boolean;
   user: RouterOutputs["viewer"]["me"]["get"];
-  userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
+  _userOrganization: RouterOutputs["viewer"]["me"]["get"]["organization"];
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
@@ -682,7 +693,7 @@ const ProfileForm = ({
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
+  const { data: usersAttributes, isPending: _usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: user.id,
     });
