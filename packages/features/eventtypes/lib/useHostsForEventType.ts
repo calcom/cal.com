@@ -1,7 +1,26 @@
 import { useCallback, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
-import type { FormValues, Host, HostUpdate, PendingHostChanges } from "./types";
+import type { FormValues, Host, HostLocation, HostUpdate, PendingHostChanges } from "./types";
+
+/**
+ * Compare two HostLocation objects for equality.
+ * Returns true if they are equal, false otherwise.
+ */
+function areLocationsEqual(a: HostLocation | null | undefined, b: HostLocation | null | undefined): boolean {
+  // Both null/undefined - equal
+  if (!a && !b) return true;
+  // One is null/undefined, other is not - not equal
+  if (!a || !b) return false;
+  // Compare relevant fields (not id, userId, eventTypeId as those are identifiers)
+  return (
+    a.type === b.type &&
+    a.credentialId === b.credentialId &&
+    a.link === b.link &&
+    a.address === b.address &&
+    a.phoneNumber === b.phoneNumber
+  );
+}
 
 const DEFAULT_PENDING_CHANGES: PendingHostChanges = {
   hostsToAdd: [],
@@ -192,6 +211,10 @@ export function useHostsForEventType() {
             }
             if (newHost.groupId !== serverHost.groupId) {
               changes.groupId = newHost.groupId;
+              hasChanges = true;
+            }
+            if (!areLocationsEqual(newHost.location, serverHost.location)) {
+              changes.location = newHost.location;
               hasChanges = true;
             }
 
