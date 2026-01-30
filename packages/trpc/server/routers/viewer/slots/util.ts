@@ -1162,16 +1162,23 @@ export class AvailableSlotsService {
       eventType,
     });
 
-    const { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
+        let { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
       qualifiedRRHosts,
       organizationId
     );
-    const { eligibleHosts: eligibleFixedHosts } = await filterBlockedHosts(fixedHosts, organizationId);
-    const { eligibleHosts: eligibleFallbackRRHosts } = allFallbackRRHosts
+    eligibleQualifiedRRHosts = eligibleQualifiedRRHosts.filter((host) => !host.isOptional);
+
+    let { eligibleHosts: eligibleFixedHosts } = await filterBlockedHosts(fixedHosts, organizationId);
+    eligibleFixedHosts = eligibleFixedHosts.filter((host) => !host.isOptional);
+
+    let { eligibleHosts: eligibleFallbackRRHosts } = allFallbackRRHosts
       ? await filterBlockedHosts(allFallbackRRHosts, organizationId)
       : { eligibleHosts: [] };
+    eligibleFallbackRRHosts = eligibleFallbackRRHosts.filter((host) => !host.isOptional);
 
     const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
+
+);
 
     // If all hosts are blocked, return empty slots
     if (allHosts.length === 0) {

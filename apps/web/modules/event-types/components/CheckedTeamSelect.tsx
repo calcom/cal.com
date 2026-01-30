@@ -18,7 +18,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
-export type CheckedSelectOption = {
+export type CheckedSelectOption = {isOptional?: boolean;
   avatar: string;
   label: string;
   value: string;
@@ -131,7 +131,24 @@ export const CheckedTeamSelect = ({
                 {option.label}
               </p>
               <div className="ml-auto flex items-center">
-                {option && !option.isFixed ? (
+                {option && !option.isFixed ? (                <Tooltip content={t(option.isOptional ? "make_required" : "make_optional")}>
+                  <Button
+                    color="minimal"
+                    size="icon"
+                    onClick={() => {
+                      const newValue = value.map((item) =>
+                        item.value === option.value ? { ...item, isOptional: !item.isOptional } : item
+                      );
+                      props.onChange(newValue);
+                    }}
+                    className={classNames(
+                      "mr-2 h-4 w-4 p-0 hover:bg-transparent",
+                      option.isOptional ? "text-subtle" : "text-emphasis"
+                    )}>
+                    <Icon name={option.isOptional ? "user-minus" : "user-plus"} className="h-4 w-4" />
+                  </Button>
+                </Tooltip>
+
                   <>
                     <Tooltip content={t("change_priority")}>
                       <Button
