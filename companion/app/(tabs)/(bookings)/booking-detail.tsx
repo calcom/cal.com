@@ -1,11 +1,25 @@
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useRef } from "react";
-import { Platform } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { Platform, Text, View, useColorScheme } from "react-native";
+import { AppPressable } from "@/components/AppPressable";
+import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
-import { showErrorAlert, showInfoAlert } from "@/utils/alerts";
+import type { Booking } from "@/services/calcom";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
+import { openInAppBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -19,6 +33,22 @@ const EMPTY_ACTIONS: BookingActionsResult = {
   markNoShow: { visible: false, enabled: false },
 };
 
+const getMeetingUrl = (booking: Booking | null): string | null => {
+  if (!booking) return null;
+
+  const videoCallUrl = booking.responses?.videoCallUrl;
+  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
+    return videoCallUrl;
+  }
+
+  const location = booking.location;
+  if (typeof location === "string" && location.startsWith("http")) {
+    return location;
+  }
+
+  return null;
+};
+
 // Type for action handlers exposed by BookingDetailScreen
 type ActionHandlers = {
   openRescheduleModal: () => void;
@@ -28,6 +58,29 @@ type ActionHandlers = {
   openMeetingSessionDetailsModal: () => void;
   openMarkNoShowModal: () => void;
   handleCancelBooking: () => void;
+};
+
+const getIconName = (sfSymbol: string): keyof typeof Ionicons.glyphMap => {
+  switch (sfSymbol) {
+    case "calendar":
+      return "calendar";
+    case "location":
+      return "location";
+    case "person.badge.plus":
+      return "person-add";
+    case "video":
+      return "videocam";
+    case "info.circle":
+      return "information-circle";
+    case "eye.slash":
+      return "eye-off";
+    case "flag":
+      return "flag";
+    case "xmark.circle":
+      return "close-circle";
+    default:
+      return "ellipsis-horizontal";
+  }
 };
 
 export default function BookingDetail() {
@@ -218,11 +271,209 @@ export default function BookingDetail() {
     handleCancel,
   ]);
 
+  const router = useRouter();
+  const navigation = useNavigation();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
+  const meetingUrl = useMemo(() => getMeetingUrl(booking ?? null), [booking]);
+
+  const handleJoinMeeting = useCallback(() => {
+    if (meetingUrl) {
+      openInAppBrowser(meetingUrl, "meeting link");
+    }
+  }, [meetingUrl]);
+
+  const handleCopyMeetingLink = useCallback(async () => {
+    if (meetingUrl) {
+      await Clipboard.setStringAsync(meetingUrl);
+      showSuccessAlert("Copied", "Meeting link copied to clipboard");
+    }
+  }, [meetingUrl]);
+
+  const renderHeaderLeft = useCallback(() => {
+    let backButtonLabel = "Back";
+
+    // Check both start and startTime properties
+    const startTime = booking?.start || booking?.startTime;
+
+    if (startTime) {
+      const date = new Date(startTime);
+      if (!Number.isNaN(date.getTime())) {
+        backButtonLabel = date.toLocaleDateString("en-US", { month: "long" });
+      }
+    }
+
+    return (
+      <HeaderButtonWrapper side="left">
+        <AppPressable
+          onPress={() => router.back()}
+          className="mr-2 h-10 flex-row items-center justify-center rounded-full border border-[#E5E5E5] bg-white px-3 dark:border-[#262626] dark:bg-[#171717]"
+        >
+          <Ionicons
+            name="chevron-back"
+            size={20}
+            color={isDarkMode ? "#FFFFFF" : "#000000"}
+            style={{ marginRight: 4 }}
+          />
+          <Text className={`text-[15px] font-medium ${isDarkMode ? "text-white" : "text-black"}`}>
+            {backButtonLabel}
+          </Text>
+        </AppPressable>
+      </HeaderButtonWrapper>
+    );
+  }, [booking?.start, booking?.startTime, router, isDarkMode]);
+
+  const renderHeaderRight = useCallback(
+    () => (
+      <HeaderButtonWrapper side="right">
+        <View className="flex-row items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AppPressable className="h-10 w-10 items-center justify-center rounded-full border border-[#E5E5E5] bg-white dark:border-[#262626] dark:bg-[#171717]">
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={20}
+                  color={isDarkMode ? "#FFFFFF" : "#000000"}
+                />
+              </AppPressable>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              insets={{ top: 60, bottom: 20, left: 12, right: 12 }}
+              sideOffset={8}
+              className="w-56"
+              align="end"
+            >
+              {meetingUrl && (
+                <>
+                  <DropdownMenuItem onPress={handleCopyMeetingLink}>
+                    <View className="flex-row items-center gap-2">
+                      <Ionicons
+                        name="copy-outline"
+                        size={18}
+                        color={isDarkMode ? "#FFFFFF" : "#000000"}
+                      />
+                      <Text className="text-base text-[#000000] dark:text-white">
+                        Copy meeting link
+                      </Text>
+                    </View>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {bookingActionsSections.editEvent.length > 0 && (
+                <>
+                  <DropdownMenuLabel>Edit Event</DropdownMenuLabel>
+                  {bookingActionsSections.editEvent.map((action) => (
+                    <DropdownMenuItem key={action.id} onPress={action.onPress}>
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons
+                          name={getIconName(action.icon)}
+                          size={18}
+                          color={isDarkMode ? "#FFFFFF" : "#000000"}
+                        />
+                        <Text className="text-base text-[#000000] dark:text-white">
+                          {action.label}
+                        </Text>
+                      </View>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              {bookingActionsSections.afterEvent.length > 0 && (
+                <>
+                  <DropdownMenuLabel>After Event</DropdownMenuLabel>
+                  {bookingActionsSections.afterEvent.map((action) => (
+                    <DropdownMenuItem key={action.id} onPress={action.onPress}>
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons
+                          name={getIconName(action.icon)}
+                          size={18}
+                          color={isDarkMode ? "#FFFFFF" : "#000000"}
+                        />
+                        <Text className="text-base text-[#000000] dark:text-white">
+                          {action.label}
+                        </Text>
+                      </View>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
+              <DropdownMenuLabel>Danger Zone</DropdownMenuLabel>
+              {bookingActionsSections.standalone.map((action) => (
+                <DropdownMenuItem
+                  key={action.id}
+                  onPress={action.onPress}
+                  variant={action.destructive ? "destructive" : "default"}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons
+                      name={getIconName(action.icon)}
+                      size={18}
+                      color={action.destructive ? "#EF4444" : isDarkMode ? "#FFFFFF" : "#000000"}
+                    />
+                    <Text
+                      className={`text-base ${
+                        action.destructive ? "text-red-500" : "text-[#000000] dark:text-white"
+                      }`}
+                    >
+                      {action.label}
+                    </Text>
+                  </View>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {meetingUrl && (
+            <AppPressable
+              onPress={handleJoinMeeting}
+              className={`h-9 flex-row items-center justify-center rounded-full border px-5 ${
+                isDarkMode ? "border-white bg-white" : "border-black bg-black"
+              }`}
+            >
+              <Text
+                className={`text-[15px] font-medium ${isDarkMode ? "text-black" : "text-white"}`}
+              >
+                Join
+              </Text>
+            </AppPressable>
+          )}
+        </View>
+      </HeaderButtonWrapper>
+    ),
+    [isDarkMode, meetingUrl, handleCopyMeetingLink, bookingActionsSections, handleJoinMeeting]
+  );
+
+  // Force header update on Android/Web
+  useEffect(() => {
+    if (Platform.OS === "android" || Platform.OS === "web") {
+      navigation.setOptions({
+        headerRight: renderHeaderRight,
+        headerLeft: renderHeaderLeft,
+      });
+    }
+  }, [navigation, renderHeaderRight, renderHeaderLeft]);
+
   return (
     <>
       <Stack.Screen
         options={{
           headerBackButtonDisplayMode: "minimal",
+          title: "",
+          headerShown: Platform.OS !== "ios",
+          headerStyle: {
+            backgroundColor: isDarkMode ? "black" : "white",
+          },
+          headerShadowVisible: false,
+          headerLeft:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderLeft : undefined,
+          headerRight:
+            Platform.OS === "android" || Platform.OS === "web" ? renderHeaderRight : undefined,
         }}
       />
 
