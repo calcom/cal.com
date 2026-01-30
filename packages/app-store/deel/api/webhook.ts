@@ -1,19 +1,17 @@
-import { createHmac } from "crypto";
-import type { NextApiRequest, NextApiResponse } from "next";
-import getRawBody from "raw-body";
-import { z } from "zod";
-
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
-
+import { createHmac } from "crypto";
+import type { NextApiRequest, NextApiResponse } from "next";
+import getRawBody from "raw-body";
+import { z } from "zod";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { DeelHrmsService } from "../lib/HrmsService";
 import { appKeysSchema } from "../zod";
@@ -174,71 +172,66 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         (policy) => policy.name.toLowerCase() === payload.resource.type.toLowerCase()
       );
 
-      if (!matchingPolicy) {
-        log.warn("No matching OOO policy found in Deel for type", { type: payload.resource.type, email });
-        return res.status(200).json({ message: "No matching OOO policy found, skipping processing" });
-      }
-
-      const reason = await oooRepo.upsertOOOReason({
-        credentialId: deelCredential.id,
-        externalId: matchingPolicy.externalId,
-        reason: matchingPolicy.name,
-        enabled: true,
-      });
-
-      await oooRepo.createOOOEntry({
+      const oooEntry = await oooRepo.createOOOEntry({
         end: new Date(payload.resource.end_date),
         start: new Date(payload.resource.start_date),
-        externalId: payload.resource.id,
         notes: payload.resource.reason || "Synced from Deel",
         userId: user.id,
         uuid: crypto.randomUUID(),
-        reasonId: reason.id,
+        reasonId: 1,
+      });
+
+      await oooRepo.createOOOReference({
+        oooEntryId: oooEntry.id,
+        source: "deel",
+        externalId: payload.resource.id,
+        externalReasonId: matchingPolicy?.externalId || null,
+        externalReasonName: payload.resource.type,
+        credentialId: deelCredential.id,
       });
     } else if (payload.meta.event_type === "time-off.updated") {
-      if (payload.resource.status === "CANCELED") {
-        const oooRepo = new PrismaOOORepository(prisma);
-        await oooRepo.deleteOOOEntryByExternalId({ externalId: payload.resource.id });
-      } else if (payload.resource.status === "APPROVED") {
-        const oooRepo = new PrismaOOORepository(prisma);
-        const ooo = await oooRepo.findOOOEntryByExternalId(payload.resource.id);
+      const oooRepo = new PrismaOOORepository(prisma);
 
-        if (!ooo || !ooo.reason?.credential) {
+      if (payload.resource.status === "CANCELED") {
+        await oooRepo.deleteOOOEntryByExternalReference({
+          source: "deel",
+          externalId: payload.resource.id,
+        });
+      } else if (payload.resource.status === "APPROVED") {
+        const reference = await oooRepo.findOOOEntryByExternalReference({
+          source: "deel",
+          externalId: payload.resource.id,
+        });
+
+        if (!reference?.oooEntry || !reference.credential) {
           log.warn("No existing OOO entry found to update for external ID", {
             externalId: payload.resource.id,
           });
           return res.status(200).json({ message: "No existing OOO entry found, skipping update" });
         }
 
-        const deelService = new DeelHrmsService(ooo.reason.credential);
-        const policies = await deelService.listOOOReasons(
-          payload.resource.requester.work_email,
-          payload.resource.requester.id
-        );
+        const deelService = new DeelHrmsService({ ...reference.credential, delegationCredentialId: null });
+        const policies = await deelService.listOOOReasons(payload.resource.requester.work_email);
         const matchingPolicy = policies.find(
           (policy) => policy.name.toLowerCase() === payload.resource.type.toLowerCase()
         );
 
-        if (!matchingPolicy) {
-          log.warn("No matching OOO policy found in Deel for type", { type: payload.resource.type });
-          return res.status(200).json({ message: "No matching OOO policy found, skipping processing" });
-        }
-
-        const reason = await oooRepo.upsertOOOReason({
-          credentialId: ooo.reason.credential.id,
-          externalId: matchingPolicy.externalId,
-          reason: matchingPolicy.name,
-          enabled: true,
-        });
-
         await oooRepo.updateOOOEntry({
-          uuid: ooo.uuid,
+          uuid: reference.oooEntry.uuid,
           start: new Date(payload.resource.start_date),
           end: new Date(payload.resource.end_date),
           notes: payload.resource.reason || "Synced from Deel",
-          reasonId: reason.id,
-          userId: ooo.userId,
-          externalId: payload.resource.id,
+          reasonId: 1,
+          userId: reference.oooEntry.userId,
+        });
+
+        await prisma.outOfOfficeReference.update({
+          where: { id: reference.id },
+          data: {
+            externalReasonId: matchingPolicy?.externalId || null,
+            externalReasonName: payload.resource.type,
+            syncedAt: new Date(),
+          },
         });
       }
     } else {

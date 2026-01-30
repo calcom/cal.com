@@ -78,6 +78,11 @@ export class PrismaOOORepository {
             reason: true,
           },
         },
+        externalReference: {
+          select: {
+            externalReasonName: true,
+          },
+        },
       },
     });
   }
@@ -145,6 +150,11 @@ export class PrismaOOORepository {
             id: true,
             emoji: true,
             reason: true,
+          },
+        },
+        externalReference: {
+          select: {
+            externalReasonName: true,
           },
         },
       },
