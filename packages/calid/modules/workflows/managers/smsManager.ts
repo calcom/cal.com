@@ -119,9 +119,9 @@ const calculateScheduledDateTime = (
     case WorkflowTriggerEvents.NEW_EVENT:
     case WorkflowTriggerEvents.EVENT_CANCELLED:
     case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-      // For traditionally immediate events, schedule relative to event start time
+      // For traditionally immediate events, schedule relative to current time
       // You can modify this logic based on your specific requirements
-      return dayjs(eventStartTime).add(time, normalizedUnit);
+      return dayjs().add(time, normalizedUnit);
     default:
       return null;
   }
@@ -392,7 +392,6 @@ const processScheduledReminder = async (
 ): Promise<void> => {
   const currentMoment = dayjs();
   const twoHourWindow = currentMoment.add(2, "hour");
-
   // within next 2 hours → schedule delayed notification
   if (dispatchTime.isBefore(twoHourWindow)) {
     await scheduleDelayedNotification(
