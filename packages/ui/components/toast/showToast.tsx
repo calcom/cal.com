@@ -1,4 +1,4 @@
-import { CheckIcon, InfoIcon, XIcon } from "@coss/ui/icons";
+import { CheckIcon, InfoIcon, XIcon } from "@coss/ui/src/icons";
 import classNames from "classnames";
 import type { ExternalToast } from "sonner";
 import { toast } from "sonner";

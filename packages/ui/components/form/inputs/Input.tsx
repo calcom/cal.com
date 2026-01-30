@@ -2,7 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { EyeIcon, EyeOffIcon, SearchIcon } from "@coss/ui/icons";
+import { EyeIcon, EyeOffIcon, SearchIcon } from "@coss/ui/src/icons";
 import type React from "react";
 import type { ReactNode } from "react";
 import { forwardRef, useCallback, useId, useState } from "react";

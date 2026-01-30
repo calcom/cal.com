@@ -2,7 +2,7 @@
 
 import dayjs from "@calcom/dayjs";
 import cn from "@calcom/ui/classNames";
-import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/src/icons";
 import type * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { buttonClasses } from "../../button/Button";

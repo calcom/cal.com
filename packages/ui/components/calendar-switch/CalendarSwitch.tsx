@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "@calcom/ui/classNames";
-import { ArrowLeftIcon, RotateCwIcon } from "@coss/ui/icons";
+import { ArrowLeftIcon, RotateCwIcon } from "@coss/ui/src/icons";
 import type { ReactNode } from "react";
 
 export type ICalendarSwitchProps = {

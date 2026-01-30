@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UploadIcon } from "@coss/ui/icons";
+import { UploadIcon } from "@coss/ui/src/icons";
 import { useCallback, useState } from "react";
 import { z } from "zod";
 import { Button } from "../button";

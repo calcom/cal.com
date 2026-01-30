@@ -5,7 +5,7 @@ import {
   isSupportedTimeZone,
   sortByTimezone,
 } from "@calcom/lib/dayjs";
-import { GlobeIcon } from "@coss/ui/icons";
+import { GlobeIcon } from "@coss/ui/src/icons";
 import * as Popover from "@radix-ui/react-popover";
 
 type Attendee = {

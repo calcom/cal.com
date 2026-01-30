@@ -1,4 +1,4 @@
-import { InfoIcon } from "@coss/ui/icons";
+import { InfoIcon } from "@coss/ui/src/icons";
 
 type InputErrorProp = {
   message: string;
