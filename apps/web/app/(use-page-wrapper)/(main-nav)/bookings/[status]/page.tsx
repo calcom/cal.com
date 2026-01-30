@@ -73,8 +73,7 @@ const Page = async ({ params }: PageProps) => {
             heading: t("bookings"),
             subtitle: t("bookings_description"),
           }
-        : {})}
-      headerClassName="bookings-shell-heading">
+        : {})}>
       <BookingsList
         status={parsed.data.status}
         userId={userId}
