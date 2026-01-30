@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -745,25 +746,30 @@ export function BookingActionsDropdown({
               )}
             </>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="rounded-lg"
-              key={cancelEventAction.id}
-              disabled={cancelEventAction.disabled}>
-              <DropdownItem
-                type="button"
-                color={cancelEventAction.color}
-                StartIcon={cancelEventAction.icon}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsCancelDialogOpen(true);
-                }}
-                disabled={cancelEventAction.disabled}
-                data-booking-uid={cancelEventAction.bookingUid}
-                data-testid={cancelEventAction.id}
-                className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                {cancelEventAction.label}
-              </DropdownItem>
-            </DropdownMenuItem>
+            <Tooltip
+              content={isBookingInPast ? t("cannot_cancel_past_booking") : ""}
+              side="left"
+              open={isBookingInPast && cancelEventAction.disabled ? undefined : false}>
+              <DropdownMenuItem
+                className="rounded-lg"
+                key={cancelEventAction.id}
+                disabled={cancelEventAction.disabled}>
+                <DropdownItem
+                  type="button"
+                  color={cancelEventAction.color}
+                  StartIcon={cancelEventAction.icon}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCancelDialogOpen(true);
+                  }}
+                  disabled={cancelEventAction.disabled}
+                  data-booking-uid={cancelEventAction.bookingUid}
+                  data-testid={cancelEventAction.id}
+                  className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                  {cancelEventAction.label}
+                </DropdownItem>
+              </DropdownMenuItem>
+            </Tooltip>
           </DropdownMenuContent>
         </ConditionalPortal>
       </Dropdown>
