@@ -556,10 +556,12 @@
       "outputs": ["dist/**", "build/**"]
     },
     "type-check": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#post-install"]
     },
     "type-check:ci": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["@calcom/prisma#post-install"]
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
