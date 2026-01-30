@@ -1,4 +1,5 @@
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
@@ -91,9 +92,32 @@ export const useSchedule = ({
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
   const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
-  // When the embed connects with noSlotsFetchOnConnect=true, we skip refetchOnWindowFocus to prevent
-  // React Query from triggering a refetch when the prerendered iframe becomes visible
-  const embedSkipRefetchOnWindowFocus = searchParams?.get("cal.embed.skipRefetchOnWindowFocus") === "true";
+  // When the embed connects with noSlotsFetchOnConnect=true, we initially skip refetchOnWindowFocus
+  // to prevent React Query from triggering a refetch when the prerendered iframe becomes visible.
+  // After the first visibility change, we re-enable it for normal tab focus behavior.
+  const embedSkipRefetchOnWindowFocusParam =
+    searchParams?.get("cal.embed.skipRefetchOnWindowFocus") === "true";
+  const [hasSeenFirstVisibility, setHasSeenFirstVisibility] = useState(false);
+  const isFirstVisibilityRef = useRef(true);
+
+  useEffect(() => {
+    if (!embedSkipRefetchOnWindowFocusParam) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (isFirstVisibilityRef.current) {
+          isFirstVisibilityRef.current = false;
+        } else {
+          setHasSeenFirstVisibility(true);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [embedSkipRefetchOnWindowFocusParam]);
+
+  const embedSkipRefetchOnWindowFocus = embedSkipRefetchOnWindowFocusParam && !hasSeenFirstVisibility;
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
