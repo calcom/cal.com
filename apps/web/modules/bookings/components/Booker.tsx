@@ -114,6 +114,7 @@ const BookerComponent = ({
     extraDays,
     columnViewExtraDays,
     isMobile,
+    isTablet,
     layout,
     hideEventTypeDetails,
     isEmbed,
@@ -152,7 +153,7 @@ const BookerComponent = ({
   const nextSlots =
     Math.abs(dayjs(selectedDate).diff(availableSlots[availableSlots.length - 1], "day")) + addonDays;
 
-  const animationScope = useBookerResizeAnimation(layout, bookerState);
+  const animationScope = useBookerResizeAnimation(layout, bookerState, isTablet);
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
@@ -376,7 +377,7 @@ const BookerComponent = ({
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
-          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 ",
+          layout === BookerLayouts.MONTH_VIEW && !isEmbed && "my-20 p-2",
           layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
           `${customClassNames?.bookerWrapper}`
         )}>
@@ -462,7 +463,8 @@ const BookerComponent = ({
                     timeZones={timeZones}
                     roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
                     hideOrgTeamAvatar={hideOrgTeamAvatar}
-                    hideEventTypeDetails={hideEventTypeDetails}>
+                    hideEventTypeDetails={hideEventTypeDetails}
+                    variant={isTablet && layout === BookerLayouts.MONTH_VIEW && bookerState !== "booking" ? "header" : "full"}>
                     {eventMetaChildren}
                   </EventMeta>
                 )}
@@ -487,10 +489,36 @@ const BookerComponent = ({
               </BookerSection>
             </StickyOnDesktop>
 
+            {isTablet && layout === BookerLayouts.MONTH_VIEW && bookerState !== "booking" && !hideEventTypeDetails && (
+              <BookerSection
+                key="details"
+                area="details"
+                className="relative z-10 flex w-full flex-col [grid-area:details]">
+                <EventMeta
+                  selectedTimeslot={selectedTimeslot}
+                  classNames={{
+                    eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+                    eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+                    eventMetaTimezoneSelect:
+                      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+                  }}
+                  event={event.data}
+                  isPending={event.isPending}
+                  isPlatform={isPlatform}
+                  isPrivateLink={!!hashedLink}
+                  locale={userLocale}
+                  timeZones={timeZones}
+                  roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+                  hideEventTypeDetails={hideEventTypeDetails}
+                  variant="details"
+                />
+              </BookerSection>
+            )}
+
             <BookerSection
               key="book-event-form"
               area="main"
-              className="sticky top-0 -ml-px h-full p-6 md:w-(--booker-main-width) md:border-l"
+              className="sticky top-0 -ml-px h-full p-6 lg:w-(--booker-main-width) lg:border-l"
               {...fadeInLeft}
               visible={bookerState === "booking" && !shouldShowFormInDialog}>
               {EventBooker}
@@ -536,9 +564,12 @@ const BookerComponent = ({
                   layout === BookerLayouts.COLUMN_VIEW)
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0",
+                !isTablet && "border-subtle rtl:border-default rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
+                  !isTablet &&
                   "h-full overflow-hidden md:w-(--booker-timeslots-width)",
+                layout === BookerLayouts.MONTH_VIEW && isTablet && "h-full overflow-hidden w-full",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}
