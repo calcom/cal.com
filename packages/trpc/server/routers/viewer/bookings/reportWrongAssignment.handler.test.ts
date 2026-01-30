@@ -51,6 +51,7 @@ describe("reportWrongAssignmentHandler", () => {
       teamId: 5,
     },
     assignmentReason: [{ reasonString: "Matched by round-robin" }],
+    routedFromRoutingFormReponse: null,
   };
 
   const mockBookingRepo = {
@@ -294,6 +295,7 @@ describe("reportWrongAssignmentHandler", () => {
         correctAssignee: "correct@example.com",
         additionalNotes: "This booking should have gone to the sales team",
         teamId: mockBooking.eventType.teamId,
+        routingFormId: null,
       });
     });
 
@@ -318,6 +320,7 @@ describe("reportWrongAssignmentHandler", () => {
         correctAssignee: null,
         additionalNotes: "Wrong person",
         teamId: null,
+        routingFormId: null,
       });
     });
 

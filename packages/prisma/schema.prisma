@@ -1331,6 +1331,7 @@ model App_RoutingForms_Form {
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
   workflows                WorkflowsOnRoutingForms[]
+  wrongAssignmentReports   WrongAssignmentReport[]
 
   @@index([userId])
   @@index([disabled])
@@ -2569,12 +2570,15 @@ model WrongAssignmentReport {
   correctAssignee String?
   additionalNotes String
   teamId          Int?
+  routingFormId   String?
+  routingForm     App_RoutingForms_Form?      @relation(fields: [routingFormId], references: [id], onDelete: SetNull)
   status          WrongAssignmentReportStatus @default(PENDING)
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
 
   @@index([reportedById])
   @@index([teamId])
+  @@index([routingFormId])
   @@index([status])
   @@index([createdAt])
 }

@@ -51,6 +51,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const guestEmail = booking.attendees[0]?.email || "";
   const hostEmail = booking.user?.email || "";
   const hostName = booking.user?.name || null;
+  const routingFormId = booking.routedFromRoutingFormReponse?.formId || null;
 
   const alreadyReported = await wrongAssignmentReportRepo.existsByBookingUid(booking.uid);
 
@@ -67,6 +68,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
     correctAssignee: correctAssignee || null,
     additionalNotes,
     teamId,
+    routingFormId,
   });
 
   const webhookPayload = {

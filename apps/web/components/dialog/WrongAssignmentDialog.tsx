@@ -164,7 +164,7 @@ function AssigneeSection(props: AssigneeSectionProps): JSX.Element {
     field: ControllerRenderProps<FormValues, "correctAssignee">;
   }): JSX.Element => {
     const handleChange = (option: TeamMemberOption | null): void => {
-      if (option) field.onChange(option.value);
+      field.onChange(option ? option.value : "");
     };
     return (
       <Select
