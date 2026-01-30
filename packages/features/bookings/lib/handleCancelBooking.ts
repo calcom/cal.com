@@ -403,7 +403,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         orgId,
         oAuthClientId: platformClientId,
         cancelledBy: cancelledBy ?? undefined,
-        cancellationReason: cancellationReason ?? undefined,
         requestReschedule: false,
         platformRescheduleUrl,
         platformCancelUrl,
