@@ -47,6 +47,25 @@ export type Host = {
   groupId: string | null;
   location?: HostLocation | null;
 };
+
+// Delta-based host tracking for performance optimization
+// Instead of storing 700+ hosts in form state, we track only changes
+export type HostUpdate = {
+  userId: number;
+  isFixed?: boolean;
+  priority?: number;
+  weight?: number;
+  scheduleId?: number | null;
+  groupId?: string | null;
+  location?: HostLocation | null;
+};
+
+export type PendingHostChanges = {
+  hostsToAdd: Host[];
+  hostsToUpdate: HostUpdate[];
+  hostsToRemove: number[]; // userIds
+  clearAllHosts?: boolean; // When true, backend computes delta: keeps hosts in hostsToAdd, removes all others
+};
 export type TeamMember = {
   value: string;
   label: string;
@@ -165,7 +184,8 @@ export type FormValues = {
   onlyShowFirstAvailableSlot: boolean;
   showOptimizedSlots: boolean;
   children: ChildrenEventType[];
-  hosts: Host[];
+  // Delta-based host changes for performance - only track changes, not all 700+ hosts
+  pendingHostChanges?: PendingHostChanges;
   hostGroups: {
     id: string;
     name: string;
@@ -224,18 +244,18 @@ export type EventTypeHosts = {
 }[];
 export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
 export type TabMap = {
-  advanced: React.ReactNode;
-  ai?: React.ReactNode;
-  apps?: React.ReactNode;
-  availability: React.ReactNode;
-  instant?: React.ReactNode;
-  limits: React.ReactNode;
-  recurring: React.ReactNode;
-  setup: React.ReactNode;
-  team?: React.ReactNode;
-  webhooks?: React.ReactNode;
-  workflows?: React.ReactNode;
-  payments?: React.ReactNode;
+  advanced: () => React.ReactNode;
+  ai?: () => React.ReactNode;
+  apps?: () => React.ReactNode;
+  availability: () => React.ReactNode;
+  instant?: () => React.ReactNode;
+  limits: () => React.ReactNode;
+  recurring: () => React.ReactNode;
+  setup: () => React.ReactNode;
+  team?: () => React.ReactNode;
+  webhooks?: () => React.ReactNode;
+  workflows?: () => React.ReactNode;
+  payments?: () => React.ReactNode;
 };
 
 export type SettingsToggleClassNames = {

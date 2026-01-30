@@ -4,13 +4,13 @@ import type {
   FormValues,
   Host,
   SettingsToggleClassNames,
-  TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
+import { useSearchTeamMembers } from "@calcom/features/eventtypes/lib/useSearchTeamMembers";
 import { Segment } from "@calcom/features/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
-import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from "react";
+import { type ComponentProps, type Dispatch, type SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
@@ -39,7 +39,7 @@ export const mapUserToValue = (
   defaultScheduleId,
 });
 
-const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {
+const sortByLabel = (a: { label: string }, b: { label: string }) => {
   if (a.label < b.label) {
     return -1;
   }
@@ -60,6 +60,9 @@ const CheckedHostField = ({
   isRRWeightsEnabled,
   groupId,
   customClassNames,
+  onSearchChange,
+  onMenuScrollToBottom,
+  isLoadingMore,
   ...rest
 }: {
   labelText?: string;
@@ -71,6 +74,9 @@ const CheckedHostField = ({
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
+  onSearchChange?: (search: string) => void;
+  onMenuScrollToBottom?: () => void;
+  isLoadingMore?: boolean;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -113,6 +119,10 @@ const CheckedHostField = ({
           isRRWeightsEnabled={isRRWeightsEnabled}
           customClassNames={customClassNames}
           groupId={groupId}
+          hosts={value}
+          onSearchChange={onSearchChange}
+          onMenuScrollToBottom={onMenuScrollToBottom}
+          isLoadingMore={isLoadingMore}
           {...rest}
         />
       </div>
@@ -176,7 +186,6 @@ export type AddMembersWithSwitchCustomClassNames = {
 };
 
 export type AddMembersWithSwitchProps = {
-  teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
   assignAllTeamMembers: boolean;
@@ -243,7 +252,6 @@ function useSegmentState() {
 }
 
 export function AddMembersWithSwitch({
-  teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
@@ -261,6 +269,24 @@ export function AddMembersWithSwitch({
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const {
+    options: searchOptions,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useSearchTeamMembers({
+    teamId,
+    search: debouncedSearch,
+    enabled: true,
+  });
   const {
     assignRRMembersUsingSegment,
     setAssignRRMembersUsingSegment,
@@ -332,9 +358,9 @@ export function AddMembersWithSwitch({
               onChange={onChange}
               isFixed={isFixed}
               className="mb-2"
-              options={teamMembers
-                .map((member) => ({
-                  ...member,
+              options={searchOptions
+                .map((opt) => ({
+                  ...opt,
                   groupId: groupId,
                 }))
                 .sort(sortByLabel)}
@@ -342,6 +368,11 @@ export function AddMembersWithSwitch({
               isRRWeightsEnabled={isRRWeightsEnabled}
               groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
+              onSearchChange={setSearch}
+              onMenuScrollToBottom={() => {
+                if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+              }}
+              isLoadingMore={isFetchingNextPage}
             />
           </div>
         </>

@@ -4,7 +4,7 @@ import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
-import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import type { Host } from "@calcom/features/eventtypes/lib/types";
 import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
 import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 
@@ -22,22 +22,33 @@ vi.mock("@calcom/features/Segment", () => ({
   )),
 }));
 
-const mockTeamMembers: TeamMember[] = [
-  {
-    value: "1",
-    label: "John Doe",
-    avatar: "avatar1.jpg",
-    email: "john@example.com",
-    defaultScheduleId: 1,
-  },
-  {
-    value: "2",
-    label: "Jane Smith",
-    avatar: "avatar2.jpg",
-    email: "jane@example.com",
-    defaultScheduleId: 2,
-  },
-];
+// Mock useSearchTeamMembers
+vi.mock("@calcom/features/eventtypes/lib/useSearchTeamMembers", () => ({
+  useSearchTeamMembers: () => ({
+    options: [
+      {
+        value: "1",
+        label: "John Doe",
+        avatar: "avatar1.jpg",
+        email: "john@example.com",
+        defaultScheduleId: 1,
+        groupId: null,
+      },
+      {
+        value: "2",
+        label: "Jane Smith",
+        avatar: "avatar2.jpg",
+        email: "jane@example.com",
+        defaultScheduleId: 2,
+        groupId: null,
+      },
+    ],
+    fetchNextPage: vi.fn(),
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    isLoading: false,
+  }),
+}));
 
 // Mock trpc
 vi.mock("@calcom/trpc/react", () => ({
@@ -97,7 +108,6 @@ const renderComponent = ({
 
 describe("AddMembersWithSwitch", () => {
   const defaultProps = {
-    teamMembers: mockTeamMembers,
     value: [] as Host[],
     onChange: vi.fn(),
     onActive: vi.fn(),

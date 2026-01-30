@@ -81,6 +81,23 @@ type HostInput = {
   location?: HostLocationInput | null;
 };
 
+type HostUpdateInput = {
+  userId: number;
+  isFixed?: boolean;
+  priority?: number | null;
+  weight?: number | null;
+  scheduleId?: number | null;
+  groupId?: string | null;
+  location?: HostLocationInput | null;
+};
+
+type PendingHostChangesInput = {
+  hostsToAdd: HostInput[];
+  hostsToUpdate: HostUpdateInput[];
+  hostsToRemove: number[];
+  clearAllHosts?: boolean;
+};
+
 type HostGroupInput = {
   id: string;
   name: string;
@@ -246,6 +263,7 @@ export type TUpdateInputSchema = {
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
   enablePerHostLocations?: boolean;
+  pendingHostChanges?: PendingHostChangesInput;
 };
 
 // ============================================================================
@@ -309,6 +327,23 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
   location: hostLocationSchema.optional().nullable(),
+});
+
+const hostUpdateSchema: z.ZodType<HostUpdateInput> = z.object({
+  userId: z.number(),
+  isFixed: z.boolean().optional(),
+  priority: z.number().min(0).max(4).optional().nullable(),
+  weight: z.number().min(0).optional().nullable(),
+  scheduleId: z.number().optional().nullable(),
+  groupId: z.string().optional().nullable(),
+  location: hostLocationSchema.optional().nullable(),
+});
+
+const pendingHostChangesSchema: z.ZodType<PendingHostChangesInput> = z.object({
+  hostsToAdd: z.array(hostSchema),
+  hostsToUpdate: z.array(hostUpdateSchema),
+  hostsToRemove: z.array(z.number()),
+  clearAllHosts: z.boolean().optional(),
 });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({
@@ -443,6 +478,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])).optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
     enablePerHostLocations: z.boolean().optional(),
+    pendingHostChanges: pendingHostChangesSchema.optional(),
   })
   .strict();
 

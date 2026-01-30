@@ -142,6 +142,99 @@ export class HostRepository {
     return { items, nextCursor, hasMore };
   }
 
+  async findHostsForAvailabilityPaginated({
+    eventTypeId,
+    cursor,
+    limit = 20,
+    search,
+  }: {
+    eventTypeId: number;
+    cursor?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const hosts = await this.prismaClient.host.findMany({
+      where: {
+        eventTypeId,
+        ...(cursor && { userId: { gt: cursor } }),
+        ...(search && {
+          user: {
+            name: { contains: search, mode: "insensitive" as const },
+          },
+        }),
+      },
+      take: limit + 1,
+      select: {
+        userId: true,
+        isFixed: true,
+        priority: true,
+        weight: true,
+        scheduleId: true,
+        groupId: true,
+        user: {
+          select: {
+            name: true,
+            avatarUrl: true,
+            timeZone: true,
+          },
+        },
+      },
+      orderBy: [{ userId: "asc" }],
+    });
+
+    const hasMore = hosts.length > limit;
+    const items = hasMore ? hosts.slice(0, -1) : hosts;
+    const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
+
+    return { items, nextCursor, hasMore };
+  }
+
+  async findHostsForAssignmentPaginated({
+    eventTypeId,
+    cursor,
+    limit = 20,
+    search,
+  }: {
+    eventTypeId: number;
+    cursor?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const hosts = await this.prismaClient.host.findMany({
+      where: {
+        eventTypeId,
+        ...(cursor && { userId: { gt: cursor } }),
+        ...(search && {
+          user: {
+            name: { contains: search, mode: "insensitive" as const },
+          },
+        }),
+      },
+      take: limit + 1,
+      select: {
+        userId: true,
+        isFixed: true,
+        priority: true,
+        weight: true,
+        scheduleId: true,
+        groupId: true,
+        user: {
+          select: {
+            name: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: [{ userId: "asc" }],
+    });
+
+    const hasMore = hosts.length > limit;
+    const items = hasMore ? hosts.slice(0, -1) : hosts;
+    const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
+
+    return { items, nextCursor, hasMore };
+  }
+
   async findHostsWithConferencingCredentials(eventTypeId: number) {
     return await this.prismaClient.host.findMany({
       where: { eventTypeId },

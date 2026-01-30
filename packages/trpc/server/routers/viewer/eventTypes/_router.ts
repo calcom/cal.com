@@ -10,9 +10,12 @@ import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
+import { ZGetHostsForAssignmentInputSchema } from "./getHostsForAssignment.schema";
+import { ZGetHostsForAvailabilityInputSchema } from "./getHostsForAvailability.schema";
 import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
 import { ZMassApplyHostLocationInputSchema } from "./massApplyHostLocation.schema";
 import { get } from "./procedures/get";
+import { ZSearchTeamMembersInputSchema } from "./searchTeamMembers.schema";
 import { createEventPbacProcedure } from "./util";
 
 export const eventTypesRouter = router({
@@ -148,6 +151,34 @@ export const eventTypesRouter = router({
     });
   }),
 
+  getHostsForAvailability: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetHostsForAvailabilityInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsForAvailabilityHandler } = await import("./getHostsForAvailability.handler");
+
+      return getHostsForAvailabilityHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getHostsForAssignment: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetHostsForAssignmentInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsForAssignmentHandler } = await import("./getHostsForAssignment.handler");
+
+      return getHostsForAssignmentHandler({
+        ctx,
+        input,
+      });
+    }),
+
   getHostsWithLocationOptions: createEventPbacProcedure("eventType.update", [
     MembershipRole.ADMIN,
     MembershipRole.OWNER,
@@ -171,6 +202,17 @@ export const eventTypesRouter = router({
       const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
 
       return massApplyHostLocationHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  searchTeamMembers: authedProcedure
+    .input(ZSearchTeamMembersInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
+
+      return searchTeamMembersHandler({
         ctx,
         input,
       });

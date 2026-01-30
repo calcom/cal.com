@@ -142,6 +142,7 @@ export const useTabsNavigations = ({
       "data-testid": "webhooks",
     });
     return navigation;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- formMethods is excluded intentionally to avoid recalculating on every form change
   }, [
     t,
     enabledAppsNumber,
@@ -160,7 +161,6 @@ export const useTabsNavigations = ({
     activeWebhooksNumber,
     canReadWorkflows,
     eventType.id,
-    formMethods,
   ]);
 
   return { tabsNavigation: EventTypeTabs };
