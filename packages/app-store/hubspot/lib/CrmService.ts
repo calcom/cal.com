@@ -52,7 +52,50 @@ class HubspotCalendarService implements CRM {
     this.trackingRepository = new PrismaTrackingRepository(prisma);
   }
 
-  private getHubspotMeetingBody = (event: CalendarEvent): string => {
+  private async getTrackingData(bookingUid: string) {
+    try {
+      const tracking = await this.trackingRepository.findByBookingUid(bookingUid);
+      return tracking;
+    } catch (error) {
+      this.log.warn(`Failed to fetch tracking data for booking ${bookingUid}`, error);
+      return null;
+    }
+  }
+
+  private formatUtmParamsHtml(tracking: {
+    utm_source?: string | null;
+    utm_medium?: string | null;
+    utm_campaign?: string | null;
+    utm_term?: string | null;
+    utm_content?: string | null;
+  }): string {
+    const utmParams = [
+      { key: "utm_source", value: tracking.utm_source },
+      { key: "utm_medium", value: tracking.utm_medium },
+      { key: "utm_campaign", value: tracking.utm_campaign },
+      { key: "utm_term", value: tracking.utm_term },
+      { key: "utm_content", value: tracking.utm_content },
+    ].filter((param) => param.value);
+
+    if (utmParams.length === 0) {
+      return "";
+    }
+
+    const utmHtml = utmParams.map((param) => `<b>${param.key}:</b> ${param.value}`).join("<br>");
+
+    return `<br><br><b>UTM Parameters:</b><br>${utmHtml}`;
+  }
+
+  private getHubspotMeetingBody = (
+    event: CalendarEvent,
+    tracking?: {
+      utm_source?: string | null;
+      utm_medium?: string | null;
+      utm_campaign?: string | null;
+      utm_term?: string | null;
+      utm_content?: string | null;
+    } | null
+  ): string => {
     const userFields = getLabelValueMapFromResponses(event);
     const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
     const location = getLocation({
@@ -71,6 +114,8 @@ class HubspotCalendarService implements CRM {
     const organizerName = event.organizer.name || event.organizer.email;
     const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email})`;
 
+    const utmParamsHtml = tracking ? this.formatUtmParamsHtml(tracking) : "";
+
     return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
       event.attendees[0].timeZone
     }<br><br>${
@@ -82,7 +127,7 @@ class HubspotCalendarService implements CRM {
     }
     ${userFieldsHtml}<br><br>
     <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
-    ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
+    ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}${utmParamsHtml}
   `;
   };
 
@@ -286,10 +331,12 @@ class HubspotCalendarService implements CRM {
   private hubspotCreateMeeting = async (event: CalendarEvent, hubspotOwnerId?: string) => {
     const writeToMeetingRecord = await this.generateWriteToMeetingBody(event);
 
+    const tracking = event.uid ? await this.getTrackingData(event.uid) : null;
+
     const properties: Record<string, string> = {
       hs_timestamp: Date.now().toString(),
       hs_meeting_title: event.title,
-      hs_meeting_body: this.getHubspotMeetingBody(event),
+      hs_meeting_body: this.getHubspotMeetingBody(event, tracking),
       hs_meeting_location: getLocation({
         videoCallData: event.videoCallData,
         additionalInformation: event.additionalInformation,
@@ -330,11 +377,13 @@ class HubspotCalendarService implements CRM {
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
+    const tracking = event.uid ? await this.getTrackingData(event.uid) : null;
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
         hs_timestamp: Date.now().toString(),
         hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
+        hs_meeting_body: this.getHubspotMeetingBody(event, tracking),
         hs_meeting_location: getLocation({
           videoCallData: event.videoCallData,
           additionalInformation: event.additionalInformation,
