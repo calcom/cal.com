@@ -1,6 +1,5 @@
-import { vi, expect } from "vitest";
-
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { expect, vi } from "vitest";
 
 /**
  * Creates a mock Tasker for unit testing.
@@ -83,7 +82,7 @@ export function expectWebhookTaskNotQueued(mockTasker: MockTasker, triggerEvent?
     );
     expect(webhookCalls).toHaveLength(0);
   } else {
-    expect(mockTasker.create).not.toHaveBeenCalledWith("webhookDelivery", expect.anything(), expect.anything());
+    expect(mockTasker.create).not.toHaveBeenCalledWith("webhookDelivery", expect.anything());
   }
 }
 
