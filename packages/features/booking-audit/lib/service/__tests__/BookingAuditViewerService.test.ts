@@ -277,10 +277,14 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       findById: vi.fn().mockImplementation((id: number) => {
         return Promise.resolve(DB.attendees[id] ?? null);
       }),
+      findByIds: vi.fn().mockImplementation(({ ids }: { ids: number[] }) => {
+        return Promise.resolve(ids.map((id) => DB.attendees[id]).filter(Boolean));
+      }),
     };
 
     mockCredentialRepository = {
       findByCredentialId: vi.fn(),
+      findByIds: vi.fn().mockImplementation(() => Promise.resolve([])),
     };
 
     mockLog = {
@@ -620,7 +624,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockAttendeeRepository.findById).toHaveBeenCalledWith(999);
+        expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [999] });
         expect(result.auditLogs[0].actor).toMatchObject({
           type: "ATTENDEE",
           displayName: "attendee@example.com",
@@ -647,7 +651,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockAttendeeRepository.findById).toHaveBeenCalledWith(888);
+        expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [888] });
         expect(result.auditLogs[0].actor.displayName).toBe("Meeting Participant");
         expect(result.auditLogs[0].actor.displayEmail).toBe("participant@example.com");
       });
@@ -670,7 +674,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(mockAttendeeRepository.findById).toHaveBeenCalledWith(777);
+        expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [777] });
         expect(result.auditLogs[0].actor).toMatchObject({
           type: "ATTENDEE",
           displayName: "Deleted Attendee",
@@ -1112,15 +1116,15 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       });
     });
 
-    describe("when enrichment fails for a single audit log", () => {
+    describe("when actor data is missing", () => {
       beforeEach(() => {
         createMockTeamBooking("booking-uid-123", { teamId: 100 });
         mockPermissionCheckService.checkPermission.mockResolvedValue(true);
       });
 
-      it("should return fallback log with hasError when enrichActorInformation throws for USER actor without userUuid", async () => {
+      it("should show 'Deleted User' for USER actor without userUuid", async () => {
         createMockAuditLog("booking-uid-123", {
-          id: "failing-log",
+          id: "missing-uuid-log",
           actorType: "USER",
           actorUserUuid: null,
           actorName: "Test Actor",
@@ -1135,22 +1139,13 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].hasError).toBe(true);
-        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
-          key: "booking_audit_action.error_processing",
-          params: { actionType: "CREATED" },
-        });
-        expect(result.auditLogs[0].displayJson).toBeNull();
-        expect(result.auditLogs[0].displayFields).toBeNull();
-        expect(result.auditLogs[0].actor.displayName).toBe("Test Actor");
-        expect(mockLog.error).toHaveBeenCalledWith(
-          expect.stringContaining("Failed to enrich audit log failing-log")
-        );
+        expect(result.auditLogs[0].hasError).toBeUndefined();
+        expect(result.auditLogs[0].actor.displayName).toBe("Deleted User");
       });
 
-      it("should return fallback log with hasError when enrichActorInformation throws for ATTENDEE actor without attendeeId", async () => {
+      it("should show 'Deleted Attendee' for ATTENDEE actor without attendeeId", async () => {
         createMockAuditLog("booking-uid-123", {
-          id: "failing-attendee-log",
+          id: "missing-attendee-log",
           actorType: "ATTENDEE",
           actorUserUuid: null,
           actorAttendeeId: null,
@@ -1166,18 +1161,11 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].hasError).toBe(true);
-        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
-          key: "booking_audit_action.error_processing",
-          params: { actionType: "CREATED" },
-        });
-        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
-        expect(mockLog.error).toHaveBeenCalledWith(
-          expect.stringContaining("Failed to enrich audit log failing-attendee-log")
-        );
+        expect(result.auditLogs[0].hasError).toBeUndefined();
+        expect(result.auditLogs[0].actor.displayName).toBe("Deleted Attendee");
       });
 
-      it("should still return other logs when one log fails to enrich", async () => {
+      it("should handle multiple logs with mixed actor states", async () => {
         createMockAuditLog("booking-uid-123", {
           id: "successful-log",
           action: "CREATED",
@@ -1185,14 +1173,20 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           actorUserUuid: "user-uuid-123",
         });
         createMockAuditLog("booking-uid-123", {
-          id: "failing-log",
+          id: "missing-uuid-log",
           action: "ACCEPTED",
           actorType: "USER",
           actorUserUuid: null,
-          actorName: "Failing Actor",
+          actorName: "Missing User",
+          data: {
+            version: 1,
+            fields: {
+              status: { old: "PENDING", new: "ACCEPTED" },
+            },
+          },
         });
         createMockAuditLog("booking-uid-123", {
-          id: "another-successful-log",
+          id: "system-log",
           action: "CANCELLED",
           actorType: "SYSTEM",
           actorUserUuid: null,
@@ -1220,42 +1214,23 @@ describe("BookingAuditViewerService - Integration Tests", () => {
 
         expect(result.auditLogs[0].id).toBe("successful-log");
         expect(result.auditLogs[0].hasError).toBeUndefined();
+        expect(result.auditLogs[0].actor.displayName).toBe("John Doe");
 
-        expect(result.auditLogs[1].id).toBe("failing-log");
-        expect(result.auditLogs[1].hasError).toBe(true);
-        expect(result.auditLogs[1].actor.displayName).toBe("Failing Actor");
+        expect(result.auditLogs[1].id).toBe("missing-uuid-log");
+        expect(result.auditLogs[1].hasError).toBeUndefined();
+        expect(result.auditLogs[1].actor.displayName).toBe("Deleted User");
 
-        expect(result.auditLogs[2].id).toBe("another-successful-log");
+        expect(result.auditLogs[2].id).toBe("system-log");
         expect(result.auditLogs[2].hasError).toBeUndefined();
         expect(result.auditLogs[2].actor.displayName).toBe("Cal.com");
       });
 
-      it("should log error message when enrichment fails", async () => {
-        createMockAuditLog("booking-uid-123", {
-          id: "error-log-id",
-          actorType: "USER",
-          actorUserUuid: null,
-        });
-
-        await service.getAuditLogsForBooking({
-          bookingUid: "booking-uid-123",
-          userId: 123,
-          userEmail: "user@example.com",
-          userTimeZone: "UTC",
-          organizationId: 200,
-        });
-
-        expect(mockLog.error).toHaveBeenCalledWith(
-          expect.stringMatching(/Failed to enrich audit log error-log-id: .+/)
-        );
-      });
-
-      it("should preserve basic log information in fallback", async () => {
+      it("should preserve basic log information when user not found", async () => {
         const timestamp = new Date("2024-01-15T10:00:00Z");
         const createdAt = new Date("2024-01-15T09:00:00Z");
 
         createMockAuditLog("booking-uid-123", {
-          id: "fallback-test-log",
+          id: "deleted-user-log",
           action: "CREATED",
           type: "RECORD_CREATED",
           timestamp,
@@ -1274,39 +1249,18 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs[0]).toMatchObject({
-          id: "fallback-test-log",
+          id: "deleted-user-log",
           bookingUid: "booking-uid-123",
           action: "CREATED",
           type: "RECORD_CREATED",
           timestamp: timestamp.toISOString(),
           createdAt: createdAt.toISOString(),
           source: "WEBAPP",
-          hasError: true,
           actor: expect.objectContaining({
             type: "USER",
-            displayName: "Test Name",
+            displayName: "Deleted User",
           }),
         });
-      });
-
-      it("should use 'Unknown' as displayName when actor name is null in fallback", async () => {
-        createMockAuditLog("booking-uid-123", {
-          id: "null-name-log",
-          actorType: "USER",
-          actorUserUuid: null,
-          actorName: null,
-        });
-
-        const result = await service.getAuditLogsForBooking({
-          bookingUid: "booking-uid-123",
-          userId: 123,
-          userEmail: "user@example.com",
-          userTimeZone: "UTC",
-          organizationId: 200,
-        });
-
-        expect(result.auditLogs[0].hasError).toBe(true);
-        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
       });
     });
   });

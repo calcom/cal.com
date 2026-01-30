@@ -17,6 +17,17 @@ export type StoredBooking = {
   // ... other fields as needed
 };
 
+export type StoredAttendee = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+export type StoredCredential = {
+  id: number;
+  appId: string | null;
+};
+
 /**
  * Data requirements that action services can declare
  * Used to collect all identifiers needed before bulk fetching
@@ -25,7 +36,8 @@ export type DataRequirements = {
   userIds?: number[];
   userUuids?: string[];
   bookingUids?: string[];
-  // Extensible: add more as needed
+  attendeeIds?: number[];
+  credentialIds?: number[];
 };
 
 /**
@@ -41,14 +53,20 @@ export class EnrichmentDataStore {
   private usersByUuid: Map<string, StoredUser>;
   private usersById: Map<number, StoredUser>;
   private bookingsByUid: Map<string, StoredBooking>;
+  private attendeesById: Map<number, StoredAttendee>;
+  private credentialsById: Map<number, StoredCredential>;
 
   constructor(data: {
     users?: StoredUser[];
     bookings?: StoredBooking[];
+    attendees?: StoredAttendee[];
+    credentials?: StoredCredential[];
   }) {
     this.usersByUuid = new Map(data.users?.map((u) => [u.uuid, u]) ?? []);
     this.usersById = new Map(data.users?.map((u) => [u.id, u]) ?? []);
     this.bookingsByUid = new Map(data.bookings?.map((b) => [b.uid, b]) ?? []);
+    this.attendeesById = new Map(data.attendees?.map((a) => [a.id, a]) ?? []);
+    this.credentialsById = new Map(data.credentials?.map((c) => [c.id, c]) ?? []);
   }
 
   /**
@@ -73,5 +91,21 @@ export class EnrichmentDataStore {
    */
   getBookingByUid(uid: string): StoredBooking | undefined {
     return this.bookingsByUid.get(uid);
+  }
+
+  /**
+   * Get attendee by ID
+   * Returns undefined if attendee not found in store
+   */
+  getAttendeeById(id: number): StoredAttendee | undefined {
+    return this.attendeesById.get(id);
+  }
+
+  /**
+   * Get credential by ID
+   * Returns undefined if credential not found in store
+   */
+  getCredentialById(id: number): StoredCredential | undefined {
+    return this.credentialsById.get(id);
   }
 }

@@ -7,7 +7,6 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import type { TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import type { BookingAuditContext } from "../dto/types";
-import { getAppNameFromSlug } from "../getAppNameFromSlug";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type {
   BookingAuditAction,
@@ -16,9 +15,16 @@ import type {
   IBookingAuditRepository,
 } from "../repository/IBookingAuditRepository";
 import type { ActionSource } from "../types/actionSource";
+import { getActorDataRequirements, enrichActor } from "./ActorStrategies";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
-import { EnrichmentDataStore, type DataRequirements, type StoredUser } from "./EnrichmentDataStore";
+import {
+  EnrichmentDataStore,
+  type DataRequirements,
+  type StoredUser,
+  type StoredAttendee,
+  type StoredCredential,
+} from "./EnrichmentDataStore";
 
 interface BookingAuditViewerServiceDeps {
   bookingAuditRepository: IBookingAuditRepository;
@@ -171,7 +177,7 @@ export class BookingAuditViewerService {
     userTimeZone: string,
     dbStore: EnrichmentDataStore
   ): Promise<EnrichedAuditLog> {
-    const enrichedActor = await this.enrichActorInformation(log.actor, dbStore);
+    const enrichedActor = this.enrichActorInformation(log.actor, dbStore);
 
     const actionService = this.actionServiceRegistry.getActionService(log.action);
     const parsedData = actionService.parseStored(log.data);
@@ -340,97 +346,18 @@ export class BookingAuditViewerService {
   }
 
   /**
-   * Enrich actor information with user details if userUuid exists
+   * Enrich actor information using the strategy pattern
+   * All data is pre-fetched in dbStore, so this is synchronous
    */
-  private async enrichActorInformation(
+  private enrichActorInformation(
     actor: BookingAuditWithActor["actor"],
     dbStore: EnrichmentDataStore
-  ): Promise<{
+  ): {
     displayName: string;
     displayEmail: string | null;
     displayAvatar: string | null;
-  }> {
-    switch (actor.type) {
-      case "SYSTEM":
-        return {
-          displayName: "Cal.com",
-          displayEmail: null,
-          displayAvatar: null,
-        };
-
-      case "GUEST":
-        return {
-          displayName: actor.name || "Guest",
-          displayEmail: null,
-          displayAvatar: null,
-        };
-
-      case "APP": {
-        if (actor.credentialId) {
-          const credential = await this.deps.credentialRepository.findByCredentialId(actor.credentialId);
-          if (credential) {
-            return {
-              displayName: getAppNameFromSlug({ appSlug: credential.appId }),
-              displayEmail: null,
-              displayAvatar: null,
-            };
-          } else {
-            return {
-              // Expect that on Credential deletion name would have been set
-              displayName: actor.name ?? "Deleted App",
-              displayEmail: null,
-              displayAvatar: null,
-            };
-          }
-        }
-        // We allow creating App actor without credentialId
-        return {
-          displayName: actor.name ?? "Unknown App",
-          // We don't want to show email for App actor as that is an internal email with the purpose of giving uniqueness to each app actor
-          displayEmail: null,
-          displayAvatar: null,
-        };
-      }
-
-      case "ATTENDEE": {
-        if (!actor.attendeeId) {
-          throw new Error("Attendee ID is required for ATTENDEE actor");
-        }
-        const attendee = await this.attendeeRepository.findById(actor.attendeeId);
-        if (attendee) {
-          return {
-            displayName: attendee.name || attendee.email,
-            displayEmail: attendee.email,
-            displayAvatar: null,
-          };
-        }
-        return {
-          displayName: "Deleted Attendee",
-          displayEmail: null,
-          displayAvatar: null,
-        };
-      }
-
-      case "USER": {
-        if (!actor.userUuid) {
-          throw new Error("User UUID is required for USER actor");
-        }
-        // Use pre-fetched data from dbStore to avoid N+1 queries
-        const actorUser = dbStore.getUserByUuid(actor.userUuid);
-        if (actorUser) {
-          return {
-            displayName: actorUser.name || actorUser.email,
-            displayEmail: actorUser.email,
-            displayAvatar: actorUser.avatarUrl || null,
-          };
-        }
-        return {
-          displayName: "Deleted User",
-          displayEmail: null,
-          displayAvatar: null,
-        };
-      }
-    }
+  } {
+    return enrichActor(actor, dbStore);
   }
 
   /**
@@ -438,12 +365,15 @@ export class BookingAuditViewerService {
    */
   private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
     const userUuids = new Set<string>();
+    const attendeeIds = new Set<number>();
+    const credentialIds = new Set<number>();
 
     for (const log of auditLogs) {
-      // Collect actor user UUIDs
-      if (log.actor.type === "USER" && log.actor.userUuid) {
-        userUuids.add(log.actor.userUuid);
-      }
+      // Collect actor data requirements using the strategy pattern
+      const actorReqs = getActorDataRequirements(log.actor);
+      for (const uuid of actorReqs.userUuids || []) userUuids.add(uuid);
+      for (const id of actorReqs.attendeeIds || []) attendeeIds.add(id);
+      for (const id of actorReqs.credentialIds || []) credentialIds.add(id);
 
       // Collect impersonator UUIDs from context
       const context = log.context as BookingAuditContext | null;
@@ -468,6 +398,8 @@ export class BookingAuditViewerService {
 
     return {
       userUuids: Array.from(userUuids),
+      attendeeIds: Array.from(attendeeIds),
+      credentialIds: Array.from(credentialIds),
     };
   }
 
@@ -475,13 +407,18 @@ export class BookingAuditViewerService {
    * Build the enrichment data store by bulk-fetching all required data
    */
   private async buildEnrichmentDataStore(requirements: DataRequirements): Promise<EnrichmentDataStore> {
-    const users: StoredUser[] = [];
+    const [users, attendees, credentials] = await Promise.all([
+      requirements.userUuids?.length
+        ? this.userRepository.findByUuids({ uuids: requirements.userUuids })
+        : [],
+      requirements.attendeeIds?.length
+        ? this.attendeeRepository.findByIds({ ids: requirements.attendeeIds })
+        : [],
+      requirements.credentialIds?.length
+        ? this.credentialRepository.findByIds({ ids: requirements.credentialIds })
+        : [],
+    ]);
 
-    if (requirements.userUuids && requirements.userUuids.length > 0) {
-      const fetchedUsers = await this.userRepository.findByUuids({ uuids: requirements.userUuids });
-      users.push(...fetchedUsers);
-    }
-
-    return new EnrichmentDataStore({ users });
+    return new EnrichmentDataStore({ users, attendees, credentials });
   }
 }
