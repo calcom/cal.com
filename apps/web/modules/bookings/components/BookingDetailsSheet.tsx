@@ -24,7 +24,6 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
   SheetContent,
@@ -33,6 +32,7 @@ import {
   SheetFooter,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
+import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
@@ -744,7 +744,7 @@ function OldRescheduledBookingInfo({
           <Link href={`/booking/${rescheduledToBooking.uid}`}>
             <div className="text-default flex items-center gap-1 text-sm underline">
               {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
+              <ExternalLinkIcon className="h-4 w-4" />
             </div>
           </Link>
         </Section>
@@ -787,7 +787,7 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
         <Link href={`/booking/${booking.fromReschedule}`}>
           <div className="text-default flex items-center gap-1 text-sm underline">
             {t("original_booking")}
-            <Icon name="external-link" className="h-4 w-4" />
+            <ExternalLinkIcon className="h-4 w-4" />
           </div>
         </Link>
       </Section>
@@ -883,7 +883,7 @@ function BookingHeaderBadges({
       ) : null}
       {recurringInfo && (
         <Badge variant="gray">
-          <Icon name="repeat" className="mr-1 h-3 w-3" />
+          <RepeatIcon className="mr-1 h-3 w-3" />
           {recurringInfo.count}
         </Badge>
       )}
