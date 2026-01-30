@@ -83,7 +83,14 @@ export const getEmbedIframe = async ({
     },
     { polling: 500 }
   );
-  const embedIframe = page.frame(`cal-embed=${calNamespace}`);
+
+  const iframeSelector = `iframe[name="cal-embed=${calNamespace}"]`;
+  // In case of modal we don't cleanup previous iframe on repeat click, so we should read the last one by default as that would be the one actie
+  const targetIframeElement = page.locator(iframeSelector).last();
+  await targetIframeElement.waitFor();
+  const elementHandle = await targetIframeElement.elementHandle();
+  const embedIframe = await elementHandle?.contentFrame();
+
   if (!embedIframe) {
     return null;
   }
