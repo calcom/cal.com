@@ -7,7 +7,15 @@ import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomain
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  EllipsisVerticalIcon,
+  LockIcon,
+  RotateCwIcon,
+  UsersIcon,
+} from "@coss/ui/icons";
 
 type OnboardingMigrateTeamsBrowserViewProps = {
   teams: Array<{ id: number; name: string; slug: string | null; isSelected?: boolean }>;
@@ -52,15 +60,15 @@ export const OnboardingMigrateTeamsBrowserView = ({
       <div className="border-subtle bg-default flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b p-3">
         {/* Navigation buttons */}
         <div className="flex shrink-0 items-center gap-4 opacity-50">
-          <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-          <Icon name="arrow-right" className="text-subtle h-4 w-4" />
-          <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
+          <ArrowLeftIcon className="text-subtle h-4 w-4" />
+          <ArrowRightIcon className="text-subtle h-4 w-4" />
+          <RotateCwIcon className="text-subtle h-4 w-4" />
         </div>
         <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
-          <Icon name="lock" className="text-subtle h-4 w-4" />
+          <LockIcon className="text-subtle h-4 w-4" />
           <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}/teams</p>
         </div>
-        <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
+        <EllipsisVerticalIcon className="text-subtle h-4 w-4" />
       </div>
 
       {/* Content */}
@@ -158,9 +166,9 @@ export const OnboardingMigrateTeamsBrowserView = ({
                           </p>
                         </div>
                         {team.isSelected ? (
-                          <Icon name="check" className="text-emphasis h-5 w-5" />
+                          <CheckIcon className="text-emphasis h-5 w-5" />
                         ) : (
-                          <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                          <ArrowRightIcon className="text-subtle h-4 w-4" />
                         )}
                       </div>
                     </div>
@@ -169,7 +177,7 @@ export const OnboardingMigrateTeamsBrowserView = ({
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 px-5 py-12">
                   <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-full">
-                    <Icon name="users" className="text-subtle h-8 w-8" />
+                    <UsersIcon className="text-subtle h-8 w-8" />
                   </div>
                   <div className="flex flex-col gap-1 text-center">
                     <p className="text-default truncate text-sm font-semibold leading-tight">
