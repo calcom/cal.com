@@ -94,16 +94,16 @@ export class OAuth2Controller {
       const result = await this.oAuthService.generateAuthorizationCode(
         client.clientId,
         userId,
-        body.redirectUri,
+        body.redirect_uri,
         body.scopes,
         body.state,
-        body.teamSlug,
-        body.codeChallenge,
-        body.codeChallengeMethod
+        body.team_slug,
+        body.code_challenge,
+        body.code_challenge_method
       );
       return res.redirect(303, result.redirectUrl);
     } catch (err) {
-      this.errorHandler.handleAuthorizeError(err, body.redirectUri, body.state);
+      this.errorHandler.handleAuthorizeError(err, body.redirect_uri, body.state);
     }
   }
 
@@ -124,7 +124,7 @@ export class OAuth2Controller {
       ],
     },
     description:
-      "Token request body. Use grantType 'authorization_code' with clientSecret (confidential) or codeVerifier (public/PKCE), or grantType 'refresh_token' with clientSecret (confidential) or just the refreshToken (public).",
+      "Token request body. Use grant_type 'authorization_code' with client_secret (confidential) or code_verifier (public/PKCE), or grant_type 'refresh_token' with client_secret (confidential) or just the refresh_token (public).",
   })
   @ApiExtraModels(
     OAuth2ExchangeConfidentialInput,

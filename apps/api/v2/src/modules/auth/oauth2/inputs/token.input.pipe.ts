@@ -25,7 +25,7 @@ export class OAuth2TokenInputPipe implements PipeTransform {
       throw new BadRequestException("Body should be an object");
     }
 
-    const grantType = (value as Record<string, unknown>).grantType;
+    const grantType = (value as unknown as Record<string, unknown>).grant_type;
 
     if (grantType === "authorization_code") {
       return this.validateExchange(value);
@@ -35,7 +35,7 @@ export class OAuth2TokenInputPipe implements PipeTransform {
       return this.validateRefresh(value);
     }
 
-    throw new BadRequestException("grantType must be 'authorization_code' or 'refresh_token'");
+    throw new BadRequestException("grant_type must be 'authorization_code' or 'refresh_token'");
   }
 
   private validateExchange(
@@ -84,10 +84,10 @@ export class OAuth2TokenInputPipe implements PipeTransform {
   }
 
   private isConfidentialExchange(value: OAuth2TokenInput): value is OAuth2ExchangeConfidentialInput {
-    return "clientSecret" in value;
+    return "client_secret" in value;
   }
 
   private isConfidentialRefresh(value: OAuth2TokenInput): value is OAuth2RefreshConfidentialInput {
-    return "clientSecret" in value;
+    return "client_secret" in value;
   }
 }

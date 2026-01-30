@@ -9,7 +9,7 @@ export class OAuth2ExchangeConfidentialInput {
   })
   @IsString()
   @Equals("authorization_code")
-  grantType!: "authorization_code";
+  grant_type!: "authorization_code";
 
   @ApiProperty({
     description: "The authorization code received from the authorize endpoint",
@@ -23,13 +23,13 @@ export class OAuth2ExchangeConfidentialInput {
     example: "https://example.com/callback",
   })
   @IsString()
-  redirectUri!: string;
+  redirect_uri!: string;
 
   @ApiProperty({
     description: "The client secret for confidential clients",
   })
   @IsString()
-  clientSecret!: string;
+  client_secret!: string;
 }
 
 export class OAuth2ExchangePublicInput {
@@ -40,7 +40,7 @@ export class OAuth2ExchangePublicInput {
   })
   @IsString()
   @Equals("authorization_code")
-  grantType!: "authorization_code";
+  grant_type!: "authorization_code";
 
   @ApiProperty({
     description: "The authorization code received from the authorize endpoint",
@@ -54,13 +54,13 @@ export class OAuth2ExchangePublicInput {
     example: "https://example.com/callback",
   })
   @IsString()
-  redirectUri!: string;
+  redirect_uri!: string;
 
   @ApiProperty({
     description: "PKCE code verifier (required for public clients that used code_challenge)",
   })
   @IsString()
-  codeVerifier!: string;
+  code_verifier!: string;
 }
 
 export type OAuth2ExchangeInput = OAuth2ExchangeConfidentialInput | OAuth2ExchangePublicInput;

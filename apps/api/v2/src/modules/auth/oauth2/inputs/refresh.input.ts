@@ -9,20 +9,20 @@ export class OAuth2RefreshConfidentialInput {
   })
   @IsString()
   @Equals("refresh_token")
-  grantType!: "refresh_token";
+  grant_type!: "refresh_token";
 
   @ApiProperty({
     description: "The refresh token",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
-  refreshToken!: string;
+  refresh_token!: string;
 
   @ApiProperty({
     description: "The client secret for confidential clients",
   })
   @IsString()
-  clientSecret!: string;
+  client_secret!: string;
 }
 
 export class OAuth2RefreshPublicInput {
@@ -33,14 +33,14 @@ export class OAuth2RefreshPublicInput {
   })
   @IsString()
   @Equals("refresh_token")
-  grantType!: "refresh_token";
+  grant_type!: "refresh_token";
 
   @ApiProperty({
     description: "The refresh token",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
-  refreshToken!: string;
+  refresh_token!: string;
 }
 
 export type OAuth2RefreshInput = OAuth2RefreshConfidentialInput | OAuth2RefreshPublicInput;
