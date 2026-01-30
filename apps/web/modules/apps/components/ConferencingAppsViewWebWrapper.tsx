@@ -14,14 +14,14 @@ import { showToast } from "@calcom/ui/components/toast";
 import { AppList } from "./AppList";
 import DisconnectIntegrationModal from "./DisconnectIntegrationModal";
 
-export type UpdateUsersDefaultConferencingAppParams = {
+type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };
 
-export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
 export const SkeletonLoader = () => {

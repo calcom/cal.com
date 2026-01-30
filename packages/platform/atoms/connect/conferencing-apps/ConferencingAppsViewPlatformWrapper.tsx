@@ -23,10 +23,6 @@ import { Suspense, useReducer, useState } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
-import type {
-  BulkUpdatParams,
-  UpdateUsersDefaultConferencingAppParams,
-} from "@calcom/web/modules/apps/components/ConferencingAppsViewWebWrapper";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import {
@@ -71,6 +67,13 @@ type ConferencingAppsViewPlatformWrapperProps = {
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
+type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+type UpdateUsersDefaultConferencingAppParams = {
+  appSlug: string;
+  appLink?: string;
+  onSuccessCallback: () => void;
+  onErrorCallback: () => void;
+};
 
 const SkeletonLoader = ({ className }: { className?: string }) => {
   return (
