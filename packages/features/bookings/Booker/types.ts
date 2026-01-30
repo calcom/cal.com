@@ -1,9 +1,9 @@
-import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
-import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import type { UseBookerLayoutType } from "@calcom/web/modules/bookings/hooks/useBookerLayout";
+import type { UseBookingFormReturnType } from "@calcom/web/modules/bookings/hooks/useBookingForm";
+import type { UseBookingsReturnType } from "@calcom/web/modules/bookings/hooks/useBookings";
+import type { UseSlotsReturnType } from "@calcom/web/modules/bookings/hooks/useSlots";
+import type { UseVerifyCodeReturnType } from "@calcom/web/modules/bookings/hooks/useVerifyCode";
+import type { UseVerifyEmailReturnType } from "@calcom/web/modules/bookings/hooks/useVerifyEmail";
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";

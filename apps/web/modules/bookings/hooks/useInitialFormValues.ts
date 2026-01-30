@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import type { z } from "zod";
-
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { useEffect, useState } from "react";
+import type { z } from "zod";
 
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
 
@@ -85,7 +84,7 @@ export function useInitialFormValues({
     eventType?.owner?.profile?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
     false;
   useEffect(() => {
-    (async function () {
+    (async () => {
       if (Object.keys(formValues).length) {
         setInitialValuesState({
           values: formValues,
@@ -118,11 +117,11 @@ export function useInitialFormValues({
       const defaultUserValues = (() => {
         const rescheduledEmail =
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData.attendees[0].email ?? ""
+            ? (bookingData.attendees[0].email ?? "")
             : "";
         const rescheduledName =
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData.attendees[0].name ?? ""
+            ? (bookingData.attendees[0].name ?? "")
             : "";
 
         if (isAutofillDisabledByOrg) {
@@ -133,8 +132,8 @@ export function useInitialFormValues({
         }
 
         return {
-          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : email ?? ""),
-          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : name ?? username ?? ""),
+          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : (email ?? "")),
+          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : (name ?? username ?? "")),
         };
       })();
 

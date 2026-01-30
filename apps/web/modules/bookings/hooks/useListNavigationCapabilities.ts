@@ -1,7 +1,5 @@
-import { useMemo, useEffect } from "react";
-
 import { trpc } from "@calcom/trpc/react";
-
+import { useEffect, useMemo } from "react";
 import type { NavigationCapabilities } from "../store/bookingDetailsSheetStore";
 
 interface UseListNavigationCapabilitiesProps {

@@ -1,6 +1,3 @@
-import { useEffect, useRef } from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
@@ -13,7 +10,8 @@ import {
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
-
+import { useEffect, useRef } from "react";
+import { shallow } from "zustand/shallow";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
 export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
@@ -51,7 +49,7 @@ const useQuickAvailabilityChecks = ({
     {
       slots: slotsToCheck,
       // enabled flag can't be true if eventTypeId is nullish
-       
+
       eventTypeId: eventTypeId!,
     },
     {
@@ -143,9 +141,12 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   useEffect(() => {
     handleReserveSlot();
 
-    const interval = setInterval(() => {
-      handleReserveSlot();
-    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+    const interval = setInterval(
+      () => {
+        handleReserveSlot();
+      },
+      parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000
+    );
 
     return () => {
       handleRemoveSlot();

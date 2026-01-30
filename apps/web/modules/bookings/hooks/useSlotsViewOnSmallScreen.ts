@@ -1,4 +1,4 @@
-import { useIsEmbed, useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
+import { useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 export const useSlotsViewOnSmallScreen = () => {

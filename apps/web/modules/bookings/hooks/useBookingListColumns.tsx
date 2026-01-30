@@ -5,7 +5,6 @@ import type useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import BookingListItem from "@calcom/web/components/booking/BookingListItem";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
-
 import type { BookingListingStatus, RowData } from "../types";
 
 export function useBookingListColumns({
