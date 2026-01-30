@@ -22,7 +22,7 @@ const umamiSiteIdSchema = z
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     SITE_ID: umamiSiteIdSchema,
-    SCRIPT_URL: safeUrlSchema.optional(),
+    SCRIPT_URL: safeUrlSchema.default("https://cloud.umami.is/script.js").or(z.undefined()),
   })
 );
 

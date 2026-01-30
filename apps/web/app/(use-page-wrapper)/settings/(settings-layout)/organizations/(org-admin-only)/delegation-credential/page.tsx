@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import DelegationCredentialList from "~/ee/organizations/delegationCredential";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { validateUserHasOrgPerms } from "../../actions/validateUserHasOrgPerms";

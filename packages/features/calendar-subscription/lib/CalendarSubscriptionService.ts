@@ -21,6 +21,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 export class CalendarSubscriptionService {
   static CALENDAR_SUBSCRIPTION_CACHE_FEATURE = "calendar-subscription-cache" as const;
   static CALENDAR_SUBSCRIPTION_SYNC_FEATURE = "calendar-subscription-sync" as const;
+  static MAX_SUBSCRIBE_ERRORS = 3;
 
   constructor(
     private deps: {
@@ -54,19 +55,41 @@ export class CalendarSubscriptionService {
       return;
     }
 
+    const subscribeErrorCount = selectedCalendar.syncSubscribedErrorCount ?? 0;
+    if (subscribeErrorCount >= CalendarSubscriptionService.MAX_SUBSCRIBE_ERRORS) {
+      log.debug("Selected calendar exceeded subscribe error threshold", { selectedCalendarId });
+      return;
+    }
+
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
-    const res = await calendarSubscriptionAdapter.subscribe(selectedCalendar, credential);
 
-    await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
-      channelId: res?.id,
-      channelResourceId: res?.resourceId,
-      channelResourceUri: res?.resourceUri,
-      channelKind: res?.provider,
-      channelExpiration: res?.expiration,
-      syncSubscribedAt: new Date(),
-    });
+    try {
+      const res = await calendarSubscriptionAdapter.subscribe(selectedCalendar, credential);
+      await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
+        channelId: res?.id,
+        channelResourceId: res?.resourceId,
+        channelResourceUri: res?.resourceUri,
+        channelKind: res?.provider,
+        channelExpiration: res?.expiration,
+        syncSubscribedAt: new Date(),
+        syncSubscribedErrorAt: null,
+        syncSubscribedErrorCount: 0,
+      });
+    } catch (error: unknown) {
+      const nextErrorCount = Math.min(
+        CalendarSubscriptionService.MAX_SUBSCRIBE_ERRORS,
+        (selectedCalendar.syncSubscribedErrorCount ?? 0) + 1
+      );
+      await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
+        // don't need to cleanup other fields as they will only be used if syncSubscribedAt is not null
+        syncSubscribedAt: null,
+        syncSubscribedErrorAt: new Date(),
+        syncSubscribedErrorCount: nextErrorCount,
+      });
+      throw error;
+    }
 
     await this.processEvents(selectedCalendar);
   }
@@ -417,14 +440,10 @@ export class CalendarSubscriptionService {
    */
   // biome-ignore lint/nursery/useExplicitType: return type is void
   async checkForNewSubscriptions() {
-    const teamIds = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      );
-
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
-      teamIds,
+      featureIds: [CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE],
       genericCalendarSuffixes: this.deps.adapterFactory.getGenericCalendarSuffixes(),
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
