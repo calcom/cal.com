@@ -570,7 +570,7 @@ export class InsightsBookingBaseService {
       WITH current_period AS (
         SELECT
           COUNT(id)::int as total_count,
-          COUNT(CASE WHEN status = 'accepted' AND "endTime" <= NOW() THEN 1 END)::int as completed_count,
+          COUNT(CASE WHEN status = 'accepted' AND "endTime" <= NOW() AT TIME ZONE 'UTC' THEN 1 END)::int as completed_count,
           COUNT(CASE WHEN rescheduled = true THEN 1 END)::int as rescheduled_count,
           COUNT(CASE WHEN status = 'cancelled' THEN 1 END)::int as cancelled_count,
           AVG(rating)::float as avg_rating,
@@ -583,7 +583,7 @@ export class InsightsBookingBaseService {
       previous_period AS (
         SELECT
           COUNT(id)::int as total_count,
-          COUNT(CASE WHEN status = 'accepted' AND "endTime" <= NOW() THEN 1 END)::int as completed_count,
+          COUNT(CASE WHEN status = 'accepted' AND "endTime" <= NOW() AT TIME ZONE 'UTC' THEN 1 END)::int as completed_count,
           COUNT(CASE WHEN rescheduled = true THEN 1 END)::int as rescheduled_count,
           COUNT(CASE WHEN status = 'cancelled' THEN 1 END)::int as cancelled_count,
           AVG(rating)::float as avg_rating,
@@ -677,7 +677,7 @@ export class InsightsBookingBaseService {
     }
 
     if (completed) {
-      conditions.push(Prisma.sql`"endTime" <= NOW()`);
+      conditions.push(Prisma.sql`"endTime" <= NOW() AT TIME ZONE 'UTC'`);
     }
 
     const additionalCondition = conditions.reduce((acc, condition, index) => {
@@ -817,10 +817,10 @@ export class InsightsBookingBaseService {
         "uid",
         "title",
         "startTime",
-        "userEmail",
-        "userName"
+        "attendeeEmail" as "userEmail",
+        "attendeeName" as "userName"
       FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "noShowHost" = true
+      WHERE ${baseConditions} AND "noShowGuest" = true
       ORDER BY "startTime" DESC
       LIMIT 10
     `;
