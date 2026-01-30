@@ -2,10 +2,6 @@ import { default as cloneDeep } from "lodash/cloneDeep";
 import type { Logger } from "tslog";
 
 import dayjs from "@calcom/dayjs";
-import {
-  allowDisablingHostConfirmationEmails,
-  allowDisablingAttendeeConfirmationEmails,
-} from "@calcom/ee/workflows/lib/allowDisablingStandardEmails";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -51,7 +47,7 @@ type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
 };
 
 type ConfirmedEmailAndSmsPayload = EmailAndSmsPayload & {
-  workflows: WorkflowType[];
+  workflows?: WorkflowType[];
   eventNameObject: EventNameObjectType;
   additionalInformation: AdditionalInformation;
   additionalNotes: string | null | undefined;
@@ -267,23 +263,17 @@ export class BookingEmailSmsHandler {
     const {
       evt,
       eventType: { metadata },
-      workflows,
       eventNameObject,
       additionalInformation,
       additionalNotes,
       customInputs,
     } = data;
 
-    let isHostConfirmationEmailsDisabled = metadata?.disableStandardEmails?.confirmation?.host || false;
-    if (isHostConfirmationEmailsDisabled) {
-      isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-    }
-
-    let isAttendeeConfirmationEmailDisabled =
+    // allowDisabling* checks belong in UI/validation layer, not here.
+    // Once saved, the user's preference should be honored unconditionally.
+    const isHostConfirmationEmailsDisabled = metadata?.disableStandardEmails?.confirmation?.host || false;
+    const isAttendeeConfirmationEmailDisabled =
       metadata?.disableStandardEmails?.confirmation?.attendee || false;
-    if (isAttendeeConfirmationEmailDisabled) {
-      isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-    }
 
     const { sendScheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
 
