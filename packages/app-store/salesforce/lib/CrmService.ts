@@ -573,7 +573,25 @@ class SalesforceCRMService implements CRM {
             accessToken: this.accessToken,
             instanceUrl: this.instanceUrl,
           });
-          return await client.GetAccountRecordsForRRSkip(emailArray[0]);
+          let graphqlRecords = await client.GetAccountRecordsForRRSkip(emailArray[0]);
+
+          // Apply field rules if configured
+          if (appOptions?.rrSkipFieldRules?.length && graphqlRecords.length > 0) {
+            const recordIds = graphqlRecords.map((r) => r.id).filter((id): id is string => Boolean(id));
+            if (recordIds.length > 0) {
+              graphqlRecords = await this.applyFieldRulesToGraphQLRecords(
+                graphqlRecords,
+                appOptions.rrSkipFieldRules,
+                recordIds
+              );
+              if (graphqlRecords.length === 0) {
+                log.info("All GraphQL records filtered out by field rules");
+                return [];
+              }
+            }
+          }
+
+          return graphqlRecords;
         } catch (error) {
           log.error("Error getting account records for round robin skip", safeStringify({ error }));
           return [];
@@ -1176,6 +1194,87 @@ class SalesforceCRMService implements CRM {
 
         if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
           log.info(`Record ${record.Id} filtered out by must_include rule`, {
+            field: rule.field,
+            expectedValue: rule.value,
+            actualValue,
+          });
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  private async applyFieldRulesToGraphQLRecords(
+    records: Contact[],
+    fieldRules: RRSkipFieldRule[],
+    recordIds: string[]
+  ): Promise<Contact[]> {
+    const log = logger.getSubLogger({ prefix: [`[applyFieldRulesToGraphQLRecords]`] });
+
+    if (!fieldRules.length || !records.length) {
+      return records;
+    }
+
+    const conn = await this.conn;
+
+    // GraphQL records are Account records, so validate fields against Account object
+    const fieldNames = fieldRules.map((r) => r.field);
+    const existingFields = await this.ensureFieldsExistOnObject(fieldNames, SalesforceRecordEnum.ACCOUNT);
+    const existingFieldNames = new Set(existingFields.map((f) => f.name));
+
+    const validRules = fieldRules.filter((rule) => existingFieldNames.has(rule.field));
+
+    if (validRules.length === 0) {
+      log.info("No valid field rules found for GraphQL records (fields may not exist on Account)", {
+        configuredFields: fieldNames,
+      });
+      return records;
+    }
+
+    log.info("Applying field rules to GraphQL records", {
+      totalRules: fieldRules.length,
+      validRules: validRules.length,
+      recordCount: records.length,
+    });
+
+    // Fetch the field values for each account
+    const selectFields = validRules.map((r) => r.field).join(", ");
+    const query = await conn.query(
+      `SELECT Id, ${selectFields} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id IN ('${recordIds.join("','")}')`
+    );
+
+    const recordFieldValues = new Map<string, Record<string, unknown>>();
+    for (const record of query.records) {
+      const typedRecord = record as { Id: string; [key: string]: unknown };
+      recordFieldValues.set(typedRecord.Id, typedRecord);
+    }
+
+    return records.filter((record) => {
+      if (!record.id) return true;
+
+      const fieldValues = recordFieldValues.get(record.id);
+      if (!fieldValues) {
+        log.warn(`Could not fetch field values for GraphQL record ${record.id}`);
+        return true;
+      }
+
+      for (const rule of validRules) {
+        const actualValue = String(fieldValues[rule.field] ?? "").toLowerCase();
+        const ruleValue = rule.value.toLowerCase();
+        const matches = actualValue === ruleValue;
+
+        if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
+          log.info(`GraphQL record ${record.id} filtered out by ignore rule`, {
+            field: rule.field,
+            value: rule.value,
+          });
+          return false;
+        }
+
+        if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
+          log.info(`GraphQL record ${record.id} filtered out by must_include rule`, {
             field: rule.field,
             expectedValue: rule.value,
             actualValue,
