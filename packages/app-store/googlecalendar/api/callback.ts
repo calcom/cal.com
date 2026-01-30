@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { createGoogleCalendarServiceWithGoogleType } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -71,12 +72,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     oAuth2Client.setCredentials(key);
 
-    const gcalCredential = await CredentialRepository.create({
+    const gcalCredentialData = buildCredentialCreateData({
       userId: req.session.user.id,
       key,
       appId: "google-calendar",
       type: "google_calendar",
     });
+    const gcalCredential = await CredentialRepository.create(gcalCredentialData);
 
     const gCalService = createGoogleCalendarServiceWithGoogleType({
       ...gcalCredential,
@@ -169,12 +171,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await CredentialRepository.create({
+  const googleMeetCredentialData = buildCredentialCreateData({
     userId: req.session.user.id,
     type: "google_video",
     key: {},
     appId: "google-meet",
   });
+  await CredentialRepository.create(googleMeetCredentialData);
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
