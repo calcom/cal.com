@@ -252,12 +252,12 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-        return !isTimeSlotAvailable({
-          scheduleData: schedule?.data ?? null,
-          slotToCheckInIso: slot,
-          quickAvailabilityChecks: slots.quickAvailabilityChecks,
-        });
-      })
+      return !isTimeSlotAvailable({
+        scheduleData: schedule?.data ?? null,
+        slotToCheckInIso: slot,
+        quickAvailabilityChecks: slots.quickAvailabilityChecks,
+      });
+    })
     : [];
 
   const slot = getQueryParam("slot");
@@ -400,7 +400,7 @@ const BookerComponent = ({
                 className={classNames(
                   layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "bg-default dark:bg-cal-muted sticky top-0 z-10"
+                  "bg-default dark:bg-cal-muted sticky top-0 z-10"
                 )}>
                 {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
                   <></>
@@ -502,7 +502,7 @@ const BookerComponent = ({
               visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
-              className="md:border-subtle -ml-px h-full shrink px-5 py-3 md:border-l lg:w-(--booker-main-width)">
+              className={classNames("md:border-subtle -ml-px h-full shrink px-5 py-3  lg:w-(--booker-main-width)", hideEventTypeDetails ? "" : "md:border-l")}>
               <DatePicker
                 classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}
@@ -538,7 +538,7 @@ const BookerComponent = ({
               className={classNames(
                 "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
-                  "h-full overflow-hidden md:w-(--booker-timeslots-width)",
+                "h-full overflow-hidden md:w-(--booker-timeslots-width)",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
               )}
               ref={timeslotsRef}

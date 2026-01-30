@@ -1,12 +1,12 @@
 "use client";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 import {
   Dropdown,
   DropdownItem,
@@ -19,14 +19,10 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton"
 import { AppList } from "@calcom/web/modules/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
 import { useQueryClient } from "@tanstack/react-query";
-import { useReducer, useState } from "react";
+import { Suspense, useReducer, useState } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
-import type {
-  BulkUpdatParams,
-  UpdateUsersDefaultConferencingAppParams,
-} from "./ConferencingAppsViewWebWrapper";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import {
@@ -40,6 +36,7 @@ import {
   useGetDefaultConferencingApp,
 } from "./hooks/useGetDefaultConferencingApp";
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
+import classNames from "@calcom/ui/classNames";
 
 type ConferencingAppSlug = typeof GOOGLE_MEET | typeof ZOOM | typeof OFFICE_365_VIDEO;
 
@@ -70,6 +67,13 @@ type ConferencingAppsViewPlatformWrapperProps = {
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
+type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+type UpdateUsersDefaultConferencingAppParams = {
+  appSlug: string;
+  appLink?: string;
+  onSuccessCallback: () => void;
+  onErrorCallback: () => void;
+};
 
 const SkeletonLoader = ({ className }: { className?: string }) => {
   return (
@@ -87,6 +91,55 @@ type ModalState = {
   credentialId: null | number;
   app: App["slug"] | null;
 };
+
+
+function PlatformSettingsHeader({
+  children,
+  title,
+  description,
+  CTA,
+  borderInShellHeader,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  description?: string;
+  CTA?: React.ReactNode;
+  borderInShellHeader?: boolean;
+}) {
+  const { t } = useLocale();
+  
+  return (
+    <div>
+      <header
+        className={classNames(
+          "border-subtle mx-auto flex justify-between",
+          borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
+          borderInShellHeader === undefined && "mb-8 border-b pb-8"
+        )}>
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="flex items-center">
+            <div>
+              {title ? (
+                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+                  {title}
+                </h1>
+              ) : (
+                <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
+              )}
+              {description ? (
+                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{description}</p>
+              ) : (
+                <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
+              )}
+            </div>
+          </div>
+          <div className={classNames("shrink-0")}>{CTA}</div>
+        </div>
+      </header>
+      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
+    </div>
+  );
+}
 
 export const ConferencingAppsViewPlatformWrapper = ({
   disableToasts = false,
@@ -273,7 +326,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
 
   return (
     <AtomsWrapper customClassName={customClassNames?.containerClassName}>
-      <SettingsHeader
+      <PlatformSettingsHeader
         title={t("conferencing")}
         description={t("conferencing_description")}
         CTA={
@@ -351,7 +404,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
             handleSubmit={() => connect(OFFICE_365_VIDEO)}
           />
         </>
-      </SettingsHeader>
+      </PlatformSettingsHeader>
     </AtomsWrapper>
   );
 };

@@ -300,17 +300,18 @@ model EventType {
 }
 
 model Credential {
-  id     Int     @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   // @@type is deprecated
-  type   String
-  key    Json
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId Int?
-  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  type         String
+  key          Json
+  encryptedKey String?
+  user         User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int?
+  team         Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       Int?
+  app          App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId  String?
+  appId        String?
 
   // paid apps
   subscriptionId    String?
@@ -1052,6 +1053,7 @@ model SelectedCalendar {
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  @@index([channelId])
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
