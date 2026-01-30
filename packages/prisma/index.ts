@@ -1,12 +1,11 @@
-import process from "node:process";
 import { PrismaPg } from "@prisma/adapter-pg";
-import fs from "fs";
 import { Pool } from "pg";
+
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import { type Prisma, PrismaClient } from "./generated/prisma/client";
+import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
 const pool =
@@ -46,14 +45,6 @@ if (!isNaN(loggerLevel)) {
       break;
   }
 }
-
-// prismaOptions.log = [
-//   {
-//     emit: "event",
-//     level: "query",
-//   },
-// ];
-
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
@@ -90,19 +81,6 @@ export const prisma: PrismaClient = baseClient
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
-
-baseClient.$on("query", (e) => {
-  // Only log queries over 100ms
-  // if (e.duration > 100) {
-  //   console.log(`[SLOW QUERY ${e.duration}ms]`, e.query.substring(0, 200));
-  // }
-
-  // Or filter by table name
-  if (e.query.includes('"Booking"')) {
-    const log = `\n[${new Date().toISOString()}] Duration: ${e.duration}ms\nQuery: ${e.query}\nParams: ${e.params}\n${"=".repeat(80)}\n`;
-    fs.appendFileSync("/tmp/prisma-queries.log", log);
-  }
-});
 
 // This prisma instance is meant to be used only for READ operations.
 // If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
