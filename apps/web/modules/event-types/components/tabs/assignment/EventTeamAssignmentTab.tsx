@@ -600,7 +600,7 @@ const Hosts = ({
     control,
     formState: { submitCount },
   } = useFormContext<FormValues>();
-  const { addHost, updateHost, removeHost, setHosts, pendingChanges } = useHosts();
+  const { addHost, updateHost, removeHost, clearAllHosts, setHosts, pendingChanges } = useHosts();
 
   const eventTypeId = useWatch({ control, name: "id" });
 
@@ -629,10 +629,12 @@ const Hosts = ({
       return;
     }
     if (initialValue.current.schedulingType !== schedulingType) {
-      // Scheduling type changed - reset all hosts
-      paginatedHosts.forEach((h) => removeHost(h.userId));
+      // Scheduling type changed - clear all hosts
+      // Uses clearAllHosts which sets a flag for the backend to compute the delta
+      // This ensures ALL hosts are cleared, not just the paginated ones
+      clearAllHosts();
     }
-  }, [schedulingType, submitCount]);
+  }, [schedulingType, submitCount, clearAllHosts]);
 
   // To ensure existing host do not loose its scheduleId and groupId properties, whenever a new host of same type is added.
   // This is because the host is created from list option in CheckedHostField component.

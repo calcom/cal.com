@@ -483,7 +483,44 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     if (pendingHostChanges) {
       // New delta path: process changes directly
-      const { hostsToAdd, hostsToUpdate, hostsToRemove } = pendingHostChanges;
+      let { hostsToAdd, hostsToUpdate, hostsToRemove } = pendingHostChanges;
+      const { clearAllHosts } = pendingHostChanges;
+
+      // When clearAllHosts is true, compute delta: keep hosts in hostsToAdd, remove all others
+      if (clearAllHosts) {
+        const existingHostUserIds = await ctx.prisma.host.findMany({
+          where: { eventTypeId: id },
+          select: { userId: true },
+        });
+        const existingUserIdSet = new Set(existingHostUserIds.map((h) => h.userId));
+        const newUserIdSet = new Set(hostsToAdd.map((h) => h.userId));
+
+        // Hosts to delete: existing but NOT in hostsToAdd
+        const userIdsToDelete = existingHostUserIds
+          .filter((h) => !newUserIdSet.has(h.userId))
+          .map((h) => h.userId);
+
+        // Hosts to update: existing AND in hostsToAdd (apply new properties)
+        const hostsToUpdateFromClear = hostsToAdd
+          .filter((h) => existingUserIdSet.has(h.userId))
+          .map((h) => ({
+            userId: h.userId,
+            isFixed: h.isFixed,
+            priority: h.priority,
+            weight: h.weight,
+            scheduleId: h.scheduleId,
+            groupId: h.groupId,
+            location: h.location,
+          }));
+
+        // Hosts to add: in hostsToAdd but NOT existing
+        const hostsToAddNew = hostsToAdd.filter((h) => !existingUserIdSet.has(h.userId));
+
+        // Replace the arrays with computed values
+        hostsToRemove = userIdsToDelete;
+        hostsToUpdate = hostsToUpdateFromClear;
+        hostsToAdd = hostsToAddNew;
+      }
 
       // Validate that all new/updated host userIds are valid team members
       const allUserIds = [...hostsToAdd.map((h) => h.userId), ...hostsToUpdate.map((h) => h.userId)];

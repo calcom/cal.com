@@ -64,6 +64,7 @@ export type PendingHostChanges = {
   hostsToAdd: Host[];
   hostsToUpdate: HostUpdate[];
   hostsToRemove: number[]; // userIds
+  clearAllHosts?: boolean; // When true, backend computes delta: keeps hosts in hostsToAdd, removes all others
 };
 export type TeamMember = {
   value: string;

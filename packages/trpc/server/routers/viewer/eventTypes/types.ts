@@ -95,6 +95,7 @@ type PendingHostChangesInput = {
   hostsToAdd: HostInput[];
   hostsToUpdate: HostUpdateInput[];
   hostsToRemove: number[];
+  clearAllHosts?: boolean;
 };
 
 type HostGroupInput = {
@@ -342,6 +343,7 @@ const pendingHostChangesSchema: z.ZodType<PendingHostChangesInput> = z.object({
   hostsToAdd: z.array(hostSchema),
   hostsToUpdate: z.array(hostUpdateSchema),
   hostsToRemove: z.array(z.number()),
+  clearAllHosts: z.boolean().optional(),
 });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({

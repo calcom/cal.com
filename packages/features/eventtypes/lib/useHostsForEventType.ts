@@ -26,6 +26,7 @@ const DEFAULT_PENDING_CHANGES: PendingHostChanges = {
   hostsToAdd: [],
   hostsToUpdate: [],
   hostsToRemove: [],
+  clearAllHosts: false,
 };
 
 /**
@@ -170,6 +171,23 @@ export function useHostsForEventType() {
     [getValues, setPendingChanges]
   );
 
+  // Clear all hosts and optionally set new hosts
+  // When called, sets clearAllHosts flag so backend computes delta
+  const clearAllHosts = useCallback(
+    (newHosts: Host[] = []) => {
+      setPendingChanges(
+        {
+          hostsToAdd: newHosts,
+          hostsToUpdate: [],
+          hostsToRemove: [],
+          clearAllHosts: true,
+        },
+        { shouldDirty: true }
+      );
+    },
+    [setPendingChanges]
+  );
+
   // Set all hosts (replaces current state) - used for bulk operations
   // Compares newHosts against serverHosts (from paginated query) instead of initialHosts
   const setHosts = useCallback(
@@ -243,9 +261,10 @@ export function useHostsForEventType() {
       addHost,
       updateHost,
       removeHost,
+      clearAllHosts,
       setHosts,
       pendingChanges,
     }),
-    [addHost, updateHost, removeHost, setHosts, pendingChanges]
+    [addHost, updateHost, removeHost, clearAllHosts, setHosts, pendingChanges]
   );
 }

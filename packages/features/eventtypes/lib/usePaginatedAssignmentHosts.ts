@@ -62,6 +62,15 @@ export function usePaginatedAssignmentHosts({
   const hosts = useMemo((): AssignmentHostWithMeta[] => {
     const changes = pendingChanges ?? DEFAULT_PENDING_CHANGES;
 
+    // When clearAllHosts is true, ignore server hosts and only show hostsToAdd
+    if (changes.clearAllHosts) {
+      return changes.hostsToAdd.map((h) => ({
+        ...h,
+        name: null,
+        avatarUrl: null,
+      }));
+    }
+
     const removeSet = new Set(changes.hostsToRemove);
     const updateMap = new Map(changes.hostsToUpdate.map((u) => [u.userId, u]));
 
