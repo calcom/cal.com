@@ -398,24 +398,37 @@ class Office365CalendarService implements Calendar {
           url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
         }));
         const requests = await Promise.all(requestsPromises);
-        const response = await this.apiGraphBatchCall(requests);
-        const responseBody = await this.handleErrorJsonOffice365Calendar(response);
-        let responseBatchApi: IBatchResponse = { responses: [] };
-        if (typeof responseBody === "string") {
-          responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+
+        // Microsoft Graph batch API limit is 20 requests per batch
+        const MS_GRAPH_BATCH_LIMIT = 20;
+        let allResponses: ISettledResponse[] = [];
+
+        // Process requests in chunks of 20
+        for (let i = 0; i < requests.length; i += MS_GRAPH_BATCH_LIMIT) {
+          const chunk = requests.slice(i, i + MS_GRAPH_BATCH_LIMIT);
+          const response = await this.apiGraphBatchCall(chunk);
+          const responseBody = await this.handleErrorJsonOffice365Calendar(response);
+          let responseBatchApi: IBatchResponse = { responses: [] };
+          if (typeof responseBody === "string") {
+            responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
+          } else {
+            responseBatchApi = responseBody as IBatchResponse;
+          }
+
+          // Validate if any 429 status Retry-After is present
+          const retryAfter =
+            !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
+
+          if (retryAfter && responseBatchApi.responses) {
+            responseBatchApi = await this.fetchRequestWithRetryAfter(chunk, responseBatchApi.responses, 2);
+          }
+
+          // Recursively fetch nextLink responses for this chunk
+          const chunkResponses = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
+          allResponses = allResponses.concat(chunkResponses);
         }
-        let alreadySuccessResponse = [] as ISettledResponse[];
 
-        // Validate if any 429 status Retry-After is present
-        const retryAfter =
-          !!responseBatchApi?.responses && this.findRetryAfterResponse(responseBatchApi.responses);
-
-        if (retryAfter && responseBatchApi.responses) {
-          responseBatchApi = await this.fetchRequestWithRetryAfter(requests, responseBatchApi.responses, 2);
-        }
-
-        // Recursively fetch nextLink responses
-        alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
+        const alreadySuccessResponse = allResponses;
 
         return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
       } catch {
