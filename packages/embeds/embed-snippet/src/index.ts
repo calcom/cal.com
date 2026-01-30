@@ -55,8 +55,8 @@ export default function EmbedSnippet(url = EMBED_LIB_URL) {
           api.q = api.q || [];
           if (typeof namespace === "string") {
             // Make sure that even after re-execution of the snippet, the namespace is not overridden
-            cal.ns![namespace] = cal.ns?.[namespace] || api;
-            p(cal.ns?.[namespace], ar);
+            cal.ns![namespace] = cal.ns![namespace] || api;
+            p(cal.ns![namespace], ar);
             // Inform the default namespace queue to initialize this namespace
             p(cal as GlobalCal, ["initNamespace", namespace]);
           } else p(cal as GlobalCal, ar);
