@@ -1395,7 +1395,7 @@ export class AvailableSlotsService {
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
-    const finalSlotsMappedToDate = eventType.metadata?.soBusy
+    const finalSlotsMappedToDate = eventType.metadata?.showBusy
       ? applySoBusyFilter(withinBoundsSlotsMappedToDate, eventType.id)
       : withinBoundsSlotsMappedToDate;
 
