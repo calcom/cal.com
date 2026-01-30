@@ -14,7 +14,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, ChevronDownIcon } from "@coss/ui/icons";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
@@ -54,10 +54,8 @@ export function ProfileDropdown() {
             <span className="block w-20 overflow-hidden text-ellipsis whitespace-nowrap">
               {currentOption.label}
             </span>
-            <Icon
-              name="chevron-down"
+            <ChevronDownIcon
               className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
-              aria-hidden="true"
             />
           </span>
         </button>
@@ -96,7 +94,7 @@ export function ProfileDropdown() {
                     <span className="ml-2">{option.label}</span>
                   </span>
                   {isSelected ? (
-                    <Icon name="check" className="ml-2 inline h-4 w-4" aria-hidden="true" />
+                    <CheckIcon className="ml-2 inline h-4 w-4" />
                   ) : null}
                 </DropdownItem>
               </DropdownMenuItem>
