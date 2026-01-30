@@ -120,6 +120,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         appId: APPLE_CALENDAR_ID,
         invalid: false,
         delegationCredentialId: null,
+        encryptedKey: null,
       };
 
       const dav = BuildCalendarService({
