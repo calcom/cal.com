@@ -18,12 +18,14 @@ import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import type { CSSObjectWithLabel } from "react-select";
 
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export type { BookingRedirectForm } from "~/settings/outOfOffice/types";
 import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+
 
 type Option = { value: number; label: string };
 
@@ -315,6 +317,19 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       value={reasonList.find((reason) => reason.value === value)}
                       placeholder={t("ooo_select_reason")}
                       options={reasonList}
+                      menuPortalTarget={
+                        typeof window !== "undefined"
+                          ? (document.querySelector("[data-radix-dialog-portal]") as HTMLElement) ?? document.body
+                          : undefined
+                      }
+                      menuPosition="fixed"
+                      styles={{
+                        menuPortal: (base: CSSObjectWithLabel) => ({
+                          ...base,
+                          zIndex: 50,
+                          pointerEvents: "auto",
+                        } as CSSObjectWithLabel),
+                      }}
                       onChange={(selectedOption) => {
                         if (selectedOption?.value) {
                           onChange(selectedOption.value);
