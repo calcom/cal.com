@@ -25,7 +25,7 @@ export class OAuthService extends BaseOAuthService {
   }
 
   async handleTokenRequest(clientId: string, body: OAuth2TokenInput): Promise<OAuth2Tokens> {
-    switch (body.grantType) {
+    switch (body.grant_type) {
       case "authorization_code":
         return this.exchangeAuthorizationCode(clientId, body);
       case "refresh_token":
@@ -38,17 +38,17 @@ export class OAuthService extends BaseOAuthService {
     body: OAuth2ExchangeInput
   ): Promise<OAuth2Tokens> {
     if (body instanceof OAuth2ExchangeConfidentialInput) {
-      return this.exchangeCodeForTokens(clientId, body.code, body.clientSecret, body.redirectUri);
+      return this.exchangeCodeForTokens(clientId, body.code, body.client_secret, body.redirect_uri);
     }
 
-    return this.exchangeCodeForTokens(clientId, body.code, undefined, body.redirectUri, body.codeVerifier);
+    return this.exchangeCodeForTokens(clientId, body.code, undefined, body.redirect_uri, body.code_verifier);
   }
 
   private async refreshToken(clientId: string, body: OAuth2RefreshInput): Promise<OAuth2Tokens> {
     if (body instanceof OAuth2RefreshConfidentialInput) {
-      return this.refreshAccessToken(clientId, body.refreshToken, body.clientSecret);
+      return this.refreshAccessToken(clientId, body.refresh_token, body.client_secret);
     }
 
-    return this.refreshAccessToken(clientId, body.refreshToken);
+    return this.refreshAccessToken(clientId, body.refresh_token);
   }
 }
