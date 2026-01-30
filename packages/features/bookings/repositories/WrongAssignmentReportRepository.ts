@@ -4,7 +4,7 @@ export class WrongAssignmentReportRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
   async existsByBookingUid(bookingUid: string): Promise<boolean> {
-    const report = await this.prismaClient.wrongAssignmentReport.findFirst({
+    const report = await this.prismaClient.wrongAssignmentReport.findUnique({
       where: { bookingUid },
       select: { id: true },
     });

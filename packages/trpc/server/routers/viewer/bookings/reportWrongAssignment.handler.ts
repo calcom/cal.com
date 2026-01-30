@@ -4,7 +4,9 @@ import { BookingAccessService } from "@calcom/features/bookings/services/Booking
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -25,6 +27,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const { user } = ctx;
   const { bookingUid, correctAssignee, additionalNotes } = input;
 
+  const t = await getTranslation(user.locale ?? "en", "common");
   const bookingRepo = new BookingRepository(prisma);
   const wrongAssignmentReportRepo = new WrongAssignmentReportRepository(prisma);
   const bookingAccessService = new BookingAccessService(prisma);
@@ -58,18 +61,29 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   if (alreadyReported) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "A wrong assignment report has already been submitted for this booking",
+      message: t("wrong_assignment_already_reported"),
     });
   }
 
-  const report = await wrongAssignmentReportRepo.createReport({
-    bookingUid: booking.uid,
-    reportedById: user.id,
-    correctAssignee: correctAssignee || null,
-    additionalNotes,
-    teamId,
-    routingFormId,
-  });
+  let report: { id: string };
+  try {
+    report = await wrongAssignmentReportRepo.createReport({
+      bookingUid: booking.uid,
+      reportedById: user.id,
+      correctAssignee: correctAssignee || null,
+      additionalNotes,
+      teamId,
+      routingFormId,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: t("wrong_assignment_already_reported"),
+      });
+    }
+    throw error;
+  }
 
   const webhookPayload = {
     booking: {

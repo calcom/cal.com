@@ -623,6 +623,7 @@ model Team {
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
   bookingReports         BookingReport[]
+  wrongAssignmentReports WrongAssignmentReport[]
 
   features TeamFeatures[]
 
@@ -2571,6 +2572,7 @@ model WrongAssignmentReport {
   correctAssignee String?
   additionalNotes String
   teamId          Int?
+  team            Team?                       @relation(fields: [teamId], references: [id], onDelete: SetNull)
   routingFormId   String?
   routingForm     App_RoutingForms_Form?      @relation(fields: [routingFormId], references: [id], onDelete: SetNull)
   status          WrongAssignmentReportStatus @default(PENDING)
