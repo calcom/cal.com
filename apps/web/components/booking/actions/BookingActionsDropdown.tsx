@@ -260,6 +260,7 @@ export function BookingActionsDropdown({
   } as BookingActionContext;
 
   const cancelEventAction = getCancelEventAction(actionContext);
+  const showPastBookingCancelTooltip = isBookingInPast && cancelEventAction.disabled;
 
   // Get pending actions (accept/reject) - only for details context
   const shouldShowPending = shouldShowPendingActions(actionContext);
@@ -749,7 +750,7 @@ export function BookingActionsDropdown({
             <Tooltip
               content={isBookingInPast ? t("cannot_cancel_past_booking") : ""}
               side="left"
-              open={isBookingInPast && cancelEventAction.disabled ? undefined : false}>
+              open={showPastBookingCancelTooltip ? undefined : false}>
               <DropdownMenuItem
                 className="rounded-lg"
                 key={cancelEventAction.id}
