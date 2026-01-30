@@ -61,6 +61,13 @@ export const attributeRoutingConfigSchema = z
   })
   .nullish();
 
+export enum NoUsersFoundFallbackActionType {
+  CustomPageMessage = "customPageMessage",
+  ExternalRedirectUrl = "externalRedirectUrl",
+}
+
+export const noUsersFoundFallbackActionTypeSchema = z.nativeEnum(NoUsersFoundFallbackActionType);
+
 export const zodNonRouterRoute = z.object({
   id: z.string(),
   name: z.string().optional(),
@@ -92,6 +99,16 @@ export const zodNonRouterRoute = z.object({
     eventTypeId: z.number().optional(),
     value: z.string(),
   }),
+  /**
+   * Fallback action when no users are found after attribute routing.
+   * Only applicable when action.type is EventTypeRedirectUrl.
+   */
+  noUsersFoundFallbackAction: z
+    .object({
+      type: noUsersFoundFallbackActionTypeSchema,
+      value: z.string(),
+    })
+    .optional(),
 });
 
 export const zodNonRouterRouteView = zodNonRouterRoute;
