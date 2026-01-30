@@ -12,6 +12,14 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
+import {
+  LoaderIcon,
+  MessageCircleIcon,
+  PhoneIcon,
+  PhoneOffIcon,
+  TrashIcon,
+  TriangleAlertIcon,
+} from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -260,15 +268,15 @@ export function WebCallDialog({
   const getStatusIcon = () => {
     switch (callStatus) {
       case "connecting":
-        return <Icon name="loader" className="h-4 w-4 animate-spin rounded-full" />;
+        return <LoaderIcon className="h-4 w-4 animate-spin rounded-full" />;
       case "active":
-        return <Icon name="phone" className="text-success h-4 w-4" />;
+        return <PhoneIcon className="text-success h-4 w-4" />;
       case "ended":
-        return <Icon name="phone-off" className="text-muted h-4 w-4" />;
+        return <PhoneOffIcon className="text-muted h-4 w-4" />;
       case "error":
-        return <Icon name="triangle-alert" className="text-error h-4 w-4" />;
+        return <TriangleAlertIcon className="text-error h-4 w-4" />;
       default:
-        return <Icon name="phone" className="text-subtle h-4 w-4" />;
+        return <PhoneIcon className="text-subtle h-4 w-4" />;
     }
   };
 
@@ -396,7 +404,7 @@ export function WebCallDialog({
                 variant="icon"
                 onClick={() => setTranscript([])}
                 disabled={callStatus === "active"}>
-                <Icon name="trash" className="h-4 w-4" />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -405,7 +413,7 @@ export function WebCallDialog({
             {transcript.length === 0 ? (
               <div className="flex h-40 items-center justify-center text-center">
                 <div>
-                  <Icon name="message-circle" className="text-subtle mx-auto h-8 w-8" />
+                  <MessageCircleIcon className="text-subtle mx-auto h-8 w-8" />
                   <p className="text-subtle mt-2 text-sm">
                     {callStatus === "idle"
                       ? t("start_call_to_see_conversation")
@@ -441,7 +449,7 @@ export function WebCallDialog({
         {error && callStatus === "error" && (
           <div className="border-error bg-error/10 rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <Icon name="triangle-alert" className="text-error h-6 w-6" />
+              <TriangleAlertIcon className="text-error h-6 w-6" />
               <span className="text-error text-sm">{error}</span>
             </div>
           </div>
@@ -465,7 +473,7 @@ export function WebCallDialog({
                   onClick={handleStartCall}
                   loading={createWebCallMutation.isPending || callStatus === "connecting"}
                   disabled={!hasCredits || createWebCallMutation.isPending || callStatus === "connecting"}>
-                  <Icon name="phone" className="mr-2 h-4 w-4" />
+                  <PhoneIcon className="mr-2 h-4 w-4" />
                   {callStatus === "connecting" ? t("connecting") : t("start_web_call")}
                 </Button>
               </Tooltip>
@@ -475,7 +483,7 @@ export function WebCallDialog({
                 color="destructive"
                 onClick={handleEndCall}
                 disabled={callStatus !== "active"}>
-                <Icon name="phone-off" className="mr-2 h-4 w-4" />
+                <PhoneOffIcon className="mr-2 h-4 w-4" />
                 {t("end_call")}
               </Button>
             )}

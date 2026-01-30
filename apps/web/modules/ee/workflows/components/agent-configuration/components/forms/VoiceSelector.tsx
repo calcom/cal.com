@@ -3,7 +3,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { UserIcon } from "@coss/ui/icons";
 
 interface VoiceSelectorProps {
   selectedVoiceId?: string;
@@ -24,7 +24,7 @@ export function VoiceSelector({ selectedVoiceId, onVoiceDialogOpen, disabled = f
         onClick={onVoiceDialogOpen}
         disabled={disabled}
         className="w-full justify-start">
-        <Icon name="user" className="mr-2 h-4 w-4" />
+        <UserIcon className="mr-2 h-4 w-4" />
         {selectedVoiceId ? <span className="text-sm">{selectedVoiceId}</span> : t("select_voice")}
       </Button>
     </div>
