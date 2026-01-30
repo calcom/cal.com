@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -39,7 +40,7 @@ import {
 import type { OAuth2TokenInput } from "@/modules/auth/oauth2/inputs/token.input.pipe";
 import { OAuth2TokenInputPipe } from "@/modules/auth/oauth2/inputs/token.input.pipe";
 import { OAuth2ClientDto, OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
-import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
+import { OAuth2TokensDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
 import { OAuth2ErrorHandler } from "@/modules/auth/oauth2/services/oauth2-error.handler";
 
 @Controller({
@@ -134,17 +135,16 @@ export class OAuth2Controller {
     OAuth2RefreshConfidentialInput,
     OAuth2RefreshPublicInput
   )
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
   async token(
     @Param("clientId") clientId: string,
     @Body(new OAuth2TokenInputPipe()) body: OAuth2TokenInput
-  ): Promise<OAuth2TokensResponseDto> {
+  ): Promise<OAuth2TokensDto> {
     try {
       const tokens = await this.oAuthService.handleTokenRequest(clientId, body);
 
-      return {
-        status: SUCCESS_STATUS,
-        data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
-      };
+      return plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" });
     } catch (err) {
       this.errorHandler.handleTokenError(err);
     }

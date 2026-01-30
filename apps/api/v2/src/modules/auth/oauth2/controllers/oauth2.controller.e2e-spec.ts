@@ -250,13 +250,14 @@ describe("OAuth2 Controller Endpoints", () => {
           })
           .expect(200);
 
-        expect(response.body.status).toBe("success");
-        expect(response.body.data.access_token).toBeDefined();
-        expect(response.body.data.refresh_token).toBeDefined();
-        expect(response.body.data.token_type).toBe("bearer");
-        expect(response.body.data.expires_in).toBe(1800);
+        expect(response.body.access_token).toBeDefined();
+        expect(response.body.refresh_token).toBeDefined();
+        expect(response.body.token_type).toBe("bearer");
+        expect(response.body.expires_in).toBe(1800);
+        expect(response.headers["cache-control"]).toBe("no-store");
+        expect(response.headers["pragma"]).toBe("no-cache");
 
-        refreshToken = response.body.data.refresh_token;
+        refreshToken = response.body.refresh_token;
       });
 
       it("should return 400 for invalid/used authorization code", async () => {
@@ -319,10 +320,9 @@ describe("OAuth2 Controller Endpoints", () => {
           })
           .expect(200);
 
-        expect(response.body.status).toBe("success");
-        expect(response.body.data.access_token).toBeDefined();
-        expect(response.body.data.refresh_token).toBeDefined();
-        expect(response.body.data.token_type).toBe("bearer");
+        expect(response.body.access_token).toBeDefined();
+        expect(response.body.refresh_token).toBeDefined();
+        expect(response.body.token_type).toBe("bearer");
       });
 
       it("should return 400 for invalid grant type", async () => {
@@ -348,11 +348,10 @@ describe("OAuth2 Controller Endpoints", () => {
           })
           .expect(200);
 
-        expect(response.body.status).toBe("success");
-        expect(response.body.data.access_token).toBeDefined();
-        expect(response.body.data.refresh_token).toBeDefined();
-        expect(response.body.data.token_type).toBe("bearer");
-        expect(response.body.data.expires_in).toBe(1800);
+        expect(response.body.access_token).toBeDefined();
+        expect(response.body.refresh_token).toBeDefined();
+        expect(response.body.token_type).toBe("bearer");
+        expect(response.body.expires_in).toBe(1800);
       });
 
       it("should return 400 for invalid refresh token", async () => {
