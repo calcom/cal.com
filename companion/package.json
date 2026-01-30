@@ -93,7 +93,11 @@
     "react-native-web": "0.21.2",
     "react-native-worklets": "0.7.1",
     "tailwind-merge": "3.4.0",
-    "tailwindcss-animate": "1.0.7"
+    "tailwindcss-animate": "1.0.7",
+    "@daily-co/react-native-daily-js": "0.82.0",
+    "@daily-co/react-native-webrtc": "124.0.6-daily.1",
+    "react-native-background-timer": "2.4.1",
+    "react-native-get-random-values": "1.11.0"
   },
   "private": true,
   "devDependencies": {
@@ -111,7 +115,9 @@
     "tailwindcss": "3.4.17",
     "typescript": "5.9.3",
     "typescript-eslint": "8.50.1",
-    "wxt": "0.20.11"
+    "wxt": "0.20.11",
+    "@daily-co/config-plugin-rn-daily-js": "0.0.11",
+    "@config-plugins/react-native-webrtc": "13.0.0"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx,json,css,md}": [
