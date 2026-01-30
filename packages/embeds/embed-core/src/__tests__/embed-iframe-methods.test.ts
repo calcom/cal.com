@@ -89,6 +89,7 @@ describe("embed-iframe.methods", async () => {
             expect(embedStore.router.ensureQueryParamsInUrl).toHaveBeenCalledWith({
                 toBeThereParams: {
                     "cal.embed.connectVersion": currentConnectVersion.toString(),
+                    "cal.embed.skipRefetchOnWindowFocus": "true",
                 },
                 toRemoveParams: ["preload", "prerender", "cal.skipSlotsFetch"],
             });
