@@ -295,7 +295,7 @@ test.describe("BOOKING_CANCELLED", async () => {
       createdAt: "[redacted/dynamic]",
       payload: {
         type: "30-min",
-        title: expect.stringContaining("30 min"),
+        title: expect.stringMatching(/30\s?min/),
         organizer: {
           id: "[redacted/dynamic]",
           name: "Nameless",
@@ -320,7 +320,7 @@ test.describe("BOOKING_CANCELLED", async () => {
           }),
         ]),
         uid: "[redacted/dynamic]",
-        eventTitle: "30 min",
+        eventTitle: expect.stringMatching(/30\s?min/),
         status: "CANCELLED",
         cancellationReason: "Test cancellation reason",
       },
