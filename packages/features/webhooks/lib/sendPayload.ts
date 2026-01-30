@@ -79,7 +79,7 @@ export type OOOEntryPayloadType = {
   };
 };
 
-export type EventPayloadType = CalendarEvent &
+export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
     uid?: string | null;
@@ -97,6 +97,11 @@ export type EventPayloadType = CalendarEvent &
     cancelledBy?: string;
     paymentData?: PaymentData;
     requestReschedule?: boolean;
+    assignmentReason?:
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 export type WebhookPayloadType =

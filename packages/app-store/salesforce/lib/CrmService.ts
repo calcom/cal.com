@@ -17,7 +17,10 @@ import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
+import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
@@ -50,6 +53,7 @@ export interface SalesforceCRM extends CRM {
   getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string): string;
 }
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+import { getSalesforceTokenLifetime } from "./getSalesforceTokenLifetime";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "./utils/getDominantAccountId";
@@ -104,12 +108,13 @@ type Attendee = { email: string; name: string };
 
 const salesforceTokenSchema = z.object({
   id: z.string(),
-  issued_at: z.string(),
+  issued_at: z.string(), // Salesforce returns this in milliseconds as a string
   instance_url: z.string(),
   signature: z.string(),
   access_token: z.string(),
   scope: z.string(),
   token_type: z.string(),
+  token_lifetime: z.number().optional(), // Token lifetime in seconds (from introspection)
 });
 
 class SalesforceCRMService implements CRM {
@@ -122,9 +127,12 @@ class SalesforceCRMService implements CRM {
   private fallbackToContact = false;
   private accessToken: string;
   private instanceUrl: string;
+  private hasAttemptedRefresh = false;
+  private credentialId: number;
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
+    this.credentialId = credential.id;
     if (!testMode) {
       this.conn = this.getClient(credential).then((c) => c);
     }
@@ -139,44 +147,106 @@ class SalesforceCRMService implements CRM {
     return this.appOptions;
   }
 
+  /**
+   * Refreshes the Salesforce access token and optionally introspects to get/update token_lifetime.
+   * @param forceIntrospection - If true, always introspect to recalibrate token_lifetime (e.g., after unexpected expiry)
+   * @param existingTokenLifetime - The current token_lifetime to reuse if not forcing introspection
+   */
+  private refreshAccessToken = async ({
+    refreshToken,
+    forceIntrospection,
+    existingTokenLifetime,
+  }: {
+    refreshToken: string;
+    forceIntrospection: boolean;
+    existingTokenLifetime?: number;
+  }) => {
+    const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
+
+    const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: consumer_key,
+        client_secret: consumer_secret,
+        refresh_token: refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
+      throw new Error(message);
+    }
+
+    const accessTokenJson = await response.json();
+    const accessTokenParsed = parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
+
+    // Introspect if forced or if we don't have a token_lifetime yet
+    let tokenLifetime = existingTokenLifetime;
+    if (forceIntrospection || !tokenLifetime) {
+      tokenLifetime = await getSalesforceTokenLifetime({
+        accessToken: accessTokenParsed.access_token,
+        instanceUrl: accessTokenParsed.instance_url,
+      });
+    }
+
+    // Update credential in database
+    const updatedKey = {
+      ...accessTokenParsed,
+      refresh_token: refreshToken,
+      token_lifetime: tokenLifetime,
+    };
+
+    await CredentialRepository.updateWhereId({
+      id: this.credentialId,
+      data: { key: updatedKey },
+    });
+
+    return {
+      accessToken: accessTokenParsed.access_token,
+      instanceUrl: accessTokenParsed.instance_url,
+      issuedAt: accessTokenParsed.issued_at,
+      tokenLifetime,
+    };
+  };
+
   private getClient = async (credential: CredentialPayload) => {
     const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
-    const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+    const credentialKey = credential.key as unknown as ExtendedTokenResponse & { token_lifetime?: number };
 
     if (!credentialKey.refresh_token)
       throw new Error(`Refresh token is missing for credential ${credential.id}`);
 
-    try {
-      /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
-              Needs further investigation ASAP */
-      const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          client_id: consumer_key,
-          client_secret: consumer_secret,
-          refresh_token: credentialKey.refresh_token,
-        }),
-      });
-      if (!response.ok) {
-        const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
-        throw new Error(message);
+    const refreshToken = credentialKey.refresh_token;
+
+    // Check if token is still valid
+    // issued_at is in milliseconds (string), token_lifetime is in seconds
+    const BUFFER_MS = 5 * 60 * 1000; // 5 minutes buffer before expiry
+    const issuedAt = parseInt(credentialKey.issued_at, 10);
+    const tokenLifetimeMs = (credentialKey.token_lifetime || 0) * 1000;
+    const expiryTime = issuedAt + tokenLifetimeMs;
+    const isTokenValid = credentialKey.token_lifetime && Date.now() < expiryTime - BUFFER_MS;
+
+    if (!isTokenValid) {
+      try {
+        const result = await this.refreshAccessToken({
+          refreshToken,
+          forceIntrospection: false,
+          existingTokenLifetime: credentialKey.token_lifetime,
+        });
+
+        // Update instance variables and credentialKey for the connection
+        this.accessToken = result.accessToken;
+        this.instanceUrl = result.instanceUrl;
+        credentialKey.access_token = result.accessToken;
+        credentialKey.issued_at = result.issuedAt;
+        credentialKey.token_lifetime = result.tokenLifetime;
+      } catch (err: unknown) {
+        console.error(err); // log but proceed
       }
-
-      const accessTokenJson = await response.json();
-
-      const accessTokenParsed: ParseRefreshTokenResponse<typeof salesforceTokenSchema> =
-        parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
-
-      await prisma.credential.update({
-        where: { id: credential.id },
-        data: { key: { ...accessTokenParsed, refresh_token: credentialKey.refresh_token } },
-      });
-    } catch (err: unknown) {
-      console.error(err); // log but proceed
     }
 
     return new jsforce.Connection({
@@ -188,6 +258,28 @@ class SalesforceCRMService implements CRM {
       instanceUrl: credentialKey.instance_url,
       accessToken: credentialKey.access_token,
       refreshToken: credentialKey.refresh_token,
+      refreshFn: async (conn, callback) => {
+        // Only attempt refresh once to avoid infinite loops
+        if (this.hasAttemptedRefresh) {
+          return callback(new Error("Token refresh already attempted"));
+        }
+        this.hasAttemptedRefresh = true;
+
+        try {
+          // Force introspection to recalibrate token_lifetime after unexpected expiry
+          const result = await this.refreshAccessToken({
+            refreshToken,
+            forceIntrospection: true,
+          });
+
+          this.accessToken = result.accessToken;
+          this.instanceUrl = result.instanceUrl;
+
+          callback(null, result.accessToken);
+        } catch (err) {
+          callback(err instanceof Error ? err : new Error(String(err)));
+        }
+      },
     });
   };
 
@@ -545,9 +637,15 @@ class SalesforceCRMService implements CRM {
         }
       }
 
-      const includeOwnerData =
-        (includeOwner || forRoundRobinSkip) &&
-        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
+      const isFreeEmailDomain = await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]);
+      const includeOwnerData = (includeOwner || forRoundRobinSkip) && !isFreeEmailDomain;
+
+      if (isFreeEmailDomain && (includeOwner || forRoundRobinSkip)) {
+        SalesforceRoutingTraceService.ownerLookupSkipped({
+          reason: "Free email domain",
+          email: emailArray[0],
+        });
+      }
 
       const includeAccountRecordType = forRoundRobinSkip && recordToSearch === SalesforceRecordEnum.ACCOUNT;
       return records.map((record) => {
@@ -557,6 +655,33 @@ class SalesforceCRMService implements CRM {
           record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
             ? record?.Account?.Owner?.Email
             : record?.Owner?.Email;
+
+        // Trace owner lookup based on record type
+        if (includeOwnerData && record?.Id && record?.OwnerId) {
+          const recordType = record?.attributes?.type;
+          if (recordType === SalesforceRecordEnum.CONTACT) {
+            SalesforceRoutingTraceService.contactOwnerLookup({
+              contactId: record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          } else if (recordType === SalesforceRecordEnum.LEAD) {
+            SalesforceRoutingTraceService.leadOwnerLookup({
+              leadId: record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          } else if (
+            recordType === SalesforceRecordEnum.ACCOUNT ||
+            (includeAccountRecordType && record?.AccountId)
+          ) {
+            SalesforceRoutingTraceService.accountOwnerLookup({
+              accountId: record.AccountId || record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          }
+        }
 
         return {
           id: includeAccountRecordType ? record?.AccountId || "" : record?.Id || "",
@@ -1011,6 +1136,11 @@ class SalesforceCRMService implements CRM {
     const emailDomain = email.split("@")[1];
     const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
+
+    SalesforceRoutingTraceService.searchingByWebsiteValue({
+      emailDomain,
+    });
+
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
@@ -1023,6 +1153,10 @@ class SalesforceCRMService implements CRM {
         "Found account based on email domain",
         safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
       );
+      SalesforceRoutingTraceService.accountFoundByWebsite({
+        accountId: account.Id,
+        website: account.Website,
+      });
       return account.Id;
     }
 
@@ -1031,12 +1165,28 @@ class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
+    SalesforceRoutingTraceService.searchingByContactEmailDomain({
+      emailDomain,
+      contactCount: response.records.length,
+    });
+
     const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
     if (accountId) {
       log.info("Found account based on other contacts", safeStringify({ accountId }));
+      const contactsUnderAccount = (response.records as { AccountId: string }[]).filter(
+        (r) => r.AccountId === accountId
+      );
+      SalesforceRoutingTraceService.accountSelectedByMostContacts({
+        accountId,
+        contactCount: contactsUnderAccount.length,
+      });
     } else {
       log.info("No account found");
+      SalesforceRoutingTraceService.noAccountFound({
+        email,
+        reason: "No account found by website or contact domain",
+      });
     }
 
     return accountId;
@@ -1578,6 +1728,12 @@ class SalesforceCRMService implements CRM {
     if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
 
+      SalesforceRoutingTraceService.lookupFieldQuery({
+        fieldName,
+        salesforceObject,
+        accountId: accountId ?? null,
+      });
+
       if (!accountId) return;
 
       const accountQuery = (await conn.query(
@@ -1599,6 +1755,11 @@ class SalesforceCRMService implements CRM {
       if (!userQuery.records.length) return;
 
       const user = userQuery.records[0] as { Email: string };
+
+      SalesforceRoutingTraceService.userQueryFromLookupField({
+        lookupFieldUserId,
+        userEmail: user.Email,
+      });
 
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }

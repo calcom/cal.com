@@ -1,10 +1,6 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import React, { useMemo, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
-import { DataTableFilters } from "~/data-table/components/filters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -12,19 +8,19 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
-
+import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import React, { useEffect, useMemo } from "react";
 import { useBookingCalendarData } from "~/bookings/hooks/useBookingCalendarData";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useCalendarAllowedFilters } from "~/bookings/hooks/useCalendarAllowedFilters";
 import { useCalendarAutoSelector } from "~/bookings/hooks/useCalendarAutoSelector";
-import { useCalendarNavigationCapabilities } from "~/bookings/hooks/useCalendarNavigationCapabilities";
 import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
-
+import { DataTableFilters } from "~/data-table/components/filters";
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
-import type { RowData, BookingListingStatus, BookingsGetOutput } from "../types";
+import type { BookingListingStatus, BookingsGetOutput, RowData } from "../types";
 import { BookingCalendarView } from "./BookingCalendarView";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { ViewToggleButton } from "./ViewToggleButton";
@@ -106,7 +102,9 @@ function BookingCalendarInner({
     );
   }, [allowedFilterIds, t, permissions, status]);
 
-  const getFacetedUniqueValues = useFacetedUniqueValues();
+  const getFacetedUniqueValues = useFacetedUniqueValues({
+    canReadOthersBookings: permissions.canReadOthersBookings,
+  });
 
   const table = useReactTable<RowData>({
     data: rowData,
@@ -224,15 +222,15 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
 
   // Create navigation capabilities for calendar view
   // This hook handles probe queries and prefetching internally
-  const capabilities = useCalendarNavigationCapabilities({
-    currentWeekStart,
-    setCurrentWeekStart,
-    userWeekStart,
-    filters: { statuses: STATUSES, userIds },
-  });
+  // const capabilities = useCalendarNavigationCapabilities({
+  //   currentWeekStart,
+  //   setCurrentWeekStart,
+  //   userWeekStart,
+  //   filters: { statuses: STATUSES, userIds },
+  // });
 
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingCalendarInner
         {...props}
         data={data}

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import { parseTimeString } from "./Schedule";
+import { parseTimeString } from "./ScheduleComponent";
 
 describe("parseTimeString", () => {
   beforeEach(() => {
