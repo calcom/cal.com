@@ -1180,6 +1180,13 @@ export class AvailableSlotsService {
       // In a real scenario, this would involve a more complex lookup or a dedicated guest availability service.
       const guestUser = await this.dependencies.userRepo.findByEmail(guestEmail);
       if (guestUser) {
+        // Check if there are any available hosts before accessing the first one
+        if (allHosts.length === 0) {
+          loggerWithEventDetails.info("All hosts are blocked by watchlist, returning empty slots");
+          return {
+            slots: {},
+          };
+        }
         // We will only check the availability of the first host for simplicity in this bounty.
         // In a real scenario, we would need to check against all hosts in a collective/round-robin event.
         const hostUser = allHosts[0].user;
