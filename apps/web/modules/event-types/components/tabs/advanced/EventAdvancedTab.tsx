@@ -42,7 +42,7 @@ import {
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
-import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -562,12 +562,7 @@ export const EventAdvancedTab = ({
     }
   );
 
-  const userTimeZone = extractHostTimezone({
-    userId: eventType.userId,
-    teamId: eventType.teamId,
-    owner: eventType.owner,
-    team: eventType.team,
-  });
+  const userTimeZone = eventType.owner?.timeZone ?? user?.timeZone ?? dayjs.tz.guess();
 
   let verifiedSecondaryEmails = [
     {
