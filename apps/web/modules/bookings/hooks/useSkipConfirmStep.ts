@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { BookerState } from "@calcom/features/bookings/Booker/types";
 
-const useSkipConfirmStep = (
+export const useSkipConfirmStep = (
   bookingForm: UseBookingFormReturnType["bookingForm"],
   bookerState: BookerState,
   isInstantMeeting: boolean,
@@ -45,5 +45,3 @@ const useSkipConfirmStep = (
 
   return canSkip;
 };
-
-export default useSkipConfirmStep;
