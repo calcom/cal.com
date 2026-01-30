@@ -50,7 +50,7 @@ export const DisconnectIntegrationComponent = ({
         </DialogTrigger>
 
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("remove_app")}</DialogTitle>
             <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
           </DialogHeader>

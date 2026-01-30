@@ -43,20 +43,23 @@ interface IMeetingNotesDialog {
   notes: string;
   setNotes: Dispatch<SetStateAction<string>>;
   handleMeetingNoteSave: () => void;
+  hideTrigger?: boolean;
 }
 
 export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
   const { t } = useLocale();
 
-  const { isOpenDialog, setIsOpenDialog, notes, setNotes, handleMeetingNoteSave } = props;
+  const { isOpenDialog, setIsOpenDialog, notes, setNotes, handleMeetingNoteSave, hideTrigger } = props;
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogTrigger>
-        <Button className="min-w-40 justify-center" color="secondary">
-          {t("meeting_notes")}
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger>
+          <Button className="min-w-40 justify-center" color="secondary">
+            {t("meeting_notes")}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-default font-medium">{t("meeting_notes")}</DialogTitle>
@@ -65,7 +68,9 @@ export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
         <Tiptap onChange={(e) => setNotes(e)} content={notes} />
         <DialogFooter>
           <DialogClose />
-          <Button onClick={handleMeetingNoteSave}>{t("save")}</Button>
+          <Button StartIcon="check" onClick={handleMeetingNoteSave}>
+            {t("save")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

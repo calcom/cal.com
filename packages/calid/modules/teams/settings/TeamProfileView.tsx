@@ -296,7 +296,7 @@ function TeamProfileForm({
             </DialogTrigger>
 
             <DialogContent>
-              <DialogHeader showIcon variant="warning">
+              <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
                 <DialogTitle>{t("team_profile_disband_team")}</DialogTitle>
                 <DialogDescription>{t("team_profile_disband_team_confirmation_message")}</DialogDescription>
               </DialogHeader>
@@ -328,7 +328,7 @@ function TeamProfileForm({
             </DialogTrigger>
 
             <DialogContent>
-              <DialogHeader>
+              <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
                 <DialogTitle>{t("team_profile_leave_team")}</DialogTitle>
                 <DialogDescription>{t("team_profile_leave_team_confirmation_message")}</DialogDescription>
               </DialogHeader>

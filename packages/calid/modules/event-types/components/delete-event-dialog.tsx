@@ -36,7 +36,7 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
-        <DialogHeader showIcon variant="warning">
+        <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
           <DialogTitle>
             {schedulingType === SchedulingType.MANAGED
               ? t("delete_managed_event_type")

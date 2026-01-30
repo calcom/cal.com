@@ -4,9 +4,6 @@ when building atoms package this will automatically replace the DialogPrimitives
 ensuring that we don't have issues with atoms.
 */
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import * as DialogPrimitives from "@radix-ui/react-dialog-atoms";
 import * as React from "react";
 

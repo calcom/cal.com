@@ -1,7 +1,4 @@
 "use client";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { CustomImageUploader } from "@calid/features/ui/components/uploader";
-
 
 import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -29,6 +26,7 @@ import {
 } from "@calid/features/ui/components/input/phone-number-field";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
@@ -443,7 +441,7 @@ const ProfileView = ({ user }: Props) => {
 
       <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
         <DialogContent>
-          <DialogHeader showIcon variant="success">
+          <DialogHeader showIcon iconName="check" iconVariant="success">
             <DialogTitle>{t("create_account_password")}</DialogTitle>
             <DialogDescription>{t("create_account_password_hint")}</DialogDescription>
           </DialogHeader>
@@ -455,7 +453,7 @@ const ProfileView = ({ user }: Props) => {
 
       <Dialog open={showAccountDisconnectWarning} onOpenChange={setShowAccountDisconnectWarning}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("disconnect_account")}</DialogTitle>
             <DialogDescription>{t("disconnect_account_hint")}</DialogDescription>
           </DialogHeader>

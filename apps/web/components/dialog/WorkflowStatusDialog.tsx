@@ -1,8 +1,6 @@
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogDescription,
@@ -25,7 +23,6 @@ interface WorkflowStatusDialogProps {
   isMultiSeat: boolean;
 }
 
-// Helper function to get status badge variant
 const getStatusVariant = (status: string): "default" | "success" | "orange" | "red" | "gray" | "purple" => {
   switch (status) {
     case "SENT":
@@ -45,7 +42,6 @@ const getStatusVariant = (status: string): "default" | "success" | "orange" | "r
   }
 };
 
-// Helper function to get channel icon
 const getChannelIcon = (channel: string): IconName => {
   switch (channel) {
     case "EMAIL":
@@ -59,13 +55,6 @@ const getChannelIcon = (channel: string): IconName => {
   }
 };
 
-/**
- * WorkflowStatusDialog Component
- *
- * Displays workflow automation status for bookings.
- * For single-seat bookings: Shows workflow status directly
- * For multi-seat bookings: Shows attendee selection first, then workflow status
- */
 export const WorkflowStatusDialog = ({
   isOpenDialog,
   setIsOpenDialog,
@@ -76,10 +65,8 @@ export const WorkflowStatusDialog = ({
   const [selectedAttendee, setSelectedAttendee] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Check if we need search (more than 10 seats)
   const shouldShowSearch = isMultiSeat && workflowInsights.length > 10;
 
-  // Filter attendees based on search query
   const filteredAttendees = useMemo(() => {
     if (!searchQuery.trim() || !isMultiSeat) return workflowInsights;
 
@@ -88,7 +75,6 @@ export const WorkflowStatusDialog = ({
     );
   }, [workflowInsights, searchQuery, isMultiSeat]);
 
-  // Reset state when dialog closes
   const handleDialogChange = (open: boolean) => {
     setIsOpenDialog(open);
     if (!open) {
@@ -97,17 +83,14 @@ export const WorkflowStatusDialog = ({
     }
   };
 
-  // For single-seat bookings, get the workflow data directly
   const singleSeatWorkflows = !isMultiSeat ? workflowInsights : null;
 
-  // For multi-seat bookings, get the selected attendee's workflows
   const selectedAttendeeWorkflows = useMemo(() => {
     if (!isMultiSeat || selectedAttendee === null) return null;
     const attendee = workflowInsights.find((insight) => insight.attendeeId === selectedAttendee);
     return attendee?.workflows || null;
   }, [isMultiSeat, selectedAttendee, workflowInsights]);
 
-  // Render workflow details (used for both single-seat and selected attendee)
   const renderWorkflowDetails = (workflows: any[], attendeeEmail?: string) => (
     <div className="space-y-3">
       {attendeeEmail && (
@@ -168,10 +151,8 @@ export const WorkflowStatusDialog = ({
     </div>
   );
 
-  // Render attendee selection list for multi-seat bookings
   const renderAttendeeSelection = () => (
     <div>
-      {/* Search field - only show if more than 10 seats */}
       {shouldShowSearch && (
         <div className="mb-4">
           <div className="relative">
@@ -190,10 +171,9 @@ export const WorkflowStatusDialog = ({
         </div>
       )}
 
-      {/* Attendee list */}
       {filteredAttendees.length === 0 ? (
         <div className="py-8 text-center text-sm text-gray-500">
-          No attendees found matching "{searchQuery}"
+          No attendees found matching &quot;{searchQuery}&quot;
         </div>
       ) : (
         <ScrollArea className={shouldShowSearch ? "h-[400px] pr-3" : "max-h-[400px] pr-3"}>
@@ -231,7 +211,7 @@ export const WorkflowStatusDialog = ({
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleDialogChange}>
-      <DialogContent enableOverflow>
+      <DialogContent enableOverflow showCloseButton={true}>
         <DialogHeader>
           <DialogTitle>{t("workflow_reminders")}</DialogTitle>
           <DialogDescription>
@@ -242,10 +222,8 @@ export const WorkflowStatusDialog = ({
         </DialogHeader>
 
         <div>
-          {/* Single-seat: Show workflows directly */}
           {!isMultiSeat && singleSeatWorkflows && renderWorkflowDetails(singleSeatWorkflows)}
 
-          {/* Multi-seat: Show attendee selection or selected attendee's workflows */}
           {isMultiSeat && (
             <>
               {selectedAttendee === null ? (
@@ -262,10 +240,6 @@ export const WorkflowStatusDialog = ({
             </>
           )}
         </div>
-
-        <DialogFooter>
-          <DialogClose className="border">Close</DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
