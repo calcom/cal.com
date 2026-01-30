@@ -103,7 +103,10 @@ export const useEventTypeForm = ({
       minimumBookingNotice: eventType.minimumBookingNotice,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
-      metadata: eventType.metadata,
+      metadata: {
+        ...(eventType.metadata ?? {}),
+        soBusy: eventType.metadata?.soBusy ?? false,
+      },
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,

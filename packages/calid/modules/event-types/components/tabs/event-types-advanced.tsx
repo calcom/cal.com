@@ -1738,6 +1738,28 @@ export const EventAdvanced = ({
         </>
       )}
 
+      <Controller
+        name="metadata.soBusy"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("so_busy_title")}
+            description={t("so_busy_description")}
+            checked={!!value}
+            onCheckedChange={onChange}
+            fieldPermissions={fieldPermissions}
+            fieldName="metadata.soBusy"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="metadata.soBusy"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }
+          />
+        )}
+      />
+
       {/* Event Name Customization Modal */}
       {showEventNameTip && (
         <CustomEventNameModal
