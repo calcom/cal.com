@@ -369,7 +369,9 @@ class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
-    const calendarSelectParams = "$select=showAs,start,end";
+    // Request maximum page size (999) to minimize pagination rounds
+    // Microsoft Graph allows up to 999 items per page for calendarView
+    const calendarSelectParams = "$select=showAs,start,end&$top=999";
 
     try {
       const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
