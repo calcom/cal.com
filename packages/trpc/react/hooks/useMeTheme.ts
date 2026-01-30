@@ -7,8 +7,9 @@ import { trpc } from "../trpc";
  */
 export function useMeTheme() {
   return trpc.viewer.me.theme.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes - theme data doesn't change frequently
     retry(failureCount) {
-      return failureCount > 3;
+      return failureCount < 3;
     },
   });
 }

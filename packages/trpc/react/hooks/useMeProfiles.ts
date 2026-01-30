@@ -7,8 +7,9 @@ import { trpc } from "../trpc";
  */
 export function useMeProfiles() {
   return trpc.viewer.me.profiles.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes - profiles data doesn't change frequently
     retry(failureCount) {
-      return failureCount > 3;
+      return failureCount < 3;
     },
   });
 }

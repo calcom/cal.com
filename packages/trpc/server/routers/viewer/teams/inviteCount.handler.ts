@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type InviteCountOptions = {
@@ -10,12 +10,7 @@ type InviteCountOptions = {
 export const inviteCountHandler = async ({ ctx }: InviteCountOptions) => {
   const userId = ctx.user.id;
 
-  const count = await prisma.membership.count({
-    where: {
-      userId,
-      accepted: false,
-    },
-  });
+  const count = await MembershipRepository.countPendingInvitesByUserId({ userId });
 
   return { count };
 };

@@ -1,12 +1,12 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
+import { PlatformBillingRepository } from "@calcom/features/ee/organizations/repositories/PlatformBillingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TBillingStatusInputSchema } from "./billingStatus.schema";
 
 type BillingStatusOptions = {
@@ -59,13 +59,12 @@ export const billingStatusHandler = async ({ ctx, input }: BillingStatusOptions)
 
   let isTrial = false;
 
+  const platformBillingRepository = new PlatformBillingRepository(prisma);
+
   // Check if user has at least one membership with an active plan
   for (const team of teams) {
     if (team.isPlatform && team.isOrganization) {
-      const platformBilling = await prisma.platformBilling.findUnique({
-        where: { id: team.id },
-        select: { plan: true },
-      });
+      const platformBilling = await platformBillingRepository.findPlanByTeamId(team.id);
       if (platformBilling && platformBilling.plan !== "none" && platformBilling.plan !== "FREE") {
         return {
           hasTeamPlan: !!hasTeamPlan,

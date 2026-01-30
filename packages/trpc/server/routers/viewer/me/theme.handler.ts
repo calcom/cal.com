@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -10,14 +11,8 @@ type ThemeOptions = {
 export const themeHandler = async ({ ctx }: ThemeOptions) => {
   const { user: sessionUser } = ctx;
 
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: sessionUser.id },
-    select: {
-      brandColor: true,
-      darkBrandColor: true,
-      appTheme: true,
-    },
-  });
+  const userRepository = new UserRepository(prisma);
+  const user = await userRepository.findThemeByUserId({ userId: sessionUser.id });
 
   return {
     brandColor: user.brandColor,

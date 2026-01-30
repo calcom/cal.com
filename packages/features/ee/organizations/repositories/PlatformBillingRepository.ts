@@ -13,4 +13,20 @@ export class PlatformBillingRepository {
       },
     });
   }
+
+  /**
+   * Finds the billing plan for a team
+   * @param teamId - The team ID
+   * @returns The plan or null if not found
+   */
+  async findPlanByTeamId(teamId: number) {
+    return this.prismaClient.platformBilling.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        plan: true,
+      },
+    });
+  }
 }

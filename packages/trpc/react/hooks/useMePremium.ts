@@ -7,8 +7,9 @@ import { trpc } from "../trpc";
  */
 export function useMePremium() {
   return trpc.viewer.me.premium.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes - premium status doesn't change frequently
     retry(failureCount) {
-      return failureCount > 3;
+      return failureCount < 3;
     },
   });
 }
