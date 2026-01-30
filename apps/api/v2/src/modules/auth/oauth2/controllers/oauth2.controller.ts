@@ -112,6 +112,8 @@ export class OAuth2Controller {
 
   @Post("/clients/:clientId/exchange")
   @HttpCode(HttpStatus.OK)
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
   @ApiOperation({
     summary: "Exchange authorization code for tokens (legacy)",
     description:
@@ -140,6 +142,8 @@ export class OAuth2Controller {
 
   @Post("/clients/:clientId/refresh")
   @HttpCode(HttpStatus.OK)
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
   @ApiOperation({
     summary: "Refresh access token (legacy)",
     description: "Refreshes an access token using a refresh token. Use POST /token for RFC 6749 compliance.",

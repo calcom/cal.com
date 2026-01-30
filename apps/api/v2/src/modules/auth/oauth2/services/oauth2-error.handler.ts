@@ -54,6 +54,9 @@ export class OAuth2ErrorHandler {
   handleClientError(err: unknown, fallbackMessage: string): never {
     if (err instanceof ErrorWithCode) {
       const statusCode = getHttpStatusCode(err);
+      if (statusCode >= 500) {
+        this.logger.error(err);
+      }
       throw new HttpException(err.message, statusCode);
     }
     this.logger.error(err);
