@@ -22,7 +22,7 @@ import {
   useEvent,
   useScheduleForEvent,
 } from "@calcom/features/bookings/Booker/utils/event";
-import DatePicker from "@calcom/features/calendars/DatePicker";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
