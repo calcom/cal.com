@@ -112,7 +112,8 @@ export class OAuth2Controller {
   @ApiOperation({
     summary: "Exchange authorization code or refresh token for tokens",
     description:
-      "OAuth2 token endpoint. Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token.",
+      "OAuth2 token endpoint (RFC 6749). Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token. " +
+      "Accepts both application/x-www-form-urlencoded (standard per RFC 6749 Section 4.1.3) and application/json content types.",
   })
   @ApiBody({
     schema: {
@@ -124,7 +125,8 @@ export class OAuth2Controller {
       ],
     },
     description:
-      "Token request body. Use grant_type 'authorization_code' with client_secret (confidential) or code_verifier (public/PKCE), or grant_type 'refresh_token' with client_secret (confidential) or just the refresh_token (public).",
+      "Token request body. Accepts application/x-www-form-urlencoded (RFC 6749 standard) or application/json. " +
+      "Use grant_type 'authorization_code' with client_secret (confidential) or code_verifier (public/PKCE), or grant_type 'refresh_token' with client_secret (confidential) or just the refresh_token (public).",
   })
   @ApiExtraModels(
     OAuth2ExchangeConfidentialInput,

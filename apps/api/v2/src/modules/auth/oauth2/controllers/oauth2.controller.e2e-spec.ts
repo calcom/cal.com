@@ -295,6 +295,36 @@ describe("OAuth2 Controller Endpoints", () => {
           .expect(401);
       });
 
+      it("should exchange authorization code for tokens with form-urlencoded body", async () => {
+        const authResponse = await request(app.getHttpServer())
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .send({
+            redirect_uri: testRedirectUri,
+            scopes: [AccessScope.READ_BOOKING],
+            team_slug: team.slug,
+          })
+          .expect(303);
+
+        const redirectUrl = new URL(authResponse.headers.location);
+        const code = redirectUrl.searchParams.get("code") as string;
+
+        const response = await request(app.getHttpServer())
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
+          .type("form")
+          .send({
+            grant_type: "authorization_code",
+            code,
+            client_secret: testClientSecret,
+            redirect_uri: testRedirectUri,
+          })
+          .expect(200);
+
+        expect(response.body.status).toBe("success");
+        expect(response.body.data.access_token).toBeDefined();
+        expect(response.body.data.refresh_token).toBeDefined();
+        expect(response.body.data.token_type).toBe("bearer");
+      });
+
       it("should return 400 for invalid grant type", async () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
