@@ -105,14 +105,25 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       const primaryCalendar = await primaryCalendarResponse.json();
 
       if (primaryCalendar.data.calendars.calendar.calendar_id && req.session?.user?.id) {
-        await prisma.selectedCalendar.create({
-          data: {
-            userId: req.session?.user.id,
-            integration: "lark_calendar",
+        // Check if this calendar is already connected to prevent duplicates
+        const existingCalendar = await prisma.selectedCalendar.findFirst({
+          where: {
+            userId: req.session.user.id,
             externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
-            credentialId: currentCredential?.id,
+            integration: "lark_calendar",
           },
         });
+
+        if (!existingCalendar) {
+          await prisma.selectedCalendar.create({
+            data: {
+              userId: req.session?.user.id,
+              integration: "lark_calendar",
+              externalId: primaryCalendar.data.calendars.calendar.calendar_id as string,
+              credentialId: currentCredential?.id,
+            },
+          });
+        }
       }
     }
 
