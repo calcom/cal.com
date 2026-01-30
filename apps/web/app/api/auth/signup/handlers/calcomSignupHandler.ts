@@ -1,11 +1,15 @@
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -17,21 +21,13 @@ import logger from "@calcom/lib/logger";
 import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
-import { getTrackingFromCookies } from "@calcom/lib/tracking";
+import { getStripeTrackingMetadata, getTrackingFromCookies } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
-
-import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
-import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
-
-import {
-  findTokenByToken,
-  throwIfTokenExpired,
-  validateAndGetCorrectedUsernameForTeam,
-} from "@calcom/features/auth/signup/utils/token";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
@@ -129,14 +125,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
       username,
-      ...(tracking.googleAds?.gclid && {
-        gclid: tracking.googleAds.gclid,
-        campaignId: tracking.googleAds.campaignId,
-      }),
-      ...(tracking.linkedInAds?.liFatId && {
-        liFatId: tracking.linkedInAds.liFatId,
-        linkedInCampaignId: tracking.linkedInAds.campaignId,
-      }),
+      ...getStripeTrackingMetadata(tracking),
     },
   });
 

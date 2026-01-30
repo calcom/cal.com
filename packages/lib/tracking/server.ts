@@ -22,13 +22,39 @@ export type LinkedInAdsTrackingData = {
   campaignId?: string;
 };
 
+export type XAdsTrackingData = {
+  twclid: string;
+  campaignId?: string;
+};
+
 export type UtmTrackingData = z.infer<typeof utmTrackingDataSchema>;
 
 export type TrackingData = {
   googleAds?: GoogleAdsTrackingData;
   linkedInAds?: LinkedInAdsTrackingData;
+  xAds?: XAdsTrackingData;
   utmData?: UtmTrackingData;
 };
+
+export function getStripeTrackingMetadata(tracking?: TrackingData): Record<string, string | undefined> {
+  if (!tracking) return {};
+
+  return {
+    ...(tracking.googleAds?.gclid && {
+      gclid: tracking.googleAds.gclid,
+      campaignId: tracking.googleAds.campaignId,
+    }),
+    ...(tracking.linkedInAds?.liFatId && {
+      liFatId: tracking.linkedInAds.liFatId,
+      linkedInCampaignId: tracking.linkedInAds.campaignId,
+    }),
+    ...(tracking.xAds?.twclid && {
+      twclid: tracking.xAds.twclid,
+      xCampaignId: tracking.xAds.campaignId,
+    }),
+    ...(tracking.utmData && tracking.utmData),
+  };
+}
 
 export function getTrackingFromCookies(
   cookies?: NextApiRequest["cookies"],
@@ -47,6 +73,13 @@ export function getTrackingFromCookies(
     tracking.linkedInAds = {
       liFatId: cookies.li_fat_id,
       ...(cookies.li_campaignId && { campaignId: cookies.li_campaignId }),
+    };
+  }
+
+  if (process.env.X_ADS_ENABLED === "1" && cookies?.twclid) {
+    tracking.xAds = {
+      twclid: cookies.twclid,
+      ...(cookies.x_campaignId && { campaignId: cookies.x_campaignId }),
     };
   }
 

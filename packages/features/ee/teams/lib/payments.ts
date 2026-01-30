@@ -1,22 +1,20 @@
-import type Stripe from "stripe";
-import { z } from "zod";
-
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
-import stripe from "@calcom/features/ee/payments/server/stripe";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
+  ORG_TRIAL_DAYS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
-  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getStripeTrackingMetadata, type TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
-import { BillingPeriod } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { TrackingData } from "@calcom/lib/tracking";
+import { BillingPeriod, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type Stripe from "stripe";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
@@ -68,15 +66,15 @@ export const generateTeamCheckoutSession = async ({
     mode: "subscription",
     ...(dubCustomer?.discount?.couponId
       ? {
-        discounts: [
-          {
-            coupon:
-              process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                ? dubCustomer.discount.couponTestId
-                : dubCustomer.discount.couponId,
-          },
-        ],
-      }
+          discounts: [
+            {
+              coupon:
+                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                  ? dubCustomer.discount.couponTestId
+                  : dubCustomer.discount.couponId,
+            },
+          ],
+        }
       : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
@@ -108,8 +106,7 @@ export const generateTeamCheckoutSession = async ({
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...getStripeTrackingMetadata(tracking),
     },
   });
   return session;
@@ -160,10 +157,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (
-      isOrg &&
-      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE
-    ) {
+    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
@@ -201,8 +195,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...getStripeTrackingMetadata(tracking),
     },
     subscription_data: {
       metadata: {
