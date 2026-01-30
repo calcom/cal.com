@@ -17,7 +17,7 @@ CREATE TABLE "public"."WrongAssignmentReport" (
 );
 
 -- CreateIndex
-CREATE INDEX "WrongAssignmentReport_bookingUid_idx" ON "public"."WrongAssignmentReport"("bookingUid");
+CREATE UNIQUE INDEX "WrongAssignmentReport_bookingUid_key" ON "public"."WrongAssignmentReport"("bookingUid");
 
 -- CreateIndex
 CREATE INDEX "WrongAssignmentReport_reportedById_idx" ON "public"."WrongAssignmentReport"("reportedById");

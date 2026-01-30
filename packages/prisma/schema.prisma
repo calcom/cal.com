@@ -2562,7 +2562,7 @@ enum WrongAssignmentReportStatus {
 
 model WrongAssignmentReport {
   id              String                      @id @default(uuid()) @db.Uuid
-  bookingUid      String
+  bookingUid      String                      @unique
   booking         Booking                     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   reportedById    Int
   reportedBy      User                        @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
@@ -2573,7 +2573,6 @@ model WrongAssignmentReport {
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
 
-  @@index([bookingUid])
   @@index([reportedById])
   @@index([teamId])
   @@index([status])
