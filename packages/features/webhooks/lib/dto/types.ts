@@ -1,7 +1,7 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
 
 export interface BaseEventDTO {
@@ -566,9 +566,18 @@ export type DelegationCredentialErrorPayloadType = {
   };
 };
 
-export type EventPayloadType = Omit<CalendarEvent, "assignmentReason" | "metadata"> &
+export type EventPayloadType = Omit<
+  CalendarEvent,
+  "assignmentReason" | "metadata" | "conferenceData" | "organizer"
+> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
+    conferenceData: ConferenceData | null;
+    /** Organizer with usernameInOrg/utcOffset always present (string or null for JSON parity). */
+    organizer?: Omit<Person, "usernameInOrg"> & {
+      usernameInOrg: string | null;
+      utcOffset: number | null;
+    };
     metadata?: Record<string, unknown>;
     bookingId?: number;
     status?: string;

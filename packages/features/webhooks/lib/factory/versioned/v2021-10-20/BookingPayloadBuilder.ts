@@ -19,9 +19,7 @@ const SYSTEM_FIELD_DEFAULT_LABELS: Record<string, string> = {
  * Normalize responses so system fields use default labels when label equals field name.
  * getCalEventResponses uses field name as label when bookingFields is missing; E2E expects default labels.
  */
-function normalizeResponses(
-  responses: CalEventResponses | null | undefined
-): CalEventResponses | undefined {
+function normalizeResponses(responses: CalEventResponses | null | undefined): CalEventResponses | undefined {
   if (!responses || typeof responses !== "object") return undefined;
   const out: CalEventResponses = {};
   for (const [name, entry] of Object.entries(responses)) {
@@ -180,10 +178,10 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
     params: BookingPayloadParams<T>
   ): WebhookPayload {
     const utcOffsetOrganizer = getUTCOffsetByTimezone(params.evt.organizer?.timeZone, params.evt.startTime);
+    // Use null when missing so keys are always present in JSON (undefined is omitted by JSON.stringify)
     const organizer = {
       ...params.evt.organizer,
       utcOffset: utcOffsetOrganizer,
-      // Use null when missing so the key is always present in JSON (undefined is omitted by JSON.stringify)
       usernameInOrg: params.evt.organizer?.usernameInOrg ?? null,
     };
 
@@ -192,7 +190,10 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         const utcOffset = getUTCOffsetByTimezone(a.timeZone, params.evt.startTime);
         const nameParts =
           "firstName" in a && "lastName" in a
-            ? { firstName: (a as { firstName?: string }).firstName ?? "", lastName: (a as { lastName?: string }).lastName ?? "" }
+            ? {
+                firstName: (a as { firstName?: string }).firstName ?? "",
+                lastName: (a as { lastName?: string }).lastName ?? "",
+              }
             : nameToFirstAndLast(a.name ?? "");
         return {
           ...a,
