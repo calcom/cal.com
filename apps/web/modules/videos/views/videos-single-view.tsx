@@ -19,7 +19,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronRightIcon } from "@coss/ui/icons";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
@@ -621,9 +621,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
-            <Icon
-              name="chevron-right"
-              aria-hidden
+            <ChevronRightIcon
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />
           </button>
