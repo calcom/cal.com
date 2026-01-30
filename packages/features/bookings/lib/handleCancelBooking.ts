@@ -383,18 +383,40 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     schedulingType: bookingToDelete.eventType?.schedulingType,
   };
 
-  const dataForWebhooks = { evt, webhooks: [], eventTypeInfo: {} };
-
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
     {
       seatReferenceUid: seatReferenceUid,
       bookingToDelete,
     },
-    dataForWebhooks,
+    { evt },
     bookingToDelete?.eventType?.metadata as EventTypeMetadata
   );
-  if (result)
+  if (result) {
+    // Queue BOOKING_CANCELLED webhook for seat cancellation via producer
+    try {
+      await webhookProducer.queueBookingCancelledWebhook({
+        bookingUid: bookingToDelete.uid,
+        userId: organizerUserId ?? undefined,
+        eventTypeId: bookingToDelete.eventTypeId ?? undefined,
+        teamId,
+        orgId,
+        oAuthClientId: platformClientId,
+        cancelledBy: cancelledBy ?? undefined,
+        cancellationReason: cancellationReason ?? undefined,
+        requestReschedule: false,
+        platformRescheduleUrl,
+        platformCancelUrl,
+        platformBookingUrl,
+        platformClientId,
+      });
+    } catch (webhookError) {
+      logger.error(
+        `Error queueing ${eventTrigger} webhook for seat cancellation: bookingId: ${bookingToDelete.id}, bookingUid: ${bookingToDelete.uid}`,
+        safeStringify(webhookError)
+      );
+    }
+
     return {
       success: true,
       onlyRemovedAttendee: true,
@@ -402,6 +424,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       bookingUid: bookingToDelete.uid,
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
+  }
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
