@@ -2540,13 +2540,13 @@ async function handler(
     // Queue BOOKING_PAYMENT_INITIATED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        await this.deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
+        await deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
           bookingUid: booking.uid,
           userId: triggerForUser ? organizerUser.id : undefined,
           eventTypeId,
           orgId,
           teamId: teamId ?? undefined,
-          oAuthClientId: oAuthClientId ?? undefined,
+          oAuthClientId: platformClientId ?? undefined,
           paymentId: payment?.id,
         });
       } catch (webhookError) {
@@ -2712,7 +2712,7 @@ async function handler(
           eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
           originalRescheduledBookingForWebhook
         ) {
-          await this.deps.webhookProducer.queueBookingRescheduledWebhook({
+          await deps.webhookProducer.queueBookingRescheduledWebhook({
             ...queueParams,
             // Reschedule-specific fields from original booking (rescheduledBy read from booking in consumer)
             rescheduleId: originalRescheduledBookingForWebhook.id,
@@ -2725,7 +2725,7 @@ async function handler(
             platformBookingUrl: platformBookingUrl ?? undefined,
           });
         } else {
-          await this.deps.webhookProducer.queueBookingCreatedWebhook({
+          await deps.webhookProducer.queueBookingCreatedWebhook({
             ...queueParams,
             metadata: { ...metadata, ...reqBody.metadata },
             platformRescheduleUrl: platformRescheduleUrl ?? undefined,
@@ -2745,7 +2745,7 @@ async function handler(
     // if eventType requires confirmation, queue BOOKING_REQUESTED webhook via injected producer
     if (!isDryRun && booking) {
       try {
-        await this.deps.webhookProducer.queueBookingRequestedWebhook({
+        await deps.webhookProducer.queueBookingRequestedWebhook({
           bookingUid: booking.uid,
           userId: subscriberOptions.userId ?? undefined,
           eventTypeId: subscriberOptions.eventTypeId ?? undefined,
