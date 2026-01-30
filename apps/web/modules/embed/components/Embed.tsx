@@ -49,7 +49,7 @@ import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, SunIcon } from "@coss/ui/icons";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -212,7 +212,7 @@ const ThemeSelectControl = ({
 }: ControlProps<{ value: EmbedTheme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
+      <SunIcon className="text-subtle mr-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -1050,7 +1050,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             id="modal-title"
           >
             <button className="h-6 w-6" onClick={gotoEmbedTypeSelectionState}>
-              <Icon name="arrow-left" className="mr-4 w-4" />
+              <ArrowLeftIcon className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
