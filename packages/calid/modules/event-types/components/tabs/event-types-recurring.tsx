@@ -13,6 +13,7 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getFrequencyText, getCountText } from "@calcom/lib/recurringStrings";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent as RecurringEventType } from "@calcom/types/Calendar";
@@ -65,75 +66,15 @@ const RecurringEventPreview: React.FC<{
 }> = ({ recurringEvent, customClassName }) => {
   const { t } = useLocale();
 
-  // Generate human-readable description
   const getHumanReadableDescription = () => {
     const { freq, interval, count } = recurringEvent;
 
-    // Helper to get ordinal suffix
-    const getOrdinal = (n: number) => {
-      const s = ["th", "st", "nd", "rd"];
-      const v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    };
+    // Get frequency text using shared helper
+    const frequencyText = getFrequencyText(freq, interval || 1);
 
-    // Frequency mapping
-    let frequencyText = "";
-    const intervalText = "";
+    // Get count text using shared helper
+    const countText = count ? getCountText(count) : "";
 
-    if (interval === 1) {
-      // Simple cases: every day, every week, every month, every year
-      switch (freq) {
-        case Frequency.DAILY:
-          frequencyText = "every day";
-          break;
-        case Frequency.WEEKLY:
-          frequencyText = "every week";
-          break;
-        case Frequency.MONTHLY:
-          frequencyText = "every month";
-          break;
-        case Frequency.YEARLY:
-          frequencyText = "every year";
-          break;
-      }
-    } else {
-      // Complex cases with intervals
-      switch (freq) {
-        case Frequency.DAILY:
-          if (interval === 2) {
-            frequencyText = "every other day";
-          } else {
-            frequencyText = `every ${getOrdinal(interval)} day`;
-          }
-          break;
-        case Frequency.WEEKLY:
-          if (interval === 2) {
-            frequencyText = "every other week";
-          } else {
-            frequencyText = `every ${interval} weeks`;
-          }
-          break;
-        case Frequency.MONTHLY:
-          if (interval === 2) {
-            frequencyText = "every other month";
-          } else {
-            frequencyText = `every ${interval} months`;
-          }
-          break;
-        case Frequency.YEARLY:
-          if (interval === 2) {
-            frequencyText = "every other year";
-          } else {
-            frequencyText = `every ${interval} years`;
-          }
-          break;
-      }
-    }
-
-    // Count text
-    const countText = count ? `for ${count} ${count === 1 ? "event" : "events"}` : "";
-
-    // Combine the parts
     return `Repeats ${frequencyText} ${countText}`.trim();
   };
 
@@ -279,11 +220,11 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({
           />
         ) : (
           <>
-            <Alert
+            {/* <Alert
               className={classNames("mb-4", customClassNames?.experimentalAlert)}
               severity="warning"
               title="Experimental Feature: Recurring Events are currently in beta. Please contact support if you encounter any issues."
-            />
+            /> */}
 
             <div className={recurringEventState && showPreview ? "space-y-4" : ""}>
               {/* Main Configuration Section */}

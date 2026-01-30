@@ -9,7 +9,7 @@ import { parseZone } from "./parse-zone";
 
 type ExtraOptions = { withDefaultTimeFormat?: boolean; selectedTimeFormat?: TimeFormat };
 
-const processDate = (
+export const processDate = (
   date: string | null | Dayjs,
   language: string,
   timeZone: string,
