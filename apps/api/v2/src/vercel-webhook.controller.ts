@@ -27,8 +27,25 @@ export class VercelWebhookController {
   @Post("deployment-promoted")
   @UseGuards(VercelWebhookGuard)
   @HttpCode(HttpStatus.OK)
-  async handlePromotion(@Body() payload: VercelWebhookPayload): Promise<{ status: string; version: string }> {
+  async handlePromotion(
+    @Body() rawBody: Buffer | VercelWebhookPayload
+  ): Promise<{ status: string; version: string }> {
+    // RawBodyMiddleware provides a Buffer, need to parse it
+    // In test environment, body may already be parsed as object
+    let payload: VercelWebhookPayload;
+    if (Buffer.isBuffer(rawBody)) {
+      try {
+        payload = JSON.parse(rawBody.toString("utf-8")) as VercelWebhookPayload;
+      } catch {
+        this.logger.error("Failed to parse webhook payload as JSON");
+        return { status: "error", version: "" };
+      }
+    } else {
+      payload = rawBody;
+    }
+
     if (payload.type !== "deployment.promoted") {
+      this.logger.log(`Ignoring webhook event type: ${payload.type}`);
       return { status: "ignored", version: "" };
     }
 
@@ -75,6 +92,12 @@ export class VercelWebhookController {
         if (error instanceof Error) {
           errorMessage = error.message;
         }
+
+        if (errorMessage.includes("Deployment is already the current deployment")) {
+          this.logger.log(`Deployment ${version} is already the current deployment, skipping retry`);
+          return;
+        }
+
         this.logger.error(`Promotion attempt ${attempt} failed: ${errorMessage}`);
         if (attempt === maxRetries) throw error;
 

@@ -300,17 +300,18 @@ model EventType {
 }
 
 model Credential {
-  id     Int     @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   // @@type is deprecated
-  type   String
-  key    Json
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId Int?
-  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  type         String
+  key          Json
+  encryptedKey String?
+  user         User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int?
+  team         Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       Int?
+  app          App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId  String?
+  appId        String?
 
   // paid apps
   subscriptionId    String?
@@ -1052,6 +1053,7 @@ model SelectedCalendar {
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  @@index([channelId])
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
@@ -2789,8 +2791,7 @@ enum BookingAuditAction {
   LOCATION_CHANGED @map("location_changed")
 
   // No-show tracking
-  HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")
-  ATTENDEE_NO_SHOW_UPDATED @map("attendee_no_show_updated")
+  NO_SHOW_UPDATED @map("no_show_updated")
 
   // Rescheduling
   RESCHEDULE_REQUESTED @map("reschedule_requested")
@@ -2805,6 +2806,7 @@ enum BookingAuditSource {
   API_V2     @map("api_v2")
   WEBAPP     @map("webapp")
   WEBHOOK    @map("webhook")
+  SYSTEM     @map("system")
   MAGIC_LINK @map("magic_link")
   UNKNOWN    @map("unknown")
 }

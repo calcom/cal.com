@@ -6,7 +6,7 @@ import type {
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
-import { Segment } from "@calcom/features/Segment";
+import { Segment } from "@calcom/web/modules/event-types/components/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";

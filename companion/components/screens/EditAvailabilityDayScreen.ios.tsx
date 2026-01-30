@@ -1,13 +1,14 @@
 import { DatePicker, Host } from "@expo/ui/swift-ui";
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { Alert, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, ScrollView, Switch, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import { useUpdateSchedule } from "@/hooks/useSchedules";
 import type { Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
 import { showErrorAlert } from "@/utils/alerts";
+import { getColors } from "@/constants/colors";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -167,7 +168,14 @@ export const EditAvailabilityDayScreen = forwardRef<
   ref
 ) {
   const insets = useSafeAreaInsets();
-  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+  const backgroundColor = transparentBackground
+    ? "transparent"
+    : isDark
+      ? theme.background
+      : theme.backgroundMuted;
 
   // Use mutation hook for cache-synchronized updates
   const { mutate: updateSchedule, isPending: isMutating } = useUpdateSchedule();
@@ -304,15 +312,16 @@ export const EditAvailabilityDayScreen = forwardRef<
 
   if (!schedule) {
     return (
-      <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
-        <Text className="text-[#8E8E93]">No schedule data</Text>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
+        <Text className="text-[#A3A3A3]">No schedule data</Text>
       </View>
     );
   }
 
   return (
     <ScrollView
-      className={`flex-1 ${backgroundStyle}`}
+      className="flex-1"
+      style={{ backgroundColor }}
       contentContainerStyle={{
         padding: 16,
         paddingBottom: insets.bottom + 16,
@@ -322,32 +331,49 @@ export const EditAvailabilityDayScreen = forwardRef<
       {/* Enable/Disable Toggle */}
       <View
         className={`mb-4 flex-row items-center justify-between rounded-xl px-4 py-3.5 ${
-          transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+          transparentBackground
+            ? isDark
+              ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
+              : "border border-gray-300/40 bg-white/60"
+            : isDark
+              ? "bg-[#171717]"
+              : "bg-white"
         }`}
       >
-        <Text className="text-[17px] font-medium text-black">Available on {dayName}</Text>
+        <Text className="text-[17px] font-medium text-black dark:text-white">
+          Available on {dayName}
+        </Text>
         <Switch
           value={isEnabled}
           onValueChange={handleToggle}
-          trackColor={{ false: "#E5E5EA", true: "#000000" }}
-          thumbColor="#fff"
+          trackColor={{
+            false: isDark ? theme.backgroundEmphasis : "#E5E5EA",
+            true: isDark ? "#34C759" : "#000000",
+          }}
+          thumbColor="#FFFFFF"
         />
       </View>
 
       {/* Time Slots */}
       {isEnabled && (
         <>
-          <Text className="mb-2 px-1 text-[13px] font-medium text-[#8E8E93]">Time Slots</Text>
+          <Text className="mb-2 px-1 text-[13px] font-medium text-[#A3A3A3]">Time Slots</Text>
 
           {slots.map((slot, index) => (
             <View
               key={`slot-${slot.startTime}-${slot.endTime}-${index}`}
               className={`mb-3 rounded-xl px-4 py-3 ${
-                transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+                transparentBackground
+                  ? isDark
+                    ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
+                    : "border border-gray-300/40 bg-white/60"
+                  : isDark
+                    ? "bg-[#171717]"
+                    : "bg-white"
               }`}
             >
               <View className="flex-row items-center justify-between">
-                <Text className="text-[15px] font-medium text-[#8E8E93]">Slot {index + 1}</Text>
+                <Text className="text-[15px] font-medium text-[#A3A3A3]">Slot {index + 1}</Text>
                 {slots.length > 1 && (
                   <AppPressable onPress={() => handleRemoveSlot(index)} className="p-1">
                     <Ionicons name="trash-outline" size={20} color="#FF3B30" />
@@ -357,7 +383,7 @@ export const EditAvailabilityDayScreen = forwardRef<
 
               <View className="mt-3 flex-row items-center">
                 <View className="flex-1">
-                  <Text className="mb-1 text-[13px] text-[#8E8E93]">Start</Text>
+                  <Text className="mb-1 text-[13px] text-[#A3A3A3]">Start</Text>
                   <View className="flex-row items-center">
                     <Host matchContents>
                       <DatePicker
@@ -369,10 +395,10 @@ export const EditAvailabilityDayScreen = forwardRef<
                   </View>
                 </View>
 
-                <Text className="mx-3 text-[17px] text-[#8E8E93]">–</Text>
+                <Text className="mx-3 text-[17px] text-[#A3A3A3]">–</Text>
 
                 <View className="flex-1">
-                  <Text className="mb-1 text-[13px] text-[#8E8E93]">End</Text>
+                  <Text className="mb-1 text-[13px] text-[#A3A3A3]">End</Text>
                   <View className="flex-row items-center">
                     <Host matchContents>
                       <DatePicker
@@ -392,8 +418,12 @@ export const EditAvailabilityDayScreen = forwardRef<
             onPress={handleAddSlot}
             className={`flex-row items-center justify-center rounded-xl py-3.5 ${
               transparentBackground
-                ? "border border-dashed border-gray-300/60 bg-white/40"
-                : "border border-dashed border-[#C7C7CC] bg-white"
+                ? isDark
+                  ? "border border-dashed border-[#4D4D4D]/60 bg-[#171717]/60"
+                  : "border border-dashed border-gray-300/60 bg-white/40"
+                : isDark
+                  ? "border border-dashed border-[#4D4D4D] bg-[#171717]"
+                  : "border border-dashed border-[#C7C7CC] bg-white"
             }`}
           >
             <Ionicons name="add-circle" size={20} color="#007AFF" />
@@ -406,11 +436,17 @@ export const EditAvailabilityDayScreen = forwardRef<
       {!isEnabled && (
         <View
           className={`items-center rounded-xl px-4 py-8 ${
-            transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+            transparentBackground
+              ? isDark
+                ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
+                : "border border-gray-300/40 bg-white/60"
+              : isDark
+                ? "bg-[#171717]"
+                : "bg-white"
           }`}
         >
-          <Ionicons name="moon-outline" size={40} color="#8E8E93" />
-          <Text className="mt-3 text-center text-[17px] text-[#8E8E93]">
+          <Ionicons name="moon-outline" size={40} color="#A3A3A3" />
+          <Text className="mt-3 text-center text-[17px] text-[#A3A3A3]">
             You are unavailable on {dayName}
           </Text>
           <Text className="mt-1 text-center text-[15px] text-[#C7C7CC]">
