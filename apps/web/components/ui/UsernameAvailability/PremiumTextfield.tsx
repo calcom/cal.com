@@ -20,6 +20,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, ExternalLinkIcon } from "@coss/ui/icons";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -251,7 +252,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 <></>
               )}
               {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Icon name="check" className="mt-[2px] h-4 w-4" />
+                <CheckIcon className="mt-[2px] h-4 w-4" />
               ) : (
                 <></>
               )}
@@ -307,7 +308,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}
