@@ -20,21 +20,41 @@ export const ACTOR_STRATEGIES: Record<AuditActorType, ActorStrategy> = {
   USER: {
     getRequirements: (actor) => ({ userUuids: actor.userUuid ? [actor.userUuid] : [] }),
     enrich: (actor, dbStore) => {
-      const user = actor.userUuid ? dbStore.getUserByUuid(actor.userUuid) : null;
+      if (!actor.userUuid) {
+        throw new Error("User UUID is required for USER actor");
+      }
+      const user = dbStore.getUserByUuid(actor.userUuid);
+      if (user) {
+        return {
+          displayName: user.name || user.email,
+          displayEmail: user.email,
+          displayAvatar: user.avatarUrl || null,
+        };
+      }
       return {
-        displayName: user?.name || user?.email || "Deleted User",
-        displayEmail: user?.email || null,
-        displayAvatar: user?.avatarUrl || null,
+        displayName: "Deleted User",
+        displayEmail: null,
+        displayAvatar: null,
       };
     },
   },
   ATTENDEE: {
     getRequirements: (actor) => ({ attendeeIds: actor.attendeeId ? [actor.attendeeId] : [] }),
     enrich: (actor, dbStore) => {
-      const attendee = actor.attendeeId ? dbStore.getAttendeeById(actor.attendeeId) : null;
+      if (!actor.attendeeId) {
+        throw new Error("Attendee ID is required for ATTENDEE actor");
+      }
+      const attendee = dbStore.getAttendeeById(actor.attendeeId);
+      if (attendee) {
+        return {
+          displayName: attendee.name || attendee.email,
+          displayEmail: attendee.email,
+          displayAvatar: null,
+        };
+      }
       return {
-        displayName: attendee?.name || attendee?.email || "Deleted Attendee",
-        displayEmail: attendee?.email || null,
+        displayName: "Deleted Attendee",
+        displayEmail: null,
         displayAvatar: null,
       };
     },

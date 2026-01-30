@@ -1122,7 +1122,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         mockPermissionCheckService.checkPermission.mockResolvedValue(true);
       });
 
-      it("should show 'Deleted User' for USER actor without userUuid", async () => {
+      it("should throw error for USER actor without userUuid and return fallback log", async () => {
         createMockAuditLog("booking-uid-123", {
           id: "missing-uuid-log",
           actorType: "USER",
@@ -1139,11 +1139,11 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].hasError).toBeUndefined();
-        expect(result.auditLogs[0].actor.displayName).toBe("Deleted User");
+        expect(result.auditLogs[0].hasError).toBe(true);
+        expect(result.auditLogs[0].actor.displayName).toBe("Test Actor");
       });
 
-      it("should show 'Deleted Attendee' for ATTENDEE actor without attendeeId", async () => {
+      it("should throw error for ATTENDEE actor without attendeeId and return fallback log", async () => {
         createMockAuditLog("booking-uid-123", {
           id: "missing-attendee-log",
           actorType: "ATTENDEE",
@@ -1161,8 +1161,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].hasError).toBeUndefined();
-        expect(result.auditLogs[0].actor.displayName).toBe("Deleted Attendee");
+        expect(result.auditLogs[0].hasError).toBe(true);
+        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
       });
 
       it("should handle multiple logs with mixed actor states", async () => {
@@ -1216,16 +1216,17 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(result.auditLogs[0].hasError).toBeUndefined();
         expect(result.auditLogs[0].actor.displayName).toBe("John Doe");
 
+        // Missing userUuid should throw error and return fallback log
         expect(result.auditLogs[1].id).toBe("missing-uuid-log");
-        expect(result.auditLogs[1].hasError).toBeUndefined();
-        expect(result.auditLogs[1].actor.displayName).toBe("Deleted User");
+        expect(result.auditLogs[1].hasError).toBe(true);
+        expect(result.auditLogs[1].actor.displayName).toBe("Missing User");
 
         expect(result.auditLogs[2].id).toBe("system-log");
         expect(result.auditLogs[2].hasError).toBeUndefined();
         expect(result.auditLogs[2].actor.displayName).toBe("Cal.com");
       });
 
-      it("should preserve basic log information when user not found", async () => {
+      it("should preserve basic log information when user not found and return fallback with error", async () => {
         const timestamp = new Date("2024-01-15T10:00:00Z");
         const createdAt = new Date("2024-01-15T09:00:00Z");
 
@@ -1256,9 +1257,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           timestamp: timestamp.toISOString(),
           createdAt: createdAt.toISOString(),
           source: "WEBAPP",
+          hasError: true,
           actor: expect.objectContaining({
             type: "USER",
-            displayName: "Deleted User",
+            displayName: "Test Name",
           }),
         });
       });
