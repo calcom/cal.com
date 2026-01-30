@@ -85,7 +85,7 @@ export class SalesforceGraphQLClient {
 
     const hasFieldRules = fieldRules && fieldRules.length > 0;
     const fieldRuleFields = hasFieldRules
-      ? [...new Set(fieldRules.map((r) => r.field))]
+      ? Array.from(new Set(fieldRules.map((r) => r.field)))
       : [];
     log.info(`fieldRuleFields`, fieldRuleFields);
 
@@ -292,7 +292,7 @@ export class SalesforceGraphQLClient {
       for (const contact of relatedContacts) {
         accountCounts.set(contact.AccountId, (accountCounts.get(contact.AccountId) || 0) + 1);
       }
-      const rankedAccountIds = [...accountCounts.entries()]
+      const rankedAccountIds = Array.from(accountCounts.entries())
         .sort((a, b) => b[1] - a[1])
         .map(([accountId]) => accountId);
 

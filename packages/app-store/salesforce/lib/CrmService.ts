@@ -18,6 +18,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import { SalesforceRoutingTraceService } from "./tracing";
@@ -1165,12 +1166,26 @@ class SalesforceCRMService implements CRM {
 
   private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string): Promise<Field[]> {
     const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
+    const conn = await this.conn;
 
-    // Get cached field names
-    const existingFieldNames = await this.getObjectFieldNames(sobject);
+    const fieldSet = new Set(fieldsToTest);
+    const foundFields: Field[] = [];
 
-    if (existingFieldNames.size === 0) {
-      log.warn(`No field names found for ${sobject}`);
+    try {
+      const salesforceEntity = await conn.describe(sobject);
+      const fields = salesforceEntity.fields;
+
+      for (const field of fields) {
+        if (foundFields.length === fieldSet.size) break;
+
+        if (fieldSet.has(field.name)) {
+          foundFields.push(field);
+        }
+      }
+
+      return foundFields;
+    } catch (e) {
+      log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
   }
