@@ -9,6 +9,7 @@ import {
   FailedBookingsByField,
   RoutedToPerPeriod,
   RoutingFunnel,
+  WrongAssignmentReportsDashboard,
 } from "@calcom/web/modules/insights/components/routing";
 import { InsightsOrgTeamsProvider } from "../components/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,12 +28,14 @@ export default function InsightsRoutingFormResponsesPage({ timeZone }: { timeZon
 
           <RoutingFunnel />
 
-          <div className="flex flex-col gap-4 md:flex-row">
-            <RoutedToPerPeriod />
-            <FailedBookingsByField />
-          </div>
+                    <div className="flex flex-col gap-4 md:flex-row">
+                      <RoutedToPerPeriod />
+                      <FailedBookingsByField />
+                    </div>
 
-          <small className="text-default block text-center">
+                    <WrongAssignmentReportsDashboard />
+
+                    <small className="text-default block text-center">
             {t("looking_for_more_insights")}{" "}
             <a
               className="text-blue-500 hover:underline"

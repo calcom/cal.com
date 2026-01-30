@@ -17,6 +17,8 @@ import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { ZHasWrongAssignmentReportInputSchema } from "./hasWrongAssignmentReport.schema";
+import { ZGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
+import { ZUpdateWrongAssignmentReportStatusInputSchema } from "./updateWrongAssignmentReportStatus.schema";
 import { bookingsProcedure } from "./util";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 export const bookingsRouter = router({
@@ -156,4 +158,26 @@ export const bookingsRouter = router({
       input,
     });
   }),
+  getWrongAssignmentReports: authedProcedure
+    .input(ZGetWrongAssignmentReportsInputSchema)
+    .query(async ({ input, ctx }) => {
+      const { getWrongAssignmentReportsHandler } = await import("./getWrongAssignmentReports.handler");
+
+      return getWrongAssignmentReportsHandler({
+        ctx,
+        input,
+      });
+    }),
+  updateWrongAssignmentReportStatus: authedProcedure
+    .input(ZUpdateWrongAssignmentReportStatusInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { updateWrongAssignmentReportStatusHandler } = await import(
+        "./updateWrongAssignmentReportStatus.handler"
+      );
+
+      return updateWrongAssignmentReportStatusHandler({
+        ctx,
+        input,
+      });
+    }),
 });
