@@ -133,7 +133,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     .optional()
     .nullable(),
   billingAddressRequired: z.boolean().optional(),
-  soBusy: z.boolean().optional(),
+  showBusy: z.boolean().optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(

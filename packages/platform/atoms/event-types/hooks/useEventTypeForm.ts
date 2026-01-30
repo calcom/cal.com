@@ -105,7 +105,7 @@ export const useEventTypeForm = ({
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: {
         ...(eventType.metadata ?? {}),
-        soBusy: eventType.metadata?.soBusy ?? false,
+        showBusy: eventType.metadata?.showBusy ?? false,
       },
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
