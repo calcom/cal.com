@@ -1054,6 +1054,7 @@ model SelectedCalendar {
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  @@index([channelId])
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
