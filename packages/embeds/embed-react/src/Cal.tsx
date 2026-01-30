@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 import type { PrefillAndIframeAttrsConfig } from "@calcom/embed-core";
-
+import { useEffect, useRef } from "react";
 import useEmbed from "./useEmbed";
 
 type CalProps = {

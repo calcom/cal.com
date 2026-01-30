@@ -1,5 +1,4 @@
 import { sleep } from "k6";
-
 import { THRESHOLDS } from "../utils/config.js";
 import { viewBookingPage } from "../utils/helpers.js";
 

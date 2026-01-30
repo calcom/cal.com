@@ -28,16 +28,16 @@ type QueuePushArg = {
  * 3. app-store/wordpress/plugin.php
  */
 export default function EmbedSnippet(url = EMBED_LIB_URL) {
-  (function (C, A, L) {
-    let p = function (a: GlobalCalWithoutNs, ar: QueuePushArg) {
+  ((C, A, L) => {
+    const p = (a: GlobalCalWithoutNs, ar: QueuePushArg) => {
       a.q.push(ar);
     };
-    let d = C.document;
+    const d = C.document;
     C.Cal =
       C.Cal ||
       function () {
-        let cal = C.Cal;
-        let ar = arguments;
+        const cal = C.Cal;
+        const ar = arguments;
         if (!cal.loaded) {
           // 'ns' and 'q' are now definitely set with the following 2 lines, so you can safely assert in TypeScript that it's GlobalCal now.
           cal.ns = {};
@@ -55,8 +55,8 @@ export default function EmbedSnippet(url = EMBED_LIB_URL) {
           api.q = api.q || [];
           if (typeof namespace === "string") {
             // Make sure that even after re-execution of the snippet, the namespace is not overridden
-            cal.ns![namespace] = cal.ns![namespace] || api;
-            p(cal.ns![namespace], ar);
+            cal.ns![namespace] = cal.ns?.[namespace] || api;
+            p(cal.ns?.[namespace], ar);
             // Inform the default namespace queue to initialize this namespace
             p(cal as GlobalCal, ["initNamespace", namespace]);
           } else p(cal as GlobalCal, ar);
