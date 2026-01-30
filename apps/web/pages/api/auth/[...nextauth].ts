@@ -12,6 +12,7 @@ const handler = (req: NextApiRequest, res: NextApiResponse) =>
       cookies: {
         utm_params: req.cookies.utm_params,
         dub_id: req.cookies.dub_id || req.cookies.dclid,
+        last_active_throttle: req.cookies.last_active_throttle,
       },
       res,
     })
