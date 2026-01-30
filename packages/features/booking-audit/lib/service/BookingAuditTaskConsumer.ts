@@ -1,6 +1,7 @@
 import type { JsonValue } from "@calcom/types/Json";
 
 import logger from "@calcom/lib/logger";
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
@@ -21,6 +22,7 @@ interface BookingAuditTaskConsumerDeps {
     bookingAuditRepository: IBookingAuditRepository;
     auditActorRepository: IAuditActorRepository;
     featuresRepository: IFeaturesRepository;
+    attendeeRepository: IAttendeeRepository;
     userRepository: UserRepository;
 }
 
@@ -69,16 +71,21 @@ export class BookingAuditTaskConsumer {
     private readonly bookingAuditRepository: IBookingAuditRepository;
     private readonly auditActorRepository: IAuditActorRepository;
     private readonly featuresRepository: IFeaturesRepository;
+    private readonly attendeeRepository: IAttendeeRepository;
     private readonly userRepository: UserRepository;
 
     constructor(private readonly deps: BookingAuditTaskConsumerDeps) {
         this.bookingAuditRepository = deps.bookingAuditRepository;
         this.auditActorRepository = deps.auditActorRepository;
         this.featuresRepository = deps.featuresRepository;
+        this.attendeeRepository = deps.attendeeRepository;
         this.userRepository = deps.userRepository;
 
         // Centralized registry for all action services
-        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({ userRepository: this.userRepository });
+        this.actionServiceRegistry = new BookingAuditActionServiceRegistry({
+            attendeeRepository: this.attendeeRepository,
+            userRepository: this.userRepository,
+        });
     }
 
     /**
@@ -366,8 +373,7 @@ export class BookingAuditTaskConsumer {
             case "ATTENDEE_REMOVED":
             case "REASSIGNMENT":
             case "LOCATION_CHANGED":
-            case "HOST_NO_SHOW_UPDATED":
-            case "ATTENDEE_NO_SHOW_UPDATED":
+            case "NO_SHOW_UPDATED":
             case "SEAT_BOOKED":
             case "SEAT_RESCHEDULED":
                 return "RECORD_UPDATED";

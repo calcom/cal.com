@@ -1,24 +1,31 @@
-import { useEffect, useState } from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
-import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-
-export type UseOverlayCalendarReturnType = ReturnType<typeof useOverlayCalendar>;
+import { useEffect, useState } from "react";
+import { shallow } from "zustand/shallow";
+import type { ToggledConnectedCalendars, WrappedBookerPropsMain } from "@calcom/features/bookings/Booker/types";
 
 export const useOverlayCalendar = ({
   connectedCalendars,
   overlayBusyDates,
   onToggleCalendar,
-}: Pick<UseCalendarsReturnType, "connectedCalendars" | "overlayBusyDates" | "onToggleCalendar">) => {
-  const { set, toggleValue, hasItem } = useLocalSet<{
-    credentialId: number;
-    externalId: string;
-  }>("toggledConnectedCalendars", []);
+}: Pick<
+  WrappedBookerPropsMain["calendars"],
+  "overlayBusyDates" | "onToggleCalendar" | "connectedCalendars"
+>): {
+  isOpenOverlayContinueModal: boolean;
+  isOpenOverlaySettingsModal: boolean;
+  handleCloseContinueModal: (val: boolean) => void;
+  handleCloseSettingsModal: (val: boolean) => void;
+  handleToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
+  checkIsCalendarToggled: (externalId: string, credentialId: number) => boolean;
+} => {
+  const { set, toggleValue, hasItem } = useLocalSet<ToggledConnectedCalendars>(
+    "toggledConnectedCalendars",
+    []
+  );
   const [initalised, setInitalised] = useState(false);
   const [continueWithProvider, setContinueWithProvider] = useOverlayCalendarStore(
     (state) => [state.continueWithProviderModal, state.setContinueWithProviderModal],
@@ -65,7 +72,7 @@ export const useOverlayCalendar = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasItem, set, initalised]);
 
-  const handleToggleConnectedCalendar = (externalCalendarId: string, credentialId: number) => {
+  const handleToggleConnectedCalendar = (externalCalendarId: string, credentialId: number): void => {
     const calendarsToLoad = toggleValue({
       credentialId: credentialId,
       externalId: externalCalendarId,
