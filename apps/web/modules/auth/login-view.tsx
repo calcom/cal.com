@@ -29,7 +29,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { Button } from "@coss/ui/components/button";
-import { Field, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { Field, FieldLabel } from "@coss/ui/components/field";
 import { Input } from "@coss/ui/components/input";
 import {
   InputGroup,
@@ -346,9 +346,9 @@ export default function Login({
                       {...register("email")}
                     />
                     {formState.errors.email && (
-                      <FieldError data-testid="field-error">
+                      <p data-testid="field-error" className="text-destructive-foreground text-xs">
                         {formState.errors.email.message}
-                      </FieldError>
+                      </p>
                     )}
                   </Field>
 
@@ -391,9 +391,9 @@ export default function Login({
                       </InputGroupAddon>
                     </InputGroup>
                     {formState.errors.password && (
-                      <FieldError data-testid="field-error">
+                      <p data-testid="field-error" className="text-destructive-foreground text-xs">
                         {formState.errors.password.message}
-                      </FieldError>
+                      </p>
                     )}
                   </Field>
                 </div>
