@@ -53,7 +53,7 @@ describe("OAuth2 Controller Endpoints", () => {
       return request(appWithoutAuth.getHttpServer())
         .post("/api/v2/auth/oauth2/clients/test-client-id/authorize")
         .send({
-          redirectUri: "https://example.com/callback",
+          redirect_uri: "https://example.com/callback",
           scopes: ["READ_BOOKING"],
         })
         .expect(401);
@@ -138,11 +138,11 @@ describe("OAuth2 Controller Endpoints", () => {
           .expect(200);
 
         expect(response.body.status).toBe("success");
-        expect(response.body.data.id).toBe(testClientId);
+        expect(response.body.data.client_id).toBe(testClientId);
         expect(response.body.data.name).toBe("Test OAuth Client");
-        expect(response.body.data.redirectUri).toBe(testRedirectUri);
-        expect(response.body.data.type).toBe(OAuthClientType.CONFIDENTIAL);
-        expect(response.body.data.clientSecret).toBeUndefined();
+        expect(response.body.data.redirect_uri).toBe(testRedirectUri);
+        expect(response.body.data.client_type).toBe(OAuthClientType.CONFIDENTIAL);
+        expect(response.body.data.client_secret).toBeUndefined();
       });
 
       it("should return 404 for non-existent client ID", async () => {
@@ -157,9 +157,9 @@ describe("OAuth2 Controller Endpoints", () => {
         const response = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
-            redirectUri: testRedirectUri,
+            redirect_uri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING, AccessScope.READ_PROFILE],
-            teamSlug: team.slug,
+            team_slug: team.slug,
             state: "test-state-123",
           })
           .expect(303);
@@ -177,7 +177,7 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post("/api/v2/auth/oauth2/clients/invalid-client-id/authorize")
           .send({
-            redirectUri: testRedirectUri,
+            redirect_uri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
           })
           .expect(404);
@@ -187,9 +187,9 @@ describe("OAuth2 Controller Endpoints", () => {
         const response = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
-            redirectUri: testRedirectUri,
+            redirect_uri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
-            teamSlug: "non-existent-team-slug",
+            team_slug: "non-existent-team-slug",
             state: "test-state-456",
           })
           .expect(303);
@@ -204,7 +204,7 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
-            redirectUri: "https://wrong-domain.com/callback",
+            redirect_uri: "https://wrong-domain.com/callback",
             scopes: [AccessScope.READ_BOOKING],
             state: "test-state-789",
           })
@@ -227,7 +227,7 @@ describe("OAuth2 Controller Endpoints", () => {
           await request(app.getHttpServer())
             .post(`/api/v2/auth/oauth2/clients/${pendingClientId}/authorize`)
             .send({
-              redirectUri: testRedirectUri,
+              redirect_uri: testRedirectUri,
               scopes: [AccessScope.READ_BOOKING],
               state: "test-state-pending",
             })
@@ -243,10 +243,10 @@ describe("OAuth2 Controller Endpoints", () => {
         const response = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
-            grantType: "authorization_code",
+            grant_type: "authorization_code",
             code: authorizationCode,
-            clientSecret: testClientSecret,
-            redirectUri: testRedirectUri,
+            client_secret: testClientSecret,
+            redirect_uri: testRedirectUri,
           })
           .expect(200);
 
@@ -263,10 +263,10 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
-            grantType: "authorization_code",
+            grant_type: "authorization_code",
             code: authorizationCode,
-            clientSecret: testClientSecret,
-            redirectUri: testRedirectUri,
+            client_secret: testClientSecret,
+            redirect_uri: testRedirectUri,
           })
           .expect(400);
       });
@@ -275,9 +275,9 @@ describe("OAuth2 Controller Endpoints", () => {
         const newAuthResponse = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
           .send({
-            redirectUri: testRedirectUri,
+            redirect_uri: testRedirectUri,
             scopes: [AccessScope.READ_BOOKING],
-            teamSlug: team.slug,
+            team_slug: team.slug,
           })
           .expect(303);
 
@@ -287,10 +287,10 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
-            grantType: "authorization_code",
+            grant_type: "authorization_code",
             code: newAuthCode,
-            clientSecret: "wrong-secret",
-            redirectUri: testRedirectUri,
+            client_secret: "wrong-secret",
+            redirect_uri: testRedirectUri,
           })
           .expect(401);
       });
@@ -299,9 +299,9 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
-            grantType: "invalid_grant",
+            grant_type: "invalid_grant",
             code: "some-code",
-            redirectUri: testRedirectUri,
+            redirect_uri: testRedirectUri,
           })
           .expect(400);
       });
@@ -312,9 +312,9 @@ describe("OAuth2 Controller Endpoints", () => {
         const response = await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
-            grantType: "refresh_token",
-            refreshToken: refreshToken,
-            clientSecret: testClientSecret,
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+            client_secret: testClientSecret,
           })
           .expect(200);
 
@@ -329,9 +329,9 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post(`/api/v2/auth/oauth2/clients/${testClientId}/token`)
           .send({
-            grantType: "refresh_token",
-            refreshToken: "invalid-refresh-token",
-            clientSecret: testClientSecret,
+            grant_type: "refresh_token",
+            refresh_token: "invalid-refresh-token",
+            client_secret: testClientSecret,
           })
           .expect(400);
       });
@@ -340,9 +340,9 @@ describe("OAuth2 Controller Endpoints", () => {
         await request(app.getHttpServer())
           .post("/api/v2/auth/oauth2/clients/wrong-client-id/token")
           .send({
-            grantType: "refresh_token",
-            refreshToken: refreshToken,
-            clientSecret: testClientSecret,
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+            client_secret: testClientSecret,
           })
           .expect(401);
       });
