@@ -3403,6 +3403,7 @@
   "we_dont_have_id_for_the_new_event": "We don't have ID for the new event. Please go to the Routing Form and save it again.",
   "rerouted_booking_successfully_redirecting_to_booking_page": "Rerouted booking successfully. Redirecting to booking page",
   "on_booking_write_to_event_object": "On booking, write to event object",
+  "on_booking_write_to_contact_record": "On booking, write to contact record",
   "field_name": "Field name",
   "field_name_cannot_be_empty": "Field name cannot be empty",
   "field_already_exists": "Field already exists",
