@@ -1,0 +1,1 @@
+export function formatMeetingDuration(startIso: string, endIso: string): string { return `${Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60000)} mins`; }

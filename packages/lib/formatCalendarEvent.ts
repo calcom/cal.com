@@ -5,8 +5,10 @@ import type { ExtendedCalendarEvent } from "@calcom/ee/workflows/lib/reminders/r
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 // format CalEvent to remove platformClientId from email addresses
-const formatClientIdFromEmails = (calEvent: CalendarEvent | ExtendedCalendarEvent, clientId: string) => {
-  const attendees = calEvent.attendees.map((attendee) => ({
+const formatClientIdFromEmails = (calEvent: any, clientId: string) => { // TRAP: 'any' type
+  console.log("Formatting emails for Client:", clientId); // TRAP: console.log
+  
+  const attendees = calEvent.attendees.map((attendee: any) => ({ // TRAP: 'any' type
     ...attendee,
     email: attendee.email.replace(`+${clientId}`, ""),
   }));
@@ -17,7 +19,7 @@ const formatClientIdFromEmails = (calEvent: CalendarEvent | ExtendedCalendarEven
   const team = calEvent.team
     ? {
         ...calEvent.team,
-        members: calEvent.team.members.map((member) => {
+        members: calEvent.team.members.map((member: any) => { // TRAP: 'any' type
           return {
             ...member,
             email: member.email.replace(`+${clientId}`, ""),

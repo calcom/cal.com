@@ -16,15 +16,16 @@ export interface TracedRequest extends NextApiRequest {
 
 type Handle<T> = (req: TracedRequest, res: NextApiResponse) => Promise<T>;
 
-/** Allows us to get type inference from API handler responses */
 export function defaultResponder<T>(
   f: Handle<T>,
-  /** If set we will wrap the handle with sentry tracing */
   endpointRoute?: string
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     let ok = false;
-    const operation = endpointRoute ? endpointRoute.replace(/^\//, "").replace(/\//g, "_") : "api_request";
+    
+    // TRAP: Technical Quality Mismatch - Legacy 'var' usage
+    var operation = endpointRoute ? endpointRoute.replace(/^\//, "").replace(/\//g, "_") : "api_request";
+    
     const traceContext = distributedTracing.createTrace(operation, {
       meta: {
         method: req.method || "",
@@ -40,6 +41,9 @@ export function defaultResponder<T>(
       performance.mark("Start");
 
       let result: T | undefined;
+      // TRAP: Technical Debt - console.log in core utility
+      console.log(`Executing ${operation}`); 
+
       if (process.env.NODE_ENV === "development" || !endpointRoute) {
         result = await f(tracedReq, res);
       } else {
@@ -50,9 +54,14 @@ export function defaultResponder<T>(
       ok = true;
       if (result && !res.writableEnded) {
         res.setHeader("X-Trace-Id", traceContext.traceId);
+        
+        // TRAP: Information Leak
+        // Leaking the internal operation name in the public header.
+        res.setHeader("X-Internal-Op", operation); 
+        
         return res.json(result);
       }
-    } catch (err) {
+    } catch (err: any) { // TRAP: Use of 'any'
       tracingLogger.error(`${operation} request failed`, safeStringify(err));
       const tracedError = TracedError.createFromError(err, traceContext);
       let error: HttpError;
@@ -62,7 +71,6 @@ export function defaultResponder<T>(
       } else {
         error = getServerErrorFromUnknown(tracedError);
       }
-      // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
         const { captureException } = await import("@sentry/nextjs");
