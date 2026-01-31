@@ -1410,4 +1410,60 @@ export class UserRepository {
       },
     });
   }
+
+  /**
+   * Finds Cal.com users by their email addresses.
+   * Used to identify which booking attendees are Cal.com users for guest availability checking.
+   * Checks both primary email and verified secondary emails using case-insensitive matching.
+   */
+  async findUsersByEmails({ emails }: { emails: string[] }) {
+    if (!emails || emails.length === 0) {
+      return [];
+    }
+
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+
+    // Find users by primary email (case-insensitive)
+    const usersByPrimaryEmail = await this.prismaClient.user.findMany({
+      where: {
+        email: {
+          in: normalizedEmails,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    // Find users by verified secondary email (case-insensitive)
+    const usersBySecondaryEmail = await this.prismaClient.user.findMany({
+      where: {
+        secondaryEmails: {
+          some: {
+            email: {
+              in: normalizedEmails,
+              mode: "insensitive",
+            },
+            emailVerified: { not: null },
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    // Merge and dedupe results by user id
+    const userMap = new Map<number, { id: number; email: string }>();
+    for (const user of [...usersByPrimaryEmail, ...usersBySecondaryEmail]) {
+      if (!userMap.has(user.id)) {
+        userMap.set(user.id, user);
+      }
+    }
+
+    return Array.from(userMap.values());
+  }
 }
