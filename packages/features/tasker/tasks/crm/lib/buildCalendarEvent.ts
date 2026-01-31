@@ -1,5 +1,5 @@
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -89,7 +89,9 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
     }),
   };
 
-  calendarEvent = addVideoCallDataToEvent(booking.references, calendarEvent);
+  calendarEvent = CalendarEventBuilder.fromEvent(calendarEvent)
+    .withVideoCallDataFromReferences(booking.references)
+    .build();
 
   return calendarEvent;
 };

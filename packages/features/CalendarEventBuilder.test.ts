@@ -822,9 +822,11 @@ describe("CalendarEventBuilder", () => {
     }
   });
 
-  it("should return null when building without required fields", () => {
+  it("should throw an error when building without required fields", () => {
     const builder = new CalendarEventBuilder();
-    expect(builder.build()).toBeNull();
+    expect(() => builder.build()).toThrow(
+      "Failed to build calendar event: missing required fields (startTime, endTime, type, bookerUrl, or title)"
+    );
   });
 
   it("should create an event from an existing event", () => {
