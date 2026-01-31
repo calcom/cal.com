@@ -1,8 +1,8 @@
-import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Platform, Text, View, useColorScheme } from "react-native";
+import { Platform, Text, useColorScheme, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
@@ -19,7 +19,7 @@ import { useBookingByUid } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
-import { openInAppBrowser } from "@/utils/browser";
+import { openInDefaultBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -280,7 +280,7 @@ export default function BookingDetail() {
 
   const handleJoinMeeting = useCallback(() => {
     if (meetingUrl) {
-      openInAppBrowser(meetingUrl, "meeting link");
+      openInDefaultBrowser(meetingUrl, "meeting link");
     }
   }, [meetingUrl]);
 
