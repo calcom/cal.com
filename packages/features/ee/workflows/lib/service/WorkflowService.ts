@@ -13,10 +13,10 @@ import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { WorkflowTriggerEvents, WorkflowType, WorkflowMethods } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
+import { WorkflowMethods, WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
@@ -122,7 +122,7 @@ export class WorkflowService {
     let smsReminderNumber: string | null = null;
     if (form.fields) {
       const phoneField = form.fields.find((field) => field.type === "phone");
-      if (phoneField && phoneField.identifier) {
+      if (phoneField?.identifier) {
         const phoneResponse = responses[phoneField.identifier];
         if (phoneResponse?.response && typeof phoneResponse.response === "string") {
           smsReminderNumber = phoneResponse.response as string;
@@ -207,7 +207,7 @@ export class WorkflowService {
         ...workflows.filter(
           (workflow) =>
             workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT ||
-            this._beforeAfterEventTriggers.includes(workflow.trigger)
+            WorkflowService._beforeAfterEventTriggers.includes(workflow.trigger)
         )
       );
     } else if (!isConfirmedByDefault) {
@@ -218,7 +218,7 @@ export class WorkflowService {
       workflowsToTrigger.push(
         ...workflows.filter(
           (workflow) =>
-            this._beforeAfterEventTriggers.includes(workflow.trigger) ||
+            WorkflowService._beforeAfterEventTriggers.includes(workflow.trigger) ||
             (isNormalBookingOrFirstRecurringSlot && workflow.trigger === WorkflowTriggerEvents.NEW_EVENT)
         )
       );
@@ -255,7 +255,16 @@ export class WorkflowService {
     workflowTriggerEvent: "BEFORE_EVENT" | "AFTER_EVENT";
     workflowStepId: number;
     workflow: Pick<Workflow, "time" | "timeUnit">;
-    evt: Pick<CalendarEvent, "uid" | "startTime" | "endTime">;
+    evt: Pick<
+      CalendarEvent,
+      | "uid"
+      | "startTime"
+      | "endTime"
+      | "platformClientId"
+      | "platformRescheduleUrl"
+      | "platformCancelUrl"
+      | "platformBookingUrl"
+    >;
     seatReferenceId?: string;
   }) {
     const { uid: bookingUid } = evt;
@@ -315,6 +324,10 @@ export class WorkflowService {
     const taskerPayload = {
       bookingUid,
       workflowReminderId: workflowReminder.id,
+      platformClientId: evt.platformClientId ?? "",
+      platformRescheduleUrl: evt.platformRescheduleUrl ?? "",
+      platformCancelUrl: evt.platformCancelUrl ?? "",
+      platformBookingUrl: evt.platformBookingUrl ?? "",
     };
 
     await tasker.create("sendWorkflowEmails", taskerPayload, {

@@ -1,18 +1,21 @@
-import type { Retell } from "retell-sdk";
-
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type {
-  Prisma,
   Membership,
+  Prisma,
   Workflow as PrismaWorkflow,
   WorkflowStep as PrismaWorkflowStep,
 } from "@calcom/prisma/client";
-import type { TimeUnit, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { WorkflowActions } from "@calcom/prisma/enums";
-import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
+import type {
+  TimeUnit,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
+import type { CalEventResponses, RecurringEvent, TeamMember } from "@calcom/types/Calendar";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
+import type { Retell } from "retell-sdk";
 
 export type Workflow = {
   id: number;
@@ -88,6 +91,14 @@ export type BookingInfo = {
   hideOrganizerEmail?: boolean;
   videoCallData?: {
     url?: string;
+  };
+  platformClientId?: string | null;
+  platformRescheduleUrl?: string | null;
+  platformCancelUrl?: string | null;
+  team?: {
+    name: string;
+    members: TeamMember[];
+    id: number;
   };
 };
 
