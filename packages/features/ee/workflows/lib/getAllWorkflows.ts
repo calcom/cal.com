@@ -24,6 +24,8 @@ export const workflowSelect = {
       includeCalendarEvent: true,
       numberRequired: true,
       verifiedAt: true,
+      autoTranslateEnabled: true,
+      sourceLocale: true,
     },
   },
 };

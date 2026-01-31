@@ -40,6 +40,8 @@ export const formSchema = z.object({
         .nullable(),
       senderName: z.string().nullish(),
       agentId: z.string().nullish(),
+      autoTranslateEnabled: z.boolean().optional(),
+      sourceLocale: z.string().nullish(),
     })
     .array(),
   selectAll: z.boolean(),

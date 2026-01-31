@@ -24,6 +24,8 @@ const stepSchema = z.object({
   includeCalendarEvent: z.boolean(),
   agentId: z.string().nullish(),
   inboundAgentId: z.string().nullish(),
+  autoTranslateEnabled: z.boolean().optional(),
+  sourceLocale: z.string().nullish(),
 });
 
 export const ZUpdateInputSchema = z
