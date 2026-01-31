@@ -172,8 +172,10 @@ export default function Login({
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     // telemetry.event(telemetryEventTypes.login, collectPageParameters());
+    const totpToken = searchParams?.get("totp") ?? undefined;
     const res = await signIn<"credentials">("credentials", {
       ...values,
+      ...(totpToken && { totpToken }),
       callbackUrl,
       redirect: false,
     });
