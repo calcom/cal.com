@@ -12,23 +12,28 @@ export const QUERY_KEY = "get-available-slots";
 
 export const useApiV2AvailableSlots = ({
   enabled,
+  includeBookerTimezoneInQueryKey,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; includeBookerTimezoneInQueryKey?: boolean }) => {
+  const baseKey = [
+    QUERY_KEY,
+    rest.startTime,
+    rest.endTime,
+    rest.eventTypeId,
+    rest.eventTypeSlug,
+    rest.isTeamEvent ?? false,
+    rest.teamId ?? false,
+    rest.usernameList,
+    rest.routedTeamMemberIds,
+    rest.skipContactOwner,
+    rest.teamMemberEmail,
+    rest.embedConnectVersion ?? false,
+  ];
+
+  const queryKey = includeBookerTimezoneInQueryKey ? [...baseKey, rest.timeZone] : baseKey;
+
   const availableSlots = useQuery({
-    queryKey: [
-      QUERY_KEY,
-      rest.startTime,
-      rest.endTime,
-      rest.eventTypeId,
-      rest.eventTypeSlug,
-      rest.isTeamEvent ?? false,
-      rest.teamId ?? false,
-      rest.usernameList,
-      rest.routedTeamMemberIds,
-      rest.skipContactOwner,
-      rest.teamMemberEmail,
-      rest.embedConnectVersion ?? false,
-    ],
+    queryKey,
     queryFn: () => {
       return axios
         .get<ApiResponse<GetAvailableSlotsResponse>>("/api/v2/slots/available", {
