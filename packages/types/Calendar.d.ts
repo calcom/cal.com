@@ -224,6 +224,8 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
+  previousStartTime?: string;
+  previousEndTime?: string;
   organizationId?: number | null;
   hasOrganizerChanged?: boolean;
   assignmentReason?: {
