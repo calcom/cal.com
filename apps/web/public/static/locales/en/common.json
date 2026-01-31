@@ -3717,6 +3717,7 @@
   "could_not_find_slug_to_publish_org": "Could not find slug to publish the organization",
   "picklist": "Picklist",
   "most_cancelled_bookings": "Most cancelled",
+  "most_cancelled_event_types": "Most cancelled event types",
   "interface_language": "Interface language",
   "interface_language_description": "Set your preferred language for the booking interface",
   "visitors_browser_language": "Visitor's browser language",

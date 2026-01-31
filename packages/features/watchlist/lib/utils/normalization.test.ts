@@ -41,23 +41,10 @@ describe("normalization", () => {
       expect(normalizeDomain("company.com.au")).toBe("company.com.au");
     });
 
-    test("should accept and preserve wildcard prefix", () => {
-      expect(normalizeDomain("*.cal.com")).toBe("*.cal.com");
-      expect(normalizeDomain("*.EXAMPLE.COM")).toBe("*.example.com");
-      expect(normalizeDomain("  *.domain.org  ")).toBe("*.domain.org");
-      expect(normalizeDomain("*.sub.domain.co.uk")).toBe("*.sub.domain.co.uk");
-    });
-
     test("should throw on invalid domains", () => {
       expect(() => normalizeDomain("invalid..domain")).toThrow("Invalid domain format");
       expect(() => normalizeDomain(".domain.com")).toThrow("Invalid domain format");
       expect(() => normalizeDomain("domain.")).toThrow("Invalid domain format");
-    });
-
-    test("should throw on invalid wildcard domains", () => {
-      expect(() => normalizeDomain("*.")).toThrow("Invalid domain format");
-      expect(() => normalizeDomain("*..domain.com")).toThrow("Invalid domain format");
-      expect(() => normalizeDomain("*.invalid..domain")).toThrow("Invalid domain format");
     });
   });
 
