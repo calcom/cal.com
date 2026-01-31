@@ -31,4 +31,20 @@ export class PlatformOrganizationBillingTriggerTasker implements IPlatformOrgani
     const handle = await rescheduleUsageIncrement.trigger(payload, options);
     return { runId: handle.id };
   }
+
+  async countActiveManagedUsers(
+    payload: Parameters<IPlatformOrganizationBillingTasker["countActiveManagedUsers"]>[0]
+  ): Promise<{ runId: string }> {
+    const { countActiveManagedUsers } = await import("./trigger/count-active-managed-users");
+    const handle = await countActiveManagedUsers.trigger(payload);
+    return { runId: handle.id };
+  }
+
+  async invoiceActiveManagedUsers(
+    payload: Parameters<IPlatformOrganizationBillingTasker["invoiceActiveManagedUsers"]>[0]
+  ): Promise<{ runId: string }> {
+    const { invoiceActiveManagedUsers } = await import("./trigger/invoice-active-managed-users");
+    const handle = await invoiceActiveManagedUsers.trigger(payload);
+    return { runId: handle.id };
+  }
 }

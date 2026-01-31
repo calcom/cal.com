@@ -3,7 +3,12 @@ import type { ILogger } from "@calcom/lib/tasker/types";
 import type { TriggerOptions } from "@trigger.dev/sdk";
 import type { PlatformOrganizationBillingSyncTasker } from "./PlatformOrganizationBillingSyncTasker";
 import type { PlatformOrganizationBillingTriggerTasker } from "./PlatformOrganizationBillingTriggerTasker";
-import type { IPlatformOrganizationBillingTasker, PlatformOrganizationBillingTaskPayload } from "./types";
+import type {
+  CountActiveManagedUsersPayload,
+  InvoiceActiveManagedUsersPayload,
+  IPlatformOrganizationBillingTasker,
+  PlatformOrganizationBillingTaskPayload,
+} from "./types";
 
 export interface IPlatformOrganizationBillingTaskerDependencies {
   asyncTasker: PlatformOrganizationBillingTriggerTasker;
@@ -81,6 +86,52 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
       taskResponse = { runId: "task-failed" };
       this.logger.error(`PlatformOrganizationBillingTasker rescheduleUsageIncrement failed`, taskResponse, {
         bookingUid: payload.bookingUid,
+      });
+    }
+
+    return taskResponse;
+  }
+
+  public async countActiveManagedUsers(data: {
+    payload: CountActiveManagedUsersPayload;
+  }): Promise<{ runId: string }> {
+    const { payload } = data;
+    let taskResponse: {
+      runId: string;
+    } = { runId: "task-not-found" };
+
+    try {
+      taskResponse = await this.dispatch("countActiveManagedUsers", payload);
+      this.logger.info(`PlatformOrganizationBillingTasker countActiveManagedUsers success:`, taskResponse, {
+        organizationId: payload.organizationId,
+      });
+    } catch {
+      taskResponse = { runId: "task-failed" };
+      this.logger.error(`PlatformOrganizationBillingTasker countActiveManagedUsers failed`, taskResponse, {
+        organizationId: payload.organizationId,
+      });
+    }
+
+    return taskResponse;
+  }
+
+  public async invoiceActiveManagedUsers(data: {
+    payload: InvoiceActiveManagedUsersPayload;
+  }): Promise<{ runId: string }> {
+    const { payload } = data;
+    let taskResponse: {
+      runId: string;
+    } = { runId: "task-not-found" };
+
+    try {
+      taskResponse = await this.dispatch("invoiceActiveManagedUsers", payload);
+      this.logger.info(`PlatformOrganizationBillingTasker invoiceActiveManagedUsers success:`, taskResponse, {
+        organizationIds: payload.organizationIds,
+      });
+    } catch {
+      taskResponse = { runId: "task-failed" };
+      this.logger.error(`PlatformOrganizationBillingTasker invoiceActiveManagedUsers failed`, taskResponse, {
+        organizationIds: payload.organizationIds,
       });
     }
 

@@ -1,6 +1,5 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import { nanoid } from "nanoid";
-
 import type { PlatformOrganizationBillingTaskService } from "./PlatformOrganizationBillingTaskService";
 import type { IPlatformOrganizationBillingTasker } from "./types";
 
@@ -46,6 +45,24 @@ export class PlatformOrganizationBillingSyncTasker implements IPlatformOrganizat
       runId,
       payload
     );
+    return { runId };
+  }
+
+  async countActiveManagedUsers(
+    payload: Parameters<IPlatformOrganizationBillingTasker["countActiveManagedUsers"]>[0]
+  ): Promise<{ runId: string }> {
+    const runId = `sync_${nanoid(10)}`;
+    await this.dependencies.billingTaskService.countActiveManagedUsers(payload);
+    this.dependencies.logger.info("Counted active managed users in sync mode", runId, payload);
+    return { runId };
+  }
+
+  async invoiceActiveManagedUsers(
+    payload: Parameters<IPlatformOrganizationBillingTasker["invoiceActiveManagedUsers"]>[0]
+  ): Promise<{ runId: string }> {
+    const runId = `sync_${nanoid(10)}`;
+    await this.dependencies.billingTaskService.invoiceActiveManagedUsers(payload);
+    this.dependencies.logger.info("Invoiced active managed users in sync mode", runId, payload);
     return { runId };
   }
 }

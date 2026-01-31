@@ -2,8 +2,8 @@ import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calc
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { billingProviderServiceModuleLoader } from "@calcom/features/ee/billing/di/modules/BillingProviderService";
 import { PlatformOrganizationBillingTaskService } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTaskService";
-
 import { moduleLoader as organizationRepositoryModuleLoader } from "../OrganizationRepository.module";
+import { moduleLoader as managedUsersBillingRepositoryModuleLoader } from "./ManagedUsersBillingRepository.module";
 import { moduleLoader as platformBillingRepositoryModuleLoader } from "./PlatformBillingRepository.module";
 import { PLATFORM_BILLING_TASKER_DI_TOKENS } from "./tokens";
 
@@ -20,6 +20,7 @@ const loadModule = bindModuleToClassOnToken({
     logger: loggerServiceModule,
     organizationRepository: organizationRepositoryModuleLoader,
     platformBillingRepository: platformBillingRepositoryModuleLoader,
+    managedUsersBillingRepository: managedUsersBillingRepositoryModuleLoader,
     billingProviderService: billingProviderServiceModuleLoader,
   },
 });

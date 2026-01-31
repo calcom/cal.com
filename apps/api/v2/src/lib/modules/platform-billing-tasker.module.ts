@@ -1,5 +1,6 @@
 import { Module, Scope } from "@nestjs/common";
 import { Logger } from "@/lib/logger.bridge";
+import { ManagedUsersBillingRepository } from "@/lib/repositories/managed-users-billing.repository";
 import { PrismaPlatformBillingRepository } from "@/lib/repositories/prisma-platform-billing.repository";
 import { StripeBillingProviderService } from "@/lib/services/stripe-billing-provider.service";
 import { PlatformBillingSyncTaskerService } from "@/lib/services/tasker/platform-billing-sync-tasker.service";
@@ -14,6 +15,7 @@ import { StripeModule } from "@/modules/stripe/stripe.module";
   imports: [PrismaModule, StripeModule, OrganizationsModule],
   providers: [
     PrismaPlatformBillingRepository,
+    ManagedUsersBillingRepository,
     StripeBillingProviderService,
     {
       provide: Logger,
