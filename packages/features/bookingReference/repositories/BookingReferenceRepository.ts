@@ -15,6 +15,46 @@ const bookingReferenceSelect = {
   bookingId: true,
 } satisfies Prisma.BookingReferenceSelect;
 
+const googleCalendarBackfillSelect = {
+  id: true,
+  uid: true,
+  externalCalendarId: true,
+  booking: {
+    select: {
+      id: true,
+      uid: true,
+      title: true,
+      startTime: true,
+      endTime: true,
+      location: true,
+      iCalUID: true,
+      responses: true,
+      metadata: true,
+      userPrimaryEmail: true,
+    },
+  },
+  credential: {
+    select: {
+      id: true,
+      userId: true,
+      key: true,
+    },
+  },
+} satisfies Prisma.BookingReferenceSelect;
+
+export type BookingReferenceForBackfill = Prisma.BookingReferenceGetPayload<{
+  select: typeof googleCalendarBackfillSelect;
+}>;
+
+export type BookingForBackfill = NonNullable<BookingReferenceForBackfill["booking"]>;
+
+export interface GoogleEventUpdateData {
+  uid: string;
+  externalCalendarId: string;
+  meetingId: string | null;
+  meetingUrl: string | null;
+}
+
 export class BookingReferenceRepository implements IBookingReferenceRepository {
   private prismaClient: PrismaClient;
   constructor(private deps: { prismaClient: PrismaClient }) {
@@ -74,6 +114,75 @@ export class BookingReferenceRepository implements IBookingReferenceRepository {
         bookingId,
       },
       data,
+    });
+  }
+
+  async findUnsyncedGoogleCalendarReferencesIncludeBookingAndCredential(
+    startDate: Date,
+    endDate: Date
+  ): Promise<BookingReferenceForBackfill[]> {
+    const results = await this.prismaClient.bookingReference.findMany({
+      where: {
+        type: "google_calendar",
+        externalCalendarId: { not: null },
+        uid: "",
+        credentialId: { not: null },
+        booking: {
+          status: "ACCEPTED",
+          startTime: { gt: new Date() },
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      },
+      select: googleCalendarBackfillSelect,
+    });
+
+    return results;
+  }
+
+  async findUnremovedCancelledGoogleCalendarReferencesIncludeBookingAndCredential(
+    startDate: Date,
+    endDate: Date
+  ): Promise<BookingReferenceForBackfill[]> {
+    const results = await this.prismaClient.bookingReference.findMany({
+      where: {
+        type: "google_calendar",
+        externalCalendarId: { not: null },
+        uid: { not: "" },
+        credentialId: { not: null },
+        booking: {
+          status: "CANCELLED",
+          updatedAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      },
+      select: googleCalendarBackfillSelect,
+    });
+
+    return results;
+  }
+
+  async updateWithGoogleEventData(id: number, data: GoogleEventUpdateData): Promise<void> {
+    await this.prismaClient.bookingReference.update({
+      where: { id },
+      data: {
+        uid: data.uid,
+        externalCalendarId: data.externalCalendarId,
+        meetingId: data.meetingId,
+        meetingUrl: data.meetingUrl,
+        deleted: false,
+      },
+    });
+  }
+
+  async markAsDeleted(id: number): Promise<void> {
+    await this.prismaClient.bookingReference.update({
+      where: { id },
+      data: { deleted: true },
     });
   }
 }
