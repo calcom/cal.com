@@ -59,6 +59,14 @@ export class RescheduleSeatedBookingInput_2024_08_13 {
   })
   rescheduledBy?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    example: "User requested reschedule",
+    description: "Reason for rescheduling the booking",
+  })
+  reschedulingReason?: string;
+
   @ApiProperty({
     type: String,
     example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",

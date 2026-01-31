@@ -707,7 +707,10 @@ export class InputBookingsService_2024_08_13 {
       metadata: seat.metadata || {},
       hasHashedBookingLink: false,
       guests: [],
-      responses: { ...bookingResponses },
+      responses: {
+        ...bookingResponses,
+        ...(inputBooking.reschedulingReason && { rescheduleReason: inputBooking.reschedulingReason }),
+      },
       rescheduleUid: inputBooking.seatUid,
       verificationCode: inputBooking.emailVerificationCode,
     };
@@ -795,7 +798,7 @@ export class InputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       responses: {
         ...bookingResponses,
-        rescheduledReason: inputBooking.reschedulingReason,
+        ...(inputBooking.reschedulingReason && { rescheduleReason: inputBooking.reschedulingReason }),
       },
       rescheduleUid: bookingUid,
       verificationCode: inputBooking.emailVerificationCode,
