@@ -1,3 +1,51 @@
+import {
+  BOOKING_READ,
+  BOOKING_WRITE,
+  SUCCESS_STATUS,
+  X_CAL_CLIENT_ID,
+  X_CAL_PLATFORM_EMBED,
+} from "@calcom/platform-constants";
+import {
+  BookingResponse,
+  CreationSource,
+  getAllUserBookings,
+  getBookingForReschedule,
+  getBookingInfo,
+  handleCancelBooking,
+  handleMarkNoShow,
+} from "@calcom/platform-libraries";
+import { type InstantBookingCreateResult, makeUserActor } from "@calcom/platform-libraries/bookings";
+import { ErrorCode, HttpError } from "@calcom/platform-libraries/errors";
+import type { ApiResponse } from "@calcom/platform-types";
+import {
+  CancelBookingInput_2024_04_15,
+  GetBookingsInput_2024_04_15,
+  Status_2024_04_15,
+} from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Headers,
+  HttpException,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
+import { Request } from "express";
+import { NextApiRequest } from "next/types";
+import { v4 as uuidv4 } from "uuid";
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
 import { CreateRecurringBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-recurring-booking.input";
 import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark-no-show.input";
@@ -5,7 +53,7 @@ import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ge
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
+import { isApiKey, sha256Hash, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
@@ -30,50 +78,6 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Post,
-  Logger,
-  Req,
-  InternalServerErrorException,
-  Body,
-  Headers,
-  HttpException,
-  Param,
-  Get,
-  Query,
-  NotFoundException,
-  UseGuards,
-  BadRequestException,
-  UnauthorizedException,
-  ForbiddenException,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { Request } from "express";
-import { NextApiRequest } from "next/types";
-import { v4 as uuidv4 } from "uuid";
-
-import { X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
-import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
-import {
-  BookingResponse,
-  handleMarkNoShow,
-  getAllUserBookings,
-  getBookingInfo,
-  handleCancelBooking,
-  getBookingForReschedule,
-} from "@calcom/platform-libraries";
-import { CreationSource } from "@calcom/platform-libraries";
-import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
-import { HttpError, ErrorCode } from "@calcom/platform-libraries/errors";
-import {
-  GetBookingsInput_2024_04_15,
-  CancelBookingInput_2024_04_15,
-  Status_2024_04_15,
-} from "@calcom/platform-types";
-import type { ApiResponse } from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
 
 type BookingRequest = Request & {
   userId?: number;
@@ -310,7 +314,8 @@ export class BookingsController_2024_04_15 {
         attendees: body.attendees,
         noShowHost: body.noShowHost,
         userId: user.id,
-        userUuid: user.uuid,
+        actor: makeUserActor(user.uuid),
+        actionSource: "API_V2",
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };

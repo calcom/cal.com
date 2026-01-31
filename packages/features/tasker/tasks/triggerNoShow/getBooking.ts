@@ -51,6 +51,7 @@ export const getBooking = async (bookingId: number) => {
       user: {
         select: {
           id: true,
+          uuid: true,
           timeZone: true,
           email: true,
           name: true,
