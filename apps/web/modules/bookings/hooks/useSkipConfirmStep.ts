@@ -5,7 +5,7 @@ import type { BookerState } from "@calcom/features/bookings/Booker/types";
 import { getBookingResponsesSchemaWithOptionalChecks } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 
-import type { UseBookingFormReturnType } from "./useBookingForm";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 
 export const useSkipConfirmStep = (
   bookingForm: UseBookingFormReturnType["bookingForm"],

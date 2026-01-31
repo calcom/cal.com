@@ -7,7 +7,7 @@ import type { ToggledConnectedCalendars } from "@calcom/features/bookings/Booker
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 
 import type { WrappedBookerPropsMain } from "../types";
-import { useLocalSet } from "./useLocalSet";
+import { useLocalSet } from "@calcom/features/bookings/Booker/hooks/useLocalSet";
 
 export const useOverlayCalendar = ({
   connectedCalendars,

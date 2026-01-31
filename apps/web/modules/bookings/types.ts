@@ -6,8 +6,8 @@ import type { ToggledConnectedCalendars, CustomClassNames } from "@calcom/featur
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import type { validStatuses } from "./lib/validStatuses";
-import type { UseBookerLayoutType } from "./hooks/useBookerLayout";
-import type { UseBookingFormReturnType } from "./hooks/useBookingForm";
+import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import type { UseBookingsReturnType } from "./hooks/useBookings";
 import type { UseSlotsReturnType } from "./hooks/useSlots";
 import type { UseVerifyCodeReturnType } from "./hooks/useVerifyCode";
@@ -37,8 +37,8 @@ export type RowData = DataTableRow<BookingRowData>;
 
 export type BookingListingStatus = (typeof validStatuses)[number];
 
-export type { UseBookerLayoutType } from "./hooks/useBookerLayout";
-export type { UseBookingFormReturnType } from "./hooks/useBookingForm";
+export type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+export type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 export type { UseBookingsReturnType } from "./hooks/useBookings";
 export type { UseSlotsReturnType } from "./hooks/useSlots";
 export type { UseVerifyCodeReturnType } from "./hooks/useVerifyCode";

@@ -8,8 +8,8 @@ import {
   useBookerStoreContext,
   useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "../hooks/useBookerLayout";
-import { useBookingForm } from "../hooks/useBookingForm";
+import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { useBookingForm } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import { useBookings } from "../hooks/useBookings";
 import { useCalendars } from "../hooks/useCalendars";
 import { useSlots } from "../hooks/useSlots";
