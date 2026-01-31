@@ -1,6 +1,6 @@
+import { ConflictException, Injectable } from "@nestjs/common";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { ConflictException, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OAuthClientWebhooksService {
@@ -12,7 +12,9 @@ export class OAuthClientWebhooksService {
       body.subscriberUrl
     );
     if (existingWebhook) {
-      throw new ConflictException("Webhook with this subscriber url already exists for this oAuth client");
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this oAuth client. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
 
     return this.webhooksRepository.createOAuthClientWebhook(platformOAuthClientId, {

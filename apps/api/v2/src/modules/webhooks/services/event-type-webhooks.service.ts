@@ -1,8 +1,7 @@
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 @Injectable()
 export class EventTypeWebhooksService {
@@ -20,7 +19,9 @@ export class EventTypeWebhooksService {
       body.subscriberUrl
     );
     if (existingWebhook) {
-      throw new ConflictException("Webhook with this subscriber url already exists for this event type");
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this event type. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
     return this.webhooksRepository.createEventTypeWebhook(eventTypeId, {
       ...body,

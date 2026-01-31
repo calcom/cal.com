@@ -1,8 +1,7 @@
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 @Injectable()
 export class UserWebhooksService {
@@ -17,7 +16,9 @@ export class UserWebhooksService {
 
     const existingWebhook = await this.webhooksRepository.getUserWebhookByUrl(userId, body.subscriberUrl);
     if (existingWebhook) {
-      throw new ConflictException("Webhook with this subscriber url already exists for this user");
+      throw new ConflictException(
+        `Webhook with subscriber url ${body.subscriberUrl} already exists for this user. Existing webhook ID: ${existingWebhook.id}`
+      );
     }
 
     return this.webhooksRepository.createUserWebhook(userId, {
