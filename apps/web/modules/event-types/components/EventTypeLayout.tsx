@@ -1,10 +1,5 @@
-import { useMemo, useState, Suspense } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/web/modules/embed/components/EventTypeEmbed";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -13,23 +8,27 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import {
-  DropdownMenuSeparator,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Label, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import {
+  EventTypeEmbedButton,
+  EventTypeEmbedDialog,
+} from "@calcom/web/modules/embed/components/EventTypeEmbed";
 import WebShell from "@calcom/web/modules/shell/Shell";
-
+import { Suspense, useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { Shell as PlatformShell } from "../../../../../packages/platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
 
@@ -79,17 +78,23 @@ function EventTypeSingleLayout({
     formMethods.getValues("schedulingType") === SchedulingType.MANAGED ||
     isUserOrganizationAdmin;
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType,
-    translate: t,
-    formMethods,
-  });
-  const EventTypeTabs = tabsNavigation;
-  const permalink = `${bookerUrl}/${team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
-    }/${eventType.slug}`;
+  const { isManagedEventType, isChildrenManagedEventType, shouldLockDisableProps, shouldLockIndicator } =
+    useLockedFieldsManager({
+      eventType,
+      translate: t,
+      formMethods,
+    });
 
-  const embedLink = `${team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
-    }/${formMethods.getValues("slug")}`;
+  const hiddenLockProps = shouldLockDisableProps("hidden");
+  const hiddenLockIndicator = shouldLockIndicator("hidden");
+  const EventTypeTabs = tabsNavigation;
+  const permalink = `${bookerUrl}/${
+    team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
+  }/${eventType.slug}`;
+
+  const embedLink = `${
+    team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
+  }/${formMethods.getValues("slug")}`;
   const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
 
   const [Shell] = useMemo(() => {
@@ -113,12 +118,12 @@ function EventTypeSingleLayout({
       }
       CTA={
         <div className="flex items-center justify-end">
-          {!formMethods.getValues("metadata")?.managedEventConfig && (
+          {(!isChildrenManagedEventType || !hiddenLockProps.disabled) && (
             <>
               <div
                 className={classNames(
                   "sm:hover:bg-cal-muted hidden cursor-pointer items-center rounded-md transition",
-                  formMethods.watch("hidden") ? "pl-2" : "",
+                  formMethods.watch("hidden") || isManagedEventType ? "pl-2" : "",
                   "lg:flex"
                 )}>
                 {formMethods.watch("hidden") && (
@@ -129,6 +134,7 @@ function EventTypeSingleLayout({
                     {t("hidden")}
                   </Skeleton>
                 )}
+                {isManagedEventType && hiddenLockIndicator}
                 <Tooltip
                   sideOffset={4}
                   content={
@@ -138,7 +144,8 @@ function EventTypeSingleLayout({
                   <div className="self-center rounded-md p-2">
                     <Switch
                       id="hiddenSwitch"
-                      disabled={eventTypesLockedByOrg}
+                      data-testid="hidden-switch"
+                      disabled={eventTypesLockedByOrg || hiddenLockProps.disabled}
                       checked={!formMethods.watch("hidden")}
                       onCheckedChange={(e) => {
                         formMethods.setValue("hidden", !e, { shouldDirty: true });
@@ -254,21 +261,27 @@ function EventTypeSingleLayout({
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
-                <Skeleton
-                  as={Label}
-                  htmlFor="hiddenSwitch"
-                  className="mt-2 inline cursor-pointer self-center pr-2 ">
-                  {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
-                </Skeleton>
-                <Switch
-                  id="hiddenSwitch"
-                  checked={!formMethods.watch("hidden")}
-                  onCheckedChange={(e) => {
-                    formMethods.setValue("hidden", !e, { shouldDirty: true });
-                  }}
-                />
-              </div>
+              {(!isChildrenManagedEventType || !hiddenLockProps.disabled) && (
+                <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
+                  <div className="flex items-center">
+                    <Skeleton
+                      as={Label}
+                      htmlFor="hiddenSwitchMobile"
+                      className="mt-2 inline cursor-pointer self-center pr-2 ">
+                      {formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                    </Skeleton>
+                    {isManagedEventType && hiddenLockIndicator}
+                  </div>
+                  <Switch
+                    id="hiddenSwitchMobile"
+                    disabled={eventTypesLockedByOrg || hiddenLockProps.disabled}
+                    checked={!formMethods.watch("hidden")}
+                    onCheckedChange={(e) => {
+                      formMethods.setValue("hidden", !e, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+              )}
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-default border-l-2" />
