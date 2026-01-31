@@ -1,14 +1,20 @@
+import type { z } from "zod";
+
+import { BillingPortalServiceFactory } from "@calcom/app-store/stripepayment/lib/services/factory/BillingPortalServiceFactory";
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { sendSubscriptionPaymentFailedEmail } from "@calcom/emails/email-manager";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-import type { z } from "zod";
 import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
 // import billing from "../..";
 import type {
@@ -231,5 +237,54 @@ export class TeamBillingService implements ITeamBillingService {
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
     await this.billingRepository.create(args);
+  }
+
+  /**
+   * Sends a payment failed email to team/organization admins with billing portal link
+   */
+  async sendPaymentFailedEmails(): Promise<void> {
+    try {
+      // Get members of the team that have access to billing
+      const billingPortalService = await BillingPortalServiceFactory.createService(this.team.id);
+      const billingPortalUrl = await billingPortalService.processBillingPortalWithoutPermissionChecks({
+        teamId: this.team.id,
+      });
+
+      const permissionService = new PermissionCheckService();
+      // Use the correct permission based on whether this is an organization or team
+      const billingPermission = this.team.isOrganization
+        ? "organization.manageBilling"
+        : "team.manageBilling";
+      const membersToSendBillingEmail = await permissionService.getUsersWithPermissionForTeam({
+        teamId: this.team.id,
+        permission: billingPermission,
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+
+      const emailsSent = await Promise.allSettled(
+        membersToSendBillingEmail.map(async (member) => {
+          const translate = await getTranslation(member.locale || "en", "common");
+
+          await sendSubscriptionPaymentFailedEmail({
+            entityName: `${this.team.name} ${this.team.isOrganization ? "organization" : "team"}`,
+            billingPortalUrl: billingPortalUrl,
+            to: member.email,
+            language: { translate },
+          });
+        })
+      );
+
+      const failedEmails = emailsSent.filter((result) => result.status === "rejected");
+      const failedEmailCount = failedEmails.length;
+
+      log.info(
+        `Sent payment failed email for team ${this.team.id} to ${
+          membersToSendBillingEmail.length - failedEmailCount
+        } members. Failed to send email to ${failedEmailCount} members.`
+      );
+    } catch (error) {
+      this.logErrorFromUnknown(error);
+      throw error;
+    }
   }
 }

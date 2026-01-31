@@ -82,4 +82,14 @@ export interface IPermissionRepository {
     fallbackRoles: MembershipRole[];
     orgId?: number;
   }): Promise<number[]>;
+
+  /**
+   * Gets all users in a team who have a specific permission
+   */
+  getUsersWithPermissionInTeam(params: {
+    teamId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+    take?: number;
+  }): Promise<{ id: number; name: string | null; email: string; locale: string | null }[]>;
 }

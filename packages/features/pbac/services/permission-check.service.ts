@@ -373,4 +373,32 @@ export class PermissionCheckService {
       return [];
     }
   }
+
+  /**
+   * Gets all users who have a specific permission for a team
+   * Includes both PBAC permissions and fallback role-based access
+   * Returns user objects with id, name, email, and locale
+   */
+  async getUsersWithPermissionForTeam({
+    teamId,
+    permission,
+    fallbackRoles,
+  }: {
+    teamId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<Array<{ id: number; name: string | null; email: string; locale: string | null }>> {
+    try {
+      const validationResult = this.permissionService.validatePermission(permission);
+      if (!validationResult.isValid) {
+        this.logger.error(validationResult.error);
+        return [];
+      }
+
+      return await this.repository.getUsersWithPermissionInTeam({ teamId, permission, fallbackRoles });
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
+  }
 }
