@@ -267,7 +267,6 @@ export const roundRobinReassignment = async ({
           startTime: booking.startTime,
           endTime: booking.endTime,
           userId: reassignedRRHost.id,
-          reassignedById,
         }),
       },
       select: bookingSelect,
