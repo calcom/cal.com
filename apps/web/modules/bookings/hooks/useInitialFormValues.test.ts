@@ -255,21 +255,24 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
         bookingFields: mockBookingFields,
         team: null,
         owner: {
-          nonProfileUsername: "testuser",
-          profile: {
-            id: 1,
-            upId: "test-user",
-            username: "testuser",
-            organizationId: 1,
-            organization: {
-              name: "Test Organization",
-              organizationSettings: {
-                disableAutofillOnBookingPage: true,
-              },
-              id: 1,
-              slug: "test-org",
-              bannerUrl: null,
+          name: "Test User",
+          id: 1,
+          metadata: {},
+          username: "testuser",
+          avatarUrl: null,
+          weekStart: "Sunday",
+          theme: null,
+          defaultScheduleId: null,
+          brandColor: null,
+          darkBrandColor: null,
+          organization: {
+            name: "Test Organization",
+            organizationSettings: {
+              disableAutofillOnBookingPage: true,
             },
+            id: 1,
+            slug: "test-org",
+            bannerUrl: null,
           },
         },
       };
