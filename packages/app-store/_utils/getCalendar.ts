@@ -16,7 +16,8 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (
   credential: CredentialForCalendarService | null,
-  mode: CalendarFetchMode = "none"
+  mode: CalendarFetchMode = "none",
+  shouldServeCacheFromInitialData?: boolean
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
@@ -51,7 +52,17 @@ export const getCalendar = async (
   // - "booking": Don't use cache (for booking confirmation)
   // - "none": Don't use cache (for operations that don't use getAvailability, e.g., deleteEvent, listCalendars)
   let shouldServeCache = false;
-  if (mode === "slots") {
+  // If shouldServeCacheFromInitialData is provided, use it directly (already checked at initial data level)
+  // Otherwise, fall back to checking feature flags here (for backward compatibility)
+  if (shouldServeCacheFromInitialData !== undefined) {
+    shouldServeCache = shouldServeCacheFromInitialData;
+    log.debug("Using shouldServeCache from initial data", {
+      credentialId: credential.id,
+      userId: credential.userId,
+      mode,
+      shouldServeCache,
+    });
+  } else if (mode === "slots") {
     const featuresRepository = new FeaturesRepository(prisma);
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
