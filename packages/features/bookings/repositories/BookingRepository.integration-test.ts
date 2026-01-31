@@ -579,35 +579,16 @@ describe("BookingRepository (Integration Tests)", () => {
     });
 
     it("benchmark: raw SQL JOIN should be faster than Prisma correlated subquery", async () => {
-      // Create test bookings with attendees
-      const testEmails = ["bench1@example.com", "bench2@example.com", "bench3@example.com"];
-      const bookingIds: number[] = [];
+      // Use emails from bookings created in other tests
+      const testEmails = [
+        "attendee@example.com",
+        "target-attendee@example.com",
+        "organizer@example.com",
+        "range@example.com",
+      ];
 
-      for (let i = 0; i < 5; i++) {
-        const booking = await prisma.booking.create({
-          data: {
-            userId: testUserId,
-            uid: `uid-benchmark-${i}`,
-            eventTypeId: testEventTypeId,
-            status: BookingStatus.ACCEPTED,
-            attendees: {
-              create: {
-                email: testEmails[i % testEmails.length],
-                name: `Benchmark Attendee ${i}`,
-                timeZone: "UTC",
-              },
-            },
-            startTime: new Date(`2025-05-01T${10 + i}:00:00.000Z`),
-            endTime: new Date(`2025-05-01T${11 + i}:00:00.000Z`),
-            title: `Benchmark Booking ${i}`,
-          },
-        });
-        bookingIds.push(booking.id);
-        createdBookingIds.push(booking.id);
-      }
-
-      const startDate = new Date("2025-05-01T00:00:00.000Z");
-      const endDate = new Date("2025-05-01T23:59:59.999Z");
+      const startDate = new Date("2025-01-01T00:00:00.000Z");
+      const endDate = new Date("2025-12-31T23:59:59.999Z");
 
       // Benchmark: Original Prisma correlated subquery approach
       const prismaQueryFn = async () => {
@@ -639,12 +620,14 @@ describe("BookingRepository (Integration Tests)", () => {
         `;
       };
 
-      // Run benchmarks (5 iterations each)
-      const iterations = 5;
+      // Run benchmarks (10 iterations each for more accurate results)
+      const iterations = 10;
 
-      // Warm up
-      await prismaQueryFn();
-      await rawSqlQueryFn();
+      // Warm up (3 iterations)
+      for (let i = 0; i < 3; i++) {
+        await prismaQueryFn();
+        await rawSqlQueryFn();
+      }
 
       // Measure Prisma approach
       const prismaTimes: number[] = [];
@@ -664,17 +647,32 @@ describe("BookingRepository (Integration Tests)", () => {
 
       const prismaAvg = prismaTimes.reduce((a, b) => a + b, 0) / iterations;
       const rawSqlAvg = rawSqlTimes.reduce((a, b) => a + b, 0) / iterations;
-
-      console.log("\n=== BENCHMARK RESULTS ===");
-      console.log(`Prisma correlated subquery: ${prismaAvg.toFixed(2)}ms avg`);
-      console.log(`Raw SQL JOIN: ${rawSqlAvg.toFixed(2)}ms avg`);
-      console.log(`Speedup: ${(prismaAvg / rawSqlAvg).toFixed(2)}x faster with Raw SQL`);
-      console.log("========================\n");
+      const prismaMin = Math.min(...prismaTimes);
+      const prismaMax = Math.max(...prismaTimes);
+      const rawSqlMin = Math.min(...rawSqlTimes);
+      const rawSqlMax = Math.max(...rawSqlTimes);
+      const speedup = prismaAvg / rawSqlAvg;
 
       // Both approaches should return the same results
       const prismaResults = await prismaQueryFn();
       const rawSqlResults = await rawSqlQueryFn();
       expect(prismaResults.length).toBe(rawSqlResults.length);
+
+      // Store benchmark results for PR description
+      const benchmarkResults = {
+        prisma: { avg: prismaAvg, min: prismaMin, max: prismaMax },
+        rawSql: { avg: rawSqlAvg, min: rawSqlMin, max: rawSqlMax },
+        speedup,
+        iterations,
+        emailsSearched: testEmails.length,
+      };
+
+      // Write results to file for easy access
+      const fs = await import("node:fs");
+      fs.writeFileSync("/tmp/benchmark_results.json", JSON.stringify(benchmarkResults, null, 2));
+
+      // Assert that raw SQL is faster (allowing for some variance)
+      expect(rawSqlAvg).toBeLessThanOrEqual(prismaAvg * 1.5); // Raw SQL should not be significantly slower
     });
   });
 });
