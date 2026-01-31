@@ -144,4 +144,9 @@ export type DatePickerClassNames = {
   datePickerToggle?: string;
 };
 
-export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
+export type QuickAvailabilityCheck = {
+  status: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast";
+  utcStartIso: string;
+  utcEndIso: string;
+  realStatus?: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast" | undefined;
+};

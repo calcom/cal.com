@@ -12,15 +12,8 @@ import {
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
-
+import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
-
-export type QuickAvailabilityCheck = {
-  status: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast";
-  utcStartIso: string;
-  utcEndIso: string;
-  realStatus?: "available" | "reserved" | "minBookNoticeViolation" | "slotInPast" | undefined;
-}
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
