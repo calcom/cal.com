@@ -177,6 +177,14 @@ export default async function main() {
       client_secret: process.env.ZOHOCRM_CLIENT_SECRET,
     });
   }
+  if (process.env.DEEL_CLIENT_ID && process.env.DEEL_CLIENT_SECRET && process.env.DEEL_REDIRECT_URIS) {
+    await createApp("deel", "deel", ["hrms"], "deel_other", {
+      client_id: process.env.DEEL_CLIENT_ID,
+      client_secret: process.env.DEEL_CLIENT_SECRET,
+      redirect_uris: process.env.DEEL_REDIRECT_URIS,
+      webhook_signing_key: process.env.DEEL_WEBHOOK_SIGNING_KEY || "",
+    });
+  }
 
   await createApp("wipe-my-cal", "wipemycalother", ["automation"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {

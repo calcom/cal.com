@@ -78,6 +78,11 @@ export class PrismaOOORepository {
             reason: true,
           },
         },
+        externalReference: {
+          select: {
+            externalReasonName: true,
+          },
+        },
       },
     });
   }
@@ -147,6 +152,11 @@ export class PrismaOOORepository {
             reason: true,
           },
         },
+        externalReference: {
+          select: {
+            externalReasonName: true,
+          },
+        },
       },
     });
   }
@@ -176,6 +186,165 @@ export class PrismaOOORepository {
         start: true,
         end: true,
         userId: true,
+      },
+    });
+  }
+
+  async createOOOEntry({
+    uuid,
+    start,
+    end,
+    notes,
+    userId,
+    reasonId,
+  }: {
+    uuid: string;
+    start: Date;
+    end: Date;
+    notes: string;
+    userId: number;
+    reasonId: number;
+  }) {
+    return this.prismaClient.outOfOfficeEntry.create({
+      data: {
+        uuid,
+        start,
+        end,
+        notes,
+        userId,
+        reasonId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async findOOOEntryByExternalReference({
+    source,
+    externalId,
+  }: {
+    source: string;
+    externalId: string;
+  }) {
+    const reference = await this.prismaClient.outOfOfficeReference.findUnique({
+      where: {
+        source_externalId: {
+          source,
+          externalId,
+        },
+      },
+      include: {
+        oooEntry: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+        credential: {
+          select: {
+            id: true,
+            type: true,
+            key: true,
+            appId: true,
+            userId: true,
+            teamId: true,
+            invalid: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return reference;
+  }
+
+  async deleteOOOEntryByExternalReference({
+    source,
+    externalId,
+  }: {
+    source: string;
+    externalId: string;
+  }) {
+    const reference = await this.prismaClient.outOfOfficeReference.findUnique({
+      where: {
+        source_externalId: {
+          source,
+          externalId,
+        },
+      },
+    });
+
+    if (!reference) {
+      return null;
+    }
+
+    return this.prismaClient.outOfOfficeEntry.delete({
+      where: {
+        id: reference.oooEntryId,
+      },
+    });
+  }
+
+  async createOOOReference({
+    oooEntryId,
+    source,
+    externalId,
+    externalReasonId,
+    externalReasonName,
+    credentialId,
+  }: {
+    oooEntryId: number;
+    source: string;
+    externalId: string;
+    externalReasonId?: string | null;
+    externalReasonName?: string | null;
+    credentialId?: number | null;
+  }) {
+    return this.prismaClient.outOfOfficeReference.create({
+      data: {
+        oooEntryId,
+        source,
+        externalId,
+        externalReasonId,
+        externalReasonName,
+        credentialId,
+      },
+    });
+  }
+
+  async updateOOOEntry({
+    uuid,
+    start,
+    end,
+    notes,
+    userId,
+    reasonId,
+  }: {
+    uuid: string;
+    start: Date;
+    end: Date;
+    notes: string;
+    userId: number;
+    reasonId: number;
+  }) {
+    return this.prismaClient.outOfOfficeEntry.update({
+      where: {
+        uuid,
+      },
+      data: {
+        uuid,
+        start,
+        end,
+        notes,
+        userId,
+        reasonId,
       },
     });
   }

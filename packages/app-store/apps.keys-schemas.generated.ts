@@ -8,6 +8,7 @@ import { appKeysSchema as btcpayserver_zod_ts } from "./btcpayserver/zod";
 import { appKeysSchema as closecom_zod_ts } from "./closecom/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as databuddy_zod_ts } from "./databuddy/zod";
+import { appKeysSchema as deel_zod_ts } from "./deel/zod";
 import { appKeysSchema as dub_zod_ts } from "./dub/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as feishucalendar_zod_ts } from "./feishucalendar/zod";
@@ -59,6 +60,7 @@ export const appKeysSchemas = {
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   databuddy: databuddy_zod_ts,
+  deel: deel_zod_ts,
   dub: dub_zod_ts,
   fathom: fathom_zod_ts,
   feishucalendar: feishucalendar_zod_ts,

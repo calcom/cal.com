@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 
-import { Select } from "@calcom/ui/components/form";
 import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 export interface IAppConfigurationProps {

@@ -1,9 +1,10 @@
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
-import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { AppCategories } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
@@ -115,6 +116,184 @@ export class CredentialRepository {
       where: { userId, type },
     });
     return buildNonDelegationCredential(credential);
+  }
+
+  static async findManyByUserIdOrTeamIdAndCategory({
+    category,
+    userId,
+    teamId,
+  }: {
+    category: AppCategories[];
+    userId?: number;
+    teamId?: number;
+  }) {
+    if (!userId && !teamId) return null;
+
+    const where: Prisma.CredentialWhereInput = {
+      app: {
+        categories: {
+          hasSome: category,
+        },
+      },
+    };
+
+    if (userId) {
+      where.userId = userId;
+    }
+
+    if (teamId) {
+      where.teamId = teamId;
+    }
+
+    const credentials = await prisma.credential.findMany({
+      where,
+      select: credentialForCalendarServiceSelect,
+    });
+    return credentials.map((credential) => buildNonDelegationCredential(credential));
+  }
+
+  /**
+   * Fetches credentials for a user by category, including credentials from:
+   * 1. User's own credentials
+   * 2. Team credentials (from teams the user is a member of)
+   * 3. Organization credentials (using Profile model, not deprecated user.organizationId)
+   */
+  static async findCredentialsByUserIdAndCategory({
+    userId,
+    category,
+  }: {
+    userId: number;
+    category: AppCategories[];
+  }) {
+    const credentials = [];
+
+    // 1. Get user's own credentials
+    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+      userId,
+      category,
+    });
+
+    if (userCredentials) {
+      credentials.push(...userCredentials);
+    }
+
+    // 2. Get team credentials
+    const userTeams = await prisma.membership.findMany({
+      where: { userId },
+      select: { teamId: true },
+    });
+
+    for (const membership of userTeams) {
+      const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: membership.teamId,
+        category,
+      });
+      if (teamCredentials) credentials.push(...teamCredentials);
+    }
+
+    // 3. Get organization credentials using Profile (not deprecated user.organizationId)
+    const organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId });
+
+    if (organizationId) {
+      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: organizationId,
+        category,
+      });
+      if (orgCredentials) credentials.push(...orgCredentials);
+    }
+
+    return credentials;
+  }
+
+  /**
+   * Fetches the highest priority HRMS credential for a user.
+   * Priority order: Organization > Team > User
+   * Returns only a single credential (the first found with highest priority).
+   */
+  static async findFirstHrmsCredentialByPriority({
+    userId,
+    category,
+  }: {
+    userId: number;
+    category: AppCategories[];
+  }) {
+    // 1. First check organization credentials (highest priority)
+    const organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId });
+
+    if (organizationId) {
+      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: organizationId,
+        category,
+      });
+      if (orgCredentials && orgCredentials.length > 0) {
+        return orgCredentials[0];
+      }
+    }
+
+    // 2. Then check team credentials
+    const userTeams = await prisma.membership.findMany({
+      where: { userId },
+      select: { teamId: true },
+    });
+
+    for (const membership of userTeams) {
+      const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: membership.teamId,
+        category,
+      });
+      if (teamCredentials && teamCredentials.length > 0) {
+        return teamCredentials[0];
+      }
+    }
+
+    // 3. Finally check user's own credentials (lowest priority)
+    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+      userId,
+      category,
+    });
+
+    if (userCredentials && userCredentials.length > 0) {
+      return userCredentials[0];
+    }
+
+    return null;
+  }
+
+  static async findManyByCategoryAndAppSlug({
+    category,
+    appSlug,
+  }: {
+    category: AppCategories[];
+    appSlug: string;
+  }) {
+    const credentials = await prisma.credential.findMany({
+      where: {
+        app: {
+          categories: {
+            hasSome: category,
+          },
+          slug: appSlug,
+        },
+      },
+      select: {
+        id: true,
+        key: true,
+        appId: true,
+        userId: true,
+        teamId: true,
+        type: true,
+        invalid: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    return credentials.map((credential) => ({
+      ...credential,
+      delegationCredentialId: null,
+    }));
   }
 
   static async deleteById({ id }: { id: number }) {

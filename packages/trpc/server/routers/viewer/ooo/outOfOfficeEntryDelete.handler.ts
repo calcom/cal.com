@@ -1,4 +1,6 @@
 import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
+import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -6,7 +8,9 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import { isAdminForUser } from "./outOfOffice.utils";
-import { type TOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
+import type { TOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
+
+const log = logger.getSubLogger({ prefix: ["[outOfOfficeEntryDelete.handler]"] });
 
 type TBookingRedirectDelete = {
   ctx: {
@@ -40,10 +44,71 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     }
   }
 
+  // First, fetch the OOO entry with its external reference before deleting (1:1 relationship)
+  const oooEntry = await prisma.outOfOfficeEntry.findUnique({
+    where: {
+      uuid: input.outOfOfficeUid,
+      userId: oooUserId,
+    },
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      externalReference: {
+        select: {
+          id: true,
+          source: true,
+          externalId: true,
+          credential: {
+            select: {
+              id: true,
+              type: true,
+              key: true,
+              appId: true,
+              userId: true,
+              teamId: true,
+              invalid: true,
+              delegationCredentialId: true,
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      toUser: {
+        select: {
+          email: true,
+          username: true,
+        },
+      },
+    },
+  });
+
+  if (!oooEntry) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
+  }
+
+  // Delete HRMS time-off entry before deleting the OOO entry (1:1 relationship)
+  try {
+    if (oooEntry.externalReference?.credential) {
+      const hrmsManager = new HrmsManager(oooEntry.externalReference.credential);
+      await hrmsManager.deleteOOO(oooEntry.externalReference.externalId);
+      log.info("Deleted HRMS time-off request", {
+        source: oooEntry.externalReference.source,
+        externalId: oooEntry.externalReference.externalId,
+      });
+    }
+  } catch (error) {
+    log.error("Failed to delete HRMS time-off request", { error });
+  }
+
+  // Now delete the OOO entry (cascade will delete references)
   const deletedOutOfOfficeEntry = await prisma.outOfOfficeEntry.delete({
     where: {
       uuid: input.outOfOfficeUid,
-      /** Validate outOfOfficeEntry belongs to the user deleting it or is admin*/
       userId: oooUserId,
     },
     select: {

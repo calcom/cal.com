@@ -101,11 +101,18 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         avatarUrl: member.avatarUrl,
       })) || [];
 
-  const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
+  const { data: outOfOfficeReasonData, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
-  const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
-    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
+
+  const hasHrmsIntegration = outOfOfficeReasonData?.hasHrmsIntegration ?? false;
+
+  const reasonList = (outOfOfficeReasonData?.reasons || []).map((reason) => ({
+    label: `${reason?.emoji ? reason.emoji : ""} ${
+      reason.userId === null ? t(reason.reason || "") : reason.reason || ""
+    }`.trim(),
     value: reason.id,
+    hrmsSource: reason.hrmsSource,
+    hrmsReasonId: reason.hrmsReasonId,
   }));
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
@@ -134,6 +141,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           reasonId: 1,
           forUserId: null,
           showNotePublicly: false,
+          hrmsReasonId: null,
+          hrmsReasonName: null,
         },
   });
 
@@ -308,7 +317,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   control={control}
                   name="reasonId"
                   render={({ field: { onChange, value } }) => (
-                    <Select<Option>
+                    <Select<{
+                      value: number;
+                      label: string;
+                      hrmsSource?: string | null;
+                      hrmsReasonId?: string | null;
+                    }>
                       className="mb-0 mt-1 text-white"
                       name="reason"
                       data-testid="reason_select"
@@ -319,6 +333,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(selectedOption) => {
                         if (selectedOption?.value) {
                           onChange(selectedOption.value);
+                          if (selectedOption.hrmsSource) {
+                            setValue("hrmsReasonId", selectedOption.hrmsReasonId || null);
+                            setValue("hrmsReasonName", selectedOption.label || null);
+                          } else {
+                            setValue("hrmsReasonId", null);
+                            setValue("hrmsReasonName", null);
+                          }
                         }
                       }}
                     />

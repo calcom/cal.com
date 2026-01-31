@@ -325,8 +325,11 @@ model Credential {
   references                BookingReference[]
   delegationCredentialId    String?
   delegationCredential      DelegationCredential?      @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  oooReferences             OutOfOfficeReference[]
   integrationAttributeSyncs IntegrationAttributeSync[]
   hostLocations             HostLocation[]
+
+  metadata Json?
 
   @@index([appId])
   @@index([subscriptionId])
@@ -1273,6 +1276,7 @@ model Session {
 }
 
 enum AppCategories {
+  hrms
   calendar
   messaging
   other
@@ -2019,6 +2023,8 @@ model OutOfOfficeEntry {
   reasonId         Int?
   reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
+  externalReference OutOfOfficeReference?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2028,9 +2034,30 @@ model OutOfOfficeEntry {
   @@index([start, end])
 }
 
+model OutOfOfficeReference {
+  id   Int    @id @default(autoincrement())
+  uuid String @unique @default(uuid())
+
+  oooEntryId Int              @unique
+  oooEntry   OutOfOfficeEntry @relation(fields: [oooEntryId], references: [id], onDelete: Cascade)
+
+  source             String // App slug: "deel", "bamboohr"
+  externalId         String // Time-off entry ID in HRMS
+  externalReasonName String? // Display: "Parental Leave", "PTO"
+  externalReasonId   String? // HRMS reason ID for API calls
+
+  credentialId Int?
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+
+  syncedAt DateTime @default(now())
+
+  @@unique([source, externalId])
+  @@index([credentialId])
+}
+
 model OutOfOfficeReason {
   id      Int     @id @default(autoincrement())
-  emoji   String
+  emoji   String?
   reason  String  @unique
   enabled Boolean @default(true)
   userId  Int?
