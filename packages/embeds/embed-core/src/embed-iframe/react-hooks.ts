@@ -122,7 +122,7 @@ export const useSlotsViewOnSmallScreen = () => {
 
   const embedUiConfig = useEmbedUiConfig();
 
-  if (!isEmbed || !isMobile) return false;
+  if (!isBrowser || !isEmbed || !isMobile) return false;
 
   return embedUiConfig.useSlotsViewOnSmallScreen ?? false;
 };
