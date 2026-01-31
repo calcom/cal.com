@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 
@@ -15,8 +15,11 @@ export const getGoogleAppKeys = async () => {
       googleAppKeysSchema
     );
   } catch (error) {
-    const envCredentials = process.env.GOOGLE_API_CREDENTIALS;
+    if (!(error instanceof ZodError)) {
+      throw error;
+    }
 
+    const envCredentials = process.env.GOOGLE_API_CREDENTIALS;
     if (!envCredentials) {
       throw error;
     }
