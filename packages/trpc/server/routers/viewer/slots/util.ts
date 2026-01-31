@@ -796,6 +796,7 @@ export class AvailableSlotsService {
     bypassBusyCalendarTimes,
     silentCalendarFailures,
     mode,
+    shouldServeCache,
   }: {
     input: TGetScheduleInputSchema;
     eventType: Exclude<
@@ -813,6 +814,7 @@ export class AvailableSlotsService {
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
     mode?: CalendarFetchMode;
+    shouldServeCache?: boolean;
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
@@ -960,6 +962,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        shouldServeCache,
       },
     });
     /* We get all users working hours and busy slots */
@@ -1171,6 +1174,37 @@ export class AvailableSlotsService {
       ? await filterBlockedHosts(allFallbackRRHosts, organizationId)
       : { eligibleHosts: [] };
 
+    // Check CalendarCache feature flags once at the initial data level instead of per-credential
+    // This is more efficient as we only check the feature flags once per request
+    let shouldServeCache = false;
+    if (mode === "slots") {
+      const allUserIds = Array.from(
+        new Set([
+          ...eligibleQualifiedRRHosts.map((h) => h.user.id),
+          ...eligibleFixedHosts.map((h) => h.user.id),
+          ...eligibleFallbackRRHosts.map((h) => h.user.id),
+        ])
+      );
+      // Check if any user has the calendar cache feature enabled
+      // We check globally first, then per-user
+      if (allUserIds.length > 0) {
+        const isCalendarSubscriptionCacheEnabled =
+          await this.dependencies.featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-subscription-cache");
+        if (isCalendarSubscriptionCacheEnabled) {
+          // Check if at least one user has the feature enabled
+          const userFeatureChecks = await Promise.all(
+            allUserIds.map((userId) =>
+              this.dependencies.featuresRepo.checkIfUserHasFeatureNonHierarchical(
+                userId,
+                "calendar-subscription-cache"
+              )
+            )
+          );
+          shouldServeCache = userFeatureChecks.some((hasFeature) => hasFeature);
+        }
+      }
+    }
+
     const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
 
     // If all hosts are blocked, return empty slots
@@ -1205,6 +1239,7 @@ export class AvailableSlotsService {
         bypassBusyCalendarTimes,
         silentCalendarFailures,
         mode,
+        shouldServeCache,
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -1232,6 +1267,7 @@ export class AvailableSlotsService {
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
+            shouldServeCache,
           });
           if (
             !getAggregatedAvailability(
@@ -1268,6 +1304,7 @@ export class AvailableSlotsService {
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
+            shouldServeCache,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }

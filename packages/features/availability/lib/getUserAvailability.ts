@@ -159,6 +159,7 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  shouldServeCache?: boolean;
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
@@ -597,6 +598,7 @@ export class UserAvailabilityService {
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures,
         mode,
+        shouldServeCache: initialData?.shouldServeCache,
       });
     } catch (error) {
       log.error(`Error fetching busy times for user ${username}:`, error);
