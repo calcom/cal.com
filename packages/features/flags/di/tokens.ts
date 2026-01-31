@@ -1,22 +1,37 @@
 export const FLAGS_DI_TOKENS: {
   FEATURES_REPOSITORY: symbol;
   FEATURES_REPOSITORY_MODULE: symbol;
-  FEATURE_REPOSITORY: symbol;
-  FEATURE_REPOSITORY_MODULE: symbol;
-  TEAM_FEATURE_REPOSITORY: symbol;
-  TEAM_FEATURE_REPOSITORY_MODULE: symbol;
-  USER_FEATURE_REPOSITORY: symbol;
-  USER_FEATURE_REPOSITORY_MODULE: symbol;
+  PRISMA_FEATURE_REPOSITORY: symbol;
+  PRISMA_FEATURE_REPOSITORY_MODULE: symbol;
+  CACHED_FEATURE_REPOSITORY: symbol;
+  CACHED_FEATURE_REPOSITORY_MODULE: symbol;
+  PRISMA_TEAM_FEATURE_REPOSITORY: symbol;
+  PRISMA_TEAM_FEATURE_REPOSITORY_MODULE: symbol;
+  CACHED_TEAM_FEATURE_REPOSITORY: symbol;
+  CACHED_TEAM_FEATURE_REPOSITORY_MODULE: symbol;
+  PRISMA_USER_FEATURE_REPOSITORY: symbol;
+  PRISMA_USER_FEATURE_REPOSITORY_MODULE: symbol;
+  CACHED_USER_FEATURE_REPOSITORY: symbol;
+  CACHED_USER_FEATURE_REPOSITORY_MODULE: symbol;
 } = {
   FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
   FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
 
-  FEATURE_REPOSITORY: Symbol("FeatureRepository"),
-  FEATURE_REPOSITORY_MODULE: Symbol("FeatureRepositoryModule"),
+  PRISMA_FEATURE_REPOSITORY: Symbol("PrismaFeatureRepository"),
+  PRISMA_FEATURE_REPOSITORY_MODULE: Symbol("PrismaFeatureRepositoryModule"),
 
-  TEAM_FEATURE_REPOSITORY: Symbol("TeamFeatureRepository"),
-  TEAM_FEATURE_REPOSITORY_MODULE: Symbol("TeamFeatureRepositoryModule"),
+  CACHED_FEATURE_REPOSITORY: Symbol("CachedFeatureRepository"),
+  CACHED_FEATURE_REPOSITORY_MODULE: Symbol("CachedFeatureRepositoryModule"),
 
-  USER_FEATURE_REPOSITORY: Symbol("UserFeatureRepository"),
-  USER_FEATURE_REPOSITORY_MODULE: Symbol("UserFeatureRepositoryModule"),
+  PRISMA_TEAM_FEATURE_REPOSITORY: Symbol("PrismaTeamFeatureRepository"),
+  PRISMA_TEAM_FEATURE_REPOSITORY_MODULE: Symbol("PrismaTeamFeatureRepositoryModule"),
+
+  CACHED_TEAM_FEATURE_REPOSITORY: Symbol("CachedTeamFeatureRepository"),
+  CACHED_TEAM_FEATURE_REPOSITORY_MODULE: Symbol("CachedTeamFeatureRepositoryModule"),
+
+  PRISMA_USER_FEATURE_REPOSITORY: Symbol("PrismaUserFeatureRepository"),
+  PRISMA_USER_FEATURE_REPOSITORY_MODULE: Symbol("PrismaUserFeatureRepositoryModule"),
+
+  CACHED_USER_FEATURE_REPOSITORY: Symbol("CachedUserFeatureRepository"),
+  CACHED_USER_FEATURE_REPOSITORY_MODULE: Symbol("CachedUserFeatureRepositoryModule"),
 };
