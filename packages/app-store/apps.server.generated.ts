@@ -54,6 +54,7 @@ export const apiHandlers = {
   larkcalendar: import("./larkcalendar/api"),
   lindy: import("./lindy/api"),
   linear: import("./linear/api"),
+  lyra: import("./lyra/api"),
   make: import("./make/api"),
   matomo: import("./matomo/api"),
   metapixel: import("./metapixel/api"),

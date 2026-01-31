@@ -1,0 +1,22 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Lyra",
+  "title": "Lyra",
+  "slug": "lyra",
+  "type": "lyra_video",
+  "logo": "icon.svg",
+  "url": "https://lyra.so/",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Lyra",
+  "email": "support@lyra.so",
+  "description": "The meeting platform built for pros.",
+  "isOAuth": false,
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:lyra",
+      "label": "Lyra Meeting"
+    }
+  }
+}

@@ -1,6 +1,5 @@
-import dynamic from "next/dynamic";
-
 import { DynamicComponent } from "@calcom/app-store/_components/DynamicComponent";
+import dynamic from "next/dynamic";
 
 export const AppSetupMap = {
   alby: dynamic(() => import("@calcom/web/components/apps/alby/Setup")),
@@ -10,6 +9,7 @@ export const AppSetupMap = {
   "exchange2016-calendar": dynamic(() => import("@calcom/web/components/apps/exchange2016calendar/Setup")),
   "caldav-calendar": dynamic(() => import("@calcom/web/components/apps/caldavcalendar/Setup")),
   "ics-feed": dynamic(() => import("@calcom/web/components/apps/ics-feedcalendar/Setup")),
+  lyra: dynamic(() => import("@calcom/web/components/apps/lyra/Setup")),
   make: dynamic(() => import("@calcom/web/components/apps/make/Setup")),
   sendgrid: dynamic(() => import("@calcom/web/components/apps/sendgrid/Setup")),
   stripe: dynamic(() => import("@calcom/web/components/apps/stripepayment/Setup")),
