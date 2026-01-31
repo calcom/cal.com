@@ -46,6 +46,21 @@ describe("uiConfig", () => {
       email: {
         type: "email",
       },
+      address: {
+        type: "address",
+      },
+      url: {
+        type: "url",
+      },
+      checkbox: {
+        type: "multiselect",
+      },
+      radio: {
+        type: "select",
+      },
+      boolean: {
+        type: "select",
+      },
     },
     settings: {} as Settings,
   };
@@ -65,6 +80,11 @@ describe("uiConfig", () => {
       expect(result.widgets.select).toHaveProperty("factory");
       expect(result.widgets.phone).toHaveProperty("factory");
       expect(result.widgets.email).toHaveProperty("factory");
+      expect(result.widgets.address).toHaveProperty("factory");
+      expect(result.widgets.url).toHaveProperty("factory");
+      expect(result.widgets.checkbox).toHaveProperty("factory");
+      expect(result.widgets.radio).toHaveProperty("factory");
+      expect(result.widgets.boolean).toHaveProperty("factory");
     });
 
     it("should add render functions to settings", () => {
