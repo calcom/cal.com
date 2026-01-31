@@ -1,3 +1,21 @@
+import { bookingMetadataSchema } from "@calcom/platform-libraries";
+import type {
+  CreateRecurringSeatedBookingOutput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  ReassignBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import {
+  BookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  SeatedAttendee,
+} from "@calcom/platform-types";
+import type { Booking, BookingSeat } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   defaultBookingMetadata,
@@ -6,25 +24,6 @@ import {
   defaultSeatedBookingMetadata,
 } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
-import { Injectable } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-import { DateTime } from "luxon";
-import { z } from "zod";
-
-import { bookingMetadataSchema } from "@calcom/platform-libraries";
-import {
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  SeatedAttendee,
-  BookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import type {
-  CreateRecurringSeatedBookingOutput_2024_08_13,
-  CreateSeatedBookingOutput_2024_08_13,
-  ReassignBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import type { Booking, BookingSeat } from "@calcom/prisma/client";
 
 export const bookingResponsesSchema = z
   .object({
@@ -80,6 +79,7 @@ type DatabaseBooking = Booking & {
     phoneNumber?: string | null;
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
+    createdAt: Date;
   }[];
   user: DatabaseUser | null;
   createdAt: Date;
@@ -168,9 +168,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.getDisplayEmail(guest)
-      );
+      bookingTransformed.bookingFieldsResponses.displayGuests =
+        bookingTransformed.bookingFieldsResponses.guests.map((guest: string) => this.getDisplayEmail(guest));
     }
 
     return bookingTransformed;
@@ -230,10 +229,10 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputRecurringBookings(bookingsIds: number[]) {
     const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
-    
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
-    const transformed = bookingsIds.map(bookingId => {
+
+    const bookingsMap = new Map(databaseBookings.map((booking) => [booking.id, booking]));
+
+    const transformed = bookingsIds.map((bookingId) => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
@@ -313,9 +312,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.getDisplayEmail(guest)
-      );
+      bookingTransformed.bookingFieldsResponses.displayGuests =
+        bookingTransformed.bookingFieldsResponses.guests.map((guest: string) => this.getDisplayEmail(guest));
     }
 
     return bookingTransformed;
@@ -389,6 +387,7 @@ export class OutputBookingsService_2024_08_13 {
             absent: !!attendee.noShow,
             seatUid: attendee.bookingSeat?.referenceUid,
             bookingFieldsResponses: {},
+            createdAt: attendee.createdAt,
           };
           const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
           attendeeParsed.bookingFieldsResponses = responses || {};
@@ -409,11 +408,12 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
-    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
-    
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
-    const transformed = bookingsIds.map(bookingId => {
+    const databaseBookings =
+      await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
+
+    const bookingsMap = new Map(databaseBookings.map((booking) => [booking.id, booking]));
+
+    const transformed = bookingsIds.map((bookingId) => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
@@ -518,6 +518,7 @@ export class OutputBookingsService_2024_08_13 {
             absent: !!attendee.noShow,
             seatUid: attendee.bookingSeat?.referenceUid,
             bookingFieldsResponses: {},
+            createdAt: attendee.createdAt,
           };
           const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
           attendeeParsed.bookingFieldsResponses = responses || {};
