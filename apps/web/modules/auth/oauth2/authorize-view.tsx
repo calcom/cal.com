@@ -10,6 +10,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
@@ -184,15 +185,16 @@ export function Authorize() {
             </div>
           </div>
 
-          <h1 className="text-[26px] leading-tight tracking-tight">
-            <span className="font-bold text-black">{client.name}</span>{" "}
-            <span className="font-semibold text-[#6B7280]">
-              {t("access_cal_account_prefix")}
-            </span>{" "}
-            <span className="font-bold text-black">{APP_NAME}</span>{" "}
-            <span className="font-semibold text-[#6B7280]">
-              {t("access_cal_account_suffix")}
-            </span>
+          <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-[#6B7280]">
+            <ServerTrans
+              t={t}
+              i18nKey="access_cal_account"
+              values={{ clientName: client.name, appName: APP_NAME }}
+              components={[
+                <span key="client" className="font-bold text-black" />,
+                <span key="app" className="font-bold text-black" />,
+              ]}
+            />
           </h1>
           {show_account_selector && (
             <div className="mt-6">
@@ -251,28 +253,46 @@ export function Authorize() {
               {t("oauth_access_information", { appName: APP_NAME })}
             </p>
 
-            <Button
-              type="button"
-              color="primary"
-              className="bg-[#070A0D]! border-[#070A0D]! shadow-none! text-white! mt-6 w-full justify-center rounded-lg hover:bg-[#1a1d21]!"
-              onClick={() => {
-                generateAuthCodeMutation.mutate({
-                  clientId: client_id as string,
-                  scopes,
-                  redirectUri: client.redirectUri,
-                  teamSlug: selectedAccount?.value.startsWith("team/")
-                    ? selectedAccount?.value.substring(5)
-                    : undefined,
-                  codeChallenge: code_challenge || undefined,
-                  codeChallengeMethod:
-                    (code_challenge_method as "S256") || undefined,
-                  state,
-                });
-              }}
-              data-testid="allow-button"
-            >
-              {t("allow")}
-            </Button>
+            <div className="mt-6 flex flex-col gap-3">
+              <Button
+                type="button"
+                color="primary"
+                className="bg-[#070A0D]! border-[#070A0D]! shadow-none! text-white! w-full justify-center rounded-lg hover:bg-[#1a1d21]!"
+                onClick={() => {
+                  generateAuthCodeMutation.mutate({
+                    clientId: client_id as string,
+                    scopes,
+                    redirectUri: client.redirectUri,
+                    teamSlug: selectedAccount?.value.startsWith("team/")
+                      ? selectedAccount?.value.substring(5)
+                      : undefined,
+                    codeChallenge: code_challenge || undefined,
+                    codeChallengeMethod:
+                      (code_challenge_method as "S256") || undefined,
+                    state,
+                  });
+                }}
+                data-testid="allow-button"
+              >
+                {t("allow")}
+              </Button>
+              <Button
+                type="button"
+                color="minimal"
+                className="w-full justify-center rounded-lg"
+                data-testid="deny-button"
+                onClick={() => {
+                  const redirectUrl = buildOAuthErrorRedirectUrl({
+                    redirectUri: client.redirectUri,
+                    error: "access_denied",
+                    state,
+                  });
+                  window.location.href = redirectUrl;
+                }}
+              >
+                {t("go_back")}
+              </Button>
+            </div>
           </div>
 
           {!show_account_selector && (

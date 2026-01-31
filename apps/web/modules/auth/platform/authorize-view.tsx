@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -90,7 +91,15 @@ export default function Authorize() {
           </div>
         </div>
         <h1 className="px-5 pb-5 pt-3 text-center text-2xl font-bold tracking-tight text-black">
-          {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
+          <ServerTrans
+            t={t}
+            i18nKey="access_cal_account"
+            values={{ clientName: client.name, appName: APP_NAME }}
+            components={[
+              <span key="client" className="font-bold" />,
+              <span key="app" className="font-bold" />,
+            ]}
+          />
         </h1>
         <div className="mb-4 mt-5 font-medium text-black">
           {t("allow_client_to", { clientName: client.name })}
