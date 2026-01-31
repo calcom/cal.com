@@ -1,12 +1,23 @@
-# Review Instructions
+---
+title: Code Review Checklist
+impact: HIGH
+impactDescription: Ensures consistent code quality across all reviews
+tags: quality, code-review, checklist
+---
 
-## File Naming Conventions
+## Code Review Checklist
+
+**Impact: HIGH**
+
+A comprehensive checklist for code reviewers to ensure consistent quality standards.
+
+### File Naming Conventions
 
 - **Repository Files**: Must include `Repository` suffix, prefix with technology if applicable (e.g., `PrismaAppRepository.ts`), use PascalCase matching exported class
 - **Service Files**: Must include `Service` suffix, use PascalCase matching exported class, avoid generic names (e.g., `MembershipService.ts`)
 - **New files**: Avoid dot-suffixes like `.service.ts` or `.repository.ts`; reserve `.test.ts`, `.spec.ts`, `.types.ts` for their specific purposes
 
-## Code Quality
+### Code Quality
 
 - Prefer early returns. It is recommended to throw/return early so we can ensure null-checks and prevent further nesting.
 - Prefer Composition over Prop Drilling. Instead of relying on prop drilling, let's try to take advantage of react children feature.
@@ -22,15 +33,24 @@
 - Check if there's any O(n^2) logic in backend code; we should aim for O(n log n) or O(n) ideally.
 - Check if there are circular references introduced. We should never allow these.
 - Flag excessive Day.js use in performance-critical code. Functions like `.add`, `.diff`, `.isBefore`, and `.isAfter` are slow, especially in timezone mode. Prefer `.utc()` for better performance. Where possible, replace with native Date and direct `.valueOf()` comparisons for faster execution. Recommend using native methods or Day.js `.utc()` consistently in hot paths like loops.
-- When docs changes are made in /docs/api-reference/v2/openapi.json, ensure the following
-  - "summary" fields are short and concise
-  - "summary" fields do not end with a period
-  - "summary" fields are written in proper American english
-- When changes to API v2 or v1 are made, ensure there are no breaking changes on existing endpoints. Instead, there needs to be a newly versioned endpoint with the updated functionality but the old one must remain functional
-- For large pull requests (>500 lines changed or >10 files touched), advise splitting into smaller, focused PRs:
-  - Split by feature boundaries: separate different features or user stories
-  - Split by layer/component: frontend changes, backend changes, database migrations, and tests in separate PRs
-  - Split by dependency chain: create PRs that can be merged sequentially
-  - Split by file/module: group related file changes together
-  - Suggested pattern: Database migrations → Backend logic → Frontend components → Integration tests
-  - Benefits: easier review, faster feedback, reduced conflicts, easier rollback, better history
+
+### API Documentation
+
+When docs changes are made in /docs/api-reference/v2/openapi.json, ensure the following:
+- "summary" fields are short and concise
+- "summary" fields do not end with a period
+- "summary" fields are written in proper American English
+
+### API Changes
+
+When changes to API v2 or v1 are made, ensure there are no breaking changes on existing endpoints. Instead, there needs to be a newly versioned endpoint with the updated functionality but the old one must remain functional.
+
+### PR Size
+
+For large pull requests (>500 lines changed or >10 files touched), advise splitting into smaller, focused PRs:
+- Split by feature boundaries: separate different features or user stories
+- Split by layer/component: frontend changes, backend changes, database migrations, and tests in separate PRs
+- Split by dependency chain: create PRs that can be merged sequentially
+- Split by file/module: group related file changes together
+- Suggested pattern: Database migrations → Backend logic → Frontend components → Integration tests
+- Benefits: easier review, faster feedback, reduced conflicts, easier rollback, better history
