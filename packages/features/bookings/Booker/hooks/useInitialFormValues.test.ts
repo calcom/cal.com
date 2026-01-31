@@ -5,7 +5,7 @@
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useInitialFormValues } from "@calcom/features/bookings/Booker/hooks/useInitialFormValues";
+import { useInitialFormValues } from "./useInitialFormValues";
 
 vi.mock("@calcom/features/bookings/Booker/store", () => ({
   useBookerStore: vi.fn((selector) => {
