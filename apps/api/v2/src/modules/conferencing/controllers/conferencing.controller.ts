@@ -1,48 +1,47 @@
+import { CAL_VIDEO, GOOGLE_MEET, OFFICE_365_VIDEO, SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY, ZOOM } from "@calcom/platform-constants";
+import type { HttpService } from "@nestjs/axios";
+import { 
+  BadRequestException,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpException,
+  HttpStatus,Logger, 
+  Param,
+  Post,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,} from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
+import type { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
-  ConferencingAppsOauthUrlOutputDto,
-  GetConferencingAppsOauthUrlResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
-import {
-  ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
+  type ConferencingAppOutputResponseDto,
   ConferencingAppsOutputDto,
-  DisconnectConferencingAppOutputResponseDto,
+  type ConferencingAppsOutputResponseDto,
+  type DisconnectConferencingAppOutputResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
-import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
-import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { HttpService } from "@nestjs/axios";
-import { Logger } from "@nestjs/common";
 import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Post,
-  Param,
-  BadRequestException,
-  Delete,
-  Headers,
-  Redirect,
-  Req,
-  HttpException,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-import { Request } from "express";
-
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
+  ConferencingAppsOauthUrlOutputDto,
+  type GetConferencingAppsOauthUrlResponseDto,
+} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
+import type { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
+import type { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
+import type { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
+import type { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import type { UserWithProfile } from "@/modules/users/users.repository";
 
 export type OAuthCallbackState = {
-  accessToken: string;
+  accessToken?: string;
+  oAuthClientId?: string;
   teamId?: string;
   orgId?: string;
   fromApp?: boolean;
@@ -61,7 +60,8 @@ export class ConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,
     private readonly config: ConfigService,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly oAuthClientRepository: OAuthClientRepository
   ) {}
 
   @Post("/:app/connect")
@@ -158,9 +158,22 @@ export class ConferencingController {
         const apiUrl = this.config.get("api.url");
         const url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/conferencing/${app}/oauth/callback`;
         const params: Record<string, string | undefined> = { state, code, error, error_description };
-        const headers = {
-          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
-        };
+
+        // Build headers based on authentication method stored in state
+        const headers: Record<string, string> = {};
+        if (decodedCallbackState.accessToken) {
+          headers["Authorization"] = `Bearer ${decodedCallbackState.accessToken}`;
+        } else if (decodedCallbackState.oAuthClientId) {
+          // Use OAuth client credentials for the proxy request
+          const oAuthClient = await this.oAuthClientRepository.getOAuthClient(
+            decodedCallbackState.oAuthClientId
+          );
+          if (oAuthClient) {
+            headers[X_CAL_CLIENT_ID] = decodedCallbackState.oAuthClientId;
+            headers[X_CAL_SECRET_KEY] = oAuthClient.secret;
+          }
+        }
+
         try {
           const response = await this.httpService.axiosRef.get(url, { params, headers });
           const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";

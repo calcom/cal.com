@@ -1,4 +1,30 @@
+import { CAL_VIDEO, GOOGLE_MEET, OFFICE_365_VIDEO, SUCCESS_STATUS, X_CAL_CLIENT_ID, ZOOM } from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
+import type { Request } from "express";
+import { stringify } from "querystring";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import {
+  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
+  OPTIONAL_X_CAL_CLIENT_ID_HEADER,
+  OPTIONAL_X_CAL_SECRET_KEY_HEADER,
+} from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -9,46 +35,25 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import {
-  ConferencingAppsOauthUrlOutputDto,
-  GetConferencingAppsOauthUrlResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
-import {
-  ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
+  type ConferencingAppOutputResponseDto,
   ConferencingAppsOutputDto,
-  DisconnectConferencingAppOutputResponseDto,
+  type ConferencingAppsOutputResponseDto,
+  type DisconnectConferencingAppOutputResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
-import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
-import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Post,
-  Param,
-  Delete,
-  Headers,
-  Req,
-  ParseIntPipe,
-  BadRequestException,
-  Redirect,
-} from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-import { Request } from "express";
-import { stringify } from "querystring";
-
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
+  ConferencingAppsOauthUrlOutputDto,
+  type GetConferencingAppsOauthUrlResponseDto,
+} from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
+import type { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
+import type { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
+import type { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
+import type { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
+import type { TokensRepository } from "@/modules/tokens/tokens.repository";
+import type { UserWithProfile } from "@/modules/users/users.repository";
 
 export type OAuthCallbackState = {
-  accessToken: string;
+  accessToken?: string;
+  oAuthClientId?: string;
   teamId?: string;
   orgId?: string;
   fromApp?: boolean;
@@ -61,6 +66,9 @@ export type OAuthCallbackState = {
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Orgs / Teams / Conferencing")
+@ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+@ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+@ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class OrganizationsConferencingController {
   constructor(
     private readonly conferencingService: ConferencingService,
@@ -108,7 +116,7 @@ export class OrganizationsConferencingController {
   @ApiOperation({ summary: "Get OAuth conferencing app's auth URL for a team" })
   async getTeamOAuthUrl(
     @Req() req: Request,
-    @Headers("Authorization") authorization: string,
+    @Headers("Authorization") authorization: string | undefined,
     @Param("teamId") teamId: string,
     @Param("orgId") orgId: string,
     @Param("app") app: string,
@@ -116,13 +124,18 @@ export class OrganizationsConferencingController {
     @Query("onErrorReturnTo") onErrorReturnTo?: string
   ): Promise<GetConferencingAppsOauthUrlResponseDto> {
     const origin = req.headers.origin;
-    const accessToken = authorization.replace("Bearer ", "");
+    const oAuthClientId = req.get(X_CAL_CLIENT_ID);
+
+    // Determine if using OAuth client credentials or Bearer token
+    const accessToken = authorization ? authorization.replace("Bearer ", "") : undefined;
 
     const state: OAuthCallbackState = {
       returnTo: returnTo ?? origin,
       onErrorReturnTo: onErrorReturnTo ?? origin,
       fromApp: false,
+      // Store either access token or OAuth client ID for callback authentication
       accessToken,
+      oAuthClientId: !accessToken ? oAuthClientId : undefined,
       teamId,
       orgId,
     };
