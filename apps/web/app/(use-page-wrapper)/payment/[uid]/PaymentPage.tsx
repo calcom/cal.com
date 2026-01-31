@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
@@ -18,6 +18,8 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
+
+const STRIPE_IFRAME_SELECTOR = 'iframe[src*="js.stripe.com/v3/authorize-with-url-inner"]';
 
 const StripePaymentComponent = dynamic(() => import("@calcom/features/ee/payments/components/Payment"), {
   ssr: false,
@@ -61,33 +63,80 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   const [timezone, setTimezone] = useState<string | null>(null);
+  const [embedIframeWidth, setEmbedIframeWidth] = useState<number | null>(null);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   const paymentAppData = getPaymentAppData(props.eventType);
+
+  const styleStripeIframe = useCallback((width: number) => {
+    if (typeof width !== "number" || width <= 0) return;
+    const stripeIframeWrapper = document.querySelector(STRIPE_IFRAME_SELECTOR)?.parentElement;
+    if (!stripeIframeWrapper) return;
+    stripeIframeWrapper.style.margin = "0 auto";
+    stripeIframeWrapper.style.width = `${width}px`;
+    stripeIframeWrapper.style.maxWidth = "100%";
+    stripeIframeWrapper.style.display = "block";
+  }, []);
+
   useEffect(() => {
-    let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
     setTimezone(_timezone);
     setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());
-    if (isEmbed) {
-      requestAnimationFrame(function fixStripeIframe() {
-        // HACK: Look for stripe iframe and center position it just above the embed content
-        const stripeIframeWrapper = document.querySelector(
-          'iframe[src*="https://js.stripe.com/v3/authorize-with-url-inner"]'
-        )?.parentElement;
-        if (stripeIframeWrapper) {
-          stripeIframeWrapper.style.margin = "0 auto";
-          stripeIframeWrapper.style.width = `${embedIframeWidth}px`;
-        }
-        requestAnimationFrame(fixStripeIframe);
-      });
-      sdkActionManager?.on("__dimensionChanged", (e) => {
-        embedIframeWidth = e.detail.data.iframeWidth as number;
-      });
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEmbed]);
+  }, []);
+
+  useEffect(() => {
+    if (!isEmbed) return;
+
+    let observer: MutationObserver | null = null;
+    let dimensionChangedHandler: ((e: CustomEvent) => void) | null = null;
+
+    dimensionChangedHandler = (e: CustomEvent) => {
+      const newWidth = e?.detail?.data?.iframeWidth;
+      if (typeof newWidth === "number" && newWidth > 0) {
+        setEmbedIframeWidth(newWidth);
+        styleStripeIframe(newWidth);
+      }
+    };
+
+    sdkActionManager?.on("__dimensionChanged", dimensionChangedHandler);
+
+    observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const n of Array.from(m.addedNodes)) {
+          if (!(n instanceof Element)) continue;
+          const stripeIframe =
+            n instanceof HTMLIFrameElement && n.src.includes("js.stripe.com/v3/authorize-with-url-inner")
+              ? n
+              : n.querySelector?.(STRIPE_IFRAME_SELECTOR);
+          if (stripeIframe) {
+            return;
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+      if (dimensionChangedHandler) {
+        sdkActionManager?.off?.("__dimensionChanged", dimensionChangedHandler);
+      }
+    };
+  }, [isEmbed, styleStripeIframe]);
+
+  useEffect(() => {
+    if (isEmbed && typeof embedIframeWidth === "number" && embedIframeWidth > 0) {
+      styleStripeIframe(embedIframeWidth);
+    }
+  }, [isEmbed, embedIframeWidth, styleStripeIframe]);
 
   const eventName = props.booking.title;
 
