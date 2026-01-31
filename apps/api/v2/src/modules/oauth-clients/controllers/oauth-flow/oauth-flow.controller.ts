@@ -1,3 +1,16 @@
+import { extractBearerToken } from "@/lib/api-key";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
+import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
+import { RefreshTokenInput } from "@/modules/oauth-clients/inputs/refresh-token.input";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 import {
   BadRequestException,
@@ -18,18 +31,6 @@ import {
   ApiTags as DocsTags,
 } from "@nestjs/swagger";
 import { Response as ExpressResponse } from "express";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
-import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
-import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
-import { RefreshTokenInput } from "@/modules/oauth-clients/inputs/refresh-token.input";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 
 export const TOKENS_DOCS = `Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model \`calAccessToken\` and \`calRefreshToken\` fields.
 Response also contains \`accessTokenExpiresAt\` and \`refreshTokenExpiresAt\` fields, but if you decode the jwt token the payload will contain \`clientId\` (OAuth client ID), \`ownerId\` (user to whom token belongs ID), \`iat\` (issued at time) and \`expiresAt\` (when does the token expire) fields.`;
@@ -88,7 +89,7 @@ export class OAuthFlowController {
     @Param("clientId") clientId: string,
     @Body() body: ExchangeAuthorizationCodeInput
   ): Promise<KeysResponseDto> {
-    const authorizeEndpointCode = authorization.replace("Bearer ", "").trim();
+    const authorizeEndpointCode = extractBearerToken(authorization);
     if (!authorizeEndpointCode) {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
