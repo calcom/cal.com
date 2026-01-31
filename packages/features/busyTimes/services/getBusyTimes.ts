@@ -11,9 +11,7 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Booking, EventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { Booking, EventType, Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -377,15 +375,21 @@ export class BusyTimesService {
         },
         title: true,
         userId: true,
+        _count: {
+          select: {
+            attendees: true,
+          },
+        },
       },
     });
 
-    busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
+    busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, _count }) => ({
       start: dayjs(startTime).toDate(),
       end: dayjs(endTime).toDate(),
       title,
       source: `eventType-${eventType?.id}-booking-${id}`,
       userId,
+      attendeeCount: _count?.attendees || 1,
     }));
 
     logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
