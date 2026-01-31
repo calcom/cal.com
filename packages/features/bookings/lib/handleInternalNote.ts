@@ -1,5 +1,6 @@
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import { InternalNotePresetType } from "@calcom/prisma/enums";
 
 import type { BookingToDelete } from "./getBookingToDelete";
 
@@ -14,11 +15,13 @@ export async function handleInternalNote({
   booking,
   userId,
   teamId,
+  presetType,
 }: {
   internalNote: InternalNote;
   booking: BookingToDelete;
   userId: number;
   teamId: number;
+  presetType?: InternalNotePresetType;
 }) {
   const userIsHost = booking?.eventType?.hosts.find((host) => {
     if (host.user.id === userId) return true;
@@ -57,6 +60,7 @@ export async function handleInternalNote({
     where: {
       teamId: teamId,
       id: internalNote.id,
+      ...(presetType ? { type: presetType } : {}),
     },
   });
 

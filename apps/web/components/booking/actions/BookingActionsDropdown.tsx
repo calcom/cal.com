@@ -4,6 +4,7 @@ import type { z } from "zod";
 import { MeetingSessionDetailsDialog } from "@calcom/web/modules/ee/video/components/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { InternalNotePresetType } from "@calcom/prisma/enums";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -93,6 +94,17 @@ export function BookingActionsDropdown({
     isTabRecurring,
     isTabUnconfirmed,
   });
+
+  const teamId = booking.eventType?.team?.id ?? booking.eventType?.parent?.teamId ?? null;
+  const { data: bookingInternalNotePresets = [] } = trpc.viewer.teams.getInternalNotesPresets.useQuery(
+    {
+      teamId: teamId as number,
+      type: InternalNotePresetType.REJECTION,
+    },
+    {
+      enabled: !!teamId,
+    }
+  );
 
   // Use store for all other dialog states
   const chargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.chargeCardDialogIsOpen);
@@ -606,15 +618,17 @@ export function BookingActionsDropdown({
       <RejectionReasonDialog
         isOpenDialog={rejectionDialogIsOpen}
         setIsOpenDialog={setRejectionDialogIsOpen}
-        onConfirm={(reason) =>
+        onConfirm={(reason, internalNote) =>
           bookingConfirm({
             bookingId: booking.id,
             confirmed: false,
             recurringEventId: booking.recurringEventId,
             reason,
+            internalNote,
           })
         }
         isPending={isConfirmPending}
+        internalNotePresets={teamId ? bookingInternalNotePresets : []}
       />
       <Dropdown modal={false}>
         <DropdownMenuTrigger asChild data-testid="booking-actions-dropdown">

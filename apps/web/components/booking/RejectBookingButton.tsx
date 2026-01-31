@@ -1,4 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { InternalNotePresetType } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
 import { RejectionReasonDialog } from "../dialog/RejectionReasonDialog";
@@ -14,6 +16,7 @@ interface RejectBookingButtonProps {
   size?: "sm" | "base" | "lg";
   color?: "primary" | "secondary" | "minimal" | "destructive";
   className?: string;
+  teamId?: number | null;
 }
 
 export function RejectBookingButton({
@@ -26,8 +29,19 @@ export function RejectBookingButton({
   size = "base",
   color = "secondary",
   className,
+  teamId,
 }: RejectBookingButtonProps) {
   const { t } = useLocale();
+
+  const { data: internalNotePresets = [] } = trpc.viewer.teams.getInternalNotesPresets.useQuery(
+    {
+      teamId: teamId as number,
+      type: InternalNotePresetType.REJECTION,
+    },
+    {
+      enabled: !!teamId,
+    }
+  );
 
   const { bookingConfirm, handleReject, isPending, rejectionDialogIsOpen, setRejectionDialogIsOpen } =
     useBookingConfirmation({
@@ -43,8 +57,17 @@ export function RejectBookingButton({
       <RejectionReasonDialog
         isOpenDialog={rejectionDialogIsOpen}
         setIsOpenDialog={setRejectionDialogIsOpen}
-        onConfirm={(reason) => bookingConfirm({ bookingId, confirmed: false, recurringEventId, reason })}
+        onConfirm={(reason, internalNote) =>
+          bookingConfirm({
+            bookingId,
+            confirmed: false,
+            recurringEventId,
+            reason,
+            internalNote,
+          })
+        }
         isPending={isPending}
+        internalNotePresets={internalNotePresets}
       />
 
       <Button
