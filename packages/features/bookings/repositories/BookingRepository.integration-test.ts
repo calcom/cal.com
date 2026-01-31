@@ -578,14 +578,62 @@ describe("BookingRepository (Integration Tests)", () => {
       expect(bookings.some((b) => b.id === bookingOutOfRange.id)).toBe(false);
     });
 
-    it("benchmark: raw SQL JOIN should be faster than Prisma correlated subquery", async () => {
-      // Use emails from bookings created in other tests
-      const testEmails = [
-        "attendee@example.com",
-        "target-attendee@example.com",
-        "organizer@example.com",
-        "range@example.com",
-      ];
+    it("benchmark: raw SQL JOIN should be faster than Prisma correlated subquery at scale", async () => {
+      // Create large-scale test data: 500 bookings with 2 attendees each
+      // Using 500 instead of 1000 to keep test runtime reasonable while still showing scaling
+      const numBookings = 500;
+      const numSearchEmails = 50;
+      const benchmarkRunId = crypto.randomUUID().slice(0, 8);
+
+      // Clean up any leftover benchmark data from previous runs
+      await prisma.$executeRaw`DELETE FROM "Attendee" WHERE "email" LIKE '%@benchmark.test'`;
+      await prisma.$executeRaw`DELETE FROM "Booking" WHERE "uid" LIKE 'benchmark-booking-%'`;
+
+      // Generate test emails for searching
+      const searchEmails: string[] = [];
+      for (let i = 0; i < numSearchEmails; i++) {
+        searchEmails.push(`search-attendee-${i}@benchmark.test`);
+      }
+
+      // Use raw SQL for bulk insert to avoid unique constraint issues and improve speed
+      const startTime = new Date("2025-06-15T10:00:00.000Z");
+      const endTime = new Date("2025-06-15T11:00:00.000Z");
+
+      // Insert bookings in bulk using raw SQL
+      for (let bookingIndex = 0; bookingIndex < numBookings; bookingIndex++) {
+        const uid = `benchmark-booking-${benchmarkRunId}-${bookingIndex}`;
+        await prisma.$executeRaw`
+          INSERT INTO "Booking" ("uid", "title", "startTime", "endTime", "status", "userId", "eventTypeId", "createdAt", "updatedAt")
+          VALUES (${uid}, ${"Benchmark Booking " + bookingIndex}, ${startTime}, ${endTime}, 'accepted'::"BookingStatus", ${testUserId}, ${testEventTypeId}, NOW(), NOW())
+        `;
+      }
+
+      // Get the created booking IDs
+      const createdBookings = await prisma.booking.findMany({
+        where: { uid: { startsWith: `benchmark-booking-${benchmarkRunId}` } },
+        select: { id: true, uid: true },
+        orderBy: { id: "asc" },
+      });
+      const localCreatedBookingIds = createdBookings.map((b) => b.id);
+
+      // Insert attendees in bulk
+      for (let i = 0; i < createdBookings.length; i++) {
+        const bookingId = createdBookings[i].id;
+        // Every 20th booking will have a search email as attendee
+        const hasSearchEmail = i % 20 === 0;
+        const attendeeEmail = hasSearchEmail
+          ? searchEmails[i % numSearchEmails]
+          : `regular-attendee-${i}-${benchmarkRunId}@benchmark.test`;
+
+        await prisma.$executeRaw`
+          INSERT INTO "Attendee" ("email", "name", "timeZone", "bookingId")
+          VALUES (${attendeeEmail}, ${"Attendee " + i}, 'UTC', ${bookingId})
+        `;
+        await prisma.$executeRaw`
+          INSERT INTO "Attendee" ("email", "name", "timeZone", "bookingId")
+          VALUES (${`secondary-${i}-${benchmarkRunId}@benchmark.test`}, ${"Secondary " + i}, 'UTC', ${bookingId})
+        `;
+      }
 
       const startDate = new Date("2025-01-01T00:00:00.000Z");
       const endDate = new Date("2025-12-31T23:59:59.999Z");
@@ -599,7 +647,7 @@ describe("BookingRepository (Integration Tests)", () => {
             status: BookingStatus.ACCEPTED,
             attendees: {
               some: {
-                email: { in: testEmails },
+                email: { in: searchEmails },
               },
             },
           },
@@ -613,7 +661,7 @@ describe("BookingRepository (Integration Tests)", () => {
           SELECT DISTINCT a."bookingId"
           FROM "Attendee" a
           INNER JOIN "Booking" b ON b."id" = a."bookingId"
-          WHERE a."email" = ANY(${testEmails}::text[])
+          WHERE a."email" = ANY(${searchEmails}::text[])
             AND b."startTime" <= ${endDate}
             AND b."endTime" >= ${startDate}
             AND b."status" = 'accepted'
@@ -664,12 +712,32 @@ describe("BookingRepository (Integration Tests)", () => {
         rawSql: { avg: rawSqlAvg, min: rawSqlMin, max: rawSqlMax },
         speedup,
         iterations,
-        emailsSearched: testEmails.length,
+        numBookings,
+        numAttendees: numBookings * 2,
+        emailsSearched: searchEmails.length,
+        matchingBookings: prismaResults.length,
       };
 
       // Write results to file for easy access
       const fs = await import("node:fs");
       fs.writeFileSync("/tmp/benchmark_results.json", JSON.stringify(benchmarkResults, null, 2));
+
+      // Log results for visibility
+      console.log("\n=== LARGE-SCALE BENCHMARK RESULTS ===");
+      console.log(`Dataset: ${numBookings} bookings, ${numBookings * 2} attendees`);
+      console.log(`Search: ${searchEmails.length} emails, found ${prismaResults.length} matching bookings`);
+      console.log(`Prisma correlated subquery: ${prismaAvg.toFixed(2)}ms avg (${prismaMin.toFixed(2)}-${prismaMax.toFixed(2)}ms)`);
+      console.log(`Raw SQL JOIN: ${rawSqlAvg.toFixed(2)}ms avg (${rawSqlMin.toFixed(2)}-${rawSqlMax.toFixed(2)}ms)`);
+      console.log(`Speedup: ${speedup.toFixed(2)}x faster`);
+      console.log("=====================================\n");
+
+      // Cleanup: Delete benchmark bookings
+      await prisma.attendee.deleteMany({
+        where: { bookingId: { in: localCreatedBookingIds } },
+      });
+      await prisma.booking.deleteMany({
+        where: { id: { in: localCreatedBookingIds } },
+      });
 
       // Assert that raw SQL is faster (allowing for some variance)
       expect(rawSqlAvg).toBeLessThanOrEqual(prismaAvg * 1.5); // Raw SQL should not be significantly slower
