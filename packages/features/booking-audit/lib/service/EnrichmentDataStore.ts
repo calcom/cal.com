@@ -71,7 +71,7 @@ export class EnrichmentDataStore {
       attendees?: StoredAttendee[];
       credentials?: StoredCredential[];
     },
-    declaredRequirements?: DataRequirements
+    declaredRequirements: DataRequirements
   ) {
     this.usersByUuid = new Map(data.users?.map((u) => [u.uuid, u]) ?? []);
     this.usersById = new Map(data.users?.map((u) => [u.id, u]) ?? []);
@@ -79,11 +79,20 @@ export class EnrichmentDataStore {
     this.attendeesById = new Map(data.attendees?.map((a) => [a.id, a]) ?? []);
     this.credentialsById = new Map(data.credentials?.map((c) => [c.id, c]) ?? []);
 
-    this.declaredUserUuids = new Set(declaredRequirements?.userUuids ?? []);
-    this.declaredUserIds = new Set(declaredRequirements?.userIds ?? []);
-    this.declaredBookingUids = new Set(declaredRequirements?.bookingUids ?? []);
-    this.declaredAttendeeIds = new Set(declaredRequirements?.attendeeIds ?? []);
-    this.declaredCredentialIds = new Set(declaredRequirements?.credentialIds ?? []);
+    this.declaredUserUuids = new Set(declaredRequirements.userUuids ?? []);
+    this.declaredUserIds = new Set(declaredRequirements.userIds ?? []);
+    this.declaredBookingUids = new Set(declaredRequirements.bookingUids ?? []);
+    this.declaredAttendeeIds = new Set(declaredRequirements.attendeeIds ?? []);
+    this.declaredCredentialIds = new Set(declaredRequirements.credentialIds ?? []);
+  }
+
+  private ensureFetched<T>(declaredSet: Set<T>, id: T, methodName: string): void {
+    if (!declaredSet.has(id)) {
+      throw new Error(
+        `EnrichmentDataStore: ${methodName} called but was not declared in getDataRequirements. ` +
+          `This is a bug - ensure the action service declares all required data.`
+      );
+    }
   }
 
   /**
@@ -92,12 +101,7 @@ export class EnrichmentDataStore {
    * Returns undefined if user was declared but doesn't exist in database
    */
   getUserByUuid(uuid: string): StoredUser | undefined {
-    if (this.declaredUserUuids.size > 0 && !this.declaredUserUuids.has(uuid)) {
-      throw new Error(
-        `EnrichmentDataStore: getUserByUuid("${uuid}") called but UUID was not declared in getDataRequirements. ` +
-          `This is a bug - ensure the action service declares all required userUuids.`
-      );
-    }
+    this.ensureFetched(this.declaredUserUuids, uuid, `getUserByUuid("${uuid}")`);
     return this.usersByUuid.get(uuid);
   }
 
@@ -107,12 +111,7 @@ export class EnrichmentDataStore {
    * Returns undefined if user was declared but doesn't exist in database
    */
   getUserById(id: number): StoredUser | undefined {
-    if (this.declaredUserIds.size > 0 && !this.declaredUserIds.has(id)) {
-      throw new Error(
-        `EnrichmentDataStore: getUserById(${id}) called but ID was not declared in getDataRequirements. ` +
-          `This is a bug - ensure the action service declares all required userIds.`
-      );
-    }
+    this.ensureFetched(this.declaredUserIds, id, `getUserById(${id})`);
     return this.usersById.get(id);
   }
 
@@ -122,12 +121,7 @@ export class EnrichmentDataStore {
    * Returns undefined if booking was declared but doesn't exist in database
    */
   getBookingByUid(uid: string): StoredBooking | undefined {
-    if (this.declaredBookingUids.size > 0 && !this.declaredBookingUids.has(uid)) {
-      throw new Error(
-        `EnrichmentDataStore: getBookingByUid("${uid}") called but UID was not declared in getDataRequirements. ` +
-          `This is a bug - ensure the action service declares all required bookingUids.`
-      );
-    }
+    this.ensureFetched(this.declaredBookingUids, uid, `getBookingByUid("${uid}")`);
     return this.bookingsByUid.get(uid);
   }
 
@@ -137,12 +131,7 @@ export class EnrichmentDataStore {
    * Returns undefined if attendee was declared but doesn't exist in database
    */
   getAttendeeById(id: number): StoredAttendee | undefined {
-    if (this.declaredAttendeeIds.size > 0 && !this.declaredAttendeeIds.has(id)) {
-      throw new Error(
-        `EnrichmentDataStore: getAttendeeById(${id}) called but ID was not declared in getDataRequirements. ` +
-          `This is a bug - ensure the action service declares all required attendeeIds.`
-      );
-    }
+    this.ensureFetched(this.declaredAttendeeIds, id, `getAttendeeById(${id})`);
     return this.attendeesById.get(id);
   }
 
@@ -152,12 +141,7 @@ export class EnrichmentDataStore {
    * Returns undefined if credential was declared but doesn't exist in database
    */
   getCredentialById(id: number): StoredCredential | undefined {
-    if (this.declaredCredentialIds.size > 0 && !this.declaredCredentialIds.has(id)) {
-      throw new Error(
-        `EnrichmentDataStore: getCredentialById(${id}) called but ID was not declared in getDataRequirements. ` +
-          `This is a bug - ensure the action service declares all required credentialIds.`
-      );
-    }
+    this.ensureFetched(this.declaredCredentialIds, id, `getCredentialById(${id})`);
     return this.credentialsById.get(id);
   }
 }

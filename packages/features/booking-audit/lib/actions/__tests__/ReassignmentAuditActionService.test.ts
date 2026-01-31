@@ -176,9 +176,15 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore({
-        users: [{ uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null }],
-      });
+      const dbStore = new EnrichmentDataStore(
+        {
+          users: [
+            { id: 1, uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null },
+            { id: 2, uuid: "organizer-old", name: "Old Host", email: "old@example.com", avatarUrl: null },
+          ],
+        },
+        { userUuids: ["organizer-new", "organizer-old"] }
+      );
 
       const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
@@ -202,9 +208,15 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore({
-        users: [{ uuid: "new-rr-host", name: "New RR Host", email: "newrr@example.com", avatarUrl: null }],
-      });
+      const dbStore = new EnrichmentDataStore(
+        {
+          users: [
+            { id: 1, uuid: "new-rr-host", name: "New RR Host", email: "newrr@example.com", avatarUrl: null },
+            { id: 2, uuid: "old-rr-host", name: "Old RR Host", email: "oldrr@example.com", avatarUrl: null },
+          ],
+        },
+        { userUuids: ["new-rr-host", "old-rr-host"] }
+      );
 
       const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
@@ -224,7 +236,10 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore({ users: [] });
+      const dbStore = new EnrichmentDataStore(
+        { users: [] },
+        { userUuids: ["organizer-new", "organizer-old"] }
+      );
 
       const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
@@ -244,9 +259,15 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore({
-        users: [{ uuid: "organizer-new", name: null, email: "new@example.com", avatarUrl: null }],
-      });
+      const dbStore = new EnrichmentDataStore(
+        {
+          users: [
+            { id: 1, uuid: "organizer-new", name: null, email: "new@example.com", avatarUrl: null },
+            { id: 2, uuid: "organizer-old", name: "Old Host", email: "old@example.com", avatarUrl: null },
+          ],
+        },
+        { userUuids: ["organizer-new", "organizer-old"] }
+      );
 
       const result = await service.getDisplayTitle({ storedData, dbStore, userTimeZone: "UTC" });
 
@@ -315,9 +336,15 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore({
-        users: [{ uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null }],
-      });
+      const dbStore = new EnrichmentDataStore(
+        {
+          users: [
+            { id: 1, uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null },
+            { id: 2, uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null },
+          ],
+        },
+        { userUuids: ["organizer-old", "organizer-new"] }
+      );
 
       const result = await service.getDisplayFields({ storedData, dbStore });
 
@@ -343,9 +370,15 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore({
-        users: [{ uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null }],
-      });
+      const dbStore = new EnrichmentDataStore(
+        {
+          users: [
+            { id: 1, uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null },
+            { id: 2, uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null },
+          ],
+        },
+        { userUuids: ["organizer-old", "organizer-new"] }
+      );
 
       const result = await service.getDisplayFields({ storedData, dbStore });
 
