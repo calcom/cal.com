@@ -1,19 +1,14 @@
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
 
-export const useInitializeWeekStart = (
-  isPlatform: boolean,
-  isCalendarView: boolean
-) => {
+export const useInitializeWeekStart = (isPlatform: boolean, isCalendarView: boolean) => {
   const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
   const today = dayjs();
   const weekStart = today.startOf("week").format("YYYY-MM-DD");
-  const setSelectedDate = useBookerStoreContext(
-    (state) => state.setSelectedDate
-  );
+  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
 
   useEffect(() => {
     // don't auto-select date if slots view on small screen is enabled

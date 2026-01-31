@@ -85,7 +85,7 @@ export function useInitialFormValues({
     eventType?.owner?.profile?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
     false;
   useEffect(() => {
-    (async function () {
+    (async () => {
       if (Object.keys(formValues).length) {
         setInitialValuesState({
           values: formValues,
@@ -118,11 +118,11 @@ export function useInitialFormValues({
       const defaultUserValues = (() => {
         const rescheduledEmail =
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData.attendees[0].email ?? ""
+            ? (bookingData.attendees[0].email ?? "")
             : "";
         const rescheduledName =
           rescheduleUid && bookingData && bookingData.attendees.length > 0
-            ? bookingData.attendees[0].name ?? ""
+            ? (bookingData.attendees[0].name ?? "")
             : "";
 
         if (isAutofillDisabledByOrg) {
@@ -133,8 +133,8 @@ export function useInitialFormValues({
         }
 
         return {
-          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : email ?? ""),
-          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : name ?? username ?? ""),
+          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : (email ?? "")),
+          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : (name ?? username ?? "")),
         };
       })();
 
