@@ -1,4 +1,5 @@
 import process from "node:process";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -82,7 +83,7 @@ export interface IGetAvailableSlots {
       showNotePublicly?: boolean | undefined;
     }[]
   >;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
 }
 
@@ -1409,6 +1410,7 @@ export class AvailableSlotsService {
             !checkForConflicts({
               time: slot.time,
               busy: busySlotsFromReservedSlots,
+              seatsPerTimeSlot: eventType.seatsPerTimeSlot ?? undefined,
               ...availabilityCheckProps,
             })
           ) {
