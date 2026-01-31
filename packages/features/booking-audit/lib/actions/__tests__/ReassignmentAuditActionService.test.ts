@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { EnrichmentDataStore } from "../../service/EnrichmentDataStore";
 import { ReassignmentAuditActionService } from "../ReassignmentAuditActionService";
-import { verifyDataRequirementsContract } from "./contractVerification";
+import { createMockEnrichmentDataStore, verifyDataRequirementsContract } from "./contractVerification";
 
 describe("ReassignmentAuditActionService", () => {
   let service: ReassignmentAuditActionService;
@@ -176,7 +175,7 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore(
+      const dbStore = createMockEnrichmentDataStore(
         {
           users: [
             { id: 1, uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null },
@@ -208,7 +207,7 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore(
+      const dbStore = createMockEnrichmentDataStore(
         {
           users: [
             { id: 1, uuid: "new-rr-host", name: "New RR Host", email: "newrr@example.com", avatarUrl: null },
@@ -236,7 +235,7 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore(
+      const dbStore = createMockEnrichmentDataStore(
         { users: [] },
         { userUuids: ["organizer-new", "organizer-old"] }
       );
@@ -259,7 +258,7 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore(
+      const dbStore = createMockEnrichmentDataStore(
         {
           users: [
             { id: 1, uuid: "organizer-new", name: null, email: "new@example.com", avatarUrl: null },
@@ -336,7 +335,7 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore(
+      const dbStore = createMockEnrichmentDataStore(
         {
           users: [
             { id: 1, uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null },
@@ -370,7 +369,7 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const dbStore = new EnrichmentDataStore(
+      const dbStore = createMockEnrichmentDataStore(
         {
           users: [
             { id: 1, uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null },

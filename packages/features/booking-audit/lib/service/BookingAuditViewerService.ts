@@ -401,18 +401,12 @@ export class BookingAuditViewerService {
    * Build the enrichment data store by bulk-fetching all required data
    */
   private async buildEnrichmentDataStore(requirements: DataRequirements): Promise<EnrichmentDataStore> {
-    const [users, attendees, credentials] = await Promise.all([
-      requirements.userUuids?.length
-        ? this.userRepository.findByUuids({ uuids: requirements.userUuids })
-        : [],
-      requirements.attendeeIds?.length
-        ? this.attendeeRepository.findByIds({ ids: requirements.attendeeIds })
-        : [],
-      requirements.credentialIds?.length
-        ? this.credentialRepository.findByIds({ ids: requirements.credentialIds })
-        : [],
-    ]);
-
-    return new EnrichmentDataStore({ users, attendees, credentials }, requirements);
+    const dbStore = new EnrichmentDataStore(requirements, {
+      userRepository: this.userRepository,
+      attendeeRepository: this.attendeeRepository,
+      credentialRepository: this.credentialRepository,
+    });
+    await dbStore.fetch();
+    return dbStore;
   }
 }

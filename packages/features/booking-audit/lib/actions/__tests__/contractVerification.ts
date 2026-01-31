@@ -3,10 +3,8 @@ import type { IAuditActionService, BaseStoredAuditData } from "../IAuditActionSe
 
 type AccessedData = {
   userUuids: Set<string>;
-  userIds: Set<number>;
   attendeeIds: Set<number>;
   credentialIds: Set<number>;
-  bookingUids: Set<string>;
 };
 
 function createMockUser(uuid: string): StoredUser {
@@ -40,10 +38,6 @@ export function createTrackingDbStore(accessedData: AccessedData): EnrichmentDat
       accessedData.userUuids.add(uuid);
       return createMockUser(uuid);
     },
-    getUserById: (id: number) => {
-      accessedData.userIds.add(id);
-      return createMockUser(`user-${id}`);
-    },
     getAttendeeById: (id: number) => {
       accessedData.attendeeIds.add(id);
       return createMockAttendee(id);
@@ -52,21 +46,81 @@ export function createTrackingDbStore(accessedData: AccessedData): EnrichmentDat
       accessedData.credentialIds.add(id);
       return createMockCredential(id);
     },
-    getBookingByUid: (uid: string) => {
-      accessedData.bookingUids.add(uid);
-      return { uid, title: `Booking ${uid}` };
-    },
   } as EnrichmentDataStore;
 }
 
 export function createEmptyAccessedData(): AccessedData {
   return {
     userUuids: new Set(),
-    userIds: new Set(),
     attendeeIds: new Set(),
     credentialIds: new Set(),
-    bookingUids: new Set(),
   };
+}
+
+/**
+ * Creates a mock EnrichmentDataStore for testing purposes.
+ * Pre-populates the store with the provided data and validates access against declared requirements.
+ */
+export function createMockEnrichmentDataStore(
+  data: {
+    users?: StoredUser[];
+    attendees?: StoredAttendee[];
+    credentials?: StoredCredential[];
+  },
+  declaredRequirements: DataRequirements
+): EnrichmentDataStore {
+  const usersByUuid = new Map<string, StoredUser | null>();
+  const attendeesById = new Map<number, StoredAttendee | null>();
+  const credentialsById = new Map<number, StoredCredential | null>();
+
+  // Pre-populate with nulls for all declared IDs
+  for (const uuid of declaredRequirements.userUuids ?? []) {
+    usersByUuid.set(uuid, null);
+  }
+  for (const id of declaredRequirements.attendeeIds ?? []) {
+    attendeesById.set(id, null);
+  }
+  for (const id of declaredRequirements.credentialIds ?? []) {
+    credentialsById.set(id, null);
+  }
+
+  // Overwrite with actual data
+  for (const user of data.users ?? []) {
+    usersByUuid.set(user.uuid, user);
+  }
+  for (const attendee of data.attendees ?? []) {
+    attendeesById.set(attendee.id, attendee);
+  }
+  for (const credential of data.credentials ?? []) {
+    credentialsById.set(credential.id, credential);
+  }
+
+  return {
+    getUserByUuid: (uuid: string) => {
+      if (!usersByUuid.has(uuid)) {
+        throw new Error(
+          `EnrichmentDataStore: getUserByUuid("${uuid}") called but was not declared in getDataRequirements.`
+        );
+      }
+      return usersByUuid.get(uuid) ?? null;
+    },
+    getAttendeeById: (id: number) => {
+      if (!attendeesById.has(id)) {
+        throw new Error(
+          `EnrichmentDataStore: getAttendeeById(${id}) called but was not declared in getDataRequirements.`
+        );
+      }
+      return attendeesById.get(id) ?? null;
+    },
+    getCredentialById: (id: number) => {
+      if (!credentialsById.has(id)) {
+        throw new Error(
+          `EnrichmentDataStore: getCredentialById(${id}) called but was not declared in getDataRequirements.`
+        );
+      }
+      return credentialsById.get(id) ?? null;
+    },
+  } as EnrichmentDataStore;
 }
 
 export async function verifyDataRequirementsContract(

@@ -1,3 +1,7 @@
+import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
+import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+
 /**
  * Entity types stored in the enrichment data store
  * These represent the minimal data needed for audit log enrichment
@@ -9,12 +13,6 @@ export type StoredUser = {
   name: string | null;
   email: string;
   avatarUrl: string | null;
-};
-
-export type StoredBooking = {
-  uid: string;
-  title: string;
-  // ... other fields as needed
 };
 
 export type StoredAttendee = {
@@ -33,12 +31,19 @@ export type StoredCredential = {
  * Used to collect all identifiers needed before bulk fetching
  */
 export type DataRequirements = {
-  userIds?: number[];
   userUuids?: string[];
-  bookingUids?: string[];
   attendeeIds?: number[];
   credentialIds?: number[];
 };
+
+/**
+ * Repository dependencies for fetching data
+ */
+export interface EnrichmentDataStoreRepositories {
+  userRepository: UserRepository;
+  attendeeRepository: IAttendeeRepository;
+  credentialRepository: CredentialRepository;
+}
 
 /**
  * EnrichmentDataStore
@@ -47,101 +52,109 @@ export type DataRequirements = {
  * Action services use this store instead of making individual DB queries,
  * eliminating N+1 query problems.
  *
- * The store is populated once before enrichment and passed to all action services.
- * It validates that accessed data was declared in requirements - throws an error
+ * The store validates that accessed data was declared in requirements - throws an error
  * if code tries to access data that wasn't declared (catches bugs at runtime).
+ *
+ * Usage:
+ * ```
+ * const store = new EnrichmentDataStore(requirements, repositories);
+ * await store.fetch();
+ * const user = store.getUserByUuid("uuid"); // throws if "uuid" wasn't declared
+ * ```
  */
 export class EnrichmentDataStore {
-  private usersByUuid: Map<string, StoredUser>;
-  private usersById: Map<number, StoredUser>;
-  private bookingsByUid: Map<string, StoredBooking>;
-  private attendeesById: Map<number, StoredAttendee>;
-  private credentialsById: Map<number, StoredCredential>;
-
-  private declaredUserUuids: Set<string>;
-  private declaredUserIds: Set<number>;
-  private declaredBookingUids: Set<string>;
-  private declaredAttendeeIds: Set<number>;
-  private declaredCredentialIds: Set<number>;
+  private usersByUuid: Map<string, StoredUser | null> = new Map();
+  private attendeesById: Map<number, StoredAttendee | null> = new Map();
+  private credentialsById: Map<number, StoredCredential | null> = new Map();
 
   constructor(
-    data: {
-      users?: StoredUser[];
-      bookings?: StoredBooking[];
-      attendees?: StoredAttendee[];
-      credentials?: StoredCredential[];
-    },
-    declaredRequirements: DataRequirements
+    private requirements: DataRequirements,
+    private repositories: EnrichmentDataStoreRepositories
   ) {
-    this.usersByUuid = new Map(data.users?.map((u) => [u.uuid, u]) ?? []);
-    this.usersById = new Map(data.users?.map((u) => [u.id, u]) ?? []);
-    this.bookingsByUid = new Map(data.bookings?.map((b) => [b.uid, b]) ?? []);
-    this.attendeesById = new Map(data.attendees?.map((a) => [a.id, a]) ?? []);
-    this.credentialsById = new Map(data.credentials?.map((c) => [c.id, c]) ?? []);
-
-    this.declaredUserUuids = new Set(declaredRequirements.userUuids ?? []);
-    this.declaredUserIds = new Set(declaredRequirements.userIds ?? []);
-    this.declaredBookingUids = new Set(declaredRequirements.bookingUids ?? []);
-    this.declaredAttendeeIds = new Set(declaredRequirements.attendeeIds ?? []);
-    this.declaredCredentialIds = new Set(declaredRequirements.credentialIds ?? []);
+    // Pre-populate maps with null for all declared IDs
+    // This marks them as "declared" - the key exists, but data not yet fetched
+    for (const uuid of requirements.userUuids ?? []) {
+      this.usersByUuid.set(uuid, null);
+    }
+    for (const id of requirements.attendeeIds ?? []) {
+      this.attendeesById.set(id, null);
+    }
+    for (const id of requirements.credentialIds ?? []) {
+      this.credentialsById.set(id, null);
+    }
   }
 
-  private ensureFetched<T>(declaredSet: Set<T>, id: T, methodName: string): void {
-    if (!declaredSet.has(id)) {
-      throw new Error(
-        `EnrichmentDataStore: ${methodName} called but was not declared in getDataRequirements. ` +
-          `This is a bug - ensure the action service declares all required data.`
-      );
+  /**
+   * Fetch all declared data from the database
+   * Must be called before using any getter methods
+   */
+  async fetch(): Promise<void> {
+    const [users, attendees, credentials] = await Promise.all([
+      this.requirements.userUuids?.length
+        ? this.repositories.userRepository.findByUuids({ uuids: this.requirements.userUuids })
+        : [],
+      this.requirements.attendeeIds?.length
+        ? this.repositories.attendeeRepository.findByIds({ ids: this.requirements.attendeeIds })
+        : [],
+      this.requirements.credentialIds?.length
+        ? this.repositories.credentialRepository.findByIds({ ids: this.requirements.credentialIds })
+        : [],
+    ]);
+
+    // Overwrite nulls with actual data from DB
+    for (const user of users) {
+      this.usersByUuid.set(user.uuid, user);
+    }
+    for (const attendee of attendees) {
+      this.attendeesById.set(attendee.id, attendee);
+    }
+    for (const credential of credentials) {
+      this.credentialsById.set(credential.id, credential);
     }
   }
 
   /**
    * Get user by UUID
    * Throws error if UUID was not declared in requirements (bug in getDataRequirements)
-   * Returns undefined if user was declared but doesn't exist in database
+   * Returns null if user was declared but doesn't exist in database
    */
-  getUserByUuid(uuid: string): StoredUser | undefined {
-    this.ensureFetched(this.declaredUserUuids, uuid, `getUserByUuid("${uuid}")`);
-    return this.usersByUuid.get(uuid);
-  }
-
-  /**
-   * Get user by ID
-   * Throws error if ID was not declared in requirements (bug in getDataRequirements)
-   * Returns undefined if user was declared but doesn't exist in database
-   */
-  getUserById(id: number): StoredUser | undefined {
-    this.ensureFetched(this.declaredUserIds, id, `getUserById(${id})`);
-    return this.usersById.get(id);
-  }
-
-  /**
-   * Get booking by UID
-   * Throws error if UID was not declared in requirements (bug in getDataRequirements)
-   * Returns undefined if booking was declared but doesn't exist in database
-   */
-  getBookingByUid(uid: string): StoredBooking | undefined {
-    this.ensureFetched(this.declaredBookingUids, uid, `getBookingByUid("${uid}")`);
-    return this.bookingsByUid.get(uid);
+  getUserByUuid(uuid: string): StoredUser | null {
+    if (!this.usersByUuid.has(uuid)) {
+      throw new Error(
+        `EnrichmentDataStore: getUserByUuid("${uuid}") called but was not declared in getDataRequirements. ` +
+          `This is a bug - ensure the action service declares all required userUuids.`
+      );
+    }
+    return this.usersByUuid.get(uuid) ?? null;
   }
 
   /**
    * Get attendee by ID
    * Throws error if ID was not declared in requirements (bug in getDataRequirements)
-   * Returns undefined if attendee was declared but doesn't exist in database
+   * Returns null if attendee was declared but doesn't exist in database
    */
-  getAttendeeById(id: number): StoredAttendee | undefined {
-    this.ensureFetched(this.declaredAttendeeIds, id, `getAttendeeById(${id})`);
-    return this.attendeesById.get(id);
+  getAttendeeById(id: number): StoredAttendee | null {
+    if (!this.attendeesById.has(id)) {
+      throw new Error(
+        `EnrichmentDataStore: getAttendeeById(${id}) called but was not declared in getDataRequirements. ` +
+          `This is a bug - ensure the action service declares all required attendeeIds.`
+      );
+    }
+    return this.attendeesById.get(id) ?? null;
   }
 
   /**
    * Get credential by ID
    * Throws error if ID was not declared in requirements (bug in getDataRequirements)
-   * Returns undefined if credential was declared but doesn't exist in database
+   * Returns null if credential was declared but doesn't exist in database
    */
-  getCredentialById(id: number): StoredCredential | undefined {
-    this.ensureFetched(this.declaredCredentialIds, id, `getCredentialById(${id})`);
-    return this.credentialsById.get(id);
+  getCredentialById(id: number): StoredCredential | null {
+    if (!this.credentialsById.has(id)) {
+      throw new Error(
+        `EnrichmentDataStore: getCredentialById(${id}) called but was not declared in getDataRequirements. ` +
+          `This is a bug - ensure the action service declares all required credentialIds.`
+      );
+    }
+    return this.credentialsById.get(id) ?? null;
   }
 }
