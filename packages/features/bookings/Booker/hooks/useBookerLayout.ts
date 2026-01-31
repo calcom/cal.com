@@ -5,45 +5,32 @@ import {
   useEmbedType,
   useEmbedUiConfig,
   useIsEmbed,
+  useSlotsViewOnSmallScreen,
 } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { extraDaysConfig } from "@calcom/features/bookings/Booker/config";
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { validateLayout } from "@calcom/features/bookings/Booker/utils/layout";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
-
-import { extraDaysConfig } from "../../config";
-import type { BookerLayout } from "../../types";
-import { validateLayout } from "../../utils/layout";
-import { getQueryParam } from "../../utils/query-param";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
 export const useBookerLayout = (
-  profileBookerLayouts:
-    | BookerEvent["profile"]["bookerLayouts"]
-    | undefined
-    | null
+  profileBookerLayouts: BookerEvent["profile"]["bookerLayouts"] | undefined | null
 ) => {
-  const [_layout, setLayout] = useBookerStoreContext(
-    (state) => [state.layout, state.setLayout],
-    shallow
-  );
+  const [_layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const embedUiConfig = useEmbedUiConfig();
   // In Embed we give preference to embed configuration for the layout.If that's not set, we use the App configuration for the event layout
   // But if it's mobile view, there is only one layout supported which is 'mobile'
-  const layout = isEmbed
-    ? isMobile
-      ? "mobile"
-      : validateLayout(embedUiConfig.layout) || _layout
-    : _layout;
-  const extraDays = isTablet
-    ? extraDaysConfig[layout].tablet
-    : extraDaysConfig[layout].desktop;
+  const layout = isEmbed ? (isMobile ? "mobile" : validateLayout(embedUiConfig.layout) || _layout) : _layout;
+  const extraDays = isTablet ? extraDaysConfig[layout].tablet : extraDaysConfig[layout].desktop;
   const embedType = useEmbedType();
   // Floating Button and Element Click both are modal and thus have dark background
   const hasDarkBackground = isEmbed && embedType !== "inline";
@@ -72,9 +59,7 @@ export const useBookerLayout = (
       bookerLayouts?.enabledLayouts?.length &&
       layout !== _layout
     ) {
-      const validLayout = bookerLayouts.enabledLayouts.find(
-        (userLayout) => userLayout === layout
-      );
+      const validLayout = bookerLayouts.enabledLayouts.find((userLayout) => userLayout === layout);
       if (validLayout) setLayout(validLayout);
     }
   }, [bookerLayouts, setLayout, _layout, isEmbed, isMobile]);
@@ -99,8 +84,8 @@ export const useBookerLayout = (
   const hideEventTypeDetails = isEmbed
     ? embedUiConfig.hideEventTypeDetails
     : typeof hideEventTypeDetailsParam === "string"
-    ? hideEventTypeDetailsParam === "true"
-    : false;
+      ? hideEventTypeDetailsParam === "true"
+      : false;
 
   const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
 

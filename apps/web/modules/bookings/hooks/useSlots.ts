@@ -12,11 +12,8 @@ import {
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
-import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
-
+import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
-
-export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
@@ -51,7 +48,7 @@ const useQuickAvailabilityChecks = ({
     {
       slots: slotsToCheck,
       // enabled flag can't be true if eventTypeId is nullish
-       
+
       eventTypeId: eventTypeId!,
     },
     {
