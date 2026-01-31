@@ -10,10 +10,12 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { DatePicker } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
@@ -22,13 +24,13 @@ const Select = dynamic(
 
 export type CommonProps<
   TVal extends
-    | string
-    | boolean
-    | string[]
-    | {
-        value: string;
-        optionValue: string;
-      }
+  | string
+  | boolean
+  | string[]
+  | {
+    value: string;
+    optionValue: string;
+  }
 > = {
   placeholder?: string;
   readOnly?: boolean;
@@ -45,22 +47,22 @@ export type CommonProps<
 
 export type SelectLikeComponentProps<
   TVal extends
-    | string
-    | string[]
-    | {
-        value: string;
-        optionValue: string;
-      } = string
+  | string
+  | string[]
+  | {
+    value: string;
+    optionValue: string;
+  } = string
 > = {
   options: {
     label: string;
     value: TVal extends (infer P)[]
-      ? P
-      : TVal extends {
-          value: string;
-        }
-      ? TVal["value"]
-      : TVal;
+    ? P
+    : TVal extends {
+      value: string;
+    }
+    ? TVal["value"]
+    : TVal;
   }[];
 } & CommonProps<TVal>;
 
@@ -368,6 +370,45 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
+function DateWidget({ value, setValue, timezone, ...remainingProps }: TextLikeComponentPropsRAQB & { timezone?: string | null }) {
+
+  const parseDate = (v: string): Date | null => {
+    const trimmed = v.trim();
+    const parts = trimmed.split("-");
+    if (parts.length !== 3) return null;
+    const [y, m, d] = parts.map((p) => Number.parseInt(p, 10));
+    if (!y || !m || !d) return null;
+
+    if (timezone) {
+      return dayjs.tz(`${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`, timezone).toDate();
+    } else {
+      return new Date(y, m - 1, d);
+    }
+  };
+
+  const dateValue =
+    value && value.trim() ? parseDate(value) ?? ((null as unknown) as Date) : ((null as unknown) as Date);
+
+  const handleDateChange = (date: Date) => {
+    let formattedDate: string;
+
+    if (timezone) {
+      formattedDate = dayjs(date).tz(timezone).format("YYYY-MM-DD");
+    } else {
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      formattedDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    setValue(formattedDate);
+  };
+
+  return (
+    <div className="mb-2 w-full">
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} {...remainingProps} />
+    </div>
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -376,6 +417,7 @@ const widgets = {
   SelectWidget,
   NumberWidget,
   MultiSelectWidget,
+  DateWidget,
   FieldSelect,
   Button,
   ButtonGroup,

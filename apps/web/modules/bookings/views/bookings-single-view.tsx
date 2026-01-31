@@ -399,9 +399,9 @@ export default function Success(props: PageProps) {
   const isWithinMinimumRescheduleNotice = isHost
     ? false // Organizers can always reschedule
     : isWithinMinimumRescheduleNoticeUtil(
-        bookingInfo?.startTime ?? null,
-        eventType?.minimumRescheduleNotice ?? null
-      );
+      bookingInfo?.startTime ?? null,
+      eventType?.minimumRescheduleNotice ?? null
+    );
   const isRescheduleDisabled = !canReschedule || isWithinMinimumRescheduleNotice;
   const paymentStatusMessage = usePaymentStatus({
     bookingStatus: bookingInfo.status,
@@ -410,10 +410,10 @@ export default function Success(props: PageProps) {
     userId: eventType?.owner?.id,
     payment: props.paymentStatus
       ? {
-          success: props.paymentStatus.success,
-          refunded: props.paymentStatus.refunded,
-          paymentOption: props.paymentStatus.paymentOption,
-        }
+        success: props.paymentStatus.success,
+        refunded: props.paymentStatus.refunded,
+        paymentOption: props.paymentStatus.paymentOption,
+      }
       : { success: false, refunded: false },
     refundPolicy: eventType?.metadata?.apps?.stripe?.refundPolicy,
     refundDaysCount: eventType?.metadata?.apps?.stripe?.refundDaysCount,
@@ -498,7 +498,7 @@ export default function Success(props: PageProps) {
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   !isBackgroundTransparent &&
-                    " bg-default dark:bg-cal-muted border-booker border-booker-width",
+                  " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -524,7 +524,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
-                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                          "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
                             ? "bg-cal-success"
                             : "",
@@ -700,6 +700,49 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {eventType.bookingFields
+                          .filter((field) => {
+                            if (!field) return false;
+                            if (!bookingInfo.responses[field.name]) return false;
+                            if (!shouldShowFieldInCustomResponses(field.name)) return false;
+                            return field.type === "date";
+                          })
+                          .map((field) => {
+                            const response = bookingInfo.responses[field.name];
+                            let label = field.label || t(field.defaultLabel);
+                            label = label.charAt(0).toUpperCase() + label.slice(1);
+
+                            let formattedDate = response.toString();
+                            try {
+                              const dateValue = dayjs(response.toString());
+                              if (dateValue.isValid()) {
+                                formattedDate = formatToLocalizedDate(dateValue, undefined, "full", tz) ||
+                                  dateValue.format("dddd, MMMM D, YYYY");
+                              }
+                            } catch (error) {
+                              // Fallback to original value if parsing fails
+                            }
+
+                            return (
+                              <Fragment key={field.name}>
+                                <div className="mt-3 font-medium">
+                                  <span
+                                    dangerouslySetInnerHTML={{
+                                      __html: markdownToSafeHTML(label),
+                                    }}
+                                  />
+                                </div>
+                                <div className="col-span-2 mt-3">
+                                  <p
+                                    className="text-default wrap-break-word"
+                                    data-testid="field-response"
+                                    data-fob-field={field.name}>
+                                    {formattedDate}
+                                  </p>
+                                </div>
+                              </Fragment>
+                            );
+                          })}
                         {props.paymentStatus && (
                           <>
                             <div className="mt-3 font-medium">
@@ -748,7 +791,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                  0 ? (
+                                    0 ? (
                                     <ul className="stack-y-1 list-disc p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -802,6 +845,10 @@ export default function Success(props: PageProps) {
                           // We show rescheduleReason at the top
 
                           if (!shouldShowFieldInCustomResponses(field.name)) {
+                            return null;
+                          }
+
+                          if (field.type === "date") {
                             return null;
                           }
 
@@ -864,50 +911,49 @@ export default function Success(props: PageProps) {
                             (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
                             canReschedule) ||
                             (!isBookingInPast && canCancel)) && (
-                            <>
-                              <hr className="border-subtle mb-8" />
-                              <div className="text-center last:pb-0">
-                                <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                                  {t("need_to_make_a_change")}
-                                </span>
+                              <>
+                                <hr className="border-subtle mb-8" />
+                                <div className="text-center last:pb-0">
+                                  <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                                    {t("need_to_make_a_change")}
+                                  </span>
 
-                                <>
-                                  {!props.recurringBookings &&
-                                    (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
-                                    canReschedule &&
-                                    !isRescheduleDisabled && (
-                                      <span className="text-default inline">
-                                        <Link
-                                          href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                            currentUserEmail
+                                  <>
+                                    {!props.recurringBookings &&
+                                      (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
+                                      canReschedule &&
+                                      !isRescheduleDisabled && (
+                                        <span className="text-default inline">
+                                          <Link
+                                            href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
                                               ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
                                               : ""
-                                          }`}
-                                          className="underline"
-                                          data-testid="reschedule-link">
-                                          {t("reschedule")}
-                                        </Link>
-                                        {!isBookingInPast && canCancel && (
-                                          <span className="mx-2">{t("or_lowercase")}</span>
-                                        )}
-                                      </span>
-                                    )}
-
-                                  {!isBookingInPast && canCancel && (
-                                    <button
-                                      data-testid="cancel"
-                                      className={classNames(
-                                        "text-default underline",
-                                        props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                              }`}
+                                            className="underline"
+                                            data-testid="reschedule-link">
+                                            {t("reschedule")}
+                                          </Link>
+                                          {!isBookingInPast && canCancel && (
+                                            <span className="mx-2">{t("or_lowercase")}</span>
+                                          )}
+                                        </span>
                                       )}
-                                      onClick={() => setIsCancellationMode(true)}>
-                                      {t("cancel")}
-                                    </button>
-                                  )}
-                                </>
-                              </div>
-                            </>
-                          )}
+
+                                    {!isBookingInPast && canCancel && (
+                                      <button
+                                        data-testid="cancel"
+                                        className={classNames(
+                                          "text-default underline",
+                                          props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                        )}
+                                        onClick={() => setIsCancellationMode(true)}>
+                                        {t("cancel")}
+                                      </button>
+                                    )}
+                                  </>
+                                </div>
+                              </>
+                            )}
                         </>
                       ) : (
                         <>

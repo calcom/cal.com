@@ -29,6 +29,7 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  date: (val) => typeof val === "string",
 };
 
 type Component =
@@ -83,6 +84,10 @@ type Component =
       >(
         props: TProps
       ) => JSX.Element;
+    }
+  | {
+      propsType: "date";
+      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
     };
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
@@ -553,6 +558,12 @@ export const Components: Record<FieldType, Component> = {
     propsType: propsTypes.url,
     factory: (props) => {
       return <Widgets.TextWidget type="url" autoComplete="url" noLabel={true} {...props} />;
+    },
+  },
+  date: {
+    propsType: propsTypes.date,
+    factory: (props) => {
+      return <Widgets.DateWidget noLabel={true} {...props} />;
     },
   },
 } as const;
