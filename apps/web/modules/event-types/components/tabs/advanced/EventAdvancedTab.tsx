@@ -486,7 +486,7 @@ export const EventAdvancedTab = ({
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  const toggleGuests = (enabled: boolean) => {
+  const toggleGuests = (enabled: boolean, markAsDirty: boolean = true) => {
     const bookingFields = formMethods.getValues("bookingFields");
     formMethods.setValue(
       "bookingFields",
@@ -502,7 +502,7 @@ export const EventAdvancedTab = ({
         }
         return field;
       }),
-      { shouldDirty: true }
+      { shouldDirty: markAsDirty }
     );
   };
 
@@ -542,10 +542,6 @@ export const EventAdvancedTab = ({
   }
 
   const [disableRescheduling, setDisableRescheduling] = useState(eventType.disableRescheduling || false);
-
-  const [allowReschedulingCancelledBookings, setallowReschedulingCancelledBookings] = useState(
-    eventType.allowReschedulingCancelledBookings ?? false
-  );
 
   const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
 
@@ -786,8 +782,8 @@ export const EventAdvancedTab = ({
               onCheckedChange={(e) => {
                 setInterfaceLanguageVisible(e);
                 if (!e) {
-                  // disables the setting
-                  formMethods.setValue("interfaceLanguage", null, { shouldDirty: true });
+                  // Reset to original value and clear dirty state
+                  formMethods.resetField("interfaceLanguage");
                 } else {
                   // "" is default value which means visitors browser language
                   formMethods.setValue("interfaceLanguage", "", { shouldDirty: true });
@@ -1039,16 +1035,35 @@ export const EventAdvancedTab = ({
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported
                 if (e) {
-                  toggleGuests(false);
-                  formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
+                  toggleGuests(false, false);
+                  formMethods.setValue("requiresConfirmation", false, { shouldDirty: false });
                   setRequiresConfirmation(false);
-                  formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
+                  formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: false });
                   formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2, {
-                    shouldDirty: true,
+                    shouldDirty: false,
                   });
                 } else {
-                  formMethods.setValue("seatsPerTimeSlot", null);
-                  toggleGuests(true);
+                  toggleGuests(true, false);
+                  formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot, {
+                    shouldDirty: false,
+                  });
+                  formMethods.setValue("seatsShowAttendees", eventType.seatsShowAttendees, {
+                    shouldDirty: false,
+                  });
+                  formMethods.setValue(
+                    "seatsShowAvailabilityCount",
+                    eventType.seatsShowAvailabilityCount,
+                    { shouldDirty: false }
+                  );
+                  formMethods.setValue("requiresConfirmation", eventType.requiresConfirmation, {
+                    shouldDirty: false,
+                  });
+                  setRequiresConfirmation(eventType.requiresConfirmation);
+                  formMethods.setValue(
+                    "metadata.multipleDuration",
+                    eventType.metadata?.multipleDuration,
+                    { shouldDirty: false }
+                  );
                 }
                 onChange(e);
               }}>
@@ -1254,7 +1269,7 @@ export const EventAdvancedTab = ({
 
       <Controller
         name="allowReschedulingCancelledBookings"
-        render={({ field: { onChange } }) => (
+        render={({ field: { value, onChange } }) => (
           <SettingsToggle
             labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
@@ -1263,11 +1278,8 @@ export const EventAdvancedTab = ({
             data-testid="allow-rescheduling-cancelled-bookings-toggle"
             {...allowReschedulingCancelledBookingsLocked}
             description={t("description_allow_rescheduling_cancelled_bookings")}
-            checked={allowReschedulingCancelledBookings}
-            onCheckedChange={(val) => {
-              setallowReschedulingCancelledBookings(val);
-              onChange(val);
-            }}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
           />
         )}
       />
