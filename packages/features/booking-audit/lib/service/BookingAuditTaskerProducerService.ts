@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import type { Tasker } from "@calcom/features/tasker/tasker";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
@@ -102,9 +101,6 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     }): Promise<void> {
         // Skip queueing for non-organization bookings
         if (params.organizationId === null) {
-            return;
-        }
-        if (IS_PRODUCTION) {
             return;
         }
         try {
@@ -328,9 +324,6 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     }): Promise<void> {
         // Skip queueing for non-organization bookings
         if (params.organizationId === null) {
-            return;
-        }
-        if (IS_PRODUCTION) {
             return;
         }
         try {
