@@ -164,7 +164,7 @@ function Field({
                             "h-8 w-full justify-between text-left text-sm",
                             !!router && "bg-subtle cursor-not-allowed"
                           )}>
-                          <span className="text-default">{defaultValue?.label || "Select field type"}</span>
+                          <span className="text-default">{defaultValue?.label || t("select_field_type")}</span>
                           <ChevronDownIcon className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
