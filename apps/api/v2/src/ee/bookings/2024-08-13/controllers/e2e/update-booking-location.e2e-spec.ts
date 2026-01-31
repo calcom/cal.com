@@ -12,6 +12,26 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
+
+// Mock the createMeeting function to return a fake Daily.co meeting
+// This bypasses both the database check for enabled apps and the actual API call
+jest.mock("@calcom/platform-libraries/conferencing", () => ({
+  ...jest.requireActual("@calcom/platform-libraries/conferencing"),
+  createMeeting: jest.fn().mockResolvedValue({
+    appName: "daily-video",
+    type: "daily_video",
+    uid: "MOCK_UID",
+    originalEvent: {},
+    success: true,
+    createdEvent: {
+      type: "daily_video",
+      id: "MOCK_DAILY_ID",
+      password: "MOCK_DAILY_PASS",
+      url: "https://mock-daily.example.com/mock-meeting",
+    },
+    credentialId: 0,
+  }),
+}));
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -320,6 +340,55 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(attendeeDefinedLocation);
+      });
+
+      it("can update location to type integration (cal-video)", async () => {
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "cal-video",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        // cal-video location should be either a Daily video URL or the internal location string
+        expect(
+          updatedBooking.location?.startsWith("http") || updatedBooking.location === "integrations:daily"
+        ).toBe(true);
+      });
+
+      it("should return 400 when updating to unsupported integration", async () => {
+        const updatedBookingBody = {
+          location: {
+            type: "integration",
+            integration: "unsupported-video-integration",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(400);
+
+        expect(response.body.status).toEqual(ERROR_STATUS);
       });
 
       afterAll(async () => {
