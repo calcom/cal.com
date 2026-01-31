@@ -2506,7 +2506,12 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {});
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+              id: "MOCK_CALENDAR_EVENT_ID",
+            },
+          });
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -2649,7 +2654,12 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {});
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+              id: "MOCK_CALENDAR_EVENT_ID",
+            },
+          });
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -2744,7 +2754,12 @@ describe("handleNewBooking", () => {
           metadataLookupKey: "dailyvideo",
         });
 
-        mockCalendarToHaveNoBusySlots("googlecalendar");
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "MOCK_ID",
+            id: "MOCK_CALENDAR_EVENT_ID",
+          },
+        });
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
@@ -2998,7 +3013,12 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "stripe",
             appStoreLookupKey: "stripepayment",
           });
-          mockCalendarToHaveNoBusySlots("googlecalendar");
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+              id: "MOCK_CALENDAR_EVENT_ID",
+            },
+          });
           const mockBookingData = getMockRequestDataForBooking({
             data: {
               eventTypeId: 1,
@@ -3177,7 +3197,12 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "stripe",
             appStoreLookupKey: "stripepayment",
           });
-          mockCalendarToHaveNoBusySlots("googlecalendar");
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "MOCK_ID",
+              id: "MOCK_CALENDAR_EVENT_ID",
+            },
+          });
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
