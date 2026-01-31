@@ -86,6 +86,7 @@ import {
 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
+import { SelectedCalendar_2024_06_14 } from "./selected-calendars.input";
 import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
@@ -585,6 +586,7 @@ export class BaseCreateEventTypeInput {
   })
   showOptimizedSlots?: boolean;
 }
+@ApiExtraModels(SelectedCalendar_2024_06_14)
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
   @ValidateLocations_2024_06_14()
@@ -604,6 +606,17 @@ export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   })
   @Type(() => Object)
   locations?: InputLocation_2024_06_14[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SelectedCalendar_2024_06_14)
+  @DocsPropertyOptional({
+    description:
+      "An array of calendars to be used for conflict checking for this event type. When provided with at least one calendar, the event type will use these calendars instead of the user's default selected calendars. To switch back to user-level calendars, pass an empty array. Refer to the /api/v2/calendars endpoint to retrieve the integration type and external IDs of your connected calendars.",
+    type: [SelectedCalendar_2024_06_14],
+  })
+  selectedCalendars?: SelectedCalendar_2024_06_14[];
 }
 
 export enum HostPriority {
