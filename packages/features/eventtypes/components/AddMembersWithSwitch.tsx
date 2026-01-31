@@ -1,17 +1,23 @@
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type {
   FormValues,
   Host,
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
-import { Segment } from "@calcom/web/modules/event-types/components/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
 import { type ComponentProps, type Dispatch, type SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
+
+export type SegmentComponentProps = {
+  teamId: number;
+  queryValue: AttributesQueryValue | null;
+  onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
+  className?: string;
+  filterMemberIds?: number[];
+};
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
 import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
@@ -126,6 +132,7 @@ function MembersSegmentWithToggle({
   setRrSegmentQueryValue,
   className,
   filterMemberIds,
+  SegmentComponent,
 }: {
   teamId: number;
   assignRRMembersUsingSegment: boolean;
@@ -134,12 +141,12 @@ function MembersSegmentWithToggle({
   setRrSegmentQueryValue: (value: AttributesQueryValue) => void;
   className?: string;
   filterMemberIds?: number[];
+  SegmentComponent?: React.ComponentType<SegmentComponentProps>;
 }) {
   const { t } = useLocale();
   const onQueryValueChange = ({ queryValue }: { queryValue: AttributesQueryValue }) => {
     setRrSegmentQueryValue(queryValue);
   };
-  const isPlatform = useIsPlatform();
   return (
     <Controller<FormValues>
       name="assignRRMembersUsingSegment"
@@ -153,8 +160,8 @@ function MembersSegmentWithToggle({
           onCheckedChange={(active) => {
             setAssignRRMembersUsingSegment(active);
           }}>
-          {!isPlatform && (
-            <Segment
+          {SegmentComponent && (
+            <SegmentComponent
               teamId={teamId}
               queryValue={rrSegmentQueryValue}
               onQueryValueChange={onQueryValueChange}
@@ -189,6 +196,7 @@ export type AddMembersWithSwitchProps = {
   groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
+  SegmentComponent?: React.ComponentType<SegmentComponentProps>;
 };
 
 enum AssignmentState {
@@ -255,6 +263,7 @@ export function AddMembersWithSwitch({
   isSegmentApplicable,
   groupId,
   customClassNames,
+  SegmentComponent,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -302,6 +311,7 @@ export function AddMembersWithSwitch({
                 rrSegmentQueryValue={rrSegmentQueryValue}
                 setRrSegmentQueryValue={setRrSegmentQueryValue}
                 filterMemberIds={value.filter((host) => !host.isFixed).map((host) => host.userId)}
+                SegmentComponent={SegmentComponent}
               />
             </div>
           )}
