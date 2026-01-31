@@ -382,14 +382,10 @@ describe("BookingRepository (Integration Tests)", () => {
     });
 
     it("should find bookings by attendee email", async () => {
-      const otherUser = await prisma.user.findFirst({
+      // Use a different user as the organizer so we can test finding bookings by attendee email
+      const otherUser = await prisma.user.findFirstOrThrow({
         where: { email: { not: "member0-acme@example.com" } },
       });
-
-      if (!otherUser) {
-        console.log("Skipping test: no other user found");
-        return;
-      }
 
       const booking = await prisma.booking.create({
         data: {
