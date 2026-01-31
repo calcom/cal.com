@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CalendarIcon, MenuIcon } from "@coss/ui/icons";
 
 import { useBookingsView } from "../hooks/useBookingsView";
 
@@ -42,13 +42,13 @@ export function ViewToggleButton({ bookingsV3Enabled }: ViewToggleButtonProps) {
             value: "list",
             label: "",
             tooltip: t("list_view"),
-            iconLeft: <Icon name="menu" className="h-4 w-4" />,
+            iconLeft: <MenuIcon className="h-4 w-4" />,
           },
           {
             value: "calendar",
             label: "",
             tooltip: t("calendar_view"),
-            iconLeft: <Icon name="calendar" className="h-4 w-4" />,
+            iconLeft: <CalendarIcon className="h-4 w-4" />,
           },
         ]}
       />

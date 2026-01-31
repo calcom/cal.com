@@ -20,7 +20,7 @@ import {
   ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { BuildingIcon, LockIcon } from "@coss/ui/icons";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -209,11 +209,11 @@ function UsersTableBare() {
                         <span>/{user.username}</span>
                         {user.profiles[0]?.username && (
                           <span className="flex items-center gap-1">
-                            <Icon name="building" className="text-subtle size-5" />
+                            <BuildingIcon className="text-subtle size-5" />
                             <span>{user.profiles[0]?.username}</span>
                           </span>
                         )}
-                        {user.locked && <Icon name="lock" />}
+                        {user.locked && <LockIcon />}
                         <br />
                       </div>
                       <span className="break-all">{user.email}</span>

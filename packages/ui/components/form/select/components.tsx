@@ -4,7 +4,7 @@ import { components as reactSelectComponents } from "react-select";
 import classNames from "@calcom/ui/classNames";
 
 import { Badge, CreditsBadge, UpgradeTeamsBadge } from "../../badge";
-import { Icon } from "../../icon";
+import { CheckIcon } from "@coss/ui/icons";
 import type { SelectProps } from "./types";
 
 export const InputComponent = <
@@ -76,7 +76,7 @@ export const OptionComponent = <
         ) : (
           <></>
         )}
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
+        {props.isSelected && <CheckIcon className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
   );

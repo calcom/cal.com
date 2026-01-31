@@ -13,7 +13,7 @@ import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "@coss/ui/icons";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
@@ -539,7 +539,7 @@ const RoundRobinHosts = ({
                       type="button"
                       onClick={() => handleRemoveGroup(group.id)}
                       className="text-subtle hover:text-default rounded p-1">
-                      <Icon name="x" className="h-4 w-4" />
+                      <XIcon className="h-4 w-4" />
                     </button>
                   </div>
                   <AddMembersWithSwitchComponent groupId={group.id} />

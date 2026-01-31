@@ -16,8 +16,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { CalendarX2Icon } from "@coss/ui/icons";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
@@ -284,7 +284,7 @@ export const AvailableTimes = ({
           <div
             data-testId="no-slots-available"
             className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
-            <Icon name="calendar-x-2" className="text-muted mb-2 h-4 w-4" />
+            <CalendarX2Icon className="text-muted mb-2 h-4 w-4" />
             <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
               {t("all_booked_today")}
             </p>

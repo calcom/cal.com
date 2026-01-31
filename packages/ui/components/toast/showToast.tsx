@@ -1,8 +1,7 @@
+import { CheckIcon, InfoIcon, XIcon } from "@coss/ui/icons";
 import classNames from "classnames";
 import type { ExternalToast } from "sonner";
 import { toast } from "sonner";
-
-import { Icon } from "../icon";
 
 type IToast = {
   message: string;
@@ -17,7 +16,7 @@ export const SuccessToast = ({ message, onClose, toastId }: IToast) => (
     )}
     onClick={() => onClose(toastId)}>
     <span>
-      <Icon name="check" className="size-4" />
+      <CheckIcon className="size-4" />
     </span>
     <div className="flex items-center">
       <p data-testid="toast-success" className="m-0 w-full text-left">
@@ -25,7 +24,7 @@ export const SuccessToast = ({ message, onClose, toastId }: IToast) => (
       </p>
     </div>
     <span>
-      <Icon name="x" className="size-4 hover:cursor-pointer" />
+      <XIcon className="size-4 hover:cursor-pointer" />
     </span>
   </button>
 );
@@ -37,7 +36,7 @@ export const ErrorToast = ({ message, onClose, toastId }: IToast) => (
     )}
     onClick={() => onClose(toastId)}>
     <span>
-      <Icon name="info" className="text-semantic-error  size-4" />
+      <InfoIcon className="text-semantic-error  size-4" />
     </span>
     <div className="flex items-center">
       <p data-testid="toast-error" className="m-0 w-full text-left">
@@ -45,7 +44,7 @@ export const ErrorToast = ({ message, onClose, toastId }: IToast) => (
       </p>
     </div>
     <span>
-      <Icon name="x" className="text-semantic-error size-4 hover:cursor-pointer" />
+      <XIcon className="text-semantic-error size-4 hover:cursor-pointer" />
     </span>
   </button>
 );
@@ -57,7 +56,7 @@ export const WarningToast = ({ message, onClose, toastId }: IToast) => (
     )}
     onClick={() => onClose(toastId)}>
     <span>
-      <Icon name="info" className="text-semantic-attention size-4" />
+      <InfoIcon className="text-semantic-attention size-4" />
     </span>
     <div className="flex items-center">
       <p data-testid="toast-warning" className="m-0 w-full text-left">
@@ -65,7 +64,7 @@ export const WarningToast = ({ message, onClose, toastId }: IToast) => (
       </p>
     </div>
     <span>
-      <Icon name="x" className="text-semantic-attention size-4 hover:cursor-pointer" />
+      <XIcon className="text-semantic-attention size-4 hover:cursor-pointer" />
     </span>
   </button>
 );

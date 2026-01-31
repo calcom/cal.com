@@ -8,8 +8,8 @@ import type { ComponentProps, FC } from "react";
 import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
 
 const SliderButton: FC<ComponentProps<"button">> = (props) => {
   const { children, ...rest } = props;
@@ -64,10 +64,10 @@ export const Slider = <T extends string | unknown>({
           )}
           <div className="glide__arrows ml-auto flex items-center gap-x-1" data-glide-el="controls">
             <SliderButton data-glide-dir="<">
-              <Icon name="arrow-left" className="h-5 w-5" />
+              <ArrowLeftIcon className="h-5 w-5" />
             </SliderButton>
             <SliderButton data-glide-dir=">">
-              <Icon name="arrow-right" className="h-5 w-5" />
+              <ArrowRightIcon className="h-5 w-5" />
             </SliderButton>
           </div>
         </div>

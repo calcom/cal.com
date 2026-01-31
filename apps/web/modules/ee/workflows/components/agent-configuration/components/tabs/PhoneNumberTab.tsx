@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon, PhoneIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { WebCallDialog } from "@calcom/web/modules/ee/workflows/components/WebCallDialog";
 
@@ -131,7 +131,7 @@ export function PhoneNumberTab({
           {updateAgentMutation.isPending && (
             <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Icon name="loader" className="h-4 w-4 animate-spin" />
+                <LoaderIcon className="h-4 w-4 animate-spin" />
                 {t("updating")}...
               </div>
             </div>
@@ -279,7 +279,7 @@ export function PhoneNumberTab({
       <div className="border-subtle rounded-xl border p-8">
         <div className="stack-y-6 flex flex-col items-center text-center">
           <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
-            <Icon name="phone" className="text-subtle h-8 w-8" />
+            <PhoneIcon className="text-subtle h-8 w-8" />
           </div>
           <div className="stack-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("no_phone_numbers")}</h3>

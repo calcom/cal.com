@@ -11,7 +11,7 @@ import slugify from "@calcom/lib/slugify";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "@coss/ui/icons";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -200,7 +200,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                           });
                           remove(index);
                         }}>
-                        <Icon name="x" className="h-4 w-4" />
+                        <XIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}

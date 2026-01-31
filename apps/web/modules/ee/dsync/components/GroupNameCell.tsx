@@ -5,8 +5,8 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { PlusIcon, XIcon } from "@coss/ui/icons";
 
 interface GroupNameCellProps {
   groupNames: string[];
@@ -78,7 +78,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
           <div className="flex min-w-0 items-center gap-2">
             <p className="min-w-0 wrap-break-word">{name}</p>
             <div className="hover:bg-emphasis shrink-0 rounded p-1">
-              <Icon name="x" className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
+              <XIcon className="h-4 w-4 stroke-[3px]" onClick={() => removeGroupName(name)} />
             </div>
           </div>
         </Badge>
@@ -111,7 +111,7 @@ const GroupNameCell = ({ groupNames, teamId, directoryId }: GroupNameCellProps) 
             <p>{t("add_group_name")}</p>
           )}
           <div className={classNames("rounded p-1", showTextInput && "hover:bg-emphasis ml-2")}>
-            <Icon name="plus" className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
+            <PlusIcon className="h-4 w-4 stroke-[3px]" onClick={() => addGroupName(newGroupName)} />
           </div>
         </div>
       </Badge>
