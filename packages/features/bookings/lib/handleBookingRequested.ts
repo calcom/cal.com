@@ -1,16 +1,14 @@
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
-import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Prisma } from "@calcom/prisma/client";
-import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -73,34 +71,20 @@ export async function handleBookingRequested(args: {
   });
 
   try {
-    const subscribersBookingRequested = await getWebhooks({
-      userId: booking.userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
-      teamId: booking.eventType?.teamId,
+    if (!evt.uid) {
+      log.error("Cannot queue BOOKING_REQUESTED webhook: missing booking uid");
+      return;
+    }
+
+    // Queue BOOKING_REQUESTED webhook via producer (async delivery)
+    const webhookProducer = getWebhookProducer();
+    await webhookProducer.queueBookingRequestedWebhook({
+      bookingUid: evt.uid,
+      userId: booking.userId ?? undefined,
+      eventTypeId: booking.eventTypeId ?? undefined,
+      teamId: booking.eventType?.teamId ?? undefined,
       orgId,
     });
-
-    const webhookPayload = getWebhookPayloadForBooking({
-      booking,
-      evt,
-    });
-
-    const promises = subscribersBookingRequested.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_REQUESTED,
-        new Date().toISOString(),
-        sub,
-        webhookPayload
-      ).catch((e) => {
-        log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_REQUESTED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-          safeStringify(e)
-        );
-      })
-    );
-    await Promise.all(promises);
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
     if (workflows.length > 0) {

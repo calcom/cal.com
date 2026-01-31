@@ -1,9 +1,11 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
+import type { IWebhookService } from "../../interface/services";
 import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { WebhookTaskConsumer } from "../WebhookTaskConsumer";
 
@@ -17,6 +19,8 @@ describe("WebhookTaskConsumer", () => {
   let consumer: WebhookTaskConsumer;
   let mockWebhookRepository: IWebhookRepository;
   let mockDataFetchers: IWebhookDataFetcher[];
+  let mockPayloadBuilderFactory: PayloadBuilderFactory;
+  let mockWebhookService: IWebhookService;
   let mockLogger: ILogger;
 
   beforeEach(() => {
@@ -61,6 +65,21 @@ describe("WebhookTaskConsumer", () => {
       createMockFetcher([WebhookTriggerEvents.OOO_CREATED]),
     ];
 
+    // Mock PayloadBuilderFactory
+    mockPayloadBuilderFactory = {
+      getBuilder: vi.fn().mockReturnValue({
+        build: vi.fn().mockReturnValue({ triggerEvent: "BOOKING_CREATED", payload: {} }),
+      }),
+    } as unknown as PayloadBuilderFactory;
+
+    // Mock WebhookService
+    mockWebhookService = {
+      processWebhooks: vi.fn().mockResolvedValue(undefined),
+      getSubscribers: vi.fn(),
+      scheduleTimeBasedWebhook: vi.fn(),
+      cancelScheduledWebhooks: vi.fn(),
+    } as unknown as IWebhookService;
+
     // Mock Logger
     mockLogger = {
       debug: vi.fn(),
@@ -70,7 +89,13 @@ describe("WebhookTaskConsumer", () => {
       getSubLogger: vi.fn().mockReturnThis(),
     } as unknown as ILogger;
 
-    consumer = new WebhookTaskConsumer(mockWebhookRepository, mockDataFetchers, mockLogger);
+    consumer = new WebhookTaskConsumer(
+      mockWebhookRepository,
+      mockDataFetchers,
+      mockPayloadBuilderFactory,
+      mockWebhookService,
+      mockLogger
+    );
   });
 
   describe("Constructor & Dependencies", () => {
@@ -195,6 +220,67 @@ describe("WebhookTaskConsumer", () => {
 
       await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
       expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+    });
+
+    it("should call processWebhooks when subscribers and valid event data exist (full delivery path)", async () => {
+      const payload: WebhookTaskPayload = {
+        operationId: "op-deliver",
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        bookingUid: "test-booking-uid",
+        eventTypeId: 1,
+        userId: 101,
+        timestamp: new Date().toISOString(),
+      };
+
+      const subscribers = [
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: null,
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ];
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce(subscribers);
+
+      // Valid event data shape so buildDTO succeeds and processWebhooks is called
+      const bookingFetcher = mockDataFetchers[0];
+      (bookingFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        calendarEvent: { type: "booking", title: "Test" },
+        booking: {
+          id: 1,
+          eventTypeId: 1,
+          userId: 101,
+          startTime: new Date(),
+          smsReminderNumber: null,
+          iCalSequence: 0,
+          assignmentReason: null,
+          eventType: {
+            id: 1,
+            title: "Test Event",
+            description: null,
+            requiresConfirmation: false,
+            price: null,
+            currency: null,
+            length: 30,
+          },
+          user: { id: 101 },
+        },
+      });
+
+      await consumer.processWebhookTask(payload, "task-deliver");
+
+      expect(mockWebhookService.processWebhooks).toHaveBeenCalledTimes(1);
+      expect(mockWebhookService.processWebhooks).toHaveBeenCalledWith(
+        WebhookTriggerEvents.BOOKING_CREATED,
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CREATED }),
+        subscribers
+      );
     });
 
     it("should process FORM_SUBMITTED event type (scaffold)", async () => {

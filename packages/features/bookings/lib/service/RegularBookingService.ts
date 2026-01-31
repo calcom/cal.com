@@ -1,11 +1,4 @@
-import short, { uuid } from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
-import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
-import {
-  buildBookingCreatedAuditData,
-  buildBookingRescheduledAuditData,
-} from "../handleNewBooking/buildBookingEventAuditData";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import process from "node:process";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -20,33 +13,33 @@ import {
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import {
-  eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
-import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
-import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type {
-  CreateRegularBookingData,
-  CreateBookingMeta,
+  BookingDataSchemaGetter,
   BookingHandlerInput,
+  CreateBookingMeta,
+  CreateRegularBookingData,
 } from "@calcom/features/bookings/lib/dto/types";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
-import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
+import type { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -54,24 +47,26 @@ import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/Workf
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import {
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { DEFAULT_GROUP_ID, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -87,36 +82,43 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
-import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
+import type { AssignmentReasonEnum, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import {
   BookingStatus,
+  CreationSource,
   SchedulingType,
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
-  CreationSource,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type {
   AdditionalInformation,
   AppsStatus,
-  CalendarEvent,
   CalEventResponses,
+  CalendarEvent,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-
+import short, { uuid } from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 import type { BookingRepository } from "../../repositories/BookingRepository";
-import { BookingActionMap, BookingEmailSmsHandler, type BookingActionType } from "../BookingEmailSmsHandler";
+import { BookingActionMap, type BookingActionType, BookingEmailSmsHandler } from "../BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
-import { LuckyUserService } from "../getLuckyUser";
+import type { LuckyUserService } from "../getLuckyUser";
 import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
+import {
+  buildBookingCreatedAuditData,
+  buildBookingRescheduledAuditData,
+} from "../handleNewBooking/buildBookingEventAuditData";
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
-import { createBooking } from "../handleNewBooking/createBooking";
 import type { Booking } from "../handleNewBooking/createBooking";
+import { createBooking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
+import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 import { getBookingData } from "../handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
 import { getEventType } from "../handleNewBooking/getEventType";
@@ -127,15 +129,14 @@ import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
-import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
+import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
-import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 
 const translator = short();
@@ -481,6 +482,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+  webhookProducer: IWebhookProducerService;
 }
 
 async function validateRescheduleRestrictions({
@@ -749,6 +751,9 @@ async function handler(
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
+
+  // Preserve for webhook/audit: seated reschedule nulls originalRescheduledBooking for calendar flow but we still need to send BOOKING_RESCHEDULED
+  const originalRescheduledBookingForWebhook = originalRescheduledBooking;
 
   const paymentAppData = getPaymentAppData({
     ...eventType,
@@ -1303,7 +1308,7 @@ async function handler(
   const isManagedEventType = !!eventType.parentId;
 
   // Track credential ID for per-host locations
-  let perHostCredentialId: number | undefined = undefined;
+  let perHostCredentialId: number | undefined;
 
   // Handle per-host custom locations for round-robin events
   if (
@@ -2476,29 +2481,6 @@ async function handler(
     tracingLogger,
   });
 
-  const webhookLocation = metadata?.videoCallUrl || evt.location;
-
-  const webhookData: EventPayloadType = {
-    ...evt,
-    ...eventTypeInfo,
-    bookingId: booking?.id,
-    rescheduleId: originalRescheduledBooking?.id || undefined,
-    rescheduleUid,
-    rescheduleStartTime: originalRescheduledBooking?.startTime
-      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-      : undefined,
-    rescheduleEndTime: originalRescheduledBooking?.endTime
-      ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-      : undefined,
-    metadata: { ...metadata, ...reqBody.metadata },
-    eventTypeId,
-    status: "ACCEPTED",
-    smsReminderNumber: booking?.smsReminderNumber || undefined,
-    rescheduledBy: reqBody.rescheduledBy,
-    location: webhookLocation,
-    ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
-  };
-
   if (bookingRequiresPayment) {
     tracingLogger.debug(`Booking ${organizerUser.username} requires payment`);
     // Load credentials.app.categories
@@ -2555,24 +2537,25 @@ async function handler(
       bookingFields: eventType.bookingFields,
       locale: language,
     });
-    const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
-      userId: triggerForUser ? organizerUser.id : null,
-      eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientId,
-    };
-    await handleWebhookTrigger({
-      subscriberOptions: subscriberOptionsPaymentInitiated,
-      eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      webhookData: {
-        ...webhookData,
-        paymentId: payment?.id,
-      },
-      isDryRun,
-      traceContext,
-    });
+    // Queue BOOKING_PAYMENT_INITIATED webhook via injected producer
+    if (!isDryRun && booking) {
+      try {
+        await deps.webhookProducer.queueBookingPaymentInitiatedWebhook({
+          bookingUid: booking.uid,
+          userId: triggerForUser ? organizerUser.id : undefined,
+          eventTypeId,
+          orgId,
+          teamId: teamId ?? undefined,
+          oAuthClientId: platformClientId ?? undefined,
+          paymentId: payment?.id,
+        });
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing BOOKING_PAYMENT_INITIATED webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
+      }
+    }
 
     try {
       const calendarEventForWorkflow = {
@@ -2711,26 +2694,74 @@ async function handler(
       );
     }
 
-    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
+    // Queue BOOKING_CREATED/BOOKING_RESCHEDULED webhook via injected producer
+    if (!isDryRun && booking) {
+      try {
+        const queueParams = {
+          bookingUid: booking.uid,
+          userId: subscriberOptions.userId ?? undefined,
+          eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+          teamId: Array.isArray(subscriberOptions.teamId)
+            ? subscriberOptions.teamId[0]
+            : subscriberOptions.teamId,
+          orgId: subscriberOptions.orgId ?? undefined,
+          oAuthClientId: subscriberOptions.oAuthClientId,
+        };
+
+        if (
+          eventTrigger === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
+          originalRescheduledBookingForWebhook
+        ) {
+          await deps.webhookProducer.queueBookingRescheduledWebhook({
+            ...queueParams,
+            // Reschedule-specific fields from original booking (rescheduledBy read from booking in consumer)
+            rescheduleId: originalRescheduledBookingForWebhook.id,
+            rescheduleUid: originalRescheduledBookingForWebhook.uid,
+            rescheduleStartTime: originalRescheduledBookingForWebhook.startTime.toISOString(),
+            rescheduleEndTime: originalRescheduledBookingForWebhook.endTime.toISOString(),
+            metadata: { ...metadata, ...reqBody.metadata },
+            platformRescheduleUrl: platformRescheduleUrl ?? undefined,
+            platformCancelUrl: platformCancelUrl ?? undefined,
+            platformBookingUrl: platformBookingUrl ?? undefined,
+          });
+        } else {
+          await deps.webhookProducer.queueBookingCreatedWebhook({
+            ...queueParams,
+            metadata: { ...metadata, ...reqBody.metadata },
+            platformRescheduleUrl: platformRescheduleUrl ?? undefined,
+            platformClientId: platformClientId ?? undefined,
+            platformCancelUrl: platformCancelUrl ?? undefined,
+            platformBookingUrl: platformBookingUrl ?? undefined,
+          });
+        }
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing ${eventTrigger} webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
+      }
+    }
   } else {
-    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
-    subscriberOptions.triggerEvent = eventTrigger;
-    webhookData.status = "PENDING";
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
+    // if eventType requires confirmation, queue BOOKING_REQUESTED webhook via injected producer
+    if (!isDryRun && booking) {
+      try {
+        await deps.webhookProducer.queueBookingRequestedWebhook({
+          bookingUid: booking.uid,
+          userId: subscriberOptions.userId ?? undefined,
+          eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+          teamId: Array.isArray(subscriberOptions.teamId)
+            ? subscriberOptions.teamId[0]
+            : (subscriberOptions.teamId ?? undefined),
+          orgId: subscriberOptions.orgId ?? undefined,
+          oAuthClientId: platformClientId ?? undefined,
+        });
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing BOOKING_REQUESTED webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
+      }
+    }
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });

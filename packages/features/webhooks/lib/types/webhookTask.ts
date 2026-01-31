@@ -30,6 +30,19 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   userId: z.number().optional(),
   orgId: z.number().optional(),
   oAuthClientId: z.string().nullable().optional(),
+  platformRescheduleUrl: z.string().nullable().optional(),
+  platformCancelUrl: z.string().nullable().optional(),
+  platformBookingUrl: z.string().nullable().optional(),
+
+  // Trigger-specific fields (BOOKING_CANCELLED)
+  cancelledBy: z.string().optional(),
+  requestReschedule: z.boolean().optional(),
+
+  // Trigger-specific fields (BOOKING_RESCHEDULED)
+  rescheduleId: z.number().optional(),
+  rescheduleUid: z.string().optional(),
+  rescheduleStartTime: z.string().optional(),
+  rescheduleEndTime: z.string().optional(),
 });
 
 /**
@@ -44,6 +57,7 @@ export const paymentWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   userId: z.number().optional(),
   orgId: z.number().optional(),
   oAuthClientId: z.string().nullable().optional(),
+  paymentId: z.number().optional(),
 });
 
 /**

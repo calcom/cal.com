@@ -6,6 +6,8 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -17,8 +19,6 @@ import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/Workf
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -33,10 +33,8 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 async function fireBookingAcceptedEvent({
   actor,
@@ -471,14 +469,9 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const subscribersBookingCreated = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
+    // Schedule MEETING_STARTED and MEETING_ENDED webhooks via legacy scheduleTrigger
+    // Note: These use WebhookScheduledTriggers table + /api/cron/webhookTriggers cron
+    // TODO: Migrate to new architecture in a separate PR
     const subscribersMeetingStarted = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -498,21 +491,19 @@ export async function handleConfirmation(args: {
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
-    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
-      return {
-        ...booking,
-        ...getCalEventResponses({
-          bookingFields: booking.eventType?.bookingFields ?? null,
-          booking,
-        }),
-      };
-    });
+    const updatedBookingsWithResponses = updatedBookings.map((updatedBooking) => ({
+      ...updatedBooking,
+      ...getCalEventResponses({
+        bookingFields: updatedBooking.eventType?.bookingFields ?? null,
+        booking: updatedBooking,
+      }),
+    }));
 
     subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
+      updatedBookingsWithResponses.forEach((bookingData) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingData,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
@@ -520,11 +511,12 @@ export async function handleConfirmation(args: {
         );
       });
     });
+
     subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
+      updatedBookingsWithResponses.forEach((bookingData) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingData,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -550,42 +542,28 @@ export async function handleConfirmation(args: {
       oAuthClientId: platformClientParams?.platformClientId,
     });
 
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType?.title,
-      eventDescription: eventType?.description,
-      requiresConfirmation: eventType?.requiresConfirmation || null,
-      price: eventType?.price,
-      currency: eventType?.currency,
-      length: eventType?.length,
-    };
+    // Queue BOOKING_CREATED webhook via Producer (service locator at entry point)
+    try {
+      const webhookProducer = getWebhookProducer();
 
-    const payload: EventPayloadType = {
-      ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
-      status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
-      ...(platformClientParams ? platformClientParams : {}),
-    };
-
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        tracingLogger.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
-
-    await Promise.all(promises);
+      await webhookProducer.queueBookingCreatedWebhook({
+        bookingUid: booking.uid,
+        userId: userId ?? undefined,
+        eventTypeId: booking.eventTypeId ?? undefined,
+        teamId,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
+        platformRescheduleUrl: platformClientParams?.platformRescheduleUrl,
+        platformCancelUrl: platformClientParams?.platformCancelUrl,
+        platformBookingUrl: platformClientParams?.platformBookingUrl,
+      });
+    } catch (webhookError) {
+      tracingLogger.error(
+        `Error queueing BOOKING_CREATED webhook: bookingId: ${bookingId}, bookingUid: ${booking.uid}`,
+        safeStringify(webhookError)
+      );
+    }
   } catch (error) {
     // Silently fail
     console.error(error);

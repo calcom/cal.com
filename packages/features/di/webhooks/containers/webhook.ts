@@ -11,6 +11,7 @@ import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/inte
 import type { IWebhookNotifier } from "@calcom/features/webhooks/lib/interface/webhook";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
 import { type Container, createContainer } from "@evyweb/ioctopus";
+import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Booking";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
@@ -18,7 +19,6 @@ import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";
 import { formWebhookDataFetcherModule } from "../modules/FormWebhookDataFetcher.module";
 import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.module";
-import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
 import { moduleLoader as webhookProducerServiceModuleLoader } from "../modules/WebhookProducerService.module";
@@ -30,6 +30,7 @@ const webhookContainer: Container = createContainer();
 // Load shared infrastructure
 loggerModuleLoader.loadModule(webhookContainer);
 prismaModuleLoader.loadModule(webhookContainer);
+bookingRepositoryModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 // Load webhook module (includes cross-table repositories + all webhook services)
@@ -47,7 +48,6 @@ webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER, webhookModule);
 
 // Load Data Fetchers (Strategy Pattern implementations)
 webhookContainer.load(WEBHOOK_TOKENS.BOOKING_DATA_FETCHER, bookingWebhookDataFetcherModule);
-webhookContainer.load(WEBHOOK_TOKENS.PAYMENT_DATA_FETCHER, paymentWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.FORM_DATA_FETCHER, formWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);

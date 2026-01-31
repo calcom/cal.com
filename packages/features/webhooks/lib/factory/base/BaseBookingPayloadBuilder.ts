@@ -1,8 +1,7 @@
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import type { EventTypeInfo, BookingWebhookEventDTO } from "../../dto/types";
+import type { BookingWebhookEventDTO, EventTypeInfo } from "../../dto/types";
 import type { WebhookPayload } from "../types";
 import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory";
 
@@ -10,20 +9,25 @@ import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory"
  * Extra data shape per booking trigger event
  */
 export type BookingExtraDataMap = {
-  [WebhookTriggerEvents.BOOKING_CREATED]: null;
+  [WebhookTriggerEvents.BOOKING_CREATED]: {
+    metadata?: Record<string, unknown>;
+  };
   [WebhookTriggerEvents.BOOKING_CANCELLED]: {
     cancelledBy?: string;
     cancellationReason?: string;
     requestReschedule?: boolean;
   };
   [WebhookTriggerEvents.BOOKING_REQUESTED]: null;
-  [WebhookTriggerEvents.BOOKING_REJECTED]: null;
+  [WebhookTriggerEvents.BOOKING_REJECTED]: {
+    rejectionReason?: string;
+  };
   [WebhookTriggerEvents.BOOKING_RESCHEDULED]: {
     rescheduleId?: number;
     rescheduleUid?: string;
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;
     rescheduledBy?: string;
+    metadata?: Record<string, unknown>;
   };
   [WebhookTriggerEvents.BOOKING_PAID]: { paymentId?: number; paymentData?: Record<string, unknown> };
   [WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED]: {
@@ -38,6 +42,8 @@ export interface BookingPayloadParams<T extends keyof BookingExtraDataMap> {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    // Raw assignmentReason from DB for legacy webhook format [{ reasonEnum, reasonString }]
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   eventType: EventTypeInfo;
   evt: CalendarEvent;

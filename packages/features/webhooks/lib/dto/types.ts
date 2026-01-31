@@ -1,9 +1,8 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
@@ -28,15 +27,10 @@ export interface BookingCreatedDTO extends BaseEventDTO {
     userId: number | null;
     startTime: Date;
     smsReminderNumber?: string | null;
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   status: "ACCEPTED" | "PENDING";
   metadata?: Record<string, unknown>;
-  platformParams?: {
-    platformClientId?: string;
-    platformRescheduleUrl?: string;
-    platformCancelUrl?: string;
-    platformBookingUrl?: string;
-  };
 }
 
 export interface BookingCancelledDTO extends BaseEventDTO {
@@ -70,6 +64,7 @@ export interface BookingRejectedDTO extends BaseEventDTO {
     smsReminderNumber?: string | null;
   };
   status: string;
+  rejectionReason?: string;
 }
 
 export interface BookingRequestedDTO extends BaseEventDTO {
@@ -83,6 +78,7 @@ export interface BookingRequestedDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
   };
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingRescheduledDTO extends BaseEventDTO {
@@ -96,12 +92,14 @@ export interface BookingRescheduledDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    assignmentReason?: { reasonEnum: string; reasonString: string }[];
   };
   rescheduleId?: number;
   rescheduleUid?: string;
   rescheduleStartTime?: string;
   rescheduleEndTime?: string;
   rescheduledBy?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingPaidDTO extends BaseEventDTO {
@@ -568,10 +566,19 @@ export type DelegationCredentialErrorPayloadType = {
   };
 };
 
-export type EventPayloadType = CalendarEvent &
+export type EventPayloadType = Omit<
+  CalendarEvent,
+  "assignmentReason" | "metadata" | "conferenceData" | "organizer"
+> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
-    metadata?: { [key: string]: string | number | boolean | null };
+    conferenceData: ConferenceData | null;
+    /** Organizer with usernameInOrg/utcOffset always present (string or null for JSON parity). */
+    organizer?: Omit<Person, "usernameInOrg"> & {
+      usernameInOrg: string | null;
+      utcOffset: number | null;
+    };
+    metadata?: Record<string, unknown>;
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
@@ -585,6 +592,11 @@ export type EventPayloadType = CalendarEvent &
     cancelledBy?: string;
     paymentData?: Record<string, unknown>;
     requestReschedule?: boolean;
+    assignmentReason?:
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 // dto/types.ts

@@ -27,7 +27,6 @@ export const WEBHOOK_TOKENS = {
 
   // Data Fetchers (Strategy Pattern implementations for WebhookTaskConsumer)
   BOOKING_DATA_FETCHER: Symbol("BookingWebhookDataFetcher"),
-  PAYMENT_DATA_FETCHER: Symbol("PaymentWebhookDataFetcher"),
   FORM_DATA_FETCHER: Symbol("FormWebhookDataFetcher"),
   RECORDING_DATA_FETCHER: Symbol("RecordingWebhookDataFetcher"),
   OOO_DATA_FETCHER: Symbol("OOOWebhookDataFetcher"),
