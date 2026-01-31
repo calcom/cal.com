@@ -40,6 +40,7 @@ export const getScheduleSchemaObject = z.object({
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
+  guestEmail: z.string().nullish(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject
