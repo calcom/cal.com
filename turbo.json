@@ -557,11 +557,11 @@
     },
     "type-check": {
       "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "dependsOn": ["@calcom/prisma#post-install"]
     },
     "type-check:ci": {
       "cache": false,
-      "dependsOn": ["@calcom/trpc#build"]
+      "dependsOn": ["@calcom/prisma#post-install"]
     },
     "@calcom/prisma#db-reset": {
       "cache": false,

@@ -5,8 +5,7 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
     return result;
   }
 
-  // Consider setting atleast ES2015 as target
-  // @ts-expect-error
+  // @ts-expect-error - IterableIterator requires downlevelIteration or target >= es2015 (trpc build uses a lower target)
   for (const [key, value] of entries) {
     if (result.hasOwnProperty(key)) {
       let currentValue = result[key];
