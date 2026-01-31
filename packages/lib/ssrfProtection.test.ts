@@ -25,8 +25,8 @@ describe("isPrivateIP", () => {
   it.each([
     "172.15.255.255", // just outside 172.16.0.0/12
     "172.32.0.0", // just outside 172.16.0.0/12
-    "8.8.8.8",
-    "203.0.113.1",
+    "8.8.8.8", // Google DNS
+    "1.1.1.1", // Cloudflare DNS
     "100.63.255.255", // just below RFC 6598
     "100.128.0.0", // just above RFC 6598
   ])("allows public IPv4 %s", (ip) => {
@@ -85,6 +85,20 @@ describe("validateUrlForSSRFSync", () => {
   ])("blocks %s", (url, expectedError) => {
     const result = validateUrlForSSRFSync(url);
     expect(result).toEqual({ isValid: false, error: expectedError });
+  });
+
+  it.each([
+    ["https://[::1]/", "Private IP address"],
+    ["https://[fe80::1]/path", "Private IP address"],
+    ["https://[fc00::1]:8080/", "Private IP address"],
+    ["https://[::ffff:127.0.0.1]/", "Private IP address"],
+  ])("blocks IPv6 private addresses with brackets %s", (url, expectedError) => {
+    const result = validateUrlForSSRFSync(url);
+    expect(result).toEqual({ isValid: false, error: expectedError });
+  });
+
+  it("allows public IPv6 addresses", () => {
+    expect(validateUrlForSSRFSync("https://[2001:4860:4860::8888]/").isValid).toBe(true);
   });
 });
 
