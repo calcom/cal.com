@@ -1,0 +1,88 @@
+name: Check OpenAPI JSON
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+env:
+  API_KEY_PREFIX: ${{ secrets.CI_API_KEY_PREFIX }}
+  API_PORT: ${{ vars.CI_API_V2_PORT }}
+  API_URL: "http://localhost"
+  CALCOM_LICENSE_KEY: ${{ secrets.CI_CALCOM_LICENSE_KEY }}
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_READ_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_WRITE_URL: ${{ secrets.CI_DATABASE_URL }}
+  JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+  NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
+  NODE_ENV: ${{ vars.CI_NODE_ENV }}
+  NODE_OPTIONS: --max-old-space-size=4096
+  REDIS_URL: "redis://localhost:6379"
+  STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+  STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  WEB_APP_URL: "https://app.cal.com"
+
+jobs:
+  check-openapi-json:
+    name: Check and update OpenAPI JSON
+    timeout-minutes: 10
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 2
+
+      - uses: ./.github/actions/yarn-install
+
+      - name: Build platform packages
+        run: |
+          yarn turbo run build \
+            --filter=@calcom/platform-constants \
+            --filter=@calcom/platform-enums \
+            --filter=@calcom/platform-utils \
+            --filter=@calcom/platform-types \
+            --filter=@calcom/platform-libraries \
+            --filter=@calcom/trpc
+
+      - name: Generate OpenAPI JSON
+        working-directory: apps/api/v2
+        run: |
+          yarn prisma generate
+          yarn generate-swagger
+
+      - name: Check and commit OpenAPI JSON changes
+        env:
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if git diff --exit-code docs/api-reference/v2/openapi.json; then
+            echo "OpenAPI JSON is up-to-date"
+          else
+            echo "OpenAPI JSON has changed"
+            
+            if [ "$IS_FORK" = "true" ]; then
+              echo "::error::OpenAPI JSON is out of date. Since this PR is from a fork, automatic commit is not possible."
+              echo ""
+              echo "To fix this:"
+              echo "1. cd apps/api/v2"
+              echo "2. yarn generate-swagger"
+              echo "3. Commit the updated docs/api-reference/v2/openapi.json"
+              exit 1
+            fi
+            
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/api-reference/v2/openapi.json
+            git commit -m "chore: update openapi.json [skip ci]"
+            git push
+            echo "OpenAPI JSON has been automatically updated and committed"
+          fi
