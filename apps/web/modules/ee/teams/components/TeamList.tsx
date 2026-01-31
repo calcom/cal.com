@@ -1,3 +1,4 @@
+import posthog from "posthog-js";
 import { useState } from "react";
 
 import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
@@ -81,6 +82,7 @@ export default function TeamList(props: Props) {
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),
                       "data-testid": "setup_your_org_action_button",
+                      onClick: () => posthog.capture("teams_setup_org_clicked"),
                     }}
                   />
                   <Card
@@ -93,6 +95,7 @@ export default function TeamList(props: Props) {
                     actionButton={{
                       href: "https://www.youtube.com/watch?v=G0Jd2dp7064",
                       child: t("learn_more"),
+                      onClick: () => posthog.capture("teams_learn_more_subdomain_clicked"),
                     }}
                   />
                   <Card
@@ -103,8 +106,9 @@ export default function TeamList(props: Props) {
                       "As an organization owner, you are in charge of every team account. You can make changes with admin-only tools and see organization wide analytics in one place."
                     )}
                     actionButton={{
-                      href: "https://go.cal.com/quote",
+                      href: "https://cal.com/blog/insight-2-0-calcom-scheduling",
                       child: t("learn_more"),
+                      onClick: () => posthog.capture("teams_learn_more_admin_tools_clicked"),
                     }}
                   />
                 </div>
@@ -141,6 +145,7 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/settings/teams/${team.id}/members`,
                         child: t("invite"),
+                        onClick: () => posthog.capture("teams_invite_member_clicked"),
                       }}
                     />
                     <Card
@@ -151,6 +156,7 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/event-types?dialog=new&eventPage=team%2F${team.slug}&teamId=${team.id}`,
                         child: t("create"),
+                        onClick: () => posthog.capture("teams_create_collective_roundrobin_clicked"),
                       }}
                     />
                     <Card
@@ -161,6 +167,7 @@ export default function TeamList(props: Props) {
                       actionButton={{
                         href: `/settings/teams/${team.id}/appearance`,
                         child: t("edit"),
+                        onClick: () => posthog.capture("teams_edit_appearance_clicked"),
                       }}
                     />
                   </div>
