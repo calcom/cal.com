@@ -1,0 +1,13 @@
+{
+    "name": "@calcom/protoncalendar",
+    "version": "0.0.0",
+    "main": "./index.ts",
+    "private": true,
+    "description": "Proton Calendar integration for Cal.com",
+    "dependencies": {
+        "@calcom/lib": "workspace:*",
+        "@calcom/prisma": "workspace:*",
+        "@calcom/types": "workspace:*"
+    },
+    "devDependencies": {}
+}
