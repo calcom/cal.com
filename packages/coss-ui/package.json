@@ -11,7 +11,10 @@
   },
   "typesVersions": {
     "*": {
-      "icons": ["./src/icons.tsx"]
+      "icons": ["./src/icons.tsx"],
+      "lib/*": ["./src/lib/*.ts"],
+      "components/*": ["./src/components/*.tsx"],
+      "hooks/*": ["./src/hooks/*.ts"]
     }
   },
   "scripts": {
