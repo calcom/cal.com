@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useEffect } from "react";
-import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/hooks/useSlotsViewOnSmallScreen";
+import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
 
 export const useInitializeWeekStart = (isPlatform: boolean, isCalendarView: boolean) => {
   const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();

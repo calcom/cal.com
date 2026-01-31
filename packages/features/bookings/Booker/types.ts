@@ -2,6 +2,7 @@ import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Bo
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 import type React from "react";
 import type { GetBookingType } from "../lib/get-booking";
 
@@ -142,3 +143,5 @@ export type DatePickerClassNames = {
   datePickerDatesActive?: string;
   datePickerToggle?: string;
 };
+
+export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];

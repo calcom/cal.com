@@ -14,7 +14,8 @@ import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
-export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
+import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
+export type { QuickAvailabilityCheck };
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
