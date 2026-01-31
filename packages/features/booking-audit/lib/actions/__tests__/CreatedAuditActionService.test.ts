@@ -21,8 +21,9 @@ describe("CreatedAuditActionService - getDataRequirements contract", () => {
       },
     };
 
-    const { errors } = await verifyDataRequirementsContract(service, storedData);
+    const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
     expect(errors).toEqual([]);
+    expect(accessedData.userUuids.size).toBe(1);
   });
 
   it("should declare empty userUuids when hostUserUuid is null", async () => {
@@ -36,8 +37,9 @@ describe("CreatedAuditActionService - getDataRequirements contract", () => {
       },
     };
 
-    const { errors } = await verifyDataRequirementsContract(service, storedData);
+    const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
     expect(errors).toEqual([]);
+    expect(accessedData.userUuids.size).toBe(0);
   });
 
   it("should declare exactly the userUuids accessed for seated booking", async () => {
@@ -52,7 +54,8 @@ describe("CreatedAuditActionService - getDataRequirements contract", () => {
       },
     };
 
-    const { errors } = await verifyDataRequirementsContract(service, storedData);
+    const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
     expect(errors).toEqual([]);
+    expect(accessedData.userUuids.size).toBe(1);
   });
 });

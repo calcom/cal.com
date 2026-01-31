@@ -384,9 +384,13 @@ export class BookingAuditViewerService {
       }
     }
 
-    const allDataRequirements = this.mergeDataRequirements(...actorRequirements, ...serviceRequirements);
+    const allDataRequirements = this.mergeDataRequirements(
+      ...actorRequirements,
+      ...serviceRequirements,
+      ...contextRequirements
+    );
 
-    return allDataRequirements
+    return allDataRequirements;
   }
 
   /**

@@ -411,8 +411,9 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const { errors } = await verifyDataRequirementsContract(service, storedData);
+      const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
       expect(errors).toEqual([]);
+      expect(accessedData.userUuids.size).toBe(2);
     });
 
     it("should declare exactly the userUuids accessed for attendee update", async () => {
@@ -429,8 +430,9 @@ describe("ReassignmentAuditActionService", () => {
         },
       };
 
-      const { errors } = await verifyDataRequirementsContract(service, storedData);
+      const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
       expect(errors).toEqual([]);
+      expect(accessedData.userUuids.size).toBe(2);
     });
   });
 });
