@@ -5,6 +5,14 @@
   "private": true,
   "license": "See license in LICENSE",
   "main": "./index.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "../features/types/ee/*",
+        "./*"
+      ]
+    }
+  },
   "dependencies": {
     "@calcom/lib": "workspace:*",
     "@calcom/ui": "workspace:*",
