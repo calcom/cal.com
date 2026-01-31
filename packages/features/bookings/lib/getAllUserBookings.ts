@@ -1,9 +1,9 @@
 import type { Kysely } from "kysely";
 
+import { GetBookingsRepositoryForApiV2 } from "@calcom/features/bookings/repositories/GetBookingsRepositoryForApiV2";
 import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
-import { getBookings } from "@calcom/trpc/server/routers/viewer/bookings/get.handler";
 
 type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 export type SortOptions = {
@@ -35,8 +35,13 @@ type GetOptions = {
   sort?: SortOptions;
 };
 
+/**
+ * Gets all user bookings for API v2.
+ * This function uses the full projection to maintain backward compatibility
+ * with the existing API v2 contract.
+ */
 const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip, sort }: GetOptions) => {
-  const { prisma, user, kysely } = ctx;
+  const { user, prisma, kysely } = ctx;
 
   // Support both singular 'status' and plural 'statuses' for backward compatibility
   // Note: filters can be undefined at runtime despite the type definition, e.g., when
@@ -44,9 +49,10 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   // Use optional chaining to handle this defensively.
   const statusesFilter = filters?.statuses ?? (filters?.status ? [filters.status] : bookingListingByStatus);
 
-  const { bookings, recurringInfo, totalCount } = await getBookings({
+  // Instantiate repository directly (no ioctopus DI) for API v2
+  const repository = new GetBookingsRepositoryForApiV2({ prismaClient: prisma });
+  const { bookings, recurringInfo, totalCount } = await repository.findMany({
     user,
-    prisma,
     kysely,
     bookingListingByStatus,
     filters: {
