@@ -41,16 +41,19 @@ const mockTeamBilling = {
 
 // Mock implementations that modify the in-memory database
 const mockTeamRepo = {
-  deleteById: vi.fn().mockImplementation(async ({ id }) => {
+  softDelete: vi.fn().mockImplementation(async ({ id }) => {
     const team = database.teams.get(id);
     if (team) {
-      database.teams.delete(id);
+      // Soft delete: mark as deleted but keep in database
+      team.deletedAt = new Date();
       return team;
     }
     throw new Error(`Team with id ${id} not found`);
   }),
 };
-vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
+vi.mocked(TeamRepository).mockImplementation(function () {
+  return mockTeamRepo;
+});
 
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {
   database.domains.delete(slug);
@@ -98,13 +101,14 @@ describe("TeamService", () => {
   });
 
   describe("delete", () => {
-    it("should delete team, cancel billing, and clean up", async () => {
+    it("should soft delete team, cancel billing, and clean up", async () => {
       const result = await TeamService.delete({ id: 1 });
 
-      // Verify the team was deleted from the database
-      expect(database.teams.has(1)).toBe(false);
+      // Verify the team is still in the database but marked as soft-deleted
+      expect(database.teams.has(1)).toBe(true);
+      expect(database.teams.get(1)?.deletedAt).toBeInstanceOf(Date);
 
-      // Verify the domain was deleted
+      // Verify the domain was deleted (happens immediately on soft delete)
       expect(database.domains.has("deleted-team")).toBe(false);
 
       // Verify billing was cancelled
@@ -113,13 +117,14 @@ describe("TeamService", () => {
       // Verify workflow reminders were deleted
       expect(database.workflowReminders.has(1)).toBe(false);
 
-      // Verify the returned team data
-      expect(result).toEqual({
+      // Verify the returned team data includes deletedAt
+      expect(result).toMatchObject({
         id: 1,
         name: "Deleted Team",
         isOrganization: true,
         slug: "deleted-team",
       });
+      expect(result?.deletedAt).toBeInstanceOf(Date);
     });
   });
 });

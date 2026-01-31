@@ -190,7 +190,14 @@ export class MembershipRepository {
     );
 
     return await prisma.membership.findMany({
-      where: prismaWhere,
+      where: {
+        ...prismaWhere,
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
+      },
       include: {
         team: {
           include: {
@@ -301,7 +308,14 @@ export class MembershipRepository {
     } satisfies Prisma.MembershipSelect;
 
     return await prisma.membership.findMany({
-      where: prismaWhere,
+      where: {
+        ...prismaWhere,
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
+      },
       select,
     });
   }
@@ -316,7 +330,14 @@ export class MembershipRepository {
     }
 
     return await prisma.membership.findMany({
-      where: prismaWhere,
+      where: {
+        ...prismaWhere,
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
+      },
       include: {
         team: {
           include: {
@@ -523,6 +544,11 @@ export class MembershipRepository {
         userId,
         ...(filters?.accepted !== undefined && { accepted: filters.accepted }),
         ...(filters?.roles && { role: { in: filters.roles } }),
+        // Filter out soft-deleted teams at the database level
+        // Note: Prisma extensions don't intercept relation queries, so we filter here
+        team: {
+          deletedAt: null,
+        },
       },
       select: {
         teamId: true,
@@ -605,6 +631,9 @@ export class MembershipRepository {
         userId,
         team: {
           isOrganization: false,
+          // Filter out soft-deleted teams at the database level
+          // Note: Prisma extensions don't intercept relation queries, so we filter here
+          deletedAt: null,
         },
       },
       select: {

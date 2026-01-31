@@ -107,6 +107,7 @@ const mockOrganization = {
   rrResetInterval: null,
   rrTimestampBasis: RRTimestampBasis.CREATED_AT,
   autoOptInFeatures: false,
+  deletedAt: null,
 };
 
 // Credential Builders
