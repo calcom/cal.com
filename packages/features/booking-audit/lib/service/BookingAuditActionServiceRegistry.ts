@@ -1,5 +1,3 @@
-import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IAuditActionService } from "../actions/IAuditActionService";
 import type { BookingAuditAction } from "../repository/IBookingAuditRepository";
 
@@ -43,26 +41,21 @@ export type AuditActionData =
  * Provides a single source of truth for action service mapping and eliminates
  * code duplication between consumer and viewer services.
  */
-interface BookingAuditActionServiceRegistryDeps {
-    attendeeRepository: IAttendeeRepository;
-    userRepository: UserRepository;
-}
-
 export class BookingAuditActionServiceRegistry {
     private readonly actionServices: Map<BookingAuditAction, IAuditActionService>;
 
-    constructor(private deps: BookingAuditActionServiceRegistryDeps) {
+    constructor() {
         const services: Array<[BookingAuditAction, IAuditActionService]> = [
-            ["CREATED", new CreatedAuditActionService(deps)],
+            ["CREATED", new CreatedAuditActionService()],
             ["CANCELLED", new CancelledAuditActionService()],
             ["RESCHEDULED", new RescheduledAuditActionService()],
             ["ACCEPTED", new AcceptedAuditActionService()],
             ["RESCHEDULE_REQUESTED", new RescheduleRequestedAuditActionService()],
             ["ATTENDEE_ADDED", new AttendeeAddedAuditActionService()],
-            ["NO_SHOW_UPDATED", new NoShowUpdatedAuditActionService({ attendeeRepository: deps.attendeeRepository, userRepository: deps.userRepository })],
+            ["NO_SHOW_UPDATED", new NoShowUpdatedAuditActionService()],
             ["REJECTED", new RejectedAuditActionService()],
             ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
-            ["REASSIGNMENT", new ReassignmentAuditActionService(deps.userRepository)],
+            ["REASSIGNMENT", new ReassignmentAuditActionService()],
             ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
             ["SEAT_BOOKED", new SeatBookedAuditActionService()],
             ["SEAT_RESCHEDULED", new SeatRescheduledAuditActionService()],

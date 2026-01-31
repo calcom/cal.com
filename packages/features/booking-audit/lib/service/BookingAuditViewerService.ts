@@ -7,7 +7,6 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import type { TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import type { BookingAuditContext } from "../dto/types";
-import { getAppNameFromSlug } from "../getAppNameFromSlug";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type {
   BookingAuditAction,
@@ -16,8 +15,10 @@ import type {
   IBookingAuditRepository,
 } from "../repository/IBookingAuditRepository";
 import type { ActionSource } from "../types/actionSource";
+import { enrichActor, getActorDataRequirements } from "./ActorStrategies";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
 import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
+import { type DataRequirements, EnrichmentDataStore } from "./EnrichmentDataStore";
 
 interface BookingAuditViewerServiceDeps {
   bookingAuditRepository: IBookingAuditRepository;
@@ -90,10 +91,7 @@ export class BookingAuditViewerService {
       bookingRepository: this.bookingRepository,
       membershipRepository: this.membershipRepository,
     });
-    this.actionServiceRegistry = new BookingAuditActionServiceRegistry({
-      attendeeRepository: this.attendeeRepository,
-      userRepository: this.userRepository,
-    });
+    this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
   }
 
   /**
@@ -120,10 +118,19 @@ export class BookingAuditViewerService {
 
     const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
+    // Check if this booking was created from a reschedule - fetch early for data requirements
+    const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
+    const rescheduledLogs = fromRescheduleUid
+      ? await this.bookingAuditRepository.findRescheduledLogsOfBooking(fromRescheduleUid)
+      : [];
+
+    const dataRequirements = this.collectDataRequirements([...auditLogs, ...rescheduledLogs]);
+    const dbStore = await this.buildEnrichmentDataStore(dataRequirements);
+
     const enrichedAuditLogs = await Promise.all(
       auditLogs.map(async (log) => {
         try {
-          return await this.enrichAuditLog(log, userTimeZone);
+          return await this.enrichAuditLog(log, userTimeZone, dbStore);
         } catch (error) {
           this.log.error(
             `Failed to enrich audit log ${log.id}: ${error instanceof Error ? error.message : String(error)}`
@@ -133,14 +140,14 @@ export class BookingAuditViewerService {
       })
     );
 
-    const fromRescheduleUid = await this.bookingRepository.getFromRescheduleUid(bookingUid);
-
-    // Check if this booking was created from a reschedule
-    if (fromRescheduleUid) {
+    // Build rescheduled from log if applicable
+    if (fromRescheduleUid && rescheduledLogs.length > 0) {
       const rescheduledFromLog = await this.buildRescheduledFromLog({
         fromRescheduleUid,
         currentBookingUid: bookingUid,
         userTimeZone,
+        dbStore,
+        rescheduledLogs,
       });
       if (rescheduledFromLog) {
         enrichedAuditLogs.push(rescheduledFromLog);
@@ -156,8 +163,12 @@ export class BookingAuditViewerService {
   /**
    * Enriches a single audit log with actor information and formatted display data
    */
-  private async enrichAuditLog(log: BookingAuditWithActor, userTimeZone: string): Promise<EnrichedAuditLog> {
-    const enrichedActor = await this.enrichActorInformation(log.actor);
+  private async enrichAuditLog(
+    log: BookingAuditWithActor,
+    userTimeZone: string,
+    dbStore: EnrichmentDataStore
+  ): Promise<EnrichedAuditLog> {
+    const enrichedActor = enrichActor(log.actor, dbStore);
 
     const actionService = this.actionServiceRegistry.getActionService(log.action);
     const parsedData = actionService.parseStored(log.data);
@@ -165,6 +176,7 @@ export class BookingAuditViewerService {
     const actionDisplayTitle = await actionService.getDisplayTitle({
       storedData: parsedData,
       userTimeZone,
+      dbStore,
     });
 
     const displayJson = actionService.getDisplayJson
@@ -172,10 +184,10 @@ export class BookingAuditViewerService {
       : null;
 
     const displayFields = actionService.getDisplayFields
-      ? await actionService.getDisplayFields({ storedData: parsedData })
+      ? await actionService.getDisplayFields({ storedData: parsedData, dbStore })
       : null;
 
-    const impersonatedBy = await this.enrichImpersonator(log.context);
+    const impersonatedBy = this.enrichImpersonator({ context: log.context, dbStore });
 
     return {
       id: log.id,
@@ -249,13 +261,15 @@ export class BookingAuditViewerService {
     fromRescheduleUid,
     currentBookingUid,
     userTimeZone,
+    dbStore,
+    rescheduledLogs,
   }: {
     fromRescheduleUid: string;
     currentBookingUid: string;
     userTimeZone: string;
+    dbStore: EnrichmentDataStore;
+    rescheduledLogs: BookingAuditWithActor[];
   }): Promise<EnrichedAuditLog | null> {
-    const rescheduledLogs = await this.bookingAuditRepository.findRescheduledLogsOfBooking(fromRescheduleUid);
-
     // Find the specific log that created this booking by matching rescheduledToUid
     const rescheduledLog = this.rescheduledAuditActionService.getMatchingLog({
       rescheduledLogs,
@@ -268,7 +282,7 @@ export class BookingAuditViewerService {
       return null;
     }
 
-    const enrichedLog = await this.enrichAuditLog(rescheduledLog, userTimeZone);
+    const enrichedLog = await this.enrichAuditLog(rescheduledLog, userTimeZone, dbStore);
     const parsedData = this.rescheduledAuditActionService.parseStored(rescheduledLog.data);
 
     // Transform the display JSON to show "rescheduled from" instead of "rescheduled to"
@@ -294,16 +308,22 @@ export class BookingAuditViewerService {
     };
   }
 
-  private async enrichImpersonator(context: BookingAuditContext | null): Promise<{
+  private enrichImpersonator({
+    context,
+    dbStore,
+  }: {
+    context: BookingAuditContext | null;
+    dbStore: EnrichmentDataStore;
+  }): {
     displayName: string;
     displayEmail: string | null;
     displayAvatar: string | null;
-  } | null> {
+  } | null {
     if (!context?.impersonatedBy) {
       return null;
     }
 
-    const impersonatorUser = await this.userRepository.findByUuid({ uuid: context.impersonatedBy });
+    const impersonatorUser = dbStore.getUserByUuid(context.impersonatedBy);
     if (!impersonatorUser) {
       return {
         displayName: "Deleted User",
@@ -319,93 +339,70 @@ export class BookingAuditViewerService {
     };
   }
 
+
+  private mergeDataRequirements(...requirements: DataRequirements[]): DataRequirements {
+    const userUuids = new Set<string>();
+    const attendeeIds = new Set<number>();
+    const credentialIds = new Set<number>();
+    
+    for (const requirement of requirements) {
+      for (const uuid of requirement.userUuids || []) userUuids.add(uuid);
+      for (const id of requirement.attendeeIds || []) attendeeIds.add(id);
+      for (const id of requirement.credentialIds || []) credentialIds.add(id);
+    }
+
+    return {
+      userUuids: Array.from(userUuids),
+      attendeeIds: Array.from(attendeeIds),
+      credentialIds: Array.from(credentialIds),
+    };
+  }
+
   /**
-   * Enrich actor information with user details if userUuid exists
+   * Collect all data requirements from audit logs and action services
    */
-  private async enrichActorInformation(actor: BookingAuditWithActor["actor"]): Promise<{
-    displayName: string;
-    displayEmail: string | null;
-    displayAvatar: string | null;
-  }> {
-    switch (actor.type) {
-      case "SYSTEM":
-        return {
-          displayName: "Cal.com",
-          displayEmail: null,
-          displayAvatar: null,
-        };
+  private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
+    let actorRequirements: DataRequirements[] = [];
+    let serviceRequirements: DataRequirements[] = [];
+    let contextRequirements: DataRequirements[] = [];
+    for (const log of auditLogs) {
+      actorRequirements.push(getActorDataRequirements(log.actor));
 
-      case "GUEST":
-        return {
-          displayName: actor.name || "Guest",
-          displayEmail: null,
-          displayAvatar: null,
-        };
-
-      case "APP": {
-        if (actor.credentialId) {
-          const credential = await this.deps.credentialRepository.findByCredentialId(actor.credentialId);
-          if (credential) {
-            return {
-              displayName: getAppNameFromSlug({ appSlug: credential.appId }),
-              displayEmail: null,
-              displayAvatar: null,
-            };
-          } else {
-            return {
-              // Expect that on Credential deletion name would have been set
-              displayName: actor.name ?? "Deleted App",
-              displayEmail: null,
-              displayAvatar: null,
-            };
-          }
-        }
-        // We allow creating App actor without credentialId
-        return {
-          displayName: actor.name ?? "Unknown App",
-          // We don't want to show email for App actor as that is an internal email with the purpose of giving uniqueness to each app actor
-          displayEmail: null,
-          displayAvatar: null,
-        };
+      const context = log.context
+      if (context?.impersonatedBy) {
+        contextRequirements.push({ userUuids: [context.impersonatedBy] });
       }
 
-      case "ATTENDEE": {
-        if (!actor.attendeeId) {
-          throw new Error("Attendee ID is required for ATTENDEE actor");
-        }
-        const attendee = await this.attendeeRepository.findById(actor.attendeeId);
-        if (attendee) {
-          return {
-            displayName: attendee.name || attendee.email,
-            displayEmail: attendee.email,
-            displayAvatar: null,
-          };
-        }
-        return {
-          displayName: "Deleted Attendee",
-          displayEmail: null,
-          displayAvatar: null,
-        };
-      }
-
-      case "USER": {
-        if (!actor.userUuid) {
-          throw new Error("User UUID is required for USER actor");
-        }
-        const actorUser = await this.userRepository.findByUuid({ uuid: actor.userUuid });
-        if (actorUser) {
-          return {
-            displayName: actorUser.name || actorUser.email,
-            displayEmail: actorUser.email,
-            displayAvatar: actorUser.avatarUrl || null,
-          };
-        }
-        return {
-          displayName: "Deleted User",
-          displayEmail: null,
-          displayAvatar: null,
-        };
+      try {
+        const actionService = this.actionServiceRegistry.getActionService(log.action);
+        const parsedData = actionService.parseStored(log.data);
+        serviceRequirements.push(actionService.getDataRequirements(parsedData));
+      } catch(error) {
+        this.log.error(
+          `Failed to get data requirements for action ${log.action}: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     }
+
+    const allDataRequirements = this.mergeDataRequirements(
+      ...actorRequirements,
+      ...serviceRequirements,
+      ...contextRequirements
+    );
+
+    return allDataRequirements;
+  }
+
+  /**
+   * Build the enrichment data store by bulk-fetching all required data
+   */
+  private async buildEnrichmentDataStore(requirements: DataRequirements): Promise<EnrichmentDataStore> {
+    const dbStore = new EnrichmentDataStore(requirements, {
+      userRepository: this.userRepository,
+      attendeeRepository: this.attendeeRepository,
+      credentialRepository: this.credentialRepository,
+    });
+    await dbStore.fetch();
+    return dbStore;
   }
 }

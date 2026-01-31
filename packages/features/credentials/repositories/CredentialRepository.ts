@@ -35,6 +35,14 @@ export class CredentialRepository {
     });
   }
 
+  async findByIds({ ids }: { ids: number[] }): Promise<{ id: number; appId: string | null }[]> {
+    if (ids.length === 0) return [];
+    return this.prismaClient.credential.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, appId: true },
+    });
+  }
+
   async findByIdWithDelegationCredential(id: number) {
     return this.prismaClient.credential.findUnique({
       where: { id },
