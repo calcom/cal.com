@@ -1,6 +1,11 @@
 FROM=$1
 TO=$2
 
+if [ -z "${FROM}" ] || [ -z "${TO}" ]; then
+    echo "Skipping replacement: FROM or TO value is empty."
+    exit 0
+fi
+
 if [ "${FROM}" = "${TO}" ]; then
     echo "Nothing to replace, the value is already set to ${TO}."
     exit 0
