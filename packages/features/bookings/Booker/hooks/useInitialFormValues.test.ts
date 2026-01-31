@@ -1,376 +1,215 @@
-/**
- * @vitest-environment jsdom
- */
+import { useEffect, useState } from "react";
+import type { z } from "zod";
 
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useInitialFormValues } from "./useInitialFormValues";
 
-vi.mock("@calcom/features/bookings/Booker/store", () => ({
-  useBookerStore: vi.fn((selector) => {
-    const state = {
-      bookingData: null,
-      formValues: {},
-    };
-    return selector(state);
-  }),
-}));
+export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
 
-vi.mock("@calcom/features/bookings/lib/getBookingResponsesSchema", () => ({
-  getBookingResponsesPartialSchema: vi.fn(() => ({
-    parseAsync: vi.fn((data) => Promise.resolve(data)),
-  })),
-}));
-
-describe("useInitialFormValues - Autofill Disable Feature", () => {
-  const mockBookingFields = [
-    { name: "name", type: "text" as const, required: true },
-    { name: "email", type: "email" as const, required: true },
-    { name: "phone", type: "phone" as const, required: false },
-  ] as unknown as BookerEvent["bookingFields"];
-
-  const baseProps = {
-    rescheduleUid: null,
-    isRescheduling: false,
-    email: null,
-    name: null,
-    username: null,
-    hasSession: false,
-    extraOptions: {},
-    prefillFormParams: {
-      guests: [],
-      name: null,
-    },
+type UseInitialFormValuesProps = {
+  eventType?: Pick<BookerEvent, "bookingFields" | "team" | "owner"> | null;
+  rescheduleUid: string | null;
+  isRescheduling: boolean;
+  email?: string | null;
+  name?: string | null;
+  username?: string | null;
+  hasSession: boolean;
+  extraOptions: Record<string, string | string[]>;
+  prefillFormParams: {
+    guests: string[];
+    name: string | null;
   };
+  clientId?: string;
+};
 
-  beforeEach(() => {
-    vi.clearAllMocks();
+// Add this stable hash function
+function getStableHash(obj: Record<string, string | string[]>) {
+  return Object.entries(obj)
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    .map(([key, value]) => {
+      if (Array.isArray(value)) {
+        return `${key}:${value.sort().join(",")}`;
+      }
+      return `${key}:${value}`;
+    })
+    .join("|");
+}
+
+const buildKey = ({
+  values,
+  hasSession,
+  stableHashExtraOptions,
+}: {
+  values: Record<string, any>;
+  hasSession: boolean;
+  stableHashExtraOptions: string;
+}) => {
+  // We could think about removing specific items like values.length, hasSession and bookingId and instead use a stableHash maybe .
+  return `${Object.keys(values).length}_${hasSession ? 1 : 0}_${
+    values.bookingId ?? 0
+  }_${stableHashExtraOptions}`;
+};
+
+export function useInitialFormValues({
+  eventType,
+  rescheduleUid,
+  isRescheduling,
+  email,
+  name,
+  username,
+  hasSession,
+  extraOptions,
+  prefillFormParams,
+  clientId,
+}: UseInitialFormValuesProps) {
+  const stableHashExtraOptions = getStableHash(extraOptions);
+
+  const [initialValuesState, setInitialValuesState] = useState<{
+    values: {
+      responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
+      bookingId?: number;
+    };
+    key: string;
+  }>({
+    values: {},
+    key: "",
   });
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const formValues = useBookerStore((state) => state.formValues);
 
-  afterEach(() => {
-    cleanup();
-  });
+  // Check if organization has disabled autofill from URL parameters
+  const isAutofillDisabledByOrg =
+    eventType?.team?.parent?.organizationSettings?.disableAutofillOnBookingPage ??
+    eventType?.owner?.profile?.organization?.organizationSettings?.disableAutofillOnBookingPage ??
+    false;
+  useEffect(() => {
+    (async function () {
+      if (Object.keys(formValues).length) {
+        setInitialValuesState({
+          values: formValues,
+          key: buildKey({ values: formValues, hasSession, stableHashExtraOptions }),
+        });
+        return;
+      }
 
-  describe("when organization has NOT disabled autofill", () => {
-    it("should use URL parameters to prefill form fields", async () => {
-      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
-        bookingFields: mockBookingFields,
-        team: {
-          name: "Test Team",
-          organizationSettings: {
-            disableAutofillOnBookingPage: false,
-          },
-          metadata: {},
-          theme: null,
-          brandColor: null,
-          darkBrandColor: null,
-          slug: "test-team",
-          logoUrl: null,
-          hideTeamProfileLink: false,
-          isPrivate: false,
-          parentId: null,
-          parent: null,
-        },
-        owner: null,
-      };
-
-      const extraOptions = {
-        phone: "+1234567890",
-        customField: "custom value",
-      };
-
-      const prefillFormParams = {
-        guests: ["guest1@example.com", "guest2@example.com"],
-        name: "John Doe",
-      };
-
-      const { result } = renderHook(() =>
-        useInitialFormValues({
-          ...baseProps,
-          eventType,
-          extraOptions,
-          prefillFormParams,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.values.responses).toBeDefined();
+      if (!eventType?.bookingFields) {
+        return {};
+      }
+      const querySchema = getBookingResponsesPartialSchema({
+        bookingFields: eventType.bookingFields,
+        view: rescheduleUid ? "reschedule" : "booking",
       });
 
-      expect(result.current.values.responses).toMatchObject({
-        name: "John Doe",
-        phone: "+1234567890",
+      // If organization has disabled autofill, don't use URL parameters for prefill
+      const urlParamsToUse = isAutofillDisabledByOrg
+        ? {}
+        : {
+            ...extraOptions,
+            name: prefillFormParams.name,
+            // `guest` because we need to support legacy URL with `guest` query param support
+            // `guests` because the `name` of the corresponding bookingField is `guests`
+            guests: prefillFormParams.guests,
+          };
+
+      const parsedQuery = await querySchema.parseAsync(urlParamsToUse);
+
+      const defaultUserValues = (() => {
+        const rescheduledEmail =
+          rescheduleUid && bookingData && bookingData.attendees.length > 0
+            ? bookingData.attendees[0].email ?? ""
+            : "";
+        const rescheduledName =
+          rescheduleUid && bookingData && bookingData.attendees.length > 0
+            ? bookingData.attendees[0].name ?? ""
+            : "";
+
+        if (isAutofillDisabledByOrg) {
+          return {
+            email: rescheduledEmail,
+            name: rescheduledName,
+          };
+        }
+
+        return {
+          email: rescheduledEmail || (parsedQuery["email"] ? parsedQuery["email"] : email ?? ""),
+          name: rescheduledName || (parsedQuery["name"] ? parsedQuery["name"] : name ?? username ?? ""),
+        };
+      })();
+
+      if (clientId) {
+        defaultUserValues.email = defaultUserValues.email.replace(`+${clientId}`, "");
+      }
+
+      if (!isRescheduling) {
+        const defaults = {
+          responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
+        };
+
+        const responses = eventType.bookingFields.reduce((responses, field) => {
+          return {
+            ...responses,
+            [field.name]: parsedQuery[field.name] || undefined,
+          };
+        }, {});
+
+        defaults.responses = {
+          ...responses,
+          name: defaultUserValues.name,
+          email: defaultUserValues.email ?? "",
+        };
+
+        setInitialValuesState({
+          values: defaults,
+          key: buildKey({ values: defaults, hasSession, stableHashExtraOptions }),
+        });
+      }
+
+      if (!rescheduleUid && !bookingData) {
+        return {};
+      }
+
+      // We should allow current session user as default values for booking form
+
+      const defaults = {
+        responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
+        bookingId: bookingData?.id,
+      };
+
+      const responses = eventType.bookingFields.reduce((responses, field) => {
+        return {
+          ...responses,
+          [field.name]: bookingData?.responses[field.name],
+        };
+      }, {});
+      defaults.responses = {
+        ...responses,
+        name: defaultUserValues.name,
+        email: defaultUserValues.email ?? "",
+      };
+      setInitialValuesState({
+        values: defaults,
+        key: buildKey({ values: defaults, hasSession, stableHashExtraOptions }),
       });
-    });
+    })();
+    // TODO: Remove it. It was initially added so that we don't add extraOptions in deps but that is handled using stableHashExtraOptions now.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    eventType?.bookingFields,
+    formValues,
+    isRescheduling,
+    bookingData,
+    bookingData?.id,
+    rescheduleUid,
+    email,
+    name,
+    username,
+    prefillFormParams,
+    // We need to have extraOptions as a dep so that any change in query params can update the form values, but extraOptions itself isn't stable and changes reference on every render
+    stableHashExtraOptions,
+    isAutofillDisabledByOrg,
+  ]);
 
-    it("should use URL parameters when organizationSettings is undefined", async () => {
-      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
-        bookingFields: mockBookingFields,
-        team: null,
-        owner: null,
-      };
-
-      const extraOptions = {
-        phone: "+1234567890",
-      };
-
-      const prefillFormParams = {
-        guests: [],
-        name: "Jane Smith",
-      };
-
-      const { result } = renderHook(() =>
-        useInitialFormValues({
-          ...baseProps,
-          eventType,
-          extraOptions,
-          prefillFormParams,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.values.responses).toBeDefined();
-      });
-
-      expect(result.current.values.responses).toMatchObject({
-        name: "Jane Smith",
-        phone: "+1234567890",
-      });
-    });
-  });
-
-  describe("when organization HAS disabled autofill", () => {
-    it("should NOT use URL parameters when team.organizationSettings.disableAutofillOnBookingPage is true", async () => {
-      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
-        bookingFields: mockBookingFields,
-        team: {
-          name: "Test Team",
-          organizationSettings: null,
-          metadata: {},
-          theme: null,
-          brandColor: null,
-          darkBrandColor: null,
-          slug: "test-team",
-          logoUrl: null,
-          hideTeamProfileLink: false,
-          isPrivate: false,
-          parentId: 1,
-          parent: {
-            name: "Parent Organization",
-            organizationSettings: {
-              disableAutofillOnBookingPage: true,
-            },
-            slug: "parent-org",
-            logoUrl: null,
-            bannerUrl: null,
-          },
-        },
-        owner: null,
-      };
-
-      const extraOptions = {
-        phone: "+1234567890",
-        customField: "custom value",
-      };
-
-      const prefillFormParams = {
-        guests: ["guest1@example.com"],
-        name: "John Doe",
-      };
-
-      const { result } = renderHook(() =>
-        useInitialFormValues({
-          ...baseProps,
-          eventType,
-          extraOptions,
-          prefillFormParams,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.values.responses).toBeDefined();
-      });
-
-      expect(result.current.values.responses?.phone).toBeUndefined();
-      expect(result.current.values.responses?.name).toBe("");
-    });
-
-    it("should NOT use URL parameters when team.parent.organizationSettings.disableAutofillOnBookingPage is true", async () => {
-      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
-        bookingFields: mockBookingFields,
-        team: {
-          name: "Test Team",
-          organizationSettings: null,
-          metadata: {},
-          theme: null,
-          brandColor: null,
-          darkBrandColor: null,
-          slug: "test-team",
-          logoUrl: null,
-          hideTeamProfileLink: false,
-          isPrivate: false,
-          parentId: 1,
-          parent: {
-            name: "Parent Organization",
-            organizationSettings: {
-              disableAutofillOnBookingPage: true,
-            },
-            slug: "parent-org",
-            logoUrl: null,
-            bannerUrl: null,
-          },
-        },
-        owner: null,
-      };
-
-      const extraOptions = {
-        phone: "+9876543210",
-      };
-
-      const prefillFormParams = {
-        guests: [],
-        name: "Parent Team User",
-      };
-
-      const { result } = renderHook(() =>
-        useInitialFormValues({
-          ...baseProps,
-          eventType,
-          extraOptions,
-          prefillFormParams,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.values.responses).toBeDefined();
-      });
-
-      expect(result.current.values.responses?.phone).toBeUndefined();
-      expect(result.current.values.responses?.name).toBe("");
-    });
-
-    it("should NOT use URL parameters when owner.organization.organizationSettings.disableAutofillOnBookingPage is true", async () => {
-      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
-        bookingFields: mockBookingFields,
-        team: null,
-        owner: {
-          name: "Test User",
-          id: 1,
-          metadata: {},
-          username: "testuser",
-          avatarUrl: null,
-          weekStart: "Sunday",
-          theme: null,
-          defaultScheduleId: null,
-          brandColor: null,
-          darkBrandColor: null,
-          organization: {
-            name: "Test Organization",
-            organizationSettings: {
-              disableAutofillOnBookingPage: true,
-            },
-            id: 1,
-            slug: "test-org",
-            bannerUrl: null,
-          },
-          nonProfileUsername: "testuser",
-          profile: {
-            id: 1,
-            upId: "test-user",
-            username: "testuser",
-            organizationId: 1,
-            organization: {
-              name: "Test Organization",
-              organizationSettings: {
-                disableAutofillOnBookingPage: true,
-              },
-              id: 1,
-              slug: "test-org",
-              bannerUrl: null,
-            },
-          },
-        },
-      };
-
-      const extraOptions = {
-        phone: "+5555555555",
-      };
-
-      const prefillFormParams = {
-        guests: [],
-        name: "Personal Event User",
-      };
-
-      const { result } = renderHook(() =>
-        useInitialFormValues({
-          ...baseProps,
-          eventType,
-          extraOptions,
-          prefillFormParams,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.values.responses).toBeDefined();
-      });
-
-      expect(result.current.values.responses?.phone).toBeUndefined();
-      expect(result.current.values.responses?.name).toBe("");
-    });
-  });
-
-  describe("session data handling with autofill disabled", () => {
-    it("should not use session email/name when autofill is disabled", async () => {
-      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
-        bookingFields: mockBookingFields,
-        team: {
-          name: "Test Team",
-          organizationSettings: null,
-          metadata: {},
-          theme: null,
-          brandColor: null,
-          darkBrandColor: null,
-          slug: "test-team",
-          logoUrl: null,
-          hideTeamProfileLink: false,
-          isPrivate: false,
-          parentId: 1,
-          parent: {
-            name: "Parent Organization",
-            organizationSettings: {
-              disableAutofillOnBookingPage: true,
-            },
-            slug: "parent-org",
-            logoUrl: null,
-            bannerUrl: null,
-          },
-        },
-        owner: null,
-      };
-
-      const extraOptions = {
-        phone: "+1234567890", // This should be blocked
-      };
-
-      const { result } = renderHook(() =>
-        useInitialFormValues({
-          ...baseProps,
-          eventType,
-          extraOptions,
-          email: "session@example.com", // Session data
-          name: "Session User", // Session data
-          hasSession: true,
-        })
-      );
-
-      await waitFor(() => {
-        expect(result.current.values.responses).toBeDefined();
-      });
-
-      expect(result.current.values.responses?.email).toBe("");
-      expect(result.current.values.responses?.name).toBe("");
-      expect(result.current.values.responses?.phone).toBeUndefined();
-    });
-  });
-});
+  return initialValuesState;
+}
