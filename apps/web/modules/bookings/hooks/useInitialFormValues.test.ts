@@ -274,6 +274,22 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
             slug: "test-org",
             bannerUrl: null,
           },
+          nonProfileUsername: "testuser",
+          profile: {
+            id: 1,
+            upId: "test-user",
+            username: "testuser",
+            organizationId: 1,
+            organization: {
+              name: "Test Organization",
+              organizationSettings: {
+                disableAutofillOnBookingPage: true,
+              },
+              id: 1,
+              slug: "test-org",
+              bannerUrl: null,
+            },
+          },
         },
       };
 
