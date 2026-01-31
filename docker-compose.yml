@@ -20,6 +20,8 @@ services:
       - POSTGRES_USER=unicorn_user
       - POSTGRES_PASSWORD=magical_password
       - POSTGRES_DB=calendso
+    ports:
+      - "5450:5432"
     networks:
       - stack
 
