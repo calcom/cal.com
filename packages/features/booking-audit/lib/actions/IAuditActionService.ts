@@ -93,7 +93,7 @@ export interface IAuditActionService {
   getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
 
   /**
-   * Declare what data this action needs for getDisplayTitle and getDisplayFields
+   * Declare what data this action needs from DB
    * Returns identifiers to be bulk-fetched before enrichment
    * @param storedData - Parsed stored data { version, fields }
    * @returns Data requirements with arrays of identifiers to fetch

@@ -168,7 +168,7 @@ export class BookingAuditViewerService {
     userTimeZone: string,
     dbStore: EnrichmentDataStore
   ): Promise<EnrichedAuditLog> {
-    const enrichedActor = this.enrichActorInformation(log.actor, dbStore);
+    const enrichedActor = enrichActor(log.actor, dbStore);
 
     const actionService = this.actionServiceRegistry.getActionService(log.action);
     const parsedData = actionService.parseStored(log.data);
@@ -339,55 +339,16 @@ export class BookingAuditViewerService {
     };
   }
 
-  /**
-   * Enrich actor information using the strategy pattern
-   * All data is pre-fetched in dbStore, so this is synchronous
-   */
-  private enrichActorInformation(
-    actor: BookingAuditWithActor["actor"],
-    dbStore: EnrichmentDataStore
-  ): {
-    displayName: string;
-    displayEmail: string | null;
-    displayAvatar: string | null;
-  } {
-    return enrichActor(actor, dbStore);
-  }
 
-  /**
-   * Collect all data requirements from audit logs and action services
-   */
-  private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
+  private mergeDataRequirements(...requirements: DataRequirements[]): DataRequirements {
     const userUuids = new Set<string>();
     const attendeeIds = new Set<number>();
     const credentialIds = new Set<number>();
-
-    for (const log of auditLogs) {
-      // Collect actor data requirements using the strategy pattern
-      const actorReqs = getActorDataRequirements(log.actor);
-      for (const uuid of actorReqs.userUuids || []) userUuids.add(uuid);
-      for (const id of actorReqs.attendeeIds || []) attendeeIds.add(id);
-      for (const id of actorReqs.credentialIds || []) credentialIds.add(id);
-
-      // Collect impersonator UUIDs from context
-      const context = log.context as BookingAuditContext | null;
-      if (context?.impersonatedBy) {
-        userUuids.add(context.impersonatedBy);
-      }
-
-      // Collect requirements from action services (skip if data is invalid)
-      try {
-        const actionService = this.actionServiceRegistry.getActionService(log.action);
-        const parsedData = actionService.parseStored(log.data);
-        const requirements = actionService.getDataRequirements(parsedData);
-        if (requirements.userUuids) {
-          for (const uuid of requirements.userUuids) {
-            userUuids.add(uuid);
-          }
-        }
-      } catch {
-        // Invalid data will be handled during enrichment with fallback
-      }
+    
+    for (const requirement of requirements) {
+      for (const uuid of requirement.userUuids || []) userUuids.add(uuid);
+      for (const id of requirement.attendeeIds || []) attendeeIds.add(id);
+      for (const id of requirement.credentialIds || []) credentialIds.add(id);
     }
 
     return {
@@ -395,6 +356,37 @@ export class BookingAuditViewerService {
       attendeeIds: Array.from(attendeeIds),
       credentialIds: Array.from(credentialIds),
     };
+  }
+
+  /**
+   * Collect all data requirements from audit logs and action services
+   */
+  private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
+    let actorRequirements: DataRequirements[] = [];
+    let serviceRequirements: DataRequirements[] = [];
+    let contextRequirements: DataRequirements[] = [];
+    for (const log of auditLogs) {
+      actorRequirements.push(getActorDataRequirements(log.actor));
+
+      const context = log.context
+      if (context?.impersonatedBy) {
+        contextRequirements.push({ userUuids: [context.impersonatedBy] });
+      }
+
+      try {
+        const actionService = this.actionServiceRegistry.getActionService(log.action);
+        const parsedData = actionService.parseStored(log.data);
+        serviceRequirements.push(actionService.getDataRequirements(parsedData));
+      } catch(error) {
+        this.log.error(
+          `Failed to get data requirements for action ${log.action}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+
+    const allDataRequirements = this.mergeDataRequirements(...actorRequirements, ...serviceRequirements);
+
+    return allDataRequirements
   }
 
   /**

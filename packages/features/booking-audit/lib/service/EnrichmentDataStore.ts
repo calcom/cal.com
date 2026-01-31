@@ -37,6 +37,36 @@ export type DataRequirements = {
 };
 
 /**
+ * Mapper functions to ensure only defined properties are stored avoiding unnecessary memory usage
+ * These functions extract only the properties defined in StoredUser, StoredAttendee, and StoredCredential
+ * Accepts broader types that extend the stored types (allowing additional properties)
+ */
+function mapToStoredUser<T extends StoredUser>(user: T): StoredUser {
+  return {
+    id: user.id,
+    uuid: user.uuid,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+  };
+}
+
+function mapToStoredAttendee<T extends StoredAttendee>(attendee: T): StoredAttendee {
+  return {
+    id: attendee.id,
+    name: attendee.name,
+    email: attendee.email,
+  };
+}
+
+function mapToStoredCredential<T extends StoredCredential>(credential: T): StoredCredential {
+  return {
+    id: credential.id,
+    appId: credential.appId,
+  };
+}
+
+/**
  * Repository dependencies for fetching data
  */
 export interface EnrichmentDataStoreRepositories {
@@ -101,15 +131,15 @@ export class EnrichmentDataStore {
         : [],
     ]);
 
-    // Overwrite nulls with actual data from DB
+    // Overwrite nulls with actual data from DB, using mappers to ensure only defined properties are stored
     for (const user of users) {
-      this.usersByUuid.set(user.uuid, user);
+      this.usersByUuid.set(user.uuid, mapToStoredUser(user));
     }
     for (const attendee of attendees) {
-      this.attendeesById.set(attendee.id, attendee);
+      this.attendeesById.set(attendee.id, mapToStoredAttendee(attendee));
     }
     for (const credential of credentials) {
-      this.credentialsById.set(credential.id, credential);
+      this.credentialsById.set(credential.id, mapToStoredCredential(credential));
     }
   }
 

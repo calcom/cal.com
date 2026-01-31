@@ -86,8 +86,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   }
 
   getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
-    const { fields } = this.parseStored(storedData);
-    const parsedFields = fields as NoShowUpdatedAuditData;
+    const { fields: parsedFields } = this.parseStored(storedData);
     const userUuids: string[] = [];
     if (this.isHostSet(parsedFields)) {
       userUuids.push(parsedFields.host.userUuid);
@@ -96,8 +95,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   }
 
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
-    const { fields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
-    const parsedFields = fields as NoShowUpdatedAuditData;
+    const { fields: parsedFields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
     if (this.isHostSet(parsedFields) && this.isAttendeesNoShowSet(parsedFields)) {
       return { key: "booking_audit_action.no_show_updated" };
     }
@@ -118,8 +116,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
       values?: string[];
     }>
   > {
-    const { fields } = this.parseStored(storedData);
-    const parsedFields = fields as NoShowUpdatedAuditData;
+    const { fields: parsedFields } = this.parseStored(storedData);
     const displayFields: { labelKey: string; valueKey?: string; value?: string; values?: string[] }[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
