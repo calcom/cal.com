@@ -13,6 +13,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import "../styles/globals.css";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
+import { extractUsernameFromPathname } from "./lib/extractUsernameFromPathname";
 import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
@@ -83,7 +84,13 @@ const getInitialProps = async () => {
   const h = await headers();
   const isEmbed = h.get("x-isEmbed") === "true";
   const embedColorScheme = h.get("x-embedColorScheme");
-  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()))) ?? "en";
+
+  // Extract username from pathname for public booking pages
+  // Pathname format: /[username] or /[username]/[eventType] or /org/[orgSlug]/[username], etc.
+  const pathname = h.get("x-pathname") || "";
+  const username = extractUsernameFromPathname(pathname);
+
+  const newLocale = (await getLocale(buildLegacyRequest(h, await cookies()), username)) ?? "en";
   const direction = dir(newLocale) ?? "ltr";
 
   return {
@@ -93,7 +100,6 @@ const getInitialProps = async () => {
     direction,
   };
 };
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
