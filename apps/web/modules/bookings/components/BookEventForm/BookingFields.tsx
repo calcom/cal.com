@@ -1,20 +1,18 @@
-import { useMemo, useRef } from "react";
-import { useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum, getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { useMemo, useRef } from "react";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 type TouchedFields = {
   responses?: Record<string, boolean>;
@@ -159,16 +157,12 @@ export const BookingFields = ({
           readOnly = false;
         }
 
-        if (field.name === SystemField.Enum.smsReminderNumber) {
-          // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
-          // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
-          if (locationResponse?.value === "phone") {
-            setValue(`responses.${SystemField.Enum.smsReminderNumber}`, locationResponse?.optionValue);
-            // Just don't render the field now, as the value is already connected to attendee phone location
-            return null;
-          }
-          // `smsReminderNumber` can be edited during reschedule even though it's a system field
-          readOnly = false;
+        // Skip duplicate/legacy phone fields (we only want attendeePhoneNumber now)
+        if (
+          field.name === SystemField.Enum.smsReminderNumber ||
+          field.name === SystemField.Enum.aiAgentCallPhoneNumber
+        ) {
+          return null;
         }
 
         if (field.name === SystemField.Enum.guests) {
