@@ -6,11 +6,17 @@
   "logo": "icon.svg",
   "url": "https://monobot.ai/?ref=cal.com",
   "variant": "automation",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "Monobot CX",
   "email": "contact@monobot.ai",
   "description": "Crafting your personalized AI-driven assistant is easy and fast.",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app"
+  "__template": "link-as-an-app",
+  "externalLink": {
+    "url": "https://monobot.ai/?ref=cal.com",
+    "newTab": true
+  }
 }
