@@ -10,6 +10,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
@@ -156,150 +157,166 @@ export function Authorize() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="px-9 pt-2 pb-3 mt-2 max-w-xl rounded-md border bg-default border-subtle">
-        <div className="flex justify-center items-center">
-          <Avatar
-            alt=""
-            fallback={<Icon name="plus" className="w-6 h-6 text-subtle" />}
-            className="items-center"
-            imageSrc={client.logo}
-            size="lg"
-          />
-          <div className="relative -ml-6 w-24 h-24">
-            <div className="flex absolute inset-0 justify-center items-center">
-              <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
+    <div className="flex min-h-screen flex-col items-center bg-[#F7F7F7] px-4 pt-6 pb-6">
+      <div className="w-full max-w-[464px]">
+        <div className="rounded-xl border border-[#E8E8E8] bg-[#F7F7F7] px-8 pt-6 pb-6">
+          <div className="relative mb-6 flex items-center">
+            <div className="relative z-10 h-[58px] w-[58px] overflow-hidden rounded-full bg-default shadow-[0_2px_8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)]">
+              {client.logo ? (
+                <img
+                  src={client.logo}
+                  alt={client.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <Icon name="plus" className="h-6 w-6 text-subtle" />
+                </div>
+              )}
+            </div>
+            <div className="relative z-20 -ml-3 h-[58px] w-[58px] overflow-hidden rounded-full bg-[#070A0D] shadow-[0_2px_8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)]">
+              <div className="flex h-full w-full items-center justify-center">
                 <img
                   src="/cal-com-icon.svg"
-                  alt="Logo"
-                  className="w-16 h-16 rounded-full"
+                  alt="Cal.com"
+                  className="h-9 w-9"
                 />
               </div>
             </div>
           </div>
-        </div>
-        <h1 className="px-5 pt-3 pb-3 text-2xl font-semibold tracking-tight text-center">
-          {t("access_cal_account", {
-            clientName: client.name,
-            appName: APP_NAME,
-          })}
-        </h1>
-        {!show_account_selector && (
-          <div className="flex flex-col justify-center items-center mb-6 text-sm text-gray-600">
-            <div className="flex gap-2 items-center" data-testid="signed-in-user">
+
+          <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-[#6B7280]">
+            <ServerTrans
+              t={t}
+              i18nKey="access_cal_account"
+              values={{ clientName: client.name, appName: APP_NAME }}
+              components={[
+                <span key="client" className="font-bold text-black" />,
+                <span key="app" className="font-bold text-black" />,
+              ]}
+            />
+          </h1>
+          {show_account_selector && (
+            <div className="mt-6">
+              <div className="mb-1 text-sm font-medium">
+                {t("select_account_team")}
+              </div>
+              <Select
+                isSearchable={true}
+                id="account-select"
+                onChange={(value) => {
+                  setSelectedAccount(value);
+                }}
+                className="w-52"
+                defaultValue={selectedAccount || mappedProfiles[0]}
+                options={mappedProfiles}
+              />
+            </div>
+          )}
+
+          <div className="-mx-8 mt-6 border-t rounded-xl border-b border-[#E8E8E8] bg-white px-8 py-6">
+            <div className="mb-4 text-[15px] font-semibold text-[#070A0D]">
+              {t("allow_client_to", { clientName: client.name })}
+            </div>
+            <ul className="space-y-3 text-[14px] text-[#181a1c]">
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("associate_with_cal_account", { clientName: client.name })}
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("see_personal_info")}
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("see_primary_email_address")}
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("connect_installed_apps")}
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("access_event_type")}
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("access_availability")}
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-0.5 text-[#D1D5DB]">&#8226;</span>
+                {t("access_bookings")}
+              </li>
+            </ul>
+
+            <p className="mt-6 text-[14px] font-semibold text-[#070A0D]">
+              {t("oauth_access_information", { appName: APP_NAME })}
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <Button
+                type="button"
+                color="primary"
+                className="bg-[#070A0D]! border-[#070A0D]! shadow-none! text-white! w-full justify-center rounded-lg hover:bg-[#1a1d21]!"
+                onClick={() => {
+                  generateAuthCodeMutation.mutate({
+                    clientId: client_id as string,
+                    scopes,
+                    redirectUri: client.redirectUri,
+                    teamSlug: selectedAccount?.value.startsWith("team/")
+                      ? selectedAccount?.value.substring(5)
+                      : undefined,
+                    codeChallenge: code_challenge || undefined,
+                    codeChallengeMethod:
+                      (code_challenge_method as "S256") || undefined,
+                    state,
+                  });
+                }}
+                data-testid="allow-button"
+              >
+                {t("allow")}
+              </Button>
+              <Button
+                type="button"
+                color="minimal"
+                className="w-full justify-center rounded-lg"
+                data-testid="deny-button"
+                onClick={() => {
+                  const redirectUrl = buildOAuthErrorRedirectUrl({
+                    redirectUri: client.redirectUri,
+                    error: "access_denied",
+                    state,
+                  });
+                  window.location.href = redirectUrl;
+                }}
+              >
+                {t("go_back")}
+              </Button>
+            </div>
+          </div>
+
+          {!show_account_selector && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-[14px] text-[#9CA3AF]">
+              <span>{t("signed_in_as_label")}</span>
               <Avatar
-                size="sm"
-                alt={user?.username ? t("avatar_of_username", { username: user.username }) : t("avatar")}
+                size="xs"
+                alt={
+                  user?.username
+                    ? t("avatar_of_username", { username: user.username })
+                    : t("avatar")
+                }
                 imageSrc={user?.avatarUrl ?? user?.avatar}
               />
               <Tooltip content={user?.email} side="bottom">
-                <span className="cursor-default">
-                  {t("signed_in_as", { name: user?.name || user?.email })}
+                <span
+                  className="cursor-default font-medium text-[#9CA3AF]"
+                  data-testid="signed-in-user"
+                >
+                  {user?.name || user?.email}
                 </span>
               </Tooltip>
             </div>
-          </div>
-        )}
-        {show_account_selector && (
-          <>
-            <div className="mb-1 text-sm font-medium">
-              {t("select_account_team")}
-            </div>
-            <Select
-              isSearchable={true}
-              id="account-select"
-              onChange={(value) => {
-                setSelectedAccount(value);
-              }}
-              className="w-52"
-              defaultValue={selectedAccount || mappedProfiles[0]}
-              options={mappedProfiles}
-            />
-          </>
-        )}
-        <div className="mt-8 mb-4 text-sm font-semibold">
-          {t("allow_client_to", { clientName: client.name })}
-        </div>
-        <ul className="text-sm stack-y-3">
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
-            {t("associate_with_cal_account", { clientName: client.name })}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("see_personal_info")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("see_primary_email_address")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("access_event_type")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("access_availability")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("access_bookings")}
-          </li>
-        </ul>
-        <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
-          <div>
-            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-          </div>
-          <div className="ml-1">
-            <div className="mb-1 text-sm font-medium">
-              {t("allow_client_to_do", { clientName: client.name })}
-            </div>
-            <div className="text-sm">
-              {t("oauth_access_information", { appName: APP_NAME })}
-            </div>{" "}
-          </div>
-        </div>
-        <div className="-mx-9 mb-4 border-b border-subtle border-" />
-        <div className="flex justify-end">
-          <Button
-            className="mr-2"
-            color="minimal"
-            onClick={() => {
-              const separator = client.redirectUri.includes("?") ? "&" : "?";
-              const params = new URLSearchParams();
-              params.set("error", "access_denied");
-              if (state) {
-                params.set("state", state);
-              }
-              window.location.href = `${
-                client.redirectUri
-              }${separator}${params.toString()}`;
-            }}
-          >
-            {t("go_back")}
-          </Button>
-          <Button
-            onClick={() => {
-              generateAuthCodeMutation.mutate({
-                clientId: client_id as string,
-                scopes,
-                redirectUri: client.redirectUri,
-                teamSlug: selectedAccount?.value.startsWith("team/")
-                  ? selectedAccount?.value.substring(5)
-                  : undefined, // team account starts with /team/<slug>
-                codeChallenge: code_challenge || undefined,
-                codeChallengeMethod:
-                  (code_challenge_method as "S256") || undefined,
-                state,
-              });
-            }}
-            data-testid="allow-button"
-          >
-            {t("allow")}
-          </Button>
+          )}
         </div>
       </div>
     </div>
