@@ -57,9 +57,18 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
       const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
         bookingFields: mockBookingFields,
         team: {
+          name: "Test Team",
           organizationSettings: {
             disableAutofillOnBookingPage: false,
           },
+          metadata: {},
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          slug: "test-team",
+          logoUrl: null,
+          hideBranding: false,
+          parent: null,
         },
         owner: null,
       };
@@ -134,10 +143,22 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
       const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
         bookingFields: mockBookingFields,
         team: {
+          name: "Test Team",
+          organizationSettings: null,
+          metadata: {},
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          slug: "test-team",
+          logoUrl: null,
+          hideBranding: false,
           parent: {
+            name: "Parent Organization",
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
+            slug: "parent-org",
+            logoUrl: null,
           },
         },
         owner: null,
@@ -174,11 +195,22 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
       const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
         bookingFields: mockBookingFields,
         team: {
+          name: "Test Team",
           organizationSettings: null,
+          metadata: {},
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          slug: "test-team",
+          logoUrl: null,
+          hideBranding: false,
           parent: {
+            name: "Parent Organization",
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
+            slug: "parent-org",
+            logoUrl: null,
           },
         },
         owner: null,
@@ -216,6 +248,10 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
         team: null,
         owner: {
           profile: {
+            id: 1,
+            upId: "test-user",
+            username: "testuser",
+            organizationId: 1,
             organization: {
               organizationSettings: {
                 disableAutofillOnBookingPage: true,
@@ -257,10 +293,22 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
       const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
         bookingFields: mockBookingFields,
         team: {
+          name: "Test Team",
+          organizationSettings: null,
+          metadata: {},
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          slug: "test-team",
+          logoUrl: null,
+          hideBranding: false,
           parent: {
+            name: "Parent Organization",
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
+            slug: "parent-org",
+            logoUrl: null,
           },
         },
         owner: null,
