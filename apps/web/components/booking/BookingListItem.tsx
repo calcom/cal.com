@@ -423,6 +423,37 @@ function BookingListItem(booking: BookingItemProps) {
                   </Badge>
                 )}
               </div>
+              {!isPending && (
+                <div className="sm:hidden">
+                  {(provider?.label ||
+                    (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={provider.iconUrl}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
               {booking.description && (
                 <div
                   className="max-w-10/12 text-default sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm"
