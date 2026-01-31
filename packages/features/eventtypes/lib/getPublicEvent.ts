@@ -342,6 +342,8 @@ export const getPublicEvent = async (
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
+      restrictionScheduleId: null,
+      useBookerTimezone: false,
       // Clears meta data since we don't want to send this in the public api.
       subsetOfUsers: users.map((user) => ({
         ...user,
