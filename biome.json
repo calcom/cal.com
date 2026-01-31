@@ -116,7 +116,7 @@
         "rules": {
           "nursery": {
             "useQwikValidLexicalScope": "off",
-            "useExplicitType": "info",
+            "useExplicitType": "off",
             "noReactForwardRef": "warn",
             "noTernary": "info",
             "noUnresolvedImports": "warn",
