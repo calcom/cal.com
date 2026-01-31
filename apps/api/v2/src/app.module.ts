@@ -13,6 +13,7 @@ import { RedirectsMiddleware } from "@/middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
 import { JsonBodyMiddleware } from "@/middleware/body/json.body.middleware";
 import { RawBodyMiddleware } from "@/middleware/body/raw.body.middleware";
+import { UrlencodedBodyMiddleware } from "@/middleware/body/urlencoded.body.middleware";
 import { ResponseInterceptor } from "@/middleware/request-ids/request-id.interceptor";
 import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middleware";
 import { AuthModule } from "@/modules/auth/auth.module";
@@ -97,6 +98,17 @@ export class AppModule implements NestModule {
         },
         {
           path: "/v2/webhooks/vercel/deployment-promoted",
+          method: RequestMethod.POST,
+        }
+      )
+      .apply(UrlencodedBodyMiddleware)
+      .forRoutes(
+        {
+          path: "/v2/auth/oauth2/token",
+          method: RequestMethod.POST,
+        },
+        {
+          path: "/api/v2/auth/oauth2/token",
           method: RequestMethod.POST,
         }
       )

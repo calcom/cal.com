@@ -1,8 +1,7 @@
+import { OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
+import { TestingModule } from "@nestjs/testing";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TestingModule } from "@nestjs/testing";
-
-import { OAuthClientType } from "@calcom/prisma/enums";
 
 export class OAuth2ClientRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -19,6 +18,7 @@ export class OAuth2ClientRepositoryFixture {
     redirectUri: string;
     clientSecret?: string;
     clientType?: OAuthClientType;
+    status?: OAuthClientStatus;
     logo?: string;
     isTrusted?: boolean;
   }) {
@@ -29,6 +29,7 @@ export class OAuth2ClientRepositoryFixture {
         redirectUri: data.redirectUri,
         clientSecret: data.clientSecret,
         clientType: data.clientType || OAuthClientType.CONFIDENTIAL,
+        status: data.status || OAuthClientStatus.APPROVED,
         logo: data.logo,
         isTrusted: data.isTrusted || false,
       },

@@ -1,46 +1,63 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Res,
+  UseFilters,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiBody,
+  ApiExcludeController,
+  ApiExtraModels,
+  ApiOperation,
+  ApiTags,
+  getSchemaPath,
+} from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
+import type { Response } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { OAuthService } from "@/lib/services/oauth.service";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OAuth2RedirectExceptionFilter } from "@/modules/auth/oauth2/filters/oauth2-redirect-exception.filter";
 import { OAuth2AuthorizeInput } from "@/modules/auth/oauth2/inputs/authorize.input";
-import { OAuth2ExchangeInput } from "@/modules/auth/oauth2/inputs/exchange.input";
-import { OAuth2RefreshInput } from "@/modules/auth/oauth2/inputs/refresh.input";
+import {
+  OAuth2ExchangeConfidentialInput,
+  OAuth2ExchangePublicInput,
+  OAuth2LegacyExchangeInput,
+} from "@/modules/auth/oauth2/inputs/exchange.input";
+import {
+  OAuth2LegacyRefreshInput,
+  OAuth2RefreshConfidentialInput,
+  OAuth2RefreshPublicInput,
+} from "@/modules/auth/oauth2/inputs/refresh.input";
+import type { OAuth2TokenInput } from "@/modules/auth/oauth2/inputs/token.input.pipe";
+import { OAuth2TokenInputPipe } from "@/modules/auth/oauth2/inputs/token.input.pipe";
 import { OAuth2ClientDto, OAuth2ClientResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-client.output";
 import { OAuth2TokensDto, OAuth2TokensResponseDto } from "@/modules/auth/oauth2/outputs/oauth2-tokens.output";
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  InternalServerErrorException,
-  Logger,
-  Param,
-  Post,
-  Res,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-import type { Response } from "express";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ErrorWithCode, getHttpStatusCode } from "@calcom/platform-libraries/errors";
+import { OAuth2ErrorHandler } from "@/modules/auth/oauth2/services/oauth2-error.handler";
 
 @Controller({
-  path: "/v2/auth/oauth2/clients/:clientId",
+  path: "/v2/auth/oauth2",
   version: API_VERSIONS_VALUES,
 })
 @ApiExcludeController(true)
 @ApiTags("OAuth2")
 export class OAuth2Controller {
-  private readonly logger = new Logger("OAuth2Controller");
+  constructor(
+    private readonly oAuthService: OAuthService,
+    private readonly errorHandler: OAuth2ErrorHandler
+  ) {}
 
-  constructor(private readonly oAuthService: OAuthService) {}
-
-  @Get("/")
+  @Get("/clients/:clientId")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard)
   @ApiOperation({
@@ -55,19 +72,15 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2ClientDto, client, { strategy: "excludeAll" }),
       };
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusCode(err);
-        throw new HttpException(err.message, statusCode);
-      }
-      this.logger.error(err);
-      throw new InternalServerErrorException("Could not get oAuthClient");
+    } catch (err) {
+      this.errorHandler.handleClientError(err, "Could not get oAuthClient");
     }
   }
 
-  @Post("/authorize")
+  @Post("/clients/:clientId/authorize")
   @UseGuards(ApiAuthGuard)
   @ApiAuthGuardOnlyAllow(["NEXT_AUTH"])
+  @UseFilters(OAuth2RedirectExceptionFilter)
   @ApiOperation({
     summary: "Generate authorization code",
     description:
@@ -84,35 +97,31 @@ export class OAuth2Controller {
       const result = await this.oAuthService.generateAuthorizationCode(
         client.clientId,
         userId,
-        body.redirectUri,
+        body.redirect_uri,
         body.scopes,
         body.state,
-        body.teamSlug,
-        body.codeChallenge,
-        body.codeChallengeMethod
+        body.team_slug,
+        body.code_challenge,
+        body.code_challenge_method
       );
       return res.redirect(303, result.redirectUrl);
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        if (err.message === "unauthorized_client" || err?.data?.["reason"] === "redirect_uri_mismatch") {
-          const statusCode = getHttpStatusCode(err);
-          throw new HttpException(err.message, statusCode);
-        }
-      }
-      const errorRedirectUrl = this.oAuthService.buildErrorRedirectUrl(body.redirectUri, err, body.state);
-      return res.redirect(303, errorRedirectUrl);
+    } catch (err) {
+      this.errorHandler.handleAuthorizeError(err, body.redirect_uri, body.state);
     }
   }
 
-  @Post("/exchange")
+  @Post("/clients/:clientId/exchange")
   @HttpCode(HttpStatus.OK)
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
   @ApiOperation({
-    summary: "Exchange authorization code for tokens",
-    description: "Exchanges an authorization code for access and refresh tokens",
+    summary: "Exchange authorization code for tokens (legacy)",
+    description:
+      "Exchanges an authorization code for access and refresh tokens. Use POST /token for RFC 6749 compliance.",
   })
   async exchange(
     @Param("clientId") clientId: string,
-    @Body() body: OAuth2ExchangeInput
+    @Body() body: OAuth2LegacyExchangeInput
   ): Promise<OAuth2TokensResponseDto> {
     try {
       const tokens = await this.oAuthService.exchangeCodeForTokens(
@@ -126,25 +135,22 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusCode(err);
-        throw new HttpException(err.message, statusCode);
-      }
-      this.logger.error(err);
-      throw new InternalServerErrorException("Could not exchange code for tokens");
+    } catch (err) {
+      this.errorHandler.handleClientError(err, "Could not exchange code for tokens");
     }
   }
 
-  @Post("/refresh")
+  @Post("/clients/:clientId/refresh")
   @HttpCode(HttpStatus.OK)
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
   @ApiOperation({
-    summary: "Refresh access token",
-    description: "Refreshes an access token using a refresh token",
+    summary: "Refresh access token (legacy)",
+    description: "Refreshes an access token using a refresh token. Use POST /token for RFC 6749 compliance.",
   })
   async refresh(
     @Param("clientId") clientId: string,
-    @Body() body: OAuth2RefreshInput
+    @Body() body: OAuth2LegacyRefreshInput
   ): Promise<OAuth2TokensResponseDto> {
     try {
       const tokens = await this.oAuthService.refreshAccessToken(
@@ -156,13 +162,49 @@ export class OAuth2Controller {
         status: SUCCESS_STATUS,
         data: plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" }),
       };
-    } catch (err: unknown) {
-      if (err instanceof ErrorWithCode) {
-        const statusCode = getHttpStatusCode(err);
-        throw new HttpException(err.message, statusCode);
-      }
-      this.logger.error(err);
-      throw new InternalServerErrorException("Could not refresh tokens");
+    } catch (err) {
+      this.errorHandler.handleClientError(err, "Could not refresh tokens");
+    }
+  }
+
+  @Post("/token")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Exchange authorization code or refresh token for tokens",
+    description:
+      "RFC 6749-compliant token endpoint. Pass client_id in the request body (Section 2.3.1). " +
+      "Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token. " +
+      "Accepts both application/x-www-form-urlencoded (standard per RFC 6749 Section 4.1.3) and application/json content types.",
+  })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(OAuth2ExchangeConfidentialInput) },
+        { $ref: getSchemaPath(OAuth2ExchangePublicInput) },
+        { $ref: getSchemaPath(OAuth2RefreshConfidentialInput) },
+        { $ref: getSchemaPath(OAuth2RefreshPublicInput) },
+      ],
+    },
+    description:
+      "Token request body. client_id is required. " +
+      "Accepts application/x-www-form-urlencoded (RFC 6749 standard) or application/json. " +
+      "Use grant_type 'authorization_code' with client_secret (confidential) or code_verifier (public/PKCE), or grant_type 'refresh_token' with client_secret (confidential) or just the refresh_token (public).",
+  })
+  @ApiExtraModels(
+    OAuth2ExchangeConfidentialInput,
+    OAuth2ExchangePublicInput,
+    OAuth2RefreshConfidentialInput,
+    OAuth2RefreshPublicInput
+  )
+  @Header("Cache-Control", "no-store")
+  @Header("Pragma", "no-cache")
+  async token(@Body(new OAuth2TokenInputPipe()) body: OAuth2TokenInput): Promise<OAuth2TokensDto> {
+    try {
+      const tokens = await this.oAuthService.handleTokenRequest(body.client_id, body);
+
+      return plainToInstance(OAuth2TokensDto, tokens, { strategy: "excludeAll" });
+    } catch (err) {
+      this.errorHandler.handleTokenError(err);
     }
   }
 }

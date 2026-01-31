@@ -1,7 +1,7 @@
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Equals, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
-
 import { AccessScope } from "@calcom/prisma/enums";
+import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { Expose, Transform } from "class-transformer";
+import { Equals, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class OAuth2AuthorizeInput {
   @ApiProperty({
@@ -10,7 +10,9 @@ export class OAuth2AuthorizeInput {
     example: "https://example.com/callback",
   })
   @IsString()
-  redirectUri!: string;
+  @Transform(({ obj }) => obj.redirect_uri ?? obj.redirectUri)
+  @Expose()
+  redirect_uri!: string;
 
   @ApiProperty({
     description: "OAuth state parameter for CSRF protection. Will be included in the redirect.",
@@ -36,7 +38,9 @@ export class OAuth2AuthorizeInput {
   })
   @IsOptional()
   @IsString()
-  teamSlug?: string;
+  @Transform(({ obj }) => obj.team_slug ?? obj.teamSlug)
+  @Expose()
+  team_slug?: string;
 
   @ApiProperty({
     description: "PKCE code challenge (required for public clients)",
@@ -44,10 +48,14 @@ export class OAuth2AuthorizeInput {
   })
   @IsOptional()
   @IsString()
-  codeChallenge?: string;
+  @Transform(({ obj }) => obj.code_challenge ?? obj.codeChallenge)
+  @Expose()
+  code_challenge?: string;
 
   @ApiHideProperty()
   @IsString()
   @Equals("S256")
-  codeChallengeMethod: string = "S256";
+  @Transform(({ obj }) => obj.code_challenge_method ?? obj.codeChallengeMethod ?? "S256")
+  @Expose()
+  code_challenge_method: string = "S256";
 }
