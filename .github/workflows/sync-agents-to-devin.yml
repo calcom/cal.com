@@ -1,0 +1,30 @@
+name: Sync Agents to Devin Knowledge
+
+on:
+  push:
+    paths:
+      - "agents/**"
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync to Devin Knowledge
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+
+      - name: Generate knowledge JSON
+        run: npx tsx scripts/devin/parse-local-knowledge.ts
+
+      - name: Sync to Devin
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: npx tsx scripts/devin/sync-knowledge-to-devin.ts

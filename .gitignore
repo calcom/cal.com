@@ -110,3 +110,4 @@ packages/**/.yarn/ci-cache/
 
 # trigger.dev
 .trigger
+agents/devin-knowledge.json
