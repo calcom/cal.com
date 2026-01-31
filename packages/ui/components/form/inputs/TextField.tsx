@@ -2,7 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { InfoIcon } from "@coss/ui/src/icons";
+import { InfoIcon } from "@coss/ui/icons";
 import { cva } from "class-variance-authority";
 import type React from "react";
 import { forwardRef, useId, useState } from "react";

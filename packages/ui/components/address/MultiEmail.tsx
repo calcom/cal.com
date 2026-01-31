@@ -1,5 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { XIcon } from "@coss/ui/src/icons";
+import { XIcon } from "@coss/ui/icons";
 import { Button } from "../button";
 import { EmailField } from "../form";
 import { Tooltip } from "../tooltip";

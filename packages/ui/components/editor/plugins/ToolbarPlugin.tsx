@@ -29,7 +29,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
-import { ChevronDownIcon } from "@coss/ui/src/icons";
+import { ChevronDownIcon } from "@coss/ui/icons";
 import type { TextEditorProps } from "../types";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 

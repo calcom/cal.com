@@ -6,7 +6,7 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "../../../classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Input } from "../../form";
-import { ChevronDownIcon } from "@coss/ui/src/icons";
+import { ChevronDownIcon } from "@coss/ui/icons";
 
 interface IAddVariablesDropdown {
   addVariable: (variable: string) => void;

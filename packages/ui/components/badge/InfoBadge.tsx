@@ -1,4 +1,4 @@
-import { InfoIcon } from "@coss/ui/src/icons";
+import { InfoIcon } from "@coss/ui/icons";
 import { Tooltip } from "../tooltip/Tooltip";
 
 export function InfoBadge({ content }: { content: string }) {

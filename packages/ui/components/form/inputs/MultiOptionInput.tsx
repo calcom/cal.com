@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { ArrowDownIcon, ArrowUpIcon, XIcon } from "@coss/ui/src/icons";
+import { ArrowDownIcon, ArrowUpIcon, XIcon } from "@coss/ui/icons";
 
 export interface Option {
   label: string;

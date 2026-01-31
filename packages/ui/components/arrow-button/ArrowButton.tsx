@@ -1,4 +1,4 @@
-import { ArrowDownIcon, ArrowUpIcon } from "@coss/ui/src/icons";
+import { ArrowDownIcon, ArrowUpIcon } from "@coss/ui/icons";
 
 export type ArrowButtonProps = {
   arrowDirection: "up" | "down";

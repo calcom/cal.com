@@ -1,6 +1,6 @@
 "use client";
 
-import { PencilIcon } from "@coss/ui/src/icons";
+import { PencilIcon } from "@coss/ui/icons";
 import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";

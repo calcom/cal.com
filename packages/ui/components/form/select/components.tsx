@@ -4,7 +4,7 @@ import { components as reactSelectComponents } from "react-select";
 import classNames from "@calcom/ui/classNames";
 
 import { Badge, CreditsBadge, UpgradeTeamsBadge } from "../../badge";
-import { CheckIcon } from "@coss/ui/src/icons";
+import { CheckIcon } from "@coss/ui/icons";
 import type { SelectProps } from "./types";
 
 export const InputComponent = <
