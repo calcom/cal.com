@@ -830,6 +830,7 @@
   "wrong_assignment": "Wrong Assignment",
   "wrong_assignment_reported": "Wrong assignment reported successfully",
   "routing_reason": "Routing Reason",
+  "first_assignment_reason": "First Assignment Reason",
   "no_routing_reason": "No routing reason available",
   "who_booked_it": "Who booked it?",
   "who_received_it": "Who received it?",
