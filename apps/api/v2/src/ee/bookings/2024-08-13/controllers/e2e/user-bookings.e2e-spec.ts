@@ -439,6 +439,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             email: "mr_proper@gmail.com",
             timeZone: "Europe/Rome",
             language: "it",
+            phoneNumber: "+19876543210",
           },
           location: googleMeetUrl,
           bookingFieldsResponses: {
@@ -485,6 +486,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
+                phoneNumber: body.attendee.phoneNumber,
                 absent: false,
               });
               expect(data.location).toEqual(body.location);
@@ -1015,6 +1017,24 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
             expect(data.length).toEqual(3);
+          });
+      });
+
+      it("should get bookings by attendee phone", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?attendeePhone=+19876543210`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(1);
           });
       });
 

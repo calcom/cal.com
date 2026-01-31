@@ -871,6 +871,16 @@
             }
           },
           {
+            "name": "attendeePhone",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's phone number.",
+            "example": "+1234567890",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "bookingUid",
             "required": false,
             "in": "query",
@@ -3308,6 +3318,16 @@
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
             "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeePhone",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's phone number.",
+            "example": "+1234567890",
             "schema": {
               "type": "string"
             }
@@ -7761,6 +7781,16 @@
             }
           },
           {
+            "name": "attendeePhone",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's phone number.",
+            "example": "+1234567890",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "bookingUid",
             "required": false,
             "in": "query",
@@ -9120,6 +9150,16 @@
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
             "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeePhone",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's phone number.",
+            "example": "+1234567890",
             "schema": {
               "type": "string"
             }
@@ -14633,6 +14673,16 @@
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
             "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeePhone",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's phone number.",
+            "example": "+1234567890",
             "schema": {
               "type": "string"
             }

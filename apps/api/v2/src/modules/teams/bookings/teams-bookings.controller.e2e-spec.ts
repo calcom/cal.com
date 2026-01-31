@@ -18,7 +18,6 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
-
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import type { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
@@ -61,6 +60,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
     let createdBookingUid: string;
     const attendeeEmail1 = "attendee@example.com";
     const attendeeName1 = "Test Attendee";
+    const attendeePhone1 = "+19876543210";
     const attendeeEmail2 = "another@example.com";
     const attendeeName2 = "Another Attendee";
     const bookingStart1 = new Date(Date.UTC(2030, 0, 10, 10, 0, 0));
@@ -69,7 +69,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
     async function createBookingViaApi(
       eventTypeId: number,
       start: Date,
-      attendee: { name: string; email: string }
+      attendee: { name: string; email: string; phoneNumber?: string }
     ): Promise<BookingOutput_2024_08_13> {
       const body: CreateBookingInput_2024_08_13 = {
         start: start.toISOString(),
@@ -79,6 +79,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
           email: attendee.email,
           timeZone: "Europe/London",
           language: "en",
+          phoneNumber: attendee.phoneNumber,
         },
         meetingUrl: "https://meet.google.com/test-meeting",
       };
@@ -261,6 +262,7 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
       const booking1 = await createBookingViaApi(teamEventTypeId, bookingStart1, {
         name: attendeeName1,
         email: attendeeEmail1,
+        phoneNumber: attendeePhone1,
       });
       createdBookingUid = booking1.uid;
 
@@ -392,6 +394,27 @@ describe("Teams Bookings Endpoints 2024-08-13", () => {
             data.forEach((booking) => {
               if ("attendees" in booking) {
                 expect(booking.attendees.some((attendee) => attendee.name === attendeeName1)).toBe(true);
+              }
+            });
+          });
+      });
+
+      it("should filter by attendeePhone", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/teams/${standaloneTeam.id}/bookings?attendeePhone=${encodeURIComponent(attendeePhone1)}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: BookingData[] = responseBody.data;
+            expect(data.length).toBeGreaterThanOrEqual(1);
+            data.forEach((booking) => {
+              if ("attendees" in booking) {
+                expect(booking.attendees.some((attendee) => attendee.phoneNumber === attendeePhone1)).toBe(
+                  true
+                );
               }
             });
           });
