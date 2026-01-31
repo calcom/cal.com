@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { ITeamBillingDataRepository } from "./ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository, TeamWithBillingRecords } from "./ITeamBillingDataRepository";
 import { teamBillingSelect } from "./ITeamBillingDataRepository";
 
 export class PrismaTeamBillingDataRepository implements ITeamBillingDataRepository {
@@ -25,5 +25,27 @@ export class PrismaTeamBillingDataRepository implements ITeamBillingDataReposito
   /** Fetch multiple teams with minimal data needed for billing */
   async findMany(teamIds: number[]) {
     return this.prisma.team.findMany({ where: { id: { in: teamIds } }, select: teamBillingSelect });
+  }
+
+  async findByIdIncludeBillingRecords(teamId: number): Promise<TeamWithBillingRecords | null> {
+    return this.prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        isOrganization: true,
+        parentId: true,
+        metadata: true,
+        teamBilling: {
+          select: {
+            id: true,
+          },
+        },
+        organizationBilling: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   }
 }

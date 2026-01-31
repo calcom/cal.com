@@ -1509,7 +1509,38 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+  async findDistinctTeamIdsByCreatedDateRange({ startDate }: { startDate: Date }): Promise<number[]> {
+    const recentBookings = await this.prismaClient.booking.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+        eventType: {
+          teamId: {
+            not: null,
+          },
+        },
+      },
+      select: {
+        eventType: {
+          select: {
+            teamId: true,
+          },
+        },
+      },
+      distinct: ["eventTypeId"],
+    });
+
+    return Array.from(
+      new Set(
+        recentBookings
+          .map((booking) => booking.eventType?.teamId)
+          .filter((teamId): teamId is number => teamId !== null && teamId !== undefined)
+      )
+    );
+  }
+
+  async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
     return await this.prismaClient.booking.updateMany({
       where: where,
       data,
