@@ -574,7 +574,7 @@ async function removeUserAlongWithItsTeamsRedirects({
   }
 }
 
-async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
+async function _dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
