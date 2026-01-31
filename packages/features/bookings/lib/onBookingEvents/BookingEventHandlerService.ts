@@ -355,8 +355,9 @@ export class BookingEventHandlerService {
     organizationId: number | null;
     operationId?: string | null;
     source: ActionSource;
+    context?: BookingAuditContext;
   }) {
-    const { bookings, actor, organizationId, operationId, source } = params;
+    const { bookings, actor, organizationId, operationId, source, context } = params;
     await this.bookingAuditProducerService.queueBulkCreatedAudit({
       bookings: bookings.map((booking) => ({
         bookingUid: booking.bookingUid,
@@ -366,6 +367,7 @@ export class BookingEventHandlerService {
       organizationId,
       source,
       operationId,
+      context,
     });
   }
 
@@ -378,8 +380,9 @@ export class BookingEventHandlerService {
     organizationId: number | null;
     operationId?: string | null;
     source: ActionSource;
+    context?: BookingAuditContext;
   }) {
-    const { bookings, actor, organizationId, operationId, source } = params;
+    const { bookings, actor, organizationId, operationId, source, context } = params;
     await this.bookingAuditProducerService.queueBulkRescheduledAudit({
       bookings: bookings.map((booking) => ({
         bookingUid: booking.bookingUid,
@@ -389,6 +392,7 @@ export class BookingEventHandlerService {
       organizationId,
       source,
       operationId,
+      context,
     });
   }
 
