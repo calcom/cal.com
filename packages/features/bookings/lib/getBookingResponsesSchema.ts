@@ -1,12 +1,11 @@
-import { isValidPhoneNumber } from "libphonenumber-js/max";
-import z from "zod";
-
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
+import z from "zod";
 
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
@@ -48,7 +47,6 @@ const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
 };
 export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
-
   return preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn });
 };
 
@@ -99,6 +97,7 @@ function preprocess<T extends z.ZodType>({
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
       const newResponses = {} as typeof parsedResponses;
+      const skippedFields: Array<{ field: string; reason: string }> = [];
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
       if (!bookingFields) return parsedResponses;
       bookingFields.forEach((field) => {
@@ -114,47 +113,74 @@ function preprocess<T extends z.ZodType>({
           // If the field is not applicable in the current view, then we don't need to do any processing
           return;
         }
-        const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
-        // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
-        if (fieldTypeSchema) {
-          newResponses[field.name] = fieldTypeSchema.preprocess({
-            response: value,
-            isPartialSchema,
-            field,
-          });
-          return;
-        }
-        if (field.type === "boolean") {
-          // Turn a boolean in string to a real boolean
-          newResponses[field.name] = value === "true" || value === true;
-        }
-        // Make sure that the value is an array
-        else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
-          newResponses[field.name] = value instanceof Array ? value : [value];
-        }
-        // Parse JSON
-        else if (field.type === "radioInput" && typeof value === "string") {
-          let parsedValue = {
-            optionValue: "",
-            value: "",
-          };
+
+        // For partial schema (URL prefill), wrap preprocessing in try-catch to skip invalid fields
+        const processField = () => {
+          const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
+          // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
+          if (fieldTypeSchema) {
+            newResponses[field.name] = fieldTypeSchema.preprocess({
+              response: value,
+              isPartialSchema,
+              field,
+            });
+            return;
+          }
+          if (field.type === "boolean") {
+            // Turn a boolean in string to a real boolean
+            newResponses[field.name] = value === "true" || value === true;
+          }
+          // Make sure that the value is an array
+          else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
+            newResponses[field.name] = value instanceof Array ? value : [value];
+          }
+          // Parse JSON
+          else if (field.type === "radioInput" && typeof value === "string") {
+            let parsedValue = {
+              optionValue: "",
+              value: "",
+            };
+            try {
+              parsedValue = JSON.parse(value);
+            } catch (e) {
+              if (isPartialSchema) {
+                throw new Error(`Invalid JSON for radioInput field`);
+              }
+              log.error(`Failed to parse JSON for field ${field.name}: ${value}`, e);
+            }
+            const optionsInputs = field.optionsInputs;
+            const optionInputField = optionsInputs?.[parsedValue.value];
+            if (optionInputField && optionInputField.type === "phone") {
+              parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+            }
+            newResponses[field.name] = parsedValue;
+          } else if (field.type === "phone") {
+            newResponses[field.name] = ensureValidPhoneNumber(value);
+          } else {
+            newResponses[field.name] = value;
+          }
+        };
+
+        if (isPartialSchema) {
           try {
-            parsedValue = JSON.parse(value);
+            processField();
           } catch (e) {
-            log.error(`Failed to parse JSON for field ${field.name}: ${value}`, e);
+            const errorMessage = e instanceof Error ? e.message : "preprocessing failed";
+            skippedFields.push({ field: field.name, reason: errorMessage });
           }
-          const optionsInputs = field.optionsInputs;
-          const optionInputField = optionsInputs?.[parsedValue.value];
-          if (optionInputField && optionInputField.type === "phone") {
-            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
-          }
-          newResponses[field.name] = parsedValue;
-        } else if (field.type === "phone") {
-          newResponses[field.name] = ensureValidPhoneNumber(value);
         } else {
-          newResponses[field.name] = value;
+          processField();
         }
       });
+
+      // Log skipped fields for partial schema
+      if (isPartialSchema && skippedFields.length > 0) {
+        log.debug(
+          `Partial prefill: skipped ${skippedFields.length} invalid field(s) during preprocessing: ${skippedFields
+            .map((f) => `${f.field} (${f.reason})`)
+            .join(", ")}`
+        );
+      }
 
       return {
         ...parsedResponses,
@@ -230,7 +256,9 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((excludedEntry) => doesEmailMatchEntry(bookerEmail, excludedEntry));
+            const match = excludedEmails.find((excludedEntry) =>
+              doesEmailMatchEntry(bookerEmail, excludedEntry)
+            );
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -384,7 +412,7 @@ function preprocess<T extends z.ZodType>({
   );
   if (isPartialSchema) {
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
-    return preprocessed.catch(function (res?: { error?: unknown[] }) {
+    return preprocessed.catch((res?: { error?: unknown[] }) => {
       console.error("Failed to preprocess query params, prefilling will be skipped", res?.error);
       return {};
     });

@@ -1,9 +1,9 @@
 /* eslint-disable playwright/no-conditional-in-test */
-import { describe, expect } from "vitest";
-import type { z } from "zod";
 
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { describe, expect } from "vitest";
+import type { z } from "zod";
 
 import getBookingResponsesSchema, { getBookingResponsesPartialSchema } from "./getBookingResponsesSchema";
 
@@ -115,7 +115,7 @@ describe("getBookingResponsesSchema", () => {
         });
         expect(parsedResponsesWithJustName.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         expect(parsedResponsesWithJustName.error.issues[0]).toEqual(
           expect.objectContaining({
             path: ["email"],
@@ -129,7 +129,7 @@ describe("getBookingResponsesSchema", () => {
 
         expect(parsedResponsesWithJustEmail.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         expect(parsedResponsesWithJustEmail.error.issues[0]).toEqual(
           expect.objectContaining({
             message: "Invalid input",
@@ -165,7 +165,7 @@ describe("getBookingResponsesSchema", () => {
         });
         expect(parsedResponses.success).toBe(false);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         expect(parsedResponses.error.issues[0]).toEqual(
           expect.objectContaining({
             // We don't get zod default email address validation error because `bookingResponses` schema defines email as z.string() only
@@ -1338,6 +1338,243 @@ describe("getBookingResponsesPartialSchema - Prefill validation", () => {
       expect.objectContaining({
         name: "",
         testField: "test",
+      })
+    );
+  });
+
+  test(`should prefill valid fields and skip invalid fields when mixed valid/invalid values are provided`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testPhone",
+          type: "phone",
+          required: true,
+        },
+        {
+          name: "testField",
+          type: "text",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
+      name: "John Doe",
+      email: "valid@email.com",
+      testPhone: "+919999999999",
+      testField: "test value",
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "John Doe",
+        email: "valid@email.com",
+        testPhone: "+919999999999",
+        testField: "test value",
+      })
+    );
+  });
+
+  test(`should prefill name and text fields when phone field has partial value (country code only)`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testPhone",
+          type: "phone",
+          required: false,
+        },
+        {
+          name: "testField",
+          type: "text",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    // Phone field with space at beginning (URL encoding of +) should be converted to +
+    const parsedResponses = await schema.parseAsync({
+      name: "John Doe",
+      testPhone: " 91",
+      testField: "test value",
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "John Doe",
+        testPhone: "+91",
+        testField: "test value",
+      })
+    );
+  });
+
+  test(`should prefill valid boolean field`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testBoolean",
+          type: "boolean",
+          required: false,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
+      name: "John",
+      testBoolean: "true",
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "John",
+        testBoolean: true,
+      })
+    );
+  });
+
+  test(`should prefill valid multiselect field`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testMultiselect",
+          type: "multiselect",
+          required: false,
+          options: [
+            { label: "Option 1", value: "option1" },
+            { label: "Option 2", value: "option2" },
+          ],
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
+      name: "John",
+      testMultiselect: ["option1", "option2"],
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "John",
+        testMultiselect: ["option1", "option2"],
+      })
+    );
+  });
+
+  test(`should convert single value to array for multiselect field during prefill`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testMultiselect",
+          type: "multiselect",
+          required: false,
+          options: [
+            { label: "Option 1", value: "option1" },
+            { label: "Option 2", value: "option2" },
+          ],
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
+      name: "John",
+      testMultiselect: "option1",
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "John",
+        testMultiselect: ["option1"],
+      })
+    );
+  });
+
+  test(`should handle partial prefill with multiple field types`, async ({}) => {
+    const schema = getBookingResponsesPartialSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testText",
+          type: "text",
+          required: false,
+        },
+        {
+          name: "testNumber",
+          type: "number",
+          required: false,
+        },
+        {
+          name: "testTextarea",
+          type: "textarea",
+          required: false,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.parseAsync({
+      name: "John Doe",
+      testText: "some text",
+      testNumber: "42",
+      testTextarea: "multi\nline\ntext",
+    });
+    expect(parsedResponses).toEqual(
+      expect.objectContaining({
+        name: "John Doe",
+        testText: "some text",
+        testNumber: "42",
+        testTextarea: "multi\nline\ntext",
       })
     );
   });
