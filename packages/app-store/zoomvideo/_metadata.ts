@@ -25,6 +25,7 @@ export const metadata = {
     },
   },
   dirName: "zoomvideo",
+  concurrentMeetings: true,
   isOAuth: true,
 } as AppMeta;
 
