@@ -1,12 +1,14 @@
+import { useMemo } from "react";
+
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useMemo } from "react";
+
 import type {
+  RowData,
+  BookingRowData,
   BookingListingStatus,
   BookingOutput,
-  BookingRowData,
   BookingsGetOutput,
-  RowData,
 } from "../types";
 
 /**

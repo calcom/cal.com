@@ -1,6 +1,7 @@
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useMemo } from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export function useBookingStatusTab() {
   const { t } = useLocale();
