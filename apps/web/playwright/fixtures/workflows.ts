@@ -11,13 +11,14 @@ type CreateWorkflowProps = {
   name?: string;
   isTeam?: true;
   trigger?: WorkflowTriggerEvents;
+  eventTypeNames?: string[];
 };
 
 const subjectPattern = /^Reminder: /i;
 
 export function createWorkflowPageFixture(page: Page) {
   const createWorkflow = async (props: CreateWorkflowProps) => {
-    const { name, isTeam, trigger } = props;
+    const { name, isTeam, trigger, eventTypeNames } = props;
     if (isTeam) {
       await page.getByTestId("create-button-dropdown").click();
       await page.getByTestId("option-team-1").click();
@@ -31,11 +32,22 @@ export function createWorkflowPageFixture(page: Page) {
     if (name) {
       await fillNameInput(name);
     }
-    if (trigger) {
-      await page.locator("#trigger-select").click();
-      await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
-      await selectEventType("30 min");
+
+    // Select trigger (defaults to BEFORE_EVENT, so selecting marks form dirty)
+    const selectedTrigger = trigger ?? WorkflowTriggerEvents.BEFORE_EVENT;
+    await page.locator("#trigger-select").click();
+    await page.getByTestId(`select-option-${selectedTrigger}`).click();
+
+    // Select event types to associate workflow with (required for reminders to work)
+    if (eventTypeNames && eventTypeNames.length > 0) {
+      await page.getByTestId("multi-select-check-boxes").click();
+      for (const eventTypeName of eventTypeNames) {
+        await page.getByText(eventTypeName, { exact: true }).click();
+      }
+    } else {
+      await page.getByText(/Apply to all/i).first().click();
     }
+
     const workflow = await saveWorkflow();
 
     for (const step of workflow.steps) {
@@ -50,7 +62,7 @@ export function createWorkflowPageFixture(page: Page) {
 
   const saveWorkflow = async () => {
     const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
-    const saveButton = await page.getByTestId("save-workflow");
+    const saveButton = page.getByTestId("save-workflow");
     await saveButton.click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
@@ -67,8 +79,9 @@ export function createWorkflowPageFixture(page: Page) {
 
   const fillNameInput = async (name: string) => {
     await page.getByTestId("edit-workflow-name-button").click();
-    await page.getByTestId("workflow-name").fill(name);
-    await page.keyboard.press("Enter");
+    const nameInput = page.getByTestId("workflow-name");
+    await nameInput.fill(name);
+    await nameInput.blur();
   };
 
   const editSelectedWorkflow = async (name: string) => {
