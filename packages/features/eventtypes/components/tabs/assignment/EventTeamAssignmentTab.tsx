@@ -7,6 +7,7 @@ import type {
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
 import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
@@ -16,16 +17,16 @@ import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import AddMembersWithSwitch, {
+import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import {
+  AddMembersWithSwitch,
   mapUserToValue,
-} from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import AssignAllTeamMembers from "@calcom/web/modules/event-types/components/AssignAllTeamMembers";
-import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
-import ChildrenEventTypeSelect from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
-import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
-import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
-import WeightDescription from "@calcom/web/modules/event-types/components/WeightDescription";
+} from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -45,6 +46,15 @@ export type EventTeamAssignmentTabCustomClassNames = {
   childrenEventTypes?: ChildrenEventTypesCustomClassNames;
 };
 
+export type EditWeightsForAllTeamMembersProps = {
+  teamMembers: TeamMember[];
+  value: Host[];
+  onChange: (hosts: Host[]) => void;
+  assignRRMembersUsingSegment: boolean;
+  teamId?: number;
+  queryValue?: AttributesQueryValue | null;
+};
+
 export type EventTeamAssignmentTabBaseProps = Pick<
   EventTypeSetupProps,
   "teamMembers" | "team" | "eventType"
@@ -52,6 +62,7 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   customClassNames?: EventTeamAssignmentTabCustomClassNames;
   orgId: number | null;
   isSegmentApplicable: boolean;
+  EditWeightsForAllTeamMembersComponent?: React.ComponentType<EditWeightsForAllTeamMembersProps>;
   hideFixedHostsForCollective?: boolean;
 };
 
@@ -286,6 +297,7 @@ const RoundRobinHosts = ({
   customClassNames,
   teamId,
   isSegmentApplicable,
+  EditWeightsForAllTeamMembersComponent,
 }: {
   orgId: number | null;
   value: Host[];
@@ -296,6 +308,7 @@ const RoundRobinHosts = ({
   customClassNames?: RoundRobinHostsCustomClassNames;
   teamId: number;
   isSegmentApplicable: boolean;
+  EditWeightsForAllTeamMembersComponent?: React.ComponentType<EditWeightsForAllTeamMembersProps>;
 }) => {
   const { t } = useLocale();
 
@@ -413,10 +426,8 @@ const RoundRobinHosts = ({
 
   const AddMembersWithSwitchComponent = ({
     groupId,
-    containerClassName,
   }: {
     groupId: string | null;
-    containerClassName?: string;
   }) => {
     return (
       <AddMembersWithSwitch
@@ -432,7 +443,6 @@ const RoundRobinHosts = ({
         isRRWeightsEnabled={isRRWeightsEnabled}
         isFixed={false}
         groupId={groupId}
-        containerClassName={containerClassName || (assignAllTeamMembers ? "-mt-4" : "")}
         onActive={() => handleMembersActivation(groupId)}
         customClassNames={customClassNames?.addMembers}
       />
@@ -500,14 +510,16 @@ const RoundRobinHosts = ({
                 labelClassName={customClassNames?.enableWeights?.label}
                 descriptionClassName={customClassNames?.enableWeights?.description}
                 onCheckedChange={(active) => handleWeightsEnabledChange(active, onChange)}>
-                <EditWeightsForAllTeamMembers
-                  teamMembers={teamMembers}
-                  value={value}
-                  onChange={handleWeightsChange}
-                  assignRRMembersUsingSegment={assignRRMembersUsingSegment}
-                  teamId={teamId}
-                  queryValue={rrSegmentQueryValue}
-                />
+                {EditWeightsForAllTeamMembersComponent && (
+                  <EditWeightsForAllTeamMembersComponent
+                    teamMembers={teamMembers}
+                    value={value}
+                    onChange={handleWeightsChange}
+                    assignRRMembersUsingSegment={assignRRMembersUsingSegment}
+                    teamId={teamId}
+                    queryValue={rrSegmentQueryValue}
+                  />
+                )}
               </SettingsToggle>
             )}
           />
@@ -616,6 +628,7 @@ const Hosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   isSegmentApplicable,
+  EditWeightsForAllTeamMembersComponent,
   hideFixedHostsForCollective = false,
 }: {
   orgId: number | null;
@@ -625,6 +638,7 @@ const Hosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
+  EditWeightsForAllTeamMembersComponent?: React.ComponentType<EditWeightsForAllTeamMembersProps>;
   hideFixedHostsForCollective?: boolean;
 }) => {
   const {
@@ -720,6 +734,7 @@ const Hosts = ({
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
                 customClassNames={customClassNames?.roundRobinHosts}
                 isSegmentApplicable={isSegmentApplicable}
+                EditWeightsForAllTeamMembersComponent={EditWeightsForAllTeamMembersComponent}
               />
             </>
           ),
@@ -738,6 +753,7 @@ export const EventTeamAssignmentTab = ({
   customClassNames,
   orgId,
   isSegmentApplicable,
+  EditWeightsForAllTeamMembersComponent,
   hideFixedHostsForCollective = false,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
@@ -948,6 +964,7 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
+            EditWeightsForAllTeamMembersComponent={EditWeightsForAllTeamMembersComponent}
             hideFixedHostsForCollective={hideFixedHostsForCollective}
           />
         </>

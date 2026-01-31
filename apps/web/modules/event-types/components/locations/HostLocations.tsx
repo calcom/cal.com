@@ -32,7 +32,7 @@ import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { FormValues, Host, HostLocation } from "@calcom/features/eventtypes/lib/types";
-import type { TLocationOptions } from "./Locations";
+import type { TLocationOptions } from "@calcom/features/eventtypes/components/locations/Locations";
 
 type HostWithLocationOptions = {
   userId: number;

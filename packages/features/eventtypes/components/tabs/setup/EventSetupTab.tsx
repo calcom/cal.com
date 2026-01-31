@@ -18,15 +18,14 @@ import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField, Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+import Locations from "@calcom/features/eventtypes/components/locations/Locations";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
-import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
 import type { LocationCustomClassNames } from "../../locations/types";
+import type { DefaultLocationSettingsProps } from "@calcom/features/eventtypes/components/locations/Locations";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -52,11 +51,19 @@ export type EventSetupTabCustomClassNames = {
   };
 };
 
+export type HostLocationsProps = {
+  eventTypeId: number;
+  locationOptions: EventTypeSetupProps["locationOptions"];
+};
+
 export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 > & {
   customClassNames?: EventSetupTabCustomClassNames;
+  CalVideoSettingsComponent?: React.ComponentType;
+  DefaultLocationSettingsComponent?: React.ComponentType<DefaultLocationSettingsProps>;
+  HostLocationsComponent?: React.ComponentType<HostLocationsProps>;
 };
 export const EventSetupTab = (
   props: EventSetupTabProps & {
@@ -406,8 +413,8 @@ export const EventSetupTab = (
             </div>
           </div>
         </Tooltip>
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
-          <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && props.HostLocationsComponent && (
+          <props.HostLocationsComponent eventTypeId={eventType.id} locationOptions={props.locationOptions} />
         )}
       </div>
     </div>

@@ -15,8 +15,8 @@ import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
+import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 
 export type CheckedSelectOption = {
   avatar: string;

@@ -5,22 +5,25 @@ import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
-import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
-import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
+import type {
+  AddMembersWithSwitchProps,
+  SegmentComponentProps,
+} from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import { AddMembersWithSwitch } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 
 // Mock matchMedia
 vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],
 }));
 
-// Mock Segment component
-vi.mock("@calcom/web/modules/event-types/components/Segment", () => ({
-  Segment: vi.fn().mockImplementation(({ onQueryValueChange }) => (
-    <div data-testid="mock-segment">
-      <button onClick={() => onQueryValueChange({ queryValue: { id: "test" } })}>Update Query</button>
-    </div>
-  )),
-}));
+// Mock Segment component for dependency injection
+const MockSegment = ({ onQueryValueChange }: SegmentComponentProps) => (
+  <div data-testid="mock-segment">
+    <button onClick={() => onQueryValueChange({ queryValue: { type: "group", id: "test" } })}>
+      Update Query
+    </button>
+  </div>
+);
 
 const mockTeamMembers: TeamMember[] = [
   {
@@ -166,6 +169,7 @@ describe("AddMembersWithSwitch", () => {
         assignAllTeamMembers: false,
         isSegmentApplicable: true,
         automaticAddAllEnabled: true,
+        SegmentComponent: MockSegment,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: true,
@@ -197,6 +201,7 @@ describe("AddMembersWithSwitch", () => {
         assignAllTeamMembers: false,
         isSegmentApplicable: true,
         automaticAddAllEnabled: true,
+        SegmentComponent: MockSegment,
       },
       formDefaultValues: {
         assignRRMembersUsingSegment: false,
