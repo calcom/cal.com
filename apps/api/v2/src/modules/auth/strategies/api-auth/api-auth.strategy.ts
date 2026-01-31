@@ -239,7 +239,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     const isLicenseValid = await this.deploymentsService.checkLicense();
     if (!isLicenseValid) {
       throw new UnauthorizedException(
-        "ApiAuthStrategy - api key - Invalid or missing CALCOM_LICENSE_KEY environment variable"
+        "License validation failed. Check CALCOM_LICENSE_KEY and GET_LICENSE_KEY_URL configuration."
       );
     }
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
