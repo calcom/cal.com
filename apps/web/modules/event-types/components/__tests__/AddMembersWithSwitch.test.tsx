@@ -19,7 +19,9 @@ vi.mock("@formkit/auto-animate/react", () => ({
 // Mock Segment component for dependency injection
 const MockSegment = ({ onQueryValueChange }: SegmentComponentProps) => (
   <div data-testid="mock-segment">
-    <button onClick={() => onQueryValueChange({ queryValue: { id: "test" } })}>Update Query</button>
+    <button onClick={() => onQueryValueChange({ queryValue: { type: "group", id: "test" } })}>
+      Update Query
+    </button>
   </div>
 );
 
