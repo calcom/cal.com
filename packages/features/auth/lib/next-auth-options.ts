@@ -147,7 +147,7 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
  * Extracted for testability
  */
 export async function authorizeCredentials(
-  credentials: Record<"email" | "password" | "totpCode" | "backupCode", string> | undefined
+  credentials: Record<"email" | "password" | "totpCode" | "backupCode" | "totpToken", string> | undefined
 ): Promise<User | null> {
   log.debug("CredentialsProvider:credentials:authorize", safeStringify({ credentials }));
   if (!credentials) {
@@ -178,21 +178,28 @@ export async function authorizeCredentials(
   const isTotpOnlyFlow =
     user.twoFactorEnabled && hasTotpOrBackup && passwordMissingOrEmpty;
 
+  // To skip password verification (OAuth→MFA flow), we require a valid signed totpToken JWT
+  // from /auth/login?totp=... proving the request followed the OAuth redirect. Otherwise,
+  // a caller with only email+TOTP could bypass the password (2FA→1FA).
+  const hasValidTotpToken =
+    isTotpOnlyFlow &&
+    (await (await import("./verifyTotpToken")).verifyTotpToken(credentials.email, credentials.totpToken));
+
   // Users without a password must use their identity provider (Google/SAML) to login.
-  // Exception: OAuth/IdP users with MFA are redirected to TOTP-only form; allow verify via TOTP/backup only.
+  // Exception: OAuth/IdP users with MFA are redirected to TOTP-only form with signed JWT; allow verify via TOTP/backup only when JWT is valid.
   if (!user.password?.hash) {
-    if (!(user.twoFactorEnabled && hasTotpOrBackup)) {
+    if (!(user.twoFactorEnabled && hasTotpOrBackup && hasValidTotpToken)) {
       throw new Error(ErrorCode.IncorrectEmailPassword);
     }
     // Skip password verification, proceed to 2FA verification below.
-  } else if (!isTotpOnlyFlow) {
-    // User has password and we're not in TOTP-only flow (e.g. OAuth→MFA): verify password.
+  } else if (!hasValidTotpToken) {
+    // User has password: either verify password (normal/credentials 2FA flow) or require valid totpToken (OAuth→MFA).
     const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
     if (!isCorrectPassword) {
       throw new Error(ErrorCode.IncorrectEmailPassword);
     }
   }
-  // else: TOTP-only flow with user who has password (OAuth→MFA, form only sends email+totp) → skip password, proceed to 2FA.
+  // else: TOTP-only flow with valid totpToken (OAuth→MFA) → skip password, proceed to 2FA.
 
   if (user.twoFactorEnabled && credentials.backupCode) {
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
@@ -285,6 +292,7 @@ export const CalComCredentialsProvider = CredentialsProvider({
     password: { label: "Password", type: "password", placeholder: "Your super secure password" },
     totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
     backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
+    totpToken: { label: "TOTP JWT", type: "input", placeholder: "Signed JWT from OAuth→MFA redirect" },
   },
   authorize: authorizeCredentials,
 });
@@ -899,7 +907,7 @@ export const getOptions = ({
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error-error TODO validate email_verified key on profile
+        // @ts-expect-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {

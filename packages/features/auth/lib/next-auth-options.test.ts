@@ -1,6 +1,7 @@
 import process from "node:process";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
+import { verifyTotpToken } from "./verifyTotpToken";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import type { User } from "next-auth";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -34,6 +35,10 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => {
 
 vi.mock("./verifyPassword", () => ({
   verifyPassword: vi.fn(),
+}));
+
+vi.mock("./verifyTotpToken", () => ({
+  verifyTotpToken: vi.fn(),
 }));
 
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
@@ -241,13 +246,14 @@ describe("CredentialsProvider authorize", () => {
       process.env.CALENDSO_ENCRYPTION_KEY = "test-encryption-key-32-chars!!";
       vi.mocked(symmetricDecrypt).mockReturnValue("a".repeat(32));
       vi.mocked(totpAuthenticatorCheck).mockReturnValue(false);
+      vi.mocked(verifyTotpToken).mockResolvedValue(true);
     });
 
     afterEach(() => {
       process.env.CALENDSO_ENCRYPTION_KEY = originalEncryptionKey;
     });
 
-    it("skips password check for IdP user with 2FA and reaches TOTP verification (invalid code → IncorrectTwoFactorCode)", async () => {
+    it("skips password check for IdP user with 2FA and valid totpToken, reaches TOTP verification (invalid code → IncorrectTwoFactorCode)", async () => {
       const mockUser = createMockUser({
         password: null,
         identityProvider: IdentityProvider.GOOGLE,
@@ -262,11 +268,12 @@ describe("CredentialsProvider authorize", () => {
           email: "test@example.com",
           password: "",
           totpCode: "123456",
+          totpToken: "valid-jwt-from-oauth-redirect",
         } as any)
       ).rejects.toThrow(ErrorCode.IncorrectTwoFactorCode);
     });
 
-    it("skips password check for user with password + 2FA in TOTP-only flow (invalid code → IncorrectTwoFactorCode)", async () => {
+    it("skips password check for user with password + 2FA + valid totpToken (invalid code → IncorrectTwoFactorCode)", async () => {
       const mockUser = createMockUser({
         password: { hash: "$2a$10$hashedpassword" },
         identityProvider: IdentityProvider.GOOGLE,
@@ -281,8 +288,30 @@ describe("CredentialsProvider authorize", () => {
           email: "test@example.com",
           password: "",
           totpCode: "123456",
+          totpToken: "valid-jwt-from-oauth-redirect",
         } as any)
       ).rejects.toThrow(ErrorCode.IncorrectTwoFactorCode);
+    });
+
+    it("rejects password bypass when totpToken is missing (no OAuth proof)", async () => {
+      vi.mocked(verifyTotpToken).mockResolvedValue(false);
+      const mockUser = createMockUser({
+        password: { hash: "$2a$10$hashedpassword" },
+        identityProvider: IdentityProvider.GOOGLE,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted-secret",
+        backupCodes: null,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "",
+          totpCode: "123456",
+          totpToken: undefined,
+        } as any)
+      ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
     });
   });
 });
