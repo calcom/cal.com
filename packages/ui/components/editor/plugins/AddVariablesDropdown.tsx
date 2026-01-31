@@ -135,7 +135,8 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
             {t("add_dynamic_variables")}
           </div>
           <div>
-            <Input
+            <Input 
+              data-testid="search-variables-input"
               type="text"
               size="sm"
               value={query}
@@ -152,12 +153,13 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
               filteredVariables.map((variable, index) => (
                 <DropdownMenuItem key={variable} className="w-full rounded-md p-1 hover:ring-0 focus:outline-none">
                   <button
+                    data-testid={`variable-option-${variable}`}
                     ref={(el) => (itemRefs.current[index] = el)}
                     key={variable}
                     type="button"
                     className={`w-full rounded-md px-3 py-2 text-left transition-colors focus:outline-none ${
                       selectedIndex === index ? "bg-muted" : ""
-                    }`}
+                      }`}
                     onMouseEnter={() => setSelectedIndex(index)}
                     data-active={selectedIndex === index}
                     onClick={() => {
