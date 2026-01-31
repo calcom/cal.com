@@ -7,7 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { SelectField, TextField } from "@calcom/ui/components/form";
+
+import { ExchangeAuthentication } from "@calcom/app-store/exchange2016calendar/enums";
 
 export default function Exchange2016CalendarSetup() {
   const { t } = useLocale();
@@ -17,8 +19,14 @@ export default function Exchange2016CalendarSetup() {
       username: "",
       password: "",
       url: process.env.EXCHANGE_DEFAULT_EWS_URL || "",
+      authenticationMethod: ExchangeAuthentication.NTLM,
     },
   });
+
+  const authenticationOptions = [
+    { value: ExchangeAuthentication.STANDARD, label: "Standard (Basic Auth)" },
+    { value: ExchangeAuthentication.NTLM, label: "NTLM (Windows Auth)" },
+  ];
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -76,6 +84,11 @@ export default function Exchange2016CalendarSetup() {
                   label="Password"
                   placeholder="•••••••••••••"
                   autoComplete="password"
+                />
+                <SelectField
+                  label="Authentication Method"
+                  options={authenticationOptions}
+                  {...form.register("authenticationMethod", { valueAsNumber: true })}
                 />
               </fieldset>
 
