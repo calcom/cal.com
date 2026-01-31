@@ -28,6 +28,7 @@ async function updateBooking({ bookingId, startTime, endTime, cancellationReason
       references: true,
       payment: true,
       attendees: true,
+      tracking: true,
     },
   });
   return { ...booking, userUuid: booking.user?.uuid ?? null };
