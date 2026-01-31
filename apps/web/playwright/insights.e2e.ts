@@ -1,11 +1,9 @@
-import { expect } from "@playwright/test";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
-
-import { clearFilters, applySelectFilter } from "./filter-helpers";
+import { expect } from "@playwright/test";
+import { applySelectFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 import { createAllPermissionsArray, enablePBACForTeam } from "./lib/test-helpers/pbac";
 
@@ -224,17 +222,13 @@ test.describe("Insights", async () => {
 
     const downloadPromise = page.waitForEvent("download");
 
+    const downloadButton = page.getByRole("button", { name: "Download" });
+
     // Expect download button to be visible
-    await expect(page.locator("text=Download")).toBeVisible();
-
-    // Click on Download button
-    await page.getByText("Download").click();
-
-    // Expect as csv option to be visible
-    await expect(page.locator("text=as CSV")).toBeVisible();
+    await expect(downloadButton).toBeVisible();
 
     // Start waiting for download before clicking. Note no await.
-    await page.getByText("as CSV").click();
+    await downloadButton.click();
     const download = await downloadPromise;
 
     // Wait for the download process to complete and save the downloaded file somewhere.
