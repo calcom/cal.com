@@ -1854,4 +1854,73 @@ describe("require email/domain validation", () => {
       })
     );
   });
+
+  test(`optional email field should fail if invalid input is provided`, async () => {
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "optionalEmail",
+          type: "email",
+          required: false,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    
+    const parsedResponses = await schema.safeParseAsync({
+      name: "John Doe",
+      email: "john@example.com",
+      optionalEmail: "not-a-valid-email",
+    });
+
+    expect(parsedResponses.success).toBe(false);
+    if (!parsedResponses.success) {
+      expect(parsedResponses.error.issues[0]).toEqual(
+        expect.objectContaining({
+          message: `{optionalEmail}${CUSTOM_EMAIL_VALIDATION_ERROR_MSG}`,
+        })
+      );
+    }
+  });
+
+  test(`optional email field should pass if left empty`, async () => {
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "optionalEmail",
+          type: "email",
+          required: false,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    const parsedResponses = await schema.safeParseAsync({
+      name: "John Doe",
+      email: "john@example.com",
+      optionalEmail: "",
+    });
+
+    expect(parsedResponses.success).toBe(true);
+  });
 });
