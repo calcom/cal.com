@@ -72,6 +72,10 @@ export default class ProrationInvoiceEmail extends BaseEmail {
 
   protected getTextBody(): string {
     const formattedAmount = (this.proration.proratedAmount / 100).toFixed(2);
-    return `An invoice for $${formattedAmount} has been created for ${this.proration.netSeatIncrease} additional seat(s) for your team ${this.team.name}.`;
+    return this.user.t("proration_invoice_text", {
+      amount: formattedAmount,
+      seats: this.proration.netSeatIncrease,
+      teamName: this.team.name,
+    });
   }
 }
