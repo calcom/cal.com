@@ -412,12 +412,16 @@ export class Cal {
     }
   }
 
-  iframeReset() {
-    this.iframeReady = false;
+  resetQueue() {
     // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI configuration applied automatically
     this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => 
       this.commandsPersistAcrossIframeResets.includes(doInIframeArg.method)
     );
+  }
+
+  iframeReset() {
+    this.iframeReady = false;
+    this.resetQueue();
   }
 
   constructor(namespace: string, q: Queue) {
@@ -469,7 +473,7 @@ export class Cal {
       this.iframeDoQueue.forEach((doInIframeArg) => {
         this.doInIframe(doInIframeArg);
       });
-      this.iframeDoQueue = [];
+      this.resetQueue();
     });
 
     this.actionManager.on("__routeChanged", () => {
