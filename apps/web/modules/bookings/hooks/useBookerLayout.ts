@@ -10,7 +10,7 @@ import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
-import { useSlotsViewOnSmallScreen } from "./useSlotsViewOnSmallScreen";
+import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/hooks/useSlotsViewOnSmallScreen";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 

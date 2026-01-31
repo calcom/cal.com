@@ -1,9 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
-import type {
-  ToggledConnectedCalendars,
-  WrappedBookerPropsMain,
-} from "@calcom/features/bookings/Booker/types";
+import type { ToggledConnectedCalendars } from "@calcom/features/bookings/Booker/types";
+import type { WrappedBookerPropsMain } from "../types";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";

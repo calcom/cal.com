@@ -14,7 +14,8 @@ import {
   useBookerResizeAnimation,
 } from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
-import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
+import type { BookerProps } from "@calcom/features/bookings/Booker/types";
+import type { WrappedBookerProps } from "../types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
