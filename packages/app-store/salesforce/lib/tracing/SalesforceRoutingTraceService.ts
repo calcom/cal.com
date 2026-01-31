@@ -176,4 +176,51 @@ export class SalesforceRoutingTraceService {
   static graphqlNoAccountFound(data: { email: string; reason: string }): void {
     SalesforceRoutingTraceService.addStep("graphql_no_account_found", data);
   }
+
+  // ===== Field Rules =====
+
+  /**
+   * Record field rules validation result.
+   */
+  static fieldRulesValidated(data: {
+    recordType: string;
+    configuredCount: number;
+    validCount: number;
+    validFields?: string[];
+  }): void {
+    SalesforceRoutingTraceService.addStep("field_rules_validated", data);
+  }
+
+  /**
+   * Record when a record is filtered out by field rules.
+   */
+  static fieldRuleFilteredRecord(data: {
+    tier: string;
+    recordId: string;
+    reason: string;
+    failedRule?: { field: string; value: string; action: string };
+  }): void {
+    SalesforceRoutingTraceService.addStep("field_rule_filtered_record", data);
+  }
+
+  /**
+   * Record field rule evaluation detail.
+   */
+  static fieldRuleEvaluated(data: {
+    field: string;
+    action: string;
+    ruleValue: string;
+    actualValue: string;
+    matches: boolean;
+    result: "passed" | "filtered";
+  }): void {
+    SalesforceRoutingTraceService.addStep("field_rule_evaluated", data);
+  }
+
+  /**
+   * Record when all records are filtered out by field rules in the SOQL path.
+   */
+  static allRecordsFilteredByFieldRules(data: { recordType: string }): void {
+    SalesforceRoutingTraceService.addStep("all_records_filtered_by_field_rules", data);
+  }
 }
