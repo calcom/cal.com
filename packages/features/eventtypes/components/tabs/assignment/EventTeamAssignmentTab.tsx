@@ -63,6 +63,7 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   orgId: number | null;
   isSegmentApplicable: boolean;
   EditWeightsForAllTeamMembersComponent?: React.ComponentType<EditWeightsForAllTeamMembersProps>;
+  hideFixedHostsForCollective?: boolean;
 };
 
 export const mapMemberToChildrenOption = (
@@ -627,7 +628,12 @@ const Hosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   isSegmentApplicable,
+<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
   EditWeightsForAllTeamMembersComponent,
+||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
+=======
+  hideFixedHostsForCollective = false,
+>>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
 }: {
   orgId: number | null;
   teamId: number;
@@ -636,7 +642,12 @@ const Hosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
+<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
   EditWeightsForAllTeamMembersComponent?: React.ComponentType<EditWeightsForAllTeamMembersProps>;
+||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
+=======
+  hideFixedHostsForCollective?: boolean;
+>>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
 }) => {
   const {
     control,
@@ -676,10 +687,10 @@ const Hosts = ({
 
       return existingHost
         ? {
-          ...newValue,
-          scheduleId: existingHost.scheduleId,
-          groupId: existingHost.groupId,
-        }
+            ...newValue,
+            scheduleId: existingHost.scheduleId,
+            groupId: existingHost.groupId,
+          }
         : newValue;
     });
   };
@@ -689,7 +700,9 @@ const Hosts = ({
       name="hosts"
       render={({ field: { onChange, value } }) => {
         const schedulingTypeRender = {
-          COLLECTIVE: (
+          COLLECTIVE: hideFixedHostsForCollective ? (
+            <></>
+          ) : (
             <FixedHosts
               teamId={teamId}
               teamMembers={teamMembers}
@@ -748,7 +761,12 @@ export const EventTeamAssignmentTab = ({
   customClassNames,
   orgId,
   isSegmentApplicable,
+<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
   EditWeightsForAllTeamMembersComponent,
+||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
+=======
+  hideFixedHostsForCollective = false,
+>>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -757,17 +775,17 @@ export const EventTeamAssignmentTab = ({
     label: string;
     // description: string;
   }[] = [
-      {
-        value: "COLLECTIVE",
-        label: t("collective"),
-        // description: t("collective_description"),
-      },
-      {
-        value: "ROUND_ROBIN",
-        label: t("round_robin"),
-        // description: t("round_robin_description"),
-      },
-    ];
+    {
+      value: "COLLECTIVE",
+      label: t("collective"),
+      // description: t("collective_description"),
+    },
+    {
+      value: "ROUND_ROBIN",
+      label: t("round_robin"),
+      // description: t("round_robin_description"),
+    },
+  ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
   const teamMembersOptions = teamMembers
@@ -899,11 +917,11 @@ export const EventTeamAssignmentTab = ({
                       </RadioArea.Item>
                       {(eventType.team?.rrTimestampBasis &&
                         eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
-                        hostGroups?.length > 1 ? (
+                      hostGroups?.length > 1 ? (
                         <Tooltip
                           content={
                             eventType.team?.rrTimestampBasis &&
-                              eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                            eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
                           }>
@@ -958,7 +976,12 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
+<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
             EditWeightsForAllTeamMembersComponent={EditWeightsForAllTeamMembersComponent}
+||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
+=======
+            hideFixedHostsForCollective={hideFixedHostsForCollective}
+>>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
           />
         </>
       )}

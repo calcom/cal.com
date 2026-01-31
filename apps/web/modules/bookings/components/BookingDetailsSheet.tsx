@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
+import { useBookingLocation } from "@calcom/web/modules/bookings/hooks/useBookingLocation";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -45,7 +45,7 @@ import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-import { BookingHistory } from "@calcom/features/booking-audit/client/components/BookingHistory";
+import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import { SegmentedControl } from "@calcom/ui/components/segmented-control";
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 

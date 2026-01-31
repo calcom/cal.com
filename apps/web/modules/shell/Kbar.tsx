@@ -1,4 +1,7 @@
+import { useSession } from "next-auth/react";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
@@ -19,8 +22,6 @@ import {
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useMemo } from "react";
-
-import dayjs from "@calcom/dayjs";
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -266,18 +267,22 @@ function useEventTypesAction(): void {
 
 function useUpcomingBookingsAction(): void {
   const router = useRouter();
+  const session = useSession();
+  const userId = session.data?.user.id;
 
   const { data } = trpc.viewer.bookings.get.useQuery(
     {
       filters: {
         status: "upcoming",
         afterStartDate: dayjs().startOf("day").toISOString(),
+        userIds: userId ? [userId] : undefined,
       },
       limit: 100,
     },
     {
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000,
+      enabled: !!userId,
     }
   );
 
@@ -319,8 +324,6 @@ function CommandKey(): JSX.Element {
 
 const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
-  useEventTypesAction();
-  useUpcomingBookingsAction();
 
   return (
     <KBarPortal>
@@ -458,6 +461,9 @@ function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
   const { t } = useLocale();
+
+  useEventTypesAction();
+  useUpcomingBookingsAction();
 
   if (results.length === 0 && searchQuery.trim().length > 0) {
     return <NoResultsFound searchQuery={searchQuery} />;

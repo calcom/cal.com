@@ -23,6 +23,9 @@ const queryClient = new QueryClient();
  * @param {string} [options.refreshUrl] - The url point to your refresh endpoint. - Optional, required if accessToken is provided.
  * @param {boolean} [autoUpdateTimezone=true] - Whether to automatically update the timezone. - Optional
  * @param {function} props.onTimezoneChange - The callback function for timezone change. - Optional
+ * @param {function} props.onTokenRefreshStart - The callback function called when token refresh starts. - Optional
+ * @param {function} props.onTokenRefreshSuccess - The callback function called when token refresh succeeds. - Optional
+ * @param {function} props.onTokenRefreshError - The callback function called when token refresh fails. - Optional
  * @param {ReactNode} props.children - The child components. - Optional
  * @returns {JSX.Element} The rendered CalProvider component.
  */
@@ -35,6 +38,9 @@ export function CalProvider({
   labels,
   language = "en",
   onTimezoneChange,
+  onTokenRefreshStart,
+  onTokenRefreshSuccess,
+  onTokenRefreshError,
   version = VERSION_2024_06_14,
   organizationId,
   isEmbed = false,
@@ -59,6 +65,9 @@ export function CalProvider({
         isEmbed={isEmbed}
         autoUpdateTimezone={autoUpdateTimezone}
         onTimezoneChange={onTimezoneChange}
+        onTokenRefreshStart={onTokenRefreshStart}
+        onTokenRefreshSuccess={onTokenRefreshSuccess}
+        onTokenRefreshError={onTokenRefreshError}
         clientId={clientId}
         accessToken={accessToken}
         options={options}

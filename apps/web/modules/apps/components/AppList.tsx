@@ -36,6 +36,8 @@ interface AppListProps {
   data: RouterOutputs["viewer"]["apps"]["integrations"];
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
+  appCardClassName?: string;
+  appCardMenuClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
@@ -51,6 +53,8 @@ export const AppList = ({
   handleDisconnect,
   variant,
   listClassName,
+  appCardClassName,
+  appCardMenuClassName,
   defaultConferencingApp,
   handleUpdateUserDefaultConferencingApp,
   handleBulkUpdateDefaultLocation,
@@ -85,6 +89,7 @@ export const AppList = ({
         slug={item.slug}
         invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
         credentialOwner={item?.credentialOwner}
+        className={appCardClassName}
         actions={
           !item.credentialOwner?.readOnly ? (
             <div className="flex justify-end">
@@ -92,7 +97,7 @@ export const AppList = ({
                 <DropdownMenuTrigger asChild>
                   <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className={appCardMenuClassName}>
                   {!appIsDefault && variant === "conferencing" && (
                     <DropdownMenuItem>
                       <DropdownItem
