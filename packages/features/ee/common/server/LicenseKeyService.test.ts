@@ -152,7 +152,7 @@ describe("LicenseKeyService", () => {
     it("should fetch license validity from API if not cached", async () => {
       const url = `${baseUrl}/v1/license/${licenseKey}`;
       vi.mocked(cache.get).mockReturnValue(null);
-      const mockResponse = { status: true };
+      const mockResponse = { valid: true };
       const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
         json: vi.fn().mockResolvedValue(mockResponse),
       } as any);
