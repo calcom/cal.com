@@ -10,6 +10,7 @@ type MockCredential = {
   userId: number | null;
   user: { email: string; name: string | null } | null;
   key: { access_token: string };
+  encryptedKey: string | null;
   invalid: boolean | null;
   teamId: number | null;
   team: { name: string } | null;
@@ -28,6 +29,7 @@ const createMockCredential = (overrides: Partial<MockCredential> = {}): MockCred
   team: null,
   user: { email: "test@example.com", name: "Test User" },
   key: { access_token: "mock_token_123" },
+  encryptedKey: null,
   delegationCredentialId: "delegation-123",
   appId: "google-calendar",
   invalid: false,
