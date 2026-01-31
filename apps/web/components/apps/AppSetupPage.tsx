@@ -5,6 +5,7 @@ import { DynamicComponent } from "@calcom/app-store/_components/DynamicComponent
 export const AppSetupMap = {
   alby: dynamic(() => import("@calcom/web/components/apps/alby/Setup")),
   "apple-calendar": dynamic(() => import("@calcom/web/components/apps/applecalendar/Setup")),
+  bigbluebutton: dynamic(() => import("@calcom/web/components/apps/bigbluebutton/Setup")),
   exchange: dynamic(() => import("@calcom/web/components/apps/exchangecalendar/Setup")),
   "exchange2013-calendar": dynamic(() => import("@calcom/web/components/apps/exchange2013calendar/Setup")),
   "exchange2016-calendar": dynamic(() => import("@calcom/web/components/apps/exchange2016calendar/Setup")),
