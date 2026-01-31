@@ -943,6 +943,19 @@ export async function handleExistingUsersInvites({
 
         // If auto-accepting into org, also accept any pending sub-team memberships
         if (shouldAutoAccept) {
+          const pendingSubTeamMemberships = await prisma.membership.findMany({
+            where: {
+              userId: user.id,
+              accepted: false,
+              team: {
+                parentId: organization.id,
+              },
+            },
+            select: {
+              teamId: true,
+            },
+          });
+
           await prisma.membership.updateMany({
             where: {
               userId: user.id,
@@ -955,6 +968,18 @@ export async function handleExistingUsersInvites({
               accepted: true,
             },
           });
+
+          const subTeamIds = pendingSubTeamMemberships.map((m) => m.teamId);
+          if (subTeamIds.length > 0) {
+            const results = await Promise.allSettled(
+              subTeamIds.map((teamId) => updateNewTeamMemberEventTypes(user.id, teamId))
+            );
+            results.forEach((result) => {
+              if (result.status === "rejected") {
+                log.error("Error updating new team member event types for user in sub-team", result.reason);
+              }
+            });
+          }
         }
         return {
           ...user,
