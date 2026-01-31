@@ -192,9 +192,9 @@ export class PlatformOrganizationBillingTaskService implements PlatformOrganizat
       endDate
     );
 
-    const activeHostEmails = activeManagedUserEmailsAsHost.map((user) => user.email);
+    const activeHostEmailsSet = new Set(activeManagedUserEmailsAsHost.map((user) => user.email));
     const notActiveHostEmails = managedUsersEmails
-      .filter((user) => !activeHostEmails.includes(user.email))
+      .filter((user) => !activeHostEmailsSet.has(user.email))
       .map((user) => user.email);
 
     let activeCount = activeManagedUserEmailsAsHost.length;

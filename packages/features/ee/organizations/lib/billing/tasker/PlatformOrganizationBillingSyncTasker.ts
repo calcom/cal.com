@@ -62,7 +62,7 @@ export class PlatformOrganizationBillingSyncTasker implements IPlatformOrganizat
   ): Promise<{ runId: string }> {
     const runId = `sync_${nanoid(10)}`;
     await this.dependencies.billingTaskService.invoiceActiveManagedUsers(payload);
-    this.dependencies.logger.info("Invoiced active managed users in sync mode", runId, payload);
+    this.dependencies.logger.info("Invoiced active managed users in sync mode", runId);
     return { runId };
   }
 }

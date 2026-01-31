@@ -68,7 +68,7 @@ export const cronCountActiveManagedUsers = schedules.task({
       orgIds,
       periodStart: new Date(periodStart * 1000).toISOString(),
       periodEnd: new Date(periodEnd * 1000).toISOString(),
-      billingEmail,
+      hasBillingEmail: Boolean(billingEmail),
       pricePerUserInCents,
       currency,
       hasExistingCustomer: Boolean(stripeCustomerId),
