@@ -2051,6 +2051,11 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
             reasonEnum: true,
           },
         },
+        routedFromRoutingFormReponse: {
+          select: {
+            formId: true,
+          },
+        },
       },
     });
   }
