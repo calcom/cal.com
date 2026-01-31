@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
@@ -51,8 +51,10 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
@@ -82,6 +84,10 @@ const querySchema = z.object({
   rating: z.string().optional(),
   noShow: stringToBoolean,
   redirect_status: z.string().optional(),
+});
+
+const verificationSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
 });
 
 const useBrandColors = ({
@@ -164,7 +170,7 @@ export default function Success(props: PageProps) {
   const [is24h, setIs24h] = useState(
     props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
   );
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const isHost = props.isLoggedInUserHost;
 
   const [showUtmParams, setShowUtmParams] = useState(false);
@@ -197,12 +203,17 @@ export default function Success(props: PageProps) {
   const currentUserEmail =
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
+    searchParams?.get("email") ??
     session?.user?.email ??
     undefined;
 
   const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [showVerificationDialog, setShowVerificationDialog] = useState<boolean>(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>("");
+  const [verificationError, setVerificationError] = useState<string>("");
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -453,6 +464,79 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  const emailParam = useMemo(() => {
+    return searchParams.get("email");
+  }, [searchParams]);
+
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
+
+  const { data: emailVerificationResult, isLoading: isVerifyingEmailParam } =
+    trpc.viewer.public.verifyBookingEmail.useQuery(
+      { bookingUid: bookingInfo.uid, email: emailParam ?? "" },
+      { enabled: !!emailParam && !session }
+    );
+
+  useEffect(() => {
+    if (emailVerificationResult?.isValid) {
+      setIsEmailVerified(true);
+    }
+  }, [emailVerificationResult]);
+
+  useEffect(() => {
+    if (sessionStatus === "loading" || isVerifyingEmailParam) return;
+
+    const needsVerification = !session && (!emailParam || !emailVerificationResult?.isValid);
+
+    setShowVerificationDialog((prev) => {
+      if (prev === needsVerification) return prev;
+      return needsVerification;
+    });
+  }, [session, sessionStatus, emailParam, emailVerificationResult, isVerifyingEmailParam]);
+
+  const updateSearchParams = useCallback(
+    (email: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("email", email);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams]
+  );
+
+  const verifyEmailMutation = trpc.viewer.public.verifyBookingEmail.useQuery(
+    { bookingUid: bookingInfo.uid, email: verificationEmail },
+    { enabled: false }
+  );
+
+  const handleVerification = async () => {
+    setVerificationError("");
+
+    const parsed = verificationSchema.safeParse({ email: verificationEmail });
+    if (!parsed.success) {
+      setVerificationError(parsed.error.errors[0].message);
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const result = await verifyEmailMutation.refetch();
+      if (result.data?.isValid) {
+        setIsEmailVerified(true);
+        updateSearchParams(verificationEmail);
+        setShowVerificationDialog(false);
+      } else {
+        setVerificationError(t("verification_email_error"));
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const showBookingInfo = useMemo(() => {
+    if (session) return true;
+    if (!emailParam) return false;
+    return isEmailVerified || emailVerificationResult?.isValid;
+  }, [session, emailParam, isEmailVerified, emailVerificationResult]);
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -481,7 +565,8 @@ export default function Success(props: PageProps) {
       <BookingPageTagManager
         eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
       />
-      <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
+      {showBookingInfo ? (
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           <div
             className={classNames(
@@ -1147,6 +1232,44 @@ export default function Success(props: PageProps) {
           </div>
         </div>
       </main>
+      ) : (
+        <Dialog
+          open={showVerificationDialog}
+          onOpenChange={() => {
+            setShowVerificationDialog;
+          }}
+          data-testid="verify-email-dialog">
+          <DialogContent
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}>
+            <DialogHeader title={t("verify_email")} />
+            <div className="space-y-4 py-4">
+              <p className="text-default text-sm">{t("verification_email_dialog_description")}</p>
+              <Input
+                data-testid="verify-email-input"
+                type="email"
+                placeholder={t("verification_email_input_placeholder")}
+                value={verificationEmail}
+                onChange={(e) => setVerificationEmail(e.target.value)}
+                className="mb-2"
+              />
+              {verificationError && (
+                <p data-testid="verify-email-error" className="text-error text-sm">
+                  {verificationError}
+                </p>
+              )}
+              <div className="flex justify-end space-x-2">
+                <Button
+                  onClick={handleVerification}
+                  disabled={isVerifying}
+                  data-testid="verify-email-trigger">
+                  {t("verify")}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       <Toaster position="bottom-right" />
     </div>
   );

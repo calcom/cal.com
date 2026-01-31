@@ -2067,4 +2067,24 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
       data: { isRecorded },
     });
   }
+
+  async findByUidIncludeUserEmailAndAttendeeEmails({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }
