@@ -27,7 +27,7 @@ const mockOfficeGetAvailabilityWithTimeZones = vi.fn().mockResolvedValue([]);
 vi.mock("@calcom/app-store/calendar.services.generated", () => {
   return {
     CalendarServiceMap: {
-      googlecalendar: Promise.resolve({
+      googlecalendar: () => Promise.resolve({
         default: (credential: { id: number }) => ({
           getCredentialId: () => credential.id,
           createEvent: vi.fn().mockResolvedValue({}),
@@ -38,7 +38,7 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => {
           listCalendars: vi.fn().mockResolvedValue([]),
         }),
       }),
-      office365calendar: Promise.resolve({
+      office365calendar: () => Promise.resolve({
         default: (credential: { id: number }) => ({
           getCredentialId: () => credential.id,
           createEvent: vi.fn().mockResolvedValue({}),

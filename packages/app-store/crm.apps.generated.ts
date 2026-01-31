@@ -3,10 +3,10 @@
     Don't modify this file manually.
 **/
 export const CrmServiceMap = {
-  closecom: import("./closecom/lib/CrmService"),
-  hubspot: import("./hubspot/lib/CrmService"),
-  "pipedrive-crm": import("./pipedrive-crm/lib/CrmService"),
-  salesforce: import("./salesforce/lib/CrmService"),
-  "zoho-bigin": import("./zoho-bigin/lib/CrmService"),
-  zohocrm: import("./zohocrm/lib/CrmService"),
+"closecom": { ...{"name":"closecom","slug":"closecom","type":"closecom_crm","variant":"crm","categories":["crm"],"dirName":"closecom"}, modulePath: "./closecom/lib/CrmService", fetch: () => import("./closecom/lib/CrmService") },
+"hubspot": { ...{"name":"hubspot","slug":"hubspot","type":"hubspot_crm","variant":"crm","categories":["crm"],"dirName":"hubspot"}, modulePath: "./hubspot/lib/CrmService", fetch: () => import("./hubspot/lib/CrmService") },
+"pipedrive-crm": { ...{"name":"pipedrive-crm","slug":"pipedrive-crm","type":"pipedrive-crm_crm","variant":"crm","categories":["crm"],"dirName":"pipedrive-crm"}, modulePath: "./pipedrive-crm/lib/CrmService", fetch: () => import("./pipedrive-crm/lib/CrmService") },
+"salesforce": { ...{"name":"salesforce","slug":"salesforce","type":"salesforce_crm","variant":"crm","categories":["crm"],"dirName":"salesforce"}, modulePath: "./salesforce/lib/CrmService", fetch: () => import("./salesforce/lib/CrmService") },
+"zoho-bigin": { ...{"name":"zoho-bigin","slug":"zoho-bigin","type":"zoho-bigin_crm","variant":"crm","categories":["crm"],"dirName":"zoho-bigin"}, modulePath: "./zoho-bigin/lib/CrmService", fetch: () => import("./zoho-bigin/lib/CrmService") },
+"zohocrm": { ...{"name":"zohocrm","slug":"zohocrm","type":"zohocrm_crm","variant":"crm","categories":["crm"],"dirName":"zohocrm"}, modulePath: "./zohocrm/lib/CrmService", fetch: () => import("./zohocrm/lib/CrmService") },
 };

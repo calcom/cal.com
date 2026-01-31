@@ -16,16 +16,20 @@ export const getAnalyticsService = async ({
 
   const analyticsName = analyticsType.split("_")[0];
 
-  const analyticsAppImportFn = AnalyticsServiceMap[analyticsName as keyof typeof AnalyticsServiceMap];
+  const analyticsAppGetter = AnalyticsServiceMap[analyticsName as keyof typeof AnalyticsServiceMap];
 
-  if (!analyticsAppImportFn) {
+  if (!analyticsAppGetter) {
     log.warn(`analytics app not implemented`);
     return null;
   }
 
-  const analyticsApp = await analyticsAppImportFn;
+  const analyticsApp = await (typeof (analyticsAppGetter as any).fetch === "function"
+    ? (analyticsAppGetter as any).fetch()
+    : typeof analyticsAppGetter === "function"
+      ? (analyticsAppGetter as any)()
+      : analyticsAppGetter);
 
-  const createAnalyticsService = analyticsApp.default;
+  const createAnalyticsService = analyticsApp.default || analyticsApp;
 
   if (!createAnalyticsService || typeof createAnalyticsService !== "function") {
     log.warn(`analytics of type ${analyticsType} is not implemented`);
