@@ -628,12 +628,8 @@ const Hosts = ({
   setAssignAllTeamMembers,
   customClassNames,
   isSegmentApplicable,
-<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
   EditWeightsForAllTeamMembersComponent,
-||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
-=======
   hideFixedHostsForCollective = false,
->>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
 }: {
   orgId: number | null;
   teamId: number;
@@ -642,12 +638,8 @@ const Hosts = ({
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
-<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
   EditWeightsForAllTeamMembersComponent?: React.ComponentType<EditWeightsForAllTeamMembersProps>;
-||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
-=======
   hideFixedHostsForCollective?: boolean;
->>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
 }) => {
   const {
     control,
@@ -761,12 +753,8 @@ export const EventTeamAssignmentTab = ({
   customClassNames,
   orgId,
   isSegmentApplicable,
-<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
   EditWeightsForAllTeamMembersComponent,
-||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
-=======
   hideFixedHostsForCollective = false,
->>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -976,12 +964,8 @@ export const EventTeamAssignmentTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
-<<<<<<< HEAD:packages/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab.tsx
             EditWeightsForAllTeamMembersComponent={EditWeightsForAllTeamMembersComponent}
-||||||| b02af9ae53:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
-=======
             hideFixedHostsForCollective={hideFixedHostsForCollective}
->>>>>>> origin/main:apps/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab.tsx
           />
         </>
       )}
