@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import { mergeWithEnglishFallback } from "./i18n";
+import { mergeWithEnglishFallback, loadTranslations } from "./i18n";
 
 describe("mergeWithEnglishFallback", () => {
   it("should merge locale translations with English fallback", () => {
@@ -80,5 +80,86 @@ describe("mergeWithEnglishFallback", () => {
     expect(Object.keys(result).length).toBeGreaterThan(100);
     expect(Object.keys(result)).toContain("italian_greeting");
     expect(Object.keys(result)).toContain("italian_phrase");
+  });
+
+  describe("with booking namespace", () => {
+    it("should use booking namespace English translations when ns is 'booking'", () => {
+      const localeTranslations = {
+        nameless_team: "Equipo sin nombre",
+      };
+
+      const result = mergeWithEnglishFallback(localeTranslations, "booking");
+
+      expect(result.nameless_team).toBe("Equipo sin nombre");
+      expect(result).toHaveProperty("book_a_team_member");
+      expect(result).toHaveProperty("round_robin");
+      expect(result).toHaveProperty("collective");
+    });
+
+    it("should fallback to common namespace English translations for unknown namespace", () => {
+      const localeTranslations = {};
+
+      const result = mergeWithEnglishFallback(localeTranslations, "unknown_namespace");
+
+      expect(result).toHaveProperty("welcome");
+      expect(result).toHaveProperty("cancel");
+    });
+
+    it("should use common namespace by default when ns is not provided", () => {
+      const localeTranslations = {};
+
+      const result = mergeWithEnglishFallback(localeTranslations);
+
+      expect(result).toHaveProperty("welcome");
+      expect(result).toHaveProperty("cancel");
+      expect(Object.keys(result).length).toBeGreaterThan(100);
+    });
+  });
+});
+
+describe("loadTranslations", () => {
+  it("should load English translations for 'en' locale with common namespace", async () => {
+    const translations = await loadTranslations("en", "common");
+
+    expect(translations).toHaveProperty("welcome");
+    expect(translations).toHaveProperty("cancel");
+    expect(Object.keys(translations).length).toBeGreaterThan(100);
+  });
+
+  it("should load English translations for 'en' locale with booking namespace", async () => {
+    const translations = await loadTranslations("en", "booking");
+
+    expect(translations).toHaveProperty("nameless_team");
+    expect(translations).toHaveProperty("book_a_team_member");
+    expect(translations).toHaveProperty("round_robin");
+    expect(translations).toHaveProperty("collective");
+    expect(translations).toHaveProperty("team_is_unpublished");
+  });
+
+  it("should fallback to common namespace for unsupported namespace", async () => {
+    const translations = await loadTranslations("en", "invalid_namespace");
+
+    expect(translations).toHaveProperty("welcome");
+    expect(translations).toHaveProperty("cancel");
+  });
+
+  it("should normalize 'zh' locale to 'zh-CN'", async () => {
+    const translations = await loadTranslations("zh", "common");
+
+    expect(translations).toHaveProperty("welcome");
+  });
+
+  it("should fallback to English for unsupported locale", async () => {
+    const translations = await loadTranslations("unsupported_locale", "common");
+
+    expect(translations).toHaveProperty("welcome");
+    expect(translations).toHaveProperty("cancel");
+  });
+
+  it("should cache translations and return same result on subsequent calls", async () => {
+    const firstCall = await loadTranslations("en", "booking");
+    const secondCall = await loadTranslations("en", "booking");
+
+    expect(firstCall).toBe(secondCall);
   });
 });
