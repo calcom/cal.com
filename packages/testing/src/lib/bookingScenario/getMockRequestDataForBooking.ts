@@ -1,8 +1,7 @@
 import { getDate } from "./bookingScenario";
-
-import type { Tracking } from "../types";
 import type { SchedulingType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
+import type { Tracking } from "../types";
 
 export const DEFAULT_TIMEZONE_BOOKER = "Asia/Kolkata";
 export function getBasicMockRequestDataForBooking() {

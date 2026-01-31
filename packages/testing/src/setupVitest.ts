@@ -1,9 +1,9 @@
+import process from "node:process";
+import type { CalendarService } from "@calcom/types/Calendar";
 import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
-import { vi, expect } from "vitest";
+import { expect, vi } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
-
-import type { CalendarService } from "@calcom/types/Calendar";
 
 global.ResizeObserver = ResizeObserver;
 
@@ -32,7 +32,6 @@ fetchMocker.enableMocks();
 expect.extend(matchers);
 
 class MockExchangeCalendarService implements CalendarService {
-  constructor() {}
   async createEvent() {
     return {
       uid: "mock",
@@ -181,7 +180,6 @@ vi.mock("@calcom/app-store/payment.services.generated", () => ({
 }));
 
 class MockCrmService {
-  constructor() {}
   async createEvent() {
     return [];
   }

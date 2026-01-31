@@ -1,7 +1,8 @@
 import child_process from "node:child_process";
+import process from "node:process";
 
 const execSync = async (cmd: string) => {
-  const silent = process.env.DEBUG === "1" ? false : true;
+  const silent = process.env.DEBUG !== "1";
   if (!silent) {
     console.log(`${process.cwd()}$: ${cmd}`);
   }
