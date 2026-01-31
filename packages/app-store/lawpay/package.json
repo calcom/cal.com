@@ -1,0 +1,13 @@
+{
+  "name": "@calcom/lawpay",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
