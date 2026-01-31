@@ -8,6 +8,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -48,6 +49,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     })
     .parse(body);
 
+  const userRepository = new UserRepository(prisma);
   const billingService = getBillingProviderService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
@@ -88,10 +90,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     });
 
     if (foundToken?.teamId) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-        select: { invitedTo: true },
-      });
+      const existingUser = await userRepository.findByEmailWithInvitedTo({ email });
       if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
@@ -182,13 +181,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
 
       if (username) {
-        const existingUserByUsername = await prisma.user.findFirst({
-          where: {
-            username,
-            organizationId,
-            NOT: { email },
-          },
-          select: { id: true },
+        const existingUserByUsername = await userRepository.findByUsernameAndOrganizationId({
+          username,
+          organizationId,
+          excludeEmail: email,
         });
         if (existingUserByUsername) {
           return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
@@ -197,29 +193,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
       let user: { id: number };
       try {
-        user = await prisma.user.upsert({
-          where: { email },
-          update: {
-            username,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: {
-              upsert: {
-                create: { hash: hashedPassword },
-                update: { hash: hashedPassword },
-              },
-            },
-            organizationId,
-          },
-          create: {
-            username,
-            email,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
-            organizationId,
-          },
-          select: { id: true },
+        user = await userRepository.upsertForSignup({
+          email,
+          username: username,
+          hashedPassword,
+          organizationId,
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
@@ -253,19 +231,20 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     });
   } else {
     // Create the user
+
     try {
-      await prisma.user.create({
-        data: {
-          username,
-          email,
-          locked: shouldLockByDefault,
-          password: { create: { hash: hashedPassword } },
-          metadata: {
-            stripeCustomerId: customer.stripeCustomerId,
-            checkoutSessionId,
-          },
-          creationSource: CreationSource.WEBAPP,
+      await userRepository.create({
+        username,
+        email,
+        locked: shouldLockByDefault,
+        hashedPassword,
+        identityProvider: IdentityProvider.CAL,
+        metadata: {
+          stripeCustomerId: customer.stripeCustomerId,
+          checkoutSessionId,
         },
+        creationSource: CreationSource.WEBAPP,
+        organizationId: null,
       });
     } catch (error) {
       // Fallback for race conditions where user was created between our check and create
