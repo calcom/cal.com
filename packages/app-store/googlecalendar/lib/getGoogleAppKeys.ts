@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodError } from "zod";
 
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 
@@ -9,5 +9,22 @@ const googleAppKeysSchema = z.object({
 });
 
 export const getGoogleAppKeys = async () => {
-  return getParsedAppKeysFromSlug("google-calendar", googleAppKeysSchema);
+  try {
+    return await getParsedAppKeysFromSlug(
+      "google-calendar",
+      googleAppKeysSchema
+    );
+  } catch (error) {
+    if (!(error instanceof ZodError)) {
+      throw error;
+    }
+
+    const envCredentials = process.env.GOOGLE_API_CREDENTIALS;
+    if (!envCredentials) {
+      throw error;
+    }
+
+    const parsed = JSON.parse(envCredentials);
+    return googleAppKeysSchema.parse(parsed);
+  }
 };
