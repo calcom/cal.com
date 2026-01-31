@@ -406,7 +406,7 @@ export const EventSetupTab = (
             </div>
           </div>
         </Tooltip>
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && !isPlatform && (
           <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />
         )}
       </div>

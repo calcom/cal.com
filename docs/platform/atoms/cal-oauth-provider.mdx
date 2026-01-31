@@ -1,0 +1,47 @@
+---
+title: "Cal OAuth Provider"
+---
+
+Cal OAuth Provider is used to setup Cal Atoms within your app after your users have authenticated using your Cal OAuth 2.0 client.
+
+Your users will have authenticated with your Cal OAuth client and you will have access to their access tokens, which
+the Cal Atoms will use to manage their event type settings, availability, etc. within your app.
+
+It is used in the root of your app, be it _app.js or _app.tsx in case of
+Next.js or App.js or App.ts in case of React. Here is an example:
+
+
+```js
+import "@calcom/atoms/globals.min.css";
+import { CalOAuthProvider } from '@calcom/atoms';
+
+function MyApp({ Component, pageProps }) {
+  const accessToken = "user-oauth-access-token";
+
+  return (
+    <CalOAuthProvider
+      accessToken={accessToken}
+      clientId={process.env.CAL_OAUTH2_CLIENT_ID ?? ""}
+      options={{
+        apiUrl: process.env.CAL_API_URL ?? "https://api.cal.com/v2",
+        refreshUrl: process.env.REFRESH_URL
+      }}
+    >
+      <Component {...pageProps} />
+    </CalOAuthProvider>
+  );
+}
+
+export default MyApp;
+```
+
+Below is a list of props that can be passed to the Cal OAuth Provider.
+
+| Name                       | Required | Description                                                                                           |
+|:----------------------------|:----------|:-------------------------------------------------------------------------------------------------------|
+| clientId                   | Yes      | Your OAuth2 client ID                                                                          |
+| options                    | Yes       | Configuration options - `apiUrl` (should be https://api.cal.com/v2) and `refreshUrl` (URL of endpoint you have to build that to which atoms will send expired access tokens and receive new one in return. Read how to set it up [here](https://cal.com/docs/platform/quickstart#4-backend%3A-setting-up-a-refresh-token-endpoint)) and `readingDirection` (defaults to "ltr" but can also pass "rtl" which will change direction of UI components)                                                 |
+| accessToken                | Yes       | The access token of your user for whom cal handles scheduling.                                                                |
+| autoUpdateTimezone         | No       | Whether to automatically update managed user timezone (default: true)                                          |
+| language                   | No       | Language code (default: "en") - available languages: "en", "de", "fr", "it", "nl", "pt-BR", "es"                                                                          |
+| organizationId             | No       | ID of your organization                                                                                |

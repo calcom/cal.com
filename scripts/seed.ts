@@ -17,7 +17,7 @@ import type z from "zod";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createUserAndEventType } from "./seed-utils";
+import { createOAuthClientForUser, createUserAndEventType } from "./seed-utils";
 
 type PlatformUser = {
   email: string;
@@ -1036,7 +1036,7 @@ async function main() {
     },
   });
 
-  await createUserAndEventType({
+  const admin = await createUserAndEventType({
     user: {
       email: "admin@example.com",
       /** To comply with admin password requirements  */
@@ -1046,6 +1046,21 @@ async function main() {
       role: "ADMIN",
     },
   });
+
+  const clientId = process.env.SEED_OAUTH2_CLIENT_ID;
+  const clientSecret = process.env.SEED_OAUTH2_CLIENT_SECRET_HASHED;
+
+  if (clientId && clientSecret) {
+    await createOAuthClientForUser(admin.id, {
+      clientId,
+      clientSecret,
+      name: "atoms examples app oauth 2 client",
+      purpose: "test atoms examples app with oauth 2",
+      redirectUri: "http://localhost:4321",
+      websiteUrl: "http://localhost:4321",
+      enablePkce: false,
+    });
+  }
 
   await createPlatformAndSetupUser({
     teamInput: {
