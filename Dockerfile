@@ -41,8 +41,11 @@ COPY apps/api/v2 ./apps/api/v2
 COPY packages ./packages
 
 RUN yarn config set httpTimeout 1200000
+# Limit network concurrency to reduce memory usage during install
+RUN yarn config set networkConcurrency 4
 RUN npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
-RUN yarn install
+# Use --inline-builds to reduce memory spikes from parallel native module builds
+RUN yarn install --inline-builds
 # Build and make embed servable from web/public/embed folder
 RUN yarn workspace @calcom/trpc run build
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build
