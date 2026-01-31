@@ -6,6 +6,7 @@ import {
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
+import { getBatchCalendarEvents } from "@calcom/features/calendars/lib/getBatchCalendarEvents";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
@@ -89,6 +90,7 @@ type GetUserAvailabilityParams = {
   bypassBusyCalendarTimes?: boolean;
   silentlyHandleCalendarFailures?: boolean;
   mode?: CalendarFetchMode;
+  connectedCalendarsBusyTimes?: EventBusyDetails[];
 };
 
 interface GetUserAvailabilityParamsDTO {
@@ -356,6 +358,7 @@ export class UserAvailabilityService {
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
       mode = "none",
+      connectedCalendarsBusyTimes,
     } = params;
 
     log.debug(
@@ -596,6 +599,7 @@ export class UserAvailabilityService {
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures,
+        connectedCalendarsBusyTimes,
         mode,
       });
     } catch (error) {
@@ -737,24 +741,131 @@ export class UserAvailabilityService {
       throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
     }
 
+    let eventType: EventType | null = initialData?.eventType || null;
+    if (!eventType && params.eventTypeId) {
+      eventType = await this.getEventType(params.eventTypeId);
+    }
+
+    let connectedCalendarsBusyTimesMap: Record<string, EventBusyDetails[]> = {};
+
+    if (!params.bypassBusyCalendarTimes) {
+      const uniqueCredentialsMap = new Map<
+        string,
+        { credential: CredentialForCalendarService; externalIds: Set<string> }
+      >();
+
+      for (const user of users) {
+        if (!user) continue;
+        const selectedCalendars = eventType?.useEventLevelSelectedCalendars
+          ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType?.id)
+          : user.userLevelSelectedCalendars;
+
+        if (!selectedCalendars || selectedCalendars.length === 0) continue;
+
+        // Group by credential
+        selectedCalendars.forEach((sc) => {
+          if (!sc.credentialId) return;
+          // Find the credential object
+          let credential = user.credentials.find((c) => c.id === sc.credentialId);
+
+          const isCredentialInvalid =
+            !credential ||
+            !credential.key ||
+            (typeof credential.key === "object" && Object.keys(credential.key).length === 0);
+
+          // Fallback: If not found by ID OR found but invalid (e.g. empty pointer), try matching by type (DWD fallback)
+          if (isCredentialInvalid && sc.integration) {
+            credential = user.credentials.find((c) => c.type === sc.integration);
+          }
+
+          const isStillInvalid =
+            !credential ||
+            !credential.key ||
+            (typeof credential.key === "object" && Object.keys(credential.key).length === 0);
+
+          if (isStillInvalid || !credential) return;
+
+          // If delegation is enabled, group by delegatedToId
+          const delegationId = credential.delegationCredentialId || credential.delegatedToId;
+          const groupingKey = delegationId ? `delegation-${delegationId}` : `credential-${credential.id}`;
+
+          if (!uniqueCredentialsMap.has(groupingKey)) {
+            uniqueCredentialsMap.set(groupingKey, { credential, externalIds: new Set() });
+          }
+          uniqueCredentialsMap.get(groupingKey)?.externalIds.add(sc.externalId);
+        });
+      }
+
+      if (uniqueCredentialsMap.size > 0) {
+        log.debug(
+          `_getUsersAvailability: Grouped ${users.length} users into ${uniqueCredentialsMap.size} unique credential batches (Source: ${params.withSource ? "yes" : "no"})`
+        );
+
+        const batchRequests = Array.from(uniqueCredentialsMap.values()).map(
+          ({ credential, externalIds }) => ({
+            credential,
+            externalIds: Array.from(externalIds),
+          })
+        );
+
+        connectedCalendarsBusyTimesMap = await getBatchCalendarEvents(
+          batchRequests,
+          params.dateFrom.toISOString(),
+          params.dateTo.toISOString(),
+          params.mode as CalendarFetchMode
+        );
+      }
+    }
+
     return await Promise.all(
-      users.map((user) =>
-        this._getUserAvailability(
+      users.map((user) => {
+        let userConnectedCalendarsBusyTimes: EventBusyDetails[] | undefined;
+
+        if (!params.bypassBusyCalendarTimes) {
+          const selectedCalendars = eventType?.useEventLevelSelectedCalendars
+            ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType?.id)
+            : user.userLevelSelectedCalendars;
+
+          if (selectedCalendars && selectedCalendars.length > 0) {
+            userConnectedCalendarsBusyTimes = [];
+            selectedCalendars.forEach((sc) => {
+              // Ensure we don't accidentally fall back to a pointer's individual fetch later
+              const credential = user.credentials.find((c) => c.id === sc.credentialId);
+              const isInvalid =
+                !credential ||
+                !credential.key ||
+                (typeof credential.key === "object" && Object.keys(credential.key).length === 0);
+
+              // If it's invalid and we didn't map it to a DWD in the batch, skip it entirely
+              const times = connectedCalendarsBusyTimesMap[sc.externalId];
+              if (times) {
+                userConnectedCalendarsBusyTimes?.push(...times);
+              } else if (isInvalid) {
+                // By doing nothing here, we leave it in the "resolved as empty" state,
+                // which prevents the getBusyTimes individual fetch fallback.
+              }
+            });
+          }
+        }
+
+        return this._getUserAvailability(
           {
             ...params,
             userId: user.id,
             username: user.username || "",
+            connectedCalendarsBusyTimes: userConnectedCalendarsBusyTimes,
           },
           initialData
             ? {
                 ...initialData,
                 user,
+                eventType, // Pass the fetched eventType to avoid re-fetching
                 currentBookings: user.currentBookings,
                 outOfOfficeDays: user.outOfOfficeDays,
               }
-            : undefined
-        )
-      )
+            : ({ user, eventType } as unknown as GetUserAvailabilityInitialData) // Cast if necessary, or better construct object
+        );
+      })
     );
   }
 

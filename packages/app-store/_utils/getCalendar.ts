@@ -9,7 +9,6 @@ import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { Calendar, CalendarFetchMode } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { CalendarServiceMap } from "../calendar.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
@@ -18,7 +17,12 @@ export const getCalendar = async (
   credential: CredentialForCalendarService | null,
   mode: CalendarFetchMode = "none"
 ): Promise<Calendar | null> => {
-  if (!credential || !credential.key) return null;
+  if (
+    !credential ||
+    !credential.key ||
+    (typeof credential.key === "object" && Object.keys(credential.key).length === 0)
+  )
+    return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
     calendarType = calendarType.split("_other_calendar")[0];
