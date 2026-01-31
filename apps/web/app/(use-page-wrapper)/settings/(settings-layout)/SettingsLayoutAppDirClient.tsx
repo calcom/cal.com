@@ -30,7 +30,7 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, ChevronDownIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -602,9 +602,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" className="h-4 w-4" />
+                        <ChevronDownIcon className="h-4 w-4" />
                       ) : (
-                        <Icon name="chevron-right" className="h-4 w-4" />
+                        <ChevronRightIcon className="h-4 w-4" />
                       )}
                     </div>
                     {}
@@ -949,9 +949,9 @@ const SettingsSidebarContainer = ({
                                   }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
+                                      <ChevronDownIcon className="h-4 w-4" />
                                     ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                      <ChevronRightIcon className="h-4 w-4" />
                                     )}
                                   </div>
                                   {}
@@ -1036,7 +1036,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <Icon name="arrow-left" className="text-default h-4 w-4" />
+            <ArrowLeftIcon className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
