@@ -68,7 +68,7 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
-const isGaxiosResponse= (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
 class GoogleCalendarService implements Calendar {
@@ -293,6 +293,45 @@ class GoogleCalendarService implements Calendar {
         }
       }
 
+      if (event && event.id) {
+        const hasOverlap = await this.checkForEventOverlap(
+          calendar,
+          selectedCalendar,
+          calEvent.startTime,
+          calEvent.endTime,
+          event.iCalUID || ""
+        );
+
+        if (hasOverlap) {
+          this.log.warn(
+            "Google Calendar event creation rolled back due to overlap with existing BUSY event",
+            safeStringify({
+              eventId: event.id,
+              iCalUID: event.iCalUID,
+              selectedCalendar,
+              startTime: calEvent.startTime,
+              endTime: calEvent.endTime,
+            })
+          );
+          try {
+            await calendar.events.delete({
+              calendarId: selectedCalendar,
+              eventId: recurringEventId || event.id,
+              sendNotifications: false,
+              sendUpdates: "none",
+            });
+          } catch (deleteError) {
+            this.log.error(
+              "Failed to delete overlapping event during rollback",
+              safeStringify({ deleteError, eventId: event.id })
+            );
+          }
+          throw new Error(
+            "Google Calendar event creation rolled back due to overlap with an existing busy event"
+          );
+        }
+      }
+
       if (event && event.id && event.hangoutLink) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
@@ -347,6 +386,60 @@ class GoogleCalendarService implements Calendar {
       return recurringEventInstances.data.items[0];
     } else {
       return {} as calendar_v3.Schema$Event;
+    }
+  }
+
+  private async checkForEventOverlap(
+    calendar: calendar_v3.Calendar,
+    calendarId: string,
+    startTime: string,
+    endTime: string,
+    createdEventICalUID: string
+  ): Promise<boolean> {
+    try {
+      const OVERLAP_LOOKBACK_MS = 24 * 60 * 60 * 1000; // 24 hours
+      const lookbackTime = new Date(new Date(startTime).getTime() - OVERLAP_LOOKBACK_MS).toISOString();
+
+      const eventsResponse = await calendar.events.list({
+        calendarId: calendarId,
+        timeMin: lookbackTime,
+        timeMax: endTime,
+        singleEvents: true,
+        showDeleted: false,
+        orderBy: "startTime",
+      });
+
+      const events = eventsResponse.data.items || [];
+      const eventStart = new Date(startTime).getTime();
+      const eventEnd = new Date(endTime).getTime();
+
+      for (const evt of events) {
+        if (evt.iCalUID === createdEventICalUID) {
+          continue;
+        }
+
+        if (evt.status === "cancelled") {
+          continue;
+        }
+
+        if (evt.transparency === "transparent") {
+          continue;
+        }
+
+        const evtStart = new Date(evt.start?.dateTime || evt.start?.date || "").getTime();
+        const evtEnd = new Date(evt.end?.dateTime || evt.end?.date || "").getTime();
+
+        const hasTimeOverlap = evtStart < eventEnd && evtEnd > eventStart;
+
+        if (hasTimeOverlap) {
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      this.log.error("Error checking for event overlap", safeStringify({ error }));
+      return false;
     }
   }
 
