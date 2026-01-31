@@ -565,6 +565,7 @@ class HubspotCalendarService implements CRM {
           firstname,
           lastname,
           email: attendee.email,
+          ...(attendee.phoneNumber ? { phone: attendee.phoneNumber } : {}),
         },
       };
     });
