@@ -161,7 +161,6 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
-            id: 1,
             slug: "parent-org",
             logoUrl: null,
             bannerUrl: null,
@@ -217,7 +216,6 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
-            id: 1,
             slug: "parent-org",
             logoUrl: null,
             bannerUrl: null,
@@ -268,9 +266,13 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
           brandColor: null,
           darkBrandColor: null,
           organization: {
+            name: "Test Organization",
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
+            id: 1,
+            slug: "test-org",
+            bannerUrl: null,
           },
           profile: {
             id: 1,
@@ -278,9 +280,13 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
             username: "testuser",
             organizationId: 1,
             organization: {
+              name: "Test Organization",
               organizationSettings: {
                 disableAutofillOnBookingPage: true,
               },
+              id: 1,
+              slug: "test-org",
+              bannerUrl: null,
             },
           },
         },
@@ -334,7 +340,6 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
             organizationSettings: {
               disableAutofillOnBookingPage: true,
             },
-            id: 1,
             slug: "parent-org",
             logoUrl: null,
             bannerUrl: null,
