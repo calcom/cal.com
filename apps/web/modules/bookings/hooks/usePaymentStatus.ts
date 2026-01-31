@@ -1,7 +1,8 @@
+import { useMemo } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { useMemo } from "react";
 
 interface Payment {
   success: boolean;
