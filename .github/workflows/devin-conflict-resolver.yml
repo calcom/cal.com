@@ -23,6 +23,12 @@ jobs:
       (github.event_name == 'pull_request_target' && github.event.label.name == 'devin-conflict-resolution') ||
       github.event_name == 'workflow_dispatch'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions/check-devin-session
+          sparse-checkout-cone-mode: false
+
       - name: Get PR details
         id: get-pr
         uses: actions/github-script@v7
@@ -110,6 +116,7 @@ jobs:
             fs.writeFileSync('/tmp/pr-data.json', JSON.stringify(prData));
             
             core.setOutput('pr-number', prNumber.toString());
+            core.setOutput('pr-body', pr.body || '');
             core.setOutput('has-pr', 'true');
             core.setOutput('mergeable-status', pr.mergeable || 'UNKNOWN');
             core.setOutput('has-conflicts', pr.mergeable === 'CONFLICTING' ? 'true' : 'false');
@@ -216,27 +223,26 @@ jobs:
             
             console.log(`Posted comment and removed label for PR #${prNumber}`);
 
-      - name: Checkout repository
-        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
-        uses: actions/checkout@v4
-
       - name: Check for existing Devin session
         if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
         id: check-session
-        uses: ./.github/actions/devin-session
+        uses: ./.github/actions/check-devin-session
         with:
-          devin-api-key: ${{ secrets.DEVIN_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-number: ${{ steps.get-pr.outputs.pr-number }}
+          pr_number: ${{ steps.get-pr.outputs.pr-number }}
+          pr_body: ${{ steps.get-pr.outputs.pr-body }}
+          devin_api_key: ${{ secrets.DEVIN_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          session_patterns: '["Devin AI is resolving merge conflicts", "Devin AI is addressing Cubic AI", "Devin AI is completing this stale PR"]'
+          max_session_age_days: "7"
 
       - name: Create Devin session for conflict resolution
         if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HAS_EXISTING_SESSION: ${{ steps.check-session.outputs.has-existing-session }}
-          EXISTING_SESSION_ID: ${{ steps.check-session.outputs.session-id }}
-          EXISTING_SESSION_URL: ${{ steps.check-session.outputs.session-url }}
+          HAS_VALID_SESSION: ${{ steps.check-session.outputs.has_valid_session }}
+          EXISTING_SESSION_ID: ${{ steps.check-session.outputs.session_id }}
+          EXISTING_SESSION_URL: ${{ steps.check-session.outputs.session_url }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -245,11 +251,12 @@ jobs:
             const pr = JSON.parse(fs.readFileSync('/tmp/pr-data.json', 'utf8'));
             const { owner, repo } = context.repo;
             
-            const hasExistingSession = process.env.HAS_EXISTING_SESSION === 'true';
+            const hasValidSession = process.env.HAS_VALID_SESSION === 'true';
             const existingSessionId = process.env.EXISTING_SESSION_ID;
             const existingSessionUrl = process.env.EXISTING_SESSION_URL;
             
             console.log(`Processing PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
+            console.log(`Has valid session: ${hasValidSession}, Session ID: ${existingSessionId}`);
             
             const forkInstructions = pr.is_fork ? `
             IMPORTANT: This PR is from a fork.
@@ -258,11 +265,15 @@ jobs:
             - Add the upstream remote for ${owner}/${repo}
             - Fetch and merge the upstream ${pr.base_ref} branch using standard git merge
             
+            IMPORTANT - Merge Commit Message:
+            The merge commit message MUST be exactly: Merge branch '${pr.base_ref}' into ${pr.head_ref}
+            This matches what GitHub's UI would produce. Do NOT use "upstream/${pr.base_ref}" in the commit message.
+            
             IMPORTANT - Pushing to Fork PRs:
             Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork.` : `
             - Clone the repository: ${owner}/${repo}
             - Check out the PR branch: ${pr.head_ref}
-            - Merge the base branch (${pr.base_ref}) using standard git merge`;
+            - Merge the base branch using: git merge origin/${pr.base_ref} -m "Merge branch '${pr.base_ref}' into ${pr.head_ref}"`;
             
             const conflictResolutionInstructions = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
 
@@ -339,7 +350,7 @@ jobs:
               let sessionUrl;
               let isNewSession = false;
               
-              if (hasExistingSession) {
+              if (hasValidSession && existingSessionId) {
                 console.log(`Sending message to existing session ${existingSessionId} for PR #${pr.number}`);
                 
                 const message = `PR #${pr.number} has merge conflicts that need to be resolved.

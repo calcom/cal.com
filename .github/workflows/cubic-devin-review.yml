@@ -15,6 +15,12 @@ jobs:
     if: github.event.review.user.login == 'cubic-dev-ai[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions/check-devin-session
+          sparse-checkout-cone-mode: false
+
       - name: Extract AI prompt from Cubic review
         id: extract-prompt
         uses: actions/github-script@v7
@@ -53,20 +59,23 @@ jobs:
       - name: Check for existing Devin session
         if: steps.extract-prompt.outputs.has-prompt == 'true'
         id: check-session
-        uses: ./.github/actions/devin-session
+        uses: ./.github/actions/check-devin-session
         with:
-          devin-api-key: ${{ secrets.DEVIN_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-number: ${{ github.event.pull_request.number }}
+          pr_number: ${{ github.event.pull_request.number }}
+          pr_body: ${{ github.event.pull_request.body }}
+          devin_api_key: ${{ secrets.DEVIN_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          session_patterns: '["Devin AI is addressing Cubic AI", "Devin AI is resolving merge conflicts", "Devin AI is completing this stale PR"]'
+          max_session_age_days: "7"
 
       - name: Set session environment variables
-        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'true'
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has_valid_session == 'true'
         run: |
-          echo "EXISTING_SESSION_ID=${{ steps.check-session.outputs.session-id }}" >> $GITHUB_ENV
-          echo "SESSION_URL=${{ steps.check-session.outputs.session-url }}" >> $GITHUB_ENV
+          echo "EXISTING_SESSION_ID=${{ steps.check-session.outputs.session_id }}" >> $GITHUB_ENV
+          echo "SESSION_URL=${{ steps.check-session.outputs.session_url }}" >> $GITHUB_ENV
 
       - name: Send message to existing Devin session
-        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'true'
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has_valid_session == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: |
@@ -96,7 +105,7 @@ jobs:
           echo "Message sent to existing session successfully"
 
       - name: Create new Devin session
-        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'false'
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has_valid_session == 'false'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: |
