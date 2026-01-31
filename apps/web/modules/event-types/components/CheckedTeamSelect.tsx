@@ -1,9 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
@@ -11,12 +7,29 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
+import { getReactSelectProps } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import type { Options, Props } from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isValidEmail = (email: string): boolean => EMAIL_REGEX.test(email.trim().toLowerCase());
+
+// Parse comma-separated emails
+const parseEmails = (input: string): string[] => {
+  return input
+    .split(/[,\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter((e) => isValidEmail(e));
+};
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -28,6 +41,8 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  isEmailInvite?: boolean;
+  email?: string;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -52,6 +67,7 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  allowEmailInvites = false,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -60,6 +76,7 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  allowEmailInvites?: boolean;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -79,9 +96,58 @@ export const CheckedTeamSelect = ({
     props.onChange(newValueAllGroups);
   };
 
+  // Handle creating new options from typed emails
+  const handleCreateOption = (inputValue: string) => {
+    const emails = parseEmails(inputValue);
+    if (emails.length === 0) return;
+
+    const existingEmails = new Set(value.filter((v) => v.isEmailInvite).map((v) => v.email?.toLowerCase()));
+    const existingMemberEmails = new Set(
+      options.map((o) => (o as CheckedSelectOption & { email?: string }).email?.toLowerCase()).filter(Boolean)
+    );
+
+    const uniqueEmails = Array.from(new Set(emails));
+
+    const newOptions: CheckedSelectOption[] = uniqueEmails
+      .filter((email) => !existingEmails.has(email) && !existingMemberEmails.has(email))
+      .map((email) => ({
+        value: `email-${email}`,
+        label: `${email} (${t("invite")})`,
+        avatar: "",
+        groupId,
+        isEmailInvite: true,
+        email,
+        defaultScheduleId: null,
+      }));
+
+    if (newOptions.length > 0) {
+      handleSelectChange([...valueFromGroup, ...newOptions]);
+    }
+  };
+
+  // Validate if input looks like an email
+  const isValidNewOption = (inputValue: string): boolean => {
+    if (!allowEmailInvites) return false;
+    const emails = parseEmails(inputValue);
+    return emails.length > 0;
+  };
+
+  // Format the create option label
+  const formatCreateLabel = (inputValue: string) => {
+    const emails = parseEmails(inputValue);
+    if (emails.length === 0) return inputValue;
+    if (emails.length === 1) return `${t("invite")} ${emails[0]}`;
+    return `${t("invite")} ${emails.length} ${t("members").toLowerCase()}`;
+  };
+
+  const reactSelectProps = getReactSelectProps<CheckedSelectOption, true>({
+    components: {},
+  });
+
   return (
     <>
-      <Select
+      <CreatableSelect<CheckedSelectOption, true>
+        {...reactSelectProps}
         {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
@@ -89,11 +155,17 @@ export const CheckedTeamSelect = ({
         options={options}
         value={valueFromGroup}
         onChange={handleSelectChange}
+        onCreateOption={allowEmailInvites ? handleCreateOption : undefined}
+        isValidNewOption={isValidNewOption}
+        formatCreateLabel={formatCreateLabel}
         isMulti
-        className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
+        className={classNames("text-sm", customClassNames?.hostsSelect?.select)}
+        classNames={{
+          control: () => "rounded-md",
+          option: (state) => {
+            const data = state.data as CheckedSelectOption;
+            return data.isEmailInvite ? "italic text-subtle" : "";
+          },
         }}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
