@@ -8,6 +8,7 @@ import type { EventSetupTabProps } from "@calcom/features/eventtypes/components/
 import { EventSetupTab } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import CalVideoSettings from "../../locations/CalVideoSettings";
 import DefaultLocationSettings from "../../locations/DefaultLocationSettings";
+import HostLocations from "../../locations/HostLocations";
 
 const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
   const orgBranding = useOrgBranding();
@@ -23,6 +24,7 @@ const EventSetupTabWebWrapper = (props: EventSetupTabProps) => {
       localeOptions={localeOptions}
       CalVideoSettingsComponent={CalVideoSettings}
       DefaultLocationSettingsComponent={DefaultLocationSettings}
+      HostLocationsComponent={HostLocations}
       {...props}
     />
   );

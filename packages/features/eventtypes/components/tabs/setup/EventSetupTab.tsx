@@ -20,7 +20,6 @@ import { CheckboxField, Label, Select, SettingsToggle, TextAreaField, TextField 
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import Locations from "@calcom/features/eventtypes/components/locations/Locations";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
@@ -52,6 +51,11 @@ export type EventSetupTabCustomClassNames = {
   };
 };
 
+export type HostLocationsProps = {
+  eventTypeId: number;
+  locationOptions: EventTypeSetupProps["locationOptions"];
+};
+
 export type EventSetupTabProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
@@ -59,6 +63,7 @@ export type EventSetupTabProps = Pick<
   customClassNames?: EventSetupTabCustomClassNames;
   CalVideoSettingsComponent?: React.ComponentType;
   DefaultLocationSettingsComponent?: React.ComponentType<DefaultLocationSettingsProps>;
+  HostLocationsComponent?: React.ComponentType<HostLocationsProps>;
 };
 export const EventSetupTab = (
   props: EventSetupTabProps & {
@@ -408,8 +413,8 @@ export const EventSetupTab = (
             </div>
           </div>
         </Tooltip>
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
-          <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && props.HostLocationsComponent && (
+          <props.HostLocationsComponent eventTypeId={eventType.id} locationOptions={props.locationOptions} />
         )}
       </div>
     </div>
