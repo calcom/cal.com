@@ -3142,6 +3142,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/razorpay@workspace:packages/app-store/razorpay":
+  version: 0.0.0-use.local
+  resolution: "@calcom/razorpay@workspace:packages/app-store/razorpay"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    "@types/uuid": ^9.0.1
+    razorpay: ^2.9.4
+    uuid: ^9.0.0
+  languageName: unknown
+  linkType: soft
+
 "@calcom/retell-ai@workspace:packages/app-store/retell-ai":
   version: 0.0.0-use.local
   resolution: "@calcom/retell-ai@workspace:packages/app-store/retell-ai"
@@ -3385,7 +3398,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/ui@workspace:*, @calcom/ui@workspace:packages/ui":
+"@calcom/ui@*, @calcom/ui@workspace:*, @calcom/ui@workspace:packages/ui":
   version: 0.0.0-use.local
   resolution: "@calcom/ui@workspace:packages/ui"
   dependencies:
@@ -33363,6 +33376,15 @@ __metadata:
     iconv-lite: "npm:~0.7.0"
     unpipe: "npm:~1.0.0"
   checksum: 10/4168c82157bd69175d5bd960e59b74e253e237b358213694946a427a6f750a18b8e150f036fed3421b3e83294b071a4e2bb01037a79ccacdac05360c63d3ebba
+  languageName: node
+  linkType: hard
+
+"razorpay@npm:^2.9.4":
+  version: 2.9.6
+  resolution: "razorpay@npm:2.9.6"
+  dependencies:
+    axios: ^1.6.8
+  checksum: 4ad06b6db4dce583099c62c2d7ff22df8252fb249e5ccf16aa9109890214e9ca8910c93a3cf7ec8303ac4924e59e837d5ad236b1070a48ec73aaf4a852019927
   languageName: node
   linkType: hard
 
