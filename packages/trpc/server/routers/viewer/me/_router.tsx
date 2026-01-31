@@ -38,4 +38,21 @@ export const meRouter = router({
     const handler = (await import("./updateProfile.handler")).updateProfileHandler;
     return handler({ ctx, input });
   }),
+  // Focused queries for shell optimization - fetch only what's needed
+  theme: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./theme.handler")).themeHandler;
+    return handler({ ctx });
+  }),
+  avatar: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./avatar.handler")).avatarHandler;
+    return handler({ ctx });
+  }),
+  profiles: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./profiles.handler")).profilesHandler;
+    return handler({ ctx });
+  }),
+  premium: authedProcedure.query(async ({ ctx }) => {
+    const handler = (await import("./premium.handler")).premiumHandler;
+    return handler({ ctx });
+  }),
 });

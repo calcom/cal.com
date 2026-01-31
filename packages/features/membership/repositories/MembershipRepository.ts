@@ -595,6 +595,20 @@ export class MembershipRepository {
   }
 
   /**
+   * Counts the number of pending team invites for a user
+   * @param userId - The user ID
+   * @returns The count of pending invites
+   */
+  static async countPendingInvitesByUserId({ userId }: { userId: number }): Promise<number> {
+    return prisma.membership.count({
+      where: {
+        userId,
+        accepted: false,
+      },
+    });
+  }
+
+  /**
    * Checks if a user has any team membership (pending or accepted).
    * Used during onboarding to detect users who signed up via invite token,
    * where the membership is auto-accepted.

@@ -1410,4 +1410,20 @@ export class UserRepository {
       },
     });
   }
+
+  /**
+   * Finds a user's theme-related settings only
+   * @param userId - The user ID
+   * @returns brandColor, darkBrandColor, appTheme
+   */
+  async findThemeByUserId({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: {
+        brandColor: true,
+        darkBrandColor: true,
+        appTheme: true,
+      },
+    });
+  }
 }
