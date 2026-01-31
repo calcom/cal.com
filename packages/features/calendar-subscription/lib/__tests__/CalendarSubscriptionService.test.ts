@@ -301,7 +301,7 @@ describe("CalendarSubscriptionService", () => {
 
       const _result = await service.processWebhook("google_calendar", mockRequest);
 
-      expect(_result).toBeNull();
+      expect(_result).toBeUndefined();
     });
   });
 

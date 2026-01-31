@@ -64,6 +64,13 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<Params> 
       calendarCacheEventService,
     });
 
+    // only for office365 handshake validation
+    const url = new URL(request.url);
+    const validationToken = url.searchParams.get("validationToken");
+    if (validationToken) {
+      return new NextResponse(validationToken, { status: 200, headers: { "Content-Type": "text/plain" } });
+    }
+
     // are features globally enabled
     const [isCacheEnabled, isSyncEnabled] = await Promise.all([
       calendarSubscriptionService.isCacheEnabled(),
@@ -76,7 +83,7 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<Params> 
     }
 
     await calendarSubscriptionService.processWebhook(providerFromParams, request);
-    return NextResponse.json({ message: "Webhook processed" }, { status: 200 });
+    return NextResponse.json({}, { status: 200 });
   } catch (error) {
     log.error("Error processing webhook", { error });
     const message = error instanceof Error ? error.message : "Unknown error";
