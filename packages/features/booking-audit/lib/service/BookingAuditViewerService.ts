@@ -413,6 +413,6 @@ export class BookingAuditViewerService {
         : [],
     ]);
 
-    return new EnrichmentDataStore({ users, attendees, credentials });
+    return new EnrichmentDataStore({ users, attendees, credentials }, requirements);
   }
 }
