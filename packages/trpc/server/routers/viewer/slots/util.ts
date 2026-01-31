@@ -634,8 +634,10 @@ export class AvailableSlotsService {
     );
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUsers({
-      users,
+
+    // Query all team bookings by eventType.teamId (indexed) instead of attendee emails
+    // Then filter in application code to find bookings where user is organizer or attendee
+    const allTeamBookings = await bookingRepo.findByTeamIdAndDateRangeIncludeAttendees({
       teamId,
       startDate: limitDateFrom.toDate(),
       endDate: limitDateTo.toDate(),
@@ -643,7 +645,21 @@ export class AvailableSlotsService {
       includeManagedEvents,
     });
 
-    const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
+    // Build a Set of user emails for O(1) lookup
+    const userEmailSet = new Set(users.map((user) => user.email));
+    const userIdSet = new Set(users.map((user) => user.id));
+
+    // Filter bookings where user is either the organizer (userId) or an attendee (email match)
+    const relevantBookings = allTeamBookings.filter((booking) => {
+      // Check if user is the organizer
+      if (booking.userId && userIdSet.has(booking.userId)) {
+        return true;
+      }
+      // Check if any user is an attendee
+      return booking.attendees.some((attendee) => userEmailSet.has(attendee.email));
+    });
+
+    const busyTimes = relevantBookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
       start: dayjs(startTime).toDate(),
       end: dayjs(endTime).toDate(),
       title,
