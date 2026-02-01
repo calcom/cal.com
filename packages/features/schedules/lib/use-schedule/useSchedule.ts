@@ -72,7 +72,7 @@ export const useSchedule = ({
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
-  const [startTime, endTime] = useTimesForSchedule({
+  const { startTime, endTime, overlapsWithPreviousRange } = useTimesForSchedule({
     month,
     dayCount,
     selectedDate,
@@ -152,15 +152,16 @@ export const useSchedule = ({
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
+    overlapsWithPreviousRange,
   });
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
     ...options,
     // Only enable if we're not using API V2
     enabled: options.enabled && !isCallingApiV2Slots,
-    // Keep showing previous slots when the query key changes (e.g. endTime changes due to
-    // bookerState transition) instead of dropping to isLoading and showing a skeleton.
-    placeholderData: keepPreviousData,
+    // When the date range changes but overlaps with the previous range (e.g. bookerState
+    // transition widens endTime), keep showing the previous slots instead of a skeleton.
+    ...(overlapsWithPreviousRange ? { placeholderData: keepPreviousData } : {}),
   });
 
   // When the embed connects, connectVersion changes in the URL param.
