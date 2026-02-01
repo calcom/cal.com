@@ -2,6 +2,7 @@ import type {
   EventTypeSetupProps,
   FormValues,
   Host,
+  PendingHostChanges,
   SelectClassNames,
   SettingsToggleClassNames,
   TeamMember,
@@ -148,6 +149,8 @@ const FixedHosts = ({
   isRoundRobinEvent = false,
   customClassNames,
   serverHosts,
+  serverHasFixedHosts,
+  pendingChanges,
 }: {
   teamId: number;
   value: Host[];
@@ -157,11 +160,17 @@ const FixedHosts = ({
   isRoundRobinEvent?: boolean;
   customClassNames?: FixedHostsCustomClassNames;
   serverHosts: Host[];
+  serverHasFixedHosts: boolean;
+  pendingChanges: PendingHostChanges;
 }) => {
   const { t } = useLocale();
   const { setHosts } = useHosts();
 
-  const hasActiveFixedHosts = isRoundRobinEvent && value.some((host) => host.isFixed);
+  const hasActiveFixedHosts =
+    isRoundRobinEvent &&
+    (serverHasFixedHosts ||
+      pendingChanges.hostsToAdd.some((h) => h.isFixed) ||
+      pendingChanges.hostsToUpdate.some((u) => u.isFixed === true));
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
@@ -604,7 +613,7 @@ const Hosts = ({
 
   const eventTypeId = useWatch({ control, name: "id" });
 
-  const { hosts: paginatedHosts, serverHosts } = usePaginatedAssignmentHosts({
+  const { hosts: paginatedHosts, serverHosts, serverHasFixedHosts } = usePaginatedAssignmentHosts({
     eventTypeId,
     pendingChanges,
     search: "",
@@ -676,6 +685,8 @@ const Hosts = ({
         setAssignAllTeamMembers={setAssignAllTeamMembers}
         customClassNames={customClassNames?.fixedHosts}
         serverHosts={serverHosts}
+        serverHasFixedHosts={serverHasFixedHosts}
+        pendingChanges={pendingChanges}
       />
     ),
     ROUND_ROBIN: (
@@ -691,6 +702,8 @@ const Hosts = ({
           isRoundRobinEvent={true}
           customClassNames={customClassNames?.fixedHosts}
           serverHosts={serverHosts}
+          serverHasFixedHosts={serverHasFixedHosts}
+          pendingChanges={pendingChanges}
         />
         <RoundRobinHosts
           orgId={orgId}

@@ -44,6 +44,9 @@ export function usePaginatedAssignmentHosts({
       isLoading: boolean;
     };
 
+  // hasFixedHosts is only returned on the first page
+  const serverHasFixedHosts = data?.pages[0]?.hasFixedHosts ?? false;
+
   const serverHosts = useMemo((): AssignmentHostWithMeta[] => {
     return data?.pages.flatMap((page: GetHostsForAssignmentResponse) =>
       page.hosts.map((h) => ({
@@ -95,5 +98,5 @@ export function usePaginatedAssignmentHosts({
     return result;
   }, [serverHosts, pendingChanges]);
 
-  return { hosts, serverHosts, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading };
+  return { hosts, serverHosts, serverHasFixedHosts, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading };
 }

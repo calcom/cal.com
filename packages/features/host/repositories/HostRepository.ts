@@ -232,7 +232,15 @@ export class HostRepository {
     const items = hasMore ? hosts.slice(0, -1) : hosts;
     const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
 
-    return { items, nextCursor, hasMore };
+    // Only check on the first page to avoid an extra query on every scroll
+    const hasFixedHosts = !cursor
+      ? (await this.prismaClient.host.count({
+          where: { eventTypeId, isFixed: true },
+          take: 1,
+        })) > 0
+      : undefined;
+
+    return { items, nextCursor, hasMore, hasFixedHosts };
   }
 
   async findHostsWithConferencingCredentials(eventTypeId: number) {

@@ -27,6 +27,7 @@ export type GetHostsForAssignmentResponse = {
   hosts: AssignmentHost[];
   nextCursor: number | undefined;
   hasMore: boolean;
+  hasFixedHosts?: boolean;
 };
 
 export const getHostsForAssignmentHandler = async ({
@@ -36,12 +37,13 @@ export const getHostsForAssignmentHandler = async ({
   const { eventTypeId, cursor, limit, search } = input;
 
   const hostRepository = new HostRepository(ctx.prisma);
-  const { items, nextCursor, hasMore } = await hostRepository.findHostsForAssignmentPaginated({
-    eventTypeId,
-    cursor,
-    limit,
-    search,
-  });
+  const { items, nextCursor, hasMore, hasFixedHosts } =
+    await hostRepository.findHostsForAssignmentPaginated({
+      eventTypeId,
+      cursor,
+      limit,
+      search,
+    });
 
   const hosts: AssignmentHost[] = items.map((item) => ({
     userId: item.userId,
@@ -54,5 +56,5 @@ export const getHostsForAssignmentHandler = async ({
     avatarUrl: item.user.avatarUrl,
   }));
 
-  return { hosts, nextCursor, hasMore };
+  return { hosts, nextCursor, hasMore, ...(hasFixedHosts !== undefined && { hasFixedHosts }) };
 };
