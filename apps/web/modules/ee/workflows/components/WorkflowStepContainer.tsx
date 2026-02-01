@@ -2039,10 +2039,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <>
                       <div className="bg-attention rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                          <Icon
-                            name="info"
-                            className="text-attention mt-0.5 h-4 w-4"
-                          />
+                          <InfoIcon className="text-attention mt-0.5 h-4 w-4" />
                           <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">
                               {t("this_action_will_also")}
@@ -2068,10 +2065,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           className="bg-cal-muted rounded-lg p-3"
                         >
                           <div className="flex items-center gap-2">
-                            <Icon
-                              name="phone"
-                              className="text-emphasis h-4 w-4"
-                            />
+                            <PhoneIcon className="text-emphasis h-4 w-4" />
                             <span className="text-emphasis text-sm font-medium">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
