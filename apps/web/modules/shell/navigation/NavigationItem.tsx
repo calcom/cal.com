@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
@@ -110,6 +110,7 @@ export const NavigationItem: React.FC<{
     isExpanded || hasActiveChild || isCurrent({ pathname, isChild, item });
   const shouldShowChevron = hasChildren && !hasActiveChild;
   const isParentNavigationItem = hasChildren && !isChild;
+  const isMenuOpen = useMemo(() => hasChildren && (isTooltipOpen || isExpanded || hasActiveChild) , [hasChildren, isTooltipOpen, isExpanded, hasActiveChild]);
 
   return (
     <Fragment>
@@ -117,6 +118,7 @@ export const NavigationItem: React.FC<{
         <Tooltip
           side="right"
           open={isTooltipOpen}
+          onOpenChange={setIsTooltipOpen}
           content={
             hasChildren ? (
               <div className="stack-y-1 pointer-events-auto flex flex-col p-1">
@@ -168,7 +170,7 @@ export const NavigationItem: React.FC<{
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
-            aria-expanded={isExpanded}
+            aria-expanded={isMenuOpen}
             aria-current={current ? "page" : undefined}
             onClick={() => {
               setIsExpanded(!isExpanded);
@@ -198,7 +200,7 @@ export const NavigationItem: React.FC<{
                 />
                 {shouldShowChevron && (
                   <Icon
-                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    name={isMenuOpen ? "chevron-up" : "chevron-down"}
                     className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-subtle p-0.5 lg:hidden"
                   />
                 )}
@@ -217,14 +219,14 @@ export const NavigationItem: React.FC<{
             )}
             {shouldShowChevron && (
               <Icon
-                name={isExpanded ? "chevron-up" : "chevron-down"}
+                name={isMenuOpen ? "chevron-up" : "chevron-down"}
                 className="ml-auto hidden h-4 w-4 lg:block"
               />
             )}
           </button>
         </Tooltip>
       ) : (
-        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+        <Tooltip side="right" open={isTooltipOpen} onOpenChange={setIsTooltipOpen} content={t(item.name)} className="lg:hidden">
           <Link
             data-test-id={item.name}
             onClick={() => trackNavigationClick(item.name)}
