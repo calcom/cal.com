@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -62,18 +61,12 @@ const usePrefetch = ({ date, month, bookerLayout, bookerState }: UsePrefetchPara
   return { monthsToPrefetch: monthCount ?? 1 };
 };
 
-type UseTimesForScheduleReturn = {
-  startTime: string;
-  endTime: string;
-  overlapsWithPreviousRange: boolean;
-};
-
 export const useTimesForSchedule = ({
   month: monthFromProps,
   selectedDate,
   dayCount,
   bookerLayout,
-}: UseTimesForScheduleProps): UseTimesForScheduleReturn => {
+}: UseTimesForScheduleProps): [string, string] => {
   const [monthFromStore, bookerState] = useBookerStoreContext((state) => [state.month, state.state], shallow);
   const month = monthFromStore ?? monthFromProps ?? null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
@@ -108,26 +101,5 @@ export const useTimesForSchedule = ({
     endTime = (lastMonthToPrefetchDayjs ? lastMonthToPrefetchDayjs : monthDayjs).endOf("month").toISOString();
   }
 
-  // If the new range is already covered by the previous query range, reuse it to avoid
-  // a redundant API call. This happens when e.g. the month auto-advances from January to
-  // February but the first query already prefetched Jan→Mar.
-  const previousRangeRef = useRef<{ startTime: string; endTime: string } | null>(null);
-  let overlapsWithPreviousRange = false;
-
-  if (previousRangeRef.current) {
-    const prev = previousRangeRef.current;
-    const isFullyCovered = startTime >= prev.startTime && endTime <= prev.endTime;
-    if (isFullyCovered) {
-      return { ...prev, overlapsWithPreviousRange: false };
-    }
-
-    // Partial overlap: new range extends beyond the previous but shares some coverage.
-    // The query key will change, so signal the consumer to use keepPreviousData to avoid
-    // a skeleton flash while the wider range loads.
-    const hasOverlap = startTime < prev.endTime && endTime > prev.startTime;
-    overlapsWithPreviousRange = hasOverlap;
-  }
-  previousRangeRef.current = { startTime, endTime };
-
-  return { startTime, endTime, overlapsWithPreviousRange };
+  return [startTime, endTime];
 };

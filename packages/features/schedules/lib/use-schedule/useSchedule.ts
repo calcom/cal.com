@@ -15,6 +15,52 @@ import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
 
+type TimeRange = { startTime: string; endTime: string };
+
+/**
+ * Compares a new time range against a previously fetched range to determine
+ * whether the new range can be served from the existing cache.
+ *
+ * Returns:
+ * - `reusePrevious: true` when the new range is fully covered by the previous one
+ *   (no new API call needed).
+ * - `overlapsWithPrevious: true` when the ranges partially overlap, signalling
+ *   the caller to use `keepPreviousData` so existing slots stay visible while
+ *   the wider range loads.
+ * - Both `false` when there is no overlap (completely new range).
+ */
+export function compareTimeRanges(
+  newRange: TimeRange,
+  previousRange: TimeRange | null
+): { startTime: string; endTime: string; reusePrevious: boolean; overlapsWithPrevious: boolean } {
+  if (previousRange) {
+    const isFullyCovered = newRange.startTime >= previousRange.startTime && newRange.endTime <= previousRange.endTime;
+    if (isFullyCovered) {
+      return {
+        startTime: previousRange.startTime,
+        endTime: previousRange.endTime,
+        reusePrevious: true,
+        overlapsWithPrevious: false,
+      };
+    }
+
+    const hasOverlap = newRange.startTime < previousRange.endTime && newRange.endTime > previousRange.startTime;
+    return {
+      startTime: newRange.startTime,
+      endTime: newRange.endTime,
+      reusePrevious: false,
+      overlapsWithPrevious: hasOverlap,
+    };
+  }
+
+  return {
+    startTime: newRange.startTime,
+    endTime: newRange.endTime,
+    reusePrevious: false,
+    overlapsWithPrevious: false,
+  };
+}
+
 export type UseScheduleWithCacheArgs = {
   username?: string | null;
   eventSlug?: string | null;
@@ -72,12 +118,23 @@ export const useSchedule = ({
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
-  const { startTime, endTime, overlapsWithPreviousRange } = useTimesForSchedule({
+  const [computedStartTime, computedEndTime] = useTimesForSchedule({
     month,
     dayCount,
     selectedDate,
     bookerLayout,
   });
+
+  const previousRangeRef = useRef<{ startTime: string; endTime: string } | null>(null);
+  const rangeComparison = compareTimeRanges(
+    { startTime: computedStartTime, endTime: computedEndTime },
+    previousRangeRef.current
+  );
+  const { startTime, endTime, overlapsWithPrevious: overlapsWithPreviousRange } = rangeComparison;
+
+  if (!rangeComparison.reusePrevious) {
+    previousRangeRef.current = { startTime, endTime };
+  }
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
