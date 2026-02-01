@@ -18,7 +18,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
@@ -75,28 +75,6 @@ export const getEventTypeById = async ({
   const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
-  const userRepo = new UserRepository(prisma);
-
-  const childrenWithUserProfile = [];
-  for (const child of rawEventType.children || []) {
-    childrenWithUserProfile.push({
-      ...child,
-      owner: child.owner
-        ? await userRepo.enrichUserWithItsProfile({
-            user: child.owner,
-          })
-        : null,
-    });
-  }
-
-  const eventTypeUsersWithUserProfile = [];
-  for (const eventTypeUser of rawEventType.users) {
-    eventTypeUsersWithUserProfile.push(
-      await userRepo.enrichUserWithItsProfile({
-        user: eventTypeUser,
-      })
-    );
-  }
 
   newMetadata.apps = {
     ...apps,
@@ -131,22 +109,7 @@ export const getEventTypeById = async ({
       : restEventType.owner
         ? await getBookerBaseUrl(currentOrganizationId)
         : WEBSITE_URL,
-    children: childrenWithUserProfile.flatMap((ch) =>
-      ch.owner !== null
-        ? {
-            ...ch,
-            owner: {
-              ...ch.owner,
-              avatar: getUserAvatarUrl(ch.owner),
-              email: ch.owner.email,
-              name: ch.owner.name ?? "",
-              username: ch.owner.username ?? "",
-              membership: MembershipRole.MEMBER,
-            },
-            created: true,
-          }
-        : []
-    ),
+    childrenCount: rawEventType._count?.children ?? 0,
   };
 
   // backwards compat
@@ -171,7 +134,7 @@ export const getEventTypeById = async ({
   }
 
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] =
-    eventTypeUsersWithUserProfile.map((user) => ({
+    rawEventType.users.map((user) => ({
       ...user,
       avatar: getUserAvatarUrl(user),
     }));

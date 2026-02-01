@@ -701,26 +701,12 @@ export class EventTypeRepository implements IEventTypesRepository {
       _count: {
         select: {
           hosts: true,
+          children: true,
         },
       },
       enablePerHostLocations: true,
       userId: true,
       price: true,
-      children: {
-        select: {
-          owner: {
-            select: {
-              avatarUrl: true,
-              name: true,
-              username: true,
-              email: true,
-              id: true,
-            },
-          },
-          hidden: true,
-          slug: true,
-        },
-      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -980,26 +966,12 @@ export class EventTypeRepository implements IEventTypesRepository {
       _count: {
         select: {
           hosts: true,
+          children: true,
         },
       },
       enablePerHostLocations: true,
       userId: true,
       price: true,
-      children: {
-        select: {
-          owner: {
-            select: {
-              avatarUrl: true,
-              name: true,
-              username: true,
-              email: true,
-              id: true,
-            },
-          },
-          hidden: true,
-          slug: true,
-        },
-      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
