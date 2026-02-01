@@ -29,10 +29,11 @@ import ChildrenEventTypeSelect from "@calcom/web/modules/event-types/components/
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
 import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
 import WeightDescription from "@calcom/web/modules/event-types/components/WeightDescription";
+import { useSearchTeamMembers, type SearchTeamMember } from "@calcom/features/eventtypes/lib/useSearchTeamMembers";
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
 import { v4 as uuidv4 } from "uuid";
@@ -63,12 +64,18 @@ const ChildrenEventTypesList = ({
   value,
   onChange,
   customClassNames,
+  onSearchChange,
+  onMenuScrollToBottom,
+  isLoadingMore,
   ...rest
 }: {
   value: ChildrenEventType[];
   onChange?: (options: ChildrenEventType[]) => void;
   options?: Options<ChildrenEventType>;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  onSearchChange?: (value: string) => void;
+  onMenuScrollToBottom?: () => void;
+  isLoadingMore?: boolean;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
   return (
@@ -90,6 +97,9 @@ const ChildrenEventTypesList = ({
           options={options.filter((opt) => !value.find((val) => val.owner.id.toString() === opt.value))}
           controlShouldRenderValue={false}
           customClassNames={customClassNames}
+          onSearchChange={onSearchChange}
+          onMenuScrollToBottom={onMenuScrollToBottom}
+          isLoadingMore={isLoadingMore}
           {...rest}
         />
       </div>
@@ -510,16 +520,66 @@ type ChildrenEventTypesCustomClassNames = {
   childrenEventTypesList?: ChildrenEventTypeSelectCustomClassNames;
 };
 
+function mapSearchMemberToChildrenOption(
+  member: SearchTeamMember,
+  slug: string,
+  pendingString: string
+): ChildrenEventType {
+  return {
+    slug,
+    hidden: false,
+    created: false,
+    owner: {
+      id: member.userId,
+      name: member.name ?? "",
+      email: member.email,
+      username: member.username ?? "",
+      membership: member.role,
+      eventTypeSlugs: [],
+      avatar: member.avatarUrl ?? "",
+      profile: null,
+    },
+    value: `${member.userId}`,
+    label: `${member.name || member.email || ""}${!member.username ? ` (${pendingString})` : ""}`,
+  };
+}
+
 const ChildrenEventTypes = ({
+  teamId,
+  eventSlug,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
 }: {
+  teamId: number;
+  eventSlug: string;
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
 }) => {
   const { setValue } = useFormContext<FormValues>();
+  const { t } = useLocale();
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { members, fetchNextPage, hasNextPage, isFetchingNextPage } = useSearchTeamMembers({
+    teamId,
+    search: debouncedSearch,
+    enabled: !assignAllTeamMembers,
+  });
+
+  const childrenOptions = useMemo(
+    (): ChildrenEventType[] =>
+      members.map((member) => mapSearchMemberToChildrenOption(member, eventSlug, t("pending"))),
+    [members, eventSlug, t]
+  );
+
   return (
     <div
       className={classNames(
@@ -539,9 +599,14 @@ const ChildrenEventTypes = ({
             render={({ field: { onChange, value } }) => (
               <ChildrenEventTypesList
                 value={value}
-                options={[]}
+                options={childrenOptions}
                 onChange={onChange}
                 customClassNames={customClassNames?.childrenEventTypesList}
+                onSearchChange={setSearch}
+                onMenuScrollToBottom={() => {
+                  if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+                }}
+                isLoadingMore={isFetchingNextPage}
               />
             )}
           />
@@ -900,6 +965,8 @@ export const EventTeamAssignmentTab = ({
       )}
       {team && isManagedEventType && (
         <ChildrenEventTypes
+          teamId={team.id}
+          eventSlug={eventType.slug}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           customClassNames={customClassNames?.childrenEventTypes}

@@ -44,11 +44,17 @@ export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
   customClassNames,
+  onSearchChange,
+  onMenuScrollToBottom,
+  isLoadingMore,
   ...props
 }: Omit<Props<ChildrenEventType, true>, "value" | "onChange"> & {
   value?: ChildrenEventType[];
   onChange: (value: readonly ChildrenEventType[]) => void;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  onSearchChange?: (value: string) => void;
+  onMenuScrollToBottom?: () => void;
+  isLoadingMore?: boolean;
 }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -63,6 +69,16 @@ export const ChildrenEventTypeSelect = ({
         innerClassNames={customClassNames?.assignToSelect?.innerClassNames}
         value={value}
         isMulti
+        {...(onSearchChange
+          ? {
+              filterOption: null,
+              onInputChange: (value: string, actionMeta: { action: string }) => {
+                if (actionMeta.action === "input-change") onSearchChange(value);
+              },
+            }
+          : {})}
+        onMenuScrollToBottom={onMenuScrollToBottom}
+        isLoading={isLoadingMore}
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
