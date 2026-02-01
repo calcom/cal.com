@@ -1337,33 +1337,34 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async countBookingsByEventTypeAndDateRange({
-    eventTypeId,
-    startDate,
-    endDate,
-    excludedUid,
-  }: {
-    eventTypeId: number;
-    startDate: Date;
-    endDate: Date;
-    excludedUid?: string;
-  }) {
-    return await this.prismaClient.booking.count({
-      where: {
-        status: BookingStatus.ACCEPTED,
-        eventTypeId,
-        startTime: {
-          gte: startDate,
-        },
-        endTime: {
-          lte: endDate,
-        },
-        uid: {
-          not: excludedUid,
-        },
+ async countBookingsByEventTypeAndDateRange({
+  eventTypeId,
+  startDate,
+  endDate,
+  excludedUid,
+}: {
+  eventTypeId: number;
+  startDate: Date;
+  endDate: Date;
+  excludedUid?: string;
+}) {
+  return await this.prismaClient.booking.count({
+    where: {
+      // 1. Check both Accepted and Pending status
+      status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+      eventTypeId,
+      // 2. Only check the start time to see if it is in the dasys window.
+      startTime: {
+        gte: startDate,
+        lte: endDate,
       },
-    });
-  }
+      // 3. Keep the exclusion for the current booking for reschedules
+      uid: {
+        not: excludedUid,
+      },
+    },
+  });
+}
 
   async findAcceptedBookingByEventTypeId({
     eventTypeId,
