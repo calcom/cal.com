@@ -110,7 +110,15 @@ export const NavigationItem: React.FC<{
     isExpanded || hasActiveChild || isCurrent({ pathname, isChild, item });
   const shouldShowChevron = hasChildren && !hasActiveChild;
   const isParentNavigationItem = hasChildren && !isChild;
-  const isMenuOpen = useMemo(() => hasChildren && (isTooltipOpen || isExpanded || hasActiveChild) , [hasChildren, isTooltipOpen, isExpanded, hasActiveChild]);
+  const isMenuOpen = useMemo(
+    () =>
+      hasChildren &&
+      (isTooltipOpen ||
+        isExpanded ||
+        hasActiveChild ||
+        isCurrent({ pathname, isChild, item })),
+    [hasChildren, isTooltipOpen, isExpanded, hasActiveChild, pathname, isChild, item, isCurrent]
+  );
 
   return (
     <Fragment>
