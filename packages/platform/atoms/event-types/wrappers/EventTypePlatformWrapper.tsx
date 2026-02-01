@@ -268,7 +268,6 @@ const EventType = forwardRef<
         <EventTeamAssignmentTabPlatformWrapper
           team={team}
           eventType={eventType}
-          teamMembers={[]}
           customClassNames={customClassNames?.eventAssignmentTab}
           orgId={organizationId}
         />

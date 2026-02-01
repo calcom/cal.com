@@ -15,7 +15,6 @@ import { useAtomsContext } from "../../hooks/useAtomsContext";
 import http from "../../lib/http";
 
 export interface UseTeamMembersWithSegmentProps {
-  initialTeamMembers: TeamMember[];
   assignRRMembersUsingSegment: boolean;
   teamId?: number;
   orgId?: number;
@@ -24,12 +23,10 @@ export interface UseTeamMembersWithSegmentProps {
 }
 
 export const useProcessTeamMembersData = ({
-  initialTeamMembers,
   assignRRMembersUsingSegment,
   matchingTeamMembersWithResult,
   value,
 }: {
-  initialTeamMembers: TeamMember[];
   assignRRMembersUsingSegment: boolean;
   matchingTeamMembersWithResult?: { result: TeamMemberDto[] | null };
   value: Host[];
@@ -43,8 +40,8 @@ export const useProcessTeamMembersData = ({
         avatar: "",
       }));
     }
-    return initialTeamMembers;
-  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
+    return [] as TeamMember[];
+  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult]);
 
   const localWeightsInitialValues = useMemo(
     () =>
@@ -63,7 +60,6 @@ export const useProcessTeamMembersData = ({
 };
 
 export const useTeamMembersWithSegmentPlatform = ({
-  initialTeamMembers,
   assignRRMembersUsingSegment,
   teamId,
   orgId,
@@ -93,7 +89,6 @@ export const useTeamMembersWithSegmentPlatform = ({
   });
 
   const { teamMembers, localWeightsInitialValues } = useProcessTeamMembersData({
-    initialTeamMembers,
     assignRRMembersUsingSegment,
     matchingTeamMembersWithResult,
     value,

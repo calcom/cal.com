@@ -47,7 +47,6 @@ const tabs = [
 ] as const;
 
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export type EventTypeComponentProps = EventTypeSetupProps & {
   allActiveWorkflows?: Workflow[];

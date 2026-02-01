@@ -77,18 +77,6 @@ export const getEventTypeById = async ({
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const userRepo = new UserRepository(prisma);
 
-  // members is fetched with take: 0 so this loop is a no-op at runtime,
-  // but preserves the inferred return type for downstream consumers
-  const eventTeamMembershipsWithUserProfile = [];
-  for (const eventTeamMembership of rawEventType.team?.members || []) {
-    eventTeamMembershipsWithUserProfile.push({
-      ...eventTeamMembership,
-      user: await userRepo.enrichUserWithItsProfile({
-        user: eventTeamMembership.user,
-      }),
-    });
-  }
-
   const childrenWithUserProfile = [];
   for (const child of rawEventType.children || []) {
     childrenWithUserProfile.push({
@@ -246,25 +234,6 @@ export const getEventTypeById = async ({
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
-  // teamMembers is always empty because members is fetched with take: 0.
-  // The mapping is preserved to maintain the inferred return type for downstream consumers.
-  // Actual member data is loaded via the paginated searchTeamMembers endpoint.
-  const teamMembers = eventTypeObject.team
-    ? eventTeamMembershipsWithUserProfile
-        .filter((member) => member.accepted || isOrgEventType)
-        .map((member) => {
-          const user: typeof member.user & { avatar: string } = {
-            ...member.user,
-            avatar: getUserAvatarUrl(member.user),
-          };
-          return {
-            ...user,
-            profileId: user.profile.id,
-            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-            membership: member.role,
-          };
-        })
-    : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.
   // Sets to null if no membership is found - this must mean we are in a none team event type.
@@ -308,7 +277,6 @@ export const getEventTypeById = async ({
     locationOptions,
     destinationCalendar,
     team: eventTypeObject.team || null,
-    teamMembers,
     currentUserMembership,
     isUserOrganizationAdmin,
   };

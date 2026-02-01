@@ -672,25 +672,6 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
-          // Keep members select for type compatibility but fetch nothing (take: 0)
-          // Actual member data is loaded via paginated searchTeamMembers endpoint
-          members: {
-            select: {
-              role: true,
-              accepted: true,
-              user: {
-                select: {
-                  ...userSelect,
-                  eventTypes: {
-                    select: {
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-            take: 0,
-          },
         },
       },
       restrictionScheduleId: true,
@@ -969,25 +950,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                 },
               },
             },
-          },
-          // Keep members select for type compatibility but fetch nothing (take: 0)
-          // Actual member data is loaded via paginated searchTeamMembers endpoint
-          members: {
-            select: {
-              role: true,
-              accepted: true,
-              user: {
-                select: {
-                  ...userSelect,
-                  eventTypes: {
-                    select: {
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-            take: 0,
           },
         },
       },

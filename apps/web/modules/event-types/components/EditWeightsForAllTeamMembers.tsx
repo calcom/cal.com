@@ -94,7 +94,6 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
 };
 
 interface Props {
-  teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
   assignRRMembersUsingSegment: boolean;
@@ -103,7 +102,6 @@ interface Props {
 }
 
 export const EditWeightsForAllTeamMembers = ({
-  teamMembers: initialTeamMembers,
   value,
   onChange,
   assignRRMembersUsingSegment,
@@ -119,7 +117,6 @@ export const EditWeightsForAllTeamMembers = ({
   const useTeamMembersHook = isPlatform ? useTeamMembersWithSegmentPlatform : useTeamMembersWithSegment;
 
   const { teamMembers, localWeightsInitialValues } = useTeamMembersHook({
-    initialTeamMembers,
     assignRRMembersUsingSegment,
     teamId,
     queryValue,

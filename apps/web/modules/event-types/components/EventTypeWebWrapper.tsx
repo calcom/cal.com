@@ -258,7 +258,6 @@ const EventTypeWeb = ({
     team: () => (
       <EventTeamAssignmentTab
         orgId={orgBranding?.id ?? null}
-        teamMembers={[]}
         team={team}
         eventType={eventType}
       />

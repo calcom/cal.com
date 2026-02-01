@@ -4,7 +4,6 @@ import { trpc } from "@calcom/trpc/react";
 import { type UseTeamMembersWithSegmentProps, useProcessTeamMembersData } from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
 
 export const useTeamMembersWithSegment = ({
-  initialTeamMembers,
   assignRRMembersUsingSegment,
   teamId,
   queryValue,
@@ -23,7 +22,6 @@ export const useTeamMembersWithSegment = ({
     );
 
   const { teamMembers, localWeightsInitialValues } = useProcessTeamMembersData({
-    initialTeamMembers,
     assignRRMembersUsingSegment,
     matchingTeamMembersWithResult,
     value,

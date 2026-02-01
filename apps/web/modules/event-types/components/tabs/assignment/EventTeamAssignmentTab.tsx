@@ -5,7 +5,6 @@ import type {
   PendingHostChanges,
   SelectClassNames,
   SettingsToggleClassNames,
-  TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
 import { useHosts } from "@calcom/features/eventtypes/lib/HostsContext";
 import { usePaginatedAssignmentHosts } from "@calcom/features/eventtypes/lib/usePaginatedAssignmentHosts";
@@ -20,11 +19,12 @@ import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import AddMembersWithSwitch, {
-  mapUserToValue,
-} from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
+import AddMembersWithSwitch from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/web/modules/event-types/components/AssignAllTeamMembers";
-import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import type {
+  ChildrenEventType,
+  ChildrenEventTypeSelectCustomClassNames,
+} from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
 import ChildrenEventTypeSelect from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
 import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
@@ -50,36 +50,12 @@ export type EventTeamAssignmentTabCustomClassNames = {
 
 export type EventTeamAssignmentTabBaseProps = Pick<
   EventTypeSetupProps,
-  "teamMembers" | "team" | "eventType"
+  "team" | "eventType"
 > & {
   customClassNames?: EventTeamAssignmentTabCustomClassNames;
   orgId: number | null;
   isSegmentApplicable: boolean;
   hideFixedHostsForCollective?: boolean;
-};
-
-export const mapMemberToChildrenOption = (
-  member: EventTypeSetupProps["teamMembers"][number],
-  slug: string,
-  pendingString: string
-) => {
-  return {
-    slug,
-    hidden: false,
-    created: false,
-    owner: {
-      id: member.id,
-      name: member.name ?? "",
-      email: member.email,
-      username: member.username ?? "",
-      membership: member.membership,
-      eventTypeSlugs: member.eventTypes ?? [],
-      avatar: member.avatar,
-      profile: member.profile,
-    },
-    value: `${member.id ?? ""}`,
-    label: `${member.name || member.email || ""}${!member.username ? ` (${pendingString})` : ""}`,
-  };
 };
 
 const ChildrenEventTypesList = ({
@@ -89,9 +65,9 @@ const ChildrenEventTypesList = ({
   customClassNames,
   ...rest
 }: {
-  value: ReturnType<typeof mapMemberToChildrenOption>[];
-  onChange?: (options: ReturnType<typeof mapMemberToChildrenOption>[]) => void;
-  options?: Options<ReturnType<typeof mapMemberToChildrenOption>>;
+  value: ChildrenEventType[];
+  onChange?: (options: ChildrenEventType[]) => void;
+  options?: Options<ChildrenEventType>;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
 } & Omit<Partial<ComponentProps<typeof ChildrenEventTypeSelect>>, "onChange" | "value">) => {
   const { t } = useLocale();
@@ -272,7 +248,6 @@ type RoundRobinHostsCustomClassNames = {
 
 const RoundRobinHosts = ({
   orgId,
-  teamMembers,
   value,
   onChange,
   assignAllTeamMembers,
@@ -285,7 +260,6 @@ const RoundRobinHosts = ({
   orgId: number | null;
   value: Host[];
   onChange: (hosts: Host[]) => void;
-  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: RoundRobinHostsCustomClassNames;
@@ -479,7 +453,6 @@ const RoundRobinHosts = ({
                 descriptionClassName={customClassNames?.enableWeights?.description}
                 onCheckedChange={(active) => handleWeightsEnabledChange(active, onChange)}>
                 <EditWeightsForAllTeamMembers
-                  teamMembers={teamMembers}
                   value={value}
                   onChange={handleWeightsChange}
                   assignRRMembersUsingSegment={assignRRMembersUsingSegment}
@@ -538,12 +511,10 @@ type ChildrenEventTypesCustomClassNames = {
 };
 
 const ChildrenEventTypes = ({
-  childrenEventTypeOptions,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
 }: {
-  childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
@@ -560,7 +531,7 @@ const ChildrenEventTypes = ({
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           customClassNames={customClassNames?.assignAllTeamMembers}
-          onActive={() => setValue("children", childrenEventTypeOptions, { shouldDirty: true })}
+          onActive={() => setValue("children", [], { shouldDirty: true })}
         />
         {!assignAllTeamMembers ? (
           <Controller<FormValues>
@@ -568,7 +539,7 @@ const ChildrenEventTypes = ({
             render={({ field: { onChange, value } }) => (
               <ChildrenEventTypesList
                 value={value}
-                options={childrenEventTypeOptions}
+                options={[]}
                 onChange={onChange}
                 customClassNames={customClassNames?.childrenEventTypesList}
               />
@@ -589,7 +560,6 @@ type HostsCustomClassNames = {
 const Hosts = ({
   orgId,
   teamId,
-  teamMembers,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
@@ -598,7 +568,6 @@ const Hosts = ({
 }: {
   orgId: number | null;
   teamId: number;
-  teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: HostsCustomClassNames;
@@ -708,7 +677,6 @@ const Hosts = ({
         <RoundRobinHosts
           orgId={orgId}
           teamId={teamId}
-          teamMembers={teamMembers}
           value={value}
           onChange={(changeValue) => {
             const newHosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
@@ -730,7 +698,6 @@ const Hosts = ({
 
 export const EventTeamAssignmentTab = ({
   team,
-  teamMembers,
   eventType,
   customClassNames,
   orgId,
@@ -755,23 +722,6 @@ export const EventTeamAssignmentTab = ({
       // description: t("round_robin_description"),
     },
   ];
-  const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.team?.parentId || !!member.username;
-  const teamMembersOptions = teamMembers
-    .filter(pendingMembers)
-    .map((member) => mapUserToValue(member, t("pending")));
-  const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
-    return mapMemberToChildrenOption(
-      {
-        ...member,
-        eventTypes: member.eventTypes.filter(
-          (et) => et !== eventType.slug || !eventType.children.some((c) => c.owner.id === member.id)
-        ),
-      },
-      eventType.slug,
-      t("pending")
-    );
-  });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
   const { getValues, setValue, control } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
@@ -943,7 +893,6 @@ export const EventTeamAssignmentTab = ({
             teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
             setAssignAllTeamMembers={setAssignAllTeamMembers}
-            teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
             hideFixedHostsForCollective={hideFixedHostsForCollective}
           />
@@ -953,7 +902,6 @@ export const EventTeamAssignmentTab = ({
         <ChildrenEventTypes
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
-          childrenEventTypeOptions={childrenEventTypeOptions}
           customClassNames={customClassNames?.childrenEventTypes}
         />
       )}
