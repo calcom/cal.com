@@ -213,6 +213,12 @@ const EventTypeWeb = ({
 
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
+  const pendingHostChanges = form.watch("pendingHostChanges");
+  const effectiveHostCount = pendingHostChanges?.clearAllHosts
+    ? pendingHostChanges.hostsToAdd.length
+    : eventType._count.hosts +
+      (pendingHostChanges?.hostsToAdd.length ?? 0) -
+      (pendingHostChanges?.hostsToRemove.length ?? 0);
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventType: {
@@ -293,7 +299,7 @@ const EventTypeWeb = ({
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
     assignedUsers: eventType.children,
-    hostCount: eventType._count.hosts,
+    hostCount: effectiveHostCount,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
     onError: (url) => {
