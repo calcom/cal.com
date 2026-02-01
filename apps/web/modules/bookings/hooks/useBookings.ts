@@ -391,6 +391,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
             : event?.data?.forwardParamsSuccessRedirect,
+        redirectUrlOnNoRoutingFormResponse: event?.data?.redirectUrlOnNoRoutingFormResponse,
       });
     },
     onError: (err) => {
@@ -520,6 +521,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
             : event?.data?.forwardParamsSuccessRedirect,
+        redirectUrlOnNoRoutingFormResponse: event?.data?.redirectUrlOnNoRoutingFormResponse,
       });
     },
     onError: (err, _, ctx) => {
