@@ -159,6 +159,23 @@ export const useSchedule = ({
     enabled: options.enabled && !isCallingApiV2Slots,
   });
 
+  // When the embed connects, connectVersion changes in the URL param.
+  // Instead of including it in the query key (which causes a cache miss and loading skeleton),
+  // we use it as a signal to invalidate the existing query so React Query refetches in the
+  // background while keeping the cached prerender data visible.
+  const previousConnectVersionRef = useRef(embedConnectVersion);
+  useEffect(() => {
+    if (embedConnectVersion !== previousConnectVersionRef.current) {
+      previousConnectVersionRef.current = embedConnectVersion;
+      if (isCallingApiV2Slots) {
+        teamScheduleV2.refetch();
+      } else {
+        utils.viewer.slots.getSchedule.invalidate(input);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedConnectVersion]);
+
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
       bookerState,
