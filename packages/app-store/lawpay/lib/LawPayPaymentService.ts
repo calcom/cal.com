@@ -10,23 +10,30 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
+import { LawPayClient, type LawPayCredentials } from "./client";
 
 const lawpayCredentialKeysSchema = z.object({
+  access_token: z.string(),
+  refresh_token: z.string().optional(),
   client_id: z.string(),
   client_secret: z.string(),
   public_key: z.string(),
+  expires_at: z.number().optional(),
 });
 
 export class LawPayPaymentService implements IAbstractPaymentService {
-  private credentials: z.infer<typeof lawpayCredentialKeysSchema> | null;
+  private credentials: LawPayCredentials | null;
+  private client: LawPayClient | null;
   private paymentOption: z.infer<typeof paymentOptionEnum>;
 
   constructor(credentials: { key: Prisma.JsonValue }, paymentOption?: string) {
     const keyParsing = lawpayCredentialKeysSchema.safeParse(credentials.key);
     if (keyParsing.success) {
       this.credentials = keyParsing.data;
+      this.client = new LawPayClient(keyParsing.data);
     } else {
       this.credentials = null;
+      this.client = null;
     }
     this.paymentOption = paymentOptionEnum.parse(paymentOption || "ON_BOOKING");
   }
@@ -38,12 +45,26 @@ export class LawPayPaymentService implements IAbstractPaymentService {
     username: string | null,
     bookerName: string | null,
     bookerEmail: string,
-    paymentOption: string
+    paymentOption: string,
+    accountType: "operating" | "trust" = "operating"
   ): Promise<Payment> {
     try {
-      if (!this.credentials) {
+      if (!this.client) {
         throw new Error("LawPay credentials not found");
       }
+
+      // Create payment with LawPay API
+      const lawpayPayment = await this.client.createPayment({
+        amount: payment.amount / 100, // Convert from cents to dollars
+        currency: payment.currency,
+        accountType,
+        description: `Booking #${bookingId} - ${bookerName || bookerEmail}`,
+        metadata: {
+          bookingId: bookingId.toString(),
+          bookerEmail,
+          bookerName: bookerName || "",
+        },
+      });
 
       // Create payment record in database
       const paymentData = await prisma.payment.create({
@@ -61,11 +82,13 @@ export class LawPayPaymentService implements IAbstractPaymentService {
             paymentOption,
             bookerEmail,
             bookerName,
+            accountType,
+            lawpayPaymentId: lawpayPayment.id,
           } as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
-          success: false,
-          externalId: "",
+          success: lawpayPayment.status === "succeeded",
+          externalId: lawpayPayment.id,
         },
       });
 
@@ -95,7 +118,7 @@ export class LawPayPaymentService implements IAbstractPaymentService {
 
   async refund(paymentId: number): Promise<Payment> {
     try {
-      if (!this.credentials) {
+      if (!this.client) {
         throw new Error("LawPay credentials not found");
       }
 
@@ -117,8 +140,14 @@ export class LawPayPaymentService implements IAbstractPaymentService {
         throw new Error("Payment not found");
       }
 
-      // TODO: Implement actual LawPay refund API call
-      // For now, mark as refunded in database
+      if (!payment.externalId) {
+        throw new Error("Payment external ID not found");
+      }
+
+      // Refund via LawPay API
+      await this.client.refundPayment(payment.externalId);
+
+      // Update payment record
       const refundedPayment = await prisma.payment.update({
         where: {
           id: paymentId,
@@ -165,11 +194,11 @@ export class LawPayPaymentService implements IAbstractPaymentService {
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: number,
     bookerEmail: string,
-    paymentOption: string
+    paymentOption: string,
+    accountType: "operating" | "trust" = "operating"
   ): Promise<Payment> {
     try {
       // This method is called to collect card details
-      // For LawPay, we'll create a payment intent
       const paymentData = await this.create(
         payment,
         bookingId,
@@ -177,7 +206,8 @@ export class LawPayPaymentService implements IAbstractPaymentService {
         null,
         null,
         bookerEmail,
-        paymentOption
+        paymentOption,
+        accountType
       );
 
       return paymentData;
@@ -195,6 +225,10 @@ export class LawPayPaymentService implements IAbstractPaymentService {
         throw new Error("Booking ID is required");
       }
 
+      if (!this.client) {
+        throw new Error("LawPay credentials not found");
+      }
+
       const existingPayment = await prisma.payment.findFirst({
         where: {
           bookingId,
@@ -205,15 +239,20 @@ export class LawPayPaymentService implements IAbstractPaymentService {
         throw new Error("Payment not found");
       }
 
-      // TODO: Implement actual LawPay charge API call
-      // For now, mark as successful
+      if (!existingPayment.externalId) {
+        throw new Error("Payment external ID not found");
+      }
+
+      // Capture the payment via LawPay API
+      const capturedPayment = await this.client.capturePayment(existingPayment.externalId);
+
+      // Update payment record
       const chargedPayment = await prisma.payment.update({
         where: {
           id: existingPayment.id,
         },
         data: {
-          success: true,
-          externalId: `lawpay_${uuidv4()}`,
+          success: capturedPayment.status === "succeeded",
         },
       });
 
