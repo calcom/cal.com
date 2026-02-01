@@ -1,4 +1,7 @@
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+
+import { keepPreviousData } from "@tanstack/react-query";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
@@ -11,6 +14,52 @@ import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/const
 import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
+
+type TimeRange = { startTime: string; endTime: string };
+
+/**
+ * Compares a new time range against a previously fetched range to determine
+ * whether the new range can be served from the existing cache.
+ *
+ * Returns:
+ * - `reusePrevious: true` when the new range is fully covered by the previous one
+ *   (no new API call needed).
+ * - `overlapsWithPrevious: true` when the ranges partially overlap, signalling
+ *   the caller to use `keepPreviousData` so existing slots stay visible while
+ *   the wider range loads.
+ * - Both `false` when there is no overlap (completely new range).
+ */
+export function compareTimeRanges(
+  newRange: TimeRange,
+  previousRange: TimeRange | null
+): { startTime: string; endTime: string; reusePrevious: boolean; overlapsWithPrevious: boolean } {
+  if (previousRange) {
+    const isFullyCovered = newRange.startTime >= previousRange.startTime && newRange.endTime <= previousRange.endTime;
+    if (isFullyCovered) {
+      return {
+        startTime: previousRange.startTime,
+        endTime: previousRange.endTime,
+        reusePrevious: true,
+        overlapsWithPrevious: false,
+      };
+    }
+
+    const hasOverlap = newRange.startTime < previousRange.endTime && newRange.endTime > previousRange.startTime;
+    return {
+      startTime: newRange.startTime,
+      endTime: newRange.endTime,
+      reusePrevious: false,
+      overlapsWithPrevious: hasOverlap,
+    };
+  }
+
+  return {
+    startTime: newRange.startTime,
+    endTime: newRange.endTime,
+    reusePrevious: false,
+    overlapsWithPrevious: false,
+  };
+}
 
 export type UseScheduleWithCacheArgs = {
   username?: string | null;
@@ -69,12 +118,23 @@ export const useSchedule = ({
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
-  const [startTime, endTime] = useTimesForSchedule({
+  const [computedStartTime, computedEndTime] = useTimesForSchedule({
     month,
     dayCount,
     selectedDate,
     bookerLayout,
   });
+
+  const previousRangeRef = useRef<{ startTime: string; endTime: string } | null>(null);
+  const rangeComparison = compareTimeRanges(
+    { startTime: computedStartTime, endTime: computedEndTime },
+    previousRangeRef.current
+  );
+  const { startTime, endTime, overlapsWithPrevious: overlapsWithPreviousRange } = rangeComparison;
+
+  if (!rangeComparison.reusePrevious) {
+    previousRangeRef.current = { startTime, endTime };
+  }
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
@@ -114,8 +174,6 @@ export const useSchedule = ({
     skipContactOwner,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
-    // Ensures that connectVersion causes a refresh of the data
-    ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
@@ -151,13 +209,34 @@ export const useSchedule = ({
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
+    overlapsWithPreviousRange,
   });
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
     ...options,
     // Only enable if we're not using API V2
     enabled: options.enabled && !isCallingApiV2Slots,
+    // When the date range changes but overlaps with the previous range (e.g. bookerState
+    // transition widens endTime), keep showing the previous slots instead of a skeleton.
+    ...(overlapsWithPreviousRange ? { placeholderData: keepPreviousData } : {}),
   });
+
+  // When the embed connects, connectVersion changes in the URL param.
+  // Instead of including it in the query key (which causes a cache miss and loading skeleton),
+  // we use it as a signal to invalidate the existing query so React Query refetches in the
+  // background while keeping the cached prerender data visible.
+  const previousConnectVersionRef = useRef(embedConnectVersion);
+  useEffect(() => {
+    if (embedConnectVersion !== previousConnectVersionRef.current) {
+      previousConnectVersionRef.current = embedConnectVersion;
+      if (isCallingApiV2Slots) {
+        teamScheduleV2.refetch();
+      } else {
+        utils.viewer.slots.getSchedule.invalidate(input);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [embedConnectVersion]);
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({

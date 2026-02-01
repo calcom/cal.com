@@ -100,5 +100,6 @@ export const useTimesForSchedule = ({
     startTime = monthDayjs.startOf("month").toISOString();
     endTime = (lastMonthToPrefetchDayjs ? lastMonthToPrefetchDayjs : monthDayjs).endOf("month").toISOString();
   }
+
   return [startTime, endTime];
 };

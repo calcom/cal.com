@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 import type {
@@ -12,8 +12,9 @@ export const QUERY_KEY = "get-available-slots";
 
 export const useApiV2AvailableSlots = ({
   enabled,
+  overlapsWithPreviousRange = false,
   ...rest
-}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean }) => {
+}: GetAvailableSlotsInput_2024_04_15 & { enabled: boolean; overlapsWithPreviousRange?: boolean }) => {
   const availableSlots = useQuery({
     queryKey: [
       QUERY_KEY,
@@ -27,7 +28,6 @@ export const useApiV2AvailableSlots = ({
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
       rest.teamMemberEmail,
-      rest.embedConnectVersion ?? false,
     ],
     queryFn: () => {
       return axios
@@ -42,6 +42,9 @@ export const useApiV2AvailableSlots = ({
         });
     },
     enabled: enabled,
+    // When the date range changes but overlaps with the previous range (e.g. bookerState
+    // transition widens endTime), keep showing the previous slots instead of a skeleton.
+    ...(overlapsWithPreviousRange ? { placeholderData: keepPreviousData } : {}),
   });
   return availableSlots;
 };
