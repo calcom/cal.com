@@ -20,6 +20,7 @@ import {
   getBulkTeamEventTypes,
   getBulkUserEventTypes,
   getEventTypeById,
+  getEventTypeByIdWithTeamMembers,
   getPublicEvent,
   type PublicEventType,
   TUpdateEventTypeInputSchema,
@@ -97,7 +98,7 @@ export class EventTypesAtomService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
-    const eventType = await getEventTypeById({
+    const eventType = await getEventTypeByIdWithTeamMembers({
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
       userId: user.id,
@@ -119,7 +120,9 @@ export class EventTypesAtomService {
       }
     }
 
-    return eventType;
+    const onlyManagedTeamMembers = eventType.teamMembers.filter((member) => member.isPlatformManaged);
+
+    return { ...eventType, teamMembers: onlyManagedTeamMembers };
   }
 
   async getUserEventTypes(userId: number) {

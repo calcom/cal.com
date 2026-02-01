@@ -312,4 +312,74 @@ export async function getRawEventType({
   });
 }
 
+export const getEventTypeByIdWithTeamMembers = async (props: getEventTypeByIdProps) => {
+  const result = await getEventTypeById(props);
+
+  const { prisma } = props;
+  const userRepo = new UserRepository(prisma);
+
+  const userSelect = {
+    name: true,
+    avatarUrl: true,
+    username: true,
+    id: true,
+    email: true,
+    locale: true,
+    defaultScheduleId: true,
+    isPlatformManaged: true,
+    timeZone: true,
+  } satisfies Prisma.UserSelect;
+
+  const isOrgEventType = !!result.team?.parentId;
+
+  const memberships = result.team
+    ? await prisma.membership.findMany({
+        where: {
+          teamId: result.team.id,
+        },
+        select: {
+          role: true,
+          accepted: true,
+          user: {
+            select: {
+              ...userSelect,
+              eventTypes: {
+                select: {
+                  slug: true,
+                },
+              },
+            },
+          },
+        },
+      })
+    : [];
+
+  const enrichedMembers = [];
+  for (const membership of memberships) {
+    enrichedMembers.push({
+      ...membership,
+      user: await userRepo.enrichUserWithItsProfile({
+        user: membership.user,
+      }),
+    });
+  }
+
+  const teamMembers = enrichedMembers
+    .filter((member) => member.accepted || isOrgEventType)
+    .map((member) => {
+      const user: typeof member.user & { avatar: string } = {
+        ...member.user,
+        avatar: getUserAvatarUrl(member.user),
+      };
+      return {
+        ...user,
+        profileId: user.profile.id,
+        eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+        membership: member.role,
+      };
+    });
+
+  return { ...result, teamMembers };
+};
+
 export default getEventTypeById;

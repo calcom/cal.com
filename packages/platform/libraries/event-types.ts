@@ -22,7 +22,7 @@ export type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 export { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 export { EventManager };
-export { getEventTypeById } from "@calcom/features/eventtypes/lib/getEventTypeById";
+export { getEventTypeById, getEventTypeByIdWithTeamMembers } from "@calcom/features/eventtypes/lib/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 export type { EventType } from "@calcom/features/eventtypes/lib/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
