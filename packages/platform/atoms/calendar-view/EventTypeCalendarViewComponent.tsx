@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { shallow } from "zustand/shallow";
 
 import {
@@ -7,8 +7,9 @@ import {
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Header } from "@calcom/web/modules/bookings/components/Header";
 import { BookerSection } from "@calcom/web/modules/bookings/components/Section";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
+import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import { useTimezoneBasedSlotRefresh } from "@calcom/features/bookings/Booker/components/hooks/useTimezoneBasedSlotRefresh";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -111,6 +112,10 @@ export const EventTypeCalendarViewComponent = (
 
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
+
+  // Detect timezone changes and refresh slots when conditions are met
+  const handleSlotRefresh = useCallback(() => schedule.refetch(), [schedule]);
+  useTimezoneBasedSlotRefresh(event?.data, handleSlotRefresh);
 
   const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
