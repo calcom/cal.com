@@ -82,6 +82,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor,
     users,
     children,
+    pendingChildrenChanges,
     assignAllTeamMembers,
     pendingHostChanges,
     hosts,
@@ -995,13 +996,80 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     calVideoSettingsForChildren = null;
   }
 
+  // Reconstruct children array from pendingChildrenChanges if present
+  let resolvedChildren = children;
+  if (pendingChildrenChanges && !children) {
+    const existingChildren = await ctx.prisma.eventType.findMany({
+      where: { parentId: id },
+      select: {
+        hidden: true,
+        slug: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            eventTypes: { select: { slug: true } },
+          },
+        },
+      },
+    });
+
+    if (pendingChildrenChanges.clearAllChildren) {
+      // Only keep newly added children
+      resolvedChildren = pendingChildrenChanges.childrenToAdd.map((c) => ({
+        owner: {
+          id: c.owner.id,
+          name: c.owner.name,
+          email: c.owner.email,
+          eventTypeSlugs: [],
+        },
+        hidden: c.hidden,
+      }));
+    } else {
+      const removeSet = new Set(pendingChildrenChanges.childrenToRemove);
+      const updateMap = new Map(pendingChildrenChanges.childrenToUpdate.map((u) => [u.userId, u]));
+
+      // Start with existing children, filter removals, apply updates
+      resolvedChildren = existingChildren
+        .filter((c) => c.owner && !removeSet.has(c.owner.id))
+        .map((c) => {
+          const update = updateMap.get(c.owner!.id);
+          return {
+            owner: {
+              id: c.owner!.id,
+              name: c.owner!.name ?? "",
+              email: c.owner!.email,
+              eventTypeSlugs: c.owner!.eventTypes
+                .map((et) => et.slug)
+                .filter((slug) => slug !== updatedEventType.slug),
+            },
+            hidden: update?.hidden ?? c.hidden,
+          };
+        });
+
+      // Add newly added children
+      for (const added of pendingChildrenChanges.childrenToAdd) {
+        resolvedChildren.push({
+          owner: {
+            id: added.owner.id,
+            name: added.owner.name,
+            email: added.owner.email,
+            eventTypeSlugs: [],
+          },
+          hidden: added.hidden,
+        });
+      }
+    }
+  }
+
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
     updatedEventType,
-    children,
+    children: resolvedChildren,
     profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
     updatedValues,

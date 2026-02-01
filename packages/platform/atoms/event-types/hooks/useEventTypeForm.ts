@@ -111,18 +111,13 @@ export const useEventTypeForm = ({
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       secondaryEmailId: eventType?.secondaryEmailId || -1,
-      children: eventType.children.map((ch) => ({
-        ...ch,
-        created: true,
-        owner: {
-          ...ch.owner,
-          eventTypeSlugs:
-            eventType.team?.members
-              .find((mem) => mem.user.id === ch.owner.id)
-              ?.user.eventTypes.map((evTy) => evTy.slug)
-              .filter((slug) => slug !== eventType.slug) ?? [],
-        },
-      })),
+      // Children are loaded via pagination, not stored in form state
+      children: [],
+      pendingChildrenChanges: {
+        childrenToAdd: [],
+        childrenToRemove: [],
+        childrenToUpdate: [],
+      },
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       autoTranslateInstantMeetingTitleEnabled: eventType.autoTranslateInstantMeetingTitleEnabled ?? true,
@@ -305,7 +300,6 @@ export const useEventTypeForm = ({
   };
 
   const handleSubmit = async (values: FormValues) => {
-    const { children } = values;
     const dirtyValues = getDirtyFields(values);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
@@ -384,7 +378,7 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, pendingHostChanges: _phc, ...rest } = input;
+    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, pendingHostChanges: _phc, pendingChildrenChanges: _pcc, ...rest } = input;
 
     // Send delta directly to backend instead of computing full hosts array
     const pendingHostChanges = values.pendingHostChanges;
@@ -393,6 +387,15 @@ export const useEventTypeForm = ({
       (pendingHostChanges.hostsToAdd.length > 0 ||
         pendingHostChanges.hostsToUpdate.length > 0 ||
         pendingHostChanges.hostsToRemove.length > 0);
+
+    // Send delta directly to backend for children changes
+    const pendingChildrenChanges = values.pendingChildrenChanges;
+    const hasChildrenChanges =
+      pendingChildrenChanges &&
+      (pendingChildrenChanges.childrenToAdd.length > 0 ||
+        pendingChildrenChanges.childrenToRemove.length > 0 ||
+        pendingChildrenChanges.childrenToUpdate.length > 0 ||
+        pendingChildrenChanges.clearAllChildren);
 
     const payload = {
       ...rest,
@@ -415,9 +418,9 @@ export const useEventTypeForm = ({
       seatsShowAvailabilityCount,
       metadata,
       customInputs,
-      children,
       assignAllTeamMembers,
       pendingHostChanges: hasHostChanges ? pendingHostChanges : undefined,
+      pendingChildrenChanges: hasChildrenChanges ? pendingChildrenChanges : undefined,
       multiplePrivateLinks: values.multiplePrivateLinks,
       disableCancelling: disabledCancelling,
       disableRescheduling: disabledRescheduling,

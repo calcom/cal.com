@@ -243,6 +243,52 @@ export class HostRepository {
     return { items, nextCursor, hasMore, hasFixedHosts };
   }
 
+  async findChildrenForAssignmentPaginated({
+    eventTypeId,
+    cursor,
+    limit = 20,
+    search,
+  }: {
+    eventTypeId: number;
+    cursor?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const children = await this.prismaClient.eventType.findMany({
+      where: {
+        parentId: eventTypeId,
+        ...(cursor && { id: { gt: cursor } }),
+        ...(search && {
+          owner: {
+            name: { contains: search, mode: "insensitive" as const },
+          },
+        }),
+      },
+      take: limit + 1,
+      select: {
+        id: true,
+        slug: true,
+        hidden: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: [{ id: "asc" }],
+    });
+
+    const hasMore = children.length > limit;
+    const items = hasMore ? children.slice(0, -1) : children;
+    const nextCursor = hasMore ? items[items.length - 1].id : undefined;
+
+    return { items, nextCursor, hasMore };
+  }
+
   async findHostsWithConferencingCredentials(eventTypeId: number) {
     return await this.prismaClient.host.findMany({
       where: { eventTypeId },

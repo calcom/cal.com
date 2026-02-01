@@ -113,6 +113,16 @@ type ChildInput = {
   hidden: boolean;
 };
 
+type PendingChildrenChangesInput = {
+  childrenToAdd: {
+    owner: { id: number; name: string; email: string };
+    hidden: boolean;
+  }[];
+  childrenToRemove: number[]; // owner userIds
+  childrenToUpdate: { userId: number; hidden?: boolean }[];
+  clearAllChildren?: boolean;
+};
+
 type DestinationCalendarInput = {
   integration: string;
   externalId: string;
@@ -264,6 +274,7 @@ export type TUpdateInputSchema = {
   hostGroups?: HostGroupInput[];
   enablePerHostLocations?: boolean;
   pendingHostChanges?: PendingHostChangesInput;
+  pendingChildrenChanges?: PendingChildrenChangesInput;
 };
 
 // ============================================================================
@@ -359,6 +370,27 @@ const childSchema: z.ZodType<ChildInput> = z.object({
     eventTypeSlugs: z.array(z.string()),
   }),
   hidden: z.boolean(),
+});
+
+const pendingChildrenChangesSchema: z.ZodType<PendingChildrenChangesInput> = z.object({
+  childrenToAdd: z.array(
+    z.object({
+      owner: z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string(),
+      }),
+      hidden: z.boolean(),
+    })
+  ),
+  childrenToRemove: z.array(z.number()),
+  childrenToUpdate: z.array(
+    z.object({
+      userId: z.number(),
+      hidden: z.boolean().optional(),
+    })
+  ),
+  clearAllChildren: z.boolean().optional(),
 });
 
 const destinationCalendarInputSchema: z.ZodType<DestinationCalendarInput> = z
@@ -479,6 +511,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     hostGroups: z.array(hostGroupSchema).optional(),
     enablePerHostLocations: z.boolean().optional(),
     pendingHostChanges: pendingHostChangesSchema.optional(),
+    pendingChildrenChanges: pendingChildrenChangesSchema.optional(),
   })
   .strict();
 

@@ -10,6 +10,7 @@ import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
+import { ZGetChildrenForAssignmentInputSchema } from "./getChildrenForAssignment.schema";
 import { ZGetHostsForAssignmentInputSchema } from "./getHostsForAssignment.schema";
 import { ZGetHostsForAvailabilityInputSchema } from "./getHostsForAvailability.schema";
 import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
@@ -174,6 +175,20 @@ export const eventTypesRouter = router({
       const { getHostsForAssignmentHandler } = await import("./getHostsForAssignment.handler");
 
       return getHostsForAssignmentHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getChildrenForAssignment: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetChildrenForAssignmentInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getChildrenForAssignmentHandler } = await import("./getChildrenForAssignment.handler");
+
+      return getChildrenForAssignmentHandler({
         ctx,
         input,
       });

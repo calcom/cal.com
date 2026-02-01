@@ -7,6 +7,7 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { useHosts } from "@calcom/features/eventtypes/lib/HostsContext";
+import { usePaginatedAssignmentChildren, assignmentChildToChildrenEventType } from "@calcom/features/eventtypes/lib/usePaginatedAssignmentChildren";
 import { usePaginatedAssignmentHosts } from "@calcom/features/eventtypes/lib/usePaginatedAssignmentHosts";
 import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -546,18 +547,20 @@ function mapSearchMemberToChildrenOption(
 
 const ChildrenEventTypes = ({
   teamId,
+  eventTypeId,
   eventSlug,
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   customClassNames,
 }: {
   teamId: number;
+  eventTypeId: number;
   eventSlug: string;
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   customClassNames?: ChildrenEventTypesCustomClassNames;
 }) => {
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues } = useFormContext<FormValues>();
   const { t } = useLocale();
 
   const [search, setSearch] = useState("");
@@ -568,16 +571,133 @@ const ChildrenEventTypes = ({
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { members, fetchNextPage, hasNextPage, isFetchingNextPage } = useSearchTeamMembers({
+  // Dropdown search for adding new children
+  const {
+    members,
+    fetchNextPage: fetchNextSearchPage,
+    hasNextPage: hasNextSearchPage,
+    isFetchingNextPage: isFetchingNextSearchPage,
+  } = useSearchTeamMembers({
     teamId,
     search: debouncedSearch,
     enabled: !assignAllTeamMembers,
   });
 
+  // Paginated display of existing children
+  const pendingChanges = getValues("pendingChildrenChanges") ?? {
+    childrenToAdd: [],
+    childrenToRemove: [],
+    childrenToUpdate: [],
+  };
+
+  const {
+    children: paginatedChildren,
+    fetchNextPage: fetchNextChildrenPage,
+    hasNextPage: hasNextChildrenPage,
+    isFetchingNextPage: isFetchingNextChildrenPage,
+  } = usePaginatedAssignmentChildren({
+    eventTypeId,
+    pendingChanges,
+    search: "",
+    enabled: !assignAllTeamMembers,
+  });
+
+  // Convert paginated children to ChildrenEventType format for display
+  const displayChildren = useMemo(
+    (): ChildrenEventType[] =>
+      paginatedChildren.map((child) =>
+        assignmentChildToChildrenEventType(child, t("pending"))
+      ),
+    [paginatedChildren, t]
+  );
+
+  // Convert search members to dropdown options, excluding already-assigned children
+  const assignedOwnerIds = useMemo(
+    () => new Set(paginatedChildren.map((c) => c.owner.id)),
+    [paginatedChildren]
+  );
+
   const childrenOptions = useMemo(
     (): ChildrenEventType[] =>
-      members.map((member) => mapSearchMemberToChildrenOption(member, eventSlug, t("pending"))),
-    [members, eventSlug, t]
+      members
+        .filter((member) => !assignedOwnerIds.has(member.userId))
+        .map((member) => mapSearchMemberToChildrenOption(member, eventSlug, t("pending"))),
+    [members, eventSlug, t, assignedOwnerIds]
+  );
+
+  const handleChildrenChange = useCallback(
+    (newValue: readonly ChildrenEventType[]) => {
+      const currentChildren = displayChildren;
+      const newMap = new Map(newValue.map((c) => [c.owner.id, c]));
+      const currentMap = new Map(currentChildren.map((c) => [c.owner.id, c]));
+
+      // Find newly added children (in newValue but not in current)
+      const added = newValue.filter((c) => !currentMap.has(c.owner.id));
+      // Find removed children (in current but not in newValue)
+      const removed = currentChildren.filter((c) => !newMap.has(c.owner.id));
+      // Find hidden changes (same children but hidden toggled)
+      const hiddenChanges: { userId: number; hidden: boolean }[] = [];
+      for (const [ownerId, newChild] of newMap) {
+        const currentChild = currentMap.get(ownerId);
+        if (currentChild && currentChild.hidden !== newChild.hidden) {
+          hiddenChanges.push({ userId: ownerId, hidden: newChild.hidden });
+        }
+      }
+
+      const current = getValues("pendingChildrenChanges") ?? {
+        childrenToAdd: [],
+        childrenToRemove: [],
+        childrenToUpdate: [],
+      };
+
+      // Handle hidden changes on pending adds
+      let updatedAdds = [...current.childrenToAdd];
+      const serverHiddenChanges: { userId: number; hidden: boolean }[] = [];
+      for (const change of hiddenChanges) {
+        const addIndex = updatedAdds.findIndex((c) => c.owner.id === change.userId);
+        if (addIndex >= 0) {
+          updatedAdds[addIndex] = { ...updatedAdds[addIndex], hidden: change.hidden };
+        } else {
+          serverHiddenChanges.push(change);
+        }
+      }
+
+      // Merge server hidden changes into childrenToUpdate
+      let updatedUpdates = [...current.childrenToUpdate];
+      for (const change of serverHiddenChanges) {
+        const existingIndex = updatedUpdates.findIndex((u) => u.userId === change.userId);
+        if (existingIndex >= 0) {
+          updatedUpdates[existingIndex] = { ...updatedUpdates[existingIndex], hidden: change.hidden };
+        } else {
+          updatedUpdates.push(change);
+        }
+      }
+
+      // Remove pending adds that were removed
+      const removedIds = new Set(removed.map((c) => c.owner.id));
+      updatedAdds = updatedAdds.filter((c) => !removedIds.has(c.owner.id));
+
+      // For removals: only add to childrenToRemove if not a pending add
+      const serverRemovals = removed
+        .filter((c) => !current.childrenToAdd.some((a) => a.owner.id === c.owner.id))
+        .map((c) => c.owner.id);
+
+      const updatedChanges = {
+        ...current,
+        childrenToAdd: [
+          ...updatedAdds,
+          ...added.map((c) => ({
+            ...c,
+            created: false,
+          })),
+        ],
+        childrenToRemove: [...current.childrenToRemove, ...serverRemovals],
+        childrenToUpdate: updatedUpdates,
+      };
+
+      setValue("pendingChildrenChanges", updatedChanges, { shouldDirty: true });
+    },
+    [displayChildren, getValues, setValue]
   );
 
   return (
@@ -591,24 +711,27 @@ const ChildrenEventTypes = ({
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           customClassNames={customClassNames?.assignAllTeamMembers}
-          onActive={() => setValue("children", [], { shouldDirty: true })}
+          onActive={() =>
+            setValue(
+              "pendingChildrenChanges",
+              { childrenToAdd: [], childrenToRemove: [], childrenToUpdate: [], clearAllChildren: true },
+              { shouldDirty: true }
+            )
+          }
         />
         {!assignAllTeamMembers ? (
-          <Controller<FormValues>
-            name="children"
-            render={({ field: { onChange, value } }) => (
-              <ChildrenEventTypesList
-                value={value}
-                options={childrenOptions}
-                onChange={onChange}
-                customClassNames={customClassNames?.childrenEventTypesList}
-                onSearchChange={setSearch}
-                onMenuScrollToBottom={() => {
-                  if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-                }}
-                isLoadingMore={isFetchingNextPage}
-              />
-            )}
+          <ChildrenEventTypesList
+            value={displayChildren}
+            options={childrenOptions}
+            onChange={(options) => {
+              if (options) handleChildrenChange(options);
+            }}
+            customClassNames={customClassNames?.childrenEventTypesList}
+            onSearchChange={setSearch}
+            onMenuScrollToBottom={() => {
+              if (hasNextSearchPage && !isFetchingNextSearchPage) fetchNextSearchPage();
+            }}
+            isLoadingMore={isFetchingNextSearchPage}
           />
         ) : (
           <></>
@@ -966,6 +1089,7 @@ export const EventTeamAssignmentTab = ({
       {team && isManagedEventType && (
         <ChildrenEventTypes
           teamId={team.id}
+          eventTypeId={eventType.id}
           eventSlug={eventType.slug}
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
