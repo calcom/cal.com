@@ -129,9 +129,10 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
         },
       },
     },
-    successRedirectUrl: true,
-    forwardParamsSuccessRedirect: true,
-    workflows: {
+        successRedirectUrl: true,
+        forwardParamsSuccessRedirect: true,
+        redirectUrlOnNoRoutingFormResponse: true,
+        workflows: {
       include: {
         workflow: {
           include: {
