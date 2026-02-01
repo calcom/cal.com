@@ -1,6 +1,7 @@
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
+import { useColorScheme } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
@@ -63,6 +64,7 @@ const getMeetingUrl = (booking: Booking | null): string | null => {
 export default function BookingDetailIOS() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
+  const colorScheme = useColorScheme();
 
   // Use React Query hook for booking data - single source of truth
   const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
@@ -295,7 +297,11 @@ export default function BookingDetailIOS() {
           </Stack.Header.Menu>
 
           {meetingUrl && (
-            <Stack.Header.Button onPress={handleJoinMeeting} variant="prominent" tintColor="#000">
+            <Stack.Header.Button
+              onPress={handleJoinMeeting}
+              variant="prominent"
+              tintColor={colorScheme === "dark" ? "#FFF" : "#000"}
+            >
               Join
             </Stack.Header.Button>
           )}

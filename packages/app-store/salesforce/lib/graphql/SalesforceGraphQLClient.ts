@@ -6,6 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Contact } from "@calcom/types/CrmService";
 
 import { SalesforceRecordEnum } from "../enums";
+import { SalesforceRoutingTraceService } from "../tracing";
 import getAllPossibleWebsiteValuesFromEmailDomain from "../utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "../utils/getDominantAccountId";
 import { GetAccountRecordsForRRSkip } from "./documents/queries";
@@ -60,6 +61,12 @@ export class SalesforceGraphQLClient {
     const emailDomain = email.split("@")[1];
     const websites = this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
 
+    // Trace query initiation
+    SalesforceRoutingTraceService.graphqlQueryInitiated({
+      email,
+      emailDomain,
+    });
+
     log.info(`Query against email and email domain of ${emailDomain}`);
 
     const query = await this.client.query(GetAccountRecordsForRRSkip, {
@@ -91,6 +98,11 @@ export class SalesforceGraphQLClient {
 
       if (contact) {
         log.info(`Existing contact found with id ${contact.Id}`);
+        SalesforceRoutingTraceService.graphqlExistingContactFound({
+          contactId: contact.Id,
+          accountId: contact.AccountId?.value || contact.Id,
+          ownerEmail: contact.Account?.Owner?.Email?.value || "",
+        });
         return [
           {
             id: contact.AccountId?.value || contact.Id,
@@ -110,6 +122,10 @@ export class SalesforceGraphQLClient {
         log.info(
           `Existing account with website that matches email domain of ${emailDomain} found with id ${account.Id}`
         );
+        SalesforceRoutingTraceService.graphqlAccountFoundByWebsite({
+          accountId: account.Id,
+          ownerEmail: account.Owner?.Email?.value || "",
+        });
         return [
           {
             id: account.Id,
@@ -158,6 +174,12 @@ export class SalesforceGraphQLClient {
         return contacts;
       }, [] as { id: string; AccountId: string; ownerId: string; ownerEmail: string }[]);
 
+      // Trace searching by contact domain
+      SalesforceRoutingTraceService.graphqlSearchingByContactDomain({
+        emailDomain,
+        contactCount: relatedContacts.length,
+      });
+
       const dominantAccountId = getDominantAccountId(relatedContacts);
 
       if (!dominantAccountId) {
@@ -165,6 +187,10 @@ export class SalesforceGraphQLClient {
           "Could not find dominant account id with the following contacts",
           safeStringify({ relatedContacts })
         );
+        SalesforceRoutingTraceService.graphqlNoAccountFound({
+          email,
+          reason: "Could not find dominant account from related contacts",
+        });
         return [];
       }
 
@@ -180,6 +206,18 @@ export class SalesforceGraphQLClient {
         return [];
       }
 
+      // Trace dominant account selection
+      const contactsUnderDominantAccount = relatedContacts.filter(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (contact) => contact.AccountId === dominantAccountId
+      );
+      SalesforceRoutingTraceService.graphqlDominantAccountSelected({
+        accountId: dominantAccountId,
+        contactCount: contactsUnderDominantAccount.length,
+        ownerEmail: contactUnderAccount.ownerEmail,
+      });
+
       log.info(`Account found via related contacts with account id ${dominantAccountId}`);
       return [
         {
@@ -193,6 +231,10 @@ export class SalesforceGraphQLClient {
     }
 
     log.info("No account found for attendee");
+    SalesforceRoutingTraceService.graphqlNoAccountFound({
+      email,
+      reason: "No account found via any tier",
+    });
     return [];
   }
 
