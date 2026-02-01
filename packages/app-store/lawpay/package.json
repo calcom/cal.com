@@ -1,0 +1,8 @@
+{
+  "name": "@calcom/lawpay",
+  "version": "0.0.0",
+  "private": true,
+  "description": "LawPay payment integration for attorneys with IOLTA trust accounting compliance. Enables secure credit card and eCheck payments that comply with attorney trust accounting rules.",
+  "main": "./index.ts",
+  "types": "./index.ts"
+}
