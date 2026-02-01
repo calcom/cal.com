@@ -24,15 +24,22 @@ export class CheckBookingLimitsService {
   ) {
     const parsedBookingLimits = parseBookingLimit(bookingLimits);
     if (!parsedBookingLimits) return false;
+    
+//fix user timezone
+    const userTimezone = timeZone || "UTC";
+    const normalizedEventDate = dayjs(eventStartDate)
+       .tz(userTimezone)
+       .toDate();
+    
 
     // not iterating entries to preserve types
     const limitCalculations = ascendingLimitKeys.map((key) =>
       this.checkBookingLimit({
         key,
         limitingNumber: parsedBookingLimits[key],
-        eventStartDate,
+        eventStartDate: normalizedEventDate,  
         eventId,
-        timeZone,
+        timeZone: userTimezone, 
         rescheduleUid,
         includeManagedEvents,
       })
@@ -68,14 +75,20 @@ export class CheckBookingLimitsService {
     user?: { id: number; email: string };
     includeManagedEvents?: boolean;
   }) {
-    const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
+    const eventDateInOrganizerTz = timeZone 
+      ? dayjs(eventStartDate).tz(timeZone) 
+      : dayjs(eventStartDate);
 
     if (!limitingNumber) return;
 
     const unit = intervalLimitKeyToUnit(key);
 
-    const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
-    const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
+    const startInTz = eventDateInOrganizerTz.startOf(unit);
+    const endInTz = eventDateInOrganizerTz.endOf(unit);
+
+    const startDate = startInTz.utc().toDate();
+    const endDate = endInTz.utc().toDate();
+
 
     let bookingsInPeriod;
 
