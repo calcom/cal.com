@@ -198,7 +198,7 @@ export const NavigationItem: React.FC<{
                 />
                 {shouldShowChevron && (
                   <Icon
-                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    name={shouldShowChildren ? "chevron-up" : "chevron-down"}
                     className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-subtle p-0.5 lg:hidden"
                   />
                 )}
@@ -217,7 +217,7 @@ export const NavigationItem: React.FC<{
             )}
             {shouldShowChevron && (
               <Icon
-                name={isExpanded ? "chevron-up" : "chevron-down"}
+                name={shouldShowChildren ? "chevron-up" : "chevron-down"}
                 className="ml-auto hidden h-4 w-4 lg:block"
               />
             )}
