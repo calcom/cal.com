@@ -1,6 +1,8 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { keepPreviousData } from "@tanstack/react-query";
+
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -156,6 +158,9 @@ export const useSchedule = ({
     ...options,
     // Only enable if we're not using API V2
     enabled: options.enabled && !isCallingApiV2Slots,
+    // Keep showing previous slots when the query key changes (e.g. endTime changes due to
+    // bookerState transition) instead of dropping to isLoading and showing a skeleton.
+    placeholderData: keepPreviousData,
   });
 
   // When the embed connects, connectVersion changes in the URL param.

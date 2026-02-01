@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 import type {
@@ -41,6 +41,9 @@ export const useApiV2AvailableSlots = ({
         });
     },
     enabled: enabled,
+    // Keep showing previous slots when the query key changes (e.g. endTime changes due to
+    // bookerState transition) instead of dropping to isLoading and showing a skeleton.
+    placeholderData: keepPreviousData,
   });
   return availableSlots;
 };
