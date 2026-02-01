@@ -7,7 +7,7 @@
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
-    "dev": "turbo run copy-app-store-static && next dev --turbopack",
+    "dev": "../../node_modules/.bin/turbo.cmd run copy-app-store-static && ../../node_modules/.bin/next.cmd dev --turbopack",
     "dev:scan": "yarn dev & npx --yes react-scan@latest localhost:3000",
     "dev:cron": "npx tsx cron-tester.ts",
     "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",

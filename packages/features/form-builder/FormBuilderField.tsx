@@ -335,6 +335,7 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           setValue={setValue as (arg: typeof value) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
+          optionsInputs={field.optionsInputs}
         />
       </WithLabel>
     );

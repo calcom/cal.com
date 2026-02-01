@@ -1070,9 +1070,17 @@ export const baseFieldSchema = z.object({
       z.object({
         // Support all types as needed
         // Must be a subset of `fieldTypeEnum`.TODO: Enforce it in TypeScript
-        type: z.enum(["address", "phone", "text"]),
+        type: z.enum(["address", "phone", "text", "select"]),
         required: z.boolean().optional(),
         placeholder: z.string().optional(),
+        options: z
+          .array(
+            z.object({
+              label: z.string(),
+              value: z.string(),
+            })
+          )
+          .optional(),
       })
     )
     .optional(),

@@ -33,57 +33,65 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
 
 type Component =
   | {
-      propsType: "text";
-      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
-    }
+    propsType: "text";
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "textList";
-      factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
-    }
+    propsType: "textList";
+    factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "select";
-      factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
-    }
+    propsType: "select";
+    factory: <
+      TProps extends SelectLikeComponentProps & {
+        optionsInputs?: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
+        value: string | { value: string; optionValue: string };
+        setValue: (val: string | { value: string; optionValue: string }) => void;
+      }
+    >(
+      props: TProps
+    ) => JSX.Element;
+  }
   | {
-      propsType: "boolean";
-      factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
-    }
+    propsType: "boolean";
+    factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "multiselect";
-      factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
-    }
+    propsType: "multiselect";
+    factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+  }
   | {
-      // Objective type question with option having a possible input
-      propsType: "objectiveWithInput";
-      factory: <
-        TProps extends SelectLikeComponentProps<{
-          value: string;
-          optionValue: string;
-        }> & {
-          optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
-          value: { value: string; optionValue: string };
-        } & {
-          name?: string;
-          required?: boolean;
-          translatedDefaultLabel?: string;
-        }
-      >(
-        props: TProps
-      ) => JSX.Element;
-    }
+    // Objective type question with option having a possible input
+    propsType: "objectiveWithInput";
+    factory: <
+      TProps extends SelectLikeComponentProps<{
+        value: string;
+        optionValue: string;
+      }> & {
+        optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
+        value: { value: string; optionValue: string };
+      } & {
+        name?: string;
+        required?: boolean;
+        translatedDefaultLabel?: string;
+      }
+    >(
+      props: TProps
+    ) => JSX.Element;
+  }
   | {
-      propsType: "variants";
-      factory: <
-        TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
-          variant: string | undefined;
-          variants: z.infer<typeof variantsConfigSchema>["variants"];
-          value: Record<string, string> | string | undefined;
-          setValue: (value: string | Record<string, string>) => void;
-        }
-      >(
-        props: TProps
-      ) => JSX.Element;
-    };
+    propsType: "variants";
+    factory: <
+      TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
+        variant: string | undefined;
+        variants: z.infer<typeof variantsConfigSchema>["variants"];
+        value: Record<string, string> | string | undefined;
+        setValue: (value: string | Record<string, string>) => void;
+      }
+    >(
+      props: TProps
+    ) => JSX.Element;
+  };
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
@@ -179,8 +187,8 @@ export const Components: Record<FieldType, Component> = {
                 variantField.name === "firstName"
                   ? "given-name"
                   : variantField.name === "lastName"
-                  ? "family-name"
-                  : undefined
+                    ? "family-name"
+                    : undefined
               }
               onChange={(e) => onChange(variantField.name, e.target.value)}
             />
@@ -335,12 +343,51 @@ export const Components: Record<FieldType, Component> = {
   },
   select: {
     propsType: propsTypes.select,
-    factory: (props) => {
+    factory: ({ optionsInputs, value, setValue, ...props }) => {
+      const actualValue =
+        typeof value === "object" && value !== null
+          ? (value as { value: string; optionValue: string }).value
+          : (value as string);
+      const optionValue =
+        typeof value === "object" && value !== null
+          ? (value as { value: string; optionValue: string }).optionValue
+          : "";
+
       const newProps = {
         ...props,
+        value: actualValue,
+        setValue: (val: string) => {
+          if (optionsInputs) {
+            setValue({ value: val, optionValue: "" });
+          } else {
+            setValue(val);
+          }
+        },
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.SelectWidget id={props.name} {...newProps} />;
+
+      const optionField = optionsInputs?.[actualValue];
+
+      return (
+        <div>
+          <Widgets.SelectWidget id={props.name} {...newProps} />
+          {optionField && (
+            <div className="mt-2">
+              <ComponentForField
+                readOnly={!!props.readOnly}
+                field={{
+                  ...optionField,
+                  name: "optionField",
+                }}
+                value={optionValue}
+                setValue={(val: string) => {
+                  setValue({ value: actualValue, optionValue: val });
+                }}
+              />
+            </div>
+          )}
+        </div>
+      );
     },
   },
   checkbox: {
@@ -374,25 +421,57 @@ export const Components: Record<FieldType, Component> = {
   },
   radio: {
     propsType: propsTypes.radio,
-    factory: ({ setValue, name, value, options, readOnly }) => {
+    factory: ({ setValue, name, value, options, readOnly, optionsInputs }) => {
+      const actualValue =
+        typeof value === "object" && value !== null
+          ? (value as { value: string; optionValue: string }).value
+          : (value as string);
+      const optionValue =
+        typeof value === "object" && value !== null
+          ? (value as { value: string; optionValue: string }).optionValue
+          : "";
+
+      const optionField = optionsInputs?.[actualValue];
+
       return (
-        <RadioGroup
-          disabled={readOnly}
-          value={value}
-          onValueChange={(e) => {
-            setValue(e);
-          }}>
-          <>
-            {options.map((option, i) => (
-              <RadioField
-                label={option.label}
-                key={`option.${i}.radio`}
-                value={option.label}
-                id={`${name}.option.${i}.radio`}
+        <div>
+          <RadioGroup
+            disabled={readOnly}
+            value={actualValue}
+            onValueChange={(e) => {
+              if (optionsInputs) {
+                setValue({ value: e, optionValue: "" });
+              } else {
+                setValue(e);
+              }
+            }}>
+            <>
+              {options.map((option, i) => (
+                <RadioField
+                  label={option.label}
+                  key={`option.${i}.radio`}
+                  value={option.label}
+                  id={`${name}.option.${i}.radio`}
+                />
+              ))}
+            </>
+          </RadioGroup>
+          {optionField && (
+            <div className="mt-2">
+              <ComponentForField
+                readOnly={!!readOnly}
+                field={{
+                  ...optionField,
+                  name: "optionField",
+                }}
+                value={optionValue}
+                setValue={(val: string) => {
+                  setValue({ value: actualValue, optionValue: val });
+                }}
               />
-            ))}
-          </>
-        </RadioGroup>
+            </div>
+          )}
+        </div>
       );
     },
   },
@@ -483,9 +562,9 @@ export const Components: Record<FieldType, Component> = {
                     {options[0].value === "somewhereElse"
                       ? translatedDefaultLabel
                       : getCleanLabel(
-                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
-                        )}
-                    {!readOnly && optionsInputs[options[0].value]?.required ? (
+                        didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                      )}
+                    {!readOnly && optionsInputs?.[options[0].value]?.required ? (
                       <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}
                     {options[0].value === "phone" && (
@@ -497,7 +576,7 @@ export const Components: Record<FieldType, Component> = {
             </div>
           </div>
           {(() => {
-            const optionField = optionsInputs[value?.value];
+            const optionField = optionsInputs?.[value?.value];
             if (!optionField) {
               return null;
             }

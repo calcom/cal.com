@@ -133,7 +133,11 @@ function preprocess<T extends z.ZodType>({
           newResponses[field.name] = value instanceof Array ? value : [value];
         }
         // Parse JSON
-        else if (field.type === "radioInput" && typeof value === "string") {
+        else if (
+          (field.type === "radioInput" ||
+            ((field.type === "select" || field.type === "radio") && field.optionsInputs)) &&
+          typeof value === "string"
+        ) {
           let parsedValue = {
             optionValue: "",
             value: "",
@@ -340,7 +344,10 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        if (bookingField.type === "radioInput") {
+        if (
+          bookingField.type === "radioInput" ||
+          ((bookingField.type === "select" || bookingField.type === "radio") && bookingField.optionsInputs)
+        ) {
           if (bookingField.optionsInputs) {
             const optionValue = value?.optionValue;
             const optionField = bookingField.optionsInputs[value?.value];

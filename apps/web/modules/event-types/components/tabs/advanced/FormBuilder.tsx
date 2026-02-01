@@ -428,11 +428,13 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => {},
+  onChange = () => { },
   className = "",
   readOnly = false,
   showPrice = false,
   paymentCurrency,
+  optionsInputs,
+  onOptionsInputsChange,
 }: {
   label?: string;
   value: { label: string; value: string; price?: number }[];
@@ -441,6 +443,10 @@ function Options({
   readOnly?: boolean;
   showPrice?: boolean;
   paymentCurrency: string;
+  optionsInputs?: Record<string, { type: string; required?: boolean; placeholder?: string; options?: any[] }>;
+  onOptionsInputsChange?: (
+    val: Record<string, { type: string; required?: boolean; placeholder?: string; options?: any[] }>
+  ) => void;
 }) {
   const { t } = useLocale();
 
@@ -462,69 +468,166 @@ function Options({
       <Label>{label}</Label>
       <div className="bg-cal-muted rounded-md p-4" data-testid="options-container">
         <ul ref={animationRef} className="flex flex-col gap-3">
-          {value?.map((option, index) => (
-            <li key={index}>
-              <div className="flex items-center gap-2">
-                <div className="relative grow">
-                  <Input
-                    required
-                    value={option.label}
-                    onChange={(e) => {
-                      // Right now we use label of the option as the value of the option. It allows use to not separately lookup the optionId to know the optionValue
-                      // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
-                      const newOptions = [...(value || [])];
-                      newOptions.splice(index, 1, {
-                        label: e.target.value,
-                        value: e.target.value.trim(),
-                      });
-                      onChange(newOptions);
-                    }}
-                    readOnly={readOnly}
-                    placeholder={t("enter_option", { index: index + 1 })}
-                    className={value.length > 2 && !readOnly ? "pr-8" : ""}
-                  />
-                  {value.length > 2 && !readOnly && (
-                    <Button
-                      type="button"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
-                      size="sm"
-                      color="minimal"
-                      StartIcon="x"
-                      onClick={() => {
-                        if (!value) return;
+          {value?.map((option, index) => {
+            const optionInput = optionsInputs?.[option.value];
+            return (
+              <li key={index}>
+                <div className="flex items-center gap-2">
+                  <div className="relative grow">
+                    <Input
+                      required
+                      value={option.label}
+                      onChange={(e) => {
+                        // Right now we use label of the option as the value of the option. It allows use to not separately lookup the optionId to know the optionValue
+                        // It has the same drawback that if the label is changed, the value of the option will change. It is not a big deal for now.
+                        const newValue = e.target.value.trim();
+
+                        if (optionsInputs && optionsInputs[option.value] && onOptionsInputsChange) {
+                          const conf = optionsInputs[option.value];
+                          const newInputs = { ...optionsInputs };
+                          delete newInputs[option.value];
+                          newInputs[newValue] = conf;
+                          onOptionsInputsChange(newInputs);
+                        }
+
                         const newOptions = [...(value || [])];
-                        newOptions.splice(index, 1);
+                        newOptions.splice(index, 1, {
+                          label: e.target.value,
+                          value: newValue,
+                        });
                         onChange(newOptions);
                       }}
+                      readOnly={readOnly}
+                      placeholder={t("enter_option", { index: index + 1 })}
+                      className={value.length > 2 && !readOnly ? "pr-8" : ""}
                     />
+                    {value.length > 2 && !readOnly && (
+                      <Button
+                        type="button"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
+                        size="sm"
+                        color="minimal"
+                        StartIcon="x"
+                        onClick={() => {
+                          if (!value) return;
+                          const newOptions = [...(value || [])];
+                          newOptions.splice(index, 1);
+                          onChange(newOptions);
+                        }}
+                      />
+                    )}
+                  </div>
+                  {showPrice && (
+                    <div className="w-24">
+                      <InputField
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={option.price}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const numValue = val === "" ? undefined : Number(val);
+                          const updatedOptions = [...(value || [])];
+                          updatedOptions[index] = {
+                            ...option,
+                            price: numValue,
+                          };
+                          onChange(updatedOptions);
+                        }}
+                        readOnly={readOnly}
+                        placeholder="0"
+                        addOnLeading={getCurrencySymbol(paymentCurrency)}
+                      />
+                    </div>
                   )}
                 </div>
-                {showPrice && (
-                  <div className="w-24">
-                    <InputField
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={option.price}
+                {onOptionsInputsChange && !readOnly && (
+                  <div className="ml-4 mt-2 border-l-2 border-subtle pl-4">
+                    <CheckboxField
+                      disabled={readOnly}
+                      checked={!!optionInput}
                       onChange={(e) => {
-                        const val = e.target.value;
-                        const numValue = val === "" ? undefined : Number(val);
-                        const updatedOptions = [...(value || [])];
-                        updatedOptions[index] = {
-                          ...option,
-                          price: numValue,
-                        };
-                        onChange(updatedOptions);
+                        if (!optionsInputs) return;
+                        if (e.target.checked) {
+                          onOptionsInputsChange({
+                            ...optionsInputs,
+                            [option.value]: { type: "text", required: false, placeholder: "" },
+                          });
+                        } else {
+                          const newInputs = { ...optionsInputs };
+                          delete newInputs[option.value];
+                          onOptionsInputsChange(newInputs);
+                        }
                       }}
-                      readOnly={readOnly}
-                      placeholder="0"
-                      addOnLeading={getCurrencySymbol(paymentCurrency)}
+                      description={t("ask_follow_up_question")}
                     />
+
+                    {optionInput && optionsInputs && (
+                      <div className="mt-2 flex flex-col gap-2">
+                        <SelectField
+                          label={t("input_type")}
+                          value={{ value: optionInput.type, label: optionInput.type }}
+                          options={[
+                            { value: "text", label: "Text" },
+                            { value: "address", label: "Address" },
+                            { value: "phone", label: "Phone" },
+                            { value: "select", label: "Select" },
+                          ]}
+                          onChange={(opt) => {
+                            if (!opt) return;
+                            onOptionsInputsChange({
+                              ...optionsInputs,
+                              [option.value]: { ...optionInput, type: opt.value as any },
+                            });
+                          }}
+                        />
+                        <CheckboxField
+                          checked={optionInput.required}
+                          onChange={(e) => {
+                            onOptionsInputsChange({
+                              ...optionsInputs,
+                              [option.value]: { ...optionInput, required: e.target.checked },
+                            });
+                          }}
+                          description={t("required")}
+                        />
+                        {optionInput.type === "text" && (
+                          <InputField
+                            label={t("placeholder")}
+                            value={optionInput.placeholder || ""}
+                            onChange={(e) => {
+                              onOptionsInputsChange({
+                                ...optionsInputs,
+                                [option.value]: { ...optionInput, placeholder: e.target.value },
+                              });
+                            }}
+                          />
+                        )}
+
+                        {optionInput.type === "select" && (
+                          <Options
+                            label={t("options")}
+                            value={optionInput.options || []}
+                            onChange={(newOpts) => {
+                              onOptionsInputsChange({
+                                ...optionsInputs,
+                                [option.value]: {
+                                  ...optionInput,
+                                  options: newOpts.map((o) => ({ label: o.label, value: o.value })),
+                                },
+                              });
+                            }}
+                            readOnly={readOnly}
+                            paymentCurrency={paymentCurrency}
+                          />
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
         {!readOnly && (
           <Button
@@ -703,6 +806,10 @@ function FieldEditDialog({
                               className="mt-6"
                               showPrice={showPriceField && fieldType.optionsSupportPricing}
                               paymentCurrency={paymentCurrency}
+                              optionsInputs={fieldForm.watch("optionsInputs")}
+                              onOptionsInputsChange={(val) => {
+                                fieldForm.setValue("optionsInputs", val, { shouldDirty: true });
+                              }}
                             />
                           );
                         }}
@@ -997,7 +1104,7 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
