@@ -46,7 +46,7 @@ function getMethodDescriptor(target: object, propertyKey: string | symbol): Prop
 export function GetWebhook(data?: GetWebhookData): ParameterDecorator {
   return (target, propertyKey, parameterIndex) => {
     if (propertyKey) {
-      ApiParam({ name: "webhookId", type: String, required: true })(
+      ApiParam({ name: "webhookId", type: String, required: true, description: "The unique identifier of the webhook" })(
         target,
         propertyKey,
         getMethodDescriptor(target, propertyKey)
