@@ -3,7 +3,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import LegacyPage, {
   TeamMembersCTA,
 } from "~/ee/organizations/other-team-members-view";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 
 import { validateUserHasOrg } from "../../../../actions/validateUserHasOrg";
 

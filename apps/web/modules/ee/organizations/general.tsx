@@ -11,7 +11,7 @@ import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/component
 import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "~/ee/organizations/components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "~/ee/organizations/components/NoSlotsNotificationSwitch";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";

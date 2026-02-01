@@ -8,13 +8,13 @@ import {
   useBookerStoreContext,
   useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
-import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
-import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { useBookingForm } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { useBookings } from "../hooks/useBookings";
+import { useCalendars } from "../hooks/useCalendars";
+import { useSlots } from "../hooks/useSlots";
+import { useVerifyCode } from "../hooks/useVerifyCode";
+import { useVerifyEmail } from "../hooks/useVerifyEmail";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";

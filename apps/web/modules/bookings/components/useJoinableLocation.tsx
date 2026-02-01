@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
+import { useBookingLocation } from "@calcom/web/modules/bookings/hooks/useBookingLocation";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 

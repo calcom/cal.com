@@ -1,3 +1,5 @@
+import { useSession } from "next-auth/react";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -265,18 +267,22 @@ function useEventTypesAction(): void {
 
 function useUpcomingBookingsAction(): void {
   const router = useRouter();
+  const session = useSession();
+  const userId = session.data?.user.id;
 
   const { data } = trpc.viewer.bookings.get.useQuery(
     {
       filters: {
         status: "upcoming",
         afterStartDate: dayjs().startOf("day").toISOString(),
+        userIds: userId ? [userId] : undefined,
       },
       limit: 100,
     },
     {
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000,
+      enabled: !!userId,
     }
   );
 
