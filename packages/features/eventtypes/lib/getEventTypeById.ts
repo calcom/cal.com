@@ -107,27 +107,6 @@ export const getEventTypeById = async ({
 
   const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
 
-  // Batch query child owner memberships to replace the removed team.members lookup
-  const childOwnerIds = (rawEventType.children || [])
-    .map((ch) => ch.owner?.id)
-    .filter((id): id is number => id != null);
-
-  const childOwnerMemberships =
-    rawEventType.team && childOwnerIds.length > 0
-      ? await prisma.membership.findMany({
-          where: {
-            teamId: rawEventType.team.id,
-            userId: { in: childOwnerIds },
-          },
-          select: {
-            userId: true,
-            role: true,
-          },
-        })
-      : [];
-
-  const childOwnerRoleMap = new Map(childOwnerMemberships.map((m) => [m.userId, m.role]));
-
   const eventType = {
     ...restEventType,
     schedule:
@@ -162,7 +141,7 @@ export const getEventTypeById = async ({
               email: ch.owner.email,
               name: ch.owner.name ?? "",
               username: ch.owner.username ?? "",
-              membership: childOwnerRoleMap.get(ch.owner?.id ?? 0) || MembershipRole.MEMBER,
+              membership: MembershipRole.MEMBER,
             },
             created: true,
           }

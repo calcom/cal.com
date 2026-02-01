@@ -13,7 +13,7 @@ export type ChildrenEventType = {
     username: string;
     membership: MembershipRole;
     eventTypeSlugs: string[];
-    profile: UserProfile;
+    profile?: UserProfile | null;
   };
   slug: string;
   hidden: boolean;

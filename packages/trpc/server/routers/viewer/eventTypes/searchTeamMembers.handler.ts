@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,6 +21,7 @@ export type TeamMemberSearchResult = {
   avatarUrl: string | null;
   username: string | null;
   defaultScheduleId: number | null;
+  role: MembershipRole;
 };
 
 export type SearchTeamMembersResponse = {
@@ -96,6 +98,7 @@ export const searchTeamMembersHandler = async ({
     avatarUrl: membership.user.avatarUrl,
     username: membership.user.username,
     defaultScheduleId: membership.user.defaultScheduleId,
+    role: membership.role,
   }));
 
   return { members, nextCursor, hasMore };

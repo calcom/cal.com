@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 type CheckedSelectOption = {
@@ -12,17 +13,21 @@ type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  role?: MembershipRole;
+};
+
+export type SearchTeamMember = {
+  userId: number;
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  username: string | null;
+  defaultScheduleId: number | null;
+  role: MembershipRole;
 };
 
 type SearchTeamMembersResponse = {
-  members: {
-    userId: number;
-    name: string | null;
-    email: string;
-    avatarUrl: string | null;
-    username: string | null;
-    defaultScheduleId: number | null;
-  }[];
+  members: SearchTeamMember[];
   nextCursor: number | undefined;
   hasMore: boolean;
 };
@@ -63,10 +68,15 @@ export function useSearchTeamMembers({
           email: m.email,
           defaultScheduleId: m.defaultScheduleId,
           groupId: null,
+          role: m.role,
         }))
       ) ?? []
     );
   }, [data]);
 
-  return { options, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading };
+  const members = useMemo((): SearchTeamMember[] => {
+    return data?.pages.flatMap((page: SearchTeamMembersResponse) => page.members) ?? [];
+  }, [data]);
+
+  return { options, members, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading };
 }
