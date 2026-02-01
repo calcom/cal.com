@@ -1,4 +1,5 @@
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
@@ -114,8 +115,6 @@ export const useSchedule = ({
     skipContactOwner,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
-    // Ensures that connectVersion causes a refresh of the data
-    ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
