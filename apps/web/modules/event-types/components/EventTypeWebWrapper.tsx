@@ -164,10 +164,12 @@ const EventTypeWeb = ({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
-      currentValues.children = currentValues.children.map((child) => ({
-        ...child,
-        created: true,
-      }));
+      // Reset pending children changes after successful save
+      currentValues.pendingChildrenChanges = {
+        childrenToAdd: [],
+        childrenToRemove: [],
+        childrenToUpdate: [],
+      };
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
@@ -297,7 +299,7 @@ const EventTypeWeb = ({
     isTeamEventTypeDeleted: isTeamEventTypeDeleted.current,
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
-    assignedUsers: eventType.children,
+    childrenCount: eventType.childrenCount,
     hostCount: effectiveHostCount,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,

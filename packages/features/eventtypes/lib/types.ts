@@ -13,8 +13,6 @@ import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { MembershipRole } from "@calcom/prisma/enums";
-import type { UserProfile } from "@calcom/types/UserProfile";
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -65,6 +63,14 @@ export type PendingHostChanges = {
   hostsToUpdate: HostUpdate[];
   hostsToRemove: number[]; // userIds
   clearAllHosts?: boolean; // When true, backend computes delta: keeps hosts in hostsToAdd, removes all others
+};
+
+// Delta-based children tracking for managed event types
+export type PendingChildrenChanges = {
+  childrenToAdd: ChildrenEventType[];
+  childrenToRemove: number[]; // owner userIds
+  childrenToUpdate: { userId: number; hidden?: boolean }[];
+  clearAllChildren?: boolean;
 };
 export type TeamMember = {
   value: string;
@@ -186,6 +192,8 @@ export type FormValues = {
   children: ChildrenEventType[];
   // Delta-based host changes for performance - only track changes, not all 700+ hosts
   pendingHostChanges?: PendingHostChanges;
+  // Delta-based children changes for managed event types
+  pendingChildrenChanges?: PendingChildrenChanges;
   hostGroups: {
     id: string;
     name: string;
@@ -213,23 +221,6 @@ export type FormValues = {
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
-
-export type EventTypeAssignedUsers = {
-  owner: {
-    avatar: string;
-    email: string;
-    name: string;
-    username: string;
-    membership: MembershipRole;
-    id: number;
-    avatarUrl: string | null;
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  };
-  created: boolean;
-  hidden: boolean;
-  slug: string;
-}[];
 
 export type EventTypeHosts = {
   user: {
