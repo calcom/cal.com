@@ -196,6 +196,7 @@ const getEventTypesFromDBSelect = {
   rrHostSubsetEnabled: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   autoTranslateInstantMeetingTitleEnabled: true,
+  onlyShowFirstAvailableSlot: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

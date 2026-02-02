@@ -41,4 +41,5 @@ export enum ErrorCode {
   BookerEmailRequiresLogin = "booker_email_requires_login",
   InvalidVerificationCode = "invalid_verification_code",
   UnableToValidateVerificationCode = "unable_to_validate_verification_code",
+  BookingNotFirstAvailableSlot = "booking_not_first_available_slot_error",
 }
