@@ -543,14 +543,6 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const calendar = await getCalendar(credential, "booking");
-  log.debug(
-    "Deleting calendar event",
-    safeStringify({
-      bookingRefUid,
-      event: getPiiFreeCalendarEvent(event),
-    })
-  );
   if (!bookingRefUid) {
     log.error(
       "deleteEvent failed - bookingRefUid is empty, skipping calendar deletion to prevent malformed API request",
@@ -561,6 +553,14 @@ export const deleteEvent = async ({
     );
     return Promise.resolve({});
   }
+  const calendar = await getCalendar(credential, "booking");
+  log.debug(
+    "Deleting calendar event",
+    safeStringify({
+      bookingRefUid,
+      event: getPiiFreeCalendarEvent(event),
+    })
+  );
   if (calendar) {
     return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
   } else {
