@@ -49,6 +49,14 @@ export class WebhooksRepository {
     });
   }
 
+  async getWebhookSubscriberUrl(webhookId: string): Promise<string | null> {
+    const webhook = await this.dbRead.prisma.webhook.findFirst({
+      where: { id: webhookId },
+      select: { subscriberUrl: true },
+    });
+    return webhook?.subscriberUrl ?? null;
+  }
+
   async getUserWebhooksPaginated(userId: number, skip: number, take: number) {
     return this.dbRead.prisma.webhook.findMany({
       where: { userId },

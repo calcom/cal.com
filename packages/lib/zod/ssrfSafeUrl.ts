@@ -28,9 +28,12 @@ export const optionalSsrfSafeUrlSchema: z.ZodEffects<
   string | null | undefined
 > = zod.string().nullable().optional().refine(validateSsrfUrl, ssrfRefineOptions);
 
-// Optional variant for webhook edit schemas (non-nullable)
+// Optional variant for webhook edit schemas (non-nullable, rejects empty string)
 export const optionalSsrfSafeUrlSchemaNotNullable: z.ZodEffects<
   z.ZodOptional<z.ZodString>,
   string | undefined,
   string | undefined
-> = zod.string().optional().refine(validateSsrfUrl, ssrfRefineOptions);
+> = zod
+  .string()
+  .optional()
+  .refine((url) => url === undefined || validateUrlForSSRFSync(url).isValid, ssrfRefineOptions);

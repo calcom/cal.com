@@ -8,8 +8,8 @@ export class WebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
   async updateWebhook(webhookId: string, body: UpdateWebhookInputDto) {
-    const existingWebhook = await this.webhooksRepository.getWebhookById(webhookId);
-    validateWebhookUrlIfChanged(body.subscriberUrl, existingWebhook?.subscriberUrl);
+    const existingSubscriberUrl = await this.webhooksRepository.getWebhookSubscriberUrl(webhookId);
+    validateWebhookUrlIfChanged(body.subscriberUrl, existingSubscriberUrl);
     return this.webhooksRepository.updateWebhook(webhookId, body);
   }
 

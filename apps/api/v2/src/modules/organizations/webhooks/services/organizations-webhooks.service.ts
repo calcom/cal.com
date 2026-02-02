@@ -43,8 +43,8 @@ export class OrganizationsWebhooksService {
   }
 
   async updateWebhook(webhookId: string, body: UpdateWebhookInputDto) {
-    const existingWebhook = await this.webhooksRepository.getWebhookById(webhookId);
-    validateWebhookUrlIfChanged(body.subscriberUrl, existingWebhook?.subscriberUrl);
+    const existingSubscriberUrl = await this.webhooksRepository.getWebhookSubscriberUrl(webhookId);
+    validateWebhookUrlIfChanged(body.subscriberUrl, existingSubscriberUrl);
     return this.webhooksRepository.updateWebhook(webhookId, body);
   }
 }
