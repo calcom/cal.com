@@ -2025,7 +2025,7 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     });
   }
 
-  async findByUidForWrongAssignmentReport({ bookingUid }: { bookingUid: string }) {
+  async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: { uid: bookingUid },
       select: {

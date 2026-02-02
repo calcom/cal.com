@@ -1,4 +1,5 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
@@ -24,20 +25,23 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const { bookingUid, correctAssignee, additionalNotes } = input;
 
   const bookingRepository = new BookingRepository(prisma);
+  const bookingAccessService = new BookingAccessService(prisma);
 
-  // Fetch the booking with all necessary relations
-  const booking = await bookingRepository.findByUidForWrongAssignmentReport({ bookingUid });
+  const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: user.id,
+    bookingUid,
+  });
+
+  if (!hasAccess) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
+  }
+
+  const booking = await bookingRepository.findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({
+    bookingUid,
+  });
 
   if (!booking) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
-  }
-
-  // Check if user has access to this booking
-  const isHost = booking.userId === user.id;
-  const isAttendee = booking.attendees.some((attendee) => attendee.email === user.email);
-
-  if (!isHost && !isAttendee) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
   const teamId = booking.eventType?.team?.id ?? null;
