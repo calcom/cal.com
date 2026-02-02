@@ -1,3 +1,4 @@
+import { CalendarAuth } from "@calcom/app-store/office365calendar/lib/CalendarAuth";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
@@ -221,8 +222,8 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
   }
 
   private async getGraphClient(credential: CalendarCredential): Promise<GraphClient> {
-    const accessToken = credential.delegatedTo?.serviceAccountKey?.private_key ?? (credential.key as string);
-    if (!accessToken) throw new Error("Missing Microsoft access token");
+    const auth = new CalendarAuth(credential as any);
+    const accessToken = await auth.getAccessToken();
     return { accessToken };
   }
 
