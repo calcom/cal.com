@@ -10170,7 +10170,7 @@
       "post": {
         "operationId": "BookingGuestsController_2024_08_13_addGuests",
         "summary": "Add guests to an existing booking",
-        "description": "Add one or more guests to an existing booking.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "description": "Add one or more guests to an existing booking. Maximum 10 guests per request, with a limit of 30 total guests per booking.\n    \n    **Rate Limiting:**\n    This endpoint is rate limited to 5 requests per minute to prevent abuse.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -31182,7 +31182,7 @@
         "type": "object",
         "properties": {
           "guests": {
-            "description": "Array of guests to add to the booking",
+            "description": "Array of guests to add to the booking. Maximum 10 guests per request.",
             "example": [
               {
                 "email": "john.doe@example.com",
@@ -31195,6 +31195,8 @@
               }
             ],
             "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
             "items": {
               "$ref": "#/components/schemas/Guest"
             }

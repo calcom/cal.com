@@ -14,7 +14,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { CheckIcon, ChevronDownIcon } from "@coss/ui/icons";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";
 
 export function ProfileDropdown() {
   const { update, data: sessionData } = useSession();
@@ -42,8 +42,8 @@ export function ProfileDropdown() {
   const currentOption = options.find((option) => option.value === sessionData.upId) || options[0];
 
   return (
-    <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+    <Dropdown open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger asChild>
         <button
           data-testid="user-dropdown-trigger-button"
           className={classNames(
@@ -54,9 +54,11 @@ export function ProfileDropdown() {
             <span className="block w-20 overflow-hidden text-ellipsis whitespace-nowrap">
               {currentOption.label}
             </span>
-            <ChevronDownIcon
-              className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
-            />
+            {menuOpen ? (
+              <ChevronUpIcon className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4" />
+            ) : (
+              <ChevronDownIcon className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4" />
+            )}
           </span>
         </button>
       </DropdownMenuTrigger>

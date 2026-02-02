@@ -7,6 +7,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import {
   BlocksIcon,
   ChevronDownIcon,
+  ChevronUpIcon,
   CircleHelpIcon,
   DownloadIcon,
   LogOutIcon,
@@ -176,7 +177,17 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 {isPending ? "Loading..." : (user?.name ?? "Nameless User")}
               </span>
             </span>
-            <ChevronDownIcon className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4" />
+            {menuOpen ? (
+              <ChevronUpIcon
+                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+                aria-hidden="true"
+              />
+            ) : (
+              <ChevronDownIcon
+                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+                aria-hidden="true"
+              />
+            )}
           </span>
         )}
       </MenuTrigger>
