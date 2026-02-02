@@ -32,6 +32,7 @@ interface OnBookingCreatedParams {
   source: ActionSource;
   operationId?: string | null;
   context?: BookingAuditContext;
+  isBookingAuditEnabled?: boolean;
 }
 
 interface OnBookingRescheduledParams {
@@ -41,6 +42,7 @@ interface OnBookingRescheduledParams {
   source: ActionSource;
   operationId?: string | null;
   context?: BookingAuditContext;
+  isBookingAuditEnabled?: boolean;
 }
 
 interface BaseBookingEventParams<TAuditData> {
@@ -75,7 +77,7 @@ export class BookingEventHandlerService {
   }
 
   async onBookingCreated(params: OnBookingCreatedParams) {
-    const { payload, actor, auditData, source, operationId, context } = params;
+    const { payload, actor, auditData, source, operationId, context, isBookingAuditEnabled } = params;
     this.log.debug("onBookingCreated", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
@@ -89,11 +91,12 @@ export class BookingEventHandlerService {
       operationId,
       data: auditData,
       context,
+      isBookingAuditEnabled,
     });
   }
 
   async onBookingRescheduled(params: OnBookingRescheduledParams) {
-    const { payload, actor, auditData, source, operationId, context } = params;
+    const { payload, actor, auditData, source, operationId, context, isBookingAuditEnabled } = params;
     this.log.debug("onBookingRescheduled", safeStringify(payload));
     if (payload.config.isDryRun) {
       return;
@@ -109,6 +112,7 @@ export class BookingEventHandlerService {
       operationId,
       data: auditData,
       context,
+      isBookingAuditEnabled,
     });
   }
 

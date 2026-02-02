@@ -38,6 +38,7 @@ export interface BookingAuditProducerService {
     operationId?: string | null;
     data: z.infer<typeof CreatedAuditActionService.latestFieldsSchema>;
     context?: BookingAuditContext;
+    isBookingAuditEnabled?: boolean;
   }): Promise<void>;
 
   queueRescheduledAudit(params: {
@@ -48,6 +49,7 @@ export interface BookingAuditProducerService {
     operationId?: string | null;
     data: z.infer<typeof RescheduledAuditActionService.latestFieldsSchema>;
     context?: BookingAuditContext;
+    isBookingAuditEnabled?: boolean;
   }): Promise<void>;
 
   queueAcceptedAudit(params: {
