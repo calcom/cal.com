@@ -1,11 +1,6 @@
 ---
 name: calcom-api
 description: Interact with the Cal.com API v2 to manage scheduling, bookings, event types, availability, and calendars. Use this skill when building integrations that need to create or manage bookings, check availability, configure event types, or sync calendars with Cal.com's scheduling infrastructure.
-license: MIT
-metadata:
-  author: calcom
-  version: "1.0.0"
-  api-version: "v2"
 ---
 
 # Cal.com API v2
