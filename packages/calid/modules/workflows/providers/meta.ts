@@ -1,11 +1,9 @@
 // meta.ts
+import type { Prisma } from "@prisma/client";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
 import dayjs from "@calcom/dayjs";
-import type { Prisma } from "@prisma/client";
-
-
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -18,10 +16,8 @@ import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
 import { defaultTemplateNamesMap, defaultTemplateComponentsMap } from "./meta_default_templates";
 
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
 export class MetaError extends Error {
@@ -406,11 +402,17 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     ...variableData,
     eventStartTimeInAttendeeTimezone:
       typeof variableData.eventStartTimeInAttendeeTimezone === "string"
-        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        ? dayjs
+            .utc(variableData.eventStartTimeInAttendeeTimezone)
+            .tz(variableData.attendeeTimezone)
+            .format("h:mma")
         : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
     eventEndTimeInAttendeeTimezone:
       typeof variableData.eventEndTimeInAttendeeTimezone === "string"
-        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        ? dayjs
+            .utc(variableData.eventStartTimeInAttendeeTimezone)
+            .tz(variableData.attendeeTimezone)
+            .format("h:mma")
         : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
@@ -824,6 +826,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
       workflowStepId: config.workflowStepId,
       method: "WHATSAPP",
       seatReferenceId: config.seatReferenceUid || null,
+      OR: [{ cancelled: false }, { cancelled: null }],
     },
   });
 
