@@ -5,6 +5,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
@@ -315,6 +316,11 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = organizationId
+    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    : false;
+
   await bookingEventHandlerService.onLocationChanged({
     bookingUid: booking.uid,
     actor: makeUserActor(loggedInUser.uuid),
@@ -326,6 +332,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
         new: updatedLocation,
       },
     },
+    isBookingAuditEnabled,
   });
 
   return { message: "Location updated" };

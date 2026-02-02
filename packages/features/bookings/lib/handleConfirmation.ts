@@ -4,6 +4,7 @@ import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -43,6 +44,7 @@ async function fireBookingAcceptedEvent({
   organizationId,
   actionSource,
   acceptedBookings,
+  isBookingAuditEnabled,
   tracingLogger,
 }: {
   actor: Actor;
@@ -52,6 +54,7 @@ async function fireBookingAcceptedEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
 }) {
   try {
@@ -69,6 +72,7 @@ async function fireBookingAcceptedEvent({
         organizationId,
         operationId,
         source: actionSource,
+        isBookingAuditEnabled,
       });
     } else if (acceptedBookings.length === 1) {
       const acceptedBooking = acceptedBookings[0];
@@ -80,6 +84,7 @@ async function fireBookingAcceptedEvent({
           status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
         source: actionSource,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -412,11 +417,17 @@ export async function handleConfirmation(args: {
 
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
   await fireBookingAcceptedEvent({
     actor,
     acceptedBookings,
     organizationId: orgId ?? null,
     actionSource,
+    isBookingAuditEnabled,
     tracingLogger,
   });
 
