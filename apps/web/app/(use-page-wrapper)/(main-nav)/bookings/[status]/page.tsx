@@ -1,6 +1,6 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -40,6 +40,7 @@ const Page = async ({ params }: PageProps) => {
 
   const userId = session.user.id;
   const permissionService = new PermissionCheckService();
+  const userFeatureRepository = getUserFeatureRepository();
 
   const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
     userId,
@@ -52,11 +53,10 @@ const Page = async ({ params }: PageProps) => {
   // This variable is primarily for UI purposes.
   const canReadOthersBookings = teamIdsWithPermission.length > 0;
 
-  const featuresRepository = getFeaturesRepository();
   const featureOptInService = getFeatureOptInService();
 
-  const [featureFlags, featureStates] = await Promise.all([
-    featuresRepository.getUserFeaturesStatus(userId, ["booking-audit"]),
+  const [bookingAuditEnabled, featureStates] = await Promise.all([
+    userFeatureRepository.checkIfUserHasFeature(userId, "booking-audit"),
     featureOptInService.resolveFeatureStates({
       userId,
       featureIds: ["bookings-v3"],
@@ -64,7 +64,6 @@ const Page = async ({ params }: PageProps) => {
   ]);
 
   const bookingsV3Enabled = featureStates["bookings-v3"]?.effectiveEnabled ?? false;
-  const bookingAuditEnabled = featureFlags["booking-audit"] ?? false;
 
   return (
     <ShellMainAppDir
