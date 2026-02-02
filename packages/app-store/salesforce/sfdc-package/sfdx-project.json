@@ -15,6 +15,7 @@
   "sourceApiVersion": "64.0",
   "packageAliases": {
     "calcom-sfdc-package": "0HoKk0000004C9cKAE",
-    "calcom-sfdc-package@0.1.0-1": "04tKk0000000SwIIAU"
+    "calcom-sfdc-package@0.1.0-1": "04tKk0000000SwIIAU",
+    "calcom-sfdc-package@0.1.0-2": "04tKk0000000SwwIAE"
   }
 }

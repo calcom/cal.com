@@ -5,6 +5,7 @@ import { PrismaTeamBillingRepository } from "@calcom/features/ee/billing/reposit
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["subscription-updated-webhook"] });
@@ -31,7 +32,10 @@ const handler = async (data: Data) => {
     ? await handleCalAIPhoneNumberSubscriptionUpdate(subscription, phoneNumber)
     : null;
 
-  const teamBillingResult = await handleTeamBillingRenewal(subscription, previousAttributes);
+  const teamBillingResult = await handleTeamBillingRenewal(
+    subscription,
+    previousAttributes
+  );
 
   return {
     phoneNumber: phoneNumberResult,
@@ -57,7 +61,8 @@ async function handleCalAIPhoneNumberSubscriptionUpdate(
     paused: PhoneNumberSubscriptionStatus.CANCELLED,
   };
 
-  const subscriptionStatus = statusMap[subscription.status] || PhoneNumberSubscriptionStatus.UNPAID;
+  const subscriptionStatus =
+    statusMap[subscription.status] || PhoneNumberSubscriptionStatus.UNPAID;
 
   await prisma.calAiPhoneNumber.update({
     where: {
@@ -68,7 +73,11 @@ async function handleCalAIPhoneNumberSubscriptionUpdate(
     },
   });
 
-  return { success: true, subscriptionId: subscription.id, status: subscriptionStatus };
+  return {
+    success: true,
+    subscriptionId: subscription.id,
+    status: subscriptionStatus,
+  };
 }
 
 async function handleTeamBillingRenewal(
@@ -83,7 +92,8 @@ async function handleTeamBillingRenewal(
   const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
     billingProviderService.extractSubscriptionDates(subscription);
 
-  const { billingPeriod, pricePerSeat, paidSeats } = extractBillingDataFromStripeSubscription(subscription);
+  const { billingPeriod, pricePerSeat, paidSeats } =
+    extractBillingDataFromStripeSubscription(subscription);
 
   const teamBillingRepo = new PrismaTeamBillingRepository(prisma);
   const orgBillingRepo = new PrismaOrganizationBillingRepository(prisma);
@@ -97,7 +107,9 @@ async function handleTeamBillingRenewal(
     pricePerSeat: pricePerSeat ?? null,
   };
 
-  const teamBilling = await teamBillingRepo.findBySubscriptionId(subscription.id);
+  const teamBilling = await teamBillingRepo.findBySubscriptionId(
+    subscription.id
+  );
 
   if (teamBilling) {
     await teamBillingRepo.updateById(teamBilling.id, billingUpdateData);
@@ -113,7 +125,10 @@ async function handleTeamBillingRenewal(
 
   log.warn("Subscription renewal received but no billing record found", {
     subscriptionId: subscription.id,
-    customerId: typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id,
+    customerId:
+      typeof subscription.customer === "string"
+        ? subscription.customer
+        : subscription.customer?.id,
   });
 
   return { skipped: true, reason: "no billing record found" };

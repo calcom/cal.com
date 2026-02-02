@@ -98,7 +98,7 @@ describe("WebhookTaskConsumer", () => {
 
       await consumer.processWebhookTask(payload, "task-123");
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         "Processing webhook delivery task",
         expect.objectContaining({
           operationId: "op-123",
@@ -116,7 +116,7 @@ describe("WebhookTaskConsumer", () => {
         oAuthClientId: undefined,
       });
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
+      expect(mockLogger.debug).toHaveBeenCalledWith(
         "No webhook subscribers found",
         expect.objectContaining({
           operationId: "op-123",
@@ -171,55 +171,110 @@ describe("WebhookTaskConsumer", () => {
   });
 
   describe("processWebhookTask - Event Type Routing", () => {
-    const testCases = [
-      {
-        trigger: WebhookTriggerEvents.BOOKING_CREATED,
-        requiredField: "bookingUid",
-      },
-      {
-        trigger: WebhookTriggerEvents.FORM_SUBMITTED,
-        requiredField: "formId",
-      },
-      {
-        trigger: WebhookTriggerEvents.RECORDING_READY,
-        requiredField: "recordingId",
-      },
-      {
-        trigger: WebhookTriggerEvents.OOO_CREATED,
-        requiredField: "oooEntryId",
-      },
-    ];
+    it("should process BOOKING_CREATED event type (scaffold)", async () => {
+      const payload: WebhookTaskPayload = {
+        operationId: "op-test",
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        bookingUid: "test-booking-uid",
+        timestamp: new Date().toISOString(),
+      };
 
-    testCases.forEach(({ trigger, requiredField }) => {
-      it(`should process ${trigger} event type (scaffold)`, async () => {
-        const payload: WebhookTaskPayload = {
-          operationId: "op-test",
-          triggerEvent: trigger,
-          [requiredField]: "test-id",
-          timestamp: new Date().toISOString(),
-        };
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: null,
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ]);
 
-        // Mock subscriber so we reach data fetching
-        vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-          {
-            id: "sub-1",
-            subscriberUrl: "https://example.com/webhook",
-            payloadTemplate: null,
-            appId: null,
-            secret: null,
-            time: null,
-            timeUnit: null,
-            eventTriggers: [trigger],
-            version: WebhookVersion.V_2021_10_20,
-          },
-        ]);
+      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+    });
 
-        // Should not throw - scaffold implementation logs debug messages
-        await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
+    it("should process FORM_SUBMITTED event type (scaffold)", async () => {
+      const payload: WebhookTaskPayload = {
+        operationId: "op-test",
+        triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
+        formId: "test-form-id",
+        timestamp: new Date().toISOString(),
+      };
 
-        // Verify subscriber fetch was called
-        expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
-      });
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: null,
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ]);
+
+      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+    });
+
+    it("should process RECORDING_READY event type (scaffold)", async () => {
+      const payload: WebhookTaskPayload = {
+        operationId: "op-test",
+        triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+        recordingId: "test-recording-id",
+        bookingUid: "test-booking-uid",
+        timestamp: new Date().toISOString(),
+      };
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: null,
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.RECORDING_READY],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ]);
+
+      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+    });
+
+    it("should process OOO_CREATED event type (scaffold)", async () => {
+      const payload: WebhookTaskPayload = {
+        userId: 456,
+        operationId: "op-test",
+        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+        oooEntryId: 123,
+        timestamp: new Date().toISOString(),
+      };
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: null,
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.OOO_CREATED],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ]);
+
+      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
     });
   });
 
@@ -251,7 +306,7 @@ describe("WebhookTaskConsumer", () => {
       const payload: WebhookTaskPayload = {
         operationId: "op-missing",
         triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-        // Missing bookingUid
+        bookingUid: "booking-123",
         timestamp: new Date().toISOString(),
       };
 
@@ -282,42 +337,6 @@ describe("WebhookTaskConsumer", () => {
           triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
         })
       );
-    });
-  });
-
-  describe("Future Implementation Tests", () => {
-    it("TODO [When WebhookTaskConsumer.fetchBookingData() is implemented]: Test full booking data fetching", () => {
-      // When: BookingRepository is injected into WebhookTaskConsumer
-      // When: fetchBookingData() implementation is complete
-      // Test: Fetch booking, eventType, user, attendees from database
-      // Test: Verify correct data structure returned
-      expect(true).toBe(true); // Placeholder
-    });
-
-    it("TODO [When PayloadBuilders are integrated into sendWebhooksToSubscribers()]: Test payload building", () => {
-      // When: BookingPayloadBuilder is integrated (for booking events)
-      // When: FormPayloadBuilder is integrated (for form events)
-      // When: RecordingPayloadBuilder is integrated (for recording events)
-      // When: OOOPayloadBuilder is integrated (for OOO events)
-      // Test: Build versioned payloads, apply payload templates
-      expect(true).toBe(true); // Placeholder
-    });
-
-    it("TODO [When sendWebhooksToSubscribers() makes HTTP calls]: Test HTTP delivery", () => {
-      // When: HTTP client is integrated (or existing sendPayload is used)
-      // When: sendWebhooksToSubscribers() sends to subscriber.subscriberUrl
-      // Test: Mock HTTP calls, verify correct payload sent
-      // Test: Handle retries, timeouts, errors
-      expect(true).toBe(true); // Placeholder
-    });
-
-    it("TODO [When all services are wired]: Integration test for full Producer→Consumer flow", () => {
-      // When: All webhook services use Producer/Consumer pattern
-      // Test: Full flow - Producer → Tasker → Consumer → HTTP delivery
-      // Test: Verify webhook received by mock HTTP server
-      // Test: Retry logic with task processor
-      // Test: E2E with real database and task queue
-      expect(true).toBe(true); // Placeholder
     });
   });
 });

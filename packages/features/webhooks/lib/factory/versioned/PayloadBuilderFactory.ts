@@ -110,6 +110,9 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
 
   // Delegation events
   [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "delegation",
+
+  // Wrong assignment report events
+  [WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT]: "booking",
 };
 
 export type BookingTriggerEvents =
