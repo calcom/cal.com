@@ -623,7 +623,6 @@ export class TeamRepository {
       SELECT DISTINCT u.id, u.name, u.email, u.locale
       FROM "Membership" m
       INNER JOIN "users" u ON m."userId" = u.id
-      INNER JOIN "User" u ON m."userId" = u.id
       LEFT JOIN "Role" r ON m."customRoleId" = r.id
       LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac' AND f.enabled = true
       WHERE m."teamId" = ${teamId}
