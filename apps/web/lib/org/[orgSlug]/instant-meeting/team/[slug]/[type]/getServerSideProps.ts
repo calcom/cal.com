@@ -68,18 +68,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as const;
     }
 
-    // Redirect if no routing form response and redirect URL is configured
-    const hasRoutingFormResponse =
-      context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
-    if (!hasRoutingFormResponse && "redirectUrlOnNoRoutingFormResponse" in eventData && eventData.redirectUrlOnNoRoutingFormResponse) {
-      return {
-        redirect: {
-          destination: eventData.redirectUrlOnNoRoutingFormResponse,
-          permanent: false,
-        },
-      };
-    }
-
     return {
       props: {
       eventData,
