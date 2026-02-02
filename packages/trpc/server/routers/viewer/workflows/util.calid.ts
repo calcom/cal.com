@@ -58,6 +58,7 @@ export const bookingSelect = {
   },
   eventType: {
     select: {
+      title: true,
       slug: true,
       id: true,
       schedulingType: true,
@@ -555,6 +556,7 @@ export async function scheduleCalIdBookingReminders(
         language: { locale: booking?.user?.locale || defaultLocale },
         hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
         eventType: {
+          title: booking.eventType?.title || "",
           slug: booking.eventType?.slug || "",
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,

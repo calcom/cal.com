@@ -1,5 +1,6 @@
 // meta.ts
 import type { Prisma } from "@prisma/client";
+import type { Dayjs } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
@@ -200,23 +201,21 @@ const extractTemplateVariables = (
   orderedParams.forEach((paramName) => {
     // Convert snake_case to camelCase for looking up in variableData
     const camelCaseKey = snakeToCamel(paramName);
-    const fieldValue = variableData[camelCaseKey as keyof VariablesType];
+    const fieldValue = variableData[camelCaseKey as keyof VariablesType] ?? "";
 
     // Only include if the value exists and is not undefined
-    if (fieldValue !== undefined) {
-      if (isNamedParams) {
-        // Keep snake_case for Meta API parameter_name
-        parameters.push({
-          type: "text",
-          parameter_name: paramName, // Use original snake_case name
-          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
-        });
-      } else {
-        parameters.push({
-          type: "text",
-          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
-        });
-      }
+    if (isNamedParams) {
+      // Keep snake_case for Meta API parameter_name
+      parameters.push({
+        type: "text",
+        parameter_name: paramName, // Use original snake_case name
+        text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
+      });
+    } else {
+      parameters.push({
+        type: "text",
+        text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
+      });
     }
   });
 
@@ -382,6 +381,16 @@ function wordTruncate(text, maxLength) {
   return result + "...";
 }
 
+function formatTimeInTimezone(value: string | Dayjs | undefined | null, timezone: string, format = "h:mma") {
+  if (!value) return undefined;
+
+  if (typeof value === "string") {
+    return dayjs.utc(value).tz(timezone).format(format);
+  }
+
+  return value.format(format);
+}
+
 // Update the buildMetaTemplateComponentsFromTemplate function
 export const buildMetaTemplateComponentsFromTemplate = async (
   template: WhatsAppTemplate,
@@ -400,20 +409,20 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 > => {
   const expandedVariables = {
     ...variableData,
-    eventStartTimeInAttendeeTimezone:
-      typeof variableData.eventStartTimeInAttendeeTimezone === "string"
-        ? dayjs
-            .utc(variableData.eventStartTimeInAttendeeTimezone)
-            .tz(variableData.attendeeTimezone)
-            .format("h:mma")
-        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
-    eventEndTimeInAttendeeTimezone:
-      typeof variableData.eventEndTimeInAttendeeTimezone === "string"
-        ? dayjs
-            .utc(variableData.eventStartTimeInAttendeeTimezone)
-            .tz(variableData.attendeeTimezone)
-            .format("h:mma")
-        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
+    eventStartTimeInAttendeeTimezone: formatTimeInTimezone(
+      variableData.eventStartTimeInAttendeeTimezone,
+      variableData.attendeeTimezone
+    ),
+
+    eventEndTimeInAttendeeTimezone: formatTimeInTimezone(
+      variableData.eventEndTimeInAttendeeTimezone,
+      variableData.attendeeTimezone
+    ),
+
+    eventStartTime: formatTimeInTimezone(variableData.eventStartTime, variableData.timezone),
+
+    eventEndTime: formatTimeInTimezone(variableData.eventEndTime, variableData.timezone),
+
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
     senderName:
