@@ -116,7 +116,7 @@ export const EventAppsTab = ({
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"}`}
                 />
               }
               actions={<div className="flex h-full items-center">{appsDisableProps.LockedIcon}</div>}
@@ -124,7 +124,7 @@ export const EventAppsTab = ({
                 <ServerTrans
                   t={t}
                   i18nKey={`apps_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
+                    isManagedEventType ? "for_members" : "by_team_admin"
                   }_description`}
                 />
               }

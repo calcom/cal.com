@@ -12,7 +12,7 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
 import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -2,15 +2,15 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import type { EditLocationScreenHandle } from "@/components/screens/EditLocationScreen";
 import EditLocationScreenComponent from "@/components/screens/EditLocationScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
 // Semi-transparent background to prevent black flash while preserving glass effect
-const GLASS_BACKGROUND = "rgba(248, 248, 250, 0.01)";
 
 function getPresentationStyle(): "formSheet" | "modal" {
   if (isLiquidGlassAvailable() && osName !== "iPadOS") {
@@ -26,6 +26,9 @@ export default function EditLocationIOS() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const editLocationScreenRef = useRef<EditLocationScreenHandle>(null);
 
@@ -57,6 +60,9 @@ export default function EditLocationIOS() {
   const presentationStyle = getPresentationStyle();
   const useGlassEffect = isLiquidGlassAvailable();
 
+  // Semi-transparent background to prevent flashes while preserving glass effect
+  const glassBackground = isDark ? "rgba(28, 28, 30, 0.01)" : "rgba(248, 248, 250, 0.01)";
+
   return (
     <>
       <Stack.Screen
@@ -67,14 +73,18 @@ export default function EditLocationIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+            backgroundColor: useGlassEffect ? glassBackground : theme.backgroundSecondary,
           },
         }}
       />
 
       <Stack.Header>
         <Stack.Header.Left>
-          <Stack.Header.Button onPress={() => router.back()}>
+          <Stack.Header.Button
+            onPress={() => router.back()}
+            tintColor={theme.backgroundEmphasis}
+            variant="prominent"
+          >
             <Stack.Header.Icon sf="xmark" />
           </Stack.Header.Button>
         </Stack.Header.Left>
@@ -86,7 +96,7 @@ export default function EditLocationIOS() {
             onPress={handleSave}
             disabled={isSaving}
             variant="prominent"
-            tintColor="#000"
+            tintColor={theme.text}
           >
             <Stack.Header.Icon sf="checkmark" />
           </Stack.Header.Button>
@@ -96,14 +106,14 @@ export default function EditLocationIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? GLASS_BACKGROUND : "#F2F2F7",
+          backgroundColor: useGlassEffect ? glassBackground : theme.backgroundSecondary,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
       >
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={theme.text} />
           </View>
         ) : (
           <EditLocationScreenComponent

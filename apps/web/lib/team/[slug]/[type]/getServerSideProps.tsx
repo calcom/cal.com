@@ -30,8 +30,8 @@ function hasApiV2RouteInEnv() {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
   const session = await getServerSession({ req });
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = query;
+    const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
+    const { rescheduleUid, bookingUid, isInstantMeeting: queryIsInstantMeeting } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
 
@@ -55,11 +55,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  if (eventData.schedulingType === SchedulingType.MANAGED) {
-    return { notFound: true } as const;
-  }
+    if (eventData.schedulingType === SchedulingType.MANAGED) {
+      return { notFound: true } as const;
+    }
 
-  if (rescheduleUid && eventData.disableRescheduling) {
+    // Redirect if no routing form response and redirect URL is configured
+    // Don't redirect if this is a reschedule flow or seated booking flow
+    const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
+    if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && eventData.redirectUrlOnNoRoutingFormResponse) {
+      return {
+        redirect: {
+          destination: eventData.redirectUrlOnNoRoutingFormResponse,
+          permanent: false,
+        },
+      };
+    }
+
+    if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
 
@@ -96,6 +108,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
+  const crmLookupDoneParam = query["cal.crmLookupDone"];
 
   // Handle string[] type from query params
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
@@ -107,7 +120,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
   let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+  // If crmLookupDone is true, the router already performed the CRM lookup, so skip it here
+  const crmLookupDone =
+    (Array.isArray(crmLookupDoneParam) ? crmLookupDoneParam[0] : crmLookupDoneParam) === "true";
+
+  if (!crmLookupDone && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );
@@ -234,19 +251,20 @@ const getTeamWithEventsData = async (
         where: {
           slug: meetingSlug,
         },
-        select: {
-          id: true,
-          title: true,
-          isInstantEvent: true,
-          schedulingType: true,
-          metadata: true,
-          length: true,
-          hidden: true,
-          disableCancelling: true,
-          disableRescheduling: true,
-          allowReschedulingCancelledBookings: true,
-          interfaceLanguage: true,
-          hosts: {
+                select: {
+                  id: true,
+                  title: true,
+                  isInstantEvent: true,
+                  schedulingType: true,
+                  metadata: true,
+                  length: true,
+                  hidden: true,
+                  disableCancelling: true,
+                  disableRescheduling: true,
+                  allowReschedulingCancelledBookings: true,
+                  redirectUrlOnNoRoutingFormResponse: true,
+                  interfaceLanguage: true,
+                  hosts: {
             take: 3,
             select: {
               user: {

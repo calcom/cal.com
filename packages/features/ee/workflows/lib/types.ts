@@ -123,9 +123,6 @@ export type WorkflowListType = PrismaWorkflow & {
       id: number;
       title: string;
       parentId: number | null;
-      _count: {
-        children: number;
-      };
     };
   }[];
   readOnly?: boolean;

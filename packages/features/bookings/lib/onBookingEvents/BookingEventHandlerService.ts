@@ -7,8 +7,7 @@ import type { AttendeeAddedAuditData } from "@calcom/features/booking-audit/lib/
 import type { AttendeeRemovedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeRemovedAuditActionService";
 import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
 import type { LocationChangedAuditData } from "@calcom/features/booking-audit/lib/actions/LocationChangedAuditActionService";
-import type { HostNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/HostNoShowUpdatedAuditActionService";
-import type { AttendeeNoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeNoShowUpdatedAuditActionService";
+import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
 import type { SeatBookedAuditData } from "@calcom/features/booking-audit/lib/actions/SeatBookedAuditActionService";
 import type { SeatRescheduledAuditData } from "@calcom/features/booking-audit/lib/actions/SeatRescheduledAuditActionService";
 import type { CreatedAuditData } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionService";
@@ -58,12 +57,11 @@ type OnBookingAcceptedParams = BaseBookingEventParams<AcceptedAuditData>;
 type OnBookingCancelledParams = BaseBookingEventParams<CancelledAuditData>;
 type OnRescheduleRequestedParams = BaseBookingEventParams<RescheduleRequestedAuditData>;
 type OnAttendeeAddedParams = BaseBookingEventParams<AttendeeAddedAuditData>;
-type OnHostNoShowUpdatedParams = BaseBookingEventParams<HostNoShowUpdatedAuditData>;
+type OnNoShowUpdatedParams = BaseBookingEventParams<NoShowUpdatedAuditData>;
 type OnBookingRejectedParams = BaseBookingEventParams<RejectedAuditData>;
 type OnAttendeeRemovedParams = BaseBookingEventParams<AttendeeRemovedAuditData>;
 type OnReassignmentParams = BaseBookingEventParams<ReassignmentAuditData>;
 type OnLocationChangedParams = BaseBookingEventParams<LocationChangedAuditData>;
-type OnAttendeeNoShowUpdatedParams = BaseBookingEventParams<AttendeeNoShowUpdatedAuditData>;
 type OnSeatBookedParams = BaseBookingEventParams<SeatBookedAuditData>;
 type OnSeatRescheduledParams = BaseBookingEventParams<SeatRescheduledAuditData>;
 
@@ -195,9 +193,9 @@ export class BookingEventHandlerService {
     });
   }
 
-  async onHostNoShowUpdated(params: OnHostNoShowUpdatedParams) {
+  async onNoShowUpdated(params: OnNoShowUpdatedParams) {
     const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
-    await this.bookingAuditProducerService.queueHostNoShowUpdatedAudit({
+    await this.bookingAuditProducerService.queueNoShowUpdatedAudit({
       bookingUid,
       actor,
       organizationId,
@@ -262,19 +260,6 @@ export class BookingEventHandlerService {
     } catch (error) {
       this.log.error("Error while onLocationChanged", safeStringify(error));
     }
-  }
-
-  async onAttendeeNoShowUpdated(params: OnAttendeeNoShowUpdatedParams) {
-    const { bookingUid, actor, organizationId, auditData, source, operationId, context } = params;
-    await this.bookingAuditProducerService.queueAttendeeNoShowUpdatedAudit({
-      bookingUid,
-      actor,
-      organizationId,
-      source,
-      operationId,
-      data: auditData,
-      context,
-    });
   }
 
   async onSeatBooked(params: OnSeatBookedParams) {

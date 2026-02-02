@@ -1,14 +1,14 @@
-import type { TFunction } from "i18next";
-
 import type BaseEmail from "@calcom/emails/templates/_base-email";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-
-import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
-import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
-import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
+import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
+import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
+import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
+import ProrationInvoiceEmail from "./templates/proration-invoice-email";
+import ProrationReminderEmail from "./templates/proration-reminder-email";
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -125,5 +125,104 @@ export const sendCreditBalanceLimitReachedEmails = async ({
 
   if (user) {
     await sendEmail(() => new CreditBalanceLimitReachedEmail({ user, creditFor }));
+  }
+};
+
+export const sendProrationInvoiceEmails = async ({
+  team,
+  proration,
+  invoiceUrl,
+  isAutoCharge,
+  adminAndOwners,
+}: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  proration: {
+    monthKey: string;
+    netSeatIncrease: number;
+    proratedAmount: number;
+  };
+  invoiceUrl?: string | null;
+  isAutoCharge: boolean;
+  adminAndOwners: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+}) => {
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new ProrationInvoiceEmail({
+            user: admin,
+            team,
+            proration,
+            invoiceUrl,
+            isAutoCharge,
+          })
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    console.error(`${failures.length} email(s) failed to send`, failures);
+  }
+};
+
+export const sendProrationReminderEmails = async ({
+  team,
+  proration,
+  invoiceUrl,
+  adminAndOwners,
+}: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  proration: {
+    monthKey: string;
+    netSeatIncrease: number;
+    proratedAmount: number;
+  };
+  invoiceUrl?: string | null;
+  adminAndOwners: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+}) => {
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new ProrationReminderEmail({
+            user: admin,
+            team,
+            proration,
+            invoiceUrl,
+          })
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    console.error(`${failures.length} email(s) failed to send`, failures);
   }
 };

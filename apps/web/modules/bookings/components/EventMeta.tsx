@@ -1,6 +1,6 @@
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { fadeInUp } from "@calcom/features/bookings/Booker/config";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";

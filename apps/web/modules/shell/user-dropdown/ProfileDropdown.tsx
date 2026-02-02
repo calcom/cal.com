@@ -42,8 +42,8 @@ export function ProfileDropdown() {
   const currentOption = options.find((option) => option.value === sessionData.upId) || options[0];
 
   return (
-    <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+    <Dropdown open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger asChild>
         <button
           data-testid="user-dropdown-trigger-button"
           className={classNames(
@@ -55,7 +55,7 @@ export function ProfileDropdown() {
               {currentOption.label}
             </span>
             <Icon
-              name="chevron-down"
+              name={menuOpen ? "chevron-up" : "chevron-down"}
               className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />

@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
-import { Pressable, Text } from "react-native";
+import { Pressable, Text, useColorScheme } from "react-native";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { getColors } from "@/constants/colors";
 
 interface LimitsTabDatePickerProps {
   value: string;
@@ -50,9 +51,17 @@ export function LimitsTabDatePicker({ value, onChange, placeholder }: LimitsTabD
     });
   }, [dateValue, handleDateChange]);
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   return (
-    <Pressable onPress={openDatePicker} className="rounded-lg bg-[#F2F2F7] px-3 py-2">
-      <Text className={`text-[15px] ${value ? "text-black" : "text-[#8E8E93]"}`}>
+    <Pressable
+      onPress={openDatePicker}
+      className="rounded-lg px-3 py-2"
+      style={{ backgroundColor: theme.backgroundMuted }}
+    >
+      <Text className="text-[15px]" style={{ color: value ? theme.text : theme.textMuted }}>
         {displayText}
       </Text>
     </Pressable>
