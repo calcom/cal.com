@@ -68,9 +68,12 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <ShellMainAppDir
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      headerClassName="bookings-shell-heading">
+      {...(!bookingsV3Enabled
+        ? {
+            heading: t("bookings"),
+            subtitle: t("bookings_description"),
+          }
+        : {})}>
       <BookingsList
         status={parsed.data.status}
         userId={userId}
