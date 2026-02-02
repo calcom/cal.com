@@ -21,6 +21,14 @@
       "to": "#d6d6d6"
     }
   },
+  {
+  "redirects": [
+    {
+      "source": "/developing/introduction",
+      "destination": "/developing"
+    }
+  ]
+  },
   "topbarLinks": [
     {
       "name": "Support",
