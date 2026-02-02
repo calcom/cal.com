@@ -96,11 +96,11 @@ interface InfiniteEventTypeListProps {
   readOnly: boolean;
   bookerUrl: string | null;
   pages:
-    | {
-        nextCursor: number | null | undefined;
-        eventTypes: InfiniteEventType[];
-      }[]
-    | undefined;
+  | {
+    nextCursor: number | null | undefined;
+    eventTypes: InfiniteEventType[];
+  }[]
+  | undefined;
   lockedByOrg?: boolean;
   isPending?: boolean;
   debouncedSearchTerm?: string;
@@ -339,9 +339,19 @@ export const InfiniteEventTypeList = ({
               ...oldData,
               pages: oldData.pages.map((page) => ({
                 ...page,
-                eventTypes: page.eventTypes.map((eventType) =>
-                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
-                ),
+                eventTypes: page.eventTypes.map((eventType) => {
+                  if (eventType.id === data.id) {
+                    const hidden = !eventType.hidden;
+                    // Parent-level visibility toggle - when toggling a parent event type,
+                    // also toggle all its children (managed event types) to maintain consistency
+                    return {
+                      ...eventType,
+                      hidden,
+                      children: eventType.children?.map((child) => ({ ...child, hidden })),
+                    };
+                  }
+                  return eventType;
+                }),
               })),
             };
           }
@@ -537,8 +547,42 @@ export const InfiniteEventTypeList = ({
     team: firstItem?.team,
   });
 
+  // Aggregate all event types across pages to determine collective visibility state
+  const allEventTypes = pages.flatMap((page) => page.eventTypes);
+  const allHidden = allEventTypes.every((type) => type.hidden);
+
+  // Parent-level toggle function - shows/hides all event types at once
+  const toggleAll = () => {
+    const newHiddenState = !allHidden;
+    allEventTypes.forEach((type) => {
+      // Only mutate if the state is different to avoid unnecessary calls
+      if (type.hidden !== newHiddenState) {
+        setHiddenMutation.mutate({
+          id: type.id,
+          hidden: newHiddenState,
+        });
+      }
+    });
+    // Show toast notification after all mutations are done
+    showToast(
+      newHiddenState ? t("All event types are hidden") : t("All event types are visible"),
+      "success",
+      5000 // 5 seconds timeout
+    );
+  };
+
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
+      {/* Parent-level visibility control header */}
+      <div className="flex items-center justify-between border-b border-subtle p-4">
+        <span className="text-sm font-semibold leading-none">{t("events")}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-normal text-default flex items-center">
+            {allHidden ? t("Show All") : t("Hide All")}
+          </span>
+          <Switch checked={!allHidden} onCheckedChange={toggleAll} />
+        </div>
+      </div>
       <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
@@ -598,29 +642,26 @@ export const InfiniteEventTypeList = ({
                           />
                         )}
                         <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
-                          {!isManagedEventType && (
-                            <>
-                              {type.hidden && <span className="text-sm text-gray-400">{t("hidden")}</span>}
-                              <Tooltip
-                                content={
-                                  type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
-                                }>
-                                <div className="self-center rounded-md p-2">
-                                  <Switch
-                                    name="Hidden"
-                                    disabled={lockedByOrg}
-                                    checked={!type.hidden}
-                                    onCheckedChange={() => {
-                                      setHiddenMutation.mutate({
-                                        id: type.id,
-                                        hidden: !type.hidden,
-                                      });
-                                    }}
-                                  />
-                                </div>
-                              </Tooltip>
-                            </>
-                          )}
+                          {/*Removed !isManagedEventType check to allow parent-level visibility toggle on all event types */}
+                          <>
+                            {type.hidden && <span className="text-sm text-gray-400">{t("hidden")}</span>}
+                            <Tooltip
+                              content={type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}>
+                              <div className="self-center rounded-md p-2">
+                                <Switch
+                                  name="Hidden"
+                                  disabled={lockedByOrg}
+                                  checked={!type.hidden}
+                                  onCheckedChange={() => {
+                                    setHiddenMutation.mutate({
+                                      id: type.id,
+                                      hidden: !type.hidden,
+                                    });
+                                  }}
+                                />
+                              </div>
+                            </Tooltip>
+                          </>
 
                           <ButtonGroup combined>
                             {!isManagedEventType && (
@@ -1055,9 +1096,9 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
         const permissions = profile.teamId
           ? userEventGroupsData.teamPermissions[profile.teamId]
           : {
-              // always can create eventType on personal level
-              canCreateEventType: true,
-            };
+            // always can create eventType on personal level
+            canCreateEventType: true,
+          };
 
         return {
           teamId: profile.teamId,
