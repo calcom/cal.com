@@ -134,7 +134,12 @@ class ZohoCrmCrmService implements CRM {
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: this.getMeetingBody(event),
-      Venue: getLocation(event),
+      Venue: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       Who_Id: contacts[0].id, // Link the first attendee as the primary Who_Id
     };
 
@@ -158,7 +163,12 @@ class ZohoCrmCrmService implements CRM {
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: this.getMeetingBody(event),
-      Venue: getLocation(event),
+      Venue: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
     };
     return axios({
       method: "put",

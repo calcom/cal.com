@@ -1646,9 +1646,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   (hasActiveTeamPlan || isSMSAction(step.action))
                 }
                 excludedToolbarItems={
-                  isSMSAction(step.action)
-                    ? ["blockType", "bold", "italic", "link"]
-                    : ["link"]
+                  !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                 }
                 plainText={isSMSAction(step.action)}
               />

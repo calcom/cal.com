@@ -9,10 +9,7 @@ import { z } from "zod";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import {
-  extractHostTimezone,
-  filterActiveLinks,
-} from "@calcom/lib/hashedLinksUtils";
+import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -65,17 +62,13 @@ import type { FC } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import { z } from "zod";
 
-type GetUserEventGroupsResponse =
-  RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
-type GetEventTypesFromGroupsResponse =
-  RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
+type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
 
-type InfiniteEventTypeGroup =
-  GetUserEventGroupsResponse["eventTypeGroups"][number];
+type InfiniteEventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
 type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
 
-type EventTypeGroups =
-  RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
+type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
@@ -88,8 +81,9 @@ interface SearchContextType {
   debouncedSearchTerm: string;
 }
 
-const SearchContextInternal: React.Context<SearchContextType | undefined> =
-  createContext<SearchContextType | undefined>(undefined);
+const SearchContextInternal: React.Context<SearchContextType | undefined> = createContext<
+  SearchContextType | undefined
+>(undefined);
 
 const useSearchContext = (): SearchContextType => {
   const context = useContext(SearchContextInternal);
@@ -122,9 +116,7 @@ const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
 
-const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (
-  props: InfiniteTeamsTabProps
-) => {
+const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props: InfiniteTeamsTabProps) => {
   const { activeEventTypeGroup } = props;
   const { debouncedSearchTerm } = useSearchContext();
   const { t } = useLocale();
@@ -142,8 +134,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (
       refetchOnWindowFocus: true,
       refetchOnMount: true,
       staleTime: 0,
-      getNextPageParam: (lastPage: { nextCursor: number | null | undefined }) =>
-        lastPage.nextCursor,
+      getNextPageParam: (lastPage: { nextCursor: number | null | undefined }) => lastPage.nextCursor,
     }
   );
 
@@ -195,53 +186,49 @@ const Item = ({
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
-    parsedeventTypeColor &&
-    parsedeventTypeColor[
-      hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"
-    ];
+    parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
+  const isRoundRobinOrCollective =
+    type.schedulingType === SchedulingType.ROUND_ROBIN || type.schedulingType === SchedulingType.COLLECTIVE;
+  const isCurrentUserHost = "isCurrentUserHost" in type && type.isCurrentUserHost;
+  const showAssignedBadge = isRoundRobinOrCollective && isCurrentUserHost;
 
   const content = (): JSX.Element => (
     <div>
       <span
         className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
-        data-testid={`event-type-title-${type.id}`}
-      >
+        data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
       {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
         <small
           className="text-subtle hidden font-normal leading-4 sm:inline"
-          data-testid={`event-type-slug-${type.id}`}
-        >
+          data-testid={`event-type-slug-${type.id}`}>
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
       {!isManagedEventType && type.hidden && (
-        <span className="ml-2 text-sm text-gray-400 sm:hidden">
-          {t("hidden")}
-        </span>
+        <span className="ml-2 text-sm text-gray-400 sm:hidden">{t("hidden")}</span>
       )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
           {t("readonly")}
         </Badge>
       )}
+      {showAssignedBadge && (
+        <Tooltip content={t("you_are_assigned_to_this_event")}>
+          <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+            {t("assigned")}
+          </Badge>
+        </Tooltip>
+      )}
     </div>
   );
 
   return (
-    <div
-      className={classNames(
-        eventTypeColor && "-ml-3",
-        "relative flex-1 overflow-hidden pr-4 text-sm"
-      )}
-    >
+    <div className={classNames(eventTypeColor && "-ml-3", "relative flex-1 overflow-hidden pr-4 text-sm")}>
       {eventTypeColor && (
-        <div
-          className="absolute h-full w-0.5"
-          style={{ backgroundColor: eventTypeColor }}
-        />
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: eventTypeColor }} />
       )}
       <div className={classNames(eventTypeColor && "ml-3")}>
         {readOnly ? (
@@ -250,39 +237,34 @@ const Item = ({
             <EventTypeDescription eventType={type} shortenDescription />
           </div>
         ) : (
-          <Link
-            href={`/event-types/${type.id}?tabName=setup`}
-            title={type.title}
-          >
+          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
                 className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
-                data-testid={`event-type-title-${type.id}`}
-              >
+                data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
-              {group.profile.slug &&
-              type.schedulingType !== SchedulingType.MANAGED ? (
+              {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
                 <small
                   className="text-subtle hidden font-normal leading-4 sm:inline"
-                  data-testid={`event-type-slug-${type.id}`}
-                >
+                  data-testid={`event-type-slug-${type.id}`}>
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
               {!isManagedEventType && type.hidden && (
-                <span className="ml-2 text-sm text-gray-400 sm:hidden">
-                  {t("hidden")}
-                </span>
+                <span className="ml-2 text-sm text-gray-400 sm:hidden">{t("hidden")}</span>
               )}
               {readOnly && (
-                <Badge
-                  variant="gray"
-                  className="ml-2"
-                  data-testid="readonly-badge"
-                >
+                <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
                   {t("readonly")}
                 </Badge>
+              )}
+              {showAssignedBadge && (
+                <Tooltip content={t("you_are_assigned_to_this_event")}>
+                  <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+                    {t("assigned")}
+                  </Badge>
+                </Tooltip>
               )}
             </div>
             <EventTypeDescription
@@ -350,11 +332,10 @@ export const InfiniteEventTypeList = ({
   const { copyToClipboard } = useCopy();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
-  const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] =
-    useState<SchedulingType | null>(null);
-  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<
-    Record<string, number>
-  >({});
+  const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
+    null
+  );
+  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   // Flatten event types from all pages for drag-and-drop
   const [flattenedEventTypes, setFlattenedEventTypes] = useState<
@@ -408,12 +389,11 @@ export const InfiniteEventTypeList = ({
   const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onMutate: async (data: { id: number; hidden?: boolean }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue =
-        utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-          limit: LIMIT,
-          searchQuery: debouncedSearchTerm,
-          group: { teamId: group?.teamId, parentId: group?.parentId },
-        });
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
 
       if (previousValue) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
@@ -434,9 +414,7 @@ export const InfiniteEventTypeList = ({
               pages: oldData.pages.map((page) => ({
                 ...page,
                 eventTypes: page.eventTypes.map((eventType) =>
-                  eventType.id === data.id
-                    ? { ...eventType, hidden: !eventType.hidden }
-                    : eventType
+                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
                 ),
               })),
             };
@@ -589,12 +567,11 @@ export const InfiniteEventTypeList = ({
     },
     onMutate: async ({ id }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue =
-        utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-          limit: LIMIT,
-          searchQuery: debouncedSearchTerm,
-          group: { teamId: group?.teamId, parentId: group?.parentId },
-        });
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
 
       if (previousValue) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
@@ -658,10 +635,7 @@ export const InfiniteEventTypeList = ({
     return group.teamId ? (
       <EmptyEventTypeList group={group} searchTerm={debouncedSearchTerm} />
     ) : !group.profile.eventTypesLockedByOrg ? (
-      <CreateFirstEventTypeView
-        slug={group.profile.slug ?? ""}
-        searchTerm={debouncedSearchTerm}
-      />
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} searchTerm={debouncedSearchTerm} />
     ) : (
       <></>
     );
@@ -669,9 +643,7 @@ export const InfiniteEventTypeList = ({
 
   const firstItem = flattenedEventTypes[0];
   const isManagedEventPrefix = () => {
-    return deleteDialogTypeSchedulingType === SchedulingType.MANAGED
-      ? "_managed"
-      : "";
+    return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
   };
 
   const userTimezone = extractHostTimezone({
@@ -1071,8 +1043,7 @@ export const InfiniteEventTypeList = ({
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
-          }}
-        >
+          }}>
           <p className="mt-5">
             {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
               <ul className="ml-4 list-disc">
@@ -1089,23 +1060,13 @@ export const InfiniteEventTypeList = ({
   );
 };
 
-const CreateFirstEventTypeView = ({
-  slug,
-  searchTerm,
-}: {
-  slug: string;
-  searchTerm?: string;
-}) => {
+const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTerm?: string }) => {
   const { t } = useLocale();
 
   return (
     <EmptyScreen
       Icon="link"
-      headline={
-        searchTerm
-          ? t("no_result_found_for", { searchTerm })
-          : t("new_event_type_heading")
-      }
+      headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
@@ -1147,18 +1108,13 @@ const EmptyEventTypeList = ({
     <>
       <EmptyScreen
         Icon="link"
-        headline={
-          searchTerm
-            ? t("no_result_found_for", { searchTerm })
-            : t("team_no_event_types")
-        }
+        headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         description={t("new_team_event_type_description")}
         className="mb-16"
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-          >
+            variant="button">
             {t("create")}
           </Button>
         }
@@ -1187,8 +1143,7 @@ const InfiniteScrollMain = ({
   }));
 
   const activeEventTypeGroup =
-    eventTypeGroups.filter((item) => item.teamId === data.teamId) ??
-    eventTypeGroups[0];
+    eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
@@ -1197,8 +1152,7 @@ const InfiniteScrollMain = ({
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
     orgBranding &&
-    (activeEventTypeGroup[0].teamId === orgBranding.id ||
-      activeEventTypeGroup[0].parentId === orgBranding.id)
+    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
   }
@@ -1206,12 +1160,8 @@ const InfiniteScrollMain = ({
   return (
     <>
       {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
-      {eventTypeGroups.length >= 1 && (
-        <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
-      )}
-      {eventTypeGroups.length === 0 && (
-        <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
-      )}
+      {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
+      {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
@@ -1246,8 +1196,7 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
 
         // Fallback: allow admin and owner roles
         return (
-          profile.membershipRole === MembershipRole.ADMIN ||
-          profile.membershipRole === MembershipRole.OWNER
+          profile.membershipRole === MembershipRole.ADMIN || profile.membershipRole === MembershipRole.OWNER
         );
       })
       ?.map((profile) => {
@@ -1290,9 +1239,7 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
 
   useEffect(() => {
     setShowProfileBanner(
-      !!orgBranding &&
-        !document.cookie.includes("calcom-profile-banner=1") &&
-        !user?.completedOnboarding
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
     );
   }, [orgBranding, user]);
 
@@ -1304,7 +1251,6 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   );
 };
 
-export const SearchContext: React.Context<SearchContextType | undefined> =
-  SearchContextInternal;
+export const SearchContext: React.Context<SearchContextType | undefined> = SearchContextInternal;
 
 export default EventTypesPage;

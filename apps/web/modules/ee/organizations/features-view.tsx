@@ -1,12 +1,11 @@
 "use client";
 
+import { FeaturesSettings } from "@calcom/features/feature-opt-in/components/FeaturesSettings";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ReactElement } from "react";
 
-import { FeaturesSettings } from "@calcom/features/feature-opt-in/components/FeaturesSettings";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import { useOrganizationFeatureOptIn } from "~/feature-opt-in/hooks";
+import { useOrganizationFeatureOptIn } from "~/feature-opt-in/hooks/useOrganizationFeatureOptIn";
 
 interface OrganizationFeaturesViewProps {
   canEdit: boolean;
