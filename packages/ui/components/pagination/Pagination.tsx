@@ -75,7 +75,7 @@ export const Pagination = ({
           value={pageSizeSelectOptions.find((option) => option.value === internalPageSize)}
           onChange={handlePageSizeChange}
           size="sm"
-          className="min-w-14"
+          className="min-w-15"
         />
         <span className="text-default text-sm">{t("rows_per_page")}</span>
       </div>
