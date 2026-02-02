@@ -482,15 +482,20 @@ test.describe("Email Signup Flow Test", async () => {
     await submitButton.click();
 
     // Wait for redirect to getting started
-    await page.waitForURL(/\/getting-started/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\/getting-started/, { timeout: 10000 });
 
     // Verify user was created
     const createdUser = await prisma.user.findUnique({
       where: { email: userEmail },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        organizationId: true,
         teams: {
-          include: {
-            team: true,
+          select: {
+            teamId: true,
+            accepted: true,
+            role: true,
           },
         },
       },
@@ -577,15 +582,18 @@ test.describe("Email Signup Flow Test", async () => {
     await page.getByTestId("signup-submit-button").click();
 
     // Wait for redirect
-    await page.waitForURL(/\/getting-started/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\/getting-started/, { timeout: 10000 });
 
     // Verify user was created
     const createdUser = await prisma.user.findUnique({
       where: { email: userEmail },
-      include: {
+      select: {
+        id: true,
+        organizationId: true,
         teams: {
-          include: {
-            team: true,
+          select: {
+            teamId: true,
+            accepted: true,
           },
         },
       },
@@ -662,15 +670,17 @@ test.describe("Email Signup Flow Test", async () => {
     await page.getByTestId("signup-submit-button").click();
 
     // Wait for redirect
-    await page.waitForURL(/\/getting-started|\/auth\/verify-email/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\/getting-started|\/auth\/verify-email/, { timeout: 10000 });
 
     // Verify user was created and joined team
     const createdUser = await prisma.user.findUnique({
       where: { email: userToCreate.email },
-      include: {
+      select: {
+        id: true,
         teams: {
-          include: {
-            team: true,
+          select: {
+            teamId: true,
+            accepted: true,
           },
         },
       },
