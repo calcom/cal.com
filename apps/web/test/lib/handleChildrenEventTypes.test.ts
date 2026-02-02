@@ -596,6 +596,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment: false,
         includeNoShowInRRCalculation: false,
         enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType,
       };
 
