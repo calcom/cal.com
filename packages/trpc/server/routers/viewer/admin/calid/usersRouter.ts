@@ -1,12 +1,13 @@
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { CreationSource, RedirectType } from "@calcom/prisma/enums";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { userBodySchema, userIdSchema, userUpdateSchema } from "./userSchemas";
+import { userBodySchema, userIdSchema, userListSchema, userUpdateSchema } from "./userSchemas";
 
 const subdomainSuffix = () => {
   const urlSplit = WEBAPP_URL.replace("https://", "").replace("http://", "").split(".");
@@ -38,6 +39,88 @@ export const calidAdminUsersRouter = router({
   list: authedAdminProcedure.query(async ({ ctx }) => {
     const users = await ctx.prisma.user.findMany();
     return users;
+  }),
+  listPaginated: authedAdminProcedure.input(userListSchema).query(async ({ ctx, input }) => {
+    const { limit, offset, searchTerm, role, locked, sortBy, sortDir } = input;
+
+    const whereFilters: Prisma.UserWhereInput = {
+      AND: [{ OR: [{ locked: false }, { locked: true }] }],
+    };
+
+    if (searchTerm) {
+      whereFilters.AND?.push({
+        OR: [
+          {
+            email: {
+              contains: searchTerm.toLowerCase(),
+            },
+          },
+          {
+            username: {
+              contains: searchTerm.toLowerCase(),
+            },
+          },
+          {
+            profiles: {
+              some: {
+                username: {
+                  contains: searchTerm.toLowerCase(),
+                },
+              },
+            },
+          },
+        ],
+      });
+    }
+
+    if (role) {
+      whereFilters.AND?.push({ role });
+    }
+
+    if (locked !== null && locked !== undefined) {
+      whereFilters.AND?.push({ locked });
+    }
+
+    const orderBy: Prisma.UserOrderByWithRelationInput[] = [];
+    if (sortBy && sortDir) {
+      orderBy.push({ [sortBy]: sortDir });
+    }
+    orderBy.push({ id: "asc" });
+
+    const [totalRowCount, users] = await Promise.all([
+      ctx.prisma.user.count({ where: whereFilters }),
+      ctx.prisma.user.findMany({
+        skip: offset,
+        take: limit,
+        where: whereFilters,
+        orderBy,
+        select: {
+          id: true,
+          locked: true,
+          email: true,
+          username: true,
+          name: true,
+          timeZone: true,
+          role: true,
+          createdDate: true,
+          lastActiveAt: true,
+          profiles: {
+            select: {
+              username: true,
+            },
+          },
+          whitelistWorkflows: true,
+          avatarUrl: true,
+        },
+      }),
+    ]);
+
+    return {
+      rows: users || [],
+      meta: {
+        totalRowCount: totalRowCount || 0,
+      },
+    };
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const user = await ctx.prisma.user.create({ data: { ...input, creationSource: CreationSource.WEBAPP } });

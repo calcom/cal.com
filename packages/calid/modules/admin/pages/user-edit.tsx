@@ -1,10 +1,10 @@
 "use client";
 
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import { z } from "zod";
 
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { AdminUserForm, type AdminUserFormValues } from "../components/AdminUserForm";
 
@@ -50,12 +50,12 @@ const AdminUserEditView = ({ user }: { user: AdminUserFormValues & { id: number 
         utils.viewer.admin.calid.users.list.invalidate(),
         utils.viewer.admin.calid.users.get.invalidate(),
       ]);
-      showToast("User updated successfully", "success");
+      triggerToast("User updated successfully", "success");
       const base = pathname?.split("/users/")[0];
       if (base) router.replace(`${base}/users`);
     },
     onError: () => {
-      showToast("There has been an error updating this user.", "error");
+      triggerToast("There has been an error updating this user.", "error");
     },
   });
 

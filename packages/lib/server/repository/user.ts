@@ -808,7 +808,7 @@ export class UserRepository {
       where: {
         userId_calIdTeamId: {
           userId,
-          calIdTeamId: teamId,
+          teamId: teamId,
         },
         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         acceptedInvitation: true,
