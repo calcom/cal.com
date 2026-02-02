@@ -338,6 +338,9 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
         },
       });
 
+      // cancel all notifications of edited step
+      await CalIdWorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+
       if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
         await tasker.create("scanWorkflowBody", {
           workflowStepId: oldStep.id,
@@ -358,9 +361,6 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
           calIdTeamId: userWorkflow.calIdTeamId,
         });
       }
-
-      // cancel all notifications of edited step
-      await CalIdWorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
     }
   });
 
