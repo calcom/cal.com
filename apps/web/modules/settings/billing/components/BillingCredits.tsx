@@ -1,14 +1,12 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -24,6 +22,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
+import { LearnMoreLink } from "~/event-types/components/LearnMoreLink";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
@@ -382,19 +381,10 @@ export default function BillingCredits() {
         </div>
         {/*Credit Worth Section*/}
         <div className="px-5 py-4 text-sm font-medium leading-tight text-subtle">
-          <ServerTrans
+          <LearnMoreLink
             t={t}
             i18nKey="credit_worth_description"
-            components={[
-              <Link
-                key="Credit System"
-                className="underline underline-offset-2"
-                target="_blank"
-                href="https://cal.com/help/billing-and-usage/messaging-credits"
-              >
-                Learn more
-              </Link>,
-            ]}
+            href="https://cal.com/help/billing-and-usage/messaging-credits"
           />
         </div>
       </div>
