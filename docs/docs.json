@@ -39,7 +39,6 @@
           {
             "group": "Getting Started",
             "pages": [
-              "developing/introduction",
               "developing/local-development"
             ]
           },
