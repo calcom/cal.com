@@ -5,12 +5,21 @@ import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { reportWrongAssignmentHandler } from "./reportWrongAssignment.handler";
 
-const mockFindByUidForWrongAssignmentReport = vi.fn();
+const mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason = vi.fn();
+const mockDoesUserIdHaveAccessToBooking = vi.fn();
 
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => {
   return {
     BookingRepository: class MockBookingRepository {
-      findByUidForWrongAssignmentReport = mockFindByUidForWrongAssignmentReport;
+      findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason =
+        mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason;
+    },
+  };
+});
+vi.mock("@calcom/features/bookings/services/BookingAccessService", () => {
+  return {
+    BookingAccessService: class MockBookingAccessService {
+      doesUserIdHaveAccessToBooking = mockDoesUserIdHaveAccessToBooking;
     },
   };
 });
@@ -71,37 +80,13 @@ describe("reportWrongAssignmentHandler", () => {
     vi.clearAllMocks();
     vi.mocked(getWebhooks).mockResolvedValue([]);
     vi.mocked(sendGenericWebhookPayload).mockResolvedValue({ ok: true, status: 200 });
-    mockFindByUidForWrongAssignmentReport.mockResolvedValue(mockBooking);
+    mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+    mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
   });
 
   describe("access control", () => {
-    it("should throw NOT_FOUND when booking doesn't exist", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue(null);
-
-      await expect(
-        reportWrongAssignmentHandler({
-          ctx: { user: mockUser },
-          input: mockInput,
-        })
-      ).rejects.toThrow(TRPCError);
-
-      await expect(
-        reportWrongAssignmentHandler({
-          ctx: { user: mockUser },
-          input: mockInput,
-        })
-      ).rejects.toMatchObject({
-        code: "NOT_FOUND",
-        message: "Booking not found",
-      });
-    });
-
-    it("should throw FORBIDDEN when user is not host or attendee", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
-        ...mockBooking,
-        userId: 999,
-        attendees: [{ email: "other@example.com" }],
-      });
+    it("should throw FORBIDDEN when BookingAccessService denies access", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(false);
 
       await expect(
         reportWrongAssignmentHandler({
@@ -121,8 +106,31 @@ describe("reportWrongAssignmentHandler", () => {
       });
     });
 
-    it("should allow access when user is the host", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+    it("should throw NOT_FOUND when booking doesn't exist", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(null);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: mockInput,
+        })
+      ).rejects.toThrow(TRPCError);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: mockInput,
+        })
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "Booking not found",
+      });
+    });
+
+    it("should allow access when BookingAccessService grants access", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
@@ -133,26 +141,16 @@ describe("reportWrongAssignmentHandler", () => {
       });
 
       expect(result.success).toBe(true);
-    });
-
-    it("should allow access when user is an attendee", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
-        ...mockBooking,
-        attendees: [{ email: mockUser.email }],
+      expect(mockDoesUserIdHaveAccessToBooking).toHaveBeenCalledWith({
+        userId: mockUser.id,
+        bookingUid: mockInput.bookingUid,
       });
-
-      const result = await reportWrongAssignmentHandler({
-        ctx: { user: mockUser },
-        input: mockInput,
-      });
-
-      expect(result.success).toBe(true);
     });
   });
 
   describe("successful report", () => {
     it("should successfully report with all fields", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
@@ -171,7 +169,7 @@ describe("reportWrongAssignmentHandler", () => {
     });
 
     it("should successfully report with only required fields (no correctAssignee)", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
@@ -191,7 +189,7 @@ describe("reportWrongAssignmentHandler", () => {
 
   describe("webhook integration", () => {
     it("should send webhook with correct payload structure", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
@@ -243,7 +241,7 @@ describe("reportWrongAssignmentHandler", () => {
     });
 
     it("should handle webhook failures gracefully", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
@@ -262,7 +260,7 @@ describe("reportWrongAssignmentHandler", () => {
     });
 
     it("should not fail when getWebhooks throws", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
@@ -279,7 +277,7 @@ describe("reportWrongAssignmentHandler", () => {
 
   describe("edge cases", () => {
     it("should handle booking without assignmentReason", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
         assignmentReason: [],
@@ -305,7 +303,7 @@ describe("reportWrongAssignmentHandler", () => {
     });
 
     it("should handle booking without user", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: null,
         user: null,
@@ -326,7 +324,7 @@ describe("reportWrongAssignmentHandler", () => {
     });
 
     it("should handle booking without eventType", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
         eventType: null,
@@ -358,7 +356,7 @@ describe("reportWrongAssignmentHandler", () => {
     });
 
     it("should handle booking without attendees", async () => {
-      mockFindByUidForWrongAssignmentReport.mockResolvedValue({
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
         attendees: [],
