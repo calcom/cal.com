@@ -9,6 +9,8 @@ import { getRichDescription, getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -552,14 +554,7 @@ export const deleteEvent = async ({
     })
   );
   if (!bookingRefUid) {
-    log.error(
-      "deleteEvent failed - bookingRefUid is empty, skipping calendar deletion to prevent malformed API request",
-      safeStringify({
-        credential: getPiiFreeCredential(credential),
-        event: getPiiFreeCalendarEvent(event),
-      })
-    );
-    return Promise.resolve({});
+    throw new ErrorWithCode(ErrorCode.BadRequest, "deleteEvent failed - bookingRefUid is empty");
   }
   if (calendar) {
     return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
