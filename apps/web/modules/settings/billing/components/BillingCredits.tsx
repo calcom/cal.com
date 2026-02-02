@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { MemberInvitationModalWithoutMembers } from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -23,6 +22,8 @@ import { Icon } from "@calcom/ui/components/icon";
 import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
 
@@ -179,7 +180,7 @@ export default function BillingCredits() {
 
   return (
     <>
-      <div className="bg-muted border-muted mt-5 rounded-xl border p-1">
+      <div className="bg-cal-muted border-muted mt-5 rounded-xl border p-1">
         <div className="flex flex-col gap-1 px-4 py-5">
           <h2 className="text-default text-base font-semibold leading-none">{t("credits")}</h2>
           <p className="text-subtle text-sm font-medium leading-tight">{t("view_and_manage_credits")}</p>

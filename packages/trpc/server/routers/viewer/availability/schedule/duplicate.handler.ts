@@ -8,10 +8,12 @@ import type { TScheduleDuplicateSchema } from "./duplicate.schema";
 
 type DuplicateScheduleOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "timeZone">;
   };
   input: TScheduleDuplicateSchema;
 };
+
+export type DuplicateScheduleHandlerReturn = Awaited<ReturnType<typeof duplicateHandler>>;
 
 export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions) => {
   try {

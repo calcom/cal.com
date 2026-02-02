@@ -1,17 +1,17 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type {
+  BookingOutput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
@@ -23,17 +23,16 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
-} from "@calcom/platform-types";
-import type { User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Team bookings", () => {
@@ -64,12 +63,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     let team1EventTypeId: number;
     let team2EventTypeId: number;
+    let team2RREventTypeId: number;
     let phoneOnlyEventTypeId: number;
     let collectiveEventWithoutHostsId: number;
     let roundRobinEventWithoutHostsId: number;
 
     const team1EventTypeSlug = `team-bookings-event-type-${randomString()}`;
     const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
+    const team2RREventTypeSlug = `team-bookings-rr-event-type-${randomString()}`;
     const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
 
     let phoneBasedBooking: BookingOutput_2024_08_13;
@@ -339,6 +340,50 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       team2EventTypeId = team2EventType.id;
 
+      const team2RREventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team2.id },
+        },
+        title: `team-bookings-2024-08-13-event-type-rr-${randomString()}`,
+        slug: team2RREventTypeSlug,
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+        rrHostSubsetEnabled: true,
+      });
+
+      team2RREventTypeId = team2RREventType.id;
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2RREventType.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: true,
+        user: {
+          connect: {
+            id: teamUser.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2RREventType.id,
+          },
+        },
+      });
+
       await hostsRepositoryFixture.create({
         isFixed: true,
         user: {
@@ -473,6 +518,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -527,6 +573,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: "919876543210@sms.cal.com",
+                displayEmail: "919876543210@sms.cal.com",
                 phoneNumber: body.attendee.phoneNumber,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
@@ -583,6 +630,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -590,10 +638,170 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[1]).toEqual({
                 name: teamUser2.name,
                 email: teamUser2.email,
+                displayEmail: teamUser2.email,
                 timeZone: teamUser2.timeZone,
                 language: teamUser2.locale,
                 absent: false,
               });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser2 as host ", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "bob2",
+            email: "bob2@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser2.id],
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser2.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                displayEmail: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser as host ", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 12, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "bob",
+            email: "bob@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser.id],
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: body.attendee.email,
+                displayEmail: body.attendee.email,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should create a team 2 RR booking and use rrHostSubsetIds to force teamUser and teamUser2 as host ", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "bob",
+            email: "bob@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser.id, teamUser2.id],
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(2);
+              expect(data.attendees.find((a) => a.email === body.attendee.email)).toBeDefined();
+              expect(data.attendees.find((a) => a.email === teamUser2.email)).toBeDefined();
               expect(data.meetingUrl).toEqual(body.meetingUrl);
               expect(data.absentHost).toEqual(false);
             } else {
@@ -639,7 +847,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(1);
+            expect(data.length).toEqual(3);
             expect(data[0].eventTypeId).toEqual(team2EventTypeId);
           });
       });
@@ -684,7 +892,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(3);
+            expect(data.length).toEqual(5);
             expect(data.find((booking) => booking.eventTypeId === team1EventTypeId)).toBeDefined();
             expect(data.find((booking) => booking.eventTypeId === team2EventTypeId)).toBeDefined();
           });
@@ -724,6 +932,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: phoneBasedBooking.attendees[0].name,
                 email: phoneBasedBooking.attendees[0].email,
+                displayEmail: phoneBasedBooking.attendees[0].displayEmail,
                 phoneNumber: phoneBasedBooking.attendees[0].phoneNumber,
                 timeZone: phoneBasedBooking.attendees[0].timeZone,
                 language: phoneBasedBooking.attendees[0].language,
@@ -735,6 +944,75 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 phoneBasedBooking.bookingFieldsResponses.attendeePhoneNumber
               );
               phoneBasedBooking = data;
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should reschedule a team RR booking and use rrHostSubsetIds to force teamUser2 as host", async () => {
+        const createBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+          eventTypeId: team2RREventTypeId,
+          attendee: {
+            name: "reschedule-test",
+            email: "reschedule-test@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+          rrHostSubsetIds: [teamUser.id],
+        };
+
+        const createResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(createBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201);
+
+        const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+        expect(responseDataIsBooking(createResponseBody.data)).toBe(true);
+
+        if (!responseDataIsBooking(createResponseBody.data)) {
+          throw new Error("Invalid response data - expected booking");
+        }
+
+        const createdBooking: BookingOutput_2024_08_13 = createResponseBody.data;
+        expect(createdBooking.hosts[0].id).toEqual(teamUser.id);
+
+        const rescheduleBody: RescheduleBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 10, 12, 0, 0)).toISOString(),
+          reschedulingReason: "Need to change host",
+          rrHostSubsetIds: [teamUser2.id],
+        };
+
+        return request(app.getHttpServer())
+          .post(`/v2/bookings/${createdBooking.uid}/reschedule`)
+          .send(rescheduleBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser2.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(rescheduleBody.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString());
+              expect(data.duration).toEqual(60);
+              expect(data.eventTypeId).toEqual(team2RREventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0].email).toEqual(createBody.attendee.email);
+              expect(data.absentHost).toEqual(false);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -807,6 +1085,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -845,6 +1124,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await userRepositoryFixture.deleteByEmail(teamUser.email);
       await userRepositoryFixture.deleteByEmail(teamUserEmail2);
       await bookingsRepositoryFixture.deleteAllBookings(teamUser.id, teamUser.email);
+      await bookingsRepositoryFixture.deleteAllBookings(teamUser2.id, teamUser2.email);
       await app.close();
     });
   });

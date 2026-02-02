@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

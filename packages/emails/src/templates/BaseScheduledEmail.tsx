@@ -48,6 +48,7 @@ export const BaseScheduledEmail = (
     date: `${getRecipientStart("h:mma")} - ${getRecipientEnd("h:mma")}, ${t(
       getRecipientStart("dddd").toLowerCase()
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
+    interpolation: { escapeValue: false },
   });
 
   let rescheduledBy = props.calEvent.rescheduledBy;
@@ -128,6 +129,13 @@ export const BaseScheduledEmail = (
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
+      {props.isOrganizer && props.calEvent.assignmentReason && (
+        <Info
+          label={t("assignment_reason")}
+          description={`${t(props.calEvent.assignmentReason.category)}${props.calEvent.assignmentReason.details ? `: ${props.calEvent.assignmentReason.details}` : ""}`}
+          withSpacer
+        />
+      )}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
         <Info

@@ -12,7 +12,7 @@ async function authMiddleware(req: NextApiRequest) {
   if (isSystemWideAdmin) return;
   // Find all references where the user has bookings
   const bookingReference = await prisma.bookingReference.findFirst({
-    where: { id, booking: { userId } },
+    where: { id, booking: { userId }, deleted: null },
   });
   if (!bookingReference) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }

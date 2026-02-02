@@ -9,27 +9,23 @@ jobs:
     name: Build Docs
     permissions:
       contents: read
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - name: Cache Docs build
-        uses: buildjet/cache@v4
+        uses: actions/cache@v4
         id: cache-docs-build
         env:
           cache-name: docs-build
           key-1: ${{ hashFiles('yarn.lock') }}
           key-2: ${{ hashFiles('docs/**.*', '!**/node_modules') }}
-          key-3: ${{ github.event.pull_request.number || github.ref }}
-          key-4: ${{ github.sha }}
         with:
           path: |
             **/docs/**
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-            # Log cache hit
-      - name: Log Cache Hit
-        if: steps.cache-docs-build.outputs.cache-hit == 'true'
-        run: echo "Cache hit for Docs build. Skipping build."
+          key: ${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}
       - name: Run build
         if: steps.cache-docs-build.outputs.cache-hit != 'true'
         working-directory: docs

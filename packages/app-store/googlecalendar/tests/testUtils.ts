@@ -1,3 +1,4 @@
+import { calendar_v3 } from "@googleapis/calendar";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
@@ -6,7 +7,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
-import GoogleCalendarService from "../lib/CalendarService";
+import { createGoogleCalendarServiceWithGoogleType } from "../lib/CalendarService";
 
 /**
  * Creates the booking on Cal.com and makes the GCal call to fetch the event.
@@ -29,7 +30,7 @@ export const createBookingAndFetchGCalEvent = async (
   await page.locator("[data-testid=success-page]");
 
   const bookingUrl = await page.url();
-  const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
+  const bookingUid = bookingUrl.match(/booking\/([^/?]+)/);
   assertValueExists(bookingUid, "bookingUid");
 
   const [gCalReference, booking] = await Promise.all([
@@ -40,6 +41,7 @@ export const createBookingAndFetchGCalEvent = async (
         },
         type: metadata.type,
         credentialId: qaGCalCredential?.id,
+        deleted: null,
       },
       select: {
         uid: true,
@@ -90,7 +92,7 @@ export const createBookingAndFetchGCalEvent = async (
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  const googleCalendarService = new GoogleCalendarService(refreshedCredential);
+  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(refreshedCredential);
 
   const authedCalendar = await googleCalendarService.authedCalendar();
 
@@ -107,7 +109,7 @@ export const createBookingAndFetchGCalEvent = async (
 };
 
 export const deleteBookingAndEvent = async (
-  authedCalendar: any,
+  authedCalendar: calendar_v3.Calendar,
   bookingUid: string,
   gCalReferenceUid?: string
 ) => {

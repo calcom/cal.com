@@ -2,11 +2,11 @@ import { z } from "zod";
 
 import { DestinationCalendarSchema } from "@calcom/prisma/zod/modelSchema/DestinationCalendarSchema";
 
+// Note: bookingId is not a field on DestinationCalendar model in Prisma schema
 export const schemaDestinationCalendarBaseBodyParams = DestinationCalendarSchema.pick({
   integration: true,
   externalId: true,
   eventTypeId: true,
-  bookingId: true,
   userId: true,
 }).partial();
 
@@ -38,11 +38,11 @@ export const schemaDestinationCalendarEditBodyParams = schemaDestinationCalendar
   schemaDestinationCalendarEditParams
 );
 
+// Note: bookingId is not a field on DestinationCalendar model in Prisma schema
 export const schemaDestinationCalendarReadPublic = DestinationCalendarSchema.pick({
   id: true,
   integration: true,
   externalId: true,
   eventTypeId: true,
-  bookingId: true,
   userId: true,
 });

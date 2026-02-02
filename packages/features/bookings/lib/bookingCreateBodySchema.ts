@@ -28,6 +28,7 @@ export const bookingCreateBodySchema = z.object({
   routedTeamMemberIds: z.array(z.number()).nullish(),
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
+  rrHostSubsetIds: z.array(z.number()).nullish(),
   crmAppSlug: z.string().nullish().optional(),
   cfToken: z.string().nullish().optional(),
 
@@ -39,8 +40,6 @@ export const bookingCreateBodySchema = z.object({
    * Used to identify if the booking is a dry run.
    */
   _isDryRun: z.boolean().optional(),
-  /** Whether to override the cache */
-  _shouldServeCache: z.boolean().optional(),
   tracking: z
     .object({
       utm_source: z.string().optional(),
@@ -57,35 +56,47 @@ export const bookingCreateBodySchema = z.object({
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
+// TODO: Plan to create different schemas for Recurring Bookings, Instant Bookings and Regular Bookings.
+// We later want to make these properties required. They were optional because they are part of general schema which is used for all types of bookings.
+const recurringBookingCreateBodyPartialSchema = z.object({
+  recurringCount: z.number().optional(),
+  isFirstRecurringSlot: z.boolean().optional(),
+  thirdPartyRecurringEventId: z.string().nullish(),
+  numSlotsToCheckForAvailability: z.number().optional(),
+  allRecurringDates: z
+    .array(
+      z.object({
+        start: z.string(),
+        end: z.string().optional(),
+      })
+    )
+    .optional(),
+  currentRecurringIndex: z.number().optional(),
+});
+
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
-  z.object({
-    noEmail: z.boolean().optional(),
-    recurringCount: z.number().optional(),
-    allRecurringDates: z
-      .array(
-        z.object({
-          start: z.string(),
-          end: z.string(),
-        })
-      )
-      .optional(),
-    currentRecurringIndex: z.number().optional(),
-    appsStatus: z
-      .array(
-        z.object({
-          appName: z.string(),
-          success: z.number(),
-          failures: z.number(),
-          type: z.string(),
-          errors: z.string().array(),
-          warnings: z.string().array().optional(),
-        })
-      )
-      .optional(),
-    luckyUsers: z.array(z.number()).optional(),
-    customInputs: z.undefined().optional(),
-  })
+  z
+    .object({
+      noEmail: z.boolean().optional(),
+      appsStatus: z
+        .array(
+          z.object({
+            appName: z.string(),
+            success: z.number(),
+            failures: z.number(),
+            type: z.string(),
+            errors: z.string().array(),
+            warnings: z.string().array().optional(),
+          })
+        )
+        .optional(),
+      luckyUsers: z.array(z.number()).optional(),
+      customInputs: z.undefined().optional(),
+    })
+    .merge(recurringBookingCreateBodyPartialSchema)
 );
+
+export type ExtendedBookingCreateBody = z.input<typeof extendedBookingCreateBody>;
 
 // It has only the legacy props that are part of `responses` now. The API can still hit old props
 export const bookingCreateSchemaLegacyPropsForApi = z.object({

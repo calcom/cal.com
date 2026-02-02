@@ -1,4 +1,4 @@
-import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/organization";
+import { organizationScenarios } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -10,14 +10,13 @@ import { moveUserToMatchingOrg } from "./verify-email";
 
 // TODO: This test passes but coverage is very low.
 vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler");
-vi.mock("@calcom/lib/server/repository/organization");
 vi.mock("@calcom/prisma", () => {
   return {
     prisma: vi.fn(),
   };
 });
 
-vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => {
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => {
   return {
     StripeBillingService: vi.fn(),
   };
@@ -37,7 +36,7 @@ describe("moveUserToMatchingOrg", () => {
   });
 
   it("should not proceed if no matching organization is found", async () => {
-    organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
+    organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
 
     await moveUserToMatchingOrg({ email });
 
@@ -64,7 +63,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );
@@ -85,7 +84,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );

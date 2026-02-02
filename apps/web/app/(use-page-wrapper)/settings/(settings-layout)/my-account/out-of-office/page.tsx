@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import OutOfOfficeEntriesList from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
+import OutOfOfficeView from "~/settings/my-account/out-of-office-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,7 +12,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = () => {
-  return <OutOfOfficeEntriesList />;
+  return <OutOfOfficeView />;
 };
 
 export default Page;

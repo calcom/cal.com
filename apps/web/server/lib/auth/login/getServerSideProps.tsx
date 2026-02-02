@@ -39,7 +39,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           },
         };
       }
-    } catch (e) {
+    } catch {
       return {
         redirect: {
           destination: "/auth/error?error=Invalid%20JWT%3A%20Please%20try%20again",
@@ -76,8 +76,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  const userCount = await prisma.user.count();
-  if (userCount === 0) {
+  const userExists = await prisma.user.findFirst({ select: { id: true } });
+  if (!userExists) {
     // Proceed to new onboarding to create first admin user
     return {
       redirect: {

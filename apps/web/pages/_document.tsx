@@ -1,5 +1,5 @@
 import { platform } from "@todesktop/client-core";
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 import { dir } from "i18next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
@@ -55,6 +55,7 @@ class MyDocument extends Document<Props> {
           <script
             id="newLocale"
             // eslint-disable-next-line react/no-danger
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Setting locale and theme requires inline script
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";

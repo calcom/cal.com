@@ -2,14 +2,13 @@ import { v4 as uuidv4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
-import { sendBookingRedirectNotification } from "@calcom/emails";
+import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -46,8 +45,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserOrgId = ctx.user.organizationId;
   let oooUserFullName = ctx.user.name;
 
-  let isAdmin;
-  if (!!input.forUserId) {
+  let isAdmin: boolean | undefined;
+  if (input.forUserId) {
     isAdmin = await isAdminForUser(ctx.user.id, input.forUserId);
     if (!isAdmin) {
       throw new TRPCError({ code: "NOT_FOUND", message: "only_admin_can_create_ooo" });
@@ -179,6 +178,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc.toISOString(),
       end: endTimeUtc.toISOString(),
       notes: input.notes,
+      showNotePublicly: input.showNotePublicly ?? false,
       userId: oooUserId,
       reasonId: input.reasonId,
       toUserId: toUserId,
@@ -189,12 +189,29 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc.toISOString(),
       end: endTimeUtc.toISOString(),
       notes: input.notes,
+      ...(input.showNotePublicly !== undefined && { showNotePublicly: input.showNotePublicly }),
       userId: oooUserId,
       reasonId: input.reasonId,
       toUserId: toUserId ? toUserId : null,
     },
   });
-  let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
+  // Explicit type to avoid Prisma.OutOfOfficeEntryGetPayload conditional types leaking into .d.ts files
+  type OOOEntryResult = {
+    id: number;
+    start: Date;
+    end: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    notes: string | null;
+    showNotePublicly: boolean;
+    reason: { reason: string; emoji: string } | null;
+    reasonId: number | null;
+    user: { id: number; name: string | null; email: string; timeZone: string };
+    toUser: { id: number; name: string | null; email: string; timeZone: string } | null;
+    uuid: string;
+  };
+
+  let resultRedirect: OOOEntryResult | null = null;
   if (createdOrUpdatedOutOfOffice) {
     const findRedirect = await prisma.outOfOfficeEntry.findUnique({
       where: {
@@ -369,6 +386,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           appId: subscriber.appId,
           subscriberUrl: subscriber.subscriberUrl,
           payloadTemplate: subscriber.payloadTemplate,
+          version: subscriber.version,
         },
         payload
       );

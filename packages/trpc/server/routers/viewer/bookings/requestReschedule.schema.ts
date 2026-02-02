@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-export const ZRequestRescheduleInputSchema = z.object({
-  bookingId: z.string(),
+export type TRequestRescheduleInputSchema = {
+  bookingUid: string;
+  rescheduleReason?: string;
+};
+
+export const ZRequestRescheduleInputSchema: z.ZodType<TRequestRescheduleInputSchema> = z.object({
+  bookingUid: z.string(),
   rescheduleReason: z.string().optional(),
 });
-
-export type TRequestRescheduleInputSchema = z.infer<typeof ZRequestRescheduleInputSchema>;

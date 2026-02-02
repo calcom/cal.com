@@ -1,7 +1,7 @@
-// eslint-disable-next-line no-restricted-imports
+
 import { cloneDeep } from "lodash";
 
-import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
+import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
@@ -12,6 +12,26 @@ import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
+
+async function updateBooking({ bookingId, startTime, endTime, cancellationReason }: { bookingId: number, startTime: string, endTime: string, cancellationReason: string }): Promise<(Booking & { appsStatus?: AppsStatus[] })> {
+  const booking = await prisma.booking.update({
+    where: {
+      id: bookingId,
+    },
+    data: {
+      startTime,
+      endTime,
+      cancellationReason,
+    },
+    include: {
+      user: true,
+      references: true,
+      payment: true,
+      attendees: true,
+    },
+  });
+  return { ...booking, userUuid: booking.user?.uuid ?? null };
+}
 
 const moveSeatedBookingToNewTimeSlot = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
@@ -31,22 +51,7 @@ const moveSeatedBookingToNewTimeSlot = async (
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
 
-  const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
-    where: {
-      id: seatedBooking.id,
-    },
-    data: {
-      startTime: evt.startTime,
-      endTime: evt.endTime,
-      cancellationReason: rescheduleReason,
-    },
-    include: {
-      user: true,
-      references: true,
-      payment: true,
-      attendees: true,
-    },
-  });
+  const newBooking = await updateBooking({ bookingId: seatedBooking.id, startTime: evt.startTime, endTime: evt.endTime, cancellationReason: rescheduleReason });
 
   evt = { ...addVideoCallDataToEvent(newBooking.references, evt), bookerUrl: evt.bookerUrl };
 

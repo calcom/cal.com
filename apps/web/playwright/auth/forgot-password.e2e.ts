@@ -88,7 +88,6 @@ test.describe("Forgot password", async () => {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const updatedPassword = updatedUser.password!.hash;
     expect(await verifyPassword(newPassword, updatedPassword)).toBeTruthy();
 
@@ -96,5 +95,71 @@ test.describe("Forgot password", async () => {
     await page.goto(`/auth/forgot-password/${id}`);
 
     await expect(page.locator(`text=Whoops`)).toBeVisible();
+  });
+
+  test("Old tokens are invalidated when new reset link is requested", async ({ page, users }) => {
+    const user = await users.create();
+
+    await page.goto("/auth/forgot-password");
+    await page.waitForSelector("text=Forgot Password?");
+
+    await page.fill('input[name="email"]', `${user.username}@example.com`);
+    await page.press('input[name="email"]', "Enter");
+    await page.waitForLoadState("networkidle");
+
+    await page.waitForSelector("text=Reset link sent");
+
+    const firstRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
+      where: {
+        email: user.email,
+      },
+      select: {
+        id: true,
+        expires: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    await page.goto("/auth/forgot-password");
+    await page.waitForSelector("text=Forgot Password?");
+
+    await page.fill('input[name="email"]', `${user.username}@example.com`);
+    await page.press('input[name="email"]', "Enter");
+    await page.waitForLoadState("networkidle");
+
+    await page.waitForSelector("text=Reset link sent");
+
+    const secondRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
+      where: {
+        email: user.email,
+      },
+      select: {
+        id: true,
+        expires: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const firstRequestAfterSecond = await prisma.resetPasswordRequest.findUniqueOrThrow({
+      where: {
+        id: firstRequest.id,
+      },
+      select: {
+        expires: true,
+      },
+    });
+
+    expect(firstRequest.id).not.toBe(secondRequest.id);
+    expect(firstRequestAfterSecond.expires.getTime()).toBeLessThanOrEqual(new Date().getTime());
+
+    await page.goto(`/auth/forgot-password/${firstRequest.id}`);
+    await expect(page.locator(`text=Whoops`)).toBeVisible();
+
+    await page.goto(`/auth/forgot-password/${secondRequest.id}`);
+    await expect(page.getByRole("heading", { name: "Reset Password" })).toBeVisible();
   });
 });

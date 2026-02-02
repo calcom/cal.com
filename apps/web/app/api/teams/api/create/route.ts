@@ -4,9 +4,13 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
 import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
@@ -53,6 +57,33 @@ async function handler(request: NextRequest) {
       },
       include: { members: true },
     });
+
+    if (checkoutSessionSubscription) {
+      const billingService = getBillingProviderService();
+      const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+        billingService.extractSubscriptionDates(checkoutSessionSubscription);
+
+      const { billingPeriod, pricePerSeat, paidSeats } =
+        extractBillingDataFromStripeSubscription(checkoutSessionSubscription);
+
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
+      const teamBillingService = teamBillingServiceFactory.init(finalizedTeam);
+      await teamBillingService.saveTeamBilling({
+        teamId: finalizedTeam.id,
+        subscriptionId: checkoutSessionSubscription.id,
+        subscriptionItemId: checkoutSessionSubscription.items.data[0].id,
+        customerId: checkoutSessionSubscription.customer as string,
+        // TODO: Implement true subscription status when webhook events are implemented
+        status: SubscriptionStatus.ACTIVE,
+        planName: Plan.TEAM,
+        subscriptionStart: subscriptionStart ?? undefined,
+        subscriptionEnd: subscriptionEnd ?? undefined,
+        subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+        billingPeriod,
+        pricePerSeat,
+        paidSeats,
+      });
+    }
 
     const response = {
       message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,

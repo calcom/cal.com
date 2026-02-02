@@ -1,5 +1,5 @@
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 
 import { type Container, createModule } from "../di";
 

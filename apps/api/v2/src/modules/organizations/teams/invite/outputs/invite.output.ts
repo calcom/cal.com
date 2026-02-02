@@ -11,7 +11,8 @@ export class InviteDataDto {
   @ApiProperty({
     description:
       "Complete invitation URL that can be shared with prospective members. Opens the signup page with the token and redirects to getting started after signup.",
-    example: "http://app.cal.com/signup?token=f6a5c8b1d2e34c7f90a1b2c3d4e5f6a5b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2&callbackUrl=/getting-started",
+    example:
+      "http://app.cal.com/signup?token=f6a5c8b1d2e34c7f90a1b2c3d4e5f6a5b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2&callbackUrl=/getting-started",
   })
   inviteLink!: string;
 }
@@ -23,5 +24,3 @@ export class CreateInviteOutputDto {
   @ApiProperty({ type: InviteDataDto })
   data!: InviteDataDto;
 }
-
-

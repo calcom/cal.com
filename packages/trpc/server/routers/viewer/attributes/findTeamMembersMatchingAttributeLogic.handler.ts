@@ -1,8 +1,8 @@
-import type { ServerResponse } from "http";
+import type { ServerResponse } from "node:http";
 import type { NextApiResponse } from "next";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

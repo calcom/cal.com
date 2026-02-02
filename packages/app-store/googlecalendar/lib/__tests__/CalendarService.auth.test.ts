@@ -1,4 +1,4 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
 import {
@@ -19,10 +19,10 @@ import "vitest-fetch-mock";
 
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
-import CalendarService from "../CalendarService";
+import BuildCalendarService from "../CalendarService";
 import {
   createMockJWTInstance,
-  createInMemoryDelegationCredentialForCalendarService,
+  createInMemoryDelegationCredentialForCalendarService as createInMemoryDelegationCredentialForBuildCalendarService,
   defaultDelegatedCredential,
   createCredentialForCalendarService,
 } from "./utils";
@@ -70,7 +70,7 @@ async function expectCredentialsInDb(credentials: CredentialForCalendarServiceWi
 describe("GoogleCalendarService credential handling", () => {
   describe("Delegation Credential", () => {
     test("uses JWT auth with impersonation when listCalendars is called and creates a new credential in DB with the key as JWT token if it doesn't exist", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -78,7 +78,7 @@ describe("GoogleCalendarService credential handling", () => {
 
       mockSuccessfulCalendarListFetch();
       expectNoCredentialsInDb();
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
       await calendarService.listCalendars();
       expectJWTInstanceToBeCreated();
       await expectCredentialsInDb([
@@ -91,7 +91,7 @@ describe("GoogleCalendarService credential handling", () => {
     });
 
     test("uses JWT auth with impersonation when listCalendars is called and updates the credential in DB with the new JWT token if it exists", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -108,7 +108,7 @@ describe("GoogleCalendarService credential handling", () => {
           },
         },
       });
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
       await calendarService.listCalendars();
       expectJWTInstanceToBeCreated();
       await expectCredentialsInDb([
@@ -129,7 +129,7 @@ describe("GoogleCalendarService credential handling", () => {
       createMockJWTInstance({
         tokenExpiryDate: jwtTokenThatHasNotExpired.expiry_date,
       });
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -140,7 +140,7 @@ describe("GoogleCalendarService credential handling", () => {
       mockSuccessfulCalendarListFetch();
       await expectNoCredentialsInDb();
       console.log("TESTS: First instance of CalendarService");
-      const calendarService1 = new CalendarService({
+      const calendarService1 = BuildCalendarService({
         ...credentialWithDelegation,
       });
       await calendarService1.listCalendars();
@@ -169,7 +169,7 @@ describe("GoogleCalendarService credential handling", () => {
           },
         },
       });
-      const calendarService2 = new CalendarService({
+      const calendarService2 = BuildCalendarService({
         ...credentialWithDelegation,
       });
       await calendarService2.listCalendars();
@@ -188,7 +188,7 @@ describe("GoogleCalendarService credential handling", () => {
     test("uses OAuth2 auth when listCalendars is called", async () => {
       const regularCredential = await createCredentialForCalendarService();
       mockSuccessfulCalendarListFetch();
-      const calendarService = new CalendarService(regularCredential);
+      const calendarService = BuildCalendarService(regularCredential);
       await calendarService.listCalendars();
 
       expectOAuth2InstanceToBeCreated();
@@ -207,7 +207,7 @@ describe("GoogleCalendarService credential handling", () => {
 
   describe("Delegation Credential Error handling", () => {
     test("handles clientId not added to Google Workspace Admin Console error", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -223,7 +223,7 @@ describe("GoogleCalendarService credential handling", () => {
         },
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
@@ -231,7 +231,7 @@ describe("GoogleCalendarService credential handling", () => {
     });
 
     test("handles DelegationCredential authorization errors appropriately", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -247,7 +247,7 @@ describe("GoogleCalendarService credential handling", () => {
         },
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
@@ -255,7 +255,7 @@ describe("GoogleCalendarService credential handling", () => {
     });
 
     test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -271,7 +271,7 @@ describe("GoogleCalendarService credential handling", () => {
         },
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         `User ${credentialWithDelegation.user?.email} might not exist in Google Workspace`
@@ -279,7 +279,7 @@ describe("GoogleCalendarService credential handling", () => {
     });
 
     test("handles DelegationCredential authorization errors appropriately", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: "user@example.com" },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
@@ -289,7 +289,7 @@ describe("GoogleCalendarService credential handling", () => {
         authorizeError: new Error("Some unexpected error"),
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
 
       await expect(calendarService.listCalendars()).rejects.toThrow(
         "Error authorizing delegation credential"
@@ -297,13 +297,13 @@ describe("GoogleCalendarService credential handling", () => {
     });
 
     test("On missing user email for DelegationCredential, it should fallback to OAuth2 auth", async () => {
-      const credentialWithDelegation = await createInMemoryDelegationCredentialForCalendarService({
+      const credentialWithDelegation = await createInMemoryDelegationCredentialForBuildCalendarService({
         user: { email: null },
         delegatedTo: defaultDelegatedCredential,
         delegationCredentialId: "delegation-credential-id-1",
       });
 
-      const calendarService = new CalendarService(credentialWithDelegation);
+      const calendarService = BuildCalendarService(credentialWithDelegation);
       mockSuccessfulCalendarListFetch();
       await calendarService.listCalendars();
       expectOAuth2InstanceToBeCreated();

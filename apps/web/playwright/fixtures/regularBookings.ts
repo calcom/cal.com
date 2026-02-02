@@ -50,7 +50,7 @@ export function createBookingPageFixture(page: Page) {
       await page.goto("/event-types");
     },
     updateEventType: async () => {
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
     },
@@ -124,7 +124,7 @@ export function createBookingPageFixture(page: Page) {
     },
     checkBufferTime: async () => {
       const minutes = (await localize("en"))("minutes");
-      const fieldPlaceholder = page.getByPlaceholder("0");
+      const fieldPlaceholder = page.getByPlaceholder("0").first();
 
       await page
         .locator("div")

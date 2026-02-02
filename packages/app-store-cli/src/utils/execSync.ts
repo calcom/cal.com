@@ -1,4 +1,4 @@
-import child_process from "child_process";
+import child_process from "node:child_process";
 
 const execSync = async (cmd: string) => {
   const silent = process.env.DEBUG === "1" ? false : true;

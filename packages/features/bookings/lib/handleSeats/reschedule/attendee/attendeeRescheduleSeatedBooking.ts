@@ -1,8 +1,9 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
-import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
+import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -22,6 +23,9 @@ const attendeeRescheduleSeatedBooking = async (
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
+  // Set attendeeSeatId so that reschedule/cancel links in emails use seatUid instead of bookingUid
+  evt.attendeeSeatId = bookingSeat?.referenceUid;
 
   // Update the original calendar event by removing the attendee that is rescheduling
   if (originalBookingEvt && originalRescheduledBooking) {
@@ -48,10 +52,16 @@ const attendeeRescheduleSeatedBooking = async (
       },
     });
 
+    const originalBookingReferences = originalRescheduledBooking?.references;
+
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
-    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
+    const evtWithVideoCallData = originalBookingReferences
+      ? addVideoCallDataToEvent(originalBookingReferences, evt)
+      : evt;
+
+    await sendRescheduledSeatEmailAndSMS(evtWithVideoCallData, seatAttendee as Person, eventType.metadata);
 
     return null;
   }
@@ -93,7 +103,11 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmailAndSMS(copyEvent, seatAttendee as Person, eventType.metadata);
+  const copyEventWithVideoCallData = newTimeSlotBooking.references
+    ? addVideoCallDataToEvent(newTimeSlotBooking.references, copyEvent)
+    : copyEvent;
+
+  await sendRescheduledSeatEmailAndSMS(copyEventWithVideoCallData, seatAttendee as Person, eventType.metadata);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

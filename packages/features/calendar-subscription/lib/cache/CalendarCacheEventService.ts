@@ -9,6 +9,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarCacheEventService"] });
  * Service to handle calendar cache
  */
 export class CalendarCacheEventService {
+  static MONTHS_AHEAD: number = 3;
   constructor(
     private deps: {
       calendarCacheEventRepository: ICalendarCacheEventRepository;

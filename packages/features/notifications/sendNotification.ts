@@ -1,12 +1,26 @@
+import { Logger } from "@nestjs/common";
 import webpush from "web-push";
+
+const logger = new Logger("WebPush");
+let isVapidConfigured = false;
 
 const vapidKeys = {
   publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
   privateKey: process.env.VAPID_PRIVATE_KEY || "",
 };
 
-// The mail to email address should be the one at which push service providers can reach you. It can also be a URL.
-webpush.setVapidDetails("mailto:support@cal.com", vapidKeys.publicKey, vapidKeys.privateKey);
+if (vapidKeys.publicKey && vapidKeys.privateKey) {
+  try {
+    // The mail to email address should be the one at which push service providers can reach you. It can also be a URL.
+    webpush.setVapidDetails("mailto:support@cal.com", vapidKeys.publicKey, vapidKeys.privateKey);
+    logger.log("VAPID keys loaded. Web push enabled.");
+    isVapidConfigured = true;
+  } catch (err) {
+    logger.error("Failed to initialize web push", err);
+  }
+} else {
+  logger.warn("Missing VAPID keys. Web push notifications are disabled.");
+}
 
 type Subscription = {
   endpoint: string;
@@ -35,6 +49,10 @@ export const sendNotification = async ({
   requireInteraction?: boolean;
   type?: string;
 }) => {
+  if (!isVapidConfigured) {
+    logger.error("Cannot send notification. VAPID keys not configured.");
+    return;
+  }
   try {
     const payload = JSON.stringify({
       title,
@@ -50,6 +68,6 @@ export const sendNotification = async ({
     });
     await webpush.sendNotification(subscription, payload);
   } catch (error) {
-    console.error("Error sending notification", error);
+    logger.error("Error sending notification", error);
   }
 };

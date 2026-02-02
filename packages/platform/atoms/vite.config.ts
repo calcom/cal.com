@@ -1,12 +1,15 @@
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { resolve } from "path";
+import path from "node:path"
+import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
   const webAppUrl = env.NEXT_PUBLIC_WEBAPP_URL ?? "https://app.cal.com";
+  const calcomVersion = env.NEXT_PUBLIC_CALCOM_VERSION ?? "";
+  const vercelCommitSha = env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "";
+
   return {
     optimizeDeps: {
       include: [
@@ -38,6 +41,14 @@ export default defineConfig(({ mode }) => {
     ],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
+      "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${calcomVersion}"`,
+      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${vercelCommitSha}"`,
+      "process.env.NODE_ENV": `"${mode}"`,
+      "process.env.__NEXT_ROUTER_BASEPATH": `""`,
+      "process.env.__NEXT_I18N_SUPPORT": `false`,
+      "process.env.__NEXT_MANUAL_TRAILING_SLASH": `false`,
+      "process.env.__NEXT_TRAILING_SLASH": `false`,
+      "process.env": "{}",
     },
     ssr: {
       noExternal: ["turndown"], // Example if you want to disable SSR for your library
@@ -59,21 +70,21 @@ export default defineConfig(({ mode }) => {
           "react-dom",
           "react-dom/client",
           "@prisma/client",
+          "react/jsx-dev-runtime",
+          "@trigger.dev/sdk",
         ],
         output: {
           format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",
+            "react/jsx-runtime": "ReactJsxRuntime",
           },
         },
       },
     },
     resolve: {
       alias: {
-        fs: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
         "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
         "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),

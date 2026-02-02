@@ -91,7 +91,7 @@ export const createMockRetellRepository = (): RetellAIRepository & {
     getLLM: vi.fn(),
     updateLLM: vi.fn(),
     deleteLLM: vi.fn(),
-    createAgent: vi.fn(),
+    createOutboundAgent: vi.fn(),
     getAgent: vi.fn(),
     updateAgent: vi.fn(),
     deleteAgent: vi.fn(),
@@ -117,7 +117,7 @@ export const createMockAgentRepository = (): AgentRepositoryInterface & {
     findByIdWithAdminAccess: vi.fn(),
     findByIdWithCallAccess: vi.fn(),
     delete: vi.fn(),
-    linkToWorkflowStep: vi.fn(),
+    linkOutboundAgentToWorkflow: vi.fn(),
   };
 };
 

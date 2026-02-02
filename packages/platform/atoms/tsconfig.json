@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "~/*": ["/*"],
+      "~/*": ["./*"],
       "@/*": ["./src/*"],
       "@calcom/lib": ["../../lib"],
       "@calcom/lib/*": ["../../lib/*"],
@@ -38,9 +38,6 @@
     "../../dayjs",
     "../../prisma/zod-utils.ts",
     "../../prisma/zod",
-    "../../trpc/react",
-    "../../trpc/server/routers/viewer/slots",
-    "../../trpc/server/types",
     "../../features/eventtypes",
     "../../features/schedules",
     "../../features/bookings/Booker",
@@ -53,7 +50,6 @@
     "../../features/ee/payments",
     "../../features/ee/round-robin",
     "../../features/ee/billing",
-    "../../features/shell",
     "../../features/components",
     "../../features/form-builder",
     "../../features/data-table",

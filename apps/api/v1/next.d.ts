@@ -8,6 +8,7 @@ export declare module "next" {
     session?: Session | null;
 
     userId: number;
+    userUuid: string;
     user?: { role: string; locked: boolean; email: string } | null;
     method: string;
     // session: { user: { id: number } };
