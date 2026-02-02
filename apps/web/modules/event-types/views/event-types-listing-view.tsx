@@ -1,8 +1,6 @@
 "use client";
 
 import { Reorder, useDragControls } from "framer-motion";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
@@ -54,13 +52,13 @@ import {
   CreateEventTypeDialog,
   type ProfileOption,
 } from "@calcom/web/modules/event-types/components/CreateEventTypeDialog";
+import { DuplicateDialog } from "@calcom/web/modules/event-types/components/DuplicateDialog";
+import { InfiniteSkeletonLoader } from "@calcom/web/modules/event-types/components/SkeletonLoader";
 import { TRPCClientError } from "@trpc/client";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import type { FC } from "react";
-import { createContext, memo, useContext, useEffect, useState } from "react";
-import { z } from "zod";
+import { createContext, useContext } from "react";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
