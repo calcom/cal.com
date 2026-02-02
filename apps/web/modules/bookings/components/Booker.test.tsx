@@ -32,10 +32,11 @@ vi.mock("next/navigation", async (importOriginal) => {
 });
 
 import "@calcom/dayjs/__mocks__";
-import "@calcom/features/auth/Turnstile";
+import "@calcom/web/modules/auth/components/Turnstile";
 
 import { render, screen } from "@calcom/features/bookings/Booker/__tests__/test-utils";
-import type { BookerProps, WrappedBookerProps } from "@calcom/features/bookings/Booker/types";
+import type { BookerProps } from "@calcom/features/bookings/Booker/types";
+import type { WrappedBookerProps } from "../types";
 import { Booker } from "./Booker";
 
 vi.mock("framer-motion", async (importOriginal) => {
@@ -81,7 +82,7 @@ const mockEvent = {
   isPending: false,
 };
 
-vi.mock("@calcom/features/calendars/NoAvailabilityDialog", () => ({
+vi.mock("@calcom/features/calendars/components/NoAvailabilityDialog", () => ({
   default: () => {
     return null;
   },

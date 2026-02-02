@@ -68,41 +68,6 @@ export async function createPendingOAuthClient(page: Page, input: CreateOAuthCli
   return { clientId, clientSecret };
 }
 
-export async function createApprovedOAuthClientAsAdmin(
-  page: Page,
-  input: CreateOAuthClientInput
-): Promise<CreateOAuthClientResult> {
-  await goToAdminOAuthSettings(page);
-
-  await page.getByTestId("open-admin-oauth-client-create-dialog").click();
-
-  const form = page.getByTestId("oauth-client-create-form");
-  await form.locator("#name").fill(input.name);
-  await form.locator("#purpose").fill(input.purpose);
-  await form.locator("#redirectUri").fill(input.redirectUri);
-  await form.locator("#websiteUrl").fill(input.websiteUrl);
-
-  await uploadOAuthClientLogo(page, input.logoFileName);
-
-  const pkceToggle = page.getByTestId("oauth-client-pkce-toggle");
-  await expect(pkceToggle).toHaveAttribute("data-state", "unchecked");
-
-  await page.getByTestId("oauth-client-create-submit").click();
-
-  const submitted = page.getByTestId("oauth-client-submitted-modal");
-  await expect(submitted).toBeVisible();
-
-  const clientId = ((await page.getByTestId("oauth-client-submitted-client-id").textContent()) ?? "").trim();
-  expect(clientId.length).toBeGreaterThan(1);
-
-  const clientSecret = ((await page.getByTestId("oauth-client-submitted-client-secret").textContent()) ?? "").trim();
-  expect(clientSecret.length).toBeGreaterThan(1);
-
-  await page.getByTestId("oauth-client-submitted-done").click();
-
-  return { clientId, clientSecret };
-}
-
 export async function openOAuthClientDetailsFromList(page: Page, clientId: string): Promise<Locator> {
   const details = page.getByTestId("oauth-client-details-form");
   await page.getByTestId(`oauth-client-list-item-${clientId}`).click();

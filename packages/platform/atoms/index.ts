@@ -32,6 +32,7 @@ export { EventTypePlatformWrapper as EventTypeSettings } from "./event-types/wra
 export type { EventSettingsFromRef } from "./event-types/wrappers/types";
 export type { AvailabilitySettingsFormRef } from "./availability/types";
 export { ConferencingAppsViewPlatformWrapper as ConferencingAppsSettings } from "./connect/conferencing-apps/ConferencingAppsViewPlatformWrapper";
+export type { ConferencingAppsCustomClassNames } from "./connect/conferencing-apps/ConferencingAppsViewPlatformWrapper";
 export { StripeConnect } from "./connect/stripe/StripeConnect";
 export { CreateEventTypePlatformWrapper as CreateEventType } from "./event-types/wrappers/CreateEventTypePlatformWrapper";
 export { PaymentForm } from "./event-types/payments/PaymentForm";

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "~/*": ["/*"],
+      "~/*": ["./*"],
       "@/*": ["./src/*"],
       "@calcom/lib": ["../../lib"],
       "@calcom/lib/*": ["../../lib/*"],

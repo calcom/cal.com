@@ -21,7 +21,7 @@ import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.mo
 import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
-import { webhookProducerServiceModule } from "../modules/WebhookProducerService.module";
+import { moduleLoader as webhookProducerServiceModuleLoader } from "../modules/WebhookProducerService.module";
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
@@ -32,7 +32,9 @@ loggerModuleLoader.loadModule(webhookContainer);
 prismaModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
-// Load webhook module
+// Load webhook module (includes cross-table repositories + all webhook services)
+webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY, webhookModule);
+webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_SERVICE, webhookModule);
 webhookContainer.load(WEBHOOK_TOKENS.BOOKING_WEBHOOK_SERVICE, webhookModule);
@@ -51,7 +53,8 @@ webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDat
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);
 
 // Load Producer/Consumer modules
-webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE, webhookProducerServiceModule);
+// Use moduleLoader pattern for producer service to load WebhookTasker dependencies
+webhookProducerServiceModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER, webhookTaskConsumerModule);
 
 export { webhookContainer };

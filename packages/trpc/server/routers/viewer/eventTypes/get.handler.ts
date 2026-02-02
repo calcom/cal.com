@@ -1,3 +1,4 @@
+// Cache bust: workflows.activeOn.eventType no longer includes _count.children
 import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 

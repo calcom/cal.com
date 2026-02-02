@@ -18,20 +18,27 @@ export function createAppsFixture(page: Page) {
     installAnalyticsAppSkipConfigure: async (app: string) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
       await page.getByTestId("install-app-button").click();
-      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
+      await page.waitForURL(`apps/installation/**?slug=${app}`);
       await page.reload();
-      await page.click('[data-testid="install-app-button-personal"]');
-      await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+
+      const currentUrl = page.url();
+      if (currentUrl.includes("apps/installation/accounts")) {
+        await page.click('[data-testid="install-app-button-personal"]');
+        await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+      }
       await page.click('[data-testid="set-up-later"]');
     },
     installAnalyticsApp: async (app: string, eventTypeIds: number[]) => {
       await page.getByTestId(`app-store-app-card-${app}`).click();
-      (await page.waitForSelector('[data-testid="install-app-button"]')).click();
-      await page.waitForURL(`apps/installation/accounts?slug=${app}`);
+      await page.getByTestId("install-app-button").click();
+      await page.waitForURL(`apps/installation/**?slug=${app}`);
       await page.reload();
 
-      await page.click('[data-testid="install-app-button-personal"]');
-      await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+      const currentUrl = page.url();
+      if (currentUrl.includes("apps/installation/accounts")) {
+        await page.click('[data-testid="install-app-button-personal"]');
+        await page.waitForURL(`apps/installation/event-types?slug=${app}`);
+      }
 
       // eslint-disable-next-line playwright/no-wait-for-timeout
       await page.waitForTimeout(1000);

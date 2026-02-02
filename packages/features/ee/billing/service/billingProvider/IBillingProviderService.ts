@@ -89,7 +89,7 @@ export interface IBillingProviderService {
     metadata?: Record<string, string>;
   }): Promise<{ invoiceId: string }>;
 
-  finalizeInvoice(invoiceId: string): Promise<void>;
+  finalizeInvoice(invoiceId: string): Promise<{ invoiceUrl: string | null }>;
 
   voidInvoice(invoiceId: string): Promise<void>;
 
