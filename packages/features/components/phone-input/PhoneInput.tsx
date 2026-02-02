@@ -100,6 +100,7 @@ function BasePhoneInputWeb({
   className = "",
   onChange,
   value,
+  autoFormat,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
@@ -109,7 +110,9 @@ function BasePhoneInputWeb({
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       country={value ? undefined : defaultCountry}
       enableSearch
+      autoFormat={autoFormat}
       disableSearchIcon
+      masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name: name,
         required: rest.required,
