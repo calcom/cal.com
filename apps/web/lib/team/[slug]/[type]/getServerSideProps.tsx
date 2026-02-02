@@ -55,11 +55,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  if (eventData.schedulingType === SchedulingType.MANAGED) {
-    return { notFound: true } as const;
-  }
+    if (eventData.schedulingType === SchedulingType.MANAGED) {
+      return { notFound: true } as const;
+    }
 
-  if (rescheduleUid && eventData.disableRescheduling) {
+    // Redirect if no routing form response and redirect URL is configured
+    const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
+    if (!hasRoutingFormResponse && eventData.redirectUrlOnNoRoutingFormResponse) {
+      return {
+        redirect: {
+          destination: eventData.redirectUrlOnNoRoutingFormResponse,
+          permanent: false,
+        },
+      };
+    }
+
+    if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
 
@@ -234,19 +245,20 @@ const getTeamWithEventsData = async (
         where: {
           slug: meetingSlug,
         },
-        select: {
-          id: true,
-          title: true,
-          isInstantEvent: true,
-          schedulingType: true,
-          metadata: true,
-          length: true,
-          hidden: true,
-          disableCancelling: true,
-          disableRescheduling: true,
-          allowReschedulingCancelledBookings: true,
-          interfaceLanguage: true,
-          hosts: {
+                select: {
+                  id: true,
+                  title: true,
+                  isInstantEvent: true,
+                  schedulingType: true,
+                  metadata: true,
+                  length: true,
+                  hidden: true,
+                  disableCancelling: true,
+                  disableRescheduling: true,
+                  allowReschedulingCancelledBookings: true,
+                  redirectUrlOnNoRoutingFormResponse: true,
+                  interfaceLanguage: true,
+                  hosts: {
             take: 3,
             select: {
               user: {

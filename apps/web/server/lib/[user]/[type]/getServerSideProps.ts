@@ -168,6 +168,18 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // Redirect if no routing form response and redirect URL is configured
+  const hasRoutingFormResponse =
+    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+  if (!hasRoutingFormResponse && eventData.redirectUrlOnNoRoutingFormResponse) {
+    return {
+      redirect: {
+        destination: eventData.redirectUrlOnNoRoutingFormResponse,
+        permanent: false,
+      },
+    };
+  }
+
   const props: Props = {
     eventData: {
       ...eventData,
@@ -254,13 +266,25 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     session?.user?.id
   );
 
-  if (!eventData) {
-    return {
-      notFound: true,
-    } as const;
-  }
+    if (!eventData) {
+      return {
+        notFound: true,
+      } as const;
+    }
 
-  const allowSEOIndexing = org
+    // Redirect if no routing form response and redirect URL is configured
+    const hasRoutingFormResponse =
+      context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+    if (!hasRoutingFormResponse && eventData.redirectUrlOnNoRoutingFormResponse) {
+      return {
+        redirect: {
+          destination: eventData.redirectUrlOnNoRoutingFormResponse,
+          permanent: false,
+        },
+      };
+    }
+
+    const allowSEOIndexing = org
     ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
       ? user?.allowSEOIndexing
       : false
