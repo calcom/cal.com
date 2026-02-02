@@ -1,5 +1,4 @@
-import type { TFunction } from "i18next";
-
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -7,9 +6,9 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { prisma, type PrismaTransaction } from "@calcom/prisma";
-import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
-
+import { type PrismaTransaction, prisma } from "@calcom/prisma";
+import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 import { getBillingProviderService, getTeamBillingServiceFactory } from "./di/containers/Billing";
 import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
 
@@ -357,11 +356,27 @@ export class CreditService {
 
     if (userId) {
       const team = await this._getTeamWithAvailableCredits({ userId, tx });
-      if (team) {
+
+      const teamHasCredits = team && !team.limitReached;
+
+      if (teamHasCredits) {
         return { ...team, remainingCredits: team.availableCredits - credits };
       }
 
       const userCredits = await this._getAllCredits({ userId, tx });
+      const userHasCredits = userCredits.additionalCredits > 0;
+
+      if (userHasCredits) {
+        return {
+          userId,
+          remainingCredits: userCredits.additionalCredits - credits,
+          creditType: CreditType.ADDITIONAL,
+        };
+      }
+
+      if (team) {
+        return { ...team, remainingCredits: team.availableCredits - credits };
+      }
 
       return {
         userId,
