@@ -385,42 +385,29 @@ export default class EventManager {
     results.push(...createdCRMEvents);
 
     // References can be any type: calendar/video
-    const referencesToCreate = results
-      .map((result) => {
-        let thirdPartyRecurringEventId;
-        let createdEventObj: createdEventSchema | null = null;
-        if (typeof result?.createdEvent === "string") {
-          createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
-        }
-        const isCalendarType = isCalendarResult(result);
-        if (isCalendarType) {
-          evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
-          thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
-        }
+    const referencesToCreate = results.map((result) => {
+      let thirdPartyRecurringEventId;
+      let createdEventObj: createdEventSchema | null = null;
+      if (typeof result?.createdEvent === "string") {
+        createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
+      }
+      const isCalendarType = isCalendarResult(result);
+      if (isCalendarType) {
+        evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
+        thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
+      }
 
-        const uid = createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "";
-
-        return {
-          type: result.type,
-          uid,
-          thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
-          meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
-          meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
-          meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-          externalCalendarId: isCalendarType ? result.externalId : undefined,
-          ...getCredentialPayload(result),
-        };
-      })
-      .filter((reference) => {
-        if (!reference.uid) {
-          log.error(
-            "Skipping booking reference with empty uid - calendar event may not have been created properly",
-            safeStringify({ type: reference.type, externalCalendarId: reference.externalCalendarId })
-          );
-          return false;
-        }
-        return true;
-      });
+      return {
+        type: result.type,
+        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
+        meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
+        meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
+        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
+        externalCalendarId: isCalendarType ? result.externalId : undefined,
+        ...getCredentialPayload(result),
+      };
+    });
 
     return {
       results,
@@ -465,43 +452,39 @@ export default class EventManager {
       }
     }
 
-    const referencesToCreate = results
-      .map((result) => {
-        // For update operations, check updatedEvent first, then fall back to createdEvent
-        const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
-        const createdEvent = result.createdEvent;
-        let event = updatedEvent;
-        if (!event) {
-          log.warn(
-            "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
-            safeStringify({ bookingId: booking.id })
-          );
-          event = createdEvent;
-        }
+    const referencesToCreate = results.map((result) => {
+      // For update operations, check updatedEvent first, then fall back to createdEvent
+      const updatedEvent = Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
+      const createdEvent = result.createdEvent;
+      let event = updatedEvent;
+      if (!event) {
+        log.warn(
+          "updateLocation: No updatedEvent when doing updateLocation. Falling back to createdEvent but this is probably not what we want",
+          safeStringify({ bookingId: booking.id })
+        );
+        event = createdEvent;
+      }
 
-        const uid = event?.id?.toString() ?? "";
-        const meetingId = event?.id?.toString();
+      const uid = event?.id?.toString() ?? "";
+      const meetingId = event?.id?.toString();
 
-        return {
-          type: result.type,
-          uid,
-          meetingId,
-          meetingPassword: event?.password,
-          meetingUrl: event?.url,
-          externalCalendarId: result.externalId,
-          ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
-        };
-      })
-      .filter((reference) => {
-        if (!reference.uid) {
-          log.error(
-            "updateLocation: Skipping booking reference with empty uid - calendar event may not have been created/updated properly",
-            safeStringify({ type: reference.type, externalCalendarId: reference.externalCalendarId })
-          );
-          return false;
-        }
-        return true;
-      });
+      if (!uid) {
+        log.error(
+          "updateLocation: No uid for booking reference. The corresponding record in third party if created is orphan now",
+          safeStringify({ result })
+        );
+      }
+
+      return {
+        type: result.type,
+        uid,
+        meetingId,
+        meetingPassword: event?.password,
+        meetingUrl: event?.url,
+        externalCalendarId: result.externalId,
+        ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
+      };
+    });
 
     return {
       results,
