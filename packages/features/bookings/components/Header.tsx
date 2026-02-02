@@ -180,15 +180,13 @@ const LayoutToggle = ({
   onLayoutToggle,
   layout,
   enabledLayouts,
-  isPlatform = false,
 }: {
   onLayoutToggle: (layout: string) => void;
   layout: string;
   enabledLayouts?: BookerLayouts[];
-  isPlatform?: boolean;
 }) => {
   const isEmbed = useIsEmbed();
-
+  const isPlatform = useIsPlatform();
   const { t } = useLocale();
 
   const layoutOptions = useMemo(() => {
