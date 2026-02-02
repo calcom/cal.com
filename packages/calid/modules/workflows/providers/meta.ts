@@ -1,5 +1,10 @@
 // meta.ts
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+import dayjs from "@calcom/dayjs";
 import type { Prisma } from "@prisma/client";
+
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
@@ -12,6 +17,11 @@ import { inngestClient } from "@calcom/web/pages/api/inngest";
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
 import { defaultTemplateNamesMap, defaultTemplateComponentsMap } from "./meta_default_templates";
+
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
 export class MetaError extends Error {
@@ -292,6 +302,8 @@ const uploadMediaToWhatsApp = async (
 type ExpandedVariablesType = VariablesType & {
   recipientName?: string;
   senderName?: string;
+  eventStartTimeInAttendeeTimezone?: string;
+  eventEndTimeInAttendeeTimezone?: string;
 };
 
 const calculateSuffixLength = (templateText: string, variableName: string): number => {
@@ -300,7 +312,6 @@ const calculateSuffixLength = (templateText: string, variableName: string): numb
 
   // Replace the variable placeholder with empty string to get surrounding text
   const textWithoutVariable = templateText.replace(variablePattern, "");
-
   return textWithoutVariable.length + 20 /* +20 cuz meta needs extra buffer */;
 };
 
@@ -332,7 +343,7 @@ const getCappedVariables = (
 };
 
 function wordTruncate(text, maxLength) {
-  if (text.length <= maxLength) {
+  if (text.length <= maxLength + 3 /* exclude ellipsis when comparing original text length */) {
     return text;
   }
 
@@ -393,6 +404,14 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 > => {
   const expandedVariables = {
     ...variableData,
+    eventStartTimeInAttendeeTimezone:
+      typeof variableData.eventStartTimeInAttendeeTimezone === "string"
+        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
+    eventEndTimeInAttendeeTimezone:
+      typeof variableData.eventEndTimeInAttendeeTimezone === "string"
+        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
     senderName:
