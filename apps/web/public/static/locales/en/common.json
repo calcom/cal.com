@@ -2272,6 +2272,8 @@
   "event_end_time_info": "The event end time",
   "cancel_url_variable": "Cancel URL",
   "cancel_url_info": "The URL to cancel the booking",
+  "cancellation_reason_variable": "Cancellation Reason",
+  "cancellation_reason_info": "Booking cancellation reason",
   "cancel_reason_variable": "Cancellation Reason",
   "cancel_reason_info": "The reason for canceling the booking",
   "reschedule_url_variable": "Reschedule URL",

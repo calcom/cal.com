@@ -1,54 +1,25 @@
-import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import prisma from "@calcom/prisma";
-
-export const getUsernameForOrgMember = async ({
-  email,
-  orgAutoAcceptEmail,
-  isSignup,
-  username,
-}: {
-  username?: string;
-  email: string;
-  orgAutoAcceptEmail?: string;
-  isSignup: boolean;
-}) => {
-  if (isSignup) {
-    // We ensure that the username is always derived from the email during signup.
-    return getOrgUsernameFromEmail(email, orgAutoAcceptEmail || "");
-  }
-  if (!username) {
-    throw new Error("Username is required");
-  }
-  // Right now it's not possible to change username in an org by the user but when that's allowed we would simply accept the provided username
-  return username;
-};
 
 export const validateAndGetCorrectedUsernameAndEmail = async ({
   username,
   email,
-  organizationId,
-  orgAutoAcceptEmail,
   isSignup,
 }: {
   username: string;
   email: string;
-  organizationId?: number;
-  orgAutoAcceptEmail?: string;
   isSignup: boolean;
 }) => {
   if (username.includes("+")) {
     return { isValid: false, username: undefined, email };
   }
-  // There is an existingUser if, within an org context or not, the username matches
+
+  // There is an existingUser if the username matches
   // OR if the email matches AND either the email is verified
   // or both username and password are set
   const existingUser = await prisma.user.findFirst({
     where: {
-      ...(organizationId ? { organizationId } : {}),
       OR: [
-        // When inviting to org, invited user gets created with username now, so in an org context we
-        // can't check for username as it will exist on signup
-        ...(!organizationId ? [{ username }] : [{}]),
+        { username },
         {
           AND: [
             { email },
@@ -66,16 +37,8 @@ export const validateAndGetCorrectedUsernameAndEmail = async ({
       email: true,
     },
   });
-  let validatedUsername = username;
-  if (organizationId) {
-    validatedUsername = await getUsernameForOrgMember({
-      email,
-      orgAutoAcceptEmail,
-      isSignup,
-    });
-  }
 
-  return { isValid: !existingUser, username: validatedUsername, email: existingUser?.email };
+  return { isValid: !existingUser, username, email: existingUser?.email };
 };
 
 export const validateAndGetCorrectedUsernameInTeam = async (
@@ -85,7 +48,7 @@ export const validateAndGetCorrectedUsernameInTeam = async (
   isSignup: boolean
 ) => {
   try {
-    //CASE 1: if its the same user that was invited to the team, allow the username
+    // CASE 1: if it's the same user that was invited to the team, allow the username
     const user = await prisma.user.findFirst({
       where: {
         email,
@@ -95,45 +58,9 @@ export const validateAndGetCorrectedUsernameInTeam = async (
     if (user) {
       return { isValid: true, username: user.username, email: user.email };
     }
-    //CASE 2: if its a different user, check if the username or email is taken in the team
+
+    // CASE 2: if it's a different user, check if the username or email is taken
     return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
-
-    // const team = await prisma.team.findUnique({
-    //   where: {
-    //     id: teamId,
-    //   },
-    //   select: {
-    //     metadata: true,
-    //     isOrganization: true,
-    //     parentId: true,
-    //     organizationSettings: true,
-    //     parent: {
-    //       select: {
-    //         organizationSettings: true,
-    //       },
-    //     },
-    //   },
-    // });
-
-    // console.log("validateAndGetCorrectedUsernameInTeam", {
-    //   teamId,
-    //   team,
-    // });
-    // const organization = team?.isOrganization ? team : team?.parent;
-    // if (organization) {
-    //   // Organization context -> org-context username check
-    //   const orgId = team?.parentId || teamId;
-    //   return validateAndGetCorrectedUsernameAndEmail({
-    //     username,
-    //     email,
-    //     organizationId: orgId,
-    //     orgAutoAcceptEmail: organization?.organizationSettings?.orgAutoAcceptEmail || "",
-    //     isSignup,
-    //   });
-    // } else {
-    //   // Regular team context -> regular username check
-    //   return validateAndGetCorrectedUsernameAndEmail({ username, email, isSignup });
-    // }
   } catch (error) {
     console.error(error);
     return { isValid: false, username: undefined, email: undefined };
