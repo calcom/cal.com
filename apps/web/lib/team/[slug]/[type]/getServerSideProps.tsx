@@ -72,6 +72,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
+  const crmLookupDoneParam = query["cal.crmLookupDone"];
 
   const crmContactOwnerEmailStr = Array.isArray(crmContactOwnerEmail)
     ? crmContactOwnerEmail[0]
@@ -82,7 +83,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmAppSlugStr = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
   const crmRecordIdStr = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
-  const needsCrmLookup = !crmContactOwnerEmailStr || !crmOwnerRecordTypeStr || !crmAppSlugStr;
+  // If crmLookupDone is true, the router already performed the CRM lookup, so skip it here
+  const crmLookupDone =
+    (Array.isArray(crmLookupDoneParam) ? crmLookupDoneParam[0] : crmLookupDoneParam) === "true";
+
+  const needsCrmLookup =
+    !crmLookupDone && (!crmContactOwnerEmailStr || !crmOwnerRecordTypeStr || !crmAppSlugStr);
 
   // Run independent queries in parallel — these all depend on team/eventData but not on each other
   const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
