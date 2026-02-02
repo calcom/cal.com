@@ -8,7 +8,7 @@ import { nameOfDay } from "@calcom/lib/weekday";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
-import { TimeFormatToggle } from "./TimeFormatToggle";
+import { TimeFormatToggle } from "@calcom/features/bookings/components/TimeFormatToggle";
 
 type AvailableTimesHeaderProps = {
   date: Dayjs;

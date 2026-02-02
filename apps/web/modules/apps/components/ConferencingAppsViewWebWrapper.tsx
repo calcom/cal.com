@@ -12,7 +12,7 @@ import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton"
 import { showToast } from "@calcom/ui/components/toast";
 
 import { AppList } from "./AppList";
-import DisconnectIntegrationModal from "./DisconnectIntegrationModal";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 
 type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
