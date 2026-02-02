@@ -1,4 +1,3 @@
-import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
