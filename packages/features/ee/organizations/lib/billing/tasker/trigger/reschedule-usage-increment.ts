@@ -24,6 +24,6 @@ export const rescheduleUsageIncrement: TaskWithSchema<
       return;
     }
 
-    await runs.cancel(runId);
+    await runs.reschedule(runId, { delay: payload.rescheduledTime });
   },
 });

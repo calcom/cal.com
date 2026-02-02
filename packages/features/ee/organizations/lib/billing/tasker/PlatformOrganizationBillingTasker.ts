@@ -20,13 +20,13 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
     payload: PlatformOrganizationBillingTaskPayload;
     options?: TriggerOptions;
   }): Promise<{ runId: string }> {
-    const { payload } = data;
+    const { payload, options } = data;
     let taskResponse: {
       runId: string;
     } = { runId: "task-not-found" };
 
     try {
-      taskResponse = await this.dispatch("incrementUsage", payload, data.options);
+      taskResponse = await this.dispatch("incrementUsage", payload, options);
 
       this.logger.info(`PlatformOrganizationBillingTasker incrementUsage success:`, taskResponse, {
         userId: payload.userId,
@@ -41,14 +41,17 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
     return taskResponse;
   }
 
-  public async cancelUsageIncrement(data: { payload: { bookingUid: string } }): Promise<{ runId: string }> {
-    const { payload } = data;
+  public async cancelUsageIncrement(data: {
+    payload: { bookingUid: string };
+    options?: TriggerOptions;
+  }): Promise<{ runId: string }> {
+    const { payload, options } = data;
     let taskResponse: {
       runId: string;
     } = { runId: "task-not-found" };
 
     try {
-      taskResponse = await this.dispatch("cancelUsageIncrement", payload);
+      taskResponse = await this.dispatch("cancelUsageIncrement", payload, options);
 
       this.logger.info(`PlatformOrganizationBillingTasker cancelUsageIncrement success:`, taskResponse, {
         bookingUid: payload.bookingUid,
@@ -64,16 +67,16 @@ export class PlatformOrganizationBillingTasker extends Tasker<IPlatformOrganizat
   }
 
   public async rescheduleUsageIncrement(data: {
-    payload: { bookingUid: string };
-    options: { delay: NonNullable<TriggerOptions["delay"]> };
+    payload: { bookingUid: string; rescheduledTime: Date };
+    options?: TriggerOptions;
   }): Promise<{ runId: string }> {
-    const { payload } = data;
+    const { payload, options } = data;
     let taskResponse: {
       runId: string;
     } = { runId: "task-not-found" };
 
     try {
-      taskResponse = await this.dispatch("rescheduleUsageIncrement", payload, data.options);
+      taskResponse = await this.dispatch("rescheduleUsageIncrement", payload, options);
       this.logger.info(`PlatformOrganizationBillingTasker rescheduleUsageIncrement success:`, taskResponse, {
         bookingUid: payload.bookingUid,
       });
