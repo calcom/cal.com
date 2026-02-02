@@ -75,6 +75,7 @@ export const Pagination = ({
           value={pageSizeSelectOptions.find((option) => option.value === internalPageSize)}
           onChange={handlePageSizeChange}
           size="sm"
+          className="min-w-20"
         />
         <span className="text-default text-sm">{t("rows_per_page")}</span>
       </div>
@@ -101,6 +102,7 @@ export const Pagination = ({
             disabled={currentPage >= totalPages}
             color="secondary"
             size="sm"
+            
           />
         </ButtonGroup>
       </div>
