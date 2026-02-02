@@ -135,7 +135,7 @@ const WorkflowListItem = (props: ItemProps) => {
         </div>
         {workflow.permissions?.canUpdate && (
           <div className="flex-none">
-            <Link href={`/workflows/${workflow.id}`} target="_blank">
+            <Link href={`/workflows/${workflow.id}`} target="_blank" rel="noopener noreferrer">
               <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
               </Button>

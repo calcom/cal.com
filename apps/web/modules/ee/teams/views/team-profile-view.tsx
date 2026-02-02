@@ -178,7 +178,7 @@ const ProfileView = () => {
             )}
           </div>
           <div>
-            <Link href={permalink} target="_blank">
+            <Link href={permalink} target="_blank" rel="noopener noreferrer">
               <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
