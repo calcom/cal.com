@@ -8,8 +8,9 @@ import { BookingAuditProducerService } from "@/lib/services/booking-audit-produc
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { TaskerService } from "@/lib/services/tasker.service";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
 @Module({
-  imports: [RegularBookingModule],
+  imports: [RegularBookingModule, PrismaWorkerModule],
   providers: [
     RecurringBookingService,
     BookingEventHandlerService,
