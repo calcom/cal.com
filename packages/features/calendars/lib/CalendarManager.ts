@@ -551,6 +551,16 @@ export const deleteEvent = async ({
       event: getPiiFreeCalendarEvent(event),
     })
   );
+  if (!bookingRefUid) {
+    log.error(
+      "deleteEvent failed - bookingRefUid is empty, skipping calendar deletion to prevent malformed API request",
+      safeStringify({
+        credential: getPiiFreeCredential(credential),
+        event: getPiiFreeCalendarEvent(event),
+      })
+    );
+    return Promise.resolve({});
+  }
   if (calendar) {
     return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
   } else {
