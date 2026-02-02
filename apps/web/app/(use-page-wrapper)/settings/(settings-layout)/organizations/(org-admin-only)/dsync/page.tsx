@@ -3,7 +3,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import DirectorySyncTeamView from "~/ee/dsync/views/team-dsync-view";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { validateUserHasOrg } from "../../actions/validateUserHasOrg";

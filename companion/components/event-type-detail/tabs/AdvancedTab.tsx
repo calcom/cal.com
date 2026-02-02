@@ -12,16 +12,17 @@ import {
   Modal,
   Platform,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-import { showInfoAlert } from "@/utils/alerts";
+import { showInfoAlert, showNotAvailableAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
-import { IOSPickerTrigger } from "./IOSPickerTrigger";
+import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
+import { getColors } from "@/constants/colors";
+import { useColorScheme } from "react-native";
 
 // Interface language options matching API V2 enum
 const interfaceLanguageOptions = [
@@ -65,167 +66,7 @@ const interfaceLanguageOptions = [
   { label: "中文（台灣）", value: "zh-TW" },
 ];
 
-// Section header
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text
-      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
-      style={{ letterSpacing: 0.5 }}
-    >
-      {title}
-    </Text>
-  );
-}
-
-// Settings group container
-function SettingsGroup({
-  children,
-  header,
-  footer,
-}: {
-  children: React.ReactNode;
-  header?: string;
-  footer?: string;
-}) {
-  return (
-    <View>
-      {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-      {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
-    </View>
-  );
-}
-
-// Toggle row with indented separator
-function SettingRow({
-  title,
-  description,
-  value,
-  onValueChange,
-  learnMoreUrl,
-  isFirst = false,
-  isLast = false,
-}: {
-  title: string;
-  description?: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  learnMoreUrl?: string;
-  isFirst?: boolean;
-  isLast?: boolean;
-}) {
-  const height = isFirst || isLast ? 52 : 44;
-  const showDescription = () => {
-    if (!description) return;
-
-    const buttons: {
-      text: string;
-      onPress?: () => void;
-      style?: "cancel" | "default" | "destructive";
-    }[] = [{ text: "OK", style: "cancel" }];
-
-    if (learnMoreUrl) {
-      buttons.unshift({
-        text: "Learn more",
-        onPress: () => openInAppBrowser(learnMoreUrl, "Learn more"),
-      });
-    }
-
-    Alert.alert(title, description, buttons);
-  };
-
-  return (
-    <View className="bg-white pl-4">
-      <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height }}
-      >
-        <TouchableOpacity
-          className="flex-1 flex-row items-center"
-          style={{ height }}
-          onPress={description ? showDescription : undefined}
-          activeOpacity={description ? 0.7 : 1}
-          disabled={!description}
-        >
-          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-            {title}
-          </Text>
-          {description ? (
-            <Ionicons name="chevron-down" size={12} color="#C7C7CC" style={{ marginLeft: 6 }} />
-          ) : null}
-        </TouchableOpacity>
-        <View style={{ alignSelf: "center" }}>
-          <Switch
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// Navigation row (with chevron)
-function NavigationRow({
-  title,
-  value,
-  onPress,
-  isFirst = false,
-  isLast = false,
-  options,
-  onSelect,
-}: {
-  title: string;
-  value?: string;
-  onPress: () => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-  options?: { label: string; value: string }[];
-  onSelect?: (value: string) => void;
-}) {
-  const height = isFirst || isLast ? 52 : 44;
-  return (
-    <View className="bg-white pl-4" style={{ height }}>
-      <View
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
-        }`}
-        style={{ height }}
-      >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View className="flex-row items-center">
-          {Platform.OS === "ios" && options && onSelect ? (
-            <>
-              {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : null}
-              <IOSPickerTrigger options={options} selectedValue={value || ""} onSelect={onSelect} />
-            </>
-          ) : (
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={onPress}
-              activeOpacity={0.5}
-            >
-              {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : null}
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
+// Local components removed in favor of SettingsUI
 
 interface AdvancedTabProps {
   requiresConfirmation: boolean;
@@ -246,6 +87,8 @@ interface AdvancedTabProps {
   setAllowReschedulingPastEvents: (value: boolean) => void;
   allowBookingThroughRescheduleLink: boolean;
   setAllowBookingThroughRescheduleLink: (value: boolean) => void;
+  redirectEnabled: boolean;
+  setRedirectEnabled: (value: boolean) => void;
   successRedirectUrl: string;
   setSuccessRedirectUrl: (value: string) => void;
   forwardParamsSuccessRedirect: boolean;
@@ -271,6 +114,8 @@ interface AdvancedTabProps {
   setDisableRescheduling: (value: boolean) => void;
   sendCalVideoTranscription: boolean;
   setSendCalVideoTranscription: (value: boolean) => void;
+  interfaceLanguageEnabled: boolean;
+  setInterfaceLanguageEnabled: (value: boolean) => void;
   interfaceLanguage: string;
   setInterfaceLanguage: (value: string) => void;
   showOptimizedSlots: boolean;
@@ -279,11 +124,15 @@ interface AdvancedTabProps {
 
 export function AdvancedTab(props: AdvancedTabProps) {
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
 
   const getLanguageLabel = (value: string) => {
     const option = interfaceLanguageOptions.find((opt) => opt.value === value);
     return option?.label || "Browser Default";
   };
+
+  // handleNotAvailable replaced by global utility
 
   return (
     <View className="gap-6">
@@ -293,11 +142,21 @@ export function AdvancedTab(props: AdvancedTabProps) {
           isFirst
           title="Requires confirmation"
           description="The booking needs to be manually confirmed before it is pushed to your calendar and a confirmation is sent."
+          learnMoreUrl="https://cal.com/help/event-types/how-to-requires"
           value={props.requiresConfirmation}
-          onValueChange={props.setRequiresConfirmation}
+          onValueChange={(value) => {
+            if (value && props.seatsEnabled) {
+              Alert.alert(
+                "Disable 'Offer seats' first",
+                "You need to:\n1. Disable 'Offer seats' and Save\n2. Then enable 'Requires confirmation' and Save again"
+              );
+              return;
+            }
+            props.setRequiresConfirmation(value);
+          }}
         />
         <SettingRow
-          title="Email verification"
+          title="Booker email verification"
           description="To ensure booker's email verification before scheduling events."
           value={props.requiresBookerEmailVerification}
           onValueChange={props.setRequiresBookerEmailVerification}
@@ -310,21 +169,24 @@ export function AdvancedTab(props: AdvancedTabProps) {
         <SettingRow
           isFirst
           title="Disable Cancelling"
-          description="Guests and Organizer can no longer cancel the event with calendar invite or email."
+          description="Guests and organizer can no longer cancel the event with calendar invite or email."
           value={props.disableCancelling}
           onValueChange={props.setDisableCancelling}
+          learnMoreUrl="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
         />
         <SettingRow
           title="Disable Rescheduling"
           description="Guests and Organizer can no longer reschedule the event with calendar invite or email."
           value={props.disableRescheduling}
           onValueChange={props.setDisableRescheduling}
+          learnMoreUrl="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-rescheduling"
         />
         <SettingRow
           title="Reschedule past events"
           description="Enabling this option allows for past events to be rescheduled."
           value={props.allowReschedulingPastEvents}
           onValueChange={props.setAllowReschedulingPastEvents}
+          learnMoreUrl="https://cal.com/help/event-types/allow-rescheduling"
         />
         <SettingRow
           title="Book via reschedule link"
@@ -343,6 +205,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           description="For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email."
           value={props.hideCalendarNotes}
           onValueChange={props.setHideCalendarNotes}
+          learnMoreUrl="https://cal.com/help/event-types/hide-notes"
         />
         <SettingRow
           title="Hide calendar event details"
@@ -355,6 +218,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           description="Hide organizer's email address from the booking screen, email notifications, and calendar events."
           value={props.hideOrganizerEmail}
           onValueChange={props.setHideOrganizerEmail}
+          learnMoreUrl="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
           isLast
         />
       </SettingsGroup>
@@ -373,6 +237,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           description="Arrange time slots to optimize availability."
           value={props.showOptimizedSlots}
           onValueChange={props.setShowOptimizedSlots}
+          learnMoreUrl="https://cal.com/help/event-types/optimized-slots#optimized-slots"
         />
         <SettingRow
           title="Lock timezone"
@@ -385,7 +250,16 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Offer seats"
           description="Offer seats for booking. This automatically disables guest & opt-in bookings."
           value={props.seatsEnabled}
-          onValueChange={props.setSeatsEnabled}
+          onValueChange={(value) => {
+            if (value && props.requiresConfirmation) {
+              Alert.alert(
+                "Disable 'Requires confirmation' first",
+                "You need to:\n1. Disable 'Requires confirmation' and Save\n2. Then enable 'Offer seats' and Save again"
+              );
+              return;
+            }
+            props.setSeatsEnabled(value);
+          }}
           learnMoreUrl="https://cal.com/help/event-types/offer-seats"
           isLast
         />
@@ -407,15 +281,21 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Seats Configuration - shown when enabled */}
       {props.seatsEnabled ? (
         <SettingsGroup header="Seats">
-          <View className="bg-white pl-4">
-            <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-              <Text className="mb-2 text-[13px] text-[#6D6D72]">Seats per booking</Text>
+          <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+            <View
+              className="pt-4 pb-3 pr-4"
+              style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+            >
+              <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+                Seats per booking
+              </Text>
               <TextInput
-                className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="rounded-lg px-3 py-2 text-[17px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                 value={props.seatsPerTimeSlot}
                 onChangeText={props.setSeatsPerTimeSlot}
                 placeholder="2"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={theme.textMuted}
                 keyboardType="numeric"
               />
             </View>
@@ -438,15 +318,24 @@ export function AdvancedTab(props: AdvancedTabProps) {
 
       {/* Language */}
       <SettingsGroup header="Language">
-        <NavigationRow
+        <SettingRow
           isFirst
-          isLast
-          title="Interface Language"
-          value={getLanguageLabel(props.interfaceLanguage)}
-          onPress={() => setShowLanguagePicker(true)}
-          options={interfaceLanguageOptions}
-          onSelect={props.setInterfaceLanguage}
+          title="Custom interface language"
+          description="Override the default browser language for the booking page."
+          value={props.interfaceLanguageEnabled}
+          onValueChange={props.setInterfaceLanguageEnabled}
+          isLast={!props.interfaceLanguageEnabled}
         />
+        {props.interfaceLanguageEnabled ? (
+          <NavigationRow
+            isLast
+            title="Select Language"
+            value={getLanguageLabel(props.interfaceLanguage)}
+            onPress={() => setShowLanguagePicker(true)}
+            options={interfaceLanguageOptions}
+            onSelect={props.setInterfaceLanguage}
+          />
+        ) : null}
       </SettingsGroup>
 
       {/* Language Picker Modal */}
@@ -457,12 +346,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
         onRequestClose={() => setShowLanguagePicker(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Platform.OS === "ios" ? "#F2F2F7" : "rgba(0,0,0,0.5)",
-          }}
-        >
+        <View className="flex-1 bg-[#F2F2F7] dark:bg-black">
           {Platform.OS !== "ios" ? (
             <TouchableOpacity
               style={{ flex: 1 }}
@@ -471,26 +355,31 @@ export function AdvancedTab(props: AdvancedTabProps) {
             />
           ) : null}
           <View
-            style={
+            className={
               Platform.OS === "ios"
-                ? { flex: 1 }
-                : {
-                    backgroundColor: "#F2F2F7",
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
-                    maxHeight: "70%",
-                  }
+                ? "flex-1"
+                : "h-[70%] w-full rounded-t-[20px] bg-[#F2F2F7] dark:bg-black"
             }
           >
             {/* Header */}
-            <View className="h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4">
+            <View
+              className="h-[60px] flex-row items-center justify-between px-4"
+              style={{
+                backgroundColor: theme.backgroundSecondary,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.borderSubtle,
+              }}
+            >
               <TouchableOpacity
                 onPress={() => setShowLanguagePicker(false)}
-                className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
+                className="h-8 w-8 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.backgroundEmphasis }}
               >
-                <Ionicons name="close" size={20} color="#8E8E93" />
+                <Ionicons name="close" size={20} color={theme.textMuted} />
               </TouchableOpacity>
-              <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+              <Text className="text-[17px] font-semibold" style={{ color: theme.text }}>
+                Select Language
+              </Text>
               <View className="h-8 w-8" />
             </View>
 
@@ -498,23 +387,32 @@ export function AdvancedTab(props: AdvancedTabProps) {
               className="flex-1"
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
             >
-              <View className="overflow-hidden rounded-[10px] bg-white">
+              <View
+                className="overflow-hidden rounded-[10px]"
+                style={{ backgroundColor: theme.backgroundSecondary }}
+              >
                 {interfaceLanguageOptions.map((option, index) => (
-                  <View key={option.value} className="bg-white pl-4">
+                  <View
+                    key={option.value}
+                    className="pl-4"
+                    style={{ backgroundColor: theme.backgroundSecondary }}
+                  >
                     <TouchableOpacity
-                      className={`flex-row items-center justify-between py-3 pr-4 ${
-                        index !== interfaceLanguageOptions.length - 1
-                          ? "border-b border-[#E5E5E5]"
-                          : ""
-                      }`}
+                      className={`flex-row items-center justify-between py-3 pr-4`}
+                      style={{
+                        borderBottomWidth: index !== interfaceLanguageOptions.length - 1 ? 1 : 0,
+                        borderBottomColor: theme.borderSubtle,
+                      }}
                       onPress={() => {
                         props.setInterfaceLanguage(option.value);
                         setShowLanguagePicker(false);
                       }}
                     >
-                      <Text className="text-[17px] text-black">{option.label}</Text>
+                      <Text className="text-[17px]" style={{ color: theme.text }}>
+                        {option.label}
+                      </Text>
                       {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#000000" />
+                        <Ionicons name="checkmark" size={20} color={theme.accent} />
                       ) : null}
                     </TouchableOpacity>
                   </View>
@@ -527,34 +425,48 @@ export function AdvancedTab(props: AdvancedTabProps) {
 
       {/* Redirect */}
       <SettingsGroup header="Redirect">
-        <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">
-              Redirect URL after successful booking
-            </Text>
-            <TextInput
-              className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
-              value={props.successRedirectUrl}
-              onChangeText={props.setSuccessRedirectUrl}
-              placeholder="https://example.com/thank-you"
-              placeholderTextColor="#8E8E93"
-              keyboardType="url"
-              autoCapitalize="none"
-            />
-            {props.successRedirectUrl ? (
-              <Text className="mt-2 text-[13px] text-[#FF9500]">
-                Adding a redirect will disable the success page.
-              </Text>
-            ) : null}
-          </View>
-        </View>
         <SettingRow
-          title="Forward parameters"
-          description="Forward parameters such as ?email=...&name=... to the redirect URL."
-          value={props.forwardParamsSuccessRedirect}
-          onValueChange={props.setForwardParamsSuccessRedirect}
-          isLast
+          isFirst
+          title="Redirect on booking"
+          description="Redirect to a custom URL after a successful booking."
+          value={props.redirectEnabled}
+          onValueChange={props.setRedirectEnabled}
+          isLast={!props.redirectEnabled}
         />
+        {props.redirectEnabled ? (
+          <>
+            <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+              <View
+                className="pt-4 pb-3 pr-4"
+                style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+              >
+                <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+                  Redirect URL
+                </Text>
+                <TextInput
+                  className="rounded-lg px-3 py-2 text-[17px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
+                  value={props.successRedirectUrl}
+                  onChangeText={props.setSuccessRedirectUrl}
+                  placeholder="https://example.com/thank-you"
+                  placeholderTextColor={theme.textMuted}
+                  keyboardType="url"
+                  autoCapitalize="none"
+                />
+                <Text className="mt-2 text-[13px]" style={{ color: theme.warning }}>
+                  Adding a redirect will disable the success page.
+                </Text>
+              </View>
+            </View>
+            <SettingRow
+              title="Forward parameters"
+              description="Forward parameters such as ?email=...&name=... to the redirect URL."
+              value={props.forwardParamsSuccessRedirect}
+              onValueChange={props.setForwardParamsSuccessRedirect}
+              isLast
+            />
+          </>
+        ) : null}
       </SettingsGroup>
 
       {/* Configure on Web Section */}
@@ -564,10 +476,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Private Links"
           onPress={() => {
             if (props.eventTypeId && props.eventTypeId !== "new") {
-              openInAppBrowser(
-                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced`,
-                "Private Links"
-              );
+              showNotAvailableAlert();
             } else {
               showInfoAlert("Info", "Save the event type first to configure this setting.");
             }
@@ -577,10 +486,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
           title="Custom Reply-To Email"
           onPress={() => {
             if (props.eventTypeId && props.eventTypeId !== "new") {
-              openInAppBrowser(
-                `https://app.cal.com/event-types/${props.eventTypeId}?tabName=advanced`,
-                "Custom Reply-To"
-              );
+              showNotAvailableAlert();
             } else {
               showInfoAlert("Info", "Save the event type first to configure this setting.");
             }
@@ -590,48 +496,60 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </SettingsGroup>
 
       {/* Event type colors */}
+      {/* Event type colors */}
       <SettingsGroup header="Event Type Colors">
-        <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">Light Theme</Text>
+        <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+          <View
+            className="pt-4 pb-3 pr-4"
+            style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+          >
+            <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+              Light Theme
+            </Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
+                className="h-8 w-8 rounded-lg border"
                 style={{
+                  borderColor: theme.borderLight,
                   backgroundColor: props.eventTypeColorLight.startsWith("#")
                     ? props.eventTypeColorLight
                     : `#${props.eventTypeColorLight}`,
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="flex-1 rounded-lg px-3 py-2 text-[17px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                 value={props.eventTypeColorLight}
                 onChangeText={props.setEventTypeColorLight}
                 placeholder="292929"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="none"
               />
             </View>
           </View>
         </View>
-        <View className="bg-white pl-4">
+        <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
           <View className="pt-3 pb-4 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">Dark Theme</Text>
+            <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+              Dark Theme
+            </Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
+                className="h-8 w-8 rounded-lg border"
                 style={{
+                  borderColor: theme.borderLight,
                   backgroundColor: props.eventTypeColorDark.startsWith("#")
                     ? props.eventTypeColorDark
                     : `#${props.eventTypeColorDark}`,
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="flex-1 rounded-lg px-3 py-2 text-[17px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                 value={props.eventTypeColorDark}
                 onChangeText={props.setEventTypeColorDark}
                 placeholder="fafafa"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="none"
               />
             </View>

@@ -103,6 +103,7 @@ export const useEventTypeForm = ({
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
+      redirectUrlOnNoRoutingFormResponse: eventType.redirectUrlOnNoRoutingFormResponse || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
@@ -147,6 +148,7 @@ export const useEventTypeForm = ({
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
       showOptimizedSlots: eventType.showOptimizedSlots ?? false,
+      enablePerHostLocations: eventType.enablePerHostLocations ?? false,
     };
   }, [eventType, periodDates]);
 

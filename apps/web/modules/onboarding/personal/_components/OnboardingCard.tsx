@@ -17,7 +17,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
         {/* Card Header */}
         <div className="flex w-full gap-1.5 px-5 py-4">
           <div className="flex w-full flex-col gap-1">
-            <h1 className="font-heading text-xl leading-6">{title}</h1>
+            <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
             <p className="text-subtle text-sm font-medium leading-tight">{subtitle}</p>
           </div>
         </div>

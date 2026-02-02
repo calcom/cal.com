@@ -54,8 +54,9 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
       const adapter = new PrismaPg(this.pool);
       this.prisma = new PrismaClient({ adapter });
     } else {
+      const adapter = new PrismaPg({ connectionString: dbUrl });
       this.prisma = new PrismaClient({
-        datasourceUrl: dbUrl,
+        adapter,
       });
     }
   }

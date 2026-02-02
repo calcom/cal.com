@@ -1,5 +1,17 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Attribute, AttributeOption, Membership, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { UpdateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/update-organization-membership.input";
 import { CreateOrgMembershipOutput } from "@/modules/organizations/memberships/outputs/create-membership.output";
@@ -8,23 +20,11 @@ import { GetAllOrgMemberships } from "@/modules/organizations/memberships/output
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
 import { OrgUserAttribute } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
+import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { Attribute, AttributeOption, User, Membership, Team } from "@calcom/prisma/client";
 
 describe("Organizations Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -147,7 +147,7 @@ describe("Organizations Memberships Endpoints", () => {
       await app.init();
     });
 
-    async function setupAttributes() {
+    async function setupAttributes(): Promise<void> {
       textAttribute = await attributesRepositoryFixture.create({
         team: { connect: { id: org.id } },
         type: "TEXT",
@@ -262,7 +262,7 @@ describe("Organizations Memberships Endpoints", () => {
         });
     });
 
-    function userHasCorrectAttributes(attributes: OrgUserAttribute[]) {
+    function userHasCorrectAttributes(attributes: OrgUserAttribute[]): void {
       expect(attributes.length).toEqual(4);
       const responseNumberAttribute = attributes.find((attr) => attr.type === "number");
       const responseSingleSelectAttribute = attributes.find((attr) => attr.type === "singleSelect");
@@ -386,6 +386,39 @@ describe("Organizations Memberships Endpoints", () => {
           expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
           expect(membershipCreatedViaApi.user.username).toEqual(userToInviteViaApi.username);
         });
+    });
+
+    it("should call ensureDefaultCalendarsForUser when creating membership", async () => {
+      const newUserEmail = `organizations-memberships-calendars-${randomString()}@api.com`;
+      const newUser = await userRepositoryFixture.create({
+        email: newUserEmail,
+        username: newUserEmail,
+        bio,
+        metadata,
+      });
+
+      const ensureDefaultCalendarsSpy = jest
+        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendarsForUser")
+        .mockResolvedValue(undefined);
+
+      try {
+        await request(app.getHttpServer())
+          .post(`/v2/organizations/${org.id}/memberships`)
+          .send({
+            userId: newUser.id,
+            accepted: true,
+            role: "MEMBER",
+          } satisfies CreateOrgMembershipDto)
+          .expect(201);
+
+        expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, newUser.id, newUserEmail);
+      } finally {
+        ensureDefaultCalendarsSpy.mockRestore();
+        await membershipRepositoryFixture.delete(
+          (await membershipRepositoryFixture.getUserMembershipByTeamId(newUser.id, org.id))?.id ?? 0
+        );
+        await userRepositoryFixture.deleteByEmail(newUserEmail);
+      }
     });
 
     it("should update the membership of the org", async () => {

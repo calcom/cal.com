@@ -15,12 +15,15 @@ const isInWatchMode = process.argv[2] === "--watch";
 const repoRoot = path.resolve(__dirname, "../../..");
 
 const formatFileWithBiome = (filePath: string) => {
+  // Normalize to forward slashes for cross-platform Biome compatibility
+  const normalizedPath = filePath.replace(/\\/g, "/");
   const { status } = spawnSync(
     "yarn",
-    ["biome", "format", "--write", "--no-errors-on-unmatched", filePath],
+    ["biome", "format", "--write", "--no-errors-on-unmatched", normalizedPath],
     {
       stdio: "inherit",
       cwd: repoRoot,
+      shell: true,
     }
   );
 
@@ -561,7 +564,7 @@ function generateFiles() {
     ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
-    const filePath = `${APP_STORE_PATH}/${fileName}`;
+    const filePath = path.join(APP_STORE_PATH, fileName);
     fs.writeFileSync(filePath, formatOutput(`${banner}${output.join("\n")}`));
     formatFileWithBiome(filePath);
   });

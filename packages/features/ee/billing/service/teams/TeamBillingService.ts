@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -10,18 +8,20 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
+import type { z } from "zod";
+import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
 // import billing from "../..";
 import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
-import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import {
-  TeamBillingPublishResponseStatus,
   type ITeamBillingService,
   type TeamBillingInput,
+  TeamBillingPublishResponseStatus,
 } from "./ITeamBillingService";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
@@ -165,10 +165,19 @@ export class TeamBillingService implements ITeamBillingService {
       const membershipCount = await prisma.membership.count({ where: { teamId } });
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
-      await this.billingProviderService.handleSubscriptionUpdate({
+
+      const billingPeriodService = new BillingPeriodService();
+      const shouldApplyMonthlyProration = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+      if (shouldApplyMonthlyProration) {
+        log.info(`Skipping subscription update for team ${teamId} because monthly proration is enabled.`);
+        return;
+      }
+
+      await updateSubscriptionQuantity({
+        billingService: this.billingProviderService,
         subscriptionId,
         subscriptionItemId,
-        membershipCount,
+        quantity: membershipCount,
       });
       log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
     } catch (error) {
@@ -221,6 +230,6 @@ export class TeamBillingService implements ITeamBillingService {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-await this.billingRepository.create(args);
+    await this.billingRepository.create(args);
   }
 }

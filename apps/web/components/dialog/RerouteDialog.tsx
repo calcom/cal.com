@@ -15,7 +15,7 @@ import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substit
 import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
+import { useBookerUrl } from "../../modules/bookings/hooks/useBookerUrl";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
@@ -804,7 +804,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
     <div>
       <div>
         <Link
-          className="text-emphasis font-heading mb-4 flex underline"
+          className="text-emphasis text-semibold font-cal mb-4 flex underline"
           href={`/apps/routing-forms/form-edit/${form.id}`}
           target="_blank">
           {form.name}

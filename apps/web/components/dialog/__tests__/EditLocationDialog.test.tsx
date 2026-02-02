@@ -46,8 +46,8 @@ vi.mock("@calcom/features/form/components/LocationSelect", () => {
   };
 });
 
-const AttendeePhoneNumberLabel = "Attendee Phone Number";
-const OrganizerPhoneLabel = "Organizer Phone Number";
+const AttendeePhoneNumberLabel = "Attendee phone number";
+const OrganizerPhoneLabel = "Organizer phone number";
 const CampfireLabel = "Campfire";
 const ZoomVideoLabel = "Zoom Video";
 const OrganizerDefaultConferencingAppLabel = "Organizer's default app";

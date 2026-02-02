@@ -37,7 +37,7 @@ export default function MeetingUnavailable(props: PageProps) {
                     </h3>
                   </div>
                   <div className="mt-4 border-b border-t py-4">
-                    <h2 className="font-heading text-default mb-2 text-center text-lg">
+                    <h2 className="font-cal text-default mb-2 text-center text-lg font-medium">
                       {props.booking.title}
                     </h2>
                     <p className="text-subtle text-center">

@@ -6,6 +6,8 @@ import { RRule } from "rrule";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export enum BookingAction {
@@ -55,7 +57,7 @@ const generateIcsString = ({
   status: EventStatus;
   partstat?: ParticipationStatus;
   t?: TFunction;
-}) => {
+}): string | undefined => {
   const location = getVideoCallUrlFromCalEvent(event) || event.location;
 
   // Taking care of recurrence rule
@@ -111,6 +113,11 @@ const generateIcsString = ({
     busyStatus: "BUSY",
   });
   if (icsEvent.error) {
+    // The ics library throws Yup ValidationError objects (not Error instances) for invalid data like invalid email formats.
+    // Convert these to ErrorWithCode.BadRequest so they return 400 instead of falling through to a generic 500.
+    if (icsEvent.error.name === "ValidationError") {
+      throw new ErrorWithCode(ErrorCode.BadRequest, icsEvent.error.message);
+    }
     throw icsEvent.error;
   }
   return icsEvent.value;

@@ -1,3 +1,20 @@
+import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import {
+  type EventBusyDate,
+  getBusyCalendarTimes,
+  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
+} from "@calcom/platform-libraries";
+import type { Calendar } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, User } from "@calcom/prisma/client";
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -8,24 +25,6 @@ import {
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-  UnauthorizedException,
-} from "@nestjs/common";
-import { DateTime } from "luxon";
-import { z } from "zod";
-
-import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import {
-  getBusyCalendarTimes,
-  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
-  type EventBusyDate,
-} from "@calcom/platform-libraries";
-import type { Calendar } from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma, User } from "@calcom/prisma/client";
 
 @Injectable()
 export class CalendarsService {
@@ -52,10 +51,10 @@ export class CalendarsService {
       .filter((credential) => !!credential);
   }
 
-  async getCalendars(userId: number) {
+  async getCalendars(userId: number, ensureDefaultSelectedCalendars = false) {
     const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
 
-    if (cachedResult) {
+    if (cachedResult && !ensureDefaultSelectedCalendars) {
       return cachedResult;
     }
 
@@ -71,7 +70,7 @@ export class CalendarsService {
           (calendar) => !calendar.eventTypeId
         ),
       },
-      onboarding: false,
+      onboarding: ensureDefaultSelectedCalendars,
       eventTypeId: null,
       prisma: this.dbWrite.prisma as unknown as PrismaClient,
     });

@@ -462,7 +462,7 @@ function WorkflowPage({
                   <div className="group flex min-w-0 items-center gap-1">
 
                       <span
-                        className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none sm:min-w-[100px]"
+                        className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
                         onClick={() => setIsEditingName(true)}>
                         {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
                       </span>

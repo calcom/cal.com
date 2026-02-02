@@ -31,7 +31,7 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
       } as Availability);
 
     const filteredTimes = times.filter((time) => {
-      let idx;
+      let idx: number;
       if (
         (idx = availability.findIndex(
           (schedule) =>
