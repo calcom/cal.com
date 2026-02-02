@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { DecoyBookingSuccessCard } from "~/bookings/components/DecoyBookingSuccessCard";
 import { useDecoyBooking } from "@calcom/features/bookings/Booker/components/hooks/useDecoyBooking";
 
-function parseBookingTime(time: string | Date | null | undefined): Dayjs | null {
+export function parseBookingTime(time: string | Date | null | undefined): Dayjs | null {
   if (!time) return null;
 
   if (typeof time === "string" && time.endsWith("Z")) {
