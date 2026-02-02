@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";

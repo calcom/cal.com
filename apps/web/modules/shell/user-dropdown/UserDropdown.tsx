@@ -167,7 +167,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
               </span>
             </span>
             <Icon
-              name="chevron-down"
+              name={menuOpen ? "chevron-up" : "chevron-down"}
               className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />

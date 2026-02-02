@@ -26,7 +26,7 @@ import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import type { LocationCustomClassNames } from "../../locations/types";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
