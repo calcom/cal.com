@@ -305,7 +305,10 @@ class GoogleCalendarService implements Calendar {
             }),
             location: getLocation({
               videoCallData: calEvent.videoCallData,
-              additionalInformation: calEvent.additionalInformation,
+              additionalInformation: {
+                ...calEvent.additionalInformation,
+                hangoutLink: event.hangoutLink,
+              },
               location: calEvent.location,
               uid: calEvent.uid,
             }),
