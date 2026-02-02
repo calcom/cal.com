@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-import { TeamEventTypeForm } from "@calcom/web/modules/ee/teams/components/TeamEventTypeForm";
+import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 
 type CreateTeamEventTypeProps = {
   permissions: { canCreateEventType: boolean };

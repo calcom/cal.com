@@ -220,6 +220,7 @@ export class TeamRepository {
         parentId,
       },
       select,
+      orderBy: { id: "asc" },
     });
   }
 
