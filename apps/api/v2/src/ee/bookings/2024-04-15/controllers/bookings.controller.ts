@@ -353,7 +353,7 @@ export class BookingsController_2024_04_15 {
       });
 
       createdBookings.forEach(async (booking) => {
-        if (booking.userId && booking.uid && booking.startTime && booking.user?.isPlatformManaged) {
+        if (booking.userId && booking.uid && booking.startTime) {
           void (await this.billingService.increaseUsageByUserId(booking.userId, {
             uid: booking.uid,
             startTime: booking.startTime,
@@ -388,16 +388,13 @@ export class BookingsController_2024_04_15 {
       });
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
-        const user = await this.usersRepository.findById(instantMeeting.userId);
-        if (user?.isPlatformManaged) {
-          const now = new Date();
-          // add a 10 secondes delay to the usage incrementation to give some time to cancel the booking if needed
-          now.setSeconds(now.getSeconds() + 10);
-          void (await this.billingService.increaseUsageByUserId(instantMeeting.userId, {
-            uid: instantMeeting.bookingUid,
-            startTime: now,
-          }));
-        }
+        const now = new Date();
+        // add a 10 secondes delay to the usage incrementation to give some time to cancel the booking if needed
+        now.setSeconds(now.getSeconds() + 10);
+        void (await this.billingService.increaseUsageByUserId(instantMeeting.userId, {
+          uid: instantMeeting.bookingUid,
+          startTime: now,
+        }));
       }
 
       return {

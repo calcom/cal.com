@@ -17,7 +17,6 @@ describe("buildDryRunBooking", () => {
     username: "testuser",
     email: "testuser@example.com",
     timeZone: "America/New_York",
-    isPlatformManaged: false,
     credentials: [
       {
         abc: "xyz",
@@ -48,7 +47,7 @@ describe("buildDryRunBooking", () => {
       username: baseOrganizerUser.username,
       email: baseOrganizerUser.email,
       timeZone: baseOrganizerUser.timeZone,
-      isPlatformManaged: baseOrganizerUser.isPlatformManaged,
+      isPlatformManaged: false,
     });
 
     expect(bookingExceptUser).toEqual({
