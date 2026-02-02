@@ -1,20 +1,29 @@
-import { useState } from "react";
-import type { UseFormSetValue } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label, SettingsToggle, DateRangePicker, DatePicker } from "@calcom/ui/components/form";
-
+import { DatePicker, SettingsToggle } from "@calcom/ui/components/form";
+import { DatePickerWithRange as DateRangePicker } from "@calcom/ui/components/form/date-range-picker/DateRangePicker";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Label } from "@coss/ui/components/label";
+import { useIsMobile } from "@coss/ui/hooks/use-mobile";
+import { useState } from "react";
+import type { UseFormSetValue } from "react-hook-form";
 import type { FormValues } from "~/settings/my-account/general-view";
 
 interface TravelScheduleModalProps {
   open: boolean;
-  onOpenChange: () => void;
+  onOpenChange: (open: boolean) => void;
   setValue: UseFormSetValue<FormValues>;
   existingSchedules: FormValues["travelSchedules"];
 }
@@ -27,12 +36,14 @@ const TravelScheduleModal = ({
 }: TravelScheduleModalProps) => {
   const { t } = useLocale();
   const { timezone: preferredTimezone } = useTimePreferences();
+  const isMobile = useIsMobile();
 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
   const [selectedTimeZone, setSelectedTimeZone] = useState(preferredTimezone);
   const [isNoEndDate, setIsNoEndDate] = useState(false);
+  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const isOverlapping = (newSchedule: { startDate: Date; endDate?: Date }) => {
@@ -64,6 +75,7 @@ const TravelScheduleModal = ({
     setEndDate(new Date());
     setSelectedTimeZone(preferredTimezone);
     setIsNoEndDate(false);
+    setIsDateRangeOpen(false);
   };
 
   const createNewSchedule = () => {
@@ -75,7 +87,7 @@ const TravelScheduleModal = ({
 
     if (!isOverlapping(newSchedule)) {
       setValue("travelSchedules", existingSchedules.concat(newSchedule), { shouldDirty: true });
-      onOpenChange();
+      onOpenChange(false);
       resetValues();
     } else {
       setErrorMessage(t("overlaps_with_existing_schedule"));
@@ -83,65 +95,86 @@ const TravelScheduleModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={t("travel_schedule")}
-        description={t("travel_schedule_description")}
-        type="creation">
-        <div>
-          {!isNoEndDate ? (
-            <>
-              <Label className="mt-2">{t("time_range")}</Label>
-              <DateRangePicker
-                dates={{
-                  startDate,
-                  endDate,
-                }}
-                onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
-                  // If newStartDate does become undefined - we resort back to to-todays date
-                  setStartDate(newStartDate ?? new Date());
-                  setEndDate(newEndDate);
+    <Dialog
+      open={open}
+      disablePointerDismissal={isDateRangeOpen}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen);
+        if (!nextOpen) {
+          setIsDateRangeOpen(false);
+        }
+      }}>
+      <DialogPopup>
+        <DialogHeader>
+          <DialogTitle>{t("travel_schedule")}</DialogTitle>
+          <DialogDescription>{t("travel_schedule_description")}</DialogDescription>
+        </DialogHeader>
+        <DialogPanel>
+          <div>
+            {!isNoEndDate ? (
+              <>
+                <Label className="mt-2">{t("time_range")}</Label>
+                <DateRangePicker
+                  dates={{
+                    startDate,
+                    endDate,
+                  }}
+                  popoverModal={isMobile}
+                  onPopoverOpenChange={setIsDateRangeOpen}
+                  onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
+                    // If newStartDate does become undefined - we resort back to to-todays date
+                    setStartDate(newStartDate ?? new Date());
+                    setEndDate(newEndDate);
+                    setErrorMessage("");
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Label className="mt-2">{t("date")}</Label>
+                <DatePicker
+                  minDate={new Date()}
+                  date={startDate}
+                  className="w-56"
+                  onDatesChange={(newDate) => {
+                    setStartDate(newDate);
+                    setErrorMessage("");
+                  }}
+                />
+              </>
+            )}
+            <div className="text-error mt-1 text-sm">{errorMessage}</div>
+
+            <div className="mt-3">
+              <SettingsToggle
+                labelClassName="mt-1 font-normal"
+                title={t("schedule_tz_without_end_date")}
+                checked={isNoEndDate}
+                onCheckedChange={(checked) => {
+                  setEndDate(!checked ? startDate : undefined);
+                  setIsNoEndDate(checked);
+                  if (checked) {
+                    setIsDateRangeOpen(false);
+                  }
                   setErrorMessage("");
                 }}
               />
-            </>
-          ) : (
-            <>
-              <Label className="mt-2">{t("date")}</Label>
-              <DatePicker
-                minDate={new Date()}
-                date={startDate}
-                className="w-56"
-                onDatesChange={(newDate) => {
-                  setStartDate(newDate);
-                  setErrorMessage("");
-                }}
-              />
-            </>
-          )}
-          <div className="text-error mt-1 text-sm">{errorMessage}</div>
-          <div className="mt-3">
-            <SettingsToggle
-              labelClassName="mt-1 font-normal"
-              title={t("schedule_tz_without_end_date")}
-              checked={isNoEndDate}
-              onCheckedChange={(e) => {
-                setEndDate(!e ? startDate : undefined);
-                setIsNoEndDate(e);
-                setErrorMessage("");
-              }}
+            </div>
+
+            <Label className="mt-6">{t("timezone")}</Label>
+            <TimezoneSelect
+              id="timeZone"
+              value={selectedTimeZone}
+              onChange={({ value }) => setSelectedTimeZone(value)}
+              menuPortalTarget={typeof document === "undefined" ? undefined : document.body}
+              menuPlacement={isMobile ? "top" : "auto"}
+              styles={{ menuPortal: (base) => Object.assign({}, base, { zIndex: 9999 }) }}
+              className="mb-11 mt-2 w-full rounded-md text-sm"
             />
           </div>
-          <Label className="mt-6">{t("timezone")}</Label>
-          <TimezoneSelect
-            id="timeZone"
-            value={selectedTimeZone}
-            onChange={({ value }) => setSelectedTimeZone(value)}
-            className="mb-11 mt-2 w-full rounded-md text-sm"
-          />
-        </div>
-        <DialogFooter showDivider className="relative">
-          <DialogClose />
+        </DialogPanel>
+        <DialogFooter>
+          <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
           <Button
             disabled={isNoEndDate ? !startDate : !startDate || !endDate}
             onClick={() => {
@@ -150,7 +183,7 @@ const TravelScheduleModal = ({
             {t("add")}
           </Button>
         </DialogFooter>
-      </DialogContent>
+      </DialogPopup>
     </Dialog>
   );
 };

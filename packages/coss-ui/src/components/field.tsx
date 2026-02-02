@@ -27,6 +27,16 @@ function FieldLabel({ className, ...props }: FieldPrimitive.Label.Props) {
   );
 }
 
+function FieldItem({ className, ...props }: FieldPrimitive.Item.Props) {
+  return (
+    <FieldPrimitive.Item
+      className={cn("flex", className)}
+      data-slot="field-item"
+      {...props}
+    />
+  );
+}
+
 function FieldDescription({
   className,
   ...props
@@ -59,5 +69,6 @@ export {
   FieldDescription,
   FieldError,
   FieldControl,
+  FieldItem,
   FieldValidity,
 };

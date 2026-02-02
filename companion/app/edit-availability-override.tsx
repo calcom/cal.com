@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import type { EditAvailabilityOverrideScreenHandle } from "@/components/screens/EditAvailabilityOverrideScreen";
 import EditAvailabilityOverrideScreenComponent from "@/components/screens/EditAvailabilityOverrideScreen";
+import { getColors } from "@/constants/colors";
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import { showErrorAlert } from "@/utils/alerts";
 
@@ -19,6 +21,9 @@ export default function EditAvailabilityOverride() {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const screenRef = useRef<EditAvailabilityOverrideScreenHandle>(null);
 
@@ -69,49 +74,74 @@ export default function EditAvailabilityOverride() {
   if (isLoading) {
     return (
       <View
-        className="flex-1 items-center justify-center bg-white"
-        style={{ paddingBottom: insets.bottom }}
+        className="flex-1 items-center justify-center"
+        style={{ paddingBottom: insets.bottom, backgroundColor: theme.background }}
       >
         <Stack.Screen
           options={{
             title,
             presentation: "modal",
+            headerStyle: {
+              backgroundColor: theme.background,
+            },
+            headerTitleStyle: {
+              color: theme.text,
+            },
           }}
         />
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={theme.text} />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
+    <View
+      className="flex-1"
+      style={{ paddingBottom: insets.bottom, backgroundColor: theme.background }}
+    >
       <Stack.Screen
         options={{
           title,
           presentation: "modal",
           contentStyle: {
-            backgroundColor: "#FFFFFF",
+            backgroundColor: theme.background,
           },
           headerStyle: {
-            backgroundColor: "#FFFFFF",
+            backgroundColor: theme.background,
+          },
+          headerTitleStyle: {
+            color: theme.text,
           },
           headerLeft: () => (
             <HeaderButtonWrapper side="left">
-              <TouchableOpacity onPress={handleClose} style={{ padding: 8 }}>
-                <Ionicons name="close" size={24} color="#000" />
-              </TouchableOpacity>
+              <AppPressable
+                onPress={handleClose}
+                className="h-10 w-10 items-center justify-center rounded-full border"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.background,
+                  marginRight: 8,
+                }}
+              >
+                <Ionicons name="close" size={20} color={theme.text} />
+              </AppPressable>
             </HeaderButtonWrapper>
           ),
           headerRight: () => (
             <HeaderButtonWrapper side="right">
-              <Text
+              <AppPressable
                 onPress={handleSave}
-                className={`text-[17px] font-semibold ${
-                  isSaving ? "text-gray-400" : "text-[#007AFF]"
+                disabled={isSaving}
+                className={`h-10 w-10 items-center justify-center rounded-full border ${
+                  isSaving ? "opacity-50" : ""
                 }`}
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.background,
+                }}
               >
-                Save
-              </Text>
+                <Ionicons name="checkmark" size={20} color={theme.text} />
+              </AppPressable>
             </HeaderButtonWrapper>
           ),
         }}

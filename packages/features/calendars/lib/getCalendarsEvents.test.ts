@@ -99,6 +99,18 @@ function buildSelectedCalendar(credential: {
     watchAttempts: 0,
     unwatchAttempts: 0,
     maxAttempts: 3,
+    channelId: null,
+    channelKind: null,
+    channelResourceId: null,
+    channelResourceUri: null,
+    channelExpiration: null,
+    syncSubscribedAt: null,
+    syncSubscribedErrorAt: null,
+    syncSubscribedErrorCount: 0,
+    syncToken: null,
+    syncedAt: null,
+    syncErrorAt: null,
+    syncErrorCount: 0,
     ...credential,
   };
 }
@@ -528,6 +540,162 @@ describe("getCalendarsEventsWithTimezones", () => {
         fallbackToPrimary: true,
       });
       expect(result).toEqual([[]]);
+    });
+  });
+
+  describe("Invalid timezone handling", () => {
+    it("should convert GMT-05:00 offset format to Etc/GMT+5", async () => {
+      const availability = [
+        {
+          start: new Date(2010, 11, 2),
+          end: new Date(2010, 11, 3),
+          timeZone: "GMT-05:00",
+        },
+        {
+          start: new Date(2010, 11, 2, 4),
+          end: new Date(2010, 11, 2, 16),
+          timeZone: "America/New_York",
+        },
+      ];
+
+      mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce(availability);
+
+      const selectedCalendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 100,
+        externalId: "externalId",
+        integration: "google_calendar",
+        userId: 200,
+        id: "id",
+      });
+      const result = await getCalendarsEventsWithTimezones(
+        [buildRegularCredential(credential)],
+        "2010-12-01",
+        "2010-12-04",
+        [selectedCalendar]
+      );
+
+      expect(result).toEqual([
+        [
+          {
+            start: new Date(2010, 11, 2),
+            end: new Date(2010, 11, 3),
+            timeZone: "Etc/GMT+5",
+          },
+          {
+            start: new Date(2010, 11, 2, 4),
+            end: new Date(2010, 11, 2, 16),
+            timeZone: "America/New_York",
+          },
+        ],
+      ]);
+    });
+
+    it("should convert UTC+08:00 offset format to Etc/GMT-8", async () => {
+      const availability = [
+        {
+          start: new Date(2010, 11, 2),
+          end: new Date(2010, 11, 3),
+          timeZone: "UTC+08:00",
+        },
+      ];
+
+      mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce(availability);
+
+      const selectedCalendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 100,
+        externalId: "externalId",
+        integration: "google_calendar",
+        userId: 200,
+        id: "id",
+      });
+      const result = await getCalendarsEventsWithTimezones(
+        [buildRegularCredential(credential)],
+        "2010-12-01",
+        "2010-12-04",
+        [selectedCalendar]
+      );
+
+      expect(result).toEqual([
+        [
+          {
+            start: new Date(2010, 11, 2),
+            end: new Date(2010, 11, 3),
+            timeZone: "Etc/GMT-8",
+          },
+        ],
+      ]);
+    });
+
+    it("should fallback to UTC when timezone is undefined", async () => {
+      const availability = [
+        {
+          start: new Date(2010, 11, 2),
+          end: new Date(2010, 11, 3),
+          timeZone: undefined,
+        },
+      ];
+
+      mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce(availability);
+
+      const selectedCalendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 100,
+        externalId: "externalId",
+        integration: "google_calendar",
+        userId: 200,
+        id: "id",
+      });
+      const result = await getCalendarsEventsWithTimezones(
+        [buildRegularCredential(credential)],
+        "2010-12-01",
+        "2010-12-04",
+        [selectedCalendar]
+      );
+
+      expect(result).toEqual([
+        [
+          {
+            start: new Date(2010, 11, 2),
+            end: new Date(2010, 11, 3),
+            timeZone: "UTC",
+          },
+        ],
+      ]);
+    });
+
+    it("should fallback to UTC for completely invalid timezone formats", async () => {
+      const availability = [
+        {
+          start: new Date(2010, 11, 2),
+          end: new Date(2010, 11, 3),
+          timeZone: "InvalidTimezone",
+        },
+      ];
+
+      mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce(availability);
+
+      const selectedCalendar: SelectedCalendar = buildSelectedCalendar({
+        credentialId: 100,
+        externalId: "externalId",
+        integration: "google_calendar",
+        userId: 200,
+        id: "id",
+      });
+      const result = await getCalendarsEventsWithTimezones(
+        [buildRegularCredential(credential)],
+        "2010-12-01",
+        "2010-12-04",
+        [selectedCalendar]
+      );
+
+      expect(result).toEqual([
+        [
+          {
+            start: new Date(2010, 11, 2),
+            end: new Date(2010, 11, 3),
+            timeZone: "UTC",
+          },
+        ],
+      ]);
     });
   });
 });

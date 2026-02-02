@@ -27,15 +27,15 @@ export const CreditBalanceLowWarningEmail = (
 
   if (team) {
     return (
-      <V2BaseEmailHtml subject={user.t("team_credits_low_warning", { teamName: team.name })}>
+      <V2BaseEmailHtml subject={user.t("team_credits_low_warning", { teamName: team.name, interpolation: { escapeValue: false } })}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <> {user.t("hi_user_name", { name: user.name })},</>
+          <> {user.t("hi_user_name", { name: user.name, interpolation: { escapeValue: false } })},</>
         </p>
         <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
           <>
             {isCalAi
-              ? user.t("cal_ai_low_credits_warning_message", { teamName: team.name })
-              : user.t("low_credits_warning_message", { teamName: team.name })}
+              ? user.t("cal_ai_low_credits_warning_message", { teamName: team.name, interpolation: { escapeValue: false } })
+              : user.t("low_credits_warning_message", { teamName: team.name, interpolation: { escapeValue: false } })}
           </>
         </p>
         <p
@@ -60,7 +60,7 @@ export const CreditBalanceLowWarningEmail = (
   return (
     <V2BaseEmailHtml subject={user.t("user_credits_low_warning")}>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <> {user.t("hi_user_name", { name: user.name })},</>
+        <> {user.t("hi_user_name", { name: user.name, interpolation: { escapeValue: false } })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
         <>

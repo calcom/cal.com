@@ -55,6 +55,7 @@ describe("addMembersToTeams", () => {
     mockCheckPermission.mockResolvedValue(true);
     mockUpdateNewTeamMemberEventTypes.mockResolvedValue(undefined);
 
+    prisma.team.findMany.mockResolvedValue([]);
     prisma.membership.findMany.mockResolvedValue([]);
     prisma.membership.createMany.mockResolvedValue({ count: 0 });
   });

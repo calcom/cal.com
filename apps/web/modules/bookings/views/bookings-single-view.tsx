@@ -21,7 +21,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
@@ -42,7 +42,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { AssignmentReasonEnum, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+
+import assignmentReasonBadgeTitleMap from "@calcom/web/lib/booking/assignmentReasonBadgeTitleMap";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -313,6 +315,7 @@ export default function Success(props: PageProps) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
           user: props.profile.name,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
@@ -763,6 +766,28 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {canViewHiddenData &&
+                          bookingInfo.assignmentReason &&
+                          bookingInfo.assignmentReason.length > 0 &&
+                          bookingInfo.assignmentReason[0].reasonEnum && (
+                            <>
+                              <div className="mt-9 font-medium">{t("assignment_reason")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
+                                <Badge variant="gray" className="mb-2">
+                                  {t(
+                                    assignmentReasonBadgeTitleMap(
+                                      bookingInfo.assignmentReason[0].reasonEnum as AssignmentReasonEnum
+                                    )
+                                  )}
+                                </Badge>
+                                {bookingInfo.assignmentReason[0].reasonString && (
+                                  <p className="text-muted wrap-break-word text-sm">
+                                    {bookingInfo.assignmentReason[0].reasonString}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {

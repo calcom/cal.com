@@ -1,9 +1,6 @@
 import "@calcom/lib/__mocks__/logger";
 
 import { createHash } from "node:crypto";
-import type { GetServerSidePropsContext } from "next";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
@@ -14,6 +11,8 @@ import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-form
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import type { GetServerSidePropsContext } from "next";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
@@ -26,9 +25,11 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository");
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(function() { return {
-      enrichUserWithItsProfile: vi.fn(),
-    }; }),
+    UserRepository: vi.fn().mockImplementation(function () {
+      return {
+        enrichUserWithItsProfile: vi.fn(),
+      };
+    }),
   };
 });
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
@@ -44,8 +45,33 @@ vi.mock("@calcom/app-store/routing-forms/enrichFormWithMigrationData", () => ({
 vi.mock("@calcom/lib/sentryWrapper", () => ({
   withReporting: (fn: unknown) => fn,
 }));
+vi.mock("@calcom/features/routing-trace/di/RoutingTraceService.container", () => ({
+  getRoutingTraceService: vi.fn(() => ({
+    addStep: vi.fn(),
+    getStepsCount: vi.fn().mockReturnValue(0),
+    savePendingRoutingTrace: vi.fn().mockResolvedValue(undefined),
+    processForBooking: vi.fn().mockResolvedValue(undefined),
+  })),
+}));
 
-const mockForm = {
+const mockForm: {
+  id: string;
+  user: { id: number; name: string };
+  team: null;
+  name: string;
+  fields: never[];
+  routes: never[];
+  userId: number;
+  teamId: null;
+  createdAt: Date;
+  updatedAt: Date;
+  description: null;
+  enabled: boolean;
+  isDefault: boolean;
+  fieldsOrder: never[];
+  position: number;
+  slug: string;
+} = {
   id: "form-id",
   user: { id: 1, name: "Test User" },
   team: null,
@@ -64,7 +90,12 @@ const mockForm = {
   slug: "test-form",
 };
 
-const mockSerializableForm = {
+const mockSerializableForm: {
+  id: string;
+  fields: { id: string; type: string; label: string; identifier: string }[];
+  routes: never[];
+  user: { id: number };
+} = {
   id: "form-id",
   fields: [{ id: "email", type: "email", label: "Email", identifier: "email" }],
   routes: [],
@@ -73,7 +104,7 @@ const mockSerializableForm = {
 
 const mockContext = (
   query: Record<string, unknown>,
-  url = "/link/form-id"
+  url: string = "/link/form-id"
 ): Pick<GetServerSidePropsContext, "query" | "req"> => ({
   query: { form: "form-id", ...query },
   req: { url },
@@ -92,8 +123,7 @@ describe("getRoutedUrl", () => {
       mockUserRepository.mockImplementation(function () {
         return {
           enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
+        } as unknown as InstanceType<typeof UserRepository>;
       });
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);

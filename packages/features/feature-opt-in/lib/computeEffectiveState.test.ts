@@ -1,7 +1,7 @@
-import { describe, it, expect } from "vitest";
 import type { FeatureState } from "@calcom/features/flags/config";
-import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
+import { describe, expect, it } from "vitest";
 import type { OptInFeaturePolicy } from "../types";
+import { computeEffectiveStateAcrossTeams } from "./computeEffectiveState";
 
 /**
  * Feature Opt-In Effective State Computation
@@ -63,9 +63,24 @@ import type { OptInFeaturePolicy } from "../types";
 describe("computeEffectiveStateAcrossTeams", () => {
   describe("Global Kill Switch", () => {
     it.each([
-      { policy: "permissive" as OptInFeaturePolicy, orgState: "enabled" as FeatureState, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
-      { policy: "strict" as OptInFeaturePolicy, orgState: "enabled" as FeatureState, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
-    ])("blocks feature when global is disabled (policy: $policy)", ({ policy, orgState, teamStates, userState }) => {
+      {
+        policy: "permissive" as OptInFeaturePolicy,
+        orgState: "enabled" as FeatureState,
+        teamStates: ["enabled"] as FeatureState[],
+        userState: "enabled" as FeatureState,
+      },
+      {
+        policy: "strict" as OptInFeaturePolicy,
+        orgState: "enabled" as FeatureState,
+        teamStates: ["enabled"] as FeatureState[],
+        userState: "enabled" as FeatureState,
+      },
+    ])("blocks feature when global is disabled (policy: $policy)", ({
+      policy,
+      orgState,
+      teamStates,
+      userState,
+    }) => {
       expect(
         computeEffectiveStateAcrossTeams({
           globalEnabled: false,
@@ -80,8 +95,16 @@ describe("computeEffectiveStateAcrossTeams", () => {
 
   describe("Organization Level Blocking", () => {
     it.each([
-      { policy: "permissive" as OptInFeaturePolicy, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
-      { policy: "strict" as OptInFeaturePolicy, teamStates: ["enabled"] as FeatureState[], userState: "enabled" as FeatureState },
+      {
+        policy: "permissive" as OptInFeaturePolicy,
+        teamStates: ["enabled"] as FeatureState[],
+        userState: "enabled" as FeatureState,
+      },
+      {
+        policy: "strict" as OptInFeaturePolicy,
+        teamStates: ["enabled"] as FeatureState[],
+        userState: "enabled" as FeatureState,
+      },
     ])("blocks feature when org is disabled (policy: $policy)", ({ policy, teamStates, userState }) => {
       expect(
         computeEffectiveStateAcrossTeams({
