@@ -1,10 +1,13 @@
-import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
-import type { ToggledConnectedCalendars, WrappedBookerPropsMain } from "../../types";
-import { useOverlayCalendarStore } from "../OverlayCalendar/store";
-import { useLocalSet } from "./useLocalSet";
+
+import dayjs from "@calcom/dayjs";
+import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
+import type { ToggledConnectedCalendars } from "@calcom/features/bookings/Booker/types";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
+
+import type { WrappedBookerPropsMain } from "../types";
+import { useLocalSet } from "@calcom/features/bookings/Booker/hooks/useLocalSet";
 
 export const useOverlayCalendar = ({
   connectedCalendars,
