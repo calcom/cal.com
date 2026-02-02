@@ -24,6 +24,16 @@ Authorization: Bearer cal_<your_api_key>
 
 For detailed authentication methods including OAuth/Platform authentication, see `references/authentication.md`.
 
+## Core Concepts
+
+**Event Types** define bookable meeting configurations (duration, location, availability rules). Each event type has a unique slug used in booking URLs.
+
+**Bookings** are confirmed appointments created when someone books an event type. Each booking has a unique UID for identification.
+
+**Schedules** define when a user is available for bookings. Users can have multiple schedules with different working hours.
+
+**Slots** represent available time windows that can be booked based on event type configuration and user availability.
+
 ## Reference Documentation
 
 This skill includes detailed API reference documentation for each domain:

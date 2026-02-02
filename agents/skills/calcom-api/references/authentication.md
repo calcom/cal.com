@@ -313,6 +313,77 @@ async function makeAuthenticatedRequest(url, options = {}) {
 }
 ```
 
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request (invalid parameters) |
+| 401 | Unauthorized (invalid or missing API key) |
+| 403 | Forbidden (insufficient permissions) |
+| 404 | Not Found |
+| 422 | Unprocessable Entity (validation error) |
+| 429 | Too Many Requests (rate limited) |
+| 500 | Internal Server Error |
+
+### Error Response Format
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message"
+  }
+}
+```
+
+### Common Error Codes
+
+| Code | Description |
+|------|-------------|
+| UNAUTHORIZED | Invalid or missing authentication |
+| FORBIDDEN | Insufficient permissions |
+| NOT_FOUND | Resource not found |
+| VALIDATION_ERROR | Invalid request parameters |
+| RATE_LIMITED | Too many requests |
+
+## Pagination
+
+List endpoints support pagination via `take` and `skip` parameters:
+
+| Parameter | Type | Default | Max | Description |
+|-----------|------|---------|-----|-------------|
+| take | number | 10 | 250 | Number of items to return |
+| skip | number | 0 | - | Number of items to skip |
+
+### Example
+
+```http
+GET /v2/bookings?take=20&skip=40
+```
+
+This returns items 41-60 (skipping the first 40, taking 20).
+
+### Pagination Response
+
+Some endpoints include pagination metadata:
+
+```json
+{
+  "status": "success",
+  "data": [...],
+  "pagination": {
+    "total": 150,
+    "take": 20,
+    "skip": 40
+  }
+}
+```
+
 ## Troubleshooting
 
 ### "Invalid API key" Error

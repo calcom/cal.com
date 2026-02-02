@@ -367,6 +367,53 @@ GET /v2/event-types/{eventTypeId}/private-links
 POST /v2/event-types/{eventTypeId}/private-links
 ```
 
+## Organization Event Types
+
+For organization-level event type management:
+
+### List Organization Teams
+
+```http
+GET /v2/organizations/{orgId}/teams
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Sales Team",
+      "slug": "sales",
+      "parentId": null,
+      "isOrganization": false
+    }
+  ]
+}
+```
+
+### Get Team Event Types (Organization Scope)
+
+```http
+GET /v2/organizations/{orgId}/teams/{teamId}/event-types
+```
+
+### Create Team Event Type (Organization Scope)
+
+```http
+POST /v2/organizations/{orgId}/teams/{teamId}/event-types
+```
+
+Team event types support different scheduling modes:
+
+| Mode | Description |
+|------|-------------|
+| COLLECTIVE | All team members must attend the meeting |
+| ROUND_ROBIN | Distributes bookings among team members based on availability and priority |
+| MANAGED | Parent event type that creates child event types for team members |
+
 ## Event Type Webhooks
 
 Configure webhooks specific to an event type:
