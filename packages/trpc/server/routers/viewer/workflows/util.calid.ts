@@ -465,14 +465,14 @@ export async function scheduleCalIdWorkflowNotifications({
   const bookingsToScheduleNotifications = await getCalIdBookings(activeOn, alreadyScheduledActiveOnIds);
 
   await scheduleCalIdBookingReminders(
-    workflow,
     bookingsToScheduleNotifications,
     workflowSteps,
     time,
     timeUnit,
     trigger,
     userId,
-    calIdTeamId
+    calIdTeamId,
+    workflow
   );
 }
 
@@ -516,7 +516,8 @@ export async function scheduleCalIdBookingReminders(
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  calIdTeamId: number | null
+  calIdTeamId: number | null,
+  workflow?: CalIdWorkflow
 ) {
   if (!bookings || !bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;

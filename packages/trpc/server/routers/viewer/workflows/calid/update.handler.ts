@@ -220,6 +220,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
     await scheduleCalIdWorkflowNotifications({
+      workflow: userWorkflow,
       activeOn: newActiveOn,
       isCalIdTeam: false,
       workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
@@ -346,6 +347,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
       } else {
         // schedule notifications for edited steps
         await scheduleCalIdWorkflowNotifications({
+          workflow: userWorkflow,
           activeOn,
           isCalIdTeam: false,
           workflowSteps: [newStep],
@@ -429,6 +431,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
     } else {
       // schedule notification for new step
       await scheduleCalIdWorkflowNotifications({
+        workflow: userWorkflow,
         activeOn,
         isCalIdTeam: false,
         workflowSteps: createdSteps,
