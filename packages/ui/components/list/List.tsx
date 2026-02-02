@@ -22,7 +22,7 @@ export function List(props: ListProps) {
         // Add rounded top and bottom if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
         !props.noBorderTreatment &&
-          "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
+        "border-subtle divide-subtle divide-y rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}
@@ -98,7 +98,6 @@ export function ListLinkItem(props: ListLinkItemProps) {
         disabled ? "hover:bg-cal-muted" : ""
       )}>
       <Link
-        passHref
         href={href}
         className={classNames(
           "text-default grow truncate text-sm",

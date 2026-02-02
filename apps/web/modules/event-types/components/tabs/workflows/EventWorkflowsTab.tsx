@@ -117,8 +117,8 @@ const WorkflowListItem = (props: ItemProps) => {
             {workflow.name
               ? workflow.name
               : `Untitled (${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
-                  .charAt(0)
-                  .toUpperCase()}${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)})`}
+                .charAt(0)
+                .toUpperCase()}${`${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1)})`}
           </div>
           <>
             <div
@@ -135,7 +135,7 @@ const WorkflowListItem = (props: ItemProps) => {
         </div>
         {workflow.permissions?.canUpdate && (
           <div className="flex-none">
-            <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
+            <Link href={`/workflows/${workflow.id}`} target="_blank">
               <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
                 <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
               </Button>
@@ -148,8 +148,8 @@ const WorkflowListItem = (props: ItemProps) => {
               workflow.readOnly && props.isChildrenManagedEventType
                 ? "locked_by_team_admin"
                 : isActive
-                ? "turn_off"
-                : "turn_on"
+                  ? "turn_off"
+                  : "turn_on"
             ) as string
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
@@ -260,9 +260,8 @@ function EventWorkflowsTab(props: Props) {
               message={
                 <ServerTrans
                   t={t}
-                  i18nKey={`workflows_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admin"
-                  }_description`}
+                  i18nKey={`workflows_${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"
+                    }_description`}
                 />
               }
             />

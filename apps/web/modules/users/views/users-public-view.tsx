@@ -119,7 +119,6 @@ export function UserPage(props: PageProps) {
                   pathname: `/${user.profile.username}/${type.slug}`,
                   query,
                 }}
-                passHref
                 onClick={async () => {
                   sdkActionManager?.fire("eventTypeSelected", {
                     eventType: type,

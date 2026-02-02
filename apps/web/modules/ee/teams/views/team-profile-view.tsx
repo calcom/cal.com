@@ -103,9 +103,9 @@ const ProfileView = () => {
 
   const permalink = team
     ? `${getTeamUrlSync({
-        orgSlug: team.parent ? team.parent.slug : null,
-        teamSlug: team.slug,
-      })}`
+      orgSlug: team.parent ? team.parent.slug : null,
+      teamSlug: team.slug,
+    })}`
     : "";
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
@@ -178,7 +178,7 @@ const ProfileView = () => {
             )}
           </div>
           <div>
-            <Link href={permalink} passHref={true} target="_blank">
+            <Link href={permalink} target="_blank">
               <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
             </Link>
             <LinkIconButton
@@ -255,22 +255,22 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const router = useRouter();
 
   const teamProfileFormSchema = z.object({
-  id: z.number(),
-  name: z
-    .string()
-    .trim()
-    .min(1,t("must_enter_team_name")),
-  slug: z
-    .string()
-    .regex(regex, {
-      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
-    })
-    .min(1, t("team_url_required")),
-  logo: z.string().nullable(),
-  bio: z.string(),
-});
+    id: z.number(),
+    name: z
+      .string()
+      .trim()
+      .min(1, t("must_enter_team_name")),
+    slug: z
+      .string()
+      .regex(regex, {
+        message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+      })
+      .min(1, t("team_url_required")),
+    logo: z.string().nullable(),
+    bio: z.string(),
+  });
 
-type FormValues = z.infer<typeof teamProfileFormSchema>;
+  type FormValues = z.infer<typeof teamProfileFormSchema>;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
