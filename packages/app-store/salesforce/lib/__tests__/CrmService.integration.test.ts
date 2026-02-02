@@ -55,14 +55,27 @@ vi.mock("../getSalesforceAppKeys", () => ({
   }),
 }));
 
+vi.mock("../getSalesforceTokenLifetime", () => ({
+  getSalesforceTokenLifetime: vi.fn().mockResolvedValue(7200),
+}));
+
+vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => ({
+  CredentialRepository: {
+    updateWhereId: vi.fn().mockResolvedValue({}),
+  },
+}));
+
 // Helper to create mock credential
-const createMockCredential = () => {
+const createMockCredential = (options?: { tokenLifetime?: number; issuedAt?: string }) => {
+  const now = Date.now();
   return {
     id: 1,
     key: {
       access_token: "test_access_token",
       refresh_token: "test_refresh_token",
       instance_url: "https://test.salesforce.com",
+      issued_at: options?.issuedAt ?? String(now),
+      token_lifetime: options?.tokenLifetime ?? 7200,
     },
     type: "salesforce_other_calendar",
     user: {
@@ -73,6 +86,7 @@ const createMockCredential = () => {
     appId: "test_app_id",
     invalid: false,
     delegationCredentialId: null,
+    encryptedKey: null,
   };
 };
 
@@ -352,6 +366,168 @@ describe("SalesforceCRMService", () => {
         const allContactsInSalesforce = salesforceMock.getContacts();
         expect(allContactsInSalesforce).toHaveLength(0);
       });
+    });
+  });
+
+  describe("Token lifecycle management", () => {
+    it("should not refresh token when token_lifetime is valid and not expired", async () => {
+      const now = Date.now();
+      const credential = createMockCredential({
+        issuedAt: String(now),
+        tokenLifetime: 7200,
+      });
+      const { appOptions } = salesforceSettingScenario.createOnLeadAndSearchOnAccount();
+
+      fetchMock.mockReset();
+
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addLead({
+        Email: "test@example.com",
+        FirstName: "Test",
+        LastName: "User",
+      });
+
+      await crmService.getContacts({ emails: "test@example.com" });
+
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("should refresh token when token is expired", async () => {
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      const credential = createMockCredential({
+        issuedAt: String(oneHourAgo),
+        tokenLifetime: 1800,
+      });
+      const { appOptions } = salesforceSettingScenario.createOnLeadAndSearchOnAccount();
+
+      fetchMock.mockReset();
+      fetchMock.mockReturnValueOnce(
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: "abc",
+              issued_at: String(Date.now()),
+              instance_url: "https://test.salesforce.com",
+              signature: "123",
+              access_token: "new_access_token",
+              scope: "123",
+              token_type: "123",
+            }),
+            { status: 200 }
+          )
+        )
+      );
+
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addLead({
+        Email: "test@example.com",
+        FirstName: "Test",
+        LastName: "User",
+      });
+
+      await crmService.getContacts({ emails: "test@example.com" });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://login.salesforce.com/services/oauth2/token",
+        expect.objectContaining({
+          method: "POST",
+        })
+      );
+    });
+
+    it("should refresh token when token_lifetime is missing (legacy credentials)", async () => {
+      const credential = {
+        id: 1,
+        key: {
+          access_token: "test_access_token",
+          refresh_token: "test_refresh_token",
+          instance_url: "https://test.salesforce.com",
+          issued_at: String(Date.now()),
+        },
+        type: "salesforce_other_calendar",
+        user: { email: "test@example.com" },
+        userId: 1,
+        teamId: 1,
+        appId: "test_app_id",
+        invalid: false,
+        delegationCredentialId: null,
+      };
+      const { appOptions } = salesforceSettingScenario.createOnLeadAndSearchOnAccount();
+
+      fetchMock.mockReset();
+      fetchMock.mockReturnValueOnce(
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: "abc",
+              issued_at: String(Date.now()),
+              instance_url: "https://test.salesforce.com",
+              signature: "123",
+              access_token: "new_access_token",
+              scope: "123",
+              token_type: "123",
+            }),
+            { status: 200 }
+          )
+        )
+      );
+
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addLead({
+        Email: "test@example.com",
+        FirstName: "Test",
+        LastName: "User",
+      });
+
+      await crmService.getContacts({ emails: "test@example.com" });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("should use 5-minute buffer before token expiry", async () => {
+      const tokenLifetime = 7200;
+      const bufferMs = 5 * 60 * 1000;
+      const issuedAt = Date.now() - (tokenLifetime * 1000 - bufferMs + 1000);
+
+      const credential = createMockCredential({
+        issuedAt: String(issuedAt),
+        tokenLifetime,
+      });
+      const { appOptions } = salesforceSettingScenario.createOnLeadAndSearchOnAccount();
+
+      fetchMock.mockReset();
+      fetchMock.mockReturnValueOnce(
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: "abc",
+              issued_at: String(Date.now()),
+              instance_url: "https://test.salesforce.com",
+              signature: "123",
+              access_token: "new_access_token",
+              scope: "123",
+              token_type: "123",
+            }),
+            { status: 200 }
+          )
+        )
+      );
+
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addLead({
+        Email: "test@example.com",
+        FirstName: "Test",
+        LastName: "User",
+      });
+
+      await crmService.getContacts({ emails: "test@example.com" });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { Icon } from "@calcom/ui/components/icon";
 
 const LINKS = [

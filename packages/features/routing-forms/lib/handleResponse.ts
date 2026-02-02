@@ -1,11 +1,11 @@
-import { z } from "zod";
-
 import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
 import {
   onSubmissionOfFormResponse,
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
+import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -14,7 +14,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
+import { z } from "zod";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
@@ -29,6 +29,8 @@ const _handleResponse = async ({
   isPreview,
   queueFormResponse,
   fetchCrm,
+  traceService,
+  routingFormTraceService,
 }: {
   response: Record<
     string,
@@ -45,6 +47,8 @@ const _handleResponse = async ({
   isPreview: boolean;
   queueFormResponse?: boolean;
   fetchCrm?: boolean;
+  traceService?: RoutingTraceService;
+  routingFormTraceService?: RoutingFormTraceService;
 }) => {
   try {
     if (!form.fields) {
@@ -104,6 +108,7 @@ const _handleResponse = async ({
     let crmAppSlug: string | null = null;
     let crmRecordId: string | null = null;
     let timeTaken: Record<string, number | null> = {};
+    let checkedFallback = false;
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
         throw new HttpError({
@@ -121,6 +126,7 @@ const _handleResponse = async ({
                     attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
                     identifierKeyedResponse,
                     action: chosenRoute.action,
+                    routingTraceService: traceService,
                   })
                 : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
@@ -141,9 +147,12 @@ const _handleResponse = async ({
                       fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
                       teamId: formTeamId,
                       orgId: formOrgId,
+                      routeName: chosenRoute.name,
+                      routeIsFallback: chosenRoute.isFallback,
                     },
                     {
                       enablePerf: true,
+                      routingFormTraceService,
                     }
                   )
                 : null;
@@ -161,6 +170,7 @@ const _handleResponse = async ({
                 : null;
 
             timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
+            checkedFallback = teamMembersMatchingAttributeLogicWithResult?.checkedFallback ?? false;
           })(),
         ]);
 
@@ -226,6 +236,7 @@ const _handleResponse = async ({
           ? chosenRoute.attributeRoutingConfig
           : null
         : null,
+      checkedFallback,
       timeTaken,
     };
   } catch (e) {

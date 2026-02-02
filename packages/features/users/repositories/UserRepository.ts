@@ -1113,6 +1113,7 @@ export class UserRepository {
         movedToProfileId: true,
         selectedCalendars: {
           select: {
+            id: true,
             eventTypeId: true,
             externalId: true,
             integration: true,
@@ -1337,6 +1338,17 @@ export class UserRepository {
           select: credentialForCalendarServiceSelect,
         },
         destinationCalendar: true,
+      },
+    });
+  }
+
+  async findForPasswordReset({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        name: true,
+        locale: true,
       },
     });
   }

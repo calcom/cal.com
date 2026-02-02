@@ -292,7 +292,8 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async finalizeInvoice(invoiceId: string) {
-    await this.stripe.invoices.finalizeInvoice(invoiceId);
+    const invoice = await this.stripe.invoices.finalizeInvoice(invoiceId);
+    return { invoiceUrl: invoice.hosted_invoice_url ?? null };
   }
 
   async voidInvoice(invoiceId: string) {

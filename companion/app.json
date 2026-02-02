@@ -3,10 +3,10 @@
     "name": "Calcom",
     "slug": "calcom-companion",
     "scheme": "expo-wxt-app",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -17,6 +17,7 @@
       "supportsTablet": false,
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.cal.companion",
+      "userInterfaceStyle": "automatic",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -33,7 +34,8 @@
       "edgeToEdgeEnabled": true,
       "package": "com.calcom.companion",
       "softwareKeyboardLayoutMode": "pan",
-      "usesCleartextTraffic": false
+      "usesCleartextTraffic": false,
+      "userInterfaceStyle": "automatic"
     },
     "web": {
       "favicon": "./assets/favicon.png",
