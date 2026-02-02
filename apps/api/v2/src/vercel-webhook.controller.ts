@@ -92,6 +92,12 @@ export class VercelWebhookController {
         if (error instanceof Error) {
           errorMessage = error.message;
         }
+
+        if (errorMessage.includes("Deployment is already the current deployment")) {
+          this.logger.log(`Deployment ${version} is already the current deployment, skipping retry`);
+          return;
+        }
+
         this.logger.error(`Promotion attempt ${attempt} failed: ${errorMessage}`);
         if (attempt === maxRetries) throw error;
 

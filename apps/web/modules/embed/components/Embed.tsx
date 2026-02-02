@@ -53,7 +53,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { EmbedTabName, type tabs } from "./EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
