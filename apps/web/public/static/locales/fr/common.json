@@ -462,7 +462,7 @@
   "reset_instructions": "Saisissez l'adresse e-mail associée à votre compte et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
   "request_is_expired_instructions": "Cette requête a expiré. Revenez en arrière et saisissez l'adresse e-mail associée à votre compte. Nous vous enverrons un autre lien pour réinitialiser votre mot de passe.",
   "whoops": "Oups",
-  "login": "Connexion",
+  "login": "Se connecter",
   "success": "Succès",
   "failed": "Échoué",
   "password_has_been_reset_login": "Votre mot de passe a été réinitialisé. Vous pouvez désormais vous connecter avec votre nouveau mot de passe.",
