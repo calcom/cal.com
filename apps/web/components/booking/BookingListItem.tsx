@@ -280,7 +280,6 @@ function BookingListItem(booking: BookingItemProps) {
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
   );
-
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,

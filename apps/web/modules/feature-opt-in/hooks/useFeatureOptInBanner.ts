@@ -3,8 +3,7 @@
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { trpc } from "@calcom/trpc/react";
-import { useCallback, useMemo, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getFeatureOptInTimestamp,
   isFeatureDismissed,
@@ -64,6 +63,15 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
       staleTime: 1000 * 60 * 5,
     }
   );
+
+  // When the server reports the feature is already enabled, cache it locally
+  // to avoid repeated API calls on subsequent page loads
+  useEffect(() => {
+    if (eligibilityQuery.data?.status === "already_enabled") {
+      setFeatureOptedIn(featureId);
+      setIsOptedIn(true);
+    }
+  }, [eligibilityQuery.data?.status, featureId]);
 
   const setUserStateMutation = trpc.viewer.featureOptIn.setUserState.useMutation();
   const setTeamStateMutation = trpc.viewer.featureOptIn.setTeamState.useMutation();
