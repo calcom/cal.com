@@ -149,6 +149,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
           },
         ],
       },
+      select: {
+        id: true,
+      },
     });
 
     if (existingUser) {
