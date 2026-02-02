@@ -15,11 +15,11 @@ import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import { Request } from "express";
 import helmet from "helmet";
+import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
+import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
-import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
-import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 const logger: Logger = new Logger("Bootstrap");
 

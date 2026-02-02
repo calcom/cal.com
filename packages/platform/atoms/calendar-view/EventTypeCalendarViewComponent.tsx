@@ -5,10 +5,10 @@ import {
   useBookerStoreContext,
   useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { Header } from "@calcom/web/modules/bookings/components/Header";
-import { BookerSection } from "@calcom/web/modules/bookings/components/Section";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import { Header } from "@calcom/features/bookings/components/Header";
+import { BookerSection } from "@calcom/features/bookings/components/Section";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
+import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";

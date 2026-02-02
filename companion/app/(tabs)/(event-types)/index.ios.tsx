@@ -1,6 +1,4 @@
-import { Button, Host, Image as SwiftUIImage } from "@expo/ui/swift-ui";
 import * as Haptics from "expo-haptics";
-import { buttonStyle, controlSize, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
@@ -15,6 +13,7 @@ import {
   Share,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
@@ -36,10 +35,15 @@ import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
 import { slugify } from "@/utils/slugify";
 
+import { getColors } from "@/constants/colors";
+
 export default function EventTypesIOS() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const { data: userProfile } = useUserProfile();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // No modal state needed for iOS - using native Alert.prompt
 
@@ -337,12 +341,12 @@ export default function EventTypesIOS() {
       <>
         <Stack.Header
           style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-          blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+          blurEffect={isLiquidGlassAvailable() ? undefined : isDark ? "dark" : "light"}
         >
           <Stack.Header.Title large>Event Types</Stack.Header.Title>
         </Stack.Header>
         <ScrollView
-          style={{ backgroundColor: "white" }}
+          style={{ backgroundColor: theme.background }}
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
           showsVerticalScrollIndicator={false}
           contentInsetAdjustmentBehavior="automatic"
@@ -355,14 +359,34 @@ export default function EventTypesIOS() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+      <View
+        className="flex-1 items-center justify-center bg-gray-50 p-5"
+        style={{ backgroundColor: theme.backgroundSecondary }}
+      >
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
+        <Text
+          className="mb-2 mt-4 text-center text-xl font-bold text-gray-800"
+          style={{ color: theme.text }}
+        >
           Unable to load event types
         </Text>
-        <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
-        <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
-          <Text className="text-base font-semibold text-white">Retry</Text>
+        <Text
+          className="mb-6 text-center text-base text-gray-500"
+          style={{ color: theme.textMuted }}
+        >
+          {error}
+        </Text>
+        <TouchableOpacity
+          className="rounded-lg bg-black px-6 py-3"
+          style={{ backgroundColor: isDark ? "white" : "black" }}
+          onPress={() => refetch()}
+        >
+          <Text
+            className="text-base font-semibold text-white"
+            style={{ color: isDark ? "black" : "white" }}
+          >
+            Retry
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -374,12 +398,15 @@ export default function EventTypesIOS() {
         <Stack.Screen
           options={{
             title: "Event Types",
-            headerBlurEffect: isLiquidGlassAvailable() ? undefined : "light",
+            headerBlurEffect: isLiquidGlassAvailable() ? undefined : isDark ? "dark" : "light",
             headerStyle: { backgroundColor: "transparent" },
             headerLargeTitleEnabled: true,
           }}
         />
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <EmptyScreen
             icon="link-outline"
             headline="Create your first event type"
@@ -397,7 +424,7 @@ export default function EventTypesIOS() {
       {/* iOS Native Header with Glass UI */}
       <Stack.Header
         style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
-        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+        blurEffect={isLiquidGlassAvailable() ? undefined : isDark ? "dark" : "light"}
       >
         <Stack.Header.Title large>Event Types</Stack.Header.Title>
 
@@ -494,13 +521,13 @@ export default function EventTypesIOS() {
           placeholder="Search event types"
           onChangeText={(e) => handleSearch(e.nativeEvent.text)}
           obscureBackground={false}
-          barTintColor="#fff"
+          barTintColor={isDark ? "#171717" : "#fff"}
         />
       </Stack.Header>
 
       {/* Event Types List */}
       <ScrollView
-        style={{ backgroundColor: "white" }}
+        style={{ backgroundColor: theme.background }}
         contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
@@ -509,7 +536,10 @@ export default function EventTypesIOS() {
         {refreshing ? (
           <EventTypeListSkeleton />
         ) : filteredEventTypes.length === 0 && searchQuery.trim() !== "" ? (
-          <View className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20">
+          <View
+            className="flex-1 items-center justify-center bg-gray-50 p-5 pt-20"
+            style={{ backgroundColor: theme.backgroundSecondary }}
+          >
             <EmptyScreen
               icon="search-outline"
               headline={`No results found for "${searchQuery}"`}
@@ -517,7 +547,10 @@ export default function EventTypesIOS() {
             />
           </View>
         ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
-          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+          <View
+            className="flex-1 items-center justify-center bg-white p-5 pt-20"
+            style={{ backgroundColor: theme.background }}
+          >
             <EmptyScreen
               icon="filter-outline"
               headline="No event types match your filters"
@@ -529,7 +562,14 @@ export default function EventTypesIOS() {
           </View>
         ) : (
           <View className="px-2 pt-4 md:px-4">
-            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+            <View
+              className="overflow-hidden rounded-lg"
+              style={{
+                backgroundColor: theme.backgroundSecondary,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}
+            >
               {filteredEventTypes.map((item, index) => (
                 <EventTypeListItem
                   key={item.id.toString()}
@@ -551,23 +591,13 @@ export default function EventTypesIOS() {
 
       {/* Floating Action Button for New Event Type with Glass UI Menu */}
       <View className="absolute right-6" style={{ bottom: 100 }}>
-        <Host matchContents>
-          <Button
-            onPress={handleOpenCreateModal}
-            modifiers={[
-              buttonStyle(isLiquidGlassAvailable() ? "glass" : "bordered"),
-              padding(),
-              controlSize("large"),
-            ]}
-          >
-            <SwiftUIImage
-              systemName="plus"
-              color="primary"
-              size={24}
-              modifiers={[frame({ height: 24, width: 17 })]}
-            />
-          </Button>
-        </Host>
+        <TouchableOpacity
+          onPress={handleOpenCreateModal}
+          className="h-14 w-14 items-center justify-center rounded-full bg-black shadow-lg shadow-black/20 dark:bg-white"
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={30} color={isDark ? "#000000" : "#FFFFFF"} />
+        </TouchableOpacity>
       </View>
     </>
   );

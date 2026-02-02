@@ -1,28 +1,36 @@
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
+import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { EventDetailBlocks } from "@calcom/features/bookings/types";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
+import type { TimezoneSelectComponentProps } from "@calcom/features/timezone/components/TimezoneSelectComponent";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
-
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import { useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { EventDetails } from "./event-meta/Details";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-const LoadingState = () => {
+const LoadingState = (): JSX.Element => {
   const { t } = useLocale();
   return <span className="text-default text-sm">{t("loading")}</span>;
 };
 
-const WebTimezoneSelect = dynamic(
+type TimezoneSelectProps = Omit<
+  TimezoneSelectComponentProps,
+  "data" | "isPending" | "isWebTimezoneSelect"
+> & {
+  timeZones?: Timezone[];
+};
+
+const WebTimezoneSelect: ComponentType<TimezoneSelectProps> = dynamic(
   () =>
-    import("@calcom/features/components/timezone-select").then(
+    import("@calcom/web/modules/timezone/components/TimezoneSelect").then(
       (mod) => mod.TimezoneSelect
     ),
   {
@@ -58,7 +66,7 @@ export const SlotSelectionModalHeader = ({
   isPlatform = false,
   timeZones,
   selectedDate,
-}: SlotSelectionModalHeaderProps) => {
+}: SlotSelectionModalHeaderProps): JSX.Element => {
   const { i18n } = useLocale();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
   const [timezone, setBookerStoreTimezone] = useBookerStoreContext(
@@ -72,23 +80,19 @@ export const SlotSelectionModalHeader = ({
 
   const formattedDate = useMemo(() => {
     if (!selectedDate) return { dayOfWeek: "", fullDate: "" };
-    const date = new Date(selectedDate);
-    const dayOfWeek = date.toLocaleDateString(i18n.language, {
-      weekday: "long",
-    });
-    const fullDate = date.toLocaleDateString(i18n.language, {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+
+    const date = dayjs(selectedDate);
+    const dayOfWeek = date.locale(i18n.language).format("dddd");
+    const fullDate = date.locale(i18n.language).format("MMMM D, YYYY");
+
     return { dayOfWeek, fullDate };
   }, [selectedDate, i18n.language]);
 
   return (
-    <div className="two-step-slot-selection-modal-header bg-default border-subtle sticky top-0 z-10 flex flex-col mb-4 mt-0 border-b pb-4 -mx-4 px-8">
+    <div className="two-step-slot-selection-modal-header sticky top-0 z-10 -mx-4 mt-0 mb-4 flex flex-col border-subtle border-b bg-default px-8 pb-4">
       <div className="flex flex-col gap-2 pt-8">
         <div className="flex flex-col">
-          <span className="text-emphasis text-lg font-semibold">
+          <span className="font-semibold text-emphasis text-lg">
             <Button
               color="minimal"
               StartIcon="arrow-left"
@@ -104,10 +108,10 @@ export const SlotSelectionModalHeader = ({
           <EventDetails event={event} blocks={[EventDetailBlocks.DURATION]} />
         )}
 
-        <div className="text-default flex items-center gap-2 text-sm mb-0">
-          <Icon name="globe" className="text-subtle h-4 w-4 shrink-0" />
+        <div className="mb-0 flex items-center gap-2 text-default text-sm">
+          <Icon name="globe" className="h-4 w-4 shrink-0 text-subtle" />
           {TimezoneSelect && (
-            <span className="min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start">
+            <span className="-mt-[2px] flex h-6 min-w-32 max-w-full items-center justify-start">
               <TimezoneSelect
                 timeZones={timeZones}
                 menuPosition="fixed"

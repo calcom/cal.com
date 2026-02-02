@@ -8,11 +8,9 @@ import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-
 import { useFeatureOptInBanner } from "../../feature-opt-in/hooks/useFeatureOptInBanner";
 import { BookingListContainer } from "../components/BookingListContainer";
 import { useActiveFiltersValidator } from "../hooks/useActiveFiltersValidator";
-import { useBookingsShellHeadingVisibility } from "../hooks/useBookingsShellHeadingVisibility";
 import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
@@ -81,8 +79,6 @@ export default function Bookings(props: BookingsProps) {
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
   const optInBanner = useFeatureOptInBanner("bookings-v3");
-
-  useBookingsShellHeadingVisibility({ visible: view === "list" });
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
