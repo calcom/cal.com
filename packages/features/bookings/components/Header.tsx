@@ -243,12 +243,10 @@ const LayoutToggleWithData = ({
   enabledLayouts,
   onLayoutToggle,
   layout,
-  isPlatform = false,
 }: {
   enabledLayouts: BookerLayouts[];
   onLayoutToggle: (layout: string) => void;
   layout: string;
-  isPlatform?: boolean;
 }) => {
   return enabledLayouts.length <= 1 ? null : (
     <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
