@@ -60,8 +60,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     // Redirect if no routing form response and redirect URL is configured
+    // Don't redirect if this is a reschedule flow
     const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
-    if (!hasRoutingFormResponse && eventData.redirectUrlOnNoRoutingFormResponse) {
+    if (!hasRoutingFormResponse && !rescheduleUid && eventData.redirectUrlOnNoRoutingFormResponse) {
       return {
         redirect: {
           destination: eventData.redirectUrlOnNoRoutingFormResponse,
