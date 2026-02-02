@@ -164,6 +164,7 @@ async function cancelAttendeeSeat(
     ...eventTypeInfo,
     status: "CANCELLED",
     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    requestReschedule: false,
   };
 
   const promises = webhooks.map((webhook) =>

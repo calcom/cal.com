@@ -1,11 +1,15 @@
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { ZCreateAttributeSyncSchema } from "@calcom/trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
+
 import { enabledAppSlugs } from "../constants";
 import {
   type IIntegrationAttributeSyncRepository,
   type ISyncFormData,
+  type ITeamCondition,
+  type IAttributeSyncRule,
   AttributeSyncIntegrations,
+  ConditionIdentifierEnum,
 } from "../repositories/IIntegrationAttributeSyncRepository";
 import { attributeSyncRuleSchema } from "../schemas/zod";
 
@@ -40,10 +44,41 @@ export class CredentialNotFoundError extends Error {
 interface IIntegrationAttributeSyncServiceDeps {
   credentialRepository: CredentialRepository;
   integrationAttributeSyncRepository: IIntegrationAttributeSyncRepository;
+  teamRepository: TeamRepository;
 }
 
 export class IntegrationAttributeSyncService {
   constructor(private readonly deps: IIntegrationAttributeSyncServiceDeps) {}
+
+  private extractTeamIdsFromRule(rule: IAttributeSyncRule): number[] {
+    return rule.conditions
+      .filter(
+        (c): c is ITeamCondition =>
+          c.identifier === ConditionIdentifierEnum.TEAM_ID
+      )
+      .flatMap((c) => c.value);
+  }
+
+  private async validateTeamsBelongToOrg(
+    teamIds: number[],
+    organizationId: number
+  ): Promise<void> {
+    if (teamIds.length === 0) return;
+
+    const invalidTeams =
+      await this.deps.teamRepository.findTeamsNotBelongingToOrgByIds({
+        teamIds,
+        orgId: organizationId,
+      });
+
+    if (invalidTeams.length > 0) {
+      throw new Error(
+        `Teams do not belong to this organization: ${invalidTeams
+          .map((t) => t.id)
+          .join(", ")}`
+      );
+    }
+  }
 
   private validateWithinSyncUniqueness(
     mappings: { attributeId: string }[]
@@ -125,6 +160,9 @@ export class IntegrationAttributeSyncService {
 
     const parsedRule = attributeSyncRuleSchema.parse(input.rule);
 
+    const teamIds = this.extractTeamIdsFromRule(parsedRule);
+    await this.validateTeamsBelongToOrg(teamIds, organizationId);
+
     const integrationValue = credential.app?.slug || credential.type;
     if (
       !Object.values(AttributeSyncIntegrations).includes(
@@ -177,6 +215,9 @@ export class IntegrationAttributeSyncService {
 
     const parsedRule = attributeSyncRuleSchema.parse(rule);
 
+    const teamIds = this.extractTeamIdsFromRule(parsedRule);
+    await this.validateTeamsBelongToOrg(teamIds, data.organizationId);
+
     const incomingMappingIds = new Set(
       syncFieldMappings.reduce((ids, mapping) => {
         if ("id" in mapping) ids.push(mapping.id);
@@ -208,5 +249,11 @@ export class IntegrationAttributeSyncService {
   }
   async deleteById(id: string) {
     return this.deps.integrationAttributeSyncRepository.deleteById(id);
+  }
+
+  async getAllByCredentialId(credentialId: number) {
+    return this.deps.integrationAttributeSyncRepository.getAllByCredentialId(
+      credentialId
+    );
   }
 }

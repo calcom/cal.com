@@ -27,6 +27,17 @@ export type AvailabilityOption = {
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
+export type HostLocation = {
+  id?: string;
+  userId: number;
+  eventTypeId: number;
+  type: EventLocationType["type"];
+  credentialId?: number | null;
+  link?: string | null;
+  address?: string | null;
+  phoneNumber?: string | null;
+};
+
 export type Host = {
   isFixed: boolean;
   userId: number;
@@ -34,6 +45,7 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  location?: HostLocation | null;
 };
 export type TeamMember = {
   value: string;
@@ -177,6 +189,7 @@ export type FormValues = {
   restrictionScheduleName: string | null;
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
+  enablePerHostLocations: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

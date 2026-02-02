@@ -1,14 +1,9 @@
-import { m } from "framer-motion";
-import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
-import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "./event-meta";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { fadeInUp } from "@calcom/features/bookings/Booker/config";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
-import { SeatsAvailabilityText } from "@calcom/web/modules/bookings/components/SeatsAvailabilityText";
-import { EventMetaBlock } from "@calcom/web/modules/bookings/components/event-meta/Details";
+import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,15 +11,18 @@ import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
-
+import { EventMetaBlock } from "@calcom/web/modules/bookings/components/event-meta/Details";
+import { SeatsAvailabilityText } from "@calcom/web/modules/bookings/components/SeatsAvailabilityText";
+import { m } from "framer-motion";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import i18nConfigration from "../../../../../i18n.json";
-import { fadeInUp } from "@calcom/features/bookings/Booker/config";
-import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";
+import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "./event-meta";
 import { ScrollableWithGradients } from "./ScrollableWithGradients";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
-  () => import("@calcom/features/components/timezone-select").then((mod) => mod.TimezoneSelect),
+  () => import("@calcom/web/modules/timezone/components/TimezoneSelect").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
   }
@@ -56,6 +54,7 @@ export const EventMeta = ({
   children,
   selectedTimeslot,
   roundRobinHideOrgAndTeam,
+  hideOrgTeamAvatar,
   hideEventTypeDetails = false,
 }: {
   event?: Pick<
@@ -80,6 +79,7 @@ export const EventMeta = ({
     | "isDynamic"
     | "fieldTranslations"
     | "autoTranslateDescriptionEnabled"
+    | "enablePerHostLocations"
   > | null;
   isPending: boolean;
   isPrivateLink: boolean;
@@ -95,6 +95,7 @@ export const EventMeta = ({
   children?: React.ReactNode;
   selectedTimeslot: string | null;
   roundRobinHideOrgAndTeam?: boolean;
+  hideOrgTeamAvatar?: boolean;
   hideEventTypeDetails?: boolean;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
@@ -140,8 +141,8 @@ export const EventMeta = ({
   const colorClass = isNearlyFull
     ? "text-rose-600"
     : isHalfFull
-    ? "text-yellow-500"
-    : "text-bookinghighlight";
+      ? "text-yellow-500"
+      : "text-bookinghighlight";
   const userLocale = locale ?? navigator.language;
   const translatedDescription = getTranslatedField(
     event?.fieldTranslations ?? [],
@@ -170,6 +171,7 @@ export const EventMeta = ({
             entity={event.entity}
             isPrivateLink={isPrivateLink}
             roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
+            hideOrgTeamAvatar={hideOrgTeamAvatar}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
@@ -179,6 +181,7 @@ export const EventMeta = ({
               <ScrollableWithGradients
                 className="wrap-break-word scroll-bar max-h-[180px] max-w-full overflow-y-auto pr-4"
                 ariaLabel={t("description")}>
+                {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient */}
                 <div
                   dangerouslySetInnerHTML={{
                     __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),

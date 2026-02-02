@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
+import { useBookingLocation } from "@calcom/web/modules/bookings/hooks/useBookingLocation";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -45,7 +45,7 @@ import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
-import { BookingHistory } from "@calcom/features/booking-audit/client/components/BookingHistory";
+import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import { SegmentedControl } from "@calcom/ui/components/segmented-control";
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
@@ -466,13 +466,17 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="text-emphasis truncate text-sm leading-[1.2]">
-                  {booking.user.name || booking.user.email}
+                  {booking.eventType?.hideOrganizerEmail
+                    ? booking.user.name || t("organizer")
+                    : booking.user.name || booking.user.email}
                 </p>
                 <Badge variant="purple" size="sm" className="capitalize">
                   {t("host")}
                 </Badge>
               </div>
-              <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
+              {!booking.eventType?.hideOrganizerEmail && (
+                <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
+              )}
             </div>
           </div>
         )}

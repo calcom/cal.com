@@ -88,3 +88,14 @@ export const showInfoAlert = (title: string, message: string) => {
 
   Alert.alert(title, message);
 };
+
+/**
+ * Show a standard "Feature not available" alert for companion app limitations.
+ */
+export const showNotAvailableAlert = () => {
+  Alert.alert(
+    "Feature not available",
+    "This feature is not available on app yet. To use, please visit app.cal.com.",
+    [{ text: "OK", style: "cancel" }]
+  );
+};

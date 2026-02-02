@@ -242,6 +242,15 @@ function getBrowserDisplayName(): string {
  * These provide unified access to browser extension APIs across Chrome, Firefox, Safari, and Edge
  */
 
+/**
+ * Extended browser API interface that includes browserAction (Manifest V2)
+ * Safari uses browserAction instead of action
+ */
+interface BrowserAPIWithLegacyAction {
+  action?: typeof chrome.action;
+  browserAction?: typeof chrome.action;
+}
+
 // Get the appropriate browser API namespace
 function getBrowserAPI(): typeof chrome {
   if (typeof browser !== "undefined" && browser?.runtime) {
@@ -278,8 +287,8 @@ function getTabsAPI(): typeof chrome.tabs | null {
 function getActionAPI(): typeof chrome.action | null {
   const api = getBrowserAPI();
   // Safari uses browserAction (Manifest V2), Chrome uses action (Manifest V3)
-  // biome-ignore lint/suspicious/noExplicitAny: Safari's browserAction API is not in Chrome types
-  return api?.action || (api as any)?.browserAction || null;
+  const apiWithLegacyAction = api as unknown as BrowserAPIWithLegacyAction;
+  return api?.action || apiWithLegacyAction?.browserAction || null;
 }
 
 // Check if the URL is a restricted page where content scripts can't run
@@ -363,16 +372,24 @@ export default defineBackground(() => {
         const authUrl = message.authUrl as string;
         const state = new URL(authUrl).searchParams.get("state");
 
-        if (state && storageAPI?.local) {
-          storageAPI.local.set({ oauth_state: state }, () => {
-            const runtime = getRuntimeAPI();
-            if (runtime?.lastError) {
-              devLog.warn("Failed to store OAuth state:", runtime.lastError.message);
-            }
-          });
-        }
+        // Store state before starting OAuth to prevent race conditions
+        const storeState = async () => {
+          if (!state) {
+            throw new Error("No state parameter in auth URL");
+          }
+          if (!storageAPI?.local) {
+            throw new Error("Storage API not available");
+          }
+          try {
+            await storageAPI.local.set({ oauth_state: state });
+          } catch (error) {
+            devLog.error("Failed to store OAuth state:", error);
+            throw new Error("Failed to initialize OAuth flow - cannot store state");
+          }
+        };
 
-        handleExtensionOAuth(authUrl)
+        storeState()
+          .then(() => handleExtensionOAuth(authUrl))
           .then((responseUrl) => sendResponse({ success: true, responseUrl }))
           .catch((error) => sendResponse({ success: false, error: error.message }));
         return true;
@@ -493,8 +510,14 @@ export default defineBackground(() => {
 });
 
 async function handleExtensionOAuth(authUrl: string): Promise<string> {
-  const identityAPI = getIdentityAPI();
   const browserType = detectBrowser();
+
+  // Safari uses tabs-based OAuth flow
+  if (browserType === BrowserType.Safari) {
+    return handleSafariTabsOAuth(authUrl);
+  }
+
+  const identityAPI = getIdentityAPI();
 
   if (!identityAPI) {
     throw new Error(`Identity API not available in ${getBrowserDisplayName()}`);
@@ -521,8 +544,8 @@ async function handleExtensionOAuth(authUrl: string): Promise<string> {
   }
 
   return new Promise((resolve, reject) => {
-    // Firefox and Safari use Promise-based API
-    if (browserType === BrowserType.Firefox || browserType === BrowserType.Safari) {
+    // Firefox uses Promise-based API
+    if (browserType === BrowserType.Firefox) {
       try {
         const result = identityAPI.launchWebAuthFlow({
           url: authUrl,
@@ -565,6 +588,168 @@ async function handleExtensionOAuth(authUrl: string): Promise<string> {
         reject(new Error("OAuth flow cancelled or failed"));
       }
     });
+  });
+}
+
+/**
+ * Handle Safari OAuth using tabs-based flow
+ * Opens OAuth in a new tab and captures the redirect callback
+ */
+async function handleSafariTabsOAuth(authUrl: string): Promise<string> {
+  // Extract the redirect URI to know what to watch for
+  const redirectUri = new URL(authUrl).searchParams.get("redirect_uri");
+  if (!redirectUri) {
+    throw new Error("redirect_uri not found in auth URL");
+  }
+
+  const redirectUrlObj = new URL(redirectUri);
+  const redirectOrigin = redirectUrlObj.origin; // scheme + host + port
+  const redirectPath = redirectUrlObj.pathname;
+
+  return new Promise((resolve, reject) => {
+    const tabsAPI = getTabsAPI();
+    if (!tabsAPI) {
+      reject(new Error("Tabs API not available"));
+      return;
+    }
+
+    let oauthTabId: number | null = null;
+    let isResolved = false;
+
+    const timeoutId = setTimeout(
+      () => {
+        if (!isResolved) {
+          cleanup();
+          reject(new Error("OAuth flow timed out after 5 minutes"));
+        }
+      },
+      5 * 60 * 1000
+    );
+
+    const tabUpdateListener = (tabId: number, _changeInfo: unknown, tab: chrome.tabs.Tab) => {
+      // Only process updates for our OAuth tab
+      if (tabId !== oauthTabId) return;
+
+      // Check if the tab navigated to the redirect URI
+      if (tab.url) {
+        try {
+          const tabUrl = new URL(tab.url);
+
+          // Check if this is our OAuth callback URL - exact origin and path match
+          if (tabUrl.origin === redirectOrigin && tabUrl.pathname === redirectPath) {
+            if (!isResolved) {
+              const error = tabUrl.searchParams.get("error");
+              if (error) {
+                isResolved = true;
+                cleanup();
+                const errorDescription = tabUrl.searchParams.get("error_description") || error;
+
+                // Close the tab after capturing error
+                if (oauthTabId !== null) {
+                  tabsAPI.remove(oauthTabId).catch(() => {
+                    // Ignore errors when closing tab
+                  });
+                }
+
+                reject(new Error(`OAuth error: ${errorDescription}`));
+                return;
+              }
+
+              const code = tabUrl.searchParams.get("code");
+              if (!code) {
+                // No code yet, keep listening (might be an intermediate redirect)
+                return;
+              }
+
+              const state = tabUrl.searchParams.get("state");
+              if (!state) {
+                isResolved = true;
+                cleanup();
+
+                // Close the tab
+                if (oauthTabId !== null) {
+                  tabsAPI.remove(oauthTabId).catch(() => {
+                    // Ignore errors when closing tab
+                  });
+                }
+
+                reject(new Error("No state parameter in OAuth callback"));
+                return;
+              }
+
+              // State validation - only close tab after validation succeeds
+              isResolved = true;
+              cleanup();
+
+              validateOAuthStateWithoutCleanup(state)
+                .then(() => {
+                  // State is valid, close the tab and resolve
+                  // Note: State is NOT cleaned up here, token exchange will clean it up
+                  if (oauthTabId !== null) {
+                    tabsAPI.remove(oauthTabId).catch(() => {
+                      // Ignore errors when closing tab
+                    });
+                  }
+                  if (!tab.url) {
+                    reject(new Error("Tab URL is undefined"));
+                    return;
+                  }
+                  resolve(tab.url);
+                })
+                .catch((error) => {
+                  // State validation failed, close the tab and reject
+                  if (oauthTabId !== null) {
+                    tabsAPI.remove(oauthTabId).catch(() => {
+                      // Ignore errors when closing tab
+                    });
+                  }
+                  reject(error);
+                });
+            }
+          }
+        } catch (_error) {
+          // Invalid URL, ignore
+        }
+      }
+    };
+
+    // Listen for tab removal (user closed the OAuth tab)
+    const tabRemovedListener = (tabId: number) => {
+      if (tabId === oauthTabId && !isResolved) {
+        isResolved = true;
+        cleanup();
+        reject(new Error("OAuth cancelled by user"));
+      }
+    };
+
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      tabsAPI.onUpdated.removeListener(tabUpdateListener);
+      tabsAPI.onRemoved.removeListener(tabRemovedListener);
+    };
+
+    // Register listeners
+    tabsAPI.onUpdated.addListener(tabUpdateListener);
+    tabsAPI.onRemoved.addListener(tabRemovedListener);
+
+    // Open OAuth URL in a new tab
+    tabsAPI
+      .create({
+        url: authUrl,
+        active: true,
+      })
+      .then((tab) => {
+        if (tab.id) {
+          oauthTabId = tab.id;
+        } else {
+          cleanup();
+          reject(new Error("Failed to create OAuth tab"));
+        }
+      })
+      .catch((error) => {
+        cleanup();
+        reject(new Error(`Failed to open OAuth tab: ${error.message}`));
+      });
   });
 }
 
@@ -617,31 +802,61 @@ async function handleTokenExchange(
   return tokens;
 }
 
+/**
+ * Validates OAuth state without cleaning it up (for Safari flow)
+ * Token exchange will clean up the state after successful validation
+ */
+async function validateOAuthStateWithoutCleanup(state: string): Promise<void> {
+  const storageAPI = getStorageAPI();
+  if (!storageAPI?.local) {
+    // Fail closed: if we can't access storage, we can't validate state
+    throw new Error("Storage API not available - cannot validate OAuth state");
+  }
+
+  const result = await storageAPI.local.get(["oauth_state"]);
+  const storedState = result.oauth_state as string | undefined;
+
+  if (!storedState) {
+    throw new Error("No stored OAuth state found - possible CSRF attack");
+  }
+
+  if (storedState !== state) {
+    devLog.error("State parameter mismatch - possible CSRF attack");
+    throw new Error("Invalid state parameter - possible CSRF attack");
+  }
+}
+
 async function validateOAuthState(state: string): Promise<void> {
   const storageAPI = getStorageAPI();
   if (!storageAPI?.local) {
-    devLog.warn("Storage API not available for state validation");
-    return;
+    // Fail closed: if we can't access storage, we can't validate state
+    throw new Error("Storage API not available - cannot validate OAuth state");
   }
 
   try {
     const result = await storageAPI.local.get(["oauth_state"]);
     const storedState = result.oauth_state as string | undefined;
 
-    if (storedState && storedState !== state) {
+    // Fail closed: state must exist and match exactly
+    if (!storedState) {
+      throw new Error("No stored OAuth state found");
+    }
+
+    if (storedState !== state) {
       await storageAPI.local.remove("oauth_state");
       devLog.error("State parameter mismatch - possible CSRF attack");
       throw new Error("Invalid state parameter - possible CSRF attack");
     }
 
-    if (storedState === state) {
-      await storageAPI.local.remove("oauth_state");
-    }
+    await storageAPI.local.remove("oauth_state");
   } catch (error) {
-    if (error instanceof Error && error.message.includes("Invalid state parameter")) {
-      throw error;
+    // Clean up on any error
+    try {
+      await storageAPI.local.remove("oauth_state");
+    } catch {
+      // Ignore cleanup errors
     }
-    devLog.warn("State validation warning:", error);
+    throw error;
   }
 }
 
@@ -718,29 +933,9 @@ async function getAuthHeader(): Promise<string> {
 async function fetchEventTypes(): Promise<unknown[]> {
   const authHeader = await getAuthHeader();
 
-  const userResponse = await fetchWithTimeout(`${API_BASE_URL}/me`, {
-    headers: {
-      Authorization: authHeader,
-      "Content-Type": "application/json",
-      "cal-api-version": "2024-06-11",
-    },
-  });
-
-  if (!userResponse.ok) {
-    throw new Error(`Failed to get user: ${userResponse.statusText}`);
-  }
-
-  const userData = await userResponse.json();
-  const username = userData?.data?.username as string | undefined;
-
-  const params = new URLSearchParams();
-  if (username) {
-    params.append("username", username);
-  }
-  const queryString = params.toString();
-  const endpoint = `${API_BASE_URL}/event-types${queryString ? `?${queryString}` : ""}`;
-
-  const response = await fetchWithTimeout(endpoint, {
+  // For authenticated users, no username/orgSlug params needed - API uses auth token
+  // This also ensures hidden event types are returned (they're filtered out when username is provided)
+  const response = await fetchWithTimeout(`${API_BASE_URL}/event-types`, {
     headers: {
       Authorization: authHeader,
       "Content-Type": "application/json",

@@ -47,13 +47,14 @@ type EventTypeUser = {
   id: number;
   name: string | null;
   username: string | null;
+  isPlatformManaged?: boolean;
   avatarUrl: string | null;
   brandColor: string | null;
   darkBrandColor: string | null;
   weekStart: string;
   metadata: Prisma.JsonValue;
   organizationId: number | null;
-  organization?: { slug: string | null } | null;
+  organization?: { slug: string | null; isPlatform?: boolean } | null;
   movedToProfile?: ProfileMinimal | null;
   profiles?: ProfileMinimal[];
 };
@@ -441,16 +442,27 @@ export class OutputEventTypesService_2024_06_14 {
       return "";
     }
 
+    // Managed users don't have public booking pages
+    if (user.isPlatformManaged) {
+      return "";
+    }
+
     const profile = this.usersService.getUserMainProfile(user);
-    const username = profile?.username ?? user.username;
+    const org = profile?.organization;
+    const isPlatformOrg = org?.isPlatform ?? false;
+
+    // For platform orgs, use user.username (public username like 'dhairyashil')
+    // For regular orgs, use profile.username (org-specific username)
+    const username = isPlatformOrg ? user.username : (profile?.username ?? user.username);
 
     if (!username) {
       return "";
     }
 
-    const orgSlug = profile?.organization?.slug ?? null;
-    const webAppUrl = this.configService.get<string>("app.baseUrl", "https://app.cal.com");
-    const baseUrl = orgSlug ? getBookerBaseUrlSync(orgSlug) : webAppUrl;
+    // Don't use org subdomain for platform organizations - they don't have public-facing subdomains
+    const orgSlug = !isPlatformOrg && org?.slug ? org.slug : null;
+    // getBookerBaseUrlSync(null) returns WEBSITE_URL (https://cal.com)
+    const baseUrl = getBookerBaseUrlSync(orgSlug);
     const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
     return `${normalizedBaseUrl}/${username}/${slug}`;

@@ -216,11 +216,27 @@ jobs:
             
             console.log(`Posted comment and removed label for PR #${prNumber}`);
 
+      - name: Checkout repository
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
+        uses: actions/checkout@v4
+
+      - name: Check for existing Devin session
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
+        id: check-session
+        uses: ./.github/actions/devin-session
+        with:
+          devin-api-key: ${{ secrets.DEVIN_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.get-pr.outputs.pr-number }}
+
       - name: Create Devin session for conflict resolution
         if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_EXISTING_SESSION: ${{ steps.check-session.outputs.has-existing-session }}
+          EXISTING_SESSION_ID: ${{ steps.check-session.outputs.session-id }}
+          EXISTING_SESSION_URL: ${{ steps.check-session.outputs.session-url }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -229,74 +245,11 @@ jobs:
             const pr = JSON.parse(fs.readFileSync('/tmp/pr-data.json', 'utf8'));
             const { owner, repo } = context.repo;
             
-            async function checkSessionStatus(sessionId) {
-              const response = await fetch(`https://api.devin.ai/v1/sessions/${sessionId}`, {
-                headers: {
-                  'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
-                  'Content-Type': 'application/json'
-                }
-              });
-              
-              if (!response.ok) {
-                console.log(`Failed to fetch session ${sessionId}: ${response.status}`);
-                return null;
-              }
-              
-              return await response.json();
-            }
-            
-            async function findExistingSession(prNumber, prBody) {
-              // First check if PR was created through Devin
-              const prSessionMatch = prBody?.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
-              if (prSessionMatch) {
-                const sessionId = prSessionMatch[1];
-                console.log(`PR #${prNumber} was created by Devin session: ${sessionId}`);
-                const session = await checkSessionStatus(sessionId);
-                if (session) {
-                  return { sessionId, sessionUrl: `https://app.devin.ai/sessions/${sessionId}`, isFromPrBody: true };
-                }
-              }
-              
-              // Check PR comments for existing Devin session (conflict resolution or Cubic AI review)
-              const comments = await github.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number: prNumber
-              });
-              
-              const sessionPatterns = [
-                'Devin AI is resolving merge conflicts',
-                'Devin AI is addressing Cubic AI'
-              ];
-              
-              for (const comment of comments.data.reverse()) {
-                const hasDevinSession = sessionPatterns.some(pattern => comment.body?.includes(pattern));
-                if (hasDevinSession) {
-                  const match = comment.body?.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
-                  if (match) {
-                    const sessionId = match[1];
-                    console.log(`Found existing session from comment: ${sessionId}`);
-                    
-                    const session = await checkSessionStatus(sessionId);
-                    if (session) {
-                      const activeStatuses = ['working', 'blocked', 'resumed'];
-                      if (activeStatuses.includes(session.status_enum)) {
-                        console.log(`Session ${sessionId} is active (status: ${session.status_enum})`);
-                        return { sessionId, sessionUrl: `https://app.devin.ai/sessions/${sessionId}`, isFromPrBody: false };
-                      } else {
-                        console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
-                      }
-                    }
-                  }
-                }
-              }
-              
-              return null;
-            }
+            const hasExistingSession = process.env.HAS_EXISTING_SESSION === 'true';
+            const existingSessionId = process.env.EXISTING_SESSION_ID;
+            const existingSessionUrl = process.env.EXISTING_SESSION_URL;
             
             console.log(`Processing PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
-            
-            const existingSession = await findExistingSession(pr.number, pr.body);
             
             const forkInstructions = pr.is_fork ? `
             IMPORTANT: This PR is from a fork.
@@ -386,8 +339,8 @@ jobs:
               let sessionUrl;
               let isNewSession = false;
               
-              if (existingSession) {
-                console.log(`Sending message to existing session ${existingSession.sessionId} for PR #${pr.number}`);
+              if (hasExistingSession) {
+                console.log(`Sending message to existing session ${existingSessionId} for PR #${pr.number}`);
                 
                 const message = `PR #${pr.number} has merge conflicts that need to be resolved.
 
@@ -395,7 +348,7 @@ jobs:
 
             Continue working on the same PR branch and push your fixes.`;
                 
-                const response = await fetch(`https://api.devin.ai/v1/sessions/${existingSession.sessionId}/message`, {
+                const response = await fetch(`https://api.devin.ai/v1/sessions/${existingSessionId}/message`, {
                   method: 'POST',
                   headers: {
                     'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
@@ -405,11 +358,11 @@ jobs:
                 });
                 
                 if (!response.ok) {
-                  console.error(`Failed to send message to session ${existingSession.sessionId}: ${response.status}`);
+                  console.error(`Failed to send message to session ${existingSessionId}: ${response.status}`);
                   throw new Error(`Failed to send message to existing session: ${response.status}`);
                 }
                 
-                sessionUrl = existingSession.sessionUrl;
+                sessionUrl = existingSessionUrl;
                 console.log(`Message sent to existing session for PR #${pr.number}`);
               } else {
                 console.log(`Creating new Devin session for PR #${pr.number}`);

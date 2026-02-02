@@ -1,6 +1,5 @@
 import type Stripe from "stripe";
-
-import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import type { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 
 export interface IBillingProviderService {
   checkoutSessionIsPaid(paymentId: string): Promise<boolean>;
@@ -10,6 +9,7 @@ export interface IBillingProviderService {
     subscriptionId: string;
     subscriptionItemId: string;
     membershipCount: number;
+    prorationBehavior?: "none" | "create_prorations" | "always_invoice";
   }): Promise<void>;
   handleEndTrial(subscriptionId: string): Promise<void>;
 
@@ -72,16 +72,37 @@ export interface IBillingProviderService {
     amount: number;
     currency: string;
     description: string;
+    subscriptionId?: string;
+    invoiceId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceItemId: string }>;
+
+  deleteInvoiceItem(invoiceItemId: string): Promise<void>;
 
   createInvoice(args: {
     customerId: string;
     autoAdvance: boolean;
+    collectionMethod?: "charge_automatically" | "send_invoice";
+    daysUntilDue?: number;
+    pendingInvoiceItemsBehavior?: "exclude" | "include";
+    subscriptionId?: string;
     metadata?: Record<string, string>;
   }): Promise<{ invoiceId: string }>;
 
-  finalizeInvoice(invoiceId: string): Promise<void>;
+  finalizeInvoice(invoiceId: string): Promise<{ invoiceUrl: string | null }>;
+
+  voidInvoice(invoiceId: string): Promise<void>;
+
+  getPaymentIntentFailureReason(paymentIntentId: string): Promise<string | null>;
+
+  hasDefaultPaymentMethod(args: { customerId: string; subscriptionId?: string }): Promise<boolean>;
+
+  // Usage-based billing
+  createSubscriptionUsageRecord(args: {
+    subscriptionId: string;
+    action: "increment" | "set";
+    quantity: number;
+  }): Promise<void>;
 
   // Subscription queries
   getSubscription(subscriptionId: string): Promise<{
@@ -101,4 +122,41 @@ export interface IBillingProviderService {
     current_period_end: number;
     trial_end: number | null;
   } | null>;
+
+  // Invoice listing
+  listInvoices(args: {
+    customerId: string;
+    subscriptionId?: string;
+    limit: number;
+    startingAfter?: string;
+    createdGte?: number;
+    createdLte?: number;
+  }): Promise<{
+    invoices: Array<{
+      id: string;
+      number: string | null;
+      created: number;
+      amountDue: number;
+      amountPaid: number;
+      currency: string;
+      status: string | null;
+      hostedInvoiceUrl: string | null;
+      invoicePdf: string | null;
+      lineItems: Array<{
+        id: string;
+        description: string | null;
+        amount: number;
+        quantity: number | null;
+      }>;
+      description: string | null;
+      paymentMethod: {
+        type: string;
+        card?: {
+          last4: string;
+          brand: string;
+        };
+      } | null;
+    }>;
+    hasMore: boolean;
+  }>;
 }

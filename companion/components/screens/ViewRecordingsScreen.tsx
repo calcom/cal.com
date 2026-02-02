@@ -7,9 +7,10 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BookingRecording } from "@/services/types/bookings.types";
+import { getColors } from "@/constants/colors";
 
 export interface ViewRecordingsScreenProps {
   recordings: BookingRecording[];
@@ -40,8 +41,19 @@ export function ViewRecordingsScreen({
   transparentBackground = false,
 }: ViewRecordingsScreenProps) {
   const insets = useSafeAreaInsets();
-  const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
-  const pillStyle = transparentBackground ? "bg-[#E8E8ED]/50" : "bg-[#E8E8ED]";
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+  const backgroundStyle = transparentBackground
+    ? "bg-transparent"
+    : isDark
+      ? "bg-black"
+      : `bg-[${theme.backgroundMuted}]`;
+  const pillStyle = transparentBackground
+    ? "bg-[#E8E8ED]/50"
+    : isDark
+      ? "bg-[#4D4D4D]"
+      : "bg-[#E8E8ED]";
 
   const handleOpenRecording = async (recording: BookingRecording) => {
     try {
@@ -56,25 +68,35 @@ export function ViewRecordingsScreen({
   const renderRecording = ({ item }: { item: BookingRecording }) => (
     <TouchableOpacity
       className={`mb-3 overflow-hidden rounded-xl ${
-        transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+        transparentBackground
+          ? isDark
+            ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
+            : "border border-gray-300/40 bg-white/60"
+          : isDark
+            ? "bg-[#171717]"
+            : "bg-white"
       }`}
       onPress={() => handleOpenRecording(item)}
       activeOpacity={0.7}
     >
       <View className="flex-row items-center p-4">
         <View className={`mr-3 h-10 w-10 items-center justify-center rounded-full ${pillStyle}`}>
-          <Ionicons name="videocam" size={20} color="#6B7280" />
+          <Ionicons name="videocam" size={20} color={isDark ? "#A3A3A3" : "#6B7280"} />
         </View>
         <View className="flex-1">
-          <Text className="text-[17px] font-medium text-[#000]">Recording</Text>
-          <Text className="mt-0.5 text-[15px] text-gray-500">{formatDate(item.startTime)}</Text>
+          <Text className={`text-[17px] font-medium ${isDark ? "text-white" : "text-[#000]"}`}>
+            Recording
+          </Text>
+          <Text className={`mt-0.5 text-[15px] ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}>
+            {formatDate(item.startTime)}
+          </Text>
           {item.duration && (
-            <Text className="mt-0.5 text-[13px] text-gray-400">
+            <Text className={`mt-0.5 text-[13px] ${isDark ? "text-[#636366]" : "text-gray-400"}`}>
               Duration: {formatDuration(item.duration)}
             </Text>
           )}
         </View>
-        <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+        <Ionicons name="chevron-forward" size={20} color={isDark ? "#48484A" : "#C7C7CC"} />
       </View>
     </TouchableOpacity>
   );
@@ -83,12 +105,16 @@ export function ViewRecordingsScreen({
     return (
       <View className={`flex-1 items-center justify-center px-8 ${backgroundStyle}`}>
         <View className={`mb-4 h-16 w-16 items-center justify-center rounded-full ${pillStyle}`}>
-          <Ionicons name="videocam-off" size={32} color="#8E8E93" />
+          <Ionicons name="videocam-off" size={32} color="#A3A3A3" />
         </View>
-        <Text className="text-center text-[17px] font-semibold text-[#000]">
+        <Text
+          className={`text-center text-[17px] font-semibold ${isDark ? "text-white" : "text-[#000]"}`}
+        >
           No recordings available
         </Text>
-        <Text className="mt-2 text-center text-[15px] leading-5 text-gray-500">
+        <Text
+          className={`mt-2 text-center text-[15px] leading-5 ${isDark ? "text-[#A3A3A3]" : "text-gray-500"}`}
+        >
           Recordings may take some time to process after the meeting ends.
         </Text>
       </View>

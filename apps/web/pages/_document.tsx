@@ -55,6 +55,7 @@ class MyDocument extends Document<Props> {
           <script
             id="newLocale"
             // eslint-disable-next-line react/no-danger
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Setting locale and theme requires inline script
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";

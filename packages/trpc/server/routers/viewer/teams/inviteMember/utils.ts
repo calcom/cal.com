@@ -1,9 +1,8 @@
 import { randomBytes } from "node:crypto";
-import type { TFunction } from "i18next";
-
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
@@ -18,14 +17,13 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
-import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
-import type { Profile as ProfileType } from "@calcom/prisma/client";
+import type { Membership, OrganizationSettings, Profile as ProfileType, Team } from "@calcom/prisma/client";
+import { Prisma, type UserPassword, type User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
+import type { TFunction } from "i18next";
 
 import { isEmail } from "../util";
 import type { TeamWithParent } from "./types";
@@ -137,7 +135,7 @@ export async function getUniqueInvitationsOrThrowIfEmpty(invitations: Invitation
   return uniqueInvitations;
 }
 
-export const enum INVITE_STATUS {
+export enum INVITE_STATUS {
   USER_PENDING_MEMBER_OF_THE_ORG = "USER_PENDING_MEMBER_OF_THE_ORG",
   USER_ALREADY_INVITED_OR_MEMBER = "USER_ALREADY_INVITED_OR_MEMBER",
   USER_MEMBER_OF_OTHER_ORGANIZATION = "USER_MEMBER_OF_OTHER_ORGANIZATION",
@@ -270,7 +268,7 @@ export function getOrgConnectionInfo({
   team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
-  let orgId: number | undefined = undefined;
+  let orgId: number | undefined;
   let autoAccept = false;
 
   if (team.parentId || isOrg) {
@@ -415,6 +413,16 @@ export async function createNewUsersConnectToOrgIfExists({
     },
     { timeout: 10000 }
   );
+
+  if (createdUsers.length > 0) {
+    const seatTracker = new SeatChangeTrackingService();
+    const trackingTeamId = parentId ?? teamId;
+    await seatTracker.logSeatAddition({
+      teamId: trackingTeamId,
+      seatCount: createdUsers.length,
+    });
+  }
+
   return createdUsers;
 }
 
@@ -464,6 +472,33 @@ export async function createMemberships({
         return data;
       }),
     });
+
+    const seatTracker = new SeatChangeTrackingService();
+    const teamSeatAdditions = parentId ? 0 : invitees.length;
+    const organizationSeatAdditions = parentId
+      ? invitees.filter((invitee) => invitee.needToCreateOrgMembership).length
+      : 0;
+
+    const trackingPromises: Promise<void>[] = [];
+    if (teamSeatAdditions > 0) {
+      trackingPromises.push(
+        seatTracker.logSeatAddition({
+          teamId,
+          seatCount: teamSeatAdditions,
+        })
+      );
+    }
+
+    if (parentId && organizationSeatAdditions > 0) {
+      trackingPromises.push(
+        seatTracker.logSeatAddition({
+          teamId: parentId,
+          seatCount: organizationSeatAdditions,
+        })
+      );
+    }
+
+    await Promise.all(trackingPromises);
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       logger.error("Failed to create memberships", teamId);
@@ -927,6 +962,14 @@ export async function handleExistingUsersInvites({
         };
       })
     );
+
+    if (!team.parentId && existingUsersWithMembershipsNew.length > 0) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: team.id,
+        seatCount: existingUsersWithMembershipsNew.length,
+      });
+    }
 
     const autoJoinUsers = existingUsersWithMembershipsNew.filter(
       (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
