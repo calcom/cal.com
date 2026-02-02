@@ -30,6 +30,22 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
 /**
+ * Google system calendars that don't return proper free/busy information,
+ * making them useless for availability checking. These include:
+ * - Holiday calendars (e.g., "en.usa#holiday@group.v.calendar.google.com")
+ * - Birthdays/contacts calendar ("addressbook#contacts@group.v.calendar.google.com")
+ */
+const GOOGLE_SYSTEM_CALENDAR_SUFFIXES = [
+  "#holiday@group.v.calendar.google.com",
+  "#contacts@group.v.calendar.google.com",
+];
+
+function isGoogleSystemCalendar(calendarId: string | null | undefined): boolean {
+  if (!calendarId) return false;
+  return GOOGLE_SYSTEM_CALENDAR_SUFFIXES.some((suffix) => calendarId.endsWith(suffix));
+}
+
+/**
  * Extended interface for Google Calendar service that includes Google-specific methods.
  * This interface is used by internal Google Calendar modules (callback, tests, etc.)
  * that need access to Google-specific functionality beyond the generic Calendar interface.
@@ -390,7 +406,7 @@ class GoogleCalendarService implements Calendar {
       });
 
       if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-        calendar.events.patch({
+        await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
           eventId: evt.data.id || "",
@@ -710,7 +726,11 @@ class GoogleCalendarService implements Calendar {
       );
 
       if (!cals.items) return [];
-      return cals.items.map(
+
+      // Filter out Google system calendars (holidays, birthdays) as they don't return proper free/busy information
+      const filteredCalendars = cals.items.filter((cal) => !isGoogleSystemCalendar(cal.id));
+
+      return filteredCalendars.map(
         (cal) =>
           ({
             externalId: cal.id ?? "No id",

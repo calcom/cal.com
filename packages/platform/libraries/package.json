@@ -104,6 +104,16 @@
       "import": "./dist/errors.js",
       "require": "./dist/errors.cjs",
       "types": "./dist/errors.d.ts"
+    },
+    "./calendars": {
+      "import": "./dist/calendars.js",
+      "require": "./dist/calendars.cjs",
+      "types": "./dist/calendars.d.ts"
+    },
+    "./tasker": {
+      "import": "./dist/tasker.js",
+      "require": "./dist/tasker.cjs",
+      "types": "./dist/tasker.d.ts"
     }
   },
   "typesVersions": {
@@ -146,6 +156,12 @@
       ],
       "errors": [
         "dist/errors.d.ts"
+      ],
+      "calendars": [
+        "dist/calendars.d.ts"
+      ],
+      "tasker": [
+        "dist/tasker.d.ts"
       ]
     }
   }

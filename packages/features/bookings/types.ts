@@ -41,6 +41,7 @@ export type BookerEvent = Pick<
   | "recurringEvent"
   | "entity"
   | "locations"
+  | "enablePerHostLocations"
   | "metadata"
   | "isDynamic"
   | "requiresConfirmation"

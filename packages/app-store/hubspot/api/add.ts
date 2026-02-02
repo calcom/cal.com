@@ -1,8 +1,6 @@
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import * as hubspot from "@hubspot/api-client";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 

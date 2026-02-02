@@ -1,11 +1,7 @@
 import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
 import { SeatChangeLogRepository } from "@calcom/features/ee/billing/repository/seatChangeLogs/SeatChangeLogRepository";
-import logger from "@calcom/lib/logger";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SeatChangeType } from "@calcom/prisma/enums";
-import type { Logger } from "tslog";
-
-const log = logger.getSubLogger({ prefix: ["SeatChangeTrackingService"] });
 
 export interface SeatChangeLogParams {
   teamId: number;
@@ -26,11 +22,9 @@ export interface MonthlyChanges {
 }
 
 export class SeatChangeTrackingService {
-  private logger: Logger<unknown>;
   private repository: SeatChangeLogRepository;
 
-  constructor(customLogger?: Logger<unknown>, repository?: SeatChangeLogRepository) {
-    this.logger = customLogger || log;
+  constructor(repository?: SeatChangeLogRepository) {
     this.repository = repository || new SeatChangeLogRepository();
   }
 

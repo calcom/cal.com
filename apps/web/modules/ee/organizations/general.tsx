@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/components/DisableAutofillOnBookingPageSwitch";
 import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "~/ee/organizations/components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "~/ee/organizations/components/NoSlotsNotificationSwitch";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";

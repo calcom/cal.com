@@ -1,12 +1,7 @@
-import type { z } from "zod";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import {
-  DEFAULT_SCHEDULE,
-  getAvailabilityFromSchedule,
-} from "@calcom/lib/availability";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -14,18 +9,15 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type {
-  User as UserType,
-  DestinationCalendar,
-  SelectedCalendar,
-} from "@calcom/prisma/client";
+import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
+import type { z } from "zod";
 
 export type { UserWithLegacySelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 export { withSelectedCalendars };
@@ -96,8 +88,6 @@ const userSelect = {
   bio: true,
   avatarUrl: true,
   timeZone: true,
-  startTime: true,
-  endTime: true,
   weekStart: true,
   bufferTime: true,
   hideBranding: true,
@@ -145,12 +135,8 @@ export class UserRepository {
       },
     });
 
-    const acceptedTeamMemberships = teamMemberships.filter(
-      (membership) => membership.accepted
-    );
-    const pendingTeamMemberships = teamMemberships.filter(
-      (membership) => !membership.accepted
-    );
+    const acceptedTeamMemberships = teamMemberships.filter((membership) => membership.accepted);
+    const pendingTeamMemberships = teamMemberships.filter((membership) => !membership.accepted);
 
     return {
       teams: acceptedTeamMemberships.map((membership) => membership.team),
@@ -169,9 +155,7 @@ export class UserRepository {
       (membership) => membership.team.isOrganization
     );
 
-    const organizations = acceptedOrgMemberships.map(
-      (membership) => membership.team
-    );
+    const organizations = acceptedOrgMemberships.map((membership) => membership.team);
 
     return {
       organizations,
@@ -181,18 +165,11 @@ export class UserRepository {
   /**
    * It is aware of the fact that a user can be part of multiple organizations.
    */
-  async findUsersByUsername({
-    orgSlug,
-    usernameList,
-  }: {
-    orgSlug: string | null;
-    usernameList: string[];
-  }) {
-    const { where, profiles } =
-      await this._getWhereClauseForFindingUsersByUsername({
-        orgSlug,
-        usernameList,
-      });
+  async findUsersByUsername({ orgSlug, usernameList }: { orgSlug: string | null; usernameList: string[] }) {
+    const { where, profiles } = await this._getWhereClauseForFindingUsersByUsername({
+      orgSlug,
+      usernameList,
+    });
 
     return (
       await this.prismaClient.user.findMany({
@@ -207,13 +184,9 @@ export class UserRepository {
           profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
         };
       }
-      const profile =
-        profiles.find((profile) => profile.user.id === user.id) ?? null;
+      const profile = profiles.find((profile) => profile.user.id === user.id) ?? null;
       if (!profile) {
-        log.error(
-          "Profile not found for user",
-          safeStringify({ user, profiles })
-        );
+        log.error("Profile not found for user", safeStringify({ user, profiles }));
         // Profile must be there because profile itself was used to retrieve the user
         throw new Error("Profile couldn't be found");
       }
@@ -225,11 +198,7 @@ export class UserRepository {
     });
   }
 
-  async findPlatformMembersByUsernames({
-    usernameList,
-  }: {
-    usernameList: string[];
-  }) {
+  async findPlatformMembersByUsernames({ usernameList }: { usernameList: string[] }) {
     return (
       await this.prismaClient.user.findMany({
         select: userSelect,
@@ -288,8 +257,7 @@ export class UserRepository {
             },
             ...(orgSlug
               ? {
-                  organization:
-                    whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+                  organization: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
                 }
               : {
                   organization: null,
@@ -308,11 +276,7 @@ export class UserRepository {
     return user;
   }
 
-  async findManyByEmailsWithEmailVerificationSettings({
-    emails,
-  }: {
-    emails: string[];
-  }) {
+  async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 
     if (!normalizedEmails.length) return [];
@@ -399,8 +363,7 @@ export class UserRepository {
       return null;
     }
 
-    const allProfiles =
-      await ProfileRepository.findAllProfilesForUserIncludingMovedUser(user);
+    const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(user);
     return {
       ...user,
       allProfiles,
@@ -424,13 +387,7 @@ export class UserRepository {
     };
   }
 
-  async findSecondaryEmailByUserIdAndEmail({
-    userId,
-    email,
-  }: {
-    userId: number;
-    email: string;
-  }) {
+  async findSecondaryEmailByUserIdAndEmail({ userId, email }: { userId: number; email: string }) {
     return this.prismaClient.secondaryEmail.findUnique({
       where: {
         userId_email: {
@@ -489,9 +446,7 @@ export class UserRepository {
     user: { profiles: { organizationId: number }[] };
     organizationId: number;
   }) {
-    return user.profiles.some(
-      (profile) => profile.organizationId === organizationId
-    );
+    return user.profiles.some((profile) => profile.organizationId === organizationId);
   }
 
   async findIfAMemberOfSomeOrganization({ user }: { user: { id: number } }) {
@@ -514,11 +469,7 @@ export class UserRepository {
     return !!user.metadata?.migratedToOrgFrom;
   }
 
-  async isMovedToAProfile({
-    user,
-  }: {
-    user: Pick<UserType, "movedToProfileId">;
-  }) {
+  async isMovedToAProfile({ user }: { user: Pick<UserType, "movedToProfileId"> }) {
     return !!user.movedToProfileId;
   }
 
@@ -560,9 +511,13 @@ export class UserRepository {
     return updatedUser;
   }
 
-  async enrichUserWithTheProfile<
-    T extends { username: string | null; id: number }
-  >({ user, upId }: { user: T; upId: UpId }) {
+  async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
+    user,
+    upId,
+  }: {
+    user: T;
+    upId: UpId;
+  }) {
     const profile = await ProfileRepository.findByUpIdWithAuth(upId, user.id);
     if (!profile) {
       return {
@@ -587,7 +542,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -630,7 +585,7 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-    }
+    },
   >({
     user,
   }: {
@@ -665,9 +620,7 @@ export class UserRepository {
     };
   }
 
-  async enrichUsersWithTheirProfiles<
-    T extends { id: number; username: string | null }
-  >(
+  async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
     Array<
@@ -694,10 +647,7 @@ export class UserRepository {
     // Precompute personal profiles for all users
     const personalProfileMap = new Map<number, UserProfile>();
     users.forEach((user) => {
-      personalProfileMap.set(
-        user.id,
-        ProfileRepository.buildPersonalProfileFromUser({ user })
-      );
+      personalProfileMap.set(user.id, ProfileRepository.buildPersonalProfileFromUser({ user }));
     });
 
     return users.map((user) => {
@@ -729,9 +679,7 @@ export class UserRepository {
     });
   }
 
-  async enrichUsersWithTheirProfileExcludingOrgMetadata<
-    T extends { id: number; username: string | null }
-  >(
+  async enrichUsersWithTheirProfileExcludingOrgMetadata<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
     Array<
@@ -767,9 +715,7 @@ export class UserRepository {
     });
   }
 
-  enrichUserWithItsProfileBuiltFromUser<
-    T extends { id: number; username: string | null }
-  >({
+  enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
     user: T;
@@ -807,7 +753,7 @@ export class UserRepository {
             username: string | null;
             id: number;
           };
-        }
+        },
   >(entity: T) {
     if ("profile" in entity) {
       const { profile, ...entityWithoutProfile } = entity;
@@ -872,10 +818,7 @@ export class UserRepository {
   }
 
   async create(
-    data: Omit<
-      Prisma.UserCreateInput,
-      "password" | "organization" | "movedToProfile"
-    > & {
+    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
       username: string;
       hashedPassword?: string;
       organizationId: number | null;
@@ -884,8 +827,7 @@ export class UserRepository {
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, ...rest } =
-      data;
+    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
 
     logger.info("create user", {
       email,
@@ -992,13 +934,7 @@ export class UserRepository {
       },
     });
   }
-  async isAdminOfTeamOrParentOrg({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {
       members: {
         some: {
@@ -1023,13 +959,7 @@ export class UserRepository {
     });
     return !!teams.length;
   }
-  async isAdminOrOwnerOfTeam({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
     const isAdminOrOwnerOfTeam = await this.prismaClient.membership.findUnique({
       where: {
         userId_teamId: {
@@ -1140,8 +1070,7 @@ export class UserRepository {
       return null;
     }
 
-    const { credentials, ...userWithSelectedCalendars } =
-      withSelectedCalendars(user);
+    const { credentials, ...userWithSelectedCalendars } = withSelectedCalendars(user);
     return {
       ...userWithSelectedCalendars,
       credentials: buildNonDelegationCredentials(credentials),
@@ -1166,8 +1095,6 @@ export class UserRepository {
         avatarUrl: true,
         timeZone: true,
         weekStart: true,
-        startTime: true,
-        endTime: true,
         defaultScheduleId: true,
         bufferTime: true,
         theme: true,
@@ -1183,6 +1110,7 @@ export class UserRepository {
         movedToProfileId: true,
         selectedCalendars: {
           select: {
+            id: true,
             eventTypeId: true,
             externalId: true,
             integration: true,
@@ -1262,11 +1190,7 @@ export class UserRepository {
     };
   }
 
-  async findManyByIdsIncludeDestinationAndSelectedCalendars({
-    ids,
-  }: {
-    ids: number[];
-  }) {
+  async findManyByIdsIncludeDestinationAndSelectedCalendars({ ids }: { ids: number[] }) {
     const users = await this.prismaClient.user.findMany({
       where: { id: { in: ids } },
       include: {
@@ -1292,13 +1216,7 @@ export class UserRepository {
     });
   }
 
-  async updateWhitelistWorkflows({
-    id,
-    whitelistWorkflows,
-  }: {
-    id: number;
-    whitelistWorkflows: boolean;
-  }) {
+  async updateWhitelistWorkflows({ id, whitelistWorkflows }: { id: number; whitelistWorkflows: boolean }) {
     return this.prismaClient.user.update({
       where: { id },
       data: { whitelistWorkflows },
@@ -1344,13 +1262,7 @@ export class UserRepository {
     });
   }
 
-  async findUsersWithLastBooking({
-    userIds,
-    eventTypeId,
-  }: {
-    userIds: number[];
-    eventTypeId: number;
-  }) {
+  async findUsersWithLastBooking({ userIds, eventTypeId }: { userIds: number[]; eventTypeId: number }) {
     return this.prismaClient.user.findMany({
       where: {
         id: {
@@ -1427,25 +1339,30 @@ export class UserRepository {
     });
   }
 
+  async findForPasswordReset({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        name: true,
+        locale: true,
+      },
+    });
+  }
+
   /**
    * Finds a user by ID returning only their username
    * @param userId - The user ID
    * @returns User with username or null
    */
-  async findByIdWithUsername(
-    userId: number
-  ): Promise<{ username: string | null } | null> {
+  async findByIdWithUsername(userId: number): Promise<{ username: string | null } | null> {
     return this.prismaClient.user.findUnique({
       where: { id: userId },
       select: { username: true },
     });
   }
 
-  async findManyByIdsWithCredentialsAndSelectedCalendars({
-    userIds,
-  }: {
-    userIds: number[];
-  }) {
+  async findManyByIdsWithCredentialsAndSelectedCalendars({ userIds }: { userIds: number[] }) {
     const users = await this.prismaClient.user.findMany({
       where: {
         id: {
@@ -1467,13 +1384,7 @@ export class UserRepository {
     return users.map(withSelectedCalendars);
   }
 
-  async findByEmailAndTeamId({
-    email,
-    teamId,
-  }: {
-    email: string;
-    teamId: number;
-  }) {
+  async findByEmailAndTeamId({ email, teamId }: { email: string; teamId: number }) {
     return this.prismaClient.user.findFirst({
       where: {
         email: email.toLowerCase(),

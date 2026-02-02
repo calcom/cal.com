@@ -30,16 +30,20 @@ export function FeatureOptInSuccessDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogPopup className="sm:max-w-md">
+      <DialogPopup className="sm:max-w-md" data-testid="feature-opt-in-success-dialog">
         <DialogHeader>
-          <DialogTitle>{t("feature_enabled_successfully")}</DialogTitle>
+          <DialogTitle data-testid="feature-opt-in-success-dialog-title">
+            {t("feature_enabled_successfully")}
+          </DialogTitle>
           <DialogDescription>{t("feature_enabled_description")}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" />} onClick={onDismiss}>
             {t("dismiss")}
           </DialogClose>
-          <Button onClick={onViewSettings}>{t("view_settings")}</Button>
+          <Button data-testid="feature-opt-in-success-dialog-view-settings" onClick={onViewSettings}>
+            {t("view_settings")}
+          </Button>
         </DialogFooter>
       </DialogPopup>
     </Dialog>

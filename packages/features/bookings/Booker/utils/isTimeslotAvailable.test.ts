@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { QuickAvailabilityCheck } from "../components/hooks/useSlots";
+import type { QuickAvailabilityCheck } from "../types";
 import { isTimeSlotAvailable } from "./isTimeslotAvailable";
 
 describe("isTimeSlotAvailable", () => {

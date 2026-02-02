@@ -26,18 +26,16 @@ test.describe("Can signup from a team invite", async () => {
     await page.goto("/settings/teams/new");
     await page.waitForLoadState("networkidle");
 
-    // Create a new team (new onboarding-v3 style flow)
-    await page.locator('[data-testid="team-name-input"]').fill(teamName);
+    // Create a new team
+    await page.locator('input[name="name"]').fill(teamName);
+    await page.locator('input[name="slug"]').fill(teamName);
     await page.locator('button[type="submit"]').click();
 
-    // Wait for the invite email page
-    await page.waitForURL(/\/settings\/teams\/new\/invite\/email.*$/i);
-    await page.waitForLoadState("networkidle");
-
-    // Add new member to team via email invite form
-    await page.locator('input[type="email"]').first().fill(testUser.email);
+    // Add new member to team
+    await page.click('[data-testid="new-member-button"]');
+    await page.fill('input[id="inviteUser"]', testUser.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
-    await page.locator('button[type="submit"]').click();
+    await page.getByTestId("invite-new-member-button").click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
 
