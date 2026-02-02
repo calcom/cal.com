@@ -93,9 +93,9 @@ const determineScheduledTimestamp = (
       case WorkflowTriggerEvents.NEW_EVENT:
       case WorkflowTriggerEvents.EVENT_CANCELLED:
       case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-        // For traditionally immediate events, schedule relative to event start time
+        // For traditionally immediate events, schedule relative to current time
         // You can modify this logic based on your specific requirements
-        return dayjs(eventStart).add(timeOffset.time, timeUnitNormalized);
+        return dayjs().add(timeOffset.time, timeUnitNormalized);
 
       default:
         return null;

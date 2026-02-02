@@ -27,7 +27,8 @@ on:
         default: "false"
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{github.event.inputs.branch || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   # ONLY RUN JOB ON PR MERGE on MAIN OR DEVELOP BRANCH

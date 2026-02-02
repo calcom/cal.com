@@ -119,9 +119,9 @@ const calculateScheduledDateTime = (
     case WorkflowTriggerEvents.NEW_EVENT:
     case WorkflowTriggerEvents.EVENT_CANCELLED:
     case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-      // For traditionally immediate events, schedule relative to event start time
+      // For traditionally immediate events, schedule relative to current time
       // You can modify this logic based on your specific requirements
-      return dayjs(eventStartTime).add(time, normalizedUnit);
+      return dayjs().add(time, normalizedUnit);
     default:
       return null;
   }
@@ -229,15 +229,31 @@ const createWorkflowInsight = async (
 ) => {
   await prisma.calIdWorkflowInsights.create({
     data: {
-      msgId: msgId,
-      eventTypeId: eventTypeId,
+      msgId,
       type: WorkflowMethods.SMS,
       status: WorkflowStatus.QUEUED,
-      ...(bookingUid && { bookingUid: bookingUid }),
-      ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
-      workflowId: workflowId,
-      workflowStepId: workflowStepId,
-      ...(metadata && metadata),
+
+      eventType: {
+        connect: { id: eventTypeId },
+      },
+
+      ...(bookingUid && {
+        booking: { connect: { uid: bookingUid } },
+      }),
+
+      ...(seatReferenceUid && {
+        bookingSeat: { connect: { referenceUid: seatReferenceUid } },
+      }),
+
+      ...(workflowId && {
+        workflow: { connect: { id: workflowId } },
+      }),
+
+      ...(workflowStepId && {
+        workflowStep: { connect: { id: workflowStepId } },
+      }),
+
+      ...(metadata && { metadata }),
     },
   });
 };
@@ -376,7 +392,6 @@ const processScheduledReminder = async (
 ): Promise<void> => {
   const currentMoment = dayjs();
   const twoHourWindow = currentMoment.add(2, "hour");
-
   // within next 2 hours → schedule delayed notification
   if (dispatchTime.isBefore(twoHourWindow)) {
     await scheduleDelayedNotification(
