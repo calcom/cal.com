@@ -3,10 +3,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
-
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
-
-const SELECTION_COLORS = ["#f97316", "#84cc16", "#06b6d4", "#8b5cf6", "#ec4899", "#f43f5e"];
 
 interface CalendarToggleItemProps {
   title: string;
@@ -41,10 +38,18 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
             {badgeText}
           </Badge>
         </div>
-      }>
+      }
+    >
       <div className="[&>*]:text-emphasis flex flex-col gap-3">
         {props.calendars?.map((calendar) => {
-          return <Switch key={calendar.name} checked={calendar.active} label={calendar.name} disabled />;
+          return (
+            <Switch
+              key={calendar.name}
+              checked={calendar.active}
+              label={calendar.name}
+              disabled
+            />
+          );
         })}
       </div>
     </TroubleshooterListItemContainer>
@@ -69,9 +74,14 @@ function EmptyCalendarToggleItem() {
             {t("unavailable")}
           </Badge>
         </div>
-      }>
+      }
+    >
       <div className="flex flex-col gap-3">
-        <Button color="secondary" className="justify-center gap-2" href="/apps/categories/calendar">
+        <Button
+          color="secondary"
+          className="justify-center gap-2"
+          href="/apps/categories/calendar"
+        >
           {t("install_calendar")}
         </Button>
       </div>
@@ -80,18 +90,57 @@ function EmptyCalendarToggleItem() {
 }
 
 export function CalendarToggleContainer() {
-  const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.calendars.connectedCalendars.useQuery();
+  const { data, isLoading } =
+    trpc.viewer.calendars.connectedCalendars.useQuery();
 
-  const hasConnectedCalendars = data && data?.connectedCalendars.length > 0;
+  return (
+    <CalendarToggleContainerComponent
+      connectedCalendars={data?.connectedCalendars ?? []}
+      isLoading={isLoading}
+    />
+  );
+}
+
+interface ConnectedCalendarItem {
+  credentialId: number;
+  integration: {
+    name: string;
+  };
+  error?: {
+    message: string;
+  };
+  calendars?: {
+    primary: boolean | null;
+    isSelected: boolean;
+    name?: string;
+  }[];
+}
+
+interface CalendarToggleContainerComponentProps {
+  connectedCalendars: ConnectedCalendarItem[];
+  isLoading: boolean;
+  showManageCalendarsButton?: boolean;
+}
+
+export function CalendarToggleContainerComponent({
+  connectedCalendars,
+  isLoading,
+  showManageCalendarsButton = true,
+}: CalendarToggleContainerComponentProps): JSX.Element {
+  const { t } = useLocale();
+  const hasConnectedCalendars = connectedCalendars.length > 0;
 
   return (
     <div className="flex flex-col stack-y-3">
-      <p className="text-sm font-medium leading-none">{t("calendars_were_checking_for_conflicts")}</p>
+      <p className="text-sm font-medium leading-none">
+        {t("calendars_were_checking_for_conflicts")}
+      </p>
       {hasConnectedCalendars && !isLoading ? (
         <>
-          {data.connectedCalendars.map((calendar) => {
-            const foundPrimary = calendar.calendars?.find((item) => item.primary);
+          {connectedCalendars.map((calendar) => {
+            const foundPrimary = calendar.calendars?.find(
+              (item) => item.primary
+            );
             // Will be used when getAvailbility is modified to use externalId instead of appId for source.
             // const color = SELECTION_COLORS[idx] || "#000000";
             // // Add calendar to color map using externalId (what we use on the backend to determine source)
@@ -112,9 +161,15 @@ export function CalendarToggleContainer() {
               />
             );
           })}
-          <Button color="secondary" className="justify-center gap-2" href="/settings/my-account/calendars">
-            {t("manage_calendars")}
-          </Button>
+          {showManageCalendarsButton && (
+            <Button
+              color="secondary"
+              className="justify-center gap-2"
+              href="/settings/my-account/calendars"
+            >
+              {t("manage_calendars")}
+            </Button>
+          )}
         </>
       ) : (
         <EmptyCalendarToggleItem />

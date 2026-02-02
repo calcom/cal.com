@@ -1,21 +1,51 @@
-import { useMemo, useEffect, startTransition } from "react";
-import { shallow } from "zustand/shallow";
-
-import { trpc } from "@calcom/trpc/react";
-import { SelectField } from "@calcom/ui/components/form";
-
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
+import { trpc } from "@calcom/trpc/react";
+import { SelectField } from "@calcom/ui/components/form";
+import { startTransition, useEffect, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
-export function EventTypeSelect() {
-  const { data: eventTypes, isPending } = trpc.viewer.eventTypes.listWithTeam.useQuery();
-  const { event: selectedEventType, setEvent: setSelectedEventType } = useTroubleshooterStore(
-    (state) => ({
-      event: state.event,
-      setEvent: state.setEvent,
-    }),
-    shallow
+interface EventTypeItem {
+  id: number;
+  title: string;
+  slug: string;
+  length: number;
+  username?: string | null;
+  team?: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+interface EventTypeSelectComponentProps {
+  eventTypes: EventTypeItem[];
+  isPending?: boolean;
+}
+
+export function EventTypeSelect(): JSX.Element {
+  const { data: eventTypes, isPending } =
+    trpc.viewer.eventTypes.listWithTeam.useQuery();
+
+  return (
+    <EventTypeSelectComponent
+      eventTypes={eventTypes ?? []}
+      isPending={isPending}
+    />
   );
+}
+
+export function EventTypeSelectComponent({
+  eventTypes,
+  isPending,
+}: EventTypeSelectComponentProps): JSX.Element {
+  const { event: selectedEventType, setEvent: setSelectedEventType } =
+    useTroubleshooterStore(
+      (state) => ({
+        event: state.event,
+        setEvent: state.setEvent,
+      }),
+      shallow
+    );
 
   const options = useMemo(() => {
     if (!eventTypes) return [];
@@ -32,7 +62,9 @@ export function EventTypeSelect() {
     if (!eventTypes || eventTypes.length === 0) return;
 
     const selectedEventIdParam = getQueryParam("eventTypeId");
-    const eventTypeId = selectedEventIdParam ? parseInt(selectedEventIdParam, 10) : null;
+    const eventTypeId = selectedEventIdParam
+      ? parseInt(selectedEventIdParam, 10)
+      : null;
 
     // If we already have a selected event that matches the query param, don't do anything
     if (selectedEventType?.id === eventTypeId) return;
@@ -47,6 +79,7 @@ export function EventTypeSelect() {
             slug: foundEventType.slug,
             duration: foundEventType.length,
             teamId: foundEventType.team?.id ?? null,
+            username: foundEventType.username ?? null,
           });
           return;
         }
@@ -61,6 +94,7 @@ export function EventTypeSelect() {
         slug: firstEvent.slug,
         duration: firstEvent.length,
         teamId: firstEvent.team?.id ?? null,
+        username: firstEvent.username ?? null,
       });
     }
   }, [eventTypes, selectedEventType, setSelectedEventType]);
@@ -70,7 +104,10 @@ export function EventTypeSelect() {
       label="Event Type"
       options={options}
       isDisabled={isPending || options.length === 0}
-      value={options.find((option) => option.id === selectedEventType?.id) || options[0]}
+      value={
+        options.find((option) => option.id === selectedEventType?.id) ||
+        options[0]
+      }
       onChange={(option) => {
         if (!option) return;
         const foundEventType = eventTypes?.find((et) => et.id === option.id);
@@ -80,6 +117,7 @@ export function EventTypeSelect() {
             slug: foundEventType.slug,
             duration: foundEventType.length,
             teamId: foundEventType.team?.id ?? null,
+            username: foundEventType.username ?? null,
           });
         }
       }}

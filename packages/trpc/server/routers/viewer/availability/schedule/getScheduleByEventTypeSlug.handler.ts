@@ -6,7 +6,7 @@ import type { TGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.sc
 
 type GetOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "timeZone" | "defaultScheduleId">;
     prisma: PrismaClient;
   };
   input: TGetByEventSlugInputSchema;
