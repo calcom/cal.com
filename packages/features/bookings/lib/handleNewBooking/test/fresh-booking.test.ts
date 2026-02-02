@@ -717,16 +717,9 @@ describe("handleNewBooking", () => {
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
-            references: [
-              {
-                type: appStoreMetadata.googlecalendar.type,
-                // A reference is still created in case of event creation failure, with nullish values. Not sure what's the purpose for this.
-                uid: "",
-                meetingId: null,
-                meetingPassword: null,
-                meetingUrl: null,
-              },
-            ],
+            // No calendar reference should be created when calendar event creation fails
+            // This prevents 500 errors later when trying to delete non-existent calendar events
+            references: [],
           });
 
           expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
