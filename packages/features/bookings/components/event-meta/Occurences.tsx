@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { parseRecurringDates } from "@calcom/lib/parse-dates";
-import { getRecurringFreq } from "@calcom/lib/recurringStrings";
+import { processDate } from "@calcom/lib/parse-dates";
+import { getRecurringFreq, getCountText, getFrequencyText } from "@calcom/lib/recurringStrings";
 import { Alert } from "@calcom/ui/components/alert";
 import { Input } from "@calcom/ui/components/form";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 
@@ -22,10 +22,12 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
       state.occurenceCount,
     ]
   );
+
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const { timezone, timeFormat } = useBookerTime();
   const [warning, setWarning] = useState(false);
+
   // Set initial value in booker store.
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
@@ -34,34 +36,34 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
     if (occurenceCount && (occurenceCount > event.recurringEvent.count || occurenceCount < 1))
       setWarning(true);
   }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, setOccurenceCount, occurenceCount]);
+
   if (!event.recurringEvent) return null;
 
+  // Generate human-readable recurrence summary
+  const getRecurrenceSummary = () => {
+    if (!selectedTimeslot || !recurringEventCount) return null;
+
+    const { freq, interval = 1 } = event.recurringEvent;
+    const effectiveCount = occurenceCount || recurringEventCount;
+
+    // Get frequency text using shared helper
+    const frequencyText = getFrequencyText(freq, interval);
+
+    // Format the start time
+    const formattedTime = processDate(dayjs(selectedTimeslot).tz(timezone), i18n.language, timezone, {
+      selectedTimeFormat: timeFormat,
+    });
+
+    // Get count text using shared helper
+    const countText = getCountText(effectiveCount);
+
+    return `Repeats ${frequencyText} ${countText} starting from ${formattedTime}`;
+  };
+
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
-    const [recurringStrings] = parseRecurringDates(
-      {
-        startDate: selectedTimeslot,
-        timeZone: timezone,
-        recurringEvent: event.recurringEvent,
-        recurringCount: recurringEventCount,
-        selectedTimeFormat: timeFormat,
-      },
-      i18n.language
-    );
-    return (
-      <div data-testid="recurring-dates">
-        {recurringStrings.slice(0, 5).map((timeFormatted, key) => (
-          <p key={key}>{timeFormatted}</p>
-        ))}
-        {recurringStrings.length > 5 && (
-          <Tooltip
-            content={recurringStrings.slice(5).map((timeFormatted, key) => (
-              <p key={key}>{timeFormatted}</p>
-            ))}>
-            <p className=" text-sm">+ {t("plus_more", { count: recurringStrings.length - 5 })}</p>
-          </Tooltip>
-        )}
-      </div>
-    );
+    const summary = getRecurrenceSummary();
+
+    return <div data-testid="recurring-dates">{summary && <p>{summary}</p>}</div>;
   }
 
   return (
@@ -75,6 +77,11 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         max={event.recurringEvent.count}
         defaultValue={occurenceCount || event.recurringEvent.count}
         data-testid="occurrence-input"
+        onKeyDown={(e) => {
+          if (["-", "+", "e", "E"].includes(e.key)) {
+            e.preventDefault();
+          }
+        }}
         onChange={(event) => {
           const pattern = /^(?=.*[0-9])\S+$/;
           const inputValue = parseInt(event.target.value);
