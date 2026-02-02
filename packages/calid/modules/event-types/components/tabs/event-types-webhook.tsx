@@ -481,7 +481,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
           </div>
           {/* New webhook dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent enableOverflow>
+            <DialogContent size="md" enableOverflow>
               <DialogHeader>
                 <DialogTitle>{t("create_webhook")}</DialogTitle>
                 <DialogDescription>{t("create_webhook_team_event_type")}</DialogDescription>
