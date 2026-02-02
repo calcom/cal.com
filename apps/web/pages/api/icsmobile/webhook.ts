@@ -25,64 +25,70 @@ export function getSmsStatusMessage(rawStatusCode: string): string {
   const statusCode = normalizeStatusCode(rawStatusCode);
 
   const smsStatusUserMessageMap: Record<string, string> = {
-    "Failed:UERR": "The recipient’s phone did not confirm receipt of the message.",
+    "Failed:UERR": "The recipient device did not acknowledge the SMS.",
 
-    "Failed:ILL": "The mobile number is blocked by the operator.",
+    "Failed:ILL": "Illegal subscriber. The mobile number is blocked by the operator.",
 
-    "Failed:USTS": "The recipient’s phone did not respond to the message request.",
+    "Failed:USTS": "The recipient handset did not respond.",
 
-    "Failed:DND-DLT": "The message could not be delivered due to the recipient’s DND preferences.",
+    "Failed:DND-DLT": "Message delivery failed due to DND preference or explicit content restrictions.",
 
-    "Failed:PEID-DLT": "The message was blocked due to a sender ID or registration issue.",
+    "Failed:PEID-DLT": "Sender ID and PE ID mismatch, inactive, blank, or blacklisted.",
 
-    "Failed:TEMP-DLT": "The message could not be sent due to an invalid or inactive message template.",
+    "Failed:TEMP-DLT":
+      "DLT template issue: template not found, inactive, blacklisted, mismatched, invalid header, or variable length exceeded.",
 
-    "Failed:ABS": "The recipient’s phone is switched off or currently unreachable.",
+    "Failed:ABS": "The subscriber is switched off, unreachable, or not available on the network.",
 
     "Failed:BL": "The mobile number is blacklisted.",
 
-    "FAILED:DND": "The message was blocked because the recipient has enabled DND.",
+    "Failed:DND": "The mobile number is registered under DND and cannot receive this SMS.",
 
-    "Failed:EXPIRED": "The message could not be delivered after multiple retry attempts.",
+    "Failed:EXPIRED": "Message delivery expired after multiple retry attempts across operators.",
 
-    "Failed:NETERR": "The message failed due to a temporary network issue.",
+    "Failed:NETERR": "Network error occurred due to congestion, routing, signaling, or timeout issues.",
 
-    "Failed:NERR": "The message failed due to a temporary network issue.",
+    "Failed:NERR": "Network error occurred due to congestion, routing, signaling, or timeout issues.",
 
-    "Failed:USUB": "The mobile number is invalid or SMS services are disabled for this number.",
+    "Failed:USUB":
+      "No directory number found for the subscriber or SMS service is barred due to LRN mapping.",
 
-    "Failed:USB": "The mobile number is invalid or SMS services are disabled for this number.",
+    "Failed:USB": "No directory number found for the subscriber or SMS service is barred due to LRN mapping.",
 
-    "Failed:UNKNOWN": "The message failed due to an unknown issue.",
+    "Failed:UNKNOWN": "Message failed due to an unknown or unusual network or handset issue.",
 
-    "Failed:CAL-BARRED": "The recipient’s number is not allowed to receive messages.",
+    "Failed:CAL-BARRED":
+      "The mobile number is barred and cannot receive SMS due to billing or carrier restrictions.",
 
-    "Failed:BRD": "The recipient’s number is not allowed to receive messages.",
+    "Failed:BRD":
+      "The mobile number is barred and cannot receive SMS due to billing or carrier restrictions.",
 
-    "Failed:MEM-EXCD": "The recipient’s phone does not have enough storage to receive the message.",
+    "Failed:MEM-EXCD": "The recipient handset does not have enough memory to receive the message.",
 
-    "Failed:MERR": "The recipient’s phone does not have enough storage to receive the message.",
+    "Failed:MERR": "The recipient handset does not have enough memory to receive the message.",
 
-    "Failed:HANDSET-ERR": "The recipient’s phone encountered an error while receiving the message.",
+    "Failed:HANDSET-ERR": "Handset protocol error or no response from the recipient device.",
 
-    "Failed:HFA": "The recipient’s phone encountered an error while receiving the message.",
+    "Failed:HFA": "Handset protocol error or unknown handset issue.",
 
-    "Failed:Facility-Issue":
-      "The message could not be delivered because the service is not supported for this number.",
+    "Failed:FACILITY-ISSUE":
+      "The number does not exist, the facility is unsupported, or content/sender is blocked by the operator.",
 
-    "Failed:DLT-INV-PRM-TIME": "This type of message is not allowed to be sent at the current time.",
+    "Failed:DLT-INV-PRM-TIME":
+      "Promotional SMS was sent during a non-allowed time based on the subscriber’s DND preferences.",
 
-    "Failed:OP-BLK": "The mobile number is blocked by the operator.",
+    "Failed:OP-BLK": "The mobile number has been blacklisted at the operator level.",
 
-    "Failed:SUB-REJECT": "The message was rejected due to invalid sender or recipient details.",
+    "Failed:SUB-REJECT":
+      "SMS submission was rejected by the operator due to invalid source or destination address.",
 
-    "Failed:SPAM": "The message was blocked because it was flagged as spam.",
+    "Failed:SPAM": "SMS content or keywords are blacklisted due to spam or UCC complaints.",
 
-    "FAILED:CTA-URL-NF": "The message contains a link that could not be found.",
+    "Failed:CTA-URL-NF": "CTA link was not found in the message.",
 
-    "FAILED:CTA-NW": "The message contains a link that is not approved.",
+    "Failed:CTA-NW": "CTA link is not whitelisted.",
 
-    "FAILED:UNDELIVRD": "The message could not be delivered.",
+    "Failed:UNDELIVRD": "Message could not be delivered due to a rare or newly observed failure.",
   };
 
   return (
