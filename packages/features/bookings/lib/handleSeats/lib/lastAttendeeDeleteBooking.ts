@@ -42,7 +42,7 @@ const lastAttendeeDeleteBooking = async (
           if (reference.type.includes("_video")) {
             integrationsToDelete.push(deleteMeeting(credential, reference.uid));
           }
-          if (reference.type.includes("_calendar") && originalBookingEvt) {
+          if (reference.type.includes("_calendar") && originalBookingEvt && reference.uid) {
             const calendar = await getCalendar(credential, "booking");
             if (calendar) {
               integrationsToDelete.push(
