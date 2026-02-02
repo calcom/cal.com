@@ -883,11 +883,11 @@ export default class EventManager {
         } else {
           // It is completely normal to fallback for delegation credential as in that case by default no destination calendar would be set.
         }
-        const createdEvent = await createEvent(credential, event);
-        log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
-        if (createdEvent) {
-          createdEvents.push(createdEvent);
-        }
+          const createdEvent = await createEvent(credential, event);
+          log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
+          if (createdEvent.createdEvent) {
+            createdEvents.push(createdEvent);
+          }
       }
     };
 
@@ -959,7 +959,7 @@ export default class EventManager {
           }
           if (credential) {
             const createdEvent = await createEvent(credential, event, destination.externalId);
-            if (createdEvent) {
+            if (createdEvent.createdEvent) {
               createdEvents.push(createdEvent);
               eventCreated = true;
             }
@@ -1001,8 +1001,11 @@ export default class EventManager {
                 firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
               })
             );
-            createdEvents.push(await createEvent(firstCalendarCredential, event));
-            eventCreated = true;
+            const createdEvent = await createEvent(firstCalendarCredential, event);
+            if (createdEvent.createdEvent) {
+              createdEvents.push(createdEvent);
+              eventCreated = true;
+            }
           }
         }
       }
@@ -1017,12 +1020,13 @@ export default class EventManager {
     }
 
     // Taking care of non-traditional calendar integrations
+    const otherCalendarResults = await Promise.all(
+      this.calendarCredentials
+        .filter((cred) => cred.type.includes("other_calendar"))
+        .map(async (cred) => await createEvent(cred, event))
+    );
     createdEvents = createdEvents.concat(
-      await Promise.all(
-        this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
-          .map(async (cred) => await createEvent(cred, event))
-      )
+      otherCalendarResults.filter((result) => result.createdEvent)
     );
 
     return createdEvents;
