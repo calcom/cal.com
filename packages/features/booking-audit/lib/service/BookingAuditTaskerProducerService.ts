@@ -88,8 +88,8 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
      * Internal helper to queue audit task to Tasker
      * @param params.action - Must be a valid BookingAuditAction value (TYPE from action services are string-typed)
      * @param params.operationId - Optional operation ID for correlating bulk operations. If null, will be auto-generated.
-     * @param params.isBookingAuditEnabled - Optional flag indicating if booking audit is enabled for the organization.
-     *        When explicitly set to false, skips queueing. When undefined, the consumer will check the feature flag.
+     * @param params.isBookingAuditEnabled - Flag indicating if booking audit is enabled for the organization.
+     *        When false, skips queueing.
      */
     private async queueTask(params: {
         bookingUid: string;
@@ -100,14 +100,14 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: unknown;
         context?: BookingAuditContext;
-        isBookingAuditEnabled?: boolean;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         // Skip queueing for non-organization bookings
         if (params.organizationId === null) {
             return;
         }
-        // Skip queueing if booking audit is explicitly disabled for this organization
-        if (params.isBookingAuditEnabled === false) {
+        // Skip queueing if booking audit is disabled for this organization
+        if (!params.isBookingAuditEnabled) {
             this.log.debug(
                 `Skipping ${params.action} audit: booking-audit feature is disabled for organization`,
                 { organizationId: params.organizationId, bookingUid: params.bookingUid, action: params.action }
@@ -178,6 +178,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof AcceptedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -193,6 +194,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof CancelledAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -208,6 +210,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof RescheduleRequestedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -223,6 +226,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof AttendeeAddedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -238,6 +242,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof NoShowUpdatedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -253,6 +258,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -268,6 +274,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -283,6 +290,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof ReassignmentAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -298,6 +306,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         operationId?: string | null;
         data: z.infer<typeof LocationChangedAuditActionService.latestFieldsSchema>;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueTask({
             ...params,
@@ -348,14 +357,14 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         source: ActionSource;
         operationId?: string | null;
         context?: BookingAuditContext;
-        isBookingAuditEnabled?: boolean;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         // Skip queueing for non-organization bookings
         if (params.organizationId === null) {
             return;
         }
-        // Skip queueing if booking audit is explicitly disabled for this organization
-        if (params.isBookingAuditEnabled === false) {
+        // Skip queueing if booking audit is disabled for this organization
+        if (!params.isBookingAuditEnabled) {
             this.log.debug(
                 `Skipping bulk ${params.action} audit: booking-audit feature is disabled for organization`,
                 { organizationId: params.organizationId, bookingCount: params.bookings.length, action: params.action }
@@ -395,6 +404,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         source: ActionSource;
         operationId?: string | null;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueBulkTask({
             ...params,
@@ -412,6 +422,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         source: ActionSource;
         operationId?: string | null;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueBulkTask({
             ...params,
@@ -463,6 +474,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         source: ActionSource;
         operationId?: string | null;
         context?: BookingAuditContext;
+        isBookingAuditEnabled: boolean;
     }): Promise<void> {
         await this.queueBulkTask({
             ...params,

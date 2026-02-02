@@ -10,6 +10,7 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/reposito
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
@@ -26,7 +27,8 @@ export class BookingLocationService_2024_08_13 {
     private readonly inputService: InputBookingsService_2024_08_13,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly eventTypeAccessService: EventTypeAccessService,
-    private readonly bookingEventHandlerService: BookingEventHandlerService
+    private readonly bookingEventHandlerService: BookingEventHandlerService,
+    private readonly featuresRepository: PrismaFeaturesRepository
   ) {}
 
   async updateBookingLocation(
@@ -99,10 +101,15 @@ export class BookingLocationService_2024_08_13 {
       responses: updatedBookingResponses,
     });
 
+    const organizationId = existingBookingHost.organizationId ?? null;
+    const isBookingAuditEnabled = organizationId
+      ? await this.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      : false;
+
     await this.bookingEventHandlerService.onLocationChanged({
       bookingUid: existingBooking.uid,
       actor: makeUserActor(user.uuid),
-      organizationId: existingBookingHost.organizationId ?? null,
+      organizationId,
       source: "API_V2",
       auditData: {
         location: {
@@ -110,6 +117,7 @@ export class BookingLocationService_2024_08_13 {
           new: bookingLocation,
         },
       },
+      isBookingAuditEnabled,
     });
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
