@@ -96,6 +96,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
+  const crmLookupDoneParam = query["cal.crmLookupDone"];
 
   // Handle string[] type from query params
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
@@ -107,7 +108,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
   let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+  // If crmLookupDone is true, the router already performed the CRM lookup, so skip it here
+  const crmLookupDone =
+    (Array.isArray(crmLookupDoneParam) ? crmLookupDoneParam[0] : crmLookupDoneParam) === "true";
+
+  if (!crmLookupDone && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );
