@@ -7,6 +7,12 @@
     "light": "#d6d6d6",
     "dark": "#111827"
   },
+  "redirects": [
+    {
+      "source": "/developing/introduction",
+      "destination": "/developing"
+    }
+  ],
   "favicon": "/favicon.png",
   "navigation": {
     "tabs": [
@@ -33,7 +39,6 @@
           {
             "group": "Getting Started",
             "pages": [
-              "developing/introduction",
               "developing/local-development"
             ]
           },
