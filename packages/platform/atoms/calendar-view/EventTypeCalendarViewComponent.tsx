@@ -125,7 +125,6 @@ export const EventTypeCalendarViewComponent = (
           extraDays={7}
           isMobile={false}
           nextSlots={6}
-          isPlatform={true}
         />
       </BookerSection>
       <BookerSection
