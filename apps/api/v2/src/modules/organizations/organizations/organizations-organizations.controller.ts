@@ -142,7 +142,7 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Delete("/:managedOrganizationId")
-  @Throttle({ limit: 1, ttl: 30000, blockDuration: 30000, name: "organizations_delete" })
+  @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "organizations_delete" })
   @ApiOperation({
     summary: "Delete an organization within an organization",
     description:

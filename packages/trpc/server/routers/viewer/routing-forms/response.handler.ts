@@ -1,5 +1,6 @@
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { handleResponse } from "@calcom/features/routing-forms/lib/handleResponse";
+import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -46,14 +47,32 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     form,
   });
 
-  return handleResponse({
+  // Initialize trace service for tracking routing decisions
+  const traceService = isPreview ? undefined : getRoutingTraceService();
+
+  const result = await handleResponse({
     response,
     identifierKeyedResponse: null,
     form: serializableForm,
     formFillerId,
     chosenRouteId,
     isPreview,
+    traceService,
   });
+
+  // Save the pending trace
+  if (traceService) {
+    const formResponseId = result.formResponse?.id;
+    const queuedFormResponseId = result.queuedFormResponse?.id;
+
+    if (formResponseId) {
+      await traceService.savePendingRoutingTrace({ formResponseId });
+    } else if (queuedFormResponseId) {
+      await traceService.savePendingRoutingTrace({ queuedFormResponseId });
+    }
+  }
+
+  return result;
 };
 
 export default responseHandler;

@@ -52,7 +52,7 @@ const formatTime12Hour = (time24: string): string => {
 function SectionHeader({ title }: { title: string }) {
   return (
     <Text
-      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
+      className="mb-2 ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72] dark:text-[#A3A3A3]"
       style={{ letterSpacing: 0.5 }}
     >
       {title}
@@ -65,7 +65,7 @@ function SettingsGroup({ children, header }: { children: React.ReactNode; header
   return (
     <View>
       {header ? <SectionHeader title={header} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
+      <View className="overflow-hidden rounded-[14px] bg-white dark:bg-[#171717]">{children}</View>
     </View>
   );
 }
@@ -89,21 +89,21 @@ function NavigationRow({
   onSelect?: (value: string) => void;
 }) {
   return (
-    <View className="bg-white pl-4" style={{ height: 44 }}>
+    <View className="bg-white pl-4 dark:bg-[#171717]" style={{ height: 44 }}>
       <View
         className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
+          !isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""
         }`}
         style={{ height: 44 }}
       >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+        <Text className="text-[17px] text-black dark:text-white" style={{ fontWeight: "400" }}>
           {title}
         </Text>
         <View className="flex-row items-center">
           {Platform.OS === "ios" && options && onSelect ? (
             <>
               {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-2 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}
@@ -121,7 +121,7 @@ function NavigationRow({
               disabled={disabled}
             >
               {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-1 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}
@@ -164,13 +164,13 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
       {props.selectedSchedule ? (
         <SettingsGroup>
           {/* Header row */}
-          <View className="bg-white pl-4">
+          <View className="bg-white pl-4 dark:bg-[#171717]">
             <View
-              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
+              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4 dark:border-[#4D4D4D]"
               style={{ height: 44 }}
             >
-              <Text className="text-[17px] text-black">Weekly Schedule</Text>
-              <Text className="text-[17px] text-[#8E8E93]">
+              <Text className="text-[17px] text-black dark:text-white">Weekly Schedule</Text>
+              <Text className="text-[17px] text-[#A3A3A3]">
                 {enabledDaysCount} {enabledDaysCount === 1 ? "day" : "days"}
               </Text>
             </View>
@@ -178,11 +178,11 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
 
           {/* Day rows */}
           {props.scheduleDetailsLoading ? (
-            <View className="items-center bg-white py-6">
-              <Text className="text-[15px] italic text-[#8E8E93]">Loading schedule details...</Text>
+            <View className="items-center bg-white py-6 dark:bg-[#171717]">
+              <Text className="text-[15px] italic text-[#A3A3A3]">Loading schedule details...</Text>
             </View>
           ) : props.selectedScheduleDetails ? (
-            <View className="bg-white px-4 py-2">
+            <View className="bg-white px-4 py-2 dark:bg-[#171717]">
               {DAYS.map((day, index) => {
                 const dayInfo = daySchedules.find((d) => d.day === day);
                 const isEnabled = dayInfo?.available ?? false;
@@ -192,19 +192,19 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                 return (
                   <View
                     key={day}
-                    className={`flex-row items-center py-3 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
+                    className={`flex-row items-center py-3 ${!isLast ? "border-b border-[#E5E5E5] dark:border-[#4D4D4D]" : ""}`}
                   >
                     {/* Availability indicator */}
                     <View
                       className={`mr-3 h-2.5 w-2.5 rounded-full ${
-                        isEnabled ? "bg-[#34C759]" : "bg-[#E5E5EA]"
+                        isEnabled ? "bg-[#34C759]" : "bg-[#E5E5EA] dark:bg-[#404040]"
                       }`}
                     />
 
                     {/* Day name */}
                     <Text
                       className={`w-24 text-[15px] font-medium ${
-                        isEnabled ? "text-black" : "text-[#8E8E93]"
+                        isEnabled ? "text-black dark:text-white" : "text-[#A3A3A3]"
                       }`}
                     >
                       {day}
@@ -216,7 +216,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                         {timeSlots.map((slot, slotIndex) => (
                           <Text
                             key={`${slotIndex}-${slot.startTime}`}
-                            className={`text-[15px] text-black ${slotIndex > 0 ? "mt-1" : ""}`}
+                            className={`text-[15px] text-black dark:text-white ${slotIndex > 0 ? "mt-1" : ""}`}
                           >
                             {slot.startTime && slot.endTime
                               ? `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}`
@@ -225,7 +225,7 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
                         ))}
                       </View>
                     ) : (
-                      <Text className="flex-1 text-right text-[15px] text-[#8E8E93]">
+                      <Text className="flex-1 text-right text-[15px] text-[#A3A3A3]">
                         Unavailable
                       </Text>
                     )}
@@ -234,8 +234,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
               })}
             </View>
           ) : (
-            <View className="items-center bg-white py-6">
-              <Text className="text-[15px] italic text-[#8E8E93]">
+            <View className="items-center bg-white py-6 dark:bg-[#171717]">
+              <Text className="text-[15px] italic text-[#A3A3A3]">
                 Failed to load schedule details
               </Text>
             </View>
@@ -246,8 +246,8 @@ export function AvailabilityTab(props: AvailabilityTabProps) {
       {/* Timezone */}
       {props.selectedSchedule ? (
         <SettingsGroup header="Timezone">
-          <View className="bg-white px-4 py-3">
-            <Text className="text-center text-[17px] text-[#666]">
+          <View className="bg-white px-4 py-3 dark:bg-[#171717]">
+            <Text className="text-center text-[17px] text-[#666] dark:text-[#A3A3A3]">
               {props.selectedTimezone || props.selectedScheduleDetails?.timeZone || "No timezone"}
             </Text>
           </View>

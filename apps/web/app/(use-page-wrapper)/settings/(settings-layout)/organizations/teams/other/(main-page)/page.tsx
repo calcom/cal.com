@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { OtherTeamsListing } from "~/ee/organizations/components/OtherTeamsListing";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 
 import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";
 
