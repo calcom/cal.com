@@ -13,6 +13,7 @@ type CredentialCreateInput = {
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
+  encryptedKey?: string | null;
 };
 
 type CredentialUpdateInput = {
@@ -45,7 +46,9 @@ export class CredentialRepository {
   }
 
   static async create(data: CredentialCreateInput) {
-    const credential = await prisma.credential.create({ data: { ...data } });
+    const credential = await prisma.credential.create({
+      data,
+    });
     return buildNonDelegationCredential(credential);
   }
   static async findByAppIdAndUserId({
@@ -81,7 +84,7 @@ export class CredentialRepository {
   static async findFirstByIdWithKeyAndUser({ id }: { id: number }) {
     const credential = await prisma.credential.findUnique({
       where: { id },
-      select: { ...safeCredentialSelect, key: true },
+      select: { ...safeCredentialSelect, key: true, encryptedKey: true },
     });
     return buildNonDelegationCredential(credential);
   }
@@ -276,15 +279,17 @@ export class CredentialRepository {
     type,
     key,
     appId,
+    encryptedKey,
   }: {
     userId: number;
     delegationCredentialId: string;
     type: string;
     key: Prisma.InputJsonValue;
     appId: string;
+    encryptedKey?: string | null;
   }) {
     return prisma.credential.create({
-      data: { userId, delegationCredentialId, type, key, appId },
+      data: { userId, delegationCredentialId, type, key, appId, ...(encryptedKey && { encryptedKey }) },
     });
   }
 

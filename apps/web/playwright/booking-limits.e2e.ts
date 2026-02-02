@@ -56,7 +56,15 @@ const firstMondayInBookingMonth = firstDayInBookingMonth.day(
 // ensure we land on the same weekday when incrementing month
 const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
   if (unit !== "month") return date.add(1, unit);
-  return date.add(1, "month").day(date.day());
+  // Find the first occurrence of the same weekday in the next month
+  // Note: .day() sets the day of the week for the CURRENT week, which can
+  // return a date in the previous month. Instead, we calculate the correct date.
+  const targetDay = date.day();
+  const startOfNextMonth = date.add(1, "month").startOf("month");
+  const firstDayOfMonth = startOfNextMonth.day();
+  let daysToAdd = targetDay - firstDayOfMonth;
+  if (daysToAdd < 0) daysToAdd += 7;
+  return startOfNextMonth.add(daysToAdd, "day");
 };
 
 const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWithLimits>>, date: Dayjs) => {
