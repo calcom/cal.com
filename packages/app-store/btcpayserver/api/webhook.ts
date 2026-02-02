@@ -91,7 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const traceContext = distributedTracing.createTrace("btcpayserver_webhook", {
       meta: { paymentId: payment.id, bookingId: payment.bookingId },
     });
-    await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+    await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: appConfig.slug,
+      traceContext,
+    });
     return res.status(200).json({ success: true });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);

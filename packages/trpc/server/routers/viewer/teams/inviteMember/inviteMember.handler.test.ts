@@ -3,8 +3,8 @@
  *
  * It mocks a lot of things that are untested and integration tests make more sense for this handler
  */
-import { scenarios as checkRateLimitAndThrowErrorScenarios } from "../../../../../../../tests/libs/__mocks__/checkRateLimitAndThrowError";
-import { mock as getTranslationMock } from "../../../../../../../tests/libs/__mocks__/getTranslation";
+import { scenarios as checkRateLimitAndThrowErrorScenarios } from "./__mocks__/checkRateLimitAndThrowError";
+import { mock as getTranslationMock } from "./__mocks__/getTranslation";
 import {
   inviteMemberutilsScenarios as inviteMemberUtilsScenarios,
   default as inviteMemberUtilsMock,
@@ -37,7 +37,11 @@ vi.mock("@trpc/server", () => {
 
 vi.mock("@calcom/prisma", () => {
   return {
-    prisma: vi.fn(),
+    prisma: {
+      monthlyProration: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    },
   };
 });
 

@@ -21,7 +21,8 @@
       "!**/*.d.ts",
       "!**/bun.lock",
       "!**/android",
-      "!**/ios"
+      "!**/ios",
+      "!**/safari-extension"
     ]
   },
   "formatter": {

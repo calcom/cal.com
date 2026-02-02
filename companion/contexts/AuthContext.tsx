@@ -7,6 +7,7 @@ import {
 } from "@/services/oauthService";
 import type { UserProfile } from "@/services/types/users.types";
 import { WebAuthService } from "@/services/webAuth";
+import { clearQueryCache } from "@/utils/queryPersister";
 import { secureStorage } from "@/utils/storage";
 
 /**
@@ -143,6 +144,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     try {
       await clearAuth();
+      // Clear all cached queries to ensure fresh data on re-login
+      try {
+        await clearQueryCache();
+      } catch (cacheError) {
+        console.warn("Failed to clear query cache during logout:", cacheError);
+      }
       resetAuthState();
     } catch (error) {
       const message = getErrorMessage(error);

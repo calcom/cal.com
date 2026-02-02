@@ -3,10 +3,10 @@
     "name": "Calcom",
     "slug": "calcom-companion",
     "scheme": "expo-wxt-app",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -14,9 +14,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.cal.companion",
+      "userInterfaceStyle": "automatic",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -33,7 +34,8 @@
       "edgeToEdgeEnabled": true,
       "package": "com.calcom.companion",
       "softwareKeyboardLayoutMode": "pan",
-      "usesCleartextTraffic": false
+      "usesCleartextTraffic": false,
+      "userInterfaceStyle": "automatic"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -56,6 +58,27 @@
           "backgroundColor": "#ffffff",
           "image": "./assets/splash-icon.png",
           "imageWidth": 200
+        }
+      ],
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "colorAccent": {
+                "light": "#000000"
+              },
+              "textColorPrimary": {
+                "light": "#000000"
+              }
+            },
+            "timePicker": {
+              "background": { "light": "#ffffff" },
+              "numbersBackgroundColor": { "light": "#ffffff" },
+              "headerBackground": { "light": "#000000" },
+              "numbersSelectorColor": { "light": "#000000" }
+            }
+          }
         }
       ]
     ],

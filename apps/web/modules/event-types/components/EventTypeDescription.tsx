@@ -58,6 +58,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
             // eslint-disable-next-line react/no-danger
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
             dangerouslySetInnerHTML={{
               __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
             }}

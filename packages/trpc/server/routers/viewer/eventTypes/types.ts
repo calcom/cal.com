@@ -59,6 +59,17 @@ type CalVideoSettings = {
   requireEmailForGuests?: boolean | null;
 } | null;
 
+type HostLocationInput = {
+  id?: string;
+  userId: number;
+  eventTypeId: number;
+  type: string;
+  credentialId?: number | null;
+  link?: string | null;
+  address?: string | null;
+  phoneNumber?: string | null;
+};
+
 type HostInput = {
   userId: number;
   profileId?: number | null;
@@ -67,6 +78,7 @@ type HostInput = {
   weight?: number | null;
   scheduleId?: number | null;
   groupId?: string | null;
+  location?: HostLocationInput | null;
 };
 
 type HostGroupInput = {
@@ -233,6 +245,7 @@ export type TUpdateInputSchema = {
   instantMeetingSchedule?: number | null;
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
+  enablePerHostLocations?: boolean;
 };
 
 // ============================================================================
@@ -276,6 +289,17 @@ const calVideoSettingsSchema: z.ZodType<CalVideoSettings | undefined> = z
   .optional()
   .nullable();
 
+const hostLocationSchema = z.object({
+  id: z.string().optional(),
+  userId: z.number(),
+  eventTypeId: z.number(),
+  type: z.string(),
+  credentialId: z.number().optional().nullable(),
+  link: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  phoneNumber: z.string().optional().nullable(),
+});
+
 const hostSchema: z.ZodType<HostInput> = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
@@ -284,6 +308,7 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
+  location: hostLocationSchema.optional().nullable(),
 });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({
@@ -417,6 +442,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     instantMeetingSchedule: z.number().nullable().optional(),
     multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])).optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
+    enablePerHostLocations: z.boolean().optional(),
   })
   .strict();
 
