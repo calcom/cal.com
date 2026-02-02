@@ -427,13 +427,10 @@ test.describe("Email Signup Flow Test", async () => {
     prisma,
     users,
   }) => {
-    // This test verifies the fix for invite-link tokens created via API v2
-    // Token identifier is 'invite-link-for-teamId-${teamId}', not an email
     const token = randomBytes(32).toString("hex");
     const userEmail = `newuser-${Date.now()}@example.com`;
     const username = `newuser-${Date.now()}`;
 
-    // Create a team (org)
     const org = await prisma.team.create({
       data: {
         name: "Test Organization",
@@ -442,49 +439,40 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    // Create invite-link token (like API v2 does)
     const inviteToken = await prisma.verificationToken.create({
       data: {
         identifier: `invite-link-for-teamId-${org.id}`,
         token,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         expiresInDays: 7,
         teamId: org.id,
       },
     });
 
-    // Navigate to signup page with token
     await page.goto(`/signup?token=${token}&callbackUrl=/getting-started`);
     await preventFlakyTest(page);
     await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
-    // Verify form is NOT pre-filled (invite-link tokens don't have email in identifier)
     const emailField = page.locator('input[name="email"]');
     const usernameField = page.locator('input[name="username"]');
 
-    // For invite-link tokens, fields should be empty (user enters their own email)
     expect(await emailField.inputValue()).toBe("");
-    // Username field might not be visible for org invites
     const isUsernameFieldVisible = await usernameField.isVisible().catch(() => false);
     if (isUsernameFieldVisible) {
       expect(await usernameField.inputValue()).toBe("");
     }
 
-    // Fill in signup form
     await emailField.fill(userEmail);
     if (isUsernameFieldVisible) {
       await usernameField.fill(username);
     }
     await page.locator('input[name="password"]').fill("Password99!");
 
-    // Submit form
     const submitButton = page.getByTestId("signup-submit-button");
     await submitButton.click();
 
-    // Wait for redirect to getting started
     await expect(page).toHaveURL(/\/getting-started/, { timeout: 10000 });
 
-    // Verify user was created
     const createdUser = await prisma.user.findUnique({
       where: { email: userEmail },
       select: {
@@ -505,19 +493,16 @@ test.describe("Email Signup Flow Test", async () => {
     expect(createdUser?.email).toBe(userEmail);
     expect(createdUser?.organizationId).toBe(org.id);
 
-    // Verify user is a member of the org
     const membership = createdUser?.teams.find((m) => m.teamId === org.id);
     expect(membership).toBeTruthy();
     expect(membership?.accepted).toBe(true);
     expect(membership?.role).toBe("MEMBER");
 
-    // Verify token was deleted after use
     const tokenAfterSignup = await prisma.verificationToken.findUnique({
       where: { id: inviteToken.id },
     });
     expect(tokenAfterSignup).toBeNull();
 
-    // Cleanup
     await prisma.user.delete({ where: { id: createdUser!.id } });
     await prisma.team.delete({ where: { id: org.id } });
   });
@@ -527,12 +512,10 @@ test.describe("Email Signup Flow Test", async () => {
     prisma,
     users,
   }) => {
-    // This test verifies invite-link tokens work for sub-teams within orgs
     const token = randomBytes(32).toString("hex");
     const userEmail = `newuser-${Date.now()}@example.com`;
     const username = `newuser-${Date.now()}`;
 
-    // Create an org
     const org = await prisma.team.create({
       data: {
         name: "Parent Organization",
@@ -549,7 +532,6 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    // Create a sub-team
     const subTeam = await prisma.team.create({
       data: {
         name: "Sub Team",
@@ -558,7 +540,6 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    // Create invite-link token for sub-team
     const inviteToken = await prisma.verificationToken.create({
       data: {
         identifier: `invite-link-for-teamId-${subTeam.id}`,
@@ -569,22 +550,17 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    // Navigate to signup page with token
     await page.goto(`/signup?token=${token}&callbackUrl=/getting-started`);
     await preventFlakyTest(page);
     await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
-    // Fill in signup form
     await page.locator('input[name="email"]').fill(userEmail);
     await page.locator('input[name="password"]').fill("Password99!");
 
-    // Submit form
     await page.getByTestId("signup-submit-button").click();
 
-    // Wait for redirect
     await expect(page).toHaveURL(/\/getting-started/, { timeout: 10000 });
 
-    // Verify user was created
     const createdUser = await prisma.user.findUnique({
       where: { email: userEmail },
       select: {
@@ -602,7 +578,6 @@ test.describe("Email Signup Flow Test", async () => {
     expect(createdUser).toBeTruthy();
     expect(createdUser?.organizationId).toBe(org.id);
 
-    // Verify user is a member of both sub-team and org
     const subTeamMembership = createdUser?.teams.find((m) => m.teamId === subTeam.id);
     const orgMembership = createdUser?.teams.find((m) => m.teamId === org.id);
 
@@ -611,7 +586,6 @@ test.describe("Email Signup Flow Test", async () => {
     expect(orgMembership).toBeTruthy();
     expect(orgMembership?.accepted).toBe(true);
 
-    // Verify profile was created for the org
     const profile = await prisma.profile.findUnique({
       where: {
         userId_organizationId: { userId: createdUser!.id, organizationId: org.id },
@@ -619,7 +593,6 @@ test.describe("Email Signup Flow Test", async () => {
     });
     expect(profile).toBeTruthy();
 
-    // Cleanup
     await prisma.user.delete({ where: { id: createdUser!.id } });
     await prisma.team.delete({ where: { id: subTeam.id } });
     await prisma.team.delete({ where: { id: org.id } });
@@ -630,16 +603,14 @@ test.describe("Email Signup Flow Test", async () => {
     prisma,
     users,
   }) => {
-    // This test ensures email-based tokens (existing flow) still work correctly
     const token = randomBytes(32).toString("hex");
     const userToCreate = users.buildForSignup({
       username: "email-token-user",
     });
 
-    // Create email-based token (identifier = email)
     const emailToken = await prisma.verificationToken.create({
       data: {
-        identifier: userToCreate.email, // Email in identifier
+        identifier: userToCreate.email,
         token,
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         team: {
@@ -651,28 +622,22 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    // Navigate to signup page with token
     await page.goto(`/signup?token=${token}`);
     await preventFlakyTest(page);
     await expect(page.getByTestId("signup-submit-button")).toBeVisible();
 
-    // Verify form IS pre-filled (email-based tokens have email in identifier)
     const emailField = page.locator('input[name="email"]');
     const usernameField = page.locator('input[name="username"]');
 
     expect(await emailField.inputValue()).toBe(userToCreate.email);
-    // Username should be derived from email
     const expectedUsername = userToCreate.email.split("@")[0];
     expect(await usernameField.inputValue()).toBe(expectedUsername);
 
-    // Fill password and submit
     await page.locator('input[name="password"]').fill("Password99!");
     await page.getByTestId("signup-submit-button").click();
 
-    // Wait for redirect
     await expect(page).toHaveURL(/\/getting-started|\/auth\/verify-email/, { timeout: 10000 });
 
-    // Verify user was created and joined team
     const createdUser = await prisma.user.findUnique({
       where: { email: userToCreate.email },
       select: {
@@ -693,7 +658,6 @@ test.describe("Email Signup Flow Test", async () => {
     expect(membership).toBeTruthy();
     expect(membership?.accepted).toBe(true);
 
-    // Cleanup
     await prisma.user.delete({ where: { id: createdUser!.id } });
     await prisma.team.delete({ where: { id: emailToken.teamId! } });
   });
