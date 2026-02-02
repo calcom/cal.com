@@ -27,4 +27,15 @@ export class PrismaRoutingTraceRepository implements IRoutingTraceRepository {
       trace: result.trace as RoutingTrace,
     };
   }
+
+  async findByBookingUid(bookingUid: string): Promise<RoutingTraceRecord | null> {
+    const result = await this.prisma.routingTrace.findFirst({
+      where: { bookingUid },
+    });
+    if (!result) return null;
+    return {
+      ...result,
+      trace: result.trace as RoutingTrace,
+    };
+  }
 }

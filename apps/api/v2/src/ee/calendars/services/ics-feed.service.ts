@@ -40,6 +40,7 @@ export class IcsFeedService implements ICSFeedCalendarApp {
       appId: ICS_CALENDAR,
       invalid: false,
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
     try {

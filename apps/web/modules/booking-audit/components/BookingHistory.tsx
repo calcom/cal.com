@@ -369,9 +369,12 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
         const doesMatchDisplayFields = (): boolean => {
             return (
                 log.displayFields?.some((field) => {
+                    const searchLower = searchTerm.toLowerCase();
                     return (
-                        field.valueKey?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        field.labelKey?.toLowerCase().includes(searchTerm.toLowerCase())
+                        field.valueKey?.toLowerCase().includes(searchLower) ||
+                        field.labelKey?.toLowerCase().includes(searchLower) ||
+                        field.value?.toLowerCase().includes(searchLower) ||
+                        field.values?.some((v) => v.toLowerCase().includes(searchLower))
                     );
                 }) ?? false
             );

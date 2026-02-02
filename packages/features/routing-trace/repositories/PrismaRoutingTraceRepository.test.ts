@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { PrismaRoutingTraceRepository } from "./PrismaRoutingTraceRepository";
 
 describe("PrismaRoutingTraceRepository", () => {
@@ -9,6 +8,7 @@ describe("PrismaRoutingTraceRepository", () => {
   const mockPrisma = {
     routingTrace: {
       create: vi.fn(),
+      findFirst: vi.fn(),
     },
   } as unknown as PrismaClient;
 
@@ -247,6 +247,100 @@ describe("PrismaRoutingTraceRepository", () => {
         },
       });
       expect(result.trace).toEqual([]);
+    });
+  });
+
+  describe("findByBookingUid", () => {
+    it("should return routing trace when found", async () => {
+      const trace = [
+        {
+          domain: "routing_form",
+          step: "route_matched",
+          timestamp: Date.now(),
+          data: { routeId: "route-1", routeName: "Enterprise" },
+        },
+      ];
+
+      const mockResult = {
+        id: "trace-1",
+        createdAt: new Date("2025-01-01T10:00:00Z"),
+        trace,
+        formResponseId: 123,
+        queuedFormResponseId: null,
+        bookingUid: "booking-uid-123",
+        assignmentReasonId: 42,
+      };
+
+      vi.mocked(mockPrisma.routingTrace.findFirst).mockResolvedValue(mockResult);
+
+      const result = await repository.findByBookingUid("booking-uid-123");
+
+      expect(mockPrisma.routingTrace.findFirst).toHaveBeenCalledWith({
+        where: { bookingUid: "booking-uid-123" },
+      });
+      expect(result).toEqual({
+        id: "trace-1",
+        createdAt: new Date("2025-01-01T10:00:00Z"),
+        trace,
+        formResponseId: 123,
+        queuedFormResponseId: null,
+        bookingUid: "booking-uid-123",
+        assignmentReasonId: 42,
+      });
+    });
+
+    it("should return null when routing trace not found", async () => {
+      vi.mocked(mockPrisma.routingTrace.findFirst).mockResolvedValue(null);
+
+      const result = await repository.findByBookingUid("non-existent-uid");
+
+      expect(mockPrisma.routingTrace.findFirst).toHaveBeenCalledWith({
+        where: { bookingUid: "non-existent-uid" },
+      });
+      expect(result).toBeNull();
+    });
+
+    it("should return routing trace with multiple steps", async () => {
+      const trace = [
+        {
+          domain: "routing_form",
+          step: "route_matched",
+          timestamp: 1000,
+          data: { routeId: "route-1", routeName: "Sales" },
+        },
+        {
+          domain: "salesforce",
+          step: "graphql_query_initiated",
+          timestamp: 2000,
+          data: { email: "user@acme.com", emailDomain: "acme.com" },
+        },
+        {
+          domain: "salesforce",
+          step: "salesforce_assignment",
+          timestamp: 3000,
+          data: { email: "owner@acme.com", recordType: "Contact", recordId: "003ABC" },
+        },
+      ];
+
+      const mockResult = {
+        id: "trace-2",
+        createdAt: new Date("2025-01-02T10:00:00Z"),
+        trace,
+        formResponseId: 456,
+        queuedFormResponseId: null,
+        bookingUid: "booking-uid-456",
+        assignmentReasonId: 100,
+      };
+
+      vi.mocked(mockPrisma.routingTrace.findFirst).mockResolvedValue(mockResult);
+
+      const result = await repository.findByBookingUid("booking-uid-456");
+
+      expect(result).not.toBeNull();
+      expect(result?.trace).toHaveLength(3);
+      expect(result?.trace[0].domain).toBe("routing_form");
+      expect(result?.trace[1].domain).toBe("salesforce");
+      expect(result?.trace[2].domain).toBe("salesforce");
     });
   });
 });

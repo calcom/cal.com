@@ -10,7 +10,14 @@ import { buttonStyle, frame, padding } from "@expo/ui/swift-ui/modifiers";
 import { Ionicons } from "@expo/vector-icons";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
-import { KeyboardAvoidingView, ScrollView, Text, TextInput, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  ScrollView,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUpdateLocation } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
@@ -94,7 +101,21 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
     ref
   ) {
     const insets = useSafeAreaInsets();
-    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
+
+    const colors = {
+      background: isDark ? "#000000" : "#F2F2F7",
+      cardBackground: isDark ? "#171717" : "#FFFFFF",
+      text: isDark ? "#FFFFFF" : "#000000",
+      textSecondary: isDark ? "#A3A3A3" : "#6B7280",
+      border: isDark ? "#4D4D4D" : "#E5E5EA",
+      pill: isDark ? "#4D4D4D" : "#E8E8ED",
+      inputBorder: isDark ? "rgba(56, 56, 58, 0.4)" : "rgba(209, 213, 219, 0.4)",
+      inputBackground: isDark ? "rgba(28, 28, 30, 0.6)" : "rgba(255, 255, 255, 0.6)",
+      accent: "#007AFF",
+    };
+
     const [selectedType, setSelectedType] = useState<LocationTypeId>("link");
     const [inputValue, setInputValue] = useState("");
 
@@ -191,14 +212,21 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
 
     if (!booking) {
       return (
-        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
-          <Text className="text-gray-500">No booking data</Text>
+        <View
+          className="flex-1 items-center justify-center"
+          style={{ backgroundColor: transparentBackground ? "transparent" : colors.background }}
+        >
+          <Text style={{ color: colors.textSecondary }}>No booking data</Text>
         </View>
       );
     }
 
     return (
-      <KeyboardAvoidingView behavior="padding" className={`flex-1 ${backgroundStyle}`}>
+      <KeyboardAvoidingView
+        behavior="padding"
+        className="flex-1"
+        style={{ backgroundColor: transparentBackground ? "transparent" : colors.background }}
+      >
         <ScrollView
           className="flex-1"
           contentContainerStyle={{
@@ -211,15 +239,27 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
           {transparentBackground ? (
             <>
               {/* Location Type Selector with Native Context Menu - Glass UI */}
-              <View className="mb-4 flex-row items-center rounded-xl border border-gray-300/40 bg-white/60 px-4 py-3">
-                <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/20">
-                  <Ionicons name={selectedTypeConfig.iconName} size={20} color="#007AFF" />
+              <View
+                className="mb-4 flex-row items-center rounded-xl px-4 py-3"
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  backgroundColor: colors.inputBackground,
+                }}
+              >
+                <View
+                  className="mr-3 h-9 w-9 items-center justify-center rounded-lg"
+                  style={{
+                    backgroundColor: isDark ? "rgba(0, 122, 255, 0.3)" : "rgba(0, 122, 255, 0.2)",
+                  }}
+                >
+                  <Ionicons name={selectedTypeConfig.iconName} size={20} color={colors.accent} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[17px] font-medium text-[#000]">
+                  <Text className="text-[17px] font-medium" style={{ color: colors.text }}>
                     {selectedTypeConfig.label}
                   </Text>
-                  <Text className="mt-0.5 text-[13px] text-gray-500">
+                  <Text className="mt-0.5 text-[13px]" style={{ color: colors.textSecondary }}>
                     {selectedTypeConfig.description}
                   </Text>
                 </View>
@@ -265,13 +305,21 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
               </View>
 
               {/* Location Input - Glass UI */}
-              <View className="mb-4 overflow-hidden rounded-xl border border-gray-300/40 bg-white/60">
+              <View
+                className="mb-4 overflow-hidden rounded-xl"
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  backgroundColor: colors.inputBackground,
+                }}
+              >
                 <TextInput
-                  className={`px-4 py-3 text-[17px] text-[#000] ${
+                  className={`px-4 py-3 text-[17px] ${
                     selectedTypeConfig.inputType === "multiline" ? "min-h-[100px]" : "h-[50px]"
                   }`}
+                  style={{ color: colors.text }}
                   placeholder={selectedTypeConfig.placeholder}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textSecondary}
                   value={inputValue}
                   onChangeText={setInputValue}
                   keyboardType={selectedTypeConfig.keyboardType}
@@ -289,13 +337,28 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
             <>
               {/* Current Location Info */}
               {booking.location && (
-                <View className="mb-4 flex-row items-start rounded-xl bg-white p-4">
-                  <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-[#E8E8ED]">
-                    <Ionicons name="location" size={20} color="#6B7280" />
+                <View
+                  className="mb-4 flex-row items-start rounded-xl p-4"
+                  style={{ backgroundColor: colors.cardBackground }}
+                >
+                  <View
+                    className="mr-3 h-10 w-10 items-center justify-center rounded-full"
+                    style={{ backgroundColor: colors.pill }}
+                  >
+                    <Ionicons name="location" size={20} color={colors.textSecondary} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-[13px] font-medium text-gray-500">Current Location</Text>
-                    <Text className="mt-0.5 text-[15px] text-[#000]" numberOfLines={2}>
+                    <Text
+                      className="text-[13px] font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Current Location
+                    </Text>
+                    <Text
+                      className="mt-0.5 text-[15px]"
+                      style={{ color: colors.text }}
+                      numberOfLines={2}
+                    >
                       {booking.location}
                     </Text>
                   </View>
@@ -303,18 +366,29 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
               )}
 
               {/* Location Type Selector with Native Context Menu */}
-              <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+              <Text
+                className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide"
+                style={{ color: colors.textSecondary }}
+              >
                 Location Type
               </Text>
-              <View className="mb-4 flex-row items-center rounded-xl bg-white px-4">
-                <View className="mr-3 h-9 w-9 items-center justify-center rounded-lg bg-[#007AFF]/10">
-                  <Ionicons name={selectedTypeConfig.iconName} size={20} color="#007AFF" />
+              <View
+                className="mb-4 flex-row items-center rounded-xl px-4"
+                style={{ backgroundColor: colors.cardBackground }}
+              >
+                <View
+                  className="mr-3 h-9 w-9 items-center justify-center rounded-lg"
+                  style={{
+                    backgroundColor: isDark ? "rgba(0, 122, 255, 0.2)" : "rgba(0, 122, 255, 0.1)",
+                  }}
+                >
+                  <Ionicons name={selectedTypeConfig.iconName} size={20} color={colors.accent} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[17px] font-medium text-[#000]">
+                  <Text className="text-[17px] font-medium" style={{ color: colors.text }}>
                     {selectedTypeConfig.label}
                   </Text>
-                  <Text className="mt-0.5 text-[13px] text-gray-500">
+                  <Text className="mt-0.5 text-[13px]" style={{ color: colors.textSecondary }}>
                     {selectedTypeConfig.description}
                   </Text>
                 </View>
@@ -360,16 +434,23 @@ export const EditLocationScreen = forwardRef<EditLocationScreenHandle, EditLocat
               </View>
 
               {/* Location Input */}
-              <Text className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide text-gray-500">
+              <Text
+                className="mb-2 px-1 text-[13px] font-medium uppercase tracking-wide"
+                style={{ color: colors.textSecondary }}
+              >
                 {selectedTypeConfig.label}
               </Text>
-              <View className="mb-4 overflow-hidden rounded-xl bg-white">
+              <View
+                className="mb-4 overflow-hidden rounded-xl"
+                style={{ backgroundColor: colors.cardBackground }}
+              >
                 <TextInput
-                  className={`px-4 py-3 text-[17px] text-[#000] ${
+                  className={`px-4 py-3 text-[17px] ${
                     selectedTypeConfig.inputType === "multiline" ? "min-h-[100px]" : "h-[50px]"
                   }`}
+                  style={{ color: colors.text }}
                   placeholder={selectedTypeConfig.placeholder}
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textSecondary}
                   value={inputValue}
                   onChangeText={setInputValue}
                   keyboardType={selectedTypeConfig.keyboardType}
