@@ -172,6 +172,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -391,6 +392,7 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
         enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -567,6 +569,7 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
         enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
