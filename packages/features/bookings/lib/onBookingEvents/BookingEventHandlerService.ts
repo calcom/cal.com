@@ -53,7 +53,7 @@ interface BaseBookingEventParams<TAuditData> {
   source: ActionSource;
   operationId?: string | null;
   context?: BookingAuditContext;
-  isBookingAuditEnabled: boolean;
+  isBookingAuditEnabled?: boolean;
 }
 
 type OnBookingAcceptedParams = BaseBookingEventParams<AcceptedAuditData>;
@@ -65,8 +65,14 @@ type OnBookingRejectedParams = BaseBookingEventParams<RejectedAuditData>;
 type OnAttendeeRemovedParams = BaseBookingEventParams<AttendeeRemovedAuditData>;
 type OnReassignmentParams = BaseBookingEventParams<ReassignmentAuditData>;
 type OnLocationChangedParams = BaseBookingEventParams<LocationChangedAuditData>;
-type OnSeatBookedParams = BaseBookingEventParams<SeatBookedAuditData>;
-type OnSeatRescheduledParams = BaseBookingEventParams<SeatRescheduledAuditData>;
+// Main flow params - isBookingAuditEnabled is required because these are called from handleSeats
+// which queries the feature flag and passes it down
+type OnSeatBookedParams = Omit<BaseBookingEventParams<SeatBookedAuditData>, "isBookingAuditEnabled"> & {
+  isBookingAuditEnabled: boolean;
+};
+type OnSeatRescheduledParams = Omit<BaseBookingEventParams<SeatRescheduledAuditData>, "isBookingAuditEnabled"> & {
+  isBookingAuditEnabled: boolean;
+};
 
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];
@@ -325,7 +331,7 @@ export class BookingEventHandlerService {
     operationId?: string | null;
     source: ActionSource;
     context?: BookingAuditContext;
-    isBookingAuditEnabled: boolean;
+    isBookingAuditEnabled?: boolean;
   }) {
     const { bookings, actor, organizationId, operationId, source, context, isBookingAuditEnabled } = params;
     await this.bookingAuditProducerService.queueBulkAcceptedAudit({
@@ -352,7 +358,7 @@ export class BookingEventHandlerService {
     operationId?: string | null;
     source: ActionSource;
     context?: BookingAuditContext;
-    isBookingAuditEnabled: boolean;
+    isBookingAuditEnabled?: boolean;
   }) {
     const { bookings, actor, organizationId, operationId, source, context, isBookingAuditEnabled } = params;
     await this.bookingAuditProducerService.queueBulkCancelledAudit({
@@ -429,7 +435,7 @@ export class BookingEventHandlerService {
     operationId?: string | null;
     source: ActionSource;
     context?: BookingAuditContext;
-    isBookingAuditEnabled: boolean;
+    isBookingAuditEnabled?: boolean;
   }) {
     const { bookings, actor, organizationId, operationId, source, context, isBookingAuditEnabled } = params;
     await this.bookingAuditProducerService.queueBulkRejectedAudit({

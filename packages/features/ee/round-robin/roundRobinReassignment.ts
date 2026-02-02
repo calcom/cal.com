@@ -13,7 +13,6 @@ import {
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -295,11 +294,6 @@ export const roundRobinReassignment = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
-  const isBookingAuditEnabled = orgId
-    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
-    : false;
-
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
     actor: makeUserActor(reassignedByUuid),
@@ -323,7 +317,6 @@ export const roundRobinReassignment = async ({
       reassignmentReason: null,
       reassignmentType: "roundRobin",
     },
-    isBookingAuditEnabled,
   });
 
   roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);

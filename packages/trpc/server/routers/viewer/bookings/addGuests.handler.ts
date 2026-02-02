@@ -4,7 +4,6 @@ import dayjs from "@calcom/dayjs";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -89,21 +88,14 @@ export const addGuestsHandler = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
-  const organizationId = user.organizationId ?? null;
-  const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-    : false;
-
   await bookingEventHandlerService.onAttendeeAdded({
     bookingUid: booking.uid,
     actor: makeUserActor(user.uuid),
-    organizationId,
+    organizationId: user.organizationId ?? null,
     source: actionSource,
     auditData: {
       added: uniqueGuestEmails,
     },
-    isBookingAuditEnabled,
   });
 
   return { message: "Guests added" };
