@@ -1,11 +1,9 @@
 // meta.ts
+import type { Prisma } from "@prisma/client";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
 import dayjs from "@calcom/dayjs";
-import type { Prisma } from "@prisma/client";
-
-
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -16,12 +14,11 @@ import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
+import wordTruncate from "../utils/getTruncatedString";
 import { defaultTemplateNamesMap, defaultTemplateComponentsMap } from "./meta_default_templates";
-
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
 export class MetaError extends Error {
@@ -318,7 +315,7 @@ const calculateSuffixLength = (templateText: string, variableName: string): numb
 const getCappedVariables = (
   component: TemplateComponent,
   expandedVariables: ExpandedVariablesType,
-  maxTotalLength: number = 60
+  maxTotalLength = 60
 ): ExpandedVariablesType => {
   if (!component.text) return expandedVariables;
 
@@ -342,50 +339,6 @@ const getCappedVariables = (
   };
 };
 
-function wordTruncate(text, maxLength) {
-  if (text.length <= maxLength + 3 /* exclude ellipsis when comparing original text length */) {
-    return text;
-  }
-
-  // Check if text contains spaces or hyphens
-  const hasSpaces = text.includes(" ");
-  const hasHyphens = text.includes("-");
-
-  if (!hasSpaces && !hasHyphens) {
-    // No delimiters, just truncate by character count
-    return text.slice(0, maxLength) + "...";
-  }
-
-  // Determine delimiter (prioritize spaces over hyphens)
-  const delimiter = hasSpaces ? " " : "-";
-
-  // Split by delimiter and build truncated string word by word
-  const words = text.split(delimiter);
-  let result = "";
-
-  for (let i = 0; i < words.length; i++) {
-    const candidate = i === 0 ? words[i] : result + delimiter + words[i];
-
-    if (candidate.length > maxLength) {
-      break;
-    }
-    result = candidate;
-  }
-
-  // If we couldn't fit even the first word, truncate by character
-  if (!result) {
-    return text.slice(0, maxLength) + "...";
-  }
-
-  // Remove trailing delimiter and any non-alphabetic characters at the end
-  result = result.replace(/[^a-zA-Z]+$/, "");
-
-  // Remove leading non-alphabetic characters at the beginning
-  result = result.replace(/^[^a-zA-Z]+/, "");
-
-  return result + "...";
-}
-
 // Update the buildMetaTemplateComponentsFromTemplate function
 export const buildMetaTemplateComponentsFromTemplate = async (
   template: WhatsAppTemplate,
@@ -406,11 +359,17 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     ...variableData,
     eventStartTimeInAttendeeTimezone:
       typeof variableData.eventStartTimeInAttendeeTimezone === "string"
-        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        ? dayjs
+            .utc(variableData.eventStartTimeInAttendeeTimezone)
+            .tz(variableData.attendeeTimezone)
+            .format("h:mma")
         : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
     eventEndTimeInAttendeeTimezone:
       typeof variableData.eventEndTimeInAttendeeTimezone === "string"
-        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
+        ? dayjs
+            .utc(variableData.eventStartTimeInAttendeeTimezone)
+            .tz(variableData.attendeeTimezone)
+            .format("h:mma")
         : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
