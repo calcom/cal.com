@@ -2569,8 +2569,8 @@ model WrongAssignmentReport {
   id              String                      @id @default(uuid()) @db.Uuid
   bookingUid      String                      @unique
   booking         Booking                     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
-  reportedById    Int
-  reportedBy      User                        @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
+  reportedById    Int?
+  reportedBy      User?                       @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
   correctAssignee String?
   additionalNotes String
   teamId          Int?

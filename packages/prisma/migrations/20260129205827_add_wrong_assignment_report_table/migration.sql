@@ -5,7 +5,7 @@ CREATE TYPE "public"."WrongAssignmentReportStatus" AS ENUM ('PENDING', 'REVIEWED
 CREATE TABLE "public"."WrongAssignmentReport" (
     "id" UUID NOT NULL,
     "bookingUid" TEXT NOT NULL,
-    "reportedById" INTEGER NOT NULL,
+    "reportedById" INTEGER,
     "correctAssignee" TEXT,
     "additionalNotes" TEXT NOT NULL,
     "teamId" INTEGER,
@@ -39,7 +39,7 @@ CREATE INDEX "WrongAssignmentReport_createdAt_idx" ON "public"."WrongAssignmentR
 ALTER TABLE "public"."WrongAssignmentReport" ADD CONSTRAINT "WrongAssignmentReport_bookingUid_fkey" FOREIGN KEY ("bookingUid") REFERENCES "public"."Booking"("uid") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."WrongAssignmentReport" ADD CONSTRAINT "WrongAssignmentReport_reportedById_fkey" FOREIGN KEY ("reportedById") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."WrongAssignmentReport" ADD CONSTRAINT "WrongAssignmentReport_reportedById_fkey" FOREIGN KEY ("reportedById") REFERENCES "public"."users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."WrongAssignmentReport" ADD CONSTRAINT "WrongAssignmentReport_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "public"."Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
