@@ -3826,6 +3826,8 @@
   "proration_reminder_subject": "Payment Reminder - {{teamName}}",
   "proration_reminder_message": "This is a reminder that your invoice of ${{amount}} for team {{teamName}} is still unpaid.",
   "proration_reminder_warning": "If this invoice remains unpaid, you will not be able to add new users to your team until payment is received.",
+  "proration_invoice_text": "An invoice for ${{amount}} has been created for {{seats}} additional seat(s) for your team {{teamName}}.",
+  "proration_reminder_text": "Reminder: Your invoice of ${{amount}} for team {{teamName}} is still unpaid. Please pay to avoid restrictions on adding new users.",
   "current_balance": "Current balance:",
   "notification_about_your_booking": "Notification about your booking",
   "monthly_credits": "Monthly credits",
