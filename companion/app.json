@@ -2,7 +2,7 @@
   "expo": {
     "name": "Calcom",
     "slug": "calcom-companion",
-    "scheme": "expo-wxt-app",
+    "scheme": "calcom",
     "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

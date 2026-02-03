@@ -12,10 +12,14 @@ const iosStorage = new ExtensionStorage(APP_GROUP_IDENTIFIER);
 export interface WidgetBookingData {
   id: string;
   title: string;
+  date: string;
   startTime: string;
   endTime: string;
+  startTimeISO: string; // For countdown calculation
   attendeeName: string | null;
+  hostName: string | null;
   location: string | null;
+  hasVideoCall: boolean;
 }
 
 export interface WidgetData {
@@ -29,6 +33,15 @@ function formatTime(dateString: string): string {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+  });
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -72,6 +85,8 @@ export async function updateWidgetBookings(
     start?: string;
     end?: string;
     attendees?: Array<{ name: string; email: string }>;
+    hosts?: Array<{ name?: string; email?: string }>;
+    user?: { name?: string; email?: string };
     location?: string;
   }>
 ): Promise<void> {
@@ -83,13 +98,29 @@ export async function updateWidgetBookings(
       const startTimeStr = booking.startTime || booking.start || "";
       const endTimeStr = booking.endTime || booking.end || "";
 
+      // Get host name from hosts array or user object
+      const hostName = booking.hosts?.[0]?.name || booking.user?.name || null;
+
+      // Check if meeting has a video call link
+      const locationLower = (booking.location || "").toLowerCase();
+      const hasVideoCall =
+        locationLower.includes("zoom") ||
+        locationLower.includes("meet") ||
+        locationLower.includes("teams") ||
+        locationLower.includes("webex") ||
+        locationLower.includes("cal video");
+
       return {
         id: booking.uid || String(booking.id),
         title: booking.title,
+        date: formatDate(startTimeStr),
         startTime: formatTime(startTimeStr),
         endTime: formatTime(endTimeStr),
+        startTimeISO: startTimeStr, // Pass ISO string for countdown calculation
         attendeeName: booking.attendees?.[0]?.name || null,
+        hostName: hostName,
         location: booking.location || null,
+        hasVideoCall: hasVideoCall,
       };
     });
 
