@@ -1,6 +1,3 @@
-/**
- * @vitest-environment jsdom
- */
 import React from "react";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -159,10 +156,17 @@ const createMockStore = (isInstantMeeting: boolean) => {
 const mockEvent = {
   data: {
     id: 1,
-    title: "Test Event",
     slug: "test-event",
     length: 30,
-    seatsPerTimeSlot: 2,
+    requiresConfirmation: false,
+    recurringEvent: null,
+    schedulingType: null,
+    metadata: {},
+    successRedirectUrl: null,
+    forwardParamsSuccessRedirect: false,
+    subsetOfHosts: [],
+    isDynamic: false,
+    subsetOfUsers: [],
   },
   isSuccess: true,
   isPending: false,
