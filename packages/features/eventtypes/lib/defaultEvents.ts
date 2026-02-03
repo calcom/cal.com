@@ -154,6 +154,8 @@ const commons = {
   createdAt: null,
   updatedAt: null,
   rrHostSubsetEnabled: false,
+  enablePerHostLocations: false,
+  redirectUrlOnNoRoutingFormResponse: null,
 };
 
 export const dynamicEvent = {

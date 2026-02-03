@@ -129,9 +129,9 @@
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "import-in-the-middle": "1.13.1",
-    "react@19.2.0": "19.2.3",
-    "react@19.2.1": "19.2.3",
-    "react@19.2.2": "19.2.3",
+    "react@19.2.0": "19.2.4",
+    "react@19.2.1": "19.2.4",
+    "react@19.2.2": "19.2.4",
     "tar-fs": "2.1.4",
     "rollup": "4.22.4",
     "jpeg-js": "0.4.4",
@@ -153,7 +153,10 @@
     "serialize-javascript": "6.0.2",
     "@adobe/css-tools": "4.3.2",
     "jsondiffpatch": "0.7.2",
-    "min-document": "2.19.1"
+    "min-document": "2.19.1",
+    "tar": "7.5.7",
+    "lodash": "4.17.23",
+    "lodash-es": "4.17.23"
   },
   "packageExtensions": {
     "ink@3.2.0": {
