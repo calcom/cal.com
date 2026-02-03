@@ -23,7 +23,7 @@ const CreateNewOutOfOfficeEntryButton = ({
   const me = useMeQuery();
   const { data: orgData } = trpc.viewer.organizations.listCurrent.useQuery();
   const isOrgAdminOrOwner = orgData && checkAdminOrOwner(orgData.user.role);
-  const hasTeamOOOAdminAccess = isOrgAdminOrOwner || me?.data?.isTeamAdminOrOwner;
+  const hasTeamOOOAdminAccess = isOrgAdminOrOwner || me?.data?.canUpdateTeams;
 
   const params = useCompatSearchParams();
   const selectedTab = params?.get("type") ?? OutOfOfficeTab.MINE;

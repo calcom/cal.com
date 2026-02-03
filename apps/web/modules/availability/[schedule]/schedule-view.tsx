@@ -120,6 +120,10 @@ export const AvailabilitySettingsWebWrapper = ({
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
       handleSubmit={async ({ dateOverrides, ...values }) => {
+        if (!values.name.trim()) {
+          showToast(t("schedule_name_cannot_be_empty"), "error");
+          return;
+        }
         scheduleId &&
           updateMutation.mutate({
             scheduleId,

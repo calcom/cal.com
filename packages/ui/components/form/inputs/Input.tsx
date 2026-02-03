@@ -14,15 +14,6 @@ import { Input, InputField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
 
-export function InputLeading(props: JSX.IntrinsicElements["div"]) {
-  return (
-    <span className="bg-cal-muted border-default text-subtle inline-flex shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
-      {props.children}
-    </span>
-  );
-}
-
-
 export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
   ref
@@ -148,24 +139,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     </div>
   );
 });
-
-export function FieldsetLegend(props: JSX.IntrinsicElements["legend"]) {
-  return (
-    <legend {...props} className={classNames("text-default text-sm font-medium leading-4", props.className)}>
-      {props.children}
-    </legend>
-  );
-}
-
-export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
-  return (
-    <div
-      {...props}
-      className={classNames("bg-default border-default stack-y-2 rounded-sm border p-2", props.className)}>
-      {props.children}
-    </div>
-  );
-}
 
 export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(function NumberInput(props, ref) {
   return (

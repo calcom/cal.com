@@ -69,6 +69,9 @@ export default defineContentScript({
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
     iframe.src = COMPANION_URL;
+    // Enable clipboard access for the cross-origin iframe
+    // This allows the companion app to use navigator.clipboard.writeText()
+    iframe.allow = "clipboard-write; clipboard-read";
     // Use explicit dimensions - Brave has issues with percentage-based sizing
     iframe.style.cssText = `
       position: absolute !important;
@@ -833,6 +836,7 @@ export default defineContentScript({
                 duration?: number;
                 description?: string;
                 users?: Array<{ username?: string }>;
+                bookingUrl?: string;
               }> = [];
 
               if (isCacheValid && eventTypesCache) {
@@ -874,6 +878,7 @@ export default defineContentScript({
                         duration?: number;
                         description?: string;
                         users?: Array<{ username?: string }>;
+                        bookingUrl?: string;
                       }>;
                     }
                   ).data
@@ -889,6 +894,7 @@ export default defineContentScript({
                         duration?: number;
                         description?: string;
                         users?: Array<{ username?: string }>;
+                        bookingUrl?: string;
                       }>;
                     }
                   ).data;
@@ -1075,9 +1081,11 @@ export default defineContentScript({
 
                   previewBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    const bookingUrl = `https://cal.com/${
-                      eventType.users?.[0]?.username || "user"
-                    }/${eventType.slug}`;
+                    const bookingUrl =
+                      eventType.bookingUrl ||
+                      `https://cal.com/${
+                        eventType.users?.[0]?.username || "user"
+                      }/${eventType.slug}`;
                     window.open(bookingUrl, "_blank");
                   });
                   previewBtn.addEventListener("mouseenter", () => {
@@ -1117,9 +1125,11 @@ export default defineContentScript({
                   copyBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     // Copy to clipboard
-                    const bookingUrl = `https://cal.com/${
-                      eventType.users?.[0]?.username || "user"
-                    }/${eventType.slug}`;
+                    const bookingUrl =
+                      eventType.bookingUrl ||
+                      `https://cal.com/${
+                        eventType.users?.[0]?.username || "user"
+                      }/${eventType.slug}`;
                     navigator.clipboard
                       .writeText(bookingUrl)
                       .then(() => {
@@ -1285,11 +1295,12 @@ export default defineContentScript({
           function insertEventTypeLink(eventType: {
             slug: string;
             users?: Array<{ username?: string }>;
+            bookingUrl?: string;
           }): void {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
-              eventType.slug
-            }`;
+            const bookingUrl =
+              eventType.bookingUrl ||
+              `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1312,11 +1323,12 @@ export default defineContentScript({
           function _copyEventTypeLink(eventType: {
             slug: string;
             users?: Array<{ username?: string }>;
+            bookingUrl?: string;
           }): void {
             // Construct the Cal.com booking link
-            const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
-              eventType.slug
-            }`;
+            const bookingUrl =
+              eventType.bookingUrl ||
+              `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
 
             // Try to insert at cursor position in the compose field
             const inserted = insertTextAtCursor(bookingUrl);
@@ -1574,6 +1586,7 @@ export default defineContentScript({
             duration?: number;
             description?: string;
             users?: Array<{ username?: string }>;
+            bookingUrl?: string;
           }> = [];
 
           if (isCacheValid && eventTypesCache) {
@@ -1615,6 +1628,7 @@ export default defineContentScript({
                     duration?: number;
                     description?: string;
                     users?: Array<{ username?: string }>;
+                    bookingUrl?: string;
                   }>;
                 }
               ).data
@@ -1630,6 +1644,7 @@ export default defineContentScript({
                     duration?: number;
                     description?: string;
                     users?: Array<{ username?: string }>;
+                    bookingUrl?: string;
                   }>;
                 }
               ).data;
@@ -1815,9 +1830,9 @@ export default defineContentScript({
 
               previewBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
-                const bookingUrl = `https://cal.com/${
-                  eventType.users?.[0]?.username || "user"
-                }/${eventType.slug}`;
+                const bookingUrl =
+                  eventType.bookingUrl ||
+                  `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
                 window.open(bookingUrl, "_blank");
               });
               previewBtn.addEventListener("mouseenter", () => {
@@ -1857,9 +1872,9 @@ export default defineContentScript({
               copyBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 // Copy to clipboard
-                const bookingUrl = `https://cal.com/${
-                  eventType.users?.[0]?.username || "user"
-                }/${eventType.slug}`;
+                const bookingUrl =
+                  eventType.bookingUrl ||
+                  `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
                 navigator.clipboard
                   .writeText(bookingUrl)
                   .then(() => {
@@ -2025,11 +2040,12 @@ export default defineContentScript({
       function insertEventTypeLink(eventType: {
         slug: string;
         users?: Array<{ username?: string }>;
+        bookingUrl?: string;
       }) {
         // Construct the Cal.com booking link
-        const bookingUrl = `https://cal.com/${eventType.users?.[0]?.username || "user"}/${
-          eventType.slug
-        }`;
+        const bookingUrl =
+          eventType.bookingUrl ||
+          `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
 
         // Try to insert at cursor position in the message field
         const inserted = insertTextAtCursor(bookingUrl);

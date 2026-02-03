@@ -1,5 +1,29 @@
-import { bootstrap } from "@/app";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type {
+  CancelBookingInput_2024_08_13,
+  CancelSeatedBookingInput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  GetBookingOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RescheduleSeatedBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import type { Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { DateTime } from "luxon";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
@@ -8,31 +32,6 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { DateTime } from "luxon";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type {
-  CancelBookingInput_2024_08_13,
-  CancelSeatedBookingInput_2024_08_13,
-  CreateSeatedBookingOutput_2024_08_13,
-  GetBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  RescheduleSeatedBookingInput_2024_08_13,
-  CreateBookingInput_2024_08_13,
-} from "@calcom/platform-types";
-import type { Team, User } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Seated bookings", () => {
@@ -201,6 +200,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -276,6 +276,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstAttendee).toEqual({
               name: createdSeatedBooking.attendees[0].name,
               email: createdSeatedBooking.attendees[0].email,
+              displayEmail: createdSeatedBooking.attendees[0].displayEmail,
               timeZone: createdSeatedBooking.attendees[0].timeZone,
               language: createdSeatedBooking.attendees[0].language,
               absent: false,
@@ -291,6 +292,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondAttendee).toEqual({
               name: body.attendee.name,
               email: body.attendee.email,
+              displayEmail: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -329,7 +331,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const expected = structuredClone(createdSeatedBooking);
             // note(Lauris): seatUid in get response resides only in each attendee object
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
+            // @ts-expect-error
             delete expected.seatUid;
             expect(data).toEqual(expected);
           } else {
@@ -356,7 +358,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           const seatedBookingExpected = structuredClone(createdSeatedBooking);
           // note(Lauris): seatUid in get response resides only in each attendee object
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
+          // @ts-expect-error
           delete seatedBookingExpected.seatUid;
           expect(seatedBooking).toEqual(seatedBookingExpected);
         });
@@ -418,6 +420,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.attendees[0]).toEqual({
               name: attendee?.name,
               email: attendee?.email,
+              displayEmail: attendee?.displayEmail,
               timeZone: attendee?.timeZone,
               language: attendee?.language,
               absent: false,
@@ -435,6 +438,111 @@ describe("Bookings Endpoints 2024-08-13", () => {
             throw new Error("Invalid response data - expected booking but received array response");
           }
         });
+    });
+
+    it("should return valid seatUid for subsequent reschedules", async () => {
+      const createBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: `Reschedule Test ${randomString()}`,
+          email: `reschedule-test-${randomString()}@api.com`,
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        bookingFieldsResponses: {
+          codingLanguage: "Go",
+        },
+        metadata: {
+          userId: "300",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createData: CreateBookingOutput_2024_08_13 = createResponse.body;
+      expect(createData.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsCreateSeatedBooking(createData.data)).toBe(true);
+
+      if (!responseDataIsCreateSeatedBooking(createData.data)) {
+        throw new Error("Invalid response data - expected seated booking");
+      }
+
+      let testBooking: CreateSeatedBookingOutput_2024_08_13 = createData.data;
+      expect(testBooking.seatUid).toBeDefined();
+      expect(testBooking.attendees[0].seatUid).toBeDefined();
+
+      const firstRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 11, 0, 0)).toISOString(),
+        seatUid: testBooking.attendees[0].seatUid,
+      };
+
+      const firstRescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${testBooking.uid}/reschedule`)
+        .send(firstRescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const firstRescheduleData: RescheduleBookingOutput_2024_08_13 = firstRescheduleResponse.body;
+      expect(firstRescheduleData.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsGetSeatedBooking(firstRescheduleData.data)).toBe(true);
+
+      if (!responseDataIsGetSeatedBooking(firstRescheduleData.data)) {
+        throw new Error("Invalid response data - expected seated booking");
+      }
+
+      testBooking = firstRescheduleData.data;
+      expect(testBooking.seatUid).toBeDefined();
+      expect(testBooking.attendees[0].seatUid).toBeDefined();
+
+      const secondRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 12, 0, 0)).toISOString(),
+        seatUid: testBooking.attendees[0].seatUid,
+      };
+
+      const secondRescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${testBooking.uid}/reschedule`)
+        .send(secondRescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const secondRescheduleData: RescheduleBookingOutput_2024_08_13 = secondRescheduleResponse.body;
+      expect(secondRescheduleData.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsGetSeatedBooking(secondRescheduleData.data)).toBe(true);
+
+      if (!responseDataIsGetSeatedBooking(secondRescheduleData.data)) {
+        throw new Error("Invalid response data - expected seated booking");
+      }
+
+      testBooking = secondRescheduleData.data;
+      expect(testBooking.seatUid).toBeDefined();
+      expect(testBooking.attendees[0].seatUid).toBeDefined();
+
+      const thirdRescheduleBody: RescheduleSeatedBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString(),
+        seatUid: testBooking.attendees[0].seatUid,
+      };
+
+      const thirdRescheduleResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${testBooking.uid}/reschedule`)
+        .send(thirdRescheduleBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const thirdRescheduleData: RescheduleBookingOutput_2024_08_13 = thirdRescheduleResponse.body;
+      expect(thirdRescheduleData.status).toEqual(SUCCESS_STATUS);
+      expect(responseDataIsGetSeatedBooking(thirdRescheduleData.data)).toBe(true);
+
+      if (!responseDataIsGetSeatedBooking(thirdRescheduleData.data)) {
+        throw new Error("Invalid response data - expected seated booking");
+      }
+
+      expect(thirdRescheduleData.data.seatUid).toBeDefined();
+      expect(thirdRescheduleData.data.attendees[0].seatUid).toBeDefined();
     });
 
     describe("book an event type with attendees disabled but auth provided", () => {
@@ -736,6 +844,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 expect(data.attendees[0]).toEqual({
                   name: body.attendee.name,
                   email: body.attendee.email,
+                  displayEmail: body.attendee.email,
                   timeZone: body.attendee.timeZone,
                   language: body.attendee.language,
                   absent: false,
@@ -815,7 +924,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
-      return data.hasOwnProperty("seatUid");
+      return Object.hasOwn(data, "seatUid");
     }
 
     function responseDataIsGetSeatedBooking(data: any): data is GetSeatedBookingOutput_2024_08_13 {

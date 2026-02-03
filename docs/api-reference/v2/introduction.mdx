@@ -3,52 +3,33 @@ title: "Introduction to API v2"
 description: "Introduction to Cal.com API v2 endpoints"
 ---
 
-## Platform endpoints
-
-Platform customers have the following endpoints available:
-
-1. Endpoints prefixed with "Platform".
-2. Endpoints with no prefix e.g "Bookings", "Event Types".
-3. If you are at least on the ESSENTIALS plan, then all endpoints prefixed with "Orgs" except "Orgs / Attributes", "Orgs / Attributes / Options" and "Orgs / Teams / Routing forms / Responses".
-
-## Organizations endpoints
-
-Organizations customers have all the endpoints except the ones prefixed with "Platform" and "Teams" and "Orgs / Orgs" because
-children organizations are only allowed in the platform plan right now.
-
-## Teams endpoints
-
-Teams customers have all the endpoints except the ones prefixed with "Platform" and "Orgs".
-
-## Rate limits
-
-There are three authentication methods for the API, and each of them has the following rate limits:
-
-1. API Key - 120 requests per minute. This can be increased to a reasonable amount, such as 200 requests per minute. If you require a higher rate limit, such as 800 requests per minute, it is possible, but it may involve extra charges. To request this, please contact support.
-
-2. Platform OAuth Client Credentials - 500 requests per minute
-
-3. Managed User Access Token - 500 requests per minute
-
-If no authentication method is provided, the default rate limit is 120 requests per minute.
-
 ## Authentication
 
 The Cal.com API has 3 authentication methods:
 
-1. API key
-2. Platform OAuth client credentials
-3. Managed user access token
+1. OAuth (Recommended)
+2. API key
+3. Platform (Deprecated)
 
-If you are a platform customer you don't need an API key and must instead use OAuth credentials or a managed user access token. We cover when to use which below.
+### 1.  OAuth [Recommended]
 
-### 1. API key
+In order to be listed as an official partner and App in our App Store: cal.com/apps you need to create and get a verified OAuth client.
+
+<Note>
+  **Create an OAuth client and "Continue with Cal.com"**
+</Note>
+
+You can request it here: https://cal.com/docs/api-reference/v2/oauth.
+
+### 2. API key
+
+While API keys can be created easily, bear in mind we almost always recommend using OAuth credentials, especially when building integrations or applications with Cal.com.
 
 You can view and manage your API keys in your settings page under the security tab in Cal.com.
 
-<img src="/images/i1600x899-DllqhV6w_3Vj_oxtjov.png" />
+![](/images/i1600x899-DllqhV6w_3Vj_oxtjov.png)
 
-API Keys are under Settings > Security
+API Keys are under Settings \> Security
 
 Test mode secret keys have the prefix `cal_` and live mode secret keys have the prefix `cal_live_`.
 
@@ -64,7 +45,29 @@ in your request header.
 
 All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
 
-### 2. OAuth client credentials
+## Teams endpoints
+
+Teams customers have all the endpoints except the ones prefixed with "Platform" and "Orgs".
+
+## Organizations endpoints
+
+Organizations customers have all the endpoints except the ones prefixed with "Teams" and "Orgs / Orgs".
+
+## Rate limits
+
+There are three authentication methods for the API, and each of them has the following rate limits:
+
+1. API Key - 120 requests per minute. This can be increased to a reasonable amount, such as 200 requests per minute. If you require a higher rate limit, such as 800 requests per minute, it is possible, but it may involve extra charges. To request this, please contact support.
+
+If no authentication method is provided, the default rate limit is 120 requests per minute.
+
+## Deprecated & Maintenance for existing users only
+
+<Warning>
+  As of 15th December 2025, we're currently undergoing a restructuring of our "Platform"-offering. Until further we continue to provide enterprise support for existing customers but no longer offer new signups for any "Platform" plan.
+</Warning>
+
+### 1. Platform OAuth client credentials [Deprecated]
 
 You need to use OAuth credentials when:
 
@@ -78,7 +81,7 @@ OAuth credentials can be accessed in the platform dashboard https://app.cal.com/
 1. `x-cal-client-id` - ID of the OAuth client.
 2. `x-cal-secret-key` - secret of the OAuth client.
 
-### 3. Managed user access token
+### 2. Platform Managed user access token  [Deprecated]
 
 After you create a managed user you will receive its access and refresh tokens. The response also includes managed user's id, so we recommend you to add new properties to your users table calAccessToken, calRefreshToken and calManagedUserId to store this information.
 
@@ -93,3 +96,11 @@ It is passed as an authorization bearer request header Authorization: Bearer \<a
 Validity period: access tokens are valid for 60 minutes and refresh tokens for 1 year, and tokens can be refreshed using the refresh endpoint [API reference](https://cal.com/docs/api-reference/v2/oauth/post-v2oauth-refresh). After refreshing you will receive the new access and refresh tokens that you have to store in your database.
 
 Recovering tokens: if you ever lose managed user's access or refresh tokens, you can force refresh them using the OAuth client credentials and store them in your database [API reference](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens).
+
+### Platform endpoints [Deprecated]
+
+Platform customers have the following endpoints available:
+
+1. Endpoints prefixed with "Platform".
+2. Endpoints with no prefix e.g "Bookings", "Event Types".
+3. If you are at least on the ESSENTIALS plan, then all endpoints prefixed with "Orgs" except "Orgs / Attributes", "Orgs / Attributes / Options" and "Orgs / Teams / Routing forms / Responses".

@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
+import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { PendingMember } from "@calcom/features/ee/teams/lib/types";

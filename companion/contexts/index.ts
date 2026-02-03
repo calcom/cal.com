@@ -5,7 +5,7 @@
  *
  * @example
  * ```tsx
- * import { AuthProvider, useAuth, QueryProvider } from '../contexts';
+ * import { AuthProvider, useAuth, QueryProvider, ToastProvider, useGlobalToast } from '../contexts';
  * ```
  */
 
@@ -14,3 +14,6 @@ export { AuthProvider, useAuth } from "./AuthContext";
 
 // Query context
 export { QueryProvider, useQueryContext } from "./QueryContext";
+
+// Toast context
+export { ToastProvider, useGlobalToast, type ToastState, type ToastType } from "./ToastContext";

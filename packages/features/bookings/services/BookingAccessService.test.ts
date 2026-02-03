@@ -40,8 +40,8 @@ describe("BookingAccessService", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepo as any);
-    vi.mocked(UserRepository).mockImplementation(() => mockUserRepo as any);
+    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepo as any; });
+    vi.mocked(UserRepository).mockImplementation(function() { return mockUserRepo as any; });
 
     service = new BookingAccessService(mockPrismaClient);
 

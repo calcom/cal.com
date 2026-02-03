@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
@@ -56,6 +56,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
     <Shell withoutMain>
       <LicenseRequired>
         <ShellMain
+          disableSticky={true}
           heading={t("workflows")}
           subtitle={t("workflows_to_automate_notifications")}
           title={t("workflows")}

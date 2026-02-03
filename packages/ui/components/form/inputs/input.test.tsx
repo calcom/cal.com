@@ -1,11 +1,8 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
-import type { UnstyledSelect } from "../../address/Select";
 import { EmailField, TextAreaField, PasswordField, NumberInput, FilterSearchField } from "./Input";
-import { InputFieldWithSelect } from "./InputFieldWithSelect";
 import { InputField } from "./TextField";
 
 const onChangeMock = vi.fn();
@@ -114,31 +111,6 @@ describe("Tests for TextAreaField Component", () => {
     fireEvent.change(textareaElement, { target: { value: "Hello" } });
     expect(onChangeMock).toHaveBeenCalled();
     expect(textareaElement.value).toBe("Hello");
-  });
-});
-
-describe("Tests for InputFieldWithSelect Component", () => {
-  test("Should render correctly with InputField and UnstyledSelect", () => {
-    const onChangeMock = vi.fn();
-
-    const selectProps = {
-      value: null,
-      onChange: onChangeMock,
-      name: "testSelect",
-      options: [
-        { value: "Option 1", label: "Option 1" },
-        { value: "Option 2", label: "Option 2" },
-        { value: "Option 3", label: "Option 3" },
-      ],
-    } as unknown as typeof UnstyledSelect;
-
-    const { getByText } = render(<InputFieldWithSelect selectProps={selectProps} label="testSelect" />);
-
-    const inputElement = getByText("Select...");
-    fireEvent.mouseDown(inputElement);
-
-    const optionElement = getByText("Option 1");
-    expect(optionElement).toBeInTheDocument();
   });
 });
 

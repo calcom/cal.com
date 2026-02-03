@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -253,7 +253,7 @@ function EventWorkflowsTab(props: Props) {
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"}`}
                 />
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
@@ -261,7 +261,7 @@ function EventWorkflowsTab(props: Props) {
                 <ServerTrans
                   t={t}
                   i18nKey={`workflows_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
+                    isManagedEventType ? "for_members" : "by_team_admin"
                   }_description`}
                 />
               }

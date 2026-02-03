@@ -1,14 +1,17 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type {
+  BookingOutput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  PaginationMetaDto,
+  RecurringBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
@@ -20,17 +23,13 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-  PaginationMetaDto,
-} from "@calcom/platform-types";
-import type { User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/bookings/organizations-teams-bookings.module";
 
 describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
   describe("Organization User bookings", () => {
@@ -233,6 +232,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -291,6 +291,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -347,6 +348,7 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
                 email: body.attendee.email,
+                displayEmail: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,

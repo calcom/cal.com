@@ -8,8 +8,8 @@ import type {
   OperationObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
 import "dotenv/config";
-import * as fs from "fs";
-import type { Server } from "http";
+import * as fs from "node:fs";
+import type { Server } from "node:http";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 

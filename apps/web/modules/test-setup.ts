@@ -7,6 +7,20 @@ global.React = React;
 global.ResizeObserver = ResizeObserver;
 expect.extend(matchers);
 
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
 afterEach(() => {
   vi.resetAllMocks();
 });
@@ -47,7 +61,7 @@ vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn(),
 }));
 
-vi.mock("@calcom/features/eventtypes/components", () => ({
+vi.mock("@calcom/web/modules/event-types/components", () => ({
   EventTypeDescriptionLazy: vi.fn(),
 }));
 
@@ -60,7 +74,7 @@ vi.mock("@calcom/embed-core/embed-iframe", () => {
   };
 });
 
-vi.mock("@calcom/features/bookings/components/event-meta/Price", () => {
+vi.mock("@calcom/web/modules/bookings/components/event-meta/Price", () => {
   return {};
 });
 

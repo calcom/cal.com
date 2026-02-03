@@ -12,18 +12,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
-  DataTableWrapper,
-  DataTableToolbar,
   DataTableProvider,
   ColumnFilterType,
   useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
-  DataTableFilters,
-  DataTableSegment,
 } from "@calcom/features/data-table";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -353,6 +350,7 @@ function OutOfOfficeEntriesListContent({
         dateRange: false,
       },
     },
+    enableHiding: false,
     enableRowSelection: false,
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),

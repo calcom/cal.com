@@ -129,7 +129,7 @@ test.describe("Managed Event Types", () => {
 
     // Proceed to unlock and check that it got unlocked
     titleLockIndicator.click();
-    await expect(titleLockIndicator.locator("[data-state='checked']")).toHaveCount(0);
+    await expect(titleLockIndicator.locator("[data-state='checked']")).toHaveCount(0, { timeout: 0 });
     await expect(titleLockIndicator.locator("[data-state='unchecked']")).toHaveCount(1);
 
     // Save changes

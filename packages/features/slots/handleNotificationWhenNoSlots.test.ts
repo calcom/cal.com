@@ -1,5 +1,5 @@
-import i18nMock from "../../../tests/libs/__mocks__/libServerI18n";
-import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
+import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { vi, describe, it, beforeAll, afterAll, expect, beforeEach, afterEach } from "vitest";
 
@@ -19,9 +19,11 @@ vi.mock("@calcom/features/redis/RedisService", () => {
 });
 
 vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(() => ({
-    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-  })),
+  FeaturesRepository: vi.fn(function () {
+    return {
+      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+    };
+  }),
 }));
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");

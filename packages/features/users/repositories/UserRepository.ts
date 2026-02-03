@@ -88,8 +88,6 @@ const userSelect = {
   bio: true,
   avatarUrl: true,
   timeZone: true,
-  startTime: true,
-  endTime: true,
   weekStart: true,
   bufferTime: true,
   hideBranding: true,
@@ -125,6 +123,7 @@ const userSelect = {
   disableHostCancellationEmail: true,
   disableHostLocationChangeEmail: true,
   disableHostRequestEmail: true,
+  profiles: true,
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
@@ -344,6 +343,7 @@ export class UserRepository {
         locked: true,
         role: true,
         id: true,
+        uuid: true,
         username: true,
         name: true,
         email: true,
@@ -391,6 +391,21 @@ export class UserRepository {
       ...user,
       metadata: userMetadata.parse(user.metadata),
     };
+  }
+
+  async findSecondaryEmailByUserIdAndEmail({ userId, email }: { userId: number; email: string }) {
+    return this.prismaClient.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId,
+          email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
   }
 
   async findByUuid({ uuid }: { uuid: string }) {
@@ -462,6 +477,44 @@ export class UserRepository {
 
   async isMovedToAProfile({ user }: { user: Pick<UserType, "movedToProfileId"> }) {
     return !!user.movedToProfileId;
+  }
+
+  async swapPrimaryEmailWithSecondaryEmail({
+    userId,
+    secondaryEmailId,
+    oldPrimaryEmail,
+    oldPrimaryEmailVerified,
+    newPrimaryEmail,
+    userUpdateData,
+  }: {
+    userId: number;
+    secondaryEmailId: number;
+    oldPrimaryEmail: string;
+    oldPrimaryEmailVerified: Date | null;
+    newPrimaryEmail: string;
+    userUpdateData?: Prisma.UserUpdateInput;
+  }) {
+    const [, updatedUser] = await this.prismaClient.$transaction([
+      this.prismaClient.secondaryEmail.update({
+        where: {
+          id: secondaryEmailId,
+          userId: userId,
+        },
+        data: {
+          email: oldPrimaryEmail,
+          emailVerified: oldPrimaryEmailVerified,
+        },
+      }),
+      this.prismaClient.user.update({
+        where: { id: userId },
+        data: {
+          ...userUpdateData,
+          email: newPrimaryEmail,
+        },
+      }),
+    ]);
+
+    return updatedUser;
   }
 
   async enrichUserWithTheProfile<T extends { username: string | null; id: number }>({
@@ -732,7 +785,9 @@ export class UserRepository {
       if (!profiles.length) {
         return {
           ...entity,
-          profile: ProfileRepository.buildPersonalProfileFromUser({ user: entity.user }),
+          profile: ProfileRepository.buildPersonalProfileFromUser({
+            user: entity.user,
+          }),
         };
       } else {
         return {
@@ -780,7 +835,12 @@ export class UserRepository {
     const organizationIdValue = data.organizationId;
     const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
 
-    logger.info("create user", { email, username, organizationIdValue, locked });
+    logger.info("create user", {
+      email,
+      username,
+      organizationIdValue,
+      locked,
+    });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -788,7 +848,9 @@ export class UserRepository {
       data: {
         username,
         email: email,
-        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
+        ...(hashedPassword && {
+          password: { create: { hash: hashedPassword } },
+        }),
         // Default schedule
         schedules: {
           create: {
@@ -847,7 +909,9 @@ export class UserRepository {
                     members: {
                       some: {
                         id: userId,
-                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                        role: {
+                          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+                        },
                       },
                     },
                   },
@@ -1037,8 +1101,6 @@ export class UserRepository {
         avatarUrl: true,
         timeZone: true,
         weekStart: true,
-        startTime: true,
-        endTime: true,
         defaultScheduleId: true,
         bufferTime: true,
         theme: true,
@@ -1054,6 +1116,7 @@ export class UserRepository {
         movedToProfileId: true,
         selectedCalendars: {
           select: {
+            id: true,
             eventTypeId: true,
             externalId: true,
             integration: true,
@@ -1182,6 +1245,7 @@ export class UserRepository {
     return this.prismaClient.user.findMany({
       where,
       select: {
+        locked: true,
         allowDynamicBooking: true,
         ...availabilityUserSelect,
         credentials: {
@@ -1281,6 +1345,17 @@ export class UserRepository {
     });
   }
 
+  async findForPasswordReset({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        name: true,
+        locale: true,
+      },
+    });
+  }
+
   /**
    * Finds a user by ID returning only their username
    * @param userId - The user ID
@@ -1313,5 +1388,32 @@ export class UserRepository {
       },
     });
     return users.map(withSelectedCalendars);
+  }
+
+  async findByEmailAndTeamId({ email, teamId }: { email: string; teamId: number }) {
+    return this.prismaClient.user.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        teams: {
+          some: {
+            teamId,
+            accepted: true,
+          },
+        },
+      },
+      select: userSelect,
+    });
+  }
+
+  async findByIdWithSelectedCalendars({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        selectedCalendars: true,
+        destinationCalendar: true,
+      },
+    });
   }
 }
