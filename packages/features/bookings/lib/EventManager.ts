@@ -883,11 +883,11 @@ export default class EventManager {
         } else {
           // It is completely normal to fallback for delegation credential as in that case by default no destination calendar would be set.
         }
-          const createdEvent = await createEvent(credential, event);
-          log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
-          if (createdEvent) {
-            createdEvents.push(createdEvent);
-          }
+        const createdEvent = await createEvent(credential, event);
+        log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
+        if (createdEvent) {
+          createdEvents.push(createdEvent);
+        }
       }
     };
 
@@ -1001,11 +1001,8 @@ export default class EventManager {
                 firstConnectedCalendar: getPiiFreeCredential(firstCalendarCredential),
               })
             );
-            const createdEvent = await createEvent(firstCalendarCredential, event);
-            if (createdEvent) {
-              createdEvents.push(createdEvent);
-              eventCreated = true;
-            }
+            createdEvents.push(await createEvent(firstCalendarCredential, event));
+            eventCreated = true;
           }
         }
       }
@@ -1020,12 +1017,13 @@ export default class EventManager {
     }
 
     // Taking care of non-traditional calendar integrations
-    const otherCalendarResults = await Promise.all(
-      this.calendarCredentials
-        .filter((cred) => cred.type.includes("other_calendar"))
-        .map(async (cred) => await createEvent(cred, event))
+    createdEvents = createdEvents.concat(
+      await Promise.all(
+        this.calendarCredentials
+          .filter((cred) => cred.type.includes("other_calendar"))
+          .map(async (cred) => await createEvent(cred, event))
+      )
     );
-    createdEvents = createdEvents.concat(otherCalendarResults);
 
     return createdEvents;
   }
@@ -1180,7 +1178,7 @@ export default class EventManager {
       if (newBookingId) {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
 
-        if (oldCalendarEvent?.credentialId && oldCalendarEvent.uid) {
+        if (oldCalendarEvent?.credentialId) {
           const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
             id: oldCalendarEvent.credentialId,
           });
