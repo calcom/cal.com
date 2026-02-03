@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import {
   DataTableWrapper,
@@ -25,6 +24,7 @@ import {
   DataTableSkeleton,
 } from "@calcom/web/modules/data-table/components";
 
+import { RoutingFormResponseSheet } from "@calcom/web/components/booking/RoutingFormResponseSheet";
 import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
 import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
@@ -41,6 +41,7 @@ export function WrongAssignmentReportsDashboard() {
   const { teamId, userId, isAll } = useInsightsOrgTeams();
   const [activeTab, setActiveTab] = useState<TabType>("pending");
   const [routingTraceBookingUid, setRoutingTraceBookingUid] = useState<string | null>(null);
+  const [formResponseId, setFormResponseId] = useState<number | null>(null);
 
   const { sorting, limit, offset } = useDataTable();
 
@@ -111,18 +112,19 @@ export function WrongAssignmentReportsDashboard() {
                     <DropdownMenuItem>
                       <DropdownItem
                         type="button"
+                        StartIcon="git-merge"
                         onClick={() => setRoutingTraceBookingUid(report.bookingUid)}>
-                        <Icon name="git-merge" className="mr-2 h-4 w-4" />
                         {t("routing_trace")}
                       </DropdownItem>
                     </DropdownMenuItem>
-                    {report.booking?.routedFromRoutingFormReponse?.id && report.routingForm?.id && (
+                    {report.booking?.routedFromRoutingFormReponse?.id && (
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
-                          href={`/routing/form-edit/${report.routingForm.id}/responses?responseId=${report.booking.routedFromRoutingFormReponse.id}`}
-                          target="_blank">
-                          <Icon name="file-text" className="mr-2 h-4 w-4" />
+                          StartIcon="file-text"
+                          onClick={() =>
+                            setFormResponseId(report.booking?.routedFromRoutingFormReponse?.id ?? null)
+                          }>
                           {t("view_form_submission")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -130,49 +132,51 @@ export function WrongAssignmentReportsDashboard() {
                     <DropdownMenuSeparator />
                   </>
                 )}
-                {report.status === WrongAssignmentReportStatus.PENDING && (
-                  <>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() =>
-                          handleStatusChange(report.id, WrongAssignmentReportStatus.REVIEWED)
-                        }>
-                        <Icon name="check" className="mr-2 h-4 w-4" />
-                        {t("mark_as_reviewed")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() =>
-                          handleStatusChange(report.id, WrongAssignmentReportStatus.RESOLVED)
-                        }>
-                        <Icon name="check-check" className="mr-2 h-4 w-4" />
-                        {t("mark_as_resolved")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() =>
-                          handleStatusChange(report.id, WrongAssignmentReportStatus.DISMISSED)
-                        }>
-                        <Icon name="x" className="mr-2 h-4 w-4" />
-                        {t("dismiss")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </>
-                )}
                 {report.status !== WrongAssignmentReportStatus.PENDING && (
                   <DropdownMenuItem>
                     <DropdownItem
                       type="button"
+                      StartIcon="rotate-ccw"
                       onClick={() =>
                         handleStatusChange(report.id, WrongAssignmentReportStatus.PENDING)
                       }>
-                      <Icon name="rotate-ccw" className="mr-2 h-4 w-4" />
                       {t("reopen")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                {report.status !== WrongAssignmentReportStatus.REVIEWED && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="check"
+                      onClick={() =>
+                        handleStatusChange(report.id, WrongAssignmentReportStatus.REVIEWED)
+                      }>
+                      {t("mark_as_reviewed")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                {report.status !== WrongAssignmentReportStatus.RESOLVED && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="check-check"
+                      onClick={() =>
+                        handleStatusChange(report.id, WrongAssignmentReportStatus.RESOLVED)
+                      }>
+                      {t("mark_as_resolved")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                {report.status !== WrongAssignmentReportStatus.DISMISSED && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      StartIcon="x"
+                      onClick={() =>
+                        handleStatusChange(report.id, WrongAssignmentReportStatus.DISMISSED)
+                      }>
+                      {t("dismiss")}
                     </DropdownItem>
                   </DropdownMenuItem>
                 )}
@@ -265,6 +269,15 @@ export function WrongAssignmentReportsDashboard() {
             if (!open) setRoutingTraceBookingUid(null);
           }}
           bookingUid={routingTraceBookingUid}
+        />
+      )}
+      {formResponseId && (
+        <RoutingFormResponseSheet
+          isOpen={!!formResponseId}
+          setIsOpen={(open) => {
+            if (!open) setFormResponseId(null);
+          }}
+          formResponseId={formResponseId}
         />
       )}
     </>
