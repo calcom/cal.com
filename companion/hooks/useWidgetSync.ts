@@ -51,7 +51,7 @@ export function useWidgetSync() {
       // Log each booking's times for debugging - check both property name formats
       cachedBookings.slice(0, 3).forEach((booking, i) => {
         console.log(
-          `[Widget Debug] Booking ${i}: title="${booking.title}", startTime=${booking.startTime}, start=${booking.start}, endTime=${booking.endTime}, end=${booking.end}`
+          `[Widget Debug] Booking ${i}: startTime=${booking.startTime}, start=${booking.start}, endTime=${booking.endTime}, end=${booking.end}`
         );
       });
 
@@ -63,13 +63,13 @@ export function useWidgetSync() {
           .filter((booking) => {
             const endTimeStr = booking.endTime || booking.end;
             if (!endTimeStr) {
-              console.log(`[Widget Debug] ${booking.title}: No end time found, skipping`);
+              console.log(`[Widget Debug] Booking ${booking.id}: No end time found, skipping`);
               return false;
             }
             const endTime = new Date(endTimeStr);
             const isUpcoming = endTime > new Date();
             console.log(
-              `[Widget Debug] ${booking.title}: endTime=${endTime.toISOString()}, isUpcoming=${isUpcoming}`
+              `[Widget Debug] Booking ${booking.id}: endTime=${endTime.toISOString()}, isUpcoming=${isUpcoming}`
             );
             return isUpcoming;
           })
