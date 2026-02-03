@@ -179,6 +179,7 @@ const DateOverrideForm = ({
               />
             </div>
             <div className="mt-4 flex flex-row-reverse sm:mt-0">
+              <DialogClose />
               <Button
                 className="ml-2"
                 color="primary"
@@ -190,7 +191,6 @@ const DateOverrideForm = ({
                 data-testid="add-override-submit-btn">
                 {value ? t("date_overrides_update_btn") : t("date_overrides_save_btn")}
               </Button>
-              <DialogClose />
             </div>
           </>
         ) : (
