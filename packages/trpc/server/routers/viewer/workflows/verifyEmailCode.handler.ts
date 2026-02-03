@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 import { totpRawCheck } from "@calcom/lib/totp";
 import { prisma } from "@calcom/prisma";

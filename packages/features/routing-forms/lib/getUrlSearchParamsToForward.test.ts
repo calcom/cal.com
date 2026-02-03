@@ -350,4 +350,74 @@ describe("getUrlSearchParamsToForward", () => {
       expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
     });
   });
+
+  describe("CRM Lookup Done", () => {
+    it("should add cal.crmLookupDone when crmLookupDone is true", () => {
+      const searchParams = new URLSearchParams("?query1=value1");
+      const expectedParams = {
+        query1: "value1",
+        "cal.routingFormResponseId": "1",
+        "cal.crmLookupDone": "true",
+      };
+
+      const result = getUrlSearchParamsToForward({
+        formResponse: {},
+        fields: [],
+        searchParams,
+        teamMembersMatchingAttributeLogic: null,
+        formResponseId: 1,
+        queuedFormResponseId: null,
+        attributeRoutingConfig: null,
+        crmLookupDone: true,
+      });
+      expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+    });
+
+    it("should not add cal.crmLookupDone when crmLookupDone is false", () => {
+      const searchParams = new URLSearchParams("?query1=value1");
+      const expectedParams = {
+        query1: "value1",
+        "cal.routingFormResponseId": "1",
+      };
+
+      const result = getUrlSearchParamsToForward({
+        formResponse: {},
+        fields: [],
+        searchParams,
+        teamMembersMatchingAttributeLogic: null,
+        formResponseId: 1,
+        queuedFormResponseId: null,
+        attributeRoutingConfig: null,
+        crmLookupDone: false,
+      });
+      expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+    });
+
+    it("should add both CRM contact owner email and crmLookupDone when both are provided", () => {
+      const searchParams = new URLSearchParams("?query1=value1");
+      const expectedParams = {
+        query1: "value1",
+        "cal.routingFormResponseId": "1",
+        "cal.crmContactOwnerEmail": "owner@example.com",
+        "cal.crmContactOwnerRecordType": "Contact",
+        "cal.crmAppSlug": "salesforce",
+        "cal.crmLookupDone": "true",
+      };
+
+      const result = getUrlSearchParamsToForward({
+        formResponse: {},
+        fields: [],
+        searchParams,
+        teamMembersMatchingAttributeLogic: null,
+        formResponseId: 1,
+        queuedFormResponseId: null,
+        attributeRoutingConfig: null,
+        crmContactOwnerEmail: "owner@example.com",
+        crmContactOwnerRecordType: "Contact",
+        crmAppSlug: "salesforce",
+        crmLookupDone: true,
+      });
+      expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
+    });
+  });
 });

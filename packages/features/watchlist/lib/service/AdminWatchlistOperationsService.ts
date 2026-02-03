@@ -1,10 +1,12 @@
 import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import logger from "@calcom/lib/logger";
-import { BookingReportStatus } from "@calcom/prisma/enums";
+import { SystemReportStatus, WatchlistType } from "@calcom/prisma/enums";
 
 import { WatchlistErrors } from "../errors/WatchlistErrors";
+import { extractDomainFromEmail, normalizeEmail } from "../utils/normalization";
 import type {
+  AddReportsToWatchlistResult,
   DeleteWatchlistEntryInput,
   DeleteWatchlistEntryResult,
   WatchlistOperationsScope,
@@ -22,22 +24,30 @@ export interface BulkDeleteWatchlistEntriesResult {
   message: string;
 }
 
-export interface DismissReportInput {
-  reportId: string;
-}
-
-export interface DismissReportResult {
-  success: boolean;
-}
-
-export interface BulkDismissReportsInput {
-  reportIds: string[];
-}
-
 export interface BulkDismissReportsResult {
   success: number;
   failed: number;
   message: string;
+}
+
+export interface AddToWatchlistByEmailInput {
+  email: string;
+  type: WatchlistType;
+  description?: string;
+  userId: number;
+}
+
+export interface DismissReportByEmailInput {
+  email: string;
+}
+
+export interface DismissReportByEmailResult {
+  success: boolean;
+  count: number;
+}
+
+export interface BulkDismissReportsByEmailInput {
+  emails: string[];
 }
 
 type Deps = {
@@ -57,16 +67,6 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
       organizationId: null,
       isGlobal: true,
     };
-  }
-
-  protected async findReports(
-    reportIds: string[]
-  ): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>> {
-    const reports = await this.deps.bookingReportRepo.findReportsByIds({
-      reportIds,
-    });
-
-    return reports;
   }
 
   async bulkDeleteWatchlistEntries(
@@ -111,7 +111,6 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     return {
       success: successCount,
       failed: failed.length,
-      // TODO: use translate keys in follow up frontend PR
       message:
         failed.length === 0
           ? "All entries deleted successfully"
@@ -138,77 +137,83 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     };
   }
 
-  async dismissReport(input: DismissReportInput): Promise<DismissReportResult> {
-    const reports = await this.deps.bookingReportRepo.findReportsByIds({
-      reportIds: [input.reportId],
-    });
+  async addToWatchlistByEmail(input: AddToWatchlistByEmailInput): Promise<AddReportsToWatchlistResult> {
+    const scope = this.getScope();
 
-    if (reports.length === 0) {
-      throw WatchlistErrors.notFound("Report not found");
-    }
+    let watchlistValue: string;
+    let reports: Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>;
 
-    const report = reports[0];
-
-    if (report.watchlistId) {
-      throw WatchlistErrors.validationError(
-        "Cannot dismiss a report that has already been added to the blocklist"
-      );
-    }
-
-    await this.deps.bookingReportRepo.updateReportStatus({
-      reportId: input.reportId,
-      status: BookingReportStatus.DISMISSED,
-    });
-
-    return { success: true };
-  }
-
-  async bulkDismissReports(input: BulkDismissReportsInput): Promise<BulkDismissReportsResult> {
-    const reports = await this.deps.bookingReportRepo.findReportsByIds({
-      reportIds: input.reportIds,
-    });
-
-    const reportMap = new Map(reports.map((r) => [r.id, r]));
-    const validReportIds: string[] = [];
-    const failed: Array<{ id: string; reason: string }> = [];
-
-    for (const reportId of input.reportIds) {
-      const report = reportMap.get(reportId);
-
-      if (!report) {
-        failed.push({ id: reportId, reason: "Report not found" });
-        continue;
-      }
-
-      if (report.watchlistId) {
-        failed.push({ id: reportId, reason: "Already added to blocklist" });
-        continue;
-      }
-
-      validReportIds.push(reportId);
-    }
-
-    let successCount = 0;
-    if (validReportIds.length > 0) {
-      const result = await this.deps.bookingReportRepo.bulkUpdateReportStatus({
-        reportIds: validReportIds,
-        status: BookingReportStatus.DISMISSED,
+    if (input.type === WatchlistType.EMAIL) {
+      watchlistValue = normalizeEmail(input.email);
+      reports = await this.deps.bookingReportRepo.findPendingSystemReportsByEmail({
+        email: watchlistValue,
       });
-      successCount = result.updated;
+    } else {
+      watchlistValue = extractDomainFromEmail(input.email);
+      reports = await this.deps.bookingReportRepo.findPendingSystemReportsByDomain({
+        domain: watchlistValue,
+      });
     }
 
-    if (successCount === 0 && failed.length > 0) {
-      this.adminLog.error("Bulk dismiss reports failures", { failed });
-      throw WatchlistErrors.bulkDeletePartialFailure(`Failed to dismiss all reports: ${failed[0].reason}`);
+    const { watchlistEntry } = await this.deps.watchlistRepo.createEntryFromReport({
+      type: input.type,
+      value: watchlistValue,
+      organizationId: scope.organizationId,
+      isGlobal: scope.isGlobal,
+      userId: input.userId,
+      description: input.description,
+    });
+
+    if (reports.length > 0) {
+      await this.deps.bookingReportRepo.bulkLinkGlobalWatchlistWithSystemStatus({
+        links: reports.map((r) => ({ reportId: r.id, globalWatchlistId: watchlistEntry.id })),
+        systemStatus: SystemReportStatus.BLOCKED,
+      });
     }
 
     return {
-      success: successCount,
-      failed: failed.length,
+      success: true,
+      message: `Successfully added ${input.type === WatchlistType.EMAIL ? "email" : "domain"} to global blocklist`,
+      addedCount: reports.length,
+      skippedCount: 0,
+      results: reports.map((r) => ({ reportId: r.id, watchlistId: watchlistEntry.id })),
+    };
+  }
+
+  async dismissReportByEmail(input: DismissReportByEmailInput): Promise<DismissReportByEmailResult> {
+    const normalizedEmail = normalizeEmail(input.email);
+    const result = await this.deps.bookingReportRepo.dismissSystemReportsByEmail({
+      email: normalizedEmail,
+      systemStatus: SystemReportStatus.DISMISSED,
+    });
+
+    if (result.count === 0) {
+      throw WatchlistErrors.notFound("No pending reports found for this email");
+    }
+
+    return { success: true, count: result.count };
+  }
+
+  async bulkDismissReportsByEmail(input: BulkDismissReportsByEmailInput): Promise<BulkDismissReportsResult> {
+    const results = await Promise.all(
+      input.emails.map(async (email) => {
+        const normalizedEmail = normalizeEmail(email);
+        return this.deps.bookingReportRepo.dismissSystemReportsByEmail({
+          email: normalizedEmail,
+          systemStatus: SystemReportStatus.DISMISSED,
+        });
+      })
+    );
+
+    const totalDismissed = results.reduce((sum, r) => sum + r.count, 0);
+
+    return {
+      success: totalDismissed,
+      failed: 0,
       message:
-        failed.length === 0
-          ? "All reports dismissed successfully"
-          : `Dismissed ${successCount} reports, ${failed.length} failed`,
+        totalDismissed === 0
+          ? "No pending reports found"
+          : `Dismissed ${totalDismissed} report(s) successfully`,
     };
   }
 }

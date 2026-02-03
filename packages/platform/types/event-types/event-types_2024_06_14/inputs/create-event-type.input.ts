@@ -1,36 +1,39 @@
+import { SUPPORTED_LOCALES } from "@calcom/platform-constants";
+import { SchedulingType } from "@calcom/platform-enums";
 import {
+  ApiExtraModels,
+  ApiHideProperty,
   ApiProperty as DocsProperty,
   ApiPropertyOptional as DocsPropertyOptional,
   getSchemaPath,
-  ApiExtraModels,
-  ApiHideProperty,
 } from "@nestjs/swagger";
-import { Type, Transform, Expose } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import {
-  IsString,
-  IsInt,
-  IsBoolean,
-  IsOptional,
-  Min,
-  IsUrl,
-  IsEnum,
-  IsArray,
-  ValidateNested,
   ArrayNotEmpty,
   ArrayUnique,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Min,
+  ValidateNested,
 } from "class-validator";
-
-import { SchedulingType } from "@calcom/platform-enums";
 
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
+import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import {
   AddressFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
+  LocationDefaultFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
@@ -43,11 +46,9 @@ import {
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
-  LocationDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
+  ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
-import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
-import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
 import { BaseBookingLimitsCount_2024_06_14, ValidateBookingLimitsCount } from "./booking-limits-count.input";
 import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
@@ -65,22 +66,24 @@ import {
 import type { ConfirmationPolicy_2024_06_14 } from "./confirmation-policy.input";
 import { BaseConfirmationPolicy_2024_06_14, ValidateConfirmationPolicy } from "./confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "./destination-calendar.input";
+import { DisableCancelling_2024_06_14 } from "./disable-cancelling.input";
+import { DisableRescheduling_2024_06_14 } from "./disable-rescheduling.input";
 import { Disabled_2024_06_14 } from "./disabled.input";
 import { EmailSettings_2024_06_14 } from "./email-settings.input";
 import { EventTypeColor_2024_06_14 } from "./event-type-color.input";
+import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import {
   InputAddressLocation_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
-  InputOrganizersDefaultApp_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputIntegrationLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
+  InputOrganizersDefaultApp_2024_06_14,
   InputPhoneLocation_2024_06_14,
   ValidateLocations_2024_06_14,
   ValidateTeamLocations_2024_06_14,
 } from "./locations.input";
-import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "./locations.input";
 import { Recurrence_2024_06_14 } from "./recurrence.input";
 import { Seats_2024_06_14 } from "./seats.input";
 import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
@@ -129,7 +132,9 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   GuestsDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   InputOrganizersDefaultApp_2024_06_14,
-  EmailSettings_2024_06_14
+  EmailSettings_2024_06_14,
+  DisableRescheduling_2024_06_14,
+  DisableCancelling_2024_06_14
 )
 export class CalVideoSettings {
   @IsOptional()
@@ -180,6 +185,14 @@ export class CalVideoSettings {
     description: "If true, the organizer will not be able to receive transcription of the meeting",
   })
   disableTranscriptionForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Send emails with the transcription of the Cal Video after the meeting ends.",
+    default: true,
+  })
+  sendTranscriptionEmails?: boolean;
 }
 
 @CantHaveRecurrenceAndBookerActiveBookingsLimit()
@@ -273,14 +286,16 @@ export class BaseCreateEventTypeInput {
   @IsInt()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Time spaces that can be prepended before an event to give more time before it.",
+    description:
+      "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity.",
   })
   beforeEventBuffer?: number;
 
   @IsInt()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Time spaces that can be appended after an event to give more time after it.",
+    description:
+      "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment.",
   })
   afterEventBuffer?: number;
 
@@ -513,6 +528,62 @@ export class BaseCreateEventTypeInput {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableCancelling_2024_06_14)
+  @DocsPropertyOptional({
+    description: "Settings for disabling cancelling of this event type.",
+    type: DisableCancelling_2024_06_14,
+    example: { disabled: true },
+  })
+  disableCancelling?: DisableCancelling_2024_06_14;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => DisableRescheduling_2024_06_14)
+  @DocsPropertyOptional({
+    description:
+      "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+    type: DisableRescheduling_2024_06_14,
+    example: { disabled: false, minutesBefore: 60 },
+  })
+  disableRescheduling?: DisableRescheduling_2024_06_14;
+
+  @IsOptional()
+  @IsString()
+  @IsIn([...SUPPORTED_LOCALES])
+  @DocsPropertyOptional({
+    description:
+      "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+    enum: SUPPORTED_LOCALES,
+  })
+  interfaceLanguage?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Enabling this option allows for past events to be rescheduled.",
+    default: false,
+  })
+  allowReschedulingPastBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description:
+      "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+    default: false,
+  })
+  allowReschedulingCancelledBookings?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "Arrange time slots to optimize availability.",
+    default: false,
+  })
+  showOptimizedSlots?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()

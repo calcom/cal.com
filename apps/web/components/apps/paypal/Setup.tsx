@@ -51,6 +51,7 @@ export default function PayPalSetup() {
                 value={newClientId}
                 onChange={(e) => setNewClientId(e.target.value)}
                 role="presentation"
+                className="mb-6"
               />
 
               <TextField
@@ -67,7 +68,7 @@ export default function PayPalSetup() {
               {/* Button to submit */}
               <div className="mt-5 flex flex-row justify-end">
                 <Button
-                  color="secondary"
+                  color="primary"
                   onClick={() => {
                     saveKeysMutation.mutate({
                       credentialId,

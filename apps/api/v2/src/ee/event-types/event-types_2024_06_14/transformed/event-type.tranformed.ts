@@ -29,6 +29,10 @@ export type InputEventTransformed_2024_06_14 = Omit<
   | "seats"
   | "customName"
   | "useDestinationCalendarEmail"
+  | "disableRescheduling"
+  | "disableCancelling"
+  | "calVideoSettings"
+  | "bookerActiveBookingsLimit"
 > & {
   length: number;
   slug: string;
@@ -38,10 +42,23 @@ export type InputEventTransformed_2024_06_14 = Omit<
   bookingFields?: ReturnType<typeof transformBookingFieldsApiToInternal>;
   durationLimits?: ReturnType<typeof transformIntervalLimitsApiToInternal>;
   recurringEvent?: ReturnType<typeof transformRecurrenceApiToInternal>;
-  maxActiveBookingsPerBooker?: number;
+  maxActiveBookingsPerBooker?: number | null;
   maxActiveBookingPerBookerOfferReschedule?: boolean;
   eventTypeColor?: ReturnType<typeof transformEventColorsApiToInternal>;
   useEventTypeDestinationCalendarEmail?: boolean;
+  disableRescheduling?: boolean;
+  disableCancelling?: boolean;
+  minimumRescheduleNotice?: number | null;
+  canSendCalVideoTranscriptionEmails?: boolean;
+  calVideoSettings?: {
+    disableRecordingForOrganizer?: boolean;
+    disableRecordingForGuests?: boolean;
+    redirectUrlOnExit?: string | null;
+    enableAutomaticRecordingForOrganizer?: boolean;
+    enableAutomaticTranscription?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
+  };
 } & Partial<
     Pick<ConfirmationPolicyTransformedSchema, "requiresConfirmation" | "requiresConfirmationWillBlockSlot">
   > &

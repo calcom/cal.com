@@ -1,6 +1,6 @@
 // page can be a server component
 import type { GetServerSidePropsContext } from "next";
-import { URLSearchParams } from "url";
+import { URLSearchParams } from "node:url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";

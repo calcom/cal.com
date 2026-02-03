@@ -1,46 +1,71 @@
 import {
-  transformLocationsInternalToApi,
-  transformBookingFieldsInternalToApi,
-  InternalLocationSchema,
-  SystemField,
-  CustomField,
-  transformIntervalLimitsInternalToApi,
-  transformFutureBookingLimitsInternalToApi,
-  transformRecurrenceInternalToApi,
-  transformBookerLayoutsInternalToApi,
-  transformRequiresConfirmationInternalToApi,
-  transformEventTypeColorsInternalToApi,
-  transformSeatsInternalToApi,
-  InternalLocation,
-  BookingFieldSchema,
-} from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { Injectable } from "@nestjs/common";
-
-import {
-  userMetadata,
+  getBookingFieldsWithSystemFields,
   parseBookingLimit,
   parseRecurringEvent,
-  getBookingFieldsWithSystemFields,
+  userMetadata,
 } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
+import { getBookerBaseUrlSync } from "@calcom/platform-libraries/organizations";
 import type {
-  TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
-  NoticeThresholdTransformedSchema,
   EventTypeOutput_2024_06_14,
-  OutputUnknownLocation_2024_06_14,
-  OutputUnknownBookingField_2024_06_14,
+  NoticeThresholdTransformedSchema,
   OutputBookingField_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
+  OutputUnknownLocation_2024_06_14,
+  TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
-import type { EventType, User, Schedule, DestinationCalendar, CalVideoSettings } from "@calcom/prisma/client";
+import type {
+  CalVideoSettings,
+  DestinationCalendar,
+  EventType,
+  Prisma,
+  Schedule,
+  Team,
+} from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  BookingFieldSchema,
+  CustomField,
+  InternalLocation,
+  InternalLocationSchema,
+  SystemField,
+  transformBookerLayoutsInternalToApi,
+  transformBookingFieldsInternalToApi,
+  transformEventTypeColorsInternalToApi,
+  transformFutureBookingLimitsInternalToApi,
+  transformIntervalLimitsInternalToApi,
+  transformLocationsInternalToApi,
+  transformRecurrenceInternalToApi,
+  transformRequiresConfirmationInternalToApi,
+  transformSeatsInternalToApi,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { ProfileMinimal, UsersService } from "@/modules/users/services/users.service";
+
+type EventTypeUser = {
+  id: number;
+  name: string | null;
+  username: string | null;
+  isPlatformManaged?: boolean;
+  avatarUrl: string | null;
+  brandColor: string | null;
+  darkBrandColor: string | null;
+  weekStart: string;
+  metadata: Prisma.JsonValue;
+  organizationId: number | null;
+  organization?: { slug: string | null; isPlatform?: boolean } | null;
+  movedToProfile?: ProfileMinimal | null;
+  profiles?: ProfileMinimal[];
+};
 
 type EventTypeRelations = {
-  users: User[];
+  users: EventTypeUser[];
   schedule: Schedule | null;
   destinationCalendar?: DestinationCalendar | null;
   calVideoSettings?: CalVideoSettings | null;
 };
-export type DatabaseEventType = Omit<EventType, "allowReschedulingCancelledBookings"> & EventTypeRelations;
+export type DatabaseEventType = EventType & EventTypeRelations;
 
 type Input = Pick<
   DatabaseEventType,
@@ -94,10 +119,23 @@ type Input = Pick<
   | "bookingRequiresAuthentication"
   | "maxActiveBookingsPerBooker"
   | "maxActiveBookingPerBookerOfferReschedule"
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "minimumRescheduleNotice"
+  | "canSendCalVideoTranscriptionEmails"
+  | "interfaceLanguage"
+  | "allowReschedulingPastBookings"
+  | "allowReschedulingCancelledBookings"
+  | "showOptimizedSlots"
 >;
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService
+  ) {}
+
   getResponseEventType(
     ownerId: number,
     databaseEventType: Input,
@@ -134,6 +172,14 @@ export class OutputEventTypesService_2024_06_14 {
       calVideoSettings,
       hidden,
       bookingRequiresAuthentication,
+      disableCancelling,
+      disableRescheduling,
+      minimumRescheduleNotice,
+      canSendCalVideoTranscriptionEmails,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -168,6 +214,16 @@ export class OutputEventTypesService_2024_06_14 {
     } as TransformFutureBookingsLimitSchema_2024_06_14);
     const destinationCalendar = this.transformDestinationCalendar(databaseEventType.destinationCalendar);
     const bookerActiveBookingsLimit = this.transformBookerActiveBookingsLimit(databaseEventType);
+    const bookingUrl = this.buildBookingUrl(databaseEventType.users[0], slug);
+    const disableReschedulingOutput = this.transformDisableRescheduling(
+      disableRescheduling,
+      minimumRescheduleNotice
+    );
+    const disableCancellingOutput = this.transformDisableCancelling(disableCancelling);
+    const calVideoSettingsOutput = this.transformCalVideoSettings(
+      calVideoSettings,
+      canSendCalVideoTranscriptionEmails
+    );
 
     return {
       id,
@@ -210,10 +266,17 @@ export class OutputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail: useEventTypeDestinationCalendarEmail,
       hideCalendarEventDetails,
       hideOrganizerEmail,
-      calVideoSettings,
+      calVideoSettings: calVideoSettingsOutput,
       hidden,
       bookingRequiresAuthentication,
       bookerActiveBookingsLimit,
+      bookingUrl,
+      disableCancelling: disableCancellingOutput,
+      disableRescheduling: disableReschedulingOutput,
+      interfaceLanguage,
+      allowReschedulingPastBookings,
+      allowReschedulingCancelledBookings,
+      showOptimizedSlots,
     };
   }
 
@@ -311,7 +374,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  transformUsers(users: User[]) {
+  transformUsers(users: EventTypeUser[]) {
     return users.map((user) => {
       const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
@@ -374,6 +437,37 @@ export class OutputEventTypesService_2024_06_14 {
     });
   }
 
+  buildBookingUrl(user: EventTypeUser | undefined, slug: string): string {
+    if (!user) {
+      return "";
+    }
+
+    // Managed users don't have public booking pages
+    if (user.isPlatformManaged) {
+      return "";
+    }
+
+    const profile = this.usersService.getUserMainProfile(user);
+    const org = profile?.organization;
+    const isPlatformOrg = org?.isPlatform ?? false;
+
+    // For platform orgs, use user.username (public username like 'dhairyashil')
+    // For regular orgs, use profile.username (org-specific username)
+    const username = isPlatformOrg ? user.username : (profile?.username ?? user.username);
+
+    if (!username) {
+      return "";
+    }
+
+    // Don't use org subdomain for platform organizations - they don't have public-facing subdomains
+    const orgSlug = !isPlatformOrg && org?.slug ? org.slug : null;
+    // getBookerBaseUrlSync(null) returns WEBSITE_URL (https://cal.com)
+    const baseUrl = getBookerBaseUrlSync(orgSlug);
+    const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+
+    return `${normalizedBaseUrl}/${username}/${slug}`;
+  }
+
   getResponseEventTypesWithoutHiddenFields(
     eventTypes: EventTypeOutput_2024_06_14[]
   ): EventTypeOutput_2024_06_14[] {
@@ -393,6 +487,42 @@ export class OutputEventTypesService_2024_06_14 {
     return {
       ...eventType,
       bookingFields: visibleBookingFields,
+    };
+  }
+
+  transformDisableRescheduling(
+    disableRescheduling: boolean | null | undefined,
+    minimumRescheduleNotice: number | null | undefined
+  ) {
+    // If disableRescheduling is true, rescheduling is always disabled
+    if (disableRescheduling === true) {
+      return { disabled: true };
+    }
+
+    // If minimumRescheduleNotice is set, rescheduling is conditionally disabled
+    if (minimumRescheduleNotice && minimumRescheduleNotice > 0) {
+      return { disabled: false, minutesBefore: minimumRescheduleNotice };
+    }
+
+    // Otherwise rescheduling is not disabled
+    return { disabled: false };
+  }
+
+  transformDisableCancelling(disableCancelling: boolean | null | undefined) {
+    return { disabled: disableCancelling === true };
+  }
+
+  transformCalVideoSettings(
+    calVideoSettings: CalVideoSettings | null | undefined,
+    canSendCalVideoTranscriptionEmails: boolean | null | undefined
+  ) {
+    if (!calVideoSettings && canSendCalVideoTranscriptionEmails === undefined) {
+      return undefined;
+    }
+
+    return {
+      ...calVideoSettings,
+      sendTranscriptionEmails: canSendCalVideoTranscriptionEmails ?? true,
     };
   }
 }

@@ -3,8 +3,6 @@ import { vi } from "vitest";
 
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 
-import type { FormBuilder } from "./FormBuilder";
-
 export interface FieldProps {
   fieldType: string;
   identifier: string;
@@ -13,9 +11,7 @@ export interface FieldProps {
   options?: { label: string; value: string; price?: number }[];
 }
 
-type FormBuilderProps = React.ComponentProps<typeof FormBuilder>;
-
-export const mockProps: FormBuilderProps = {
+export const mockProps = {
   formProp: "fields",
   title: "FormBuilder Title",
   description: "FormBuilder Description",

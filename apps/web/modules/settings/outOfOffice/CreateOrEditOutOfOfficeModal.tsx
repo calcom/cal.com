@@ -5,7 +5,6 @@ import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
-import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -73,12 +72,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           label: member.name || member.username || "",
           avatarUrl: member.avatarUrl,
         })) || [];
-  const { ref: observerRefMember } = useInViewObserver(() => {
-    if (oooForMembers.hasNextPage && !oooForMembers.isFetching) {
-      oooForMembers.fetchNextPage();
-    }
-  }, document.querySelector('[role="dialog"]'));
-
   const [searchRedirectMember, setSearchRedirectMember] = useState("");
   const debouncedSearchRedirect = useDebounce(searchRedirectMember, 500);
   const redirectMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
@@ -107,11 +100,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         label: member.name || member.username || "",
         avatarUrl: member.avatarUrl,
       })) || [];
-  const { ref: observerRefRedirect } = useInViewObserver(() => {
-    if (redirectMembers.hasNextPage && !redirectMembers.isFetching) {
-      redirectMembers.fetchNextPage();
-    }
-  }, document.querySelector('[role="dialog"]'));
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
@@ -235,68 +223,37 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
             {/* In case of Team, Select Member for whom OOO is created */}
             {oooType === OutOfOfficeTab.TEAM && (
-              <>
-                <div className="mb-4">
-                  <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
-                  <div className="mt-2">
-                    <Input
-                      type="text"
+              <div className="mb-4">
+                <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
+                <Controller
+                  control={control}
+                  name="forUserId"
+                  render={({ field: { onChange, value } }) => (
+                    <Select
+                      className="mt-2"
+                      data-testid="ooofor_username_select"
+                      isSearchable={true}
+                      isDisabled={!!currentlyEditingOutOfOfficeEntry}
+                      menuPlacement="bottom"
+                      value={oooMemberListOptions.find((member) => member.value === value)}
                       placeholder={t("search")}
-                      onChange={(e) => setSearchMember(e.target.value)}
-                      value={searchMember}
-                      disabled={!!currentlyEditingOutOfOfficeEntry}
+                      options={oooMemberListOptions}
+                      onInputChange={(newValue) => setSearchMember(newValue)}
+                      onChange={(selectedOption) => {
+                        if (selectedOption?.value) {
+                          onChange(selectedOption.value);
+                        }
+                      }}
+                      onMenuScrollToBottom={() => {
+                        if (oooForMembers.hasNextPage && !oooForMembers.isFetchingNextPage) {
+                          oooForMembers.fetchNextPage();
+                        }
+                      }}
+                      isLoading={oooForMembers.isFetchingNextPage}
                     />
-                    <div
-                      className={`scroll-bar bg-default mt-2 flex ${
-                        currentlyEditingOutOfOfficeEntry ? "h-[45px]" : "h-[150px]"
-                      } flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1`}>
-                      {oooMemberListOptions.map((member) => (
-                        <label
-                          key={member.value}
-                          aria-disabled={!!currentlyEditingOutOfOfficeEntry}
-                          data-testid={`ooofor_username_select_${member.value}`}
-                          tabIndex={watchForUserId === member.value ? -1 : 0}
-                          role="radio"
-                          aria-checked={watchForUserId === member.value}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setValue("forUserId", member.value, { shouldDirty: true });
-                            }
-                          }}
-                          className={classNames(
-                            "cursor-not-allowed items-center justify-between gap-0.5 rounded-sm py-2 outline-none",
-                            watchForUserId === member.value && "bg-subtle",
-                            !currentlyEditingOutOfOfficeEntry &&
-                              "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer focus:ring-2"
-                          )}>
-                          <div className="flex flex-1 items-center space-x-3">
-                            <input
-                              type="radio"
-                              disabled={!!currentlyEditingOutOfOfficeEntry}
-                              className="hidden"
-                              checked={watchForUserId === member.value}
-                              onChange={() => setValue("forUserId", member.value, { shouldDirty: true })}
-                            />
-                            <span className="text-emphasis w-full px-2 text-sm">{member.label}</span>
-                          </div>
-                        </label>
-                      ))}
-                      {!currentlyEditingOutOfOfficeEntry && (
-                        <div className="text-default text-center" ref={observerRefMember}>
-                          <Button
-                            color="minimal"
-                            loading={oooForMembers.isFetchingNextPage}
-                            disabled={!oooForMembers.hasNextPage}
-                            onClick={() => oooForMembers.fetchNextPage()}>
-                            {oooForMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </>
+                  )}
+                />
+              </div>
             )}
 
             <div>
@@ -355,6 +312,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       className="mb-0 mt-1 text-white"
                       name="reason"
                       data-testid="reason_select"
+                      menuPlacement="bottom"
                       value={reasonList.find((reason) => reason.value === value)}
                       placeholder={t("ooo_select_reason")}
                       options={reasonList}
@@ -435,55 +393,36 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               {profileRedirect && (
                 <div className="mb-2">
                   <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
-                  <div className="mt-2">
-                    <Input
-                      type="text"
-                      placeholder={t("search")}
-                      onChange={(e) => setSearchRedirectMember(e.target.value)}
-                      value={searchRedirectMember}
-                    />
-                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
-                      {redirectToMemberListOptions
-                        .filter((member) => member.value !== getValues("forUserId"))
-                        .map((member) => (
-                          <label
-                            key={member.value}
-                            data-testid={`team_username_select_${member.value}`}
-                            tabIndex={watchedTeamUserId === member.value ? -1 : 0}
-                            role="radio"
-                            aria-checked={watchedTeamUserId === member.value}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                setValue("toTeamUserId", member.value, { shouldDirty: true });
-                              }
-                            }}
-                            className={classNames(
-                              "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
-                              watchedTeamUserId === member.value && "bg-subtle"
-                            )}>
-                            <div className="flex flex-1 items-center space-x-3">
-                              <input
-                                type="radio"
-                                className="hidden"
-                                checked={watchedTeamUserId === member.value}
-                                onChange={() => setValue("toTeamUserId", member.value, { shouldDirty: true })}
-                              />
-                              <span className="text-emphasis w-full px-2 text-sm">{member.label}</span>
-                            </div>
-                          </label>
-                        ))}
-                      <div className="text-default text-center" ref={observerRefRedirect}>
-                        <Button
-                          color="minimal"
-                          loading={redirectMembers.isFetchingNextPage}
-                          disabled={!redirectMembers.hasNextPage}
-                          onClick={() => redirectMembers.fetchNextPage()}>
-                          {redirectMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <Controller
+                    control={control}
+                    name="toTeamUserId"
+                    render={({ field: { onChange, value } }) => (
+                      <Select
+                        className="mt-2"
+                        data-testid="team_username_select"
+                        isSearchable={true}
+                        value={redirectToMemberListOptions
+                          .filter((member) => member.value !== getValues("forUserId"))
+                          .find((member) => member.value === value)}
+                        placeholder={t("search")}
+                        options={redirectToMemberListOptions.filter(
+                          (member) => member.value !== getValues("forUserId")
+                        )}
+                        onInputChange={(newValue) => setSearchRedirectMember(newValue)}
+                        onChange={(selectedOption) => {
+                          if (selectedOption?.value) {
+                            onChange(selectedOption.value);
+                          }
+                        }}
+                        onMenuScrollToBottom={() => {
+                          if (redirectMembers.hasNextPage && !redirectMembers.isFetchingNextPage) {
+                            redirectMembers.fetchNextPage();
+                          }
+                        }}
+                        isLoading={redirectMembers.isFetchingNextPage}
+                      />
+                    )}
+                  />
                 </div>
               )}
             </div>

@@ -1,16 +1,15 @@
 "use client";
 
+import { ColumnFilterType, DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import FeatureOptInBannerWrapper from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-
-import { DataTableProvider, type SystemFilterSegment, ColumnFilterType } from "@calcom/features/data-table";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-
+import { useFeatureOptInBanner } from "../../feature-opt-in/hooks/useFeatureOptInBanner";
 import { BookingListContainer } from "../components/BookingListContainer";
-import { useBookingsShellHeadingVisibility } from "../hooks/useBookingsShellHeadingVisibility";
 import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
@@ -27,6 +26,7 @@ type BookingsProps = {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -68,10 +68,9 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsProps) {
+function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
-
-  useBookingsShellHeadingVisibility({ visible: view === "list" });
+  const optInBanner = useFeatureOptInBanner("bookings-v3");
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
@@ -80,6 +79,7 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
           status={status}
           permissions={permissions}
           bookingsV3Enabled={bookingsV3Enabled}
+          bookingAuditEnabled={bookingAuditEnabled}
         />
       )}
       {bookingsV3Enabled && view === "calendar" && (
@@ -89,6 +89,7 @@ function BookingsContent({ status, permissions, bookingsV3Enabled }: BookingsPro
           bookingsV3Enabled={bookingsV3Enabled}
         />
       )}
+      <FeatureOptInBannerWrapper state={optInBanner} />
     </div>
   );
 }

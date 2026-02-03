@@ -17,11 +17,16 @@ import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
+
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
+import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry } from "../zod";
+import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry, RRSkipFieldRule } from "../zod";
+import { RRSkipFieldRuleActionEnum } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -29,7 +34,28 @@ import {
   DateFieldTypeData,
   RoutingReasons,
 } from "./enums";
+
+/**
+ * Extended CRM interface with Salesforce-specific methods.
+ * This interface is used by internal Salesforce modules (routing forms, etc.)
+ * that need access to Salesforce-specific functionality beyond the generic CRM interface.
+ */
+export interface SalesforceCRM extends CRM {
+  findUserEmailFromLookupField(
+    attendeeEmail: string,
+    fieldName: string,
+    salesforceObject: SalesforceRecordEnum
+  ): Promise<{ email: string; recordType: RoutingReasons } | undefined>;
+
+  incompleteBookingWriteToRecord(
+    email: string,
+    writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
+  ): Promise<void>;
+
+  getAllPossibleAccountWebsiteFromEmailDomain(emailDomain: string): string;
+}
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
+import { getSalesforceTokenLifetime } from "./getSalesforceTokenLifetime";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import getDominantAccountId from "./utils/getDominantAccountId";
@@ -84,15 +110,16 @@ type Attendee = { email: string; name: string };
 
 const salesforceTokenSchema = z.object({
   id: z.string(),
-  issued_at: z.string(),
+  issued_at: z.string(), // Salesforce returns this in milliseconds as a string
   instance_url: z.string(),
   signature: z.string(),
   access_token: z.string(),
   scope: z.string(),
   token_type: z.string(),
+  token_lifetime: z.number().optional(), // Token lifetime in seconds (from introspection)
 });
 
-export default class SalesforceCRMService implements CRM {
+class SalesforceCRMService implements CRM {
   private integrationName = "";
   private conn!: Promise<Connection>;
   private log: typeof logger;
@@ -102,9 +129,13 @@ export default class SalesforceCRMService implements CRM {
   private fallbackToContact = false;
   private accessToken: string;
   private instanceUrl: string;
+  private hasAttemptedRefresh = false;
+  private credentialId: number;
+  private describeCache = new Map<string, Set<string>>();
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
+    this.credentialId = credential.id;
     if (!testMode) {
       this.conn = this.getClient(credential).then((c) => c);
     }
@@ -119,44 +150,106 @@ export default class SalesforceCRMService implements CRM {
     return this.appOptions;
   }
 
+  /**
+   * Refreshes the Salesforce access token and optionally introspects to get/update token_lifetime.
+   * @param forceIntrospection - If true, always introspect to recalibrate token_lifetime (e.g., after unexpected expiry)
+   * @param existingTokenLifetime - The current token_lifetime to reuse if not forcing introspection
+   */
+  private refreshAccessToken = async ({
+    refreshToken,
+    forceIntrospection,
+    existingTokenLifetime,
+  }: {
+    refreshToken: string;
+    forceIntrospection: boolean;
+    existingTokenLifetime?: number;
+  }) => {
+    const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
+
+    const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: consumer_key,
+        client_secret: consumer_secret,
+        refresh_token: refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
+      throw new Error(message);
+    }
+
+    const accessTokenJson = await response.json();
+    const accessTokenParsed = parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
+
+    // Introspect if forced or if we don't have a token_lifetime yet
+    let tokenLifetime = existingTokenLifetime;
+    if (forceIntrospection || !tokenLifetime) {
+      tokenLifetime = await getSalesforceTokenLifetime({
+        accessToken: accessTokenParsed.access_token,
+        instanceUrl: accessTokenParsed.instance_url,
+      });
+    }
+
+    // Update credential in database
+    const updatedKey = {
+      ...accessTokenParsed,
+      refresh_token: refreshToken,
+      token_lifetime: tokenLifetime,
+    };
+
+    await CredentialRepository.updateWhereId({
+      id: this.credentialId,
+      data: { key: updatedKey },
+    });
+
+    return {
+      accessToken: accessTokenParsed.access_token,
+      instanceUrl: accessTokenParsed.instance_url,
+      issuedAt: accessTokenParsed.issued_at,
+      tokenLifetime,
+    };
+  };
+
   private getClient = async (credential: CredentialPayload) => {
     const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
-    const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+    const credentialKey = credential.key as unknown as ExtendedTokenResponse & { token_lifetime?: number };
 
     if (!credentialKey.refresh_token)
       throw new Error(`Refresh token is missing for credential ${credential.id}`);
 
-    try {
-      /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
-              Needs further investigation ASAP */
-      const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          grant_type: "refresh_token",
-          client_id: consumer_key,
-          client_secret: consumer_secret,
-          refresh_token: credentialKey.refresh_token,
-        }),
-      });
-      if (!response.ok) {
-        const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
-        throw new Error(message);
+    const refreshToken = credentialKey.refresh_token;
+
+    // Check if token is still valid
+    // issued_at is in milliseconds (string), token_lifetime is in seconds
+    const BUFFER_MS = 5 * 60 * 1000; // 5 minutes buffer before expiry
+    const issuedAt = parseInt(credentialKey.issued_at, 10);
+    const tokenLifetimeMs = (credentialKey.token_lifetime || 0) * 1000;
+    const expiryTime = issuedAt + tokenLifetimeMs;
+    const isTokenValid = credentialKey.token_lifetime && Date.now() < expiryTime - BUFFER_MS;
+
+    if (!isTokenValid) {
+      try {
+        const result = await this.refreshAccessToken({
+          refreshToken,
+          forceIntrospection: false,
+          existingTokenLifetime: credentialKey.token_lifetime,
+        });
+
+        // Update instance variables and credentialKey for the connection
+        this.accessToken = result.accessToken;
+        this.instanceUrl = result.instanceUrl;
+        credentialKey.access_token = result.accessToken;
+        credentialKey.issued_at = result.issuedAt;
+        credentialKey.token_lifetime = result.tokenLifetime;
+      } catch (err: unknown) {
+        console.error(err); // log but proceed
       }
-
-      const accessTokenJson = await response.json();
-
-      const accessTokenParsed: ParseRefreshTokenResponse<typeof salesforceTokenSchema> =
-        parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
-
-      await prisma.credential.update({
-        where: { id: credential.id },
-        data: { key: { ...accessTokenParsed, refresh_token: credentialKey.refresh_token } },
-      });
-    } catch (err: unknown) {
-      console.error(err); // log but proceed
     }
 
     return new jsforce.Connection({
@@ -168,6 +261,28 @@ export default class SalesforceCRMService implements CRM {
       instanceUrl: credentialKey.instance_url,
       accessToken: credentialKey.access_token,
       refreshToken: credentialKey.refresh_token,
+      refreshFn: async (conn, callback) => {
+        // Only attempt refresh once to avoid infinite loops
+        if (this.hasAttemptedRefresh) {
+          return callback(new Error("Token refresh already attempted"));
+        }
+        this.hasAttemptedRefresh = true;
+
+        try {
+          // Force introspection to recalibrate token_lifetime after unexpected expiry
+          const result = await this.refreshAccessToken({
+            refreshToken,
+            forceIntrospection: true,
+          });
+
+          this.accessToken = result.accessToken;
+          this.instanceUrl = result.instanceUrl;
+
+          callback(null, result.accessToken);
+        } catch (err) {
+          callback(err instanceof Error ? err : new Error(String(err)));
+        }
+      },
     });
   };
 
@@ -206,7 +321,12 @@ export default class SalesforceCRMService implements CRM {
       EndDateTime: new Date(event.endTime).toISOString(),
       Subject: event.title,
       Description: this.getSalesforceEventBody(event),
-      Location: getLocation(event),
+      Location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       ...options,
       ...(event.recurringEvent && {
         IsRecurrence2: true,
@@ -314,7 +434,12 @@ export default class SalesforceCRMService implements CRM {
       EndDateTime: new Date(event.endTime).toISOString(),
       Subject: event.title,
       Description: this.getSalesforceEventBody(event),
-      Location: getLocation(event),
+      Location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       ...(event.recurringEvent && {
         IsRecurrence2: true,
         Recurrence2PatternText: new RRule(event.recurringEvent).toString(),
@@ -444,13 +569,52 @@ export default class SalesforceCRMService implements CRM {
         })
       );
 
+      // Validate field rules early, before branching to GraphQL or SOQL paths
+      let validatedFieldRules: RRSkipFieldRule[] | undefined;
+      if (forRoundRobinSkip && appOptions?.rrSkipFieldRules?.length) {
+        log.info(
+          "Validating field rules",
+          safeStringify({
+            rules: appOptions.rrSkipFieldRules,
+            recordToSearch,
+          })
+        );
+        const existingFieldNames = await this.getObjectFieldNames(recordToSearch);
+        log.info(`Found ${existingFieldNames.size} fields on ${recordToSearch}`);
+        if (existingFieldNames.size > 0) {
+          const filtered = appOptions.rrSkipFieldRules.filter((r) => existingFieldNames.has(r.field));
+          if (filtered.length > 0) {
+            validatedFieldRules = filtered;
+            log.info("Validated field rules", safeStringify({ validatedFieldRules }));
+            SalesforceRoutingTraceService.fieldRulesValidated({
+              recordType: recordToSearch,
+              configuredCount: appOptions.rrSkipFieldRules.length,
+              validCount: filtered.length,
+              validFields: filtered.map((r) => r.field),
+            });
+          } else {
+            log.warn(
+              "No field rules matched existing fields",
+              safeStringify({
+                configuredFields: appOptions.rrSkipFieldRules.map((r) => r.field),
+              })
+            );
+            SalesforceRoutingTraceService.fieldRulesValidated({
+              recordType: recordToSearch,
+              configuredCount: appOptions.rrSkipFieldRules.length,
+              validCount: 0,
+            });
+          }
+        }
+      }
+
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip) {
         try {
           const client = new SalesforceGraphQLClient({
             accessToken: this.accessToken,
             instanceUrl: this.instanceUrl,
           });
-          return await client.GetAccountRecordsForRRSkip(emailArray[0]);
+          return await client.GetAccountRecordsForRRSkip(emailArray[0], validatedFieldRules);
         } catch (error) {
           log.error("Error getting account records for round robin skip", safeStringify({ error }));
           return [];
@@ -488,15 +652,19 @@ export default class SalesforceCRMService implements CRM {
       }
 
       if (records.length === 0) {
+        // Build extra SELECT fields from validated field rules so we don't need a second query
+        const extraFields =
+          validatedFieldRules?.length ? ", " + validatedFieldRules.map((r) => r.field).join(", ") : "";
+
         // Handle Account record type
         if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
           // For an account let's assume that the first email is the one we should be querying against
           const attendeeEmail = emailArray[0];
           log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
-          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website${extraFields} FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
         } else {
           // Handle Contact/Lead record types
-          soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
+          soql = `SELECT Id, Email, OwnerId, Owner.Email${extraFields} FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
             "','"
           )}')`;
         }
@@ -515,9 +683,27 @@ export default class SalesforceCRMService implements CRM {
         }
       }
 
-      const includeOwnerData =
-        (includeOwner || forRoundRobinSkip) &&
-        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
+      // Apply field rules if configured and this is for round robin skip
+      if (forRoundRobinSkip && validatedFieldRules?.length && records.length > 0) {
+        records = this.applyFieldRules(records, validatedFieldRules);
+        if (records.length === 0) {
+          log.info("All records filtered out by field rules");
+          SalesforceRoutingTraceService.allRecordsFilteredByFieldRules({
+            recordType: recordToSearch,
+          });
+          return [];
+        }
+      }
+
+      const isFreeEmailDomain = await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]);
+      const includeOwnerData = (includeOwner || forRoundRobinSkip) && !isFreeEmailDomain;
+
+      if (isFreeEmailDomain && (includeOwner || forRoundRobinSkip)) {
+        SalesforceRoutingTraceService.ownerLookupSkipped({
+          reason: "Free email domain",
+          email: emailArray[0],
+        });
+      }
 
       const includeAccountRecordType = forRoundRobinSkip && recordToSearch === SalesforceRecordEnum.ACCOUNT;
       return records.map((record) => {
@@ -527,6 +713,33 @@ export default class SalesforceCRMService implements CRM {
           record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
             ? record?.Account?.Owner?.Email
             : record?.Owner?.Email;
+
+        // Trace owner lookup based on record type
+        if (includeOwnerData && record?.Id && record?.OwnerId) {
+          const recordType = record?.attributes?.type;
+          if (recordType === SalesforceRecordEnum.CONTACT) {
+            SalesforceRoutingTraceService.contactOwnerLookup({
+              contactId: record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          } else if (recordType === SalesforceRecordEnum.LEAD) {
+            SalesforceRoutingTraceService.leadOwnerLookup({
+              leadId: record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          } else if (
+            recordType === SalesforceRecordEnum.ACCOUNT ||
+            (includeAccountRecordType && record?.AccountId)
+          ) {
+            SalesforceRoutingTraceService.accountOwnerLookup({
+              accountId: record.AccountId || record.Id,
+              ownerEmail: ownerEmail ?? null,
+              ownerId: record.OwnerId ?? null,
+            });
+          }
+        }
 
         return {
           id: includeAccountRecordType ? record?.AccountId || "" : record?.Id || "",
@@ -896,7 +1109,62 @@ export default class SalesforceCRMService implements CRM {
     };
   }
 
-  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+  /**
+   * Gets all field names for a Salesforce object.
+   * Uses a two-level cache: in-memory (per request) and Redis (cross-request, 1hr TTL).
+   */
+  private async getObjectFieldNames(sobject: string): Promise<Set<string>> {
+    const log = logger.getSubLogger({ prefix: [`[getObjectFieldNames]`] });
+
+    // Level 1: in-memory cache (same request)
+    const memoryCached = this.describeCache.get(sobject);
+    if (memoryCached) {
+      return memoryCached;
+    }
+
+    // Level 2: Redis cache (cross-request)
+    const cacheKey = `salesforce:describe:${this.instanceUrl}:${sobject}`;
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+    try {
+      const redis = getRedisService();
+      const redisCached = await redis.get<string[]>(cacheKey);
+      if (redisCached) {
+        log.info(`Redis cache hit for ${sobject} field names`);
+        const fieldNames = new Set(redisCached);
+        this.describeCache.set(sobject, fieldNames);
+        return fieldNames;
+      }
+    } catch (cacheError) {
+      log.warn(`Redis cache unavailable, falling back to API`, safeStringify({ error: cacheError }));
+    }
+
+    // Level 3: Salesforce API
+    const conn = await this.conn;
+
+    try {
+      const salesforceEntity = await conn.describe(sobject);
+      const fieldNamesList = salesforceEntity.fields.map((f) => f.name);
+      const fieldNames = new Set(fieldNamesList);
+      this.describeCache.set(sobject, fieldNames);
+
+      // Persist to Redis for other requests
+      try {
+        const redis = getRedisService();
+        await redis.set(cacheKey, fieldNamesList, { ttl: CACHE_TTL_MS });
+        log.info(`Cached ${sobject} field names in Redis (${fieldNamesList.length} fields)`);
+      } catch (cacheError) {
+        log.warn(`Failed to cache field names in Redis`, safeStringify({ error: cacheError }));
+      }
+
+      return fieldNames;
+    } catch (e) {
+      log.error(`Error fetching field names for ${sobject}`, safeStringify({ error: e }));
+      return new Set();
+    }
+  }
+
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string): Promise<Field[]> {
     const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
     const conn = await this.conn;
 
@@ -920,6 +1188,65 @@ export default class SalesforceCRMService implements CRM {
       log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
+  }
+
+  /**
+   * Filters records in-memory based on pre-validated field rules.
+   * Field rule values are expected to already be present on the records
+   * (included in the original SOQL SELECT).
+   * Records without the field value (e.g. from SOSL path) are kept.
+   *
+   * @param records - The records to filter (must already contain field rule field values)
+   * @param validRules - Array of pre-validated rules (fields already confirmed to exist on the object)
+   * @returns Filtered records that pass all rules (AND logic)
+   */
+  private applyFieldRules(records: ContactRecord[], validRules: RRSkipFieldRule[]): ContactRecord[] {
+    const log = logger.getSubLogger({ prefix: [`[applyFieldRules]`] });
+
+    if (!validRules.length || !records.length) {
+      return records;
+    }
+
+    log.info("Applying field rules", {
+      ruleCount: validRules.length,
+      recordCount: records.length,
+    });
+
+    return records.filter((record) => {
+      for (const rule of validRules) {
+        // Access dynamic field via bracket notation — value is on the record from SOQL
+        const rawRecord = record as unknown as Record<string, unknown>;
+        const actualValue = String(rawRecord[rule.field] ?? "").toLowerCase();
+        const ruleValue = rule.value.toLowerCase();
+        const matches = actualValue === ruleValue;
+
+        // If field value is missing (empty string from nullish coalescing), skip the rule.
+        // This handles records from SOSL path that don't have field rule fields.
+        if (rawRecord[rule.field] === undefined || rawRecord[rule.field] === null) {
+          log.info(`Record ${record.Id} missing field "${rule.field}", skipping rule`);
+          continue;
+        }
+
+        if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
+          log.info(`Record ${record.Id} filtered out by ignore rule`, {
+            field: rule.field,
+            value: rule.value,
+          });
+          return false;
+        }
+
+        if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
+          log.info(`Record ${record.Id} filtered out by must_include rule`, {
+            field: rule.field,
+            expectedValue: rule.value,
+            actualValue,
+          });
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   private async checkRecordOwnerNameFromRecordId(id: string, newOwnerId: string) {
@@ -981,6 +1308,11 @@ export default class SalesforceCRMService implements CRM {
     const emailDomain = email.split("@")[1];
     const log = logger.getSubLogger({ prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${email}`] });
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
+
+    SalesforceRoutingTraceService.searchingByWebsiteValue({
+      emailDomain,
+    });
+
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
@@ -993,6 +1325,10 @@ export default class SalesforceCRMService implements CRM {
         "Found account based on email domain",
         safeStringify({ emailDomain, accountWebsite: account.Website, accountId: account.Id })
       );
+      SalesforceRoutingTraceService.accountFoundByWebsite({
+        accountId: account.Id,
+        website: account.Website,
+      });
       return account.Id;
     }
 
@@ -1001,12 +1337,28 @@ export default class SalesforceCRMService implements CRM {
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
+    SalesforceRoutingTraceService.searchingByContactEmailDomain({
+      emailDomain,
+      contactCount: response.records.length,
+    });
+
     const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
 
     if (accountId) {
       log.info("Found account based on other contacts", safeStringify({ accountId }));
+      const contactsUnderAccount = (response.records as { AccountId: string }[]).filter(
+        (r) => r.AccountId === accountId
+      );
+      SalesforceRoutingTraceService.accountSelectedByMostContacts({
+        accountId,
+        contactCount: contactsUnderAccount.length,
+      });
     } else {
       log.info("No account found");
+      SalesforceRoutingTraceService.noAccountFound({
+        email,
+        reason: "No account found by website or contact domain",
+      });
     }
 
     return accountId;
@@ -1548,6 +1900,12 @@ export default class SalesforceCRMService implements CRM {
     if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
 
+      SalesforceRoutingTraceService.lookupFieldQuery({
+        fieldName,
+        salesforceObject,
+        accountId: accountId ?? null,
+      });
+
       if (!accountId) return;
 
       const accountQuery = (await conn.query(
@@ -1569,6 +1927,11 @@ export default class SalesforceCRMService implements CRM {
       if (!userQuery.records.length) return;
 
       const user = userQuery.records[0] as { Email: string };
+
+      SalesforceRoutingTraceService.userQueryFromLookupField({
+        lookupFieldUserId,
+        userEmail: user.Email,
+      });
 
       return { email: user.Email, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD };
     }
@@ -1698,4 +2061,30 @@ export default class SalesforceCRMService implements CRM {
       return leadsQuery.records[0] as { Id: string; Email: string };
     }
   }
+}
+
+/**
+ * Factory function that creates a Salesforce CRM service instance.
+ * This is exported instead of the class to prevent SDK types (like jsforce.Connection)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all jsforce SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>
+): CRM {
+  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>);
+}
+
+/**
+ * Factory function that creates a Salesforce CRM service instance with the extended SalesforceCRM type.
+ * This is used by internal Salesforce modules (routing forms, etc.) that need access to
+ * Salesforce-specific methods beyond the generic CRM interface.
+ */
+export function createSalesforceCrmServiceWithSalesforceType(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>,
+  testMode = false
+): SalesforceCRM {
+  return new SalesforceCRMService(credential, (appOptions ?? {}) as z.infer<typeof appDataSchema>, testMode);
 }
