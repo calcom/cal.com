@@ -1,9 +1,7 @@
-import { useEffect, useState, useRef } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-
 import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function calculateMinutesFromStart(startHour: number, currentHour: number, currentMinute: number) {
   const startMinute = startHour * 60;
@@ -14,9 +12,11 @@ function calculateMinutesFromStart(startHour: number, currentHour: number, curre
 export function CurrentTime({
   timezone,
   scrollToCurrentTime = true,
+  updateOnFocus = false,
 }: {
   timezone: string;
   scrollToCurrentTime?: boolean;
+  updateOnFocus?: boolean;
 }) {
   const { timeFormat } = useTimePreferences();
   const currentTimeRef = useRef<HTMLDivElement>(null);
@@ -27,29 +27,44 @@ export function CurrentTime({
     endHour: state.endHour || 23,
   }));
 
-  useEffect(() => {
-    // Set the container scroll position based on the current time.
-
-    const currentDateTime = dayjs().tz(timezone); // Get current date and time in the specified timezone
-
+  const updateCurrentTimePosition = useCallback(() => {
+    const currentDateTime = dayjs().tz(timezone);
     const currentHour = currentDateTime.hour();
     const currentMinute = currentDateTime.minute();
 
     if (currentHour > endHour || currentHour < startHour) {
       setCurrentTimePos(null);
+      return;
     }
 
     const minutesFromStart = calculateMinutesFromStart(startHour, currentHour, currentMinute);
     setCurrentTimePos(minutesFromStart);
+  }, [timezone, startHour, endHour]);
+
+  useEffect(() => {
+    updateCurrentTimePosition();
 
     if (!scrollToCurrentTime || !currentTimeRef.current || scrolledIntoView) return;
-    // Within a small timeout so element has time to render.
     setTimeout(() => {
-      // Doesn't seem to cause any issue. Put it under condition if needed
       currentTimeRef?.current?.scrollIntoView({ block: "center" });
       setScrolledIntoView(true);
     }, 100);
-  }, [startHour, endHour, scrolledIntoView, timezone, scrollToCurrentTime]);
+  }, [updateCurrentTimePosition, scrolledIntoView, scrollToCurrentTime]);
+
+  useEffect(() => {
+    if (!updateOnFocus) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        updateCurrentTimePosition();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [updateOnFocus, updateCurrentTimePosition]);
 
   return (
     <div
