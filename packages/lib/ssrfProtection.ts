@@ -88,6 +88,13 @@ export interface SSRFValidationResult {
 }
 
 /**
+ * Check if running in E2E test environment where localhost webhook receivers are needed
+ */
+function isE2ETestEnvironment(): boolean {
+  return process.env.NEXT_PUBLIC_IS_E2E === "1";
+}
+
+/**
  * Core validation logic shared by sync and async versions
  * Returns SSRFValidationResult if validation completes, or { url } if DNS check is needed
  */
@@ -106,6 +113,14 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
     url = new URL(urlString);
   } catch {
     return { isValid: false, error: ERRORS.INVALID_URL };
+  }
+
+  // Allow localhost HTTP in E2E tests for local webhook receivers
+  if (isE2ETestEnvironment()) {
+    const isLocalhost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (isLocalhost && (url.protocol === "http:" || url.protocol === "https:")) {
+      return { isValid: true };
+    }
   }
 
   if (url.protocol !== "https:") {

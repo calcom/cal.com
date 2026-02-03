@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   isBlockedHostname,
@@ -113,5 +113,23 @@ describe("isTrustedInternalUrl", () => {
     expect(isTrustedInternalUrl("https://evil.com/logo.png", webappUrl)).toBe(false);
     expect(isTrustedInternalUrl("https://app.cal.com.evil.com/x", webappUrl)).toBe(false);
     expect(isTrustedInternalUrl("not-a-url", webappUrl)).toBe(false);
+  });
+});
+
+describe("E2E test environment exception", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("allows localhost HTTP when NEXT_PUBLIC_IS_E2E=1", () => {
+    vi.stubEnv("NEXT_PUBLIC_IS_E2E", "1");
+    expect(validateUrlForSSRFSync("http://localhost:3000/webhook").isValid).toBe(true);
+    expect(validateUrlForSSRFSync("http://127.0.0.1:4000/webhook").isValid).toBe(true);
+  });
+
+  it("still blocks non-localhost URLs in E2E environment", () => {
+    vi.stubEnv("NEXT_PUBLIC_IS_E2E", "1");
+    expect(validateUrlForSSRFSync("http://evil.com/webhook").isValid).toBe(false);
+    expect(validateUrlForSSRFSync("http://192.168.1.1/webhook").isValid).toBe(false);
   });
 });
