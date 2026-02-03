@@ -75,60 +75,13 @@ When a task requires extensive changes, break it into multiple PRs:
 
 ## Commands
 
-### File-scoped (preferred for speed)
+See [agents/commands.md](agents/commands.md) for full reference. Key commands:
 
 ```bash
-# Type check - always run on changed files
-yarn type-check:ci --force
-
-# Lint and format single file
-yarn biome check --write path/to/file.tsx
-
-# Unit test specific file
-yarn vitest run path/to/file.test.ts
-
-# Unit test specific file + specific test
-yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
-
-# Integration test specific file
-VITEST_MODE=integration yarn test path/to/file.integration-test.ts
-
-# Integration test specific file + specific test
-VITEST_MODE=integration yarn test path/to/file.integration-test.ts --testNamePattern="specific test name"
-
-# E2E test specific file
-PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
-
-# E2E test specific file + specific test
-PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts --grep "specific test name"
-```
-
-### Project-wide (use sparingly)
-
-```bash
-# Development
-yarn dev              # Start dev server
-yarn dx               # Dev with database setup
-
-# Build & check
-yarn build                   # Build all packages
-yarn biome check --write .   # Lint and format all
-yarn type-check              # Type check all
-
-# Tests (use TZ=UTC for consistency)
-TZ=UTC yarn test      # All unit tests
-yarn e2e              # All E2E tests
-
-# Database
-yarn prisma generate  # Regenerate types after schema changes
-yarn workspace @calcom/prisma db-migrate  # Run migrations
-```
-
-### Biome focused workflow
-+
-```bash
-yarn biome check --write .
-yarn type-check:ci --force
+yarn type-check:ci --force  # Type check (always run before pushing)
+yarn biome check --write .  # Lint and format
+TZ=UTC yarn test            # Run unit tests
+yarn prisma generate        # Regenerate types after schema changes
 ```
 
 
@@ -197,7 +150,7 @@ throw new Error(`Unable to create booking: User ${userId} has no available time 
 throw new Error("Booking failed");
 ```
 
-For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [Error Types in knowledge-base.md](agents/knowledge-base.md#error-types).
+For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [quality-error-handling](agents/rules/quality-error-handling.md).
 
 ### Good Prisma query
 
@@ -271,25 +224,11 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - Fix type errors before test failures - they're often the root cause
 - Run `yarn prisma generate` if you see missing enum/type errors
 
-## Business rules
-1. Managed event types
-- When a managed event type is created we create a managed event type for team (parent managed event type) and for each user that has been assigned to it (child managed event type). Parent managed event type will have "teamId" set in the EventType table row and child one "userId". If we create managed event type and assign Alice and Bob then three rows will be inserted in the EventType table.
-- It is possible to book only child managed event type.
-
-2. Organizations and teams both are stored in the "Team" table. Organizations have "isOrganization" set to true, and if the entry has
-"parentId" set then it means it is a team within an organization.
-
-3. There are two types of OAuth clients you have to distinguish between:
-- "OAuth client" which resides in the "OAuthClient" table. This OAuth client allows 3rd party apps users to connect their cal.com accounts.
-- "Platform OAuth client" which resides in the "PlatformOAuthClient" table. This OAuth client is used only by platform customers integrating cal.com scheduling directly in their platforms.
-If someone says "platform OAuth client" then they mean the one in the "PlatformOAuthClient" table.
-
 ## Extended Documentation
 
 For detailed information, see the `agents/` directory:
 
-- **[agents/README.md](agents/README.md)** - Architecture overview and patterns
-- **[agents/rules/](agents/rules/)** - Modular engineering rules (performance, architecture, data layer, etc.)
+- **[agents/README.md](agents/README.md)** - Rules index and architecture overview
+- **[agents/rules/](agents/rules/)** - Modular engineering rules
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
-- **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and best practices
-- **[agents/coding-standards.md](agents/coding-standards.md)** - Coding standards with examples
+- **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and business rules

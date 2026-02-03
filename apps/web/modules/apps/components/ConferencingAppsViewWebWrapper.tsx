@@ -2,7 +2,7 @@
 
 import { useReducer } from "react";
 
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -14,14 +14,14 @@ import { showToast } from "@calcom/ui/components/toast";
 import { AppList } from "./AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 
-type UpdateUsersDefaultConferencingAppParams = {
+export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };
 
-type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
 export const SkeletonLoader = () => {
