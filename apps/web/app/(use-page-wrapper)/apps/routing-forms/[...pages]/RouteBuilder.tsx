@@ -862,16 +862,20 @@ const Route = ({
                 action={route.action}
                 onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
                 onEventTypeChange={(newAction) => {
-                  // Initialize fallbackAction with the same event type if not already set
+                  // Initialize fallbackAction with the same event type if not already set with a valid event type
+                  // Check if fallbackAction has a valid event type (eventTypeId or non-empty value)
+                  const hasValidFallbackEventType =
+                    route.fallbackAction?.eventTypeId || route.fallbackAction?.value;
                   const fallbackAction =
-                    route.fallbackAction ??
-                    (newAction.type === RouteActionType.EventTypeRedirectUrl
-                      ? {
-                          type: newAction.type,
-                          value: newAction.value,
-                          eventTypeId: newAction.eventTypeId,
-                        }
-                      : undefined);
+                    hasValidFallbackEventType
+                      ? route.fallbackAction
+                      : newAction.type === RouteActionType.EventTypeRedirectUrl
+                        ? {
+                            type: newAction.type,
+                            value: newAction.value,
+                            eventTypeId: newAction.eventTypeId,
+                          }
+                        : undefined;
                   setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                   setCustomEventTypeSlug("");
                 }}
@@ -898,17 +902,20 @@ const Route = ({
                     action={route.action}
                     onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
                     onEventTypeChange={(newAction) => {
-                      // Initialize fallbackAction with the same event type if not already set
-                      // This ensures the fallback action selector has a valid value when it becomes visible
+                      // Initialize fallbackAction with the same event type if not already set with a valid event type
+                      // Check if fallbackAction has a valid event type (eventTypeId or non-empty value)
+                      const hasValidFallbackEventType =
+                        route.fallbackAction?.eventTypeId || route.fallbackAction?.value;
                       const fallbackAction =
-                        route.fallbackAction ??
-                        (newAction.type === RouteActionType.EventTypeRedirectUrl
-                          ? {
-                              type: newAction.type,
-                              value: newAction.value,
-                              eventTypeId: newAction.eventTypeId,
-                            }
-                          : undefined);
+                        hasValidFallbackEventType
+                          ? route.fallbackAction
+                          : newAction.type === RouteActionType.EventTypeRedirectUrl
+                            ? {
+                                type: newAction.type,
+                                value: newAction.value,
+                                eventTypeId: newAction.eventTypeId,
+                              }
+                            : undefined;
                       setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                       setCustomEventTypeSlug("");
                     }}
