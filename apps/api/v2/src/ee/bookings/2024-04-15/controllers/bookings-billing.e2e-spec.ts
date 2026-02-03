@@ -180,8 +180,8 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
       // Clear the spy before cancelling
       cancelUsageSpy.mockClear();
 
-      // Cancel the booking
-      await request(app.getHttpServer()).post(`/v2/bookings/${bookingUid}/cancel`).send({}).expect(200);
+      // Cancel the booking (returns 201 Created)
+      await request(app.getHttpServer()).post(`/v2/bookings/${bookingUid}/cancel`).send({}).expect(201);
 
       // Verify billing cancel service was NOT called for regular user
       expect(cancelUsageSpy).not.toHaveBeenCalled();
@@ -472,8 +472,8 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
       // Clear the spy before cancelling
       cancelUsageSpy.mockClear();
 
-      // Cancel the booking
-      await request(app.getHttpServer()).post(`/v2/bookings/${bookingUid}/cancel`).send({}).expect(200);
+      // Cancel the booking (returns 201 Created)
+      await request(app.getHttpServer()).post(`/v2/bookings/${bookingUid}/cancel`).send({}).expect(201);
 
       // Verify billing cancel service WAS called for platform-managed user
       expect(cancelUsageSpy).toHaveBeenCalledTimes(1);
