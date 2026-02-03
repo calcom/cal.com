@@ -433,7 +433,7 @@ function WorkflowPage({
           await validateAndSubmitWorkflow(values);
         }}>
         <div className="flex h-full min-h-screen w-full flex-col">
-          <div className="bg-default border-muted flex w-full items-center justify-between border-b px-2 py-2 sm:px-4">
+          <div className="bg-default border-muted sticky top-0 z-5 flex w-full items-center justify-between border-b px-2 py-2 sm:px-4">
             <div className="border-muted flex min-w-0 items-center gap-2">
               <Button
                 color="secondary"
