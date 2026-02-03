@@ -210,14 +210,14 @@ export const AdminUsersTable = () => {
           <Header>
             <ColumnTitle widthClassNames="w-auto">
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0">
                   <span className="bg-subtle/60 text-muted inline-flex w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
                     User
                   </span>
                   <div className="relative" ref={userSortRef}>
                     <button
                       type="button"
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded border text-[11px] ${
+                      className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
                         sortBy === "name" || sortBy === "email"
                           ? "text-default border-subtle"
                           : "text-subtle hover:text-default border-transparent"
@@ -323,14 +323,14 @@ export const AdminUsersTable = () => {
               </span>
             </ColumnTitle>
             <ColumnTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0">
                 <span className="bg-subtle/60 text-muted inline-flex w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
                   Role
                 </span>
                 <div className="relative" ref={roleFilterRef}>
                   <button
                     type="button"
-                    className={`inline-flex h-6 w-6 items-center justify-center rounded border text-[11px] ${
+                    className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
                       roleFilter
                         ? "text-default border-subtle"
                         : "text-subtle hover:text-default border-transparent"
@@ -369,14 +369,14 @@ export const AdminUsersTable = () => {
               </div>
             </ColumnTitle>
             <ColumnTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0">
                 <span className="bg-subtle/60 text-muted inline-flex w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
                   Status
                 </span>
                 <div className="relative" ref={statusFilterRef}>
                   <button
                     type="button"
-                    className={`inline-flex h-6 w-6 items-center justify-center rounded border text-[11px] ${
+                    className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
                       statusFilter
                         ? "text-default border-subtle"
                         : "text-subtle hover:text-default border-transparent"
@@ -415,13 +415,24 @@ export const AdminUsersTable = () => {
               </div>
             </ColumnTitle>
             <ColumnTitle>
-              <button
-                type="button"
-                className="bg-subtle/60 text-muted inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold uppercase"
-                onClick={() => toggleSort("createdDate")}>
-                Created
-                <Icon name={getSortIcon("createdDate")} className="h-3 w-3" />
-              </button>
+              <div className="flex items-center gap-0">
+                <button
+                  type="button"
+                  className="bg-subtle/60 text-muted inline-flex items-center gap-0 rounded px-2 py-1 text-[11px] font-semibold uppercase"
+                  onClick={() => toggleSort("createdDate")}>
+                  Created
+                </button>
+                <button
+                  type="button"
+                  className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
+                    sortBy === "createdDate"
+                      ? "text-default border-subtle"
+                      : "text-subtle hover:text-default border-transparent"
+                  }`}
+                  onClick={() => toggleSort("createdDate")}>
+                  <Icon name={getSortIcon("createdDate")} className="h-3 w-3" />
+                </button>
+              </div>
             </ColumnTitle>
             <ColumnTitle>
               <span className="bg-subtle/60 text-muted inline-flex rounded px-2 py-1 text-[11px] font-semibold uppercase">
