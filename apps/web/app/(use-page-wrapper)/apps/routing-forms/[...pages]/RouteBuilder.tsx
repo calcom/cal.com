@@ -1069,10 +1069,21 @@ const useCreateRoute = ({
 }) => {
   const createRoute = useCallback(() => {
     const newEmptyRoute = getEmptyRoute();
+    // Initialize fallbackAction with the main action for new routes
+    // This ensures new routes have a valid fallbackAction when saved
+    const fallbackAction =
+      newEmptyRoute.action?.type === RouteActionType.EventTypeRedirectUrl
+        ? {
+            type: newEmptyRoute.action.type,
+            value: newEmptyRoute.action.value,
+            eventTypeId: newEmptyRoute.action.eventTypeId,
+          }
+        : undefined;
     const newRoutes = [
       ...routes,
       {
         ...newEmptyRoute,
+        fallbackAction,
         formFieldsQueryBuilderState: buildState({
           queryValue: newEmptyRoute.queryValue,
           config: formFieldsQueryBuilderConfig,
