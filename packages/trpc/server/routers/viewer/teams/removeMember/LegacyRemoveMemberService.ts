@@ -1,4 +1,5 @@
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -8,12 +9,32 @@ import { BaseRemoveMemberService } from "./BaseRemoveMemberService";
 import type { RemoveMemberContext, RemoveMemberPermissionResult } from "./IRemoveMemberService";
 
 export class LegacyRemoveMemberService extends BaseRemoveMemberService {
-  async checkRemovePermissions(context: RemoveMemberContext): Promise<RemoveMemberPermissionResult> {
-    const { userId, isOrgAdmin, teamIds } = context;
+  constructor(private teamRepository: TeamRepository) {
+    super();
+  }
 
-    // Org admins have full permission
+  private async validateTeamsBelongToOrganization(
+    teamIds: number[],
+    organizationId: number
+  ): Promise<boolean> {
+    const teams = await this.teamRepository.findByIdsAndOrgId({ teamIds, orgId: organizationId });
+    const validTeamIds = new Set(teams.map((t) => t.id));
+    return teamIds.every((id) => validTeamIds.has(id));
+  }
+
+  async checkRemovePermissions(context: RemoveMemberContext): Promise<RemoveMemberPermissionResult> {
+    const { userId, isOrgAdmin, organizationId, teamIds } = context;
+
     if (isOrgAdmin) {
-      // Return admin role for all teams
+      if (!organizationId) {
+        return { hasPermission: false };
+      }
+
+      const teamsValid = await this.validateTeamsBelongToOrganization(teamIds, organizationId);
+      if (!teamsValid) {
+        return { hasPermission: false };
+      }
+
       const userRoles = new Map<number, MembershipRole | null>();
       teamIds.forEach((teamId) => {
         userRoles.set(teamId, MembershipRole.ADMIN);

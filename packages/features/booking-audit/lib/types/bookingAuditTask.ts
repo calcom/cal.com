@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { PiiFreeActorSchema } from "../../../bookings/lib/types/actor";
+import { PiiFreeActorSchema, BookingAuditContextSchema } from "../dto/types";
 import { ActionSourceSchema } from "./actionSource";
 
 /**
@@ -14,12 +14,11 @@ const BookingAuditActionSchema = z.enum([
     "CANCELLED",
     "RESCHEDULE_REQUESTED",
     "ATTENDEE_ADDED",
-    "HOST_NO_SHOW_UPDATED",
     "REJECTED",
     "ATTENDEE_REMOVED",
     "REASSIGNMENT",
     "LOCATION_CHANGED",
-    "ATTENDEE_NO_SHOW_UPDATED",
+    "NO_SHOW_UPDATED",
     "SEAT_BOOKED",
     "SEAT_RESCHEDULED",
 ]);
@@ -42,6 +41,7 @@ export const SingleBookingAuditTaskConsumerSchema = z.object({
     action: BookingAuditActionSchema,
     source: ActionSourceSchema.default("UNKNOWN"),
     operationId: z.string(),
+    context: BookingAuditContextSchema.optional(),
 });
 
 export type SingleBookingAuditTaskConsumerPayload = z.infer<typeof SingleBookingAuditTaskConsumerSchema>;
@@ -62,6 +62,7 @@ export const BulkBookingAuditTaskConsumerSchema = z.object({
     action: BookingAuditActionSchema,
     source: ActionSourceSchema.default("UNKNOWN"),
     operationId: z.string(),
+    context: BookingAuditContextSchema.optional(),
 });
 
 export type BulkBookingAuditTaskConsumerPayload = z.infer<typeof BulkBookingAuditTaskConsumerSchema>;

@@ -6,6 +6,7 @@ import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
+import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import classNames from "@calcom/ui/classNames";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
@@ -230,7 +231,8 @@ export function MobileNavigationContainer({
   isPlatformNavigation?: boolean;
 }) {
   const { status } = useSession();
-  if (status !== "authenticated") return null;
+  const isStandalone = useIsStandalone();
+  if (status !== "authenticated" || isStandalone) return null;
   return <MobileNavigation isPlatformNavigation={isPlatformNavigation} />;
 }
 
