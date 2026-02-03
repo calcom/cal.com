@@ -3,6 +3,7 @@ import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add
 import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -35,10 +36,19 @@ export class BookingGuestsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @Throttle({
+    limit: 5,
+    ttl: 60000,
+    blockDuration: 60000,
+    name: "booking_guests_add",
+  })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Add guests to an existing booking",
-    description: `Add one or more guests to an existing booking.
+    description: `Add one or more guests to an existing booking. Maximum 10 guests per request, with a limit of 30 total guests per booking.
+    
+    **Rate Limiting:**
+    This endpoint is rate limited to 5 requests per minute to prevent abuse.
     
     **Email Notifications:**
     When guests are added, the following notifications are sent (unless disabled by event type settings):

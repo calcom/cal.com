@@ -20,8 +20,8 @@ import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 
-import type { CheckedSelectOption } from "./CheckedTeamSelect";
-import WeightDescription from "./WeightDescription";
+import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 
 interface IDialog {
   isOpenDialog: boolean;
