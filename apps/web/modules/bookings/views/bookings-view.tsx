@@ -3,6 +3,7 @@
 import { ColumnFilterType, DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import FeatureOptInBannerWrapper from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
+import { FeedbackDialog } from "@calcom/features/feedback/components/FeedbackDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
@@ -90,6 +91,16 @@ function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditE
         />
       )}
       <FeatureOptInBannerWrapper state={optInBanner} />
+      {optInBanner.formbricksTracking.feedbackDialogProps && (
+        <FeedbackDialog
+          isOpen={optInBanner.formbricksTracking.showFeedbackDialog}
+          onClose={optInBanner.formbricksTracking.onFeedbackComplete}
+          onSubmitSuccess={optInBanner.formbricksTracking.onFeedbackComplete}
+          surveyId={optInBanner.formbricksTracking.feedbackDialogProps.surveyId}
+          ratingQuestionId={optInBanner.formbricksTracking.feedbackDialogProps.ratingQuestionId}
+          commentQuestionId={optInBanner.formbricksTracking.feedbackDialogProps.commentQuestionId}
+        />
+      )}
     </div>
   );
 }

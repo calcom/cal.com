@@ -1,46 +1,87 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { useEffect, useRef } from "react";
-import { trackFormbricksAction } from "../../formbricks/lib/trackFormbricksAction";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getFeatureOptInTimestamp, isFeatureTracked, setFeatureTracked } from "../lib/feature-opt-in-storage";
 
+export interface FormbricksOptInTrackingResult {
+  /** Whether the feedback dialog should be shown */
+  showFeedbackDialog: boolean;
+  /** Props to pass to the FeedbackDialog component */
+  feedbackDialogProps: {
+    surveyId: string;
+    ratingQuestionId: string;
+    commentQuestionId: string;
+  } | null;
+  /** Call this when the dialog is closed (either submitted or skipped) */
+  onFeedbackComplete: () => void;
+}
+
 /**
- * Hook to handle delayed Formbricks tracking after a user opts into a feature.
- * Tracks the configured action only after the specified delay has passed since opt-in.
+ * Hook to handle delayed Formbricks feedback after a user opts into a feature.
+ * Returns state to control a custom feedback dialog instead of using Formbricks' built-in popup.
  */
-function useFormbricksOptInTracking(featureId: string, featureConfig: OptInFeatureConfig | null): void {
-  const hasTrackedRef = useRef(false);
+function useFormbricksOptInTracking(
+  featureId: string,
+  featureConfig: OptInFeatureConfig | null
+): FormbricksOptInTrackingResult {
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const hasTriggeredRef = useRef(false);
+
+  const onFeedbackComplete = useCallback(() => {
+    setShowFeedbackDialog(false);
+    setFeatureTracked(featureId);
+  }, [featureId]);
 
   useEffect(() => {
     if (!featureConfig?.formbricks) return;
 
-    if (hasTrackedRef.current) return;
+    // Don't trigger if already triggered this session
+    if (hasTriggeredRef.current) return;
 
+    // Don't trigger if already tracked (persisted in localStorage)
     const alreadyTracked = isFeatureTracked(featureId);
     if (alreadyTracked) return;
 
+    // Don't trigger if user hasn't opted in yet
     const optInTimestamp = getFeatureOptInTimestamp(featureId);
     if (!optInTimestamp) return;
 
-    const { delayMs, actionName } = featureConfig.formbricks;
+    // Don't trigger if survey is not configured
+    const { surveyId, questions } = featureConfig.formbricks;
+    if (!surveyId || !questions?.ratingQuestionId || !questions?.commentQuestionId) return;
+
+    const { delayMs } = featureConfig.formbricks;
     const timeSinceOptIn = Date.now() - optInTimestamp;
 
-    const trackAction = (): void => {
-      trackFormbricksAction(actionName);
-      setFeatureTracked(featureId);
-      hasTrackedRef.current = true;
+    const triggerFeedback = (): void => {
+      hasTriggeredRef.current = true;
+      setShowFeedbackDialog(true);
     };
 
     if (timeSinceOptIn >= delayMs) {
-      trackAction();
+      triggerFeedback();
     } else {
       const remainingTime = delayMs - timeSinceOptIn;
-      const timer = setTimeout(trackAction, remainingTime);
+      const timer = setTimeout(triggerFeedback, remainingTime);
 
       return () => clearTimeout(timer);
     }
   }, [featureId, featureConfig]);
+
+  const feedbackDialogProps = featureConfig?.formbricks?.surveyId
+    ? {
+        surveyId: featureConfig.formbricks.surveyId,
+        ratingQuestionId: featureConfig.formbricks.questions.ratingQuestionId,
+        commentQuestionId: featureConfig.formbricks.questions.commentQuestionId,
+      }
+    : null;
+
+  return {
+    showFeedbackDialog,
+    feedbackDialogProps,
+    onFeedbackComplete,
+  };
 }
 
 export { useFormbricksOptInTracking };

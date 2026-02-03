@@ -31,15 +31,22 @@ export interface OptInFeatureConfig {
    */
   displayLocations?: OptInFeatureDisplayLocation[];
   /**
-   * Formbricks tracking configuration for delayed survey triggering after opt-in.
-   * When configured, a Formbricks action will be tracked after the specified delay
+   * Formbricks feedback configuration for delayed survey triggering after opt-in.
+   * When configured, a custom feedback dialog will be shown after the specified delay
    * has passed since the user opted in, allowing time for feature usage before collecting feedback.
    */
   formbricks?: {
-    /** The action name to track (e.g., "visit_bookings_v3_page"). */
-    actionName: string;
-    /** Show feedback form only after a certain delay */
+    /** Show feedback form only after a certain delay (in milliseconds) */
     delayMs: number;
+    /** Formbricks survey ID to submit responses to */
+    surveyId: string;
+    /** Question IDs for the survey fields */
+    questions: {
+      /** Question ID for the rating field */
+      ratingQuestionId: string;
+      /** Question ID for the comment field */
+      commentQuestionId: string;
+    };
   };
 }
 
@@ -64,8 +71,12 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
     displayLocations: ["settings"],
     scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
     formbricks: {
-      actionName: "visit_bookings_v3_page",
       delayMs: 3 * 24 * 60 * 60 * 1000, // 3 days
+      surveyId: "", // TODO: Add Formbricks survey ID
+      questions: {
+        ratingQuestionId: "", // TODO: Add rating question ID from Formbricks
+        commentQuestionId: "", // TODO: Add comment question ID from Formbricks
+      },
     },
   },
 ];

@@ -10,6 +10,7 @@ import {
   setFeatureDismissed,
   setFeatureOptedIn,
 } from "../lib/feature-opt-in-storage";
+import type { FormbricksOptInTrackingResult } from "./useFormbricksOptInTracking";
 import { useFormbricksOptInTracking } from "./useFormbricksOptInTracking";
 
 type UserRoleContext = {
@@ -42,6 +43,7 @@ type UseFeatureOptInBannerResult = {
   dismiss: () => void;
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
+  formbricksTracking: FormbricksOptInTrackingResult;
 };
 
 function isFeatureOptedIn(featureId: string): boolean {
@@ -55,7 +57,7 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
 
-  useFormbricksOptInTracking(featureId, featureConfig);
+  const formbricksTracking = useFormbricksOptInTracking(featureId, featureConfig);
 
   const utils = trpc.useUtils();
 
@@ -154,6 +156,7 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     dismiss,
     markOptedIn,
     mutations,
+    formbricksTracking,
   };
 }
 
