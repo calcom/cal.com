@@ -1,8 +1,8 @@
 import { prisma } from "@calcom/prisma"
 import type { PrismaClient } from "@calcom/prisma";
-import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
+import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
 
-// import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+// import { mockNoTranslations } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 

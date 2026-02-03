@@ -13,6 +13,8 @@ export interface UserProfile {
   organizationId?: number;
   organization?: {
     id: number;
+    slug?: string;
+    name?: string;
     isPlatform: boolean;
   };
   metadata?: Record<string, unknown>;

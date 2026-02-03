@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { NativeSyntheticEvent } from "react-native";
 import type { BookingFilters } from "./useBookings";
 
-export type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
+export type BookingFilter = "upcoming" | "unconfirmed" | "recurring" | "past" | "cancelled";
 
 export interface BookingFilterOption {
   key: BookingFilter;
@@ -12,6 +12,7 @@ export interface BookingFilterOption {
 const FILTER_OPTIONS: BookingFilterOption[] = [
   { key: "upcoming", label: "Upcoming" },
   { key: "unconfirmed", label: "Unconfirmed" },
+  { key: "recurring", label: "Recurring" },
   { key: "past", label: "Past" },
   { key: "cancelled", label: "Cancelled" },
 ];
@@ -71,6 +72,8 @@ export function useActiveBookingFilter(
         return { status: ["upcoming"], limit: 50 };
       case "unconfirmed":
         return { status: ["unconfirmed"], limit: 50 };
+      case "recurring":
+        return { status: ["recurring"], limit: 100 };
       case "past":
         return { status: ["past"], limit: 100 };
       case "cancelled":

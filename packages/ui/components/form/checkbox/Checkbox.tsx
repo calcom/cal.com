@@ -91,6 +91,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                   />
                 </div>
                 {descriptionAsSafeHtml ? (
+                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via descriptionAsSafeHtml prop
                   <span
                     className={classNames(
                       "text-default ml-2 text-sm [&_a]:text-blue-500",

@@ -1,0 +1,42 @@
+"use client";
+
+import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+
+export const OAuthClientsAdminSkeleton = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mb-8">
+        <SkeletonText className="h-7 w-64" />
+        <div className="mt-2 flex items-start justify-between gap-4">
+          <SkeletonText className="h-4 w-full max-w-xl" />
+          <div className="bg-emphasis h-9 w-20 rounded-md" />
+        </div>
+      </div>
+
+      <div className="space-y-10">
+        {[1, 2, 3].map((section) => (
+          <div key={section} className="space-y-3">
+            <SkeletonText className="h-5 w-24" />
+            <div className="border-subtle rounded-lg border">
+              {[1, 2, 3].map((row) => (
+                <div
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`${section}-${row}`}
+                  className={`flex items-center justify-between p-4 ${row !== 3 ? "border-subtle border-b" : ""}`}>
+                  <div className="flex items-center gap-4">
+                    <div className="bg-emphasis h-10 w-10 rounded-full" />
+                    <SkeletonText className="h-4 w-40" />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <SkeletonText className="h-5 w-20 rounded-full" />
+                    <div className="bg-emphasis h-5 w-5 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </SkeletonContainer>
+  );
+};

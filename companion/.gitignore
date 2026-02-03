@@ -32,6 +32,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+safari-extension/
 
 # local env files
 .env*.local

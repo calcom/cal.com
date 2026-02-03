@@ -26,15 +26,15 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn().mockImplementation(() => ({
+  PermissionCheckService: vi.fn().mockImplementation(function() { return {
     checkPermission: vi.fn(),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(() => ({
+  TeamRepository: vi.fn().mockImplementation(function() { return {
     isSlugAvailableForUpdate: vi.fn().mockResolvedValue(true),
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/lib/server/avatar", () => ({
@@ -64,12 +64,12 @@ describe("updateHandler - Permission Check Tests", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as unknown as InstanceType<typeof PermissionCheckService>
-    );
-    vi.mocked(TeamRepository).mockImplementation(
-      () => mockTeamRepository as unknown as InstanceType<typeof TeamRepository>
-    );
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as unknown as InstanceType<typeof PermissionCheckService>;
+    });
+    vi.mocked(TeamRepository).mockImplementation(function () {
+      return mockTeamRepository as unknown as InstanceType<typeof TeamRepository>;
+    });
   });
 
   describe("Permission Check Service", () => {

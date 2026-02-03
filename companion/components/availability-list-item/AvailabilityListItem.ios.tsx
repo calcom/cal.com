@@ -1,7 +1,7 @@
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import type { AvailabilityListItemProps } from "./AvailabilityListItem";
 import { AvailabilitySlots, ScheduleName, TimeZoneRow } from "./AvailabilityListItemParts";
@@ -43,8 +43,17 @@ export const AvailabilityListItem = ({
     },
   ];
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
+      }}
+    >
       {/* Native iOS Context Menu for long-press */}
       <Host matchContents>
         <ContextMenu
@@ -71,8 +80,9 @@ export const AvailabilityListItem = ({
                 onPress={() => handleSchedulePress(schedule)}
                 className="mr-4 flex-1"
                 accessibilityRole="button"
+                style={{ minWidth: 0 }}
               >
-                <View>
+                <View style={{ flex: 1 }}>
                   <ScheduleName name={schedule.name} isDefault={schedule.isDefault} />
                   <AvailabilitySlots
                     availability={schedule.availability}
@@ -85,7 +95,7 @@ export const AvailabilityListItem = ({
               {/* Three dots menu - fixed hit target so it doesn't get squeezed off-screen */}
               <View
                 className="items-center justify-center rounded-lg border border-cal-border"
-                style={{ width: 32, height: 32 }}
+                style={{ width: 32, height: 32, flexShrink: 0 }}
               >
                 <Host matchContents>
                   <ContextMenu

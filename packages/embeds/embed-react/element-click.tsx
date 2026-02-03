@@ -15,14 +15,18 @@ function App() {
         embedJsUrl: "http://localhost:3000/embed/embed.js",
         namespace: calNamespace,
       });
-      cal("ui", { styles: { branding: { brandColor: "#000000" } }, hideEventTypeDetails: false });
+      cal("ui", {
+        styles: { branding: { brandColor: "#000000" } },
+        hideEventTypeDetails: false,
+      });
     })();
   }, []);
   return (
     <button
       data-cal-namespace={calNamespace}
       data-cal-link="pro"
-      data-cal-config='{"layout":"month_view", "theme":"dark"}'>
+      data-cal-config='{"layout":"month_view", "theme":"dark", "useSlotsViewOnSmallScreen":"true"}'
+    >
       Click me
     </button>
   );

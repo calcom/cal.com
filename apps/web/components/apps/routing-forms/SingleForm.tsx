@@ -7,7 +7,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -132,6 +132,8 @@ function SingleForm({
   }, [form]);
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
+      const currentValues = hookForm.getValues();
+      hookForm.reset(currentValues);
       showToast(t("form_updated_successfully"), "success");
     },
     onError(e) {

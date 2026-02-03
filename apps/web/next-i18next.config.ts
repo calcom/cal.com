@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path"
 
 import i18nConfig from "@calcom/config/next-i18next.config";
 

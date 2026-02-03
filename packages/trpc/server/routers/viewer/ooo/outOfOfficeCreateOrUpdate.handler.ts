@@ -45,7 +45,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserOrgId = ctx.user.organizationId;
   let oooUserFullName = ctx.user.name;
 
-  let isAdmin;
+  let isAdmin: boolean | undefined;
   if (input.forUserId) {
     isAdmin = await isAdminForUser(ctx.user.id, input.forUserId);
     if (!isAdmin) {

@@ -1,5 +1,6 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -55,12 +56,14 @@ const fetchEventTypeGroups = async ({
   parentOrgHasLockedEventTypes,
   skipEventTypes,
   teamId,
+  teamIdsWithEventTypeUpdatePermission,
 }: {
   ctx: { user: NonNullable<TrpcSessionUser>; prisma: PrismaClient };
   profile: NonNullable<Awaited<ReturnType<typeof ProfileRepository.findByUpIdWithAuth>>>;
   parentOrgHasLockedEventTypes: boolean | undefined;
   skipEventTypes: boolean;
   teamId?: number;
+  teamIdsWithEventTypeUpdatePermission: number[];
 }): Promise<EventTypeGroup[]> => {
   const user = ctx.user;
   const userProfile = ctx.user.profile;
@@ -132,12 +135,11 @@ const fetchEventTypeGroups = async ({
           metadata: teamMetadataSchema.parse(membership.team.metadata),
         };
 
+        const canUpdateEventTypes = teamIdsWithEventTypeUpdatePermission.includes(team.id);
         const eventTypes = team.eventTypes
           ?.filter((evType) => evType.userId === null || evType.userId === user.id)
           ?.filter((evType) =>
-            membership.role === MembershipRole.MEMBER
-              ? evType.schedulingType !== SchedulingType.MANAGED
-              : true
+            !canUpdateEventTypes ? evType.schedulingType !== SchedulingType.MANAGED : true
           );
 
         return {
@@ -222,12 +224,20 @@ export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
+  const permissionCheckService = new PermissionCheckService();
+  const teamIdsWithEventTypeUpdatePermission = await permissionCheckService.getTeamIdsWithPermission({
+    userId: user.id,
+    permission: "eventType.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
+
   const eventTypeGroups = await fetchEventTypeGroups({
     ctx,
     profile,
     parentOrgHasLockedEventTypes,
     skipEventTypes: shouldSkipEventTypes,
     teamId,
+    teamIdsWithEventTypeUpdatePermission,
   });
 
   const teamOptions = await fetchTeamOptions({

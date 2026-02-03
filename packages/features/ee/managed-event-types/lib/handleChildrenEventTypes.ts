@@ -2,9 +2,10 @@ import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import {
   allManagedEventTypeProps,
@@ -39,6 +40,16 @@ interface handleChildrenEventTypesProps {
     | undefined;
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
   updatedValues: Prisma.EventTypeUpdateInput;
+  calVideoSettings?: {
+    disableRecordingForGuests?: boolean | null;
+    disableRecordingForOrganizer?: boolean | null;
+    enableAutomaticTranscription?: boolean | null;
+    enableAutomaticRecordingForOrganizer?: boolean | null;
+    disableTranscriptionForGuests?: boolean | null;
+    disableTranscriptionForOrganizer?: boolean | null;
+    redirectUrlOnExit?: string | null;
+    requireEmailForGuests?: boolean | null;
+  } | null;
 }
 
 const sendAllSlugReplacementEmails = async (
@@ -137,6 +148,7 @@ export default async function handleChildrenEventTypes({
   prisma,
   profileId,
   updatedValues: _updatedValues,
+  calVideoSettings,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -268,12 +280,32 @@ export default async function handleChildrenEventTypes({
           skipDuplicates: true,
         });
       }
+
+      // Create CalVideoSettings for new children if parent has settings
+      if (calVideoSettings && createdEvents.length > 0) {
+        const calVideoSettingsToCreate = createdEvents.map((event) => ({
+          eventTypeId: event.id,
+          disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+          disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+          enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+          enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+          disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+          disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+          redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+          requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+        }));
+
+        await tx.calVideoSettings.createMany({
+          data: calVideoSettingsToCreate,
+          skipDuplicates: true,
+        });
+      }
     });
   }
 
   // Old users updated
   if (oldUserIds?.length) {
-    // Check if there are children with existent homonym event types to send notifications
+    // 1. Initial Checks and Setup
     deletedExistentEventTypes = await checkExistentEventTypes({
       updatedEventType,
       children,
@@ -283,50 +315,42 @@ export default async function handleChildrenEventTypes({
     });
 
     const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
-    const unlockedFieldProps = !unlockedFields
-      ? {}
-      : Object.keys(unlockedFields).reduce((acc, key) => {
-          const filteredKey =
-            key === "afterBufferTime"
-              ? "afterEventBuffer"
-              : key === "beforeBufferTime"
-              ? "beforeEventBuffer"
-              : key;
-          // @ts-expect-error Element implicitly has any type
-          acc[filteredKey] = true;
-          return acc;
-        }, {});
 
-    // Add to payload all eventType values that belong to locked fields, changed or unchanged
-    // Ignore from payload any eventType values that belong to unlocked fields
+    // Transform unlocked fields into a lookup object with mapped keys
+    const unlockedFieldProps = Object.keys(unlockedFields ?? {}).reduce((acc, key) => {
+      const mappedKey =
+        key === "afterBufferTime"
+          ? "afterEventBuffer"
+          : key === "beforeBufferTime"
+          ? "beforeEventBuffer"
+          : key;
+      // @ts-expect-error Element implicitly has any type
+      acc[mappedKey] = true;
+      return acc;
+    }, {});
+
+    // Prepare payload: Omit unlocked fields and the "children" property
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
       .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
-    // Update event types for old users
-    const oldEventTypes = await Promise.all(
-      oldUserIds.map(async (userId) => {
-        const existingEventType = await prisma.eventType.findUnique({
-          where: {
-            userId_parentId: {
-              userId,
-              parentId,
-            },
-          },
-          select: {
-            metadata: true,
-          },
-        });
 
-        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(existingEventType?.metadata || {});
+    // 2. Data Fetching Optimization
+    const existingRecords = await prisma.eventType.findMany({
+      where: { parentId, userId: { in: oldUserIds } },
+      select: { userId: true, metadata: true },
+    });
+
+    const metadataMap = new Map(existingRecords.map((rec) => [rec.userId, rec.metadata]));
+
+    // 3. Define Reusable Update Logic
+    const performUpdate = async (userId: number) => {
+      try {
+        const rawMetadata = metadataMap.get(userId);
+        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(rawMetadata || {});
 
         return await prisma.eventType.update({
-          where: {
-            userId_parentId: {
-              userId,
-              parentId,
-            },
-          },
+          where: { userId_parentId: { userId, parentId } },
           data: {
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
@@ -334,12 +358,7 @@ export default async function handleChildrenEventTypes({
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,
-            hashedLink:
-              "multiplePrivateLinks" in unlockedFieldProps
-                ? undefined
-                : {
-                    deleteMany: {},
-                  },
+            hashedLink: "multiplePrivateLinks" in unlockedFieldProps ? undefined : { deleteMany: {} },
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             metadata: {
@@ -351,10 +370,46 @@ export default async function handleChildrenEventTypes({
             },
           },
         });
-      })
-    );
+      } catch (error) {
+        throw { userId, error };
+      }
+    };
 
-    // Link workflows with old users' event types if new workflows were added
+    // 4. Batch Execution Handler
+    const executeBatch = async (ids: number[]) => {
+      const successes: EventType[] = [];
+      const failures: { userId: number; error: Error }[] = [];
+      const BATCH_SIZE = 50;
+
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(batch.map(performUpdate));
+
+        results.forEach((res) => {
+          if (res.status === "fulfilled") successes.push(res.value);
+          else failures.push(res.reason);
+        });
+      }
+      return { successes, failures };
+    };
+
+    // 5. Run Updates & Retries
+    const { successes: oldEventTypes, failures: failedUpdates } = await executeBatch(oldUserIds);
+
+    if (failedUpdates.length > 0) {
+      logger.info(`Retrying ${failedUpdates.length} failed updates...`);
+      const retry = await executeBatch(failedUpdates.map((f) => f.userId));
+      oldEventTypes.push(...retry.successes);
+      // Any remaining failures in retry.failures are permanent
+      if (retry.failures.length > 0) {
+        logger.error("handleChildrenEventType - Could not update managed event-type", {
+          parentId,
+          userIds: retry.failures.map((failure) => failure.userId),
+        });
+      }
+    }
+
+    // 6. Workflow Linkage
     if (currentWorkflowIds?.length && oldEventTypes.length) {
       await prisma.$transaction(async (tx) => {
         const eventTypeIds = oldEventTypes.map((e) => e.id);
@@ -393,10 +448,62 @@ export default async function handleChildrenEventTypes({
         if (newRelationshipsToCreate.length > 0) {
           await tx.workflowsOnEventTypes.createMany({
             data: newRelationshipsToCreate,
-            skipDuplicates: false,
+            skipDuplicates: true,
           });
         }
       });
+    }
+
+    // Sync CalVideoSettings to existing children
+    if (oldEventTypes.length > 0) {
+      const childEventTypeIds = oldEventTypes.map((e) => e.id);
+      const BATCH_SIZE = 50;
+
+      if (calVideoSettings) {
+        // Parent has CalVideoSettings - upsert for all children
+        for (let i = 0; i < childEventTypeIds.length; i += BATCH_SIZE) {
+          const batch = childEventTypeIds.slice(i, i + BATCH_SIZE);
+          await Promise.all(
+            batch.map((eventTypeId) =>
+              prisma.calVideoSettings.upsert({
+                where: { eventTypeId },
+                update: {
+                  disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+                  disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+                  enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+                  enableAutomaticRecordingForOrganizer:
+                    calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+                  disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+                  requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+                  updatedAt: new Date(),
+                },
+                create: {
+                  eventTypeId,
+                  disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+                  disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+                  enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+                  enableAutomaticRecordingForOrganizer:
+                    calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+                  disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+                  requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
+                },
+              })
+            )
+          );
+        }
+      } else if (calVideoSettings === null) {
+        // Parent's CalVideoSettings were removed - delete from all children
+        await prisma.calVideoSettings.deleteMany({
+          where: {
+            eventTypeId: { in: childEventTypeIds },
+          },
+        });
+      }
+      // Note: If calVideoSettings is undefined, don't touch children's settings
     }
   }
 

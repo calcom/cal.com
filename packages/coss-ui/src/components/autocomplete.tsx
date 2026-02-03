@@ -13,26 +13,40 @@ function AutocompleteInput({
   className,
   showTrigger = false,
   showClear = false,
+  startAddon,
   size,
   ...props
 }: Omit<AutocompletePrimitive.Input.Props, "size"> & {
   showTrigger?: boolean;
   showClear?: boolean;
+  startAddon?: React.ReactNode;
   size?: "sm" | "default" | "lg" | number;
+  ref?: React.Ref<HTMLInputElement>;
 }) {
   const sizeValue = (size ?? "default") as "sm" | "default" | "lg" | number;
 
   return (
-    <div className="relative w-full">
+    <div className="relative not-has-[>*.w-full]:w-fit w-full has-disabled:opacity-64">
+      {startAddon && (
+        <div
+          aria-hidden="true"
+          className="[&_svg]:-mx-0.5 pointer-events-none absolute inset-y-0 start-px z-10 flex items-center ps-[calc(--spacing(3)-1px)] opacity-80 has-[+[data-size=sm]]:ps-[calc(--spacing(2.5)-1px)] [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4"
+          data-slot="autocomplete-start-addon"
+        >
+          {startAddon}
+        </div>
+      )}
       <AutocompletePrimitive.Input
         className={cn(
+          startAddon &&
+            "data-[size=sm]:*:data-[slot=autocomplete-input]:ps-[calc(--spacing(7.5)-1px)] *:data-[slot=autocomplete-input]:ps-[calc(--spacing(8.5)-1px)] sm:data-[size=sm]:*:data-[slot=autocomplete-input]:ps-[calc(--spacing(7)-1px)] sm:*:data-[slot=autocomplete-input]:ps-[calc(--spacing(8)-1px)]",
           sizeValue === "sm"
             ? "has-[+[data-slot=autocomplete-trigger],+[data-slot=autocomplete-clear]]:*:data-[slot=autocomplete-input]:pe-6.5"
             : "has-[+[data-slot=autocomplete-trigger],+[data-slot=autocomplete-clear]]:*:data-[slot=autocomplete-input]:pe-7",
           className,
         )}
         data-slot="autocomplete-input"
-        render={<Input size={sizeValue} />}
+        render={<Input nativeInput size={sizeValue} />}
         {...props}
       />
       {showTrigger && (
@@ -76,7 +90,7 @@ function AutocompletePopup({
       >
         <span
           className={cn(
-            "relative flex max-h-full origin-(--transform-origin) rounded-lg border bg-popover bg-clip-padding transition-[scale,opacity] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-lg has-data-starting-style:scale-98 has-data-starting-style:opacity-0 dark:not-in-data-[slot=group]:bg-clip-border",
+            "relative flex max-h-full origin-(--transform-origin) rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 transition-[scale,opacity] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/6%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
             className,
           )}
         >
@@ -131,7 +145,7 @@ function AutocompleteGroup({
 }: AutocompletePrimitive.Group.Props) {
   return (
     <AutocompletePrimitive.Group
-      className={className}
+      className={cn("[[role=group]+&]:mt-1.5", className)}
       data-slot="autocomplete-group"
       {...props}
     />
@@ -197,7 +211,7 @@ function AutocompleteList({
     <ScrollArea scrollbarGutter scrollFade>
       <AutocompletePrimitive.List
         className={cn(
-          "not-empty:scroll-py-1 not-empty:px-1 not-empty:py-1 in-data-has-overflow-y:pe-3",
+          "not-empty:scroll-py-1 not-empty:p-1 in-data-has-overflow-y:pe-3",
           className,
         )}
         data-slot="autocomplete-list"
@@ -265,6 +279,8 @@ function AutocompleteTrigger({
   );
 }
 
+const useAutocompleteFilter = AutocompletePrimitive.useFilter;
+
 export {
   Autocomplete,
   AutocompleteInput,
@@ -281,4 +297,5 @@ export {
   AutocompleteStatus,
   AutocompleteRow,
   AutocompleteCollection,
+  useAutocompleteFilter,
 };
