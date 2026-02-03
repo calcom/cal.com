@@ -22,49 +22,28 @@ export function createActiveFiltersValidator(accessibleResources: AccessibleReso
   return function validateActiveFilters(filters: ActiveFilters): ActiveFilters {
     return filters
       .map((filter): ActiveFilter | null => {
-        if (filter.f === "userId" && filter.v) {
-          if (filter.v.type === ColumnFilterType.MULTI_SELECT) {
-            const validIds = filter.v.data.filter((id) => userIds.includes(id as number));
-            if (validIds.length === 0) {
-              return null;
-            }
-            return { ...filter, v: { ...filter.v, data: validIds } };
+        if (filter.f === "userId" && filter.v && filter.v.type === ColumnFilterType.MULTI_SELECT) {
+          const validIds = filter.v.data.filter((id) => userIds.includes(id as number));
+          if (validIds.length === 0) {
+            return null;
           }
-          if (filter.v.type === ColumnFilterType.SINGLE_SELECT) {
-            if (!userIds.includes(filter.v.data as number)) {
-              return null;
-            }
-          }
+          return { ...filter, v: { ...filter.v, data: validIds } };
         }
 
-        if (filter.f === "eventTypeId" && filter.v) {
-          if (filter.v.type === ColumnFilterType.MULTI_SELECT) {
-            const validIds = filter.v.data.filter((id) => eventTypeIds.includes(id as number));
-            if (validIds.length === 0) {
-              return null;
-            }
-            return { ...filter, v: { ...filter.v, data: validIds } };
+        if (filter.f === "eventTypeId" && filter.v && filter.v.type === ColumnFilterType.MULTI_SELECT) {
+          const validIds = filter.v.data.filter((id) => eventTypeIds.includes(id as number));
+          if (validIds.length === 0) {
+            return null;
           }
-          if (filter.v.type === ColumnFilterType.SINGLE_SELECT) {
-            if (!eventTypeIds.includes(filter.v.data as number)) {
-              return null;
-            }
-          }
+          return { ...filter, v: { ...filter.v, data: validIds } };
         }
 
-        if (filter.f === "teamId" && filter.v) {
-          if (filter.v.type === ColumnFilterType.MULTI_SELECT) {
-            const validIds = filter.v.data.filter((id) => teamIds.includes(id as number));
-            if (validIds.length === 0) {
-              return null;
-            }
-            return { ...filter, v: { ...filter.v, data: validIds } };
+        if (filter.f === "teamId" && filter.v && filter.v.type === ColumnFilterType.MULTI_SELECT) {
+          const validIds = filter.v.data.filter((id) => teamIds.includes(id as number));
+          if (validIds.length === 0) {
+            return null;
           }
-          if (filter.v.type === ColumnFilterType.SINGLE_SELECT) {
-            if (!teamIds.includes(filter.v.data as number)) {
-              return null;
-            }
-          }
+          return { ...filter, v: { ...filter.v, data: validIds } };
         }
 
         return filter;

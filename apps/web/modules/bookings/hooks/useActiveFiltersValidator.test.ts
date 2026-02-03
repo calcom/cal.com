@@ -51,41 +51,6 @@ describe("createActiveFiltersValidator", () => {
 
       expect(result).toHaveLength(0);
     });
-
-    it("keeps valid user ID in single-select filter", () => {
-      const validator = createActiveFiltersValidator(defaultAccessibleResources);
-      const filters: ActiveFilters = [
-        {
-          f: "userId",
-          v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 1,
-          },
-        },
-      ];
-
-      const result = validator(filters);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].f).toBe("userId");
-    });
-
-    it("removes filter when user ID is invalid in single-select", () => {
-      const validator = createActiveFiltersValidator(defaultAccessibleResources);
-      const filters: ActiveFilters = [
-        {
-          f: "userId",
-          v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 999,
-          },
-        },
-      ];
-
-      const result = validator(filters);
-
-      expect(result).toHaveLength(0);
-    });
   });
 
   describe("eventTypeId filter validation", () => {
@@ -127,41 +92,6 @@ describe("createActiveFiltersValidator", () => {
 
       expect(result).toHaveLength(0);
     });
-
-    it("keeps valid event type ID in single-select filter", () => {
-      const validator = createActiveFiltersValidator(defaultAccessibleResources);
-      const filters: ActiveFilters = [
-        {
-          f: "eventTypeId",
-          v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 10,
-          },
-        },
-      ];
-
-      const result = validator(filters);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].f).toBe("eventTypeId");
-    });
-
-    it("removes filter when event type ID is invalid in single-select", () => {
-      const validator = createActiveFiltersValidator(defaultAccessibleResources);
-      const filters: ActiveFilters = [
-        {
-          f: "eventTypeId",
-          v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 999,
-          },
-        },
-      ];
-
-      const result = validator(filters);
-
-      expect(result).toHaveLength(0);
-    });
   });
 
   describe("teamId filter validation", () => {
@@ -195,41 +125,6 @@ describe("createActiveFiltersValidator", () => {
           v: {
             type: ColumnFilterType.MULTI_SELECT,
             data: [999, 888],
-          },
-        },
-      ];
-
-      const result = validator(filters);
-
-      expect(result).toHaveLength(0);
-    });
-
-    it("keeps valid team ID in single-select filter", () => {
-      const validator = createActiveFiltersValidator(defaultAccessibleResources);
-      const filters: ActiveFilters = [
-        {
-          f: "teamId",
-          v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 100,
-          },
-        },
-      ];
-
-      const result = validator(filters);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].f).toBe("teamId");
-    });
-
-    it("removes filter when team ID is invalid in single-select", () => {
-      const validator = createActiveFiltersValidator(defaultAccessibleResources);
-      const filters: ActiveFilters = [
-        {
-          f: "teamId",
-          v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 999,
           },
         },
       ];
@@ -308,8 +203,8 @@ describe("createActiveFiltersValidator", () => {
         {
           f: "teamId",
           v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 100,
+            type: ColumnFilterType.MULTI_SELECT,
+            data: [100, 999],
           },
         },
         {
@@ -330,6 +225,10 @@ describe("createActiveFiltersValidator", () => {
         data: [1],
       });
       expect(result[1].f).toBe("teamId");
+      expect(result[1].v).toEqual({
+        type: ColumnFilterType.MULTI_SELECT,
+        data: [100],
+      });
       expect(result[2].f).toBe("status");
     });
   });
@@ -352,8 +251,8 @@ describe("createActiveFiltersValidator", () => {
         {
           f: "eventTypeId",
           v: {
-            type: ColumnFilterType.SINGLE_SELECT,
-            data: 10,
+            type: ColumnFilterType.MULTI_SELECT,
+            data: [10],
           },
         },
         {
