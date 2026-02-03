@@ -41,6 +41,8 @@ async function handler(req: NextRequest) {
   const result = await handleCancelBooking({
     bookingData,
     userId: session?.user?.id || -1,
+    userUuid: session?.user?.uuid,
+    actionSource: "WEBAPP",
   });
 
   // const bookingCancelService = getBookingCancelService();

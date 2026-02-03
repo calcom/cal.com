@@ -52,7 +52,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
   log.debug("User authorization check", safeStringify({ userId: loggedInUser.id, isAdmin: IS_USER_ADMIN }));
 
-  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail && !isPlatform) {
+  if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail) {
     log.warn(
       "Unauthorized organization creation attempt",
       safeStringify({ loggedInUserEmail: loggedInUser.email, orgOwnerEmail })

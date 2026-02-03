@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { StringChangeSchema } from "../common/changeSchemas";
+import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type { IAuditActionService, GetDisplayTitleParams, GetDisplayJsonParams, TranslationWithParams } from "./IAuditActionService";
 /**
@@ -12,8 +12,8 @@ import type { IAuditActionService, GetDisplayTitleParams, GetDisplayJsonParams, 
 const fieldsSchemaV1 = z.object({
     seatReferenceUid: z.string(),
     attendeeEmail: z.string(),
-    startTime: StringChangeSchema,
-    endTime: StringChangeSchema,
+    startTime: NumberChangeSchema,
+    endTime: NumberChangeSchema,
     rescheduledToBookingUid: StringChangeSchema,
 });
 

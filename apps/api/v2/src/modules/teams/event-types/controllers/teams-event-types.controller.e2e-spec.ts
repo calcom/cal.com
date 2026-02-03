@@ -1,24 +1,7 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR } from "@/modules/organizations/event-types/services/input.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookerLayoutsInputEnum_2024_06_14,
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
@@ -30,7 +13,23 @@ import type {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import type { User, Team } from "@calcom/prisma/client";
+import type { Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR } from "@/modules/organizations/event-types/services/input.service";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Event Types Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -206,6 +205,33 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
     });
 
+    it("should not be able to create managed event-type for user outside team", async () => {
+      const userId = falseTestUser.id;
+
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: `managed-outside-team-${randomString()}`,
+        slug: `managed-outside-team-${randomString()}`,
+        description: "Managed event type with non-team member.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "MANAGED",
+        hosts: [
+          {
+            userId,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer()).post(`/v2/teams/${team.id}/event-types`).send(body).expect(404);
+    });
+
     it("should not be able to create phone-only event type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Phone coding consultation",
@@ -305,7 +331,7 @@ describe("Organizations Event Types Endpoints", () => {
           },
         ],
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         schedulingType: "collective",
         hosts: [
           {
@@ -563,6 +589,25 @@ describe("Organizations Event Types Endpoints", () => {
           evaluateHost(collectiveEventType.hosts[0], eventTypeCollective?.hosts[0]);
           evaluateHost(collectiveEventType.hosts[1], eventTypeCollective?.hosts[1]);
         });
+    });
+
+    it("should not be able to update managed event-type with user outside team", async () => {
+      await ensureManagedEventType();
+
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        hosts: [
+          {
+            userId: falseTestUser.id,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/teams/${team.id}/event-types/${managedEventType?.id}`)
+        .send(body)
+        .expect(404);
     });
 
     it("should not be able to update non existing event-type", async () => {

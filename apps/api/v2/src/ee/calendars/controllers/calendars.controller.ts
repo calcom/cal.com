@@ -114,20 +114,26 @@ export class CalendarsController {
   @ApiOperation({
     summary: "Get busy times",
     description:
-      "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
+      "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?timeZone=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`. Note: loggedInUsersTz is deprecated, use timeZone instead.",
   })
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: UserWithProfile
   ): Promise<GetBusyTimesOutput> {
-    const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = queryParams;
+    const { loggedInUsersTz, timeZone, dateFrom, dateTo, calendarsToLoad } = queryParams;
+
+    const timezone = timeZone || loggedInUsersTz;
+
+    if (!timezone) {
+      throw new BadRequestException("Either timeZone or loggedInUsersTz must be provided");
+    }
 
     const busyTimes = await this.calendarsService.getBusyTimes(
       calendarsToLoad,
       user.id,
       dateFrom,
       dateTo,
-      loggedInUsersTz
+      timezone
     );
 
     return {
@@ -205,7 +211,7 @@ export class CalendarsController {
     try {
       // First try to parse as JSON
       stateObj = JSON.parse(state) as CalendarState;
-    } catch (e) {
+    } catch {
       // If JSON parsing fails, try URL params
       const stateParams = new URLSearchParams(state);
 

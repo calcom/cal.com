@@ -20,7 +20,21 @@ export function useEventTypeListItemData(item: EventType): EventTypeListItemData
   const formattedDuration = formatDuration(duration);
   const normalizedDescription = item.description ? normalizeMarkdown(item.description) : null;
   const hasPrice = item.price != null && item.price > 0;
-  const formattedPrice = hasPrice ? `${item.currency || "$"}${item.price}` : null;
+  let formattedPrice: string | null = null;
+
+  if (hasPrice && item.price) {
+    // Price is in cents, convert to main unit
+    const priceAmount = item.price / 100;
+    try {
+      formattedPrice = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: item.currency?.toUpperCase() || "USD",
+      }).format(priceAmount);
+    } catch {
+      // Fallback if formatting fails
+      formattedPrice = `${item.currency?.toUpperCase() || "$"}${priceAmount.toFixed(2)}`;
+    }
+  }
 
   return {
     duration,

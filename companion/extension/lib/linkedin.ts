@@ -115,6 +115,7 @@ interface EventType {
   duration?: number;
   description?: string;
   users?: Array<{ username?: string }>;
+  bookingUrl?: string;
 }
 
 interface ButtonSize {
@@ -664,7 +665,10 @@ export function initLinkedInIntegration() {
   }
 
   function buildBookingUrl(eventType: EventType): string {
-    return `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`;
+    return (
+      eventType.bookingUrl ||
+      `https://cal.com/${eventType.users?.[0]?.username || "user"}/${eventType.slug}`
+    );
   }
 
   function handleFetchError(error: unknown, menu: HTMLElement, tooltipsToCleanup: HTMLElement[]) {

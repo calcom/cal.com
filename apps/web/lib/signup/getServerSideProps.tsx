@@ -156,9 +156,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
+  if (!verificationToken?.team) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/auth/error?error=Verification Token is not associated with any team`,
+      },
+    } as const;
+  }
+
   const tokenTeam = {
-    ...verificationToken?.team,
-    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
+    ...verificationToken.team,
+    metadata: teamMetadataSchema.parse(verificationToken.team.metadata ?? null),
   };
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;

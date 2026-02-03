@@ -15,7 +15,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { SalesforceRecordEnum } from "../lib/enums";
-import type { appDataSchema } from "../zod";
+import type { appDataSchema, RRSkipFieldRule } from "../zod";
+import FieldRulesSettings from "./components/FieldRulesSettings";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
@@ -49,6 +50,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
+  const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
 
   const { t } = useLocale();
 
@@ -434,6 +436,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
                     </Section.SubSectionHeader>
                     <Alert severity="info" title={t("skip_rr_description")} />
                   </Section.SubSection>
+                  <FieldRulesSettings
+                    fieldRules={rrSkipFieldRules}
+                    updateFieldRules={(rules) => setAppData("rrSkipFieldRules", rules)}
+                  />
                 </>
               ) : null}
             </>

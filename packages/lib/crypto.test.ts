@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { symmetricEncrypt, symmetricDecrypt } from "./crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "./crypto";
 
 describe("crypto", () => {
   const testKey = "12345678901234567890123456789012"; // 32 bytes key
@@ -49,11 +49,24 @@ describe("crypto", () => {
       expect(() => symmetricDecrypt(":", testKey)).toThrow();
     });
 
-    it("should throw error if wrong key is used", () => {
+    it("should fail to decrypt correctly if wrong key is used", () => {
       const encrypted = symmetricEncrypt(testText, testKey);
       const wrongKey = "12345678901234567890123456789013"; // Different 32 bytes key
 
-      expect(() => symmetricDecrypt(encrypted, wrongKey)).toThrow();
+      // AES-256-CBC doesn't guarantee throwing on wrong key - it depends on whether
+      // the decrypted bytes happen to have valid PKCS#7 padding. The test verifies
+      // that decryption either throws OR returns a value different from the original.
+      let decryptedWithWrongKey: string | null = null;
+      let threwError = false;
+
+      try {
+        decryptedWithWrongKey = symmetricDecrypt(encrypted, wrongKey);
+      } catch {
+        threwError = true;
+      }
+
+      // Either it threw an error, or the decrypted value is not the original text
+      expect(threwError || decryptedWithWrongKey !== testText).toBe(true);
     });
 
     it("should handle empty string encryption/decryption", () => {

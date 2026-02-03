@@ -74,7 +74,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
 
   const { credentialId, delegationCredentialId } = firstConnectedCalendar || {};
 
-  let where;
+  let where: { eventTypeId: number } | { userId: number };
 
   if (!credentialId && !delegationCredentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });

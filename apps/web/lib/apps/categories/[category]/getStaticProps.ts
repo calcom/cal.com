@@ -10,6 +10,7 @@ export const getStaticProps = async (category: AppCategories) => {
       categories: {
         has: category,
       },
+      enabled: true,
     },
     select: {
       slug: true,

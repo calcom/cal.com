@@ -2,7 +2,7 @@ import { type Params } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { z } from "zod";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { OrgForm } from "~/ee/organizations/admin/AdminOrgEditPage";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
