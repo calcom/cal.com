@@ -413,7 +413,9 @@ export const AdminUsersTable = () => {
                 <Cell>
                   <span
                     className={
-                      user.role === "ADMIN" ? "font-semibold text-red-600" : "text-default font-medium"
+                      user.role === "ADMIN"
+                        ? "text-default rounded bg-red-100 px-2 py-1 text-xs font-semibold"
+                        : "text-default rounded bg-gray-100 px-2 py-1 text-xs font-semibold"
                     }>
                     {user.role === "ADMIN" ? "Admin" : "User"}
                   </span>
