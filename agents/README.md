@@ -1,83 +1,77 @@
-# Cal.com Development Guide for AI Agents
+# Cal.com Agent Documentation Index
 
-This directory contains comprehensive documentation for AI agents working on the Cal.com codebase.
+- **[../AGENTS.md](../AGENTS.md)** - Main guide (structure, tech stack, commands, examples)
+- **[commands.md](commands.md)** - Command reference
+- **[knowledge-base.md](knowledge-base.md)** - Domain knowledge and business rules
 
-## Quick Navigation
+## Rules Index
 
-- **[Rules](rules/)** - Modular engineering rules derived from our 2026 standards
-- **[Commands](commands.md)** - Build, test, and development commands
-- **[Knowledge Base](knowledge-base.md)** - Knowledge base & best practices
-- **[Architecture Overview](#architecture-overview)** - System structure and patterns
+### Architecture
 
-## Getting Started
+- [architecture-vertical-slices](rules/architecture-vertical-slices.md) - Vertical slice architecture
+- [architecture-feature-boundaries](rules/architecture-feature-boundaries.md) - Feature boundaries
+- [architecture-page-level-auth](rules/architecture-page-level-auth.md) - Auth in page.tsx, not layout.tsx
+- [architecture-features-modules](rules/architecture-features-modules.md) - packages/features vs apps/web/modules
 
-Cal.com is a monorepo using Yarn workspaces and Turbo for build orchestration. The main application is in `apps/web/` with shared packages in `packages/`.
+### Quality
 
-### Key Directories
+- [quality-avoid-barrel-imports](rules/quality-avoid-barrel-imports.md) - Avoid index.ts barrel imports
+- [quality-simplicity](rules/quality-simplicity.md) - Keep code simple
+- [quality-no-followup-prs](rules/quality-no-followup-prs.md) - Complete work in PR
+- [quality-thorough-code-review](rules/quality-thorough-code-review.md) - Code review standards
+- [quality-error-handling](rules/quality-error-handling.md) - ErrorWithCode vs TRPCError
+- [quality-imports](rules/quality-imports.md) - Import patterns and named exports
+- [quality-pr-creation](rules/quality-pr-creation.md) - PR best practices
+- [quality-code-comments](rules/quality-code-comments.md) - Comment guidelines
+- [quality-code-review](rules/quality-code-review.md) - Code review focus
 
-- `apps/web/` - Main Next.js application
-- `packages/prisma/` - Database schema and migrations
-- `packages/trpc/` - API layer using tRPC
-- `packages/ui/` - Shared UI components
-- `packages/features/` - Feature-specific code
-- `packages/app-store/` - Third-party app integrations
+### Data Layer
 
-## Architecture Overview
+- [data-prefer-select-over-include](rules/data-prefer-select-over-include.md) - Use select in Prisma queries
+- [data-repository-pattern](rules/data-repository-pattern.md) - Repository pattern
+- [data-repository-methods](rules/data-repository-methods.md) - Repository method standards
+- [data-dto-boundaries](rules/data-dto-boundaries.md) - DTO boundaries
+- [data-prisma-migrations](rules/data-prisma-migrations.md) - Schema changes and migrations
+- [data-prisma-feature-flags](rules/data-prisma-feature-flags.md) - Feature flag seeding
 
-### Database Layer
+### API
 
-- **Prisma ORM** with PostgreSQL
-- Schema in `packages/prisma/schema.prisma`
-- Always use `select` instead of `include` for better performance
-- Never expose `credential.key` field in API responses
-
-### API Layer
-
-- **tRPC** for type-safe APIs
-- Routers in `packages/trpc/server/routers/`
-- Authentication handled via NextAuth.js
-
-### Frontend
-
-- **Next.js 13+** with App Router in some areas
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- Internationalization with `next-i18next`
-
-## Common Patterns
-
-### Error Handling
-
-- Use early returns to reduce nesting
-- Throw descriptive errors with proper error codes
-- Prefer composition over prop drilling
+- [api-no-breaking-changes](rules/api-no-breaking-changes.md) - API stability
+- [api-thin-controllers](rules/api-thin-controllers.md) - Thin controller pattern
 
 ### Performance
 
-- Avoid O(n²) logic in backend code
-- Minimize Day.js usage in performance-critical paths
-- Use `select` queries to only fetch needed data
-- Consider using `.utc()` for Day.js operations
+- [performance-avoid-quadratic](rules/performance-avoid-quadratic.md) - Avoid O(n²) algorithms
+- [performance-dayjs-usage](rules/performance-dayjs-usage.md) - Day.js optimization
+- [performance-scheduling-complexity](rules/performance-scheduling-complexity.md) - Scheduling performance
 
-### Security
+### Testing
 
-- Never commit secrets or API keys
-- Always validate input data
-- Use proper authentication checks
-- Never expose sensitive credential fields
+- [testing-coverage-requirements](rules/testing-coverage-requirements.md) - Test coverage standards
+- [testing-playwright](rules/testing-playwright.md) - Playwright test execution
+- [testing-mocking](rules/testing-mocking.md) - Mock services and integrations
+- [testing-timezone](rules/testing-timezone.md) - Timezone handling (TZ=UTC)
+- [testing-incremental](rules/testing-incremental.md) - Incremental test fixing
 
-## Testing Strategy
+### CI/CD
 
-- **Unit tests** with Vitest
-- **Integration tests** for complex workflows
-- **E2E tests** with Playwright
-- Test files use `.test.ts` or `.spec.ts` extensions
+- [ci-check-failures](rules/ci-check-failures.md) - Handling CI failures
+- [ci-type-check-first](rules/ci-type-check-first.md) - Type-check before tests
+- [ci-git-workflow](rules/ci-git-workflow.md) - Git and CI workflow
 
-## Pull Request Guidelines
+### Patterns
 
-For large PRs (>500 lines or >10 files):
+- [patterns-dependency-injection](rules/patterns-dependency-injection.md) - DI patterns
+- [patterns-factory-pattern](rules/patterns-factory-pattern.md) - Factory pattern
+- [patterns-workflow-triggers](rules/patterns-workflow-triggers.md) - Workflow implementation
+- [patterns-app-store](rules/patterns-app-store.md) - App store integration patterns
 
-- Split by feature boundaries
-- Separate database migrations, backend logic, frontend components
-- Create dependency chains that can be merged sequentially
-- Pattern: Database → Backend → Frontend → Tests
+### Culture
+
+- [culture-accountability](rules/culture-accountability.md) - Engineering accountability
+- [culture-leverage-ai](rules/culture-leverage-ai.md) - AI tooling practices
+
+### Reference
+
+- [reference-file-locations](rules/reference-file-locations.md) - Key file paths
+- [reference-local-dev](rules/reference-local-dev.md) - Local development setup
