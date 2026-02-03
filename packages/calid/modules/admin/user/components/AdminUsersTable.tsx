@@ -30,12 +30,12 @@ const { Cell, ColumnTitle, Header, Row } = Table;
 
 const DEFAULT_PAGE_SIZE = 25;
 const ROLE_FILTER_OPTIONS = [
-  { value: "ALL", label: "All roles" },
+  { value: "ALL", label: "All" },
   { value: "USER", label: "User" },
   { value: "ADMIN", label: "Admin" },
 ];
 const STATUS_FILTER_OPTIONS = [
-  { value: "ALL", label: "All statuses" },
+  { value: "ALL", label: "All" },
   { value: "UNLOCKED", label: "Unlocked" },
   { value: "LOCKED", label: "Locked" },
 ];
@@ -200,7 +200,7 @@ export const AdminUsersTable = () => {
         }
       `}</style>
       <TextField
-        placeholder="username or email"
+        placeholder="Username or Email"
         label="Search"
         className="mb-3"
         onChange={(event) => setSearchTerm(event.target.value)}
@@ -233,43 +233,83 @@ export const AdminUsersTable = () => {
                       <div className="bg-default border-subtle absolute left-0 z-20 mt-2 w-44 rounded-md border p-1 shadow-md">
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("name");
-                            setSortDir("asc");
+                            if (sortBy === "name" && sortDir === "asc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("name");
+                              setSortDir("asc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Name - A to Z
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "name" && sortDir === "asc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Name - A to Z</span>
                         </button>
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("email");
-                            setSortDir("asc");
+                            if (sortBy === "email" && sortDir === "asc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("email");
+                              setSortDir("asc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Email - A to Z
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "email" && sortDir === "asc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Email - A to Z</span>
                         </button>
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("name");
-                            setSortDir("desc");
+                            if (sortBy === "name" && sortDir === "desc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("name");
+                              setSortDir("desc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Name - Z to A
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "name" && sortDir === "desc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Name - Z to A</span>
                         </button>
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("email");
-                            setSortDir("desc");
+                            if (sortBy === "email" && sortDir === "desc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("email");
+                              setSortDir("desc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Email - Z to A
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "email" && sortDir === "desc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Email - Z to A</span>
                         </button>
                       </div>
                     )}
@@ -308,13 +348,19 @@ export const AdminUsersTable = () => {
                         <button
                           key={option.value}
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
                             const value = option.value ?? "ALL";
                             setRoleFilter(value === "ALL" ? null : (value as "ADMIN" | "USER"));
                             setRoleFilterOpen(false);
                           }}>
-                          {option.label}
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {(option.value === "ALL" && roleFilter === null) ||
+                            (option.value !== "ALL" && roleFilter === option.value) ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>{option.label}</span>
                         </button>
                       ))}
                     </div>
@@ -348,13 +394,19 @@ export const AdminUsersTable = () => {
                         <button
                           key={option.value}
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
                             const value = option.value ?? "ALL";
                             setStatusFilter(value === "ALL" ? null : (value as "LOCKED" | "UNLOCKED"));
                             setStatusFilterOpen(false);
                           }}>
-                          {option.label}
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {(option.value === "ALL" && statusFilter === null) ||
+                            (option.value !== "ALL" && statusFilter === option.value) ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>{option.label}</span>
                         </button>
                       ))}
                     </div>
