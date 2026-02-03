@@ -766,8 +766,14 @@ const Route = ({
     ? eventTypeRedirectUrlOptions.find((option) => option.eventTypeId === route.fallbackAction?.eventTypeId)
     : eventTypeRedirectUrlOptions.find((option) => option.value === route.fallbackAction?.value);
 
+  // Only show fallback section when main action has a valid event type selected
+  // This prevents showing an empty fallback action selector before user selects an event type
+  const hasValidEventTypeSelected =
+    route.action?.type === RouteActionType.EventTypeRedirectUrl &&
+    (route.action?.eventTypeId || route.action?.value);
+
   const fallbackAttributesQueryBuilder =
-    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
+    hasValidEventTypeSelected && isTeamForm ? (
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
