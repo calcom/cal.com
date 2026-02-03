@@ -168,6 +168,7 @@
   "no_more_results": "No more results",
   "no_results": "No results",
   "load_more_results": "Load more results",
+  "load_all_pages_first": "Load all results first to toggle all",
   "integration_meeting_id": "{{integrationName}} meeting ID: {{meetingId}}",
   "confirmed_event_type_subject": "Confirmed: {{eventType}} with {{name}} at {{date}}",
   "new_event_request": "New event request: {{attendeeName}} - {{date}} - {{eventType}}",

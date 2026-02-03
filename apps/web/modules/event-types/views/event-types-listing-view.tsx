@@ -104,6 +104,7 @@ interface InfiniteEventTypeListProps {
   lockedByOrg?: boolean;
   isPending?: boolean;
   debouncedSearchTerm?: string;
+  hasNextPage?: boolean;
 }
 
 interface InfiniteTeamsTabProps {
@@ -152,6 +153,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props: InfiniteTeamsTabProp
           readOnly={activeEventTypeGroup.metadata.readOnly}
           isPending={query.isPending}
           debouncedSearchTerm={debouncedSearchTerm}
+          hasNextPage={query.hasNextPage}
         />
       )}
       {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 && query.hasNextPage && (
@@ -289,6 +291,7 @@ export const InfiniteEventTypeList = ({
   lockedByOrg,
   isPending,
   debouncedSearchTerm,
+  hasNextPage,
 }: InfiniteEventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -580,7 +583,12 @@ export const InfiniteEventTypeList = ({
           <span className="text-sm font-normal text-default flex items-center">
             {allHidden ? t("Show All") : t("Hide All")}
           </span>
-          <Switch checked={!allHidden} onCheckedChange={toggleAll} />
+          <Switch
+            checked={!allHidden}
+            onCheckedChange={toggleAll}
+            disabled={hasNextPage}
+            title={hasNextPage ? t("load_all_pages_first") : undefined}
+          />
         </div>
       </div>
       <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
