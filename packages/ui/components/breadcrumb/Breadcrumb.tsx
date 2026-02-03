@@ -10,7 +10,7 @@ type BreadcrumbProps = {
 export const Breadcrumb = ({ children }: BreadcrumbProps) => {
   const childrenArray = Children.toArray(children);
 
-  const childrenSeperated = childrenArray.map((child, index) => {
+  const childrenSeparated = childrenArray.map((child, index) => {
     // If not the last item in the array insert a /
     if (index !== childrenArray.length - 1) {
       return (
@@ -26,7 +26,7 @@ export const Breadcrumb = ({ children }: BreadcrumbProps) => {
 
   return (
     <nav className="text-default text-sm font-normal leading-5">
-      <ol className="flex items-center space-x-2 rtl:space-x-reverse">{childrenSeperated}</ol>
+      <ol className="flex items-center space-x-2 rtl:space-x-reverse">{childrenSeparated}</ol>
     </nav>
   );
 };

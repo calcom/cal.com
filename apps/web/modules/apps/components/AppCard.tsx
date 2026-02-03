@@ -131,7 +131,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
       </p>
 
-      <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
+      <div className="mt-auto flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
           className="flex w-32 grow justify-center"

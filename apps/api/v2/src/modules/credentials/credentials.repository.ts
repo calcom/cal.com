@@ -88,6 +88,7 @@ export class CredentialsRepository {
         id: true,
         type: true,
         key: true,
+        encryptedKey: true,
         userId: true,
         teamId: true,
         appId: true,

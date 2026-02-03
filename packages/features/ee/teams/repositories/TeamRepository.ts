@@ -10,7 +10,10 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
-  | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
+  | (Omit<
+      Prisma.TeamGetPayload<{ select: TeamSelect }>,
+      "metadata" | "isOrganization"
+    > & {
       metadata: z.infer<typeof teamMetadataSchema>;
       isOrganization: boolean;
     })
@@ -48,14 +51,17 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   forOrgWithSlug: forOrgWithSlug,
   isOrg,
   teamSelect,
-}: GetTeamOrOrgArg<TeamSelect>): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
+}: GetTeamOrOrgArg<TeamSelect>): Promise<
+  TeamGetPayloadWithParsedMetadata<TeamSelect>
+> {
   const where: Prisma.TeamFindFirstArgs["where"] = {};
   teamSelect = {
     ...teamSelect,
     metadata: true,
     isOrganization: true,
   } satisfies TeamSelect;
-  if (lookupBy.havingMemberWithId) where.members = { some: { userId: lookupBy.havingMemberWithId } };
+  if (lookupBy.havingMemberWithId)
+    where.members = { some: { userId: lookupBy.havingMemberWithId } };
 
   if ("id" in lookupBy) {
     where.id = lookupBy.id;
@@ -108,17 +114,20 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
     });
 
   if (teamsWithParsedMetadata.length > 1) {
-    log.error("Found more than one team/Org. We should be doing something wrong.", {
-      isOrgView: isOrg,
-      where,
-      teams: teamsWithParsedMetadata.map((team) => {
-        const t = team as unknown as { id: number; slug: string };
-        return {
-          id: t.id,
-          slug: t.slug,
-        };
-      }),
-    });
+    log.error(
+      "Found more than one team/Org. We should be doing something wrong.",
+      {
+        isOrgView: isOrg,
+        where,
+        teams: teamsWithParsedMetadata.map((team) => {
+          const t = team as unknown as { id: number; slug: string };
+          return {
+            id: t.id,
+            slug: t.slug,
+          };
+        }),
+      }
+    );
   }
 
   const team = teamsWithParsedMetadata[0];
@@ -132,7 +141,9 @@ export async function getTeam<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,
   forOrgWithSlug: forOrgWithSlug,
   teamSelect,
-}: Omit<GetTeamOrOrgArg<TeamSelect>, "isOrg">): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
+}: Omit<GetTeamOrOrgArg<TeamSelect>, "isOrg">): Promise<
+  TeamGetPayloadWithParsedMetadata<TeamSelect>
+> {
   return getTeamOrOrg({
     lookupBy,
     forOrgWithSlug: forOrgWithSlug,
@@ -145,7 +156,9 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,
   forOrgWithSlug: forOrgWithSlug,
   teamSelect,
-}: Omit<GetTeamOrOrgArg<TeamSelect>, "isOrg">): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
+}: Omit<GetTeamOrOrgArg<TeamSelect>, "isOrg">): Promise<
+  TeamGetPayloadWithParsedMetadata<TeamSelect>
+> {
   return getTeamOrOrg({
     lookupBy,
     forOrgWithSlug: forOrgWithSlug,
@@ -207,6 +220,7 @@ export class TeamRepository {
         parentId,
       },
       select,
+      orderBy: { id: "asc" },
     });
   }
 
@@ -240,7 +254,9 @@ export class TeamRepository {
     return await this.prismaClient.team.findFirst({
       where: {
         slug,
-        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+        parent: parentSlug
+          ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug)
+          : null,
       },
       select,
     });
@@ -291,7 +307,13 @@ export class TeamRepository {
     });
   }
 
-  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+  async findTeamsByUserId({
+    userId,
+    includeOrgs,
+  }: {
+    userId: number;
+    includeOrgs?: boolean;
+  }) {
     const memberships = await this.prismaClient.membership.findMany({
       where: {
         // Show all the teams this user belongs to regardless of the team being part of the user's org or not
@@ -334,7 +356,10 @@ export class TeamRepository {
         // Only return inviteToken if user is OWNER or ADMIN
         const inviteToken =
           membership.role === "OWNER" || membership.role === "ADMIN"
-            ? inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`)
+            ? inviteTokens.find(
+                (token) =>
+                  token.identifier === `invite-link-for-teamId-${team.id}`
+              )
             : null;
 
         return {
@@ -371,7 +396,9 @@ export class TeamRepository {
       },
     });
 
-    return memberships.filter((mmship) => !mmship.team.isOrganization).map((mmship) => mmship.team);
+    return memberships
+      .filter((mmship) => !mmship.team.isOrganization)
+      .map((mmship) => mmship.team);
   }
 
   async findTeamWithOrganizationSettings(teamId: number) {
@@ -446,7 +473,13 @@ export class TeamRepository {
     });
   }
 
-  async findOrganization({ teamId, userId }: { teamId?: number; userId: number }) {
+  async findOrganization({
+    teamId,
+    userId,
+  }: {
+    teamId?: number;
+    userId: number;
+  }) {
     return await this.prismaClient.team.findFirst({
       where: {
         isOrganization: true,
@@ -468,7 +501,11 @@ export class TeamRepository {
     });
   }
 
-  async findOrganizationIdBySlug({ slug }: { slug: string }): Promise<number | null> {
+  async findOrganizationIdBySlug({
+    slug,
+  }: {
+    slug: string;
+  }): Promise<number | null> {
     const org = await this.prismaClient.team.findFirst({
       where: {
         slug,
@@ -508,7 +545,13 @@ export class TeamRepository {
     return !conflictingTeam;
   }
 
-  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
+  async getTeamByIdIfUserIsAdmin({
+    userId,
+    teamId,
+  }: {
+    userId: number;
+    teamId: number;
+  }) {
     return await this.prismaClient.team.findUnique({
       where: {
         id: teamId,
@@ -528,7 +571,13 @@ export class TeamRepository {
     });
   }
 
-  async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
+  async findOrgTeamsExcludingTeam({
+    parentId,
+    excludeTeamId,
+  }: {
+    parentId: number;
+    excludeTeamId: number;
+  }) {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
@@ -543,7 +592,12 @@ export class TeamRepository {
   async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
     return await this.prismaClient.team.findMany({
       where: { id: { in: teamIds } },
-      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
+      select: {
+        id: true,
+        isOrganization: true,
+        parentId: true,
+        parent: { select: { id: true } },
+      },
     });
   }
 
@@ -568,7 +622,7 @@ export class TeamRepository {
     const users = await this.prismaClient.$queryRaw<UserResult[]>`
       SELECT DISTINCT u.id, u.name, u.email, u.locale
       FROM "Membership" m
-      INNER JOIN "User" u ON m."userId" = u.id
+      INNER JOIN "users" u ON m."userId" = u.id
       LEFT JOIN "Role" r ON m."customRoleId" = r.id
       LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac' AND f.enabled = true
       WHERE m."teamId" = ${teamId}
@@ -596,14 +650,23 @@ export class TeamRepository {
     return users;
   }
 
-  private parsePermission(permission: string): { resource: string; action: string } {
+  private parsePermission(permission: string): {
+    resource: string;
+    action: string;
+  } {
     const lastDotIndex = permission.lastIndexOf(".");
     const resource = permission.substring(0, lastDotIndex);
     const action = permission.substring(lastDotIndex + 1);
     return { resource, action };
   }
 
-  async findTeamsNotBelongingToOrgByIds({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+  async findTeamsNotBelongingToOrgByIds({
+    teamIds,
+    orgId,
+  }: {
+    teamIds: number[];
+    orgId: number;
+  }) {
     return await this.prismaClient.team.findMany({
       where: {
         id: { in: teamIds },
@@ -611,6 +674,22 @@ export class TeamRepository {
           parentId: orgId, // Finds any team whose orgId is NOT the target ID
         },
       },
+    });
+  }
+
+  async findByIdsAndOrgId({
+    teamIds,
+    orgId,
+  }: {
+    teamIds: number[];
+    orgId: number;
+  }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        OR: [{ id: orgId }, { parentId: orgId }],
+      },
+      select: { id: true },
     });
   }
 

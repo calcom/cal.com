@@ -63,7 +63,10 @@ export class OAuthClientsController {
     description: "Create an OAuth client",
     type: CreateOAuthClientResponseDto,
   })
-  @ApiOperation({ summary: "Create an OAuth client" })
+  @ApiOperation({
+    summary: "Create an OAuth client",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async createOAuthClient(
     @GetOrgId() organizationId: number,
     @Body() body: CreateOAuthClientInput
@@ -87,7 +90,10 @@ export class OAuthClientsController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get all OAuth clients" })
+  @ApiOperation({
+    summary: "Get all OAuth clients",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   async getOAuthClients(@GetOrgId() organizationId: number): Promise<GetOAuthClientsResponseDto> {
     const clients = await this.oAuthClientsService.getOAuthClients(organizationId);
@@ -98,7 +104,10 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @UseGuards(OAuthClientGuard)
-  @ApiOperation({ summary: "Get an OAuth client" })
+  @ApiOperation({
+    summary: "Get an OAuth client",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     const client = await this.oAuthClientsService.getOAuthClientById(clientId);
     return { status: SUCCESS_STATUS, data: client };
@@ -132,7 +141,10 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @UseGuards(OAuthClientGuard)
-  @ApiOperation({ summary: "Update an OAuth client" })
+  @ApiOperation({
+    summary: "Update an OAuth client",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async updateOAuthClient(
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
@@ -146,7 +158,10 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @UseGuards(OAuthClientGuard)
-  @ApiOperation({ summary: "Delete an OAuth client" })
+  @ApiOperation({
+    summary: "Delete an OAuth client",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oAuthClientsService.deleteOAuthClient(clientId);

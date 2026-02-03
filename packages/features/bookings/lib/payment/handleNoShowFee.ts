@@ -165,11 +165,12 @@ export const handleNoShowFee = async ({
 
     return paymentData;
   } catch (err) {
-    let errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     if (err instanceof ErrorWithCode && err.code === ErrorCode.ChargeCardFailure) {
-      errorMessage = err.message;
+      log.error(err.message);
+      throw err;
     }
 
+    const errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     log.error(errorMessage);
     throw new Error(tOrganizer(errorMessage));
   }

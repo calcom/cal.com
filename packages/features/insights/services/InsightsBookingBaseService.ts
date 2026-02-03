@@ -406,7 +406,7 @@ export class InsightsBookingBaseService {
       parentId: options.orgId,
       select: { id: true },
     });
-    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
+    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
 
     // Get all users from the organization
     const userIdsFromOrg =
@@ -419,7 +419,7 @@ export class InsightsBookingBaseService {
     const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
 
     if (userIdsFromOrg.length > 0) {
-      const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
+      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
       conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
     }
 
