@@ -66,8 +66,8 @@ const OG_ASSETS = {
     variant: "light" as const,
   },
   generic: {
-    id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
-    logo: "cal-logo-word-black.svg",
+    id: "generic-og-image-v2", // Bumped version for Issue #27355
+    logo: LOGO,
     logoWidth: "350",
     variant: "light" as const,
   },
