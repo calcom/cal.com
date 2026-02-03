@@ -12,6 +12,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_CONFIG, queryKeys } from "@/config/cache.config";
 import { CalComAPIService, type CreateEventTypeInput, type EventType } from "@/services/calcom";
+import { requestRating, RatingTrigger } from "@/hooks/useAppStoreRating";
 
 /**
  * Hook to fetch all event types
@@ -94,6 +95,9 @@ export function useCreateEventType() {
 
       // Optionally, add the new event type to cache immediately
       queryClient.setQueryData(queryKeys.eventTypes.detail(newEventType.id), newEventType);
+
+      // Request app store rating on first event type save
+      requestRating(RatingTrigger.EVENT_TYPE_SAVED);
     },
     onError: (error) => {
       console.error("Failed to create event type");
@@ -180,6 +184,9 @@ export function useUpdateEventType() {
         // If list cache doesn't exist, invalidate to trigger refetch when user navigates to list
         queryClient.invalidateQueries({ queryKey: queryKeys.eventTypes.lists() });
       }
+
+      // Request app store rating on first event type save
+      requestRating(RatingTrigger.EVENT_TYPE_SAVED);
     },
     onError: (error, variables, context) => {
       // Rollback to previous values on error

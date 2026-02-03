@@ -34,6 +34,7 @@
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register src/swagger/copy-swagger-module.ts",
     "generate-swagger": "yarn copy-swagger-module && yarn build && node ./dist/apps/api/v2/src/swagger/generate-swagger-script.js",
+    "generate-secrets": "ts-node scripts/generate-secrets.ts",
     "prepare": "yarn run snyk-protect",
     "snyk-protect": "snyk-protect"
   },

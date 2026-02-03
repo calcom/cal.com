@@ -440,14 +440,10 @@ export class CalendarSubscriptionService {
    */
   // biome-ignore lint/nursery/useExplicitType: return type is void
   async checkForNewSubscriptions() {
-    const teamIds = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      );
-
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
-      teamIds,
+      featureIds: [CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE],
       genericCalendarSuffixes: this.deps.adapterFactory.getGenericCalendarSuffixes(),
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
