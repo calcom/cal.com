@@ -732,7 +732,9 @@ const Route = ({
           </div>
         ) : null}
 
-        <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+        <div
+          className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2"
+          data-testid="attributes-query-builder">
           <div className="ml-2 flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="user-check" className="text-subtle h-4 w-4" />
