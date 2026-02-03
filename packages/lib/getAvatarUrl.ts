@@ -2,10 +2,6 @@ import { AVATAR_FALLBACK, CAL_URL } from "@calcom/lib/constants";
 import type { User } from "@calcom/prisma/client";
 import { z } from "zod";
 
-/**
- * Ensures an avatar URL is absolute. If relative, prepends CAL_URL.
- * Returns the URL unchanged if it's already absolute.
- */
 export const getAbsoluteAvatarUrl = (url: string): string => {
   const isAbsolute = z.string().url().safeParse(url).success;
   return isAbsolute ? url : CAL_URL + url;
