@@ -1,4 +1,5 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { BookingResponse } from "@calcom/platform-libraries";
 import type { RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
@@ -18,6 +19,7 @@ import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
+import { CreateRecurringBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-recurring-booking.input";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -38,10 +40,12 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let billingService: BillingService;
     let increaseUsageSpy: jest.SpyInstance;
+    let cancelUsageSpy: jest.SpyInstance;
 
     const userEmail = `billing-regular-user-${randomString()}@api.com`;
     let user: User;
     let eventTypeId: number;
+    let recEventTypeId: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -62,8 +66,9 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
       billingService = moduleRef.get<BillingService>(BillingService);
 
-      // Spy on the billing service's increaseUsageByUserId method
+      // Spy on the billing service methods
       increaseUsageSpy = jest.spyOn(billingService, "increaseUsageByUserId");
+      cancelUsageSpy = jest.spyOn(billingService, "cancelUsageByBookingUid");
 
       // Create a regular user (not platform-managed)
       user = await userRepositoryFixture.create({
@@ -87,6 +92,17 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
         user.id
       );
       eventTypeId = event.id;
+
+      const recEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `billing-rec-event-type-${randomString()}`,
+          slug: `billing-rec-event-type-${randomString()}`,
+          length: 60,
+          recurringEvent: { freq: 2, count: 4, interval: 1 },
+        },
+        user.id
+      );
+      recEventTypeId = recEventType.id;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -131,6 +147,103 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
       // Verify billing service was NOT called for regular user
       expect(increaseUsageSpy).not.toHaveBeenCalled();
     });
+
+    it("should NOT call billing cancel service when cancelling a booking for a regular user", async () => {
+      // First create a booking
+      const createBody: CreateBookingInput_2024_04_15 = {
+        start: "2040-05-22T09:30:00.000Z",
+        end: "2040-05-22T10:30:00.000Z",
+        eventTypeId: eventTypeId,
+        timeZone: "Europe/London",
+        language: "en",
+        metadata: {},
+        hashedLink: "",
+        responses: {
+          name: "Test Attendee Cancel",
+          email: "attendee-cancel@example.com",
+          location: {
+            value: "link",
+            optionValue: "",
+          },
+          notes: "test booking for cancel billing",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .expect(201);
+
+      const createResponseBody: ApiSuccessResponse<RegularBookingCreateResult> = createResponse.body;
+      const bookingUid = createResponseBody.data.uid;
+
+      // Clear the spy before cancelling
+      cancelUsageSpy.mockClear();
+
+      // Cancel the booking
+      await request(app.getHttpServer()).post(`/v2/bookings/${bookingUid}/cancel`).send({}).expect(200);
+
+      // Verify billing cancel service was NOT called for regular user
+      expect(cancelUsageSpy).not.toHaveBeenCalled();
+    });
+
+    it("should NOT call billing service when creating recurring bookings for a regular user", async () => {
+      increaseUsageSpy.mockClear();
+
+      const body: CreateRecurringBookingInput_2024_04_15[] = [
+        {
+          start: "2040-06-21T09:30:00.000Z",
+          end: "2040-06-21T10:30:00.000Z",
+          eventTypeId: recEventTypeId,
+          timeZone: "Europe/London",
+          language: "en",
+          metadata: {},
+          hashedLink: "",
+          responses: {
+            name: "Test Attendee Recurring",
+            email: "attendee-recurring@example.com",
+            location: {
+              value: "link",
+              optionValue: "",
+            },
+            notes: "test recurring booking for billing",
+          },
+          recurringEventId: `test-recurring-${randomString()}`,
+        },
+        {
+          start: "2040-06-28T09:30:00.000Z",
+          end: "2040-06-28T10:30:00.000Z",
+          eventTypeId: recEventTypeId,
+          timeZone: "Europe/London",
+          language: "en",
+          metadata: {},
+          hashedLink: "",
+          responses: {
+            name: "Test Attendee Recurring",
+            email: "attendee-recurring@example.com",
+            location: {
+              value: "link",
+              optionValue: "",
+            },
+            notes: "test recurring booking for billing",
+          },
+          recurringEventId: `test-recurring-${randomString()}`,
+        },
+      ];
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings/recurring")
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<BookingResponse[]> = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toBeGreaterThan(0);
+
+      // Verify billing service was NOT called for regular user recurring bookings
+      expect(increaseUsageSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe("Platform-managed user", () => {
@@ -146,6 +259,7 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let billingService: BillingService;
     let increaseUsageSpy: jest.SpyInstance;
+    let cancelUsageSpy: jest.SpyInstance;
 
     const platformAdminEmail = `billing-platform-admin-${randomString()}@api.com`;
     const managedUserEmail = `billing-managed-user-${randomString()}@api.com`;
@@ -154,6 +268,7 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
     let organization: Team;
     let oAuthClient: PlatformOAuthClient;
     let eventTypeId: number;
+    let recEventTypeId: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -178,8 +293,9 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       billingService = moduleRef.get<BillingService>(BillingService);
 
-      // Spy on the billing service's increaseUsageByUserId method
+      // Spy on the billing service methods
       increaseUsageSpy = jest.spyOn(billingService, "increaseUsageByUserId");
+      cancelUsageSpy = jest.spyOn(billingService, "cancelUsageByBookingUid");
 
       // Create platform admin
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
@@ -261,6 +377,17 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
       );
       eventTypeId = event.id;
 
+      const recEventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `billing-managed-rec-event-type-${randomString()}`,
+          slug: `billing-managed-rec-event-type-${randomString()}`,
+          length: 60,
+          recurringEvent: { freq: 2, count: 4, interval: 1 },
+        },
+        managedUser.id
+      );
+      recEventTypeId = recEventType.id;
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
@@ -311,6 +438,105 @@ describe("Bookings Billing E2E - 2024-04-15", () => {
           startTime: expect.any(Date),
         })
       );
+    });
+
+    it("should call billing cancel service when cancelling a booking for a platform-managed user", async () => {
+      // First create a booking
+      const createBody: CreateBookingInput_2024_04_15 = {
+        start: "2040-05-22T09:30:00.000Z",
+        end: "2040-05-22T10:30:00.000Z",
+        eventTypeId: eventTypeId,
+        timeZone: "Europe/London",
+        language: "en",
+        metadata: {},
+        hashedLink: "",
+        responses: {
+          name: "Test Attendee Cancel",
+          email: "attendee-cancel-managed@example.com",
+          location: {
+            value: "link",
+            optionValue: "",
+          },
+          notes: "test booking for cancel billing",
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBody)
+        .expect(201);
+
+      const createResponseBody: ApiSuccessResponse<RegularBookingCreateResult> = createResponse.body;
+      const bookingUid = createResponseBody.data.uid;
+
+      // Clear the spy before cancelling
+      cancelUsageSpy.mockClear();
+
+      // Cancel the booking
+      await request(app.getHttpServer()).post(`/v2/bookings/${bookingUid}/cancel`).send({}).expect(200);
+
+      // Verify billing cancel service WAS called for platform-managed user
+      expect(cancelUsageSpy).toHaveBeenCalledTimes(1);
+      expect(cancelUsageSpy).toHaveBeenCalledWith(bookingUid);
+    });
+
+    it("should call billing service when creating recurring bookings for a platform-managed user", async () => {
+      increaseUsageSpy.mockClear();
+
+      const body: CreateRecurringBookingInput_2024_04_15[] = [
+        {
+          start: "2040-06-21T09:30:00.000Z",
+          end: "2040-06-21T10:30:00.000Z",
+          eventTypeId: recEventTypeId,
+          timeZone: "Europe/London",
+          language: "en",
+          metadata: {},
+          hashedLink: "",
+          responses: {
+            name: "Test Attendee Recurring Managed",
+            email: "attendee-recurring-managed@example.com",
+            location: {
+              value: "link",
+              optionValue: "",
+            },
+            notes: "test recurring booking for billing",
+          },
+          recurringEventId: `test-recurring-managed-${randomString()}`,
+        },
+        {
+          start: "2040-06-28T09:30:00.000Z",
+          end: "2040-06-28T10:30:00.000Z",
+          eventTypeId: recEventTypeId,
+          timeZone: "Europe/London",
+          language: "en",
+          metadata: {},
+          hashedLink: "",
+          responses: {
+            name: "Test Attendee Recurring Managed",
+            email: "attendee-recurring-managed@example.com",
+            location: {
+              value: "link",
+              optionValue: "",
+            },
+            notes: "test recurring booking for billing",
+          },
+          recurringEventId: `test-recurring-managed-${randomString()}`,
+        },
+      ];
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/bookings/recurring")
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<BookingResponse[]> = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.length).toBeGreaterThan(0);
+
+      // Verify billing service WAS called for platform-managed user recurring bookings
+      // Should be called once for each booking created
+      expect(increaseUsageSpy).toHaveBeenCalledTimes(responseBody.data.length);
     });
   });
 });
