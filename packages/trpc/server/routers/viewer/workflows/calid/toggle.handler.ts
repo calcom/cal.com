@@ -99,6 +99,7 @@ export const calIdToggleHandler = async ({ ctx, input }: CalIdToggleOptions) => 
 
   if (isEnabled) {
     await scheduleCalIdWorkflowNotifications({
+      workflow: userWorkflow,
       activeOn: activeOnIds,
       isCalIdTeam: false, // CalId workflows only handle event types
       workflowSteps: userWorkflow.steps,
