@@ -16,7 +16,7 @@ type GetWrongAssignmentReportsOptions = {
 
 export const getWrongAssignmentReportsHandler = async ({ ctx, input }: GetWrongAssignmentReportsOptions) => {
   const { user } = ctx;
-  const { teamId, status, limit, offset } = input;
+  const { teamId, isAll, status, routingFormId, reportedById, limit, offset } = input;
 
   const membership = await prisma.membership.findFirst({
     where: {
@@ -39,9 +39,24 @@ export const getWrongAssignmentReportsHandler = async ({ ctx, input }: GetWrongA
   const repo = new WrongAssignmentReportRepository(prisma);
   const statuses = statusToEnumMap[status];
 
-  const { reports, totalCount } = await repo.findByTeamIdAndStatuses({
-    teamId,
+  let teamIds: number[];
+
+  if (isAll) {
+    // Org-level view: include the org itself and all child teams
+    const childTeams = await prisma.team.findMany({
+      where: { parentId: teamId },
+      select: { id: true },
+    });
+    teamIds = [teamId, ...childTeams.map((t) => t.id)];
+  } else {
+    teamIds = [teamId];
+  }
+
+  const { reports, totalCount } = await repo.findByTeamIdsAndStatuses({
+    teamIds,
     statuses: [...statuses],
+    routingFormId: routingFormId ?? undefined,
+    reportedById: reportedById ?? undefined,
     limit,
     offset,
   });

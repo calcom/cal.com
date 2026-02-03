@@ -4,7 +4,10 @@ import { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
 
 export const ZGetWrongAssignmentReportsInputSchema = z.object({
   teamId: z.number(),
+  isAll: z.boolean().default(false),
   status: z.enum(["pending", "reviewed"]),
+  routingFormId: z.string().nullish(),
+  reportedById: z.number().nullish(),
   limit: z.number().min(1).max(100).default(10),
   offset: z.number().min(0).default(0),
 });
