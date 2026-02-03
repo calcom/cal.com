@@ -16,6 +16,7 @@ import * as smsService from "../providers/messaging/dispatcher";
 import type { VariablesType } from "../templates/customTemplate";
 import customTemplate from "../templates/customTemplate";
 import { getSenderId } from "../utils/getSenderId";
+import wordTruncate from "../utils/getTruncatedString";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
 
@@ -206,7 +207,7 @@ const generateMessageContent = (
       defaultTemplate,
       recipientName.split(" ")[0],
       senderName.split(" ")[0],
-      eventTitle.trim().replace(/"/g, ""),
+      wordTruncate(eventTitle.trim().replace(/"/g, "")),
       formattedDate,
       formattedTime,
       localizedRecipientTimezone
