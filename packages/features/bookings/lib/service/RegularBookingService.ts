@@ -2459,6 +2459,7 @@ async function handler(
     : undefined;
 
   // Query feature flags in parallel before firing booking events
+  // TODO: We should support checkIfOrgHasFeatures - Bulk plus orgId check, that would be more efficient.
   const [isBookingEmailSmsTaskerEnabled, isBookingAuditEnabled] = orgId
     ? await Promise.all([
         deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-email-sms-tasker"),
