@@ -16,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["[whatsappQueueHandler]"] });
 
 /**
  * Fetches reminders that need to be scheduled via Inngest
- * These are reminders that were stored as "scheduled: false" and are now within the 20-minute window
+ * These are reminders that were stored as "scheduled: false" and are now within the 2 hour window
  */
 const fetchPendingMessages = async () => {
   return prisma.calIdWorkflowReminder.findMany({
@@ -24,7 +24,7 @@ const fetchPendingMessages = async () => {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
       scheduledDate: {
-        lte: dayjs().add(20, "minute").toISOString(),
+        lte: dayjs().add(2, "hour").toISOString(),
         gte: dayjs().toISOString(),
       },
       OR: [{ cancelled: null }, { cancelled: false }],
@@ -88,6 +88,10 @@ const processMessageQueue = async (): Promise<number> => {
       const templateVariables = constructVariablesForTemplate(
         {
           uid: message.booking.uid,
+          title: message.booking.title,
+          location: message.booking.location,
+          metadata: message.booking.metadata,
+          additionalNotes: message.booking.description,
           eventTypeId: message.booking.eventTypeId,
           eventType: message.booking.eventType,
           startTime: message.booking.startTime.toISOString(),
@@ -138,11 +142,11 @@ const processMessageQueue = async (): Promise<number> => {
         data: {
           action: message.workflowStep.action,
           eventTypeId: message.booking.eventTypeId,
-          workflowId: message.workflowStep.workflowId,
-          workflowStepId: message.workflowStepId,
+          workflowId: message.workflowStep.workflow.id,
+          workflowStepId: message.workflowStep.id,
           recipientNumber,
           reminderId: message.id,
-          bookingUid: message.bookingUid,
+          bookingUid: message.booking.uid,
           scheduledDate: scheduledDate.toISOString(),
           variableData: templateVariables,
           userId: workflowUserId,
@@ -190,7 +194,7 @@ const executeCancellationProcess = async (): Promise<void> => {
       scheduled: true,
       cancelled: true,
       scheduledDate: {
-        lte: dayjs().add(20, "minute").toISOString(),
+        lte: dayjs().add(2, "hour").toISOString(),
         gte: dayjs().toISOString(),
       },
     },
@@ -250,7 +254,7 @@ const cleanupExpiredReminders = async (): Promise<void> => {
 /**
  * Main cron handler
  * This cron now primarily handles:
- * 1. Scheduling reminders that were stored for future (beyond 20 minutes) that are now within window
+ * 1. Scheduling reminders that were stored for future (2 hours) that are now within window
  * 2. Processing cancellations for already-scheduled reminders
  * 3. Cleanup of old reminder records
  */

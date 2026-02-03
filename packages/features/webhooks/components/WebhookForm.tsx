@@ -243,18 +243,18 @@ const WebhookForm = (props: {
           }}
         />
 
-        {showTimeSection && (
+        {/* {showTimeSection && (
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
             <TimeTimeUnitInput disabled={false} defaultTime={5} />
           </div>
-        )}
+        )} */}
 
         <FormField
           name="secret"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="mt-6">
+            <div className="mt-4">
               {!!hasSecretKey && !changeSecret && (
                 <>
                   <Label className="font-sm text-emphasis font-medium">Secret</Label>

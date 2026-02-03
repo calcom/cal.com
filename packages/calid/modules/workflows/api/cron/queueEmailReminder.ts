@@ -41,16 +41,22 @@ import { getAllRemindersToCancel, getAllUnscheduledReminders } from "../../utils
 //   });
 // };
 
-const processCancelledNotifications = async (): Promise<void> => {
+const processCancelledNotifications = async (): Promise<number> => {
   const notificationsToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
 
-  const cancellationOperations: Promise<any>[] = [];
+  let cancelledCount = 0;
 
-  notificationsToCancel.forEach((notification) => {
-    const emailCancellation = cancelScheduledEmail(notification.referenceId);
+  const cancellationOperations = notificationsToCancel.map(async (notification) => {
+    try {
+      // First, attempt to cancel the scheduled email
+      await cancelScheduledEmail(notification.referenceId);
 
-    const workflowInsightUpdate = notification.referenceId
-      ? prisma.calIdWorkflowInsights
+      // Only proceed with DB operations if email cancellation succeeded
+      const dbOperations: Promise<any>[] = [];
+
+      // Update workflow insights if referenceId exists
+      if (notification.referenceId) {
+        const workflowInsightUpdate = prisma.calIdWorkflowInsights
           .updateMany({
             where: {
               msgId: notification.referenceId,
@@ -65,34 +71,49 @@ const processCancelledNotifications = async (): Promise<void> => {
             logger.info(
               `Updated workflow insights for cancelled Email with reference ID: ${notification.referenceId}`
             );
-          })
-      : Promise.resolve();
+          });
 
-    const databaseUpdate = prisma.calIdWorkflowReminder
-      .update({
-        where: {
-          id: notification.id,
+        dbOperations.push(workflowInsightUpdate);
+      }
+
+      // Update the reminder record
+      const databaseUpdate = prisma.calIdWorkflowReminder
+        .update({
+          where: {
+            id: notification.id,
+          },
+          data: {
+            scheduled: false,
+          },
+        })
+        .then(() => {
+          logger.info(
+            `Marked Email reminder ${notification.id} as unscheduled in database after cancellation.`
+          );
+        });
+
+      dbOperations.push(databaseUpdate);
+
+      // Wait for all DB operations to complete
+      await Promise.all(dbOperations);
+
+      // Increment count only if everything succeeded
+      cancelledCount++;
+    } catch (error) {
+      logger.error(
+        {
+          error,
+          notificationId: notification.id,
+          referenceId: notification.referenceId,
         },
-        data: {
-          scheduled: false,
-        },
-      })
-      .then(() => {
-        logger.info(
-          `Marked Email reminder ${notification.id} as unscheduled in database after cancellation.`
-        );
-      });
-
-    cancellationOperations.push(emailCancellation, workflowInsightUpdate, databaseUpdate);
-  });
-
-  const outcomes = await Promise.allSettled(cancellationOperations);
-
-  outcomes.forEach((outcome) => {
-    if (outcome.status === "rejected") {
-      logger.error({ reason: outcome.reason }, "Failed to cancel scheduled notification");
+        "Failed to cancel scheduled notification"
+      );
     }
   });
+
+  await Promise.all(cancellationOperations);
+
+  return cancelledCount;
 };
 
 const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowReminder[]> => {
@@ -501,13 +522,13 @@ export async function POST(request: NextRequest) {
 
     //preventing removal of past notifications
     // await removePastNotifications();
-    await processCancelledNotifications();
+    const cancelledNotificationCount = await processCancelledNotifications();
 
     const pendingNotifications: PartialCalIdWorkflowReminder[] = await processNotificationScheduling();
 
     return NextResponse.json(
       {
-        message: `${pendingNotifications.length} Emails to schedule`,
+        message: `${pendingNotifications.length} Emails to schedule and ${cancelledNotificationCount} scheduled emails cancelled`,
       },
       { status: 200 }
     );

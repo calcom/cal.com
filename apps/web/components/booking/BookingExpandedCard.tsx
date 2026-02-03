@@ -30,7 +30,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
 
-  const defaultFields = ["name", "email", "location", "title"];
+  const defaultFields = ["name", "email", "location", "title", "guests"];
 
   const bookingFields = props.eventType.bookingFields;
 
@@ -38,14 +38,13 @@ export function BookingExpandedCard(props: BookingItemProps) {
     attendeePhoneNumber: t("phone_number"),
     rescheduleReason: t("reschedule_reason"),
     notes: t("additional_notes"),
-    guests: t("guests"),
   };
 
   const customFields = {};
 
   if (responses) {
     for (const key in bookingFields) {
-      if (!defaultFields.includes(key)) {
+      if (!defaultFields.includes(bookingFields[key].name)) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         if (responses[bookingFields[key].name] !== undefined) {

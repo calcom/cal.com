@@ -1,7 +1,4 @@
 "use client";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { CustomImageUploader } from "@calid/features/ui/components/uploader";
-
 
 import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -29,6 +26,7 @@ import {
 } from "@calid/features/ui/components/input/phone-number-field";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
@@ -51,6 +49,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -681,7 +680,7 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   const bioValue = formMethods.watch("bio") || "";
-  const getText = React.useCallback(() => bioValue, [bioValue]);
+  const getText = React.useCallback(() => md.render(bioValue), [bioValue]);
 
   // Watch phone number to conditionally show WhatsApp checkbox
   const phoneNumber = formMethods.watch("metadata.phoneNumber");
