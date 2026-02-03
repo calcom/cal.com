@@ -140,7 +140,7 @@
   "feedback_dialog_description": "We'd love to hear your thoughts on this new feature.",
   "feedback_rating_question": "How would you rate your experience?",
   "feedback_comment_question": "Any additional feedback? (optional)",
-  "feedback_comment_placeholder": "Tell us what you think...",
+  "feedback_comment_placeholder": "Tell us what you think... (optional)",
   "submit_feedback": "Submit feedback",
   "feedback_submitted_title": "Thank you!",
   "feedback_submitted_description": "Your feedback helps us improve.",

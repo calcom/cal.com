@@ -100,36 +100,29 @@ export function FeedbackDialog({
         </DialogPrimitive.Description>
       </div>
       <div className="space-y-4 px-6 pb-1">
-        <div className="space-y-2">
-          <p className="font-medium text-default text-sm">{t("feedback_rating_question")}</p>
-          <div className="flex justify-center gap-2">
-            {RATING_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setSelectedRating(option.value)}
-                className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-lg border-2 text-2xl transition-all",
-                  selectedRating === option.value
-                    ? "border-emphasis bg-emphasis"
-                    : "border-default hover:border-subtle hover:bg-subtle"
-                )}
-                aria-label={`Rating ${option.value}`}>
-                {option.emoji}
-              </button>
-            ))}
-          </div>
+        <div className="flex justify-center gap-2">
+          {RATING_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setSelectedRating(option.value)}
+              className={cn(
+                "flex h-12 w-12 items-center justify-center rounded-lg border-2 text-2xl transition-all",
+                selectedRating === option.value
+                  ? "border-emphasis bg-emphasis"
+                  : "border-default hover:border-subtle hover:bg-subtle"
+              )}
+              aria-label={`Rating ${option.value}`}>
+              {option.emoji}
+            </button>
+          ))}
         </div>
-
-        <div className="space-y-2">
-          <p className="font-medium text-default text-sm">{t("feedback_comment_question")}</p>
-          <Textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder={t("feedback_comment_placeholder")}
-            rows={3}
-          />
-        </div>
+        <Textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={t("feedback_comment_placeholder")}
+          rows={3}
+        />
       </div>
       <div className="flex flex-col-reverse gap-2 border-t bg-muted/72 px-6 py-4 sm:flex-row sm:justify-end">
         <DialogPrimitive.Close render={<Button variant="outline" />} onClick={handleSkip}>
