@@ -1,7 +1,7 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
 import type { BookingTriggerEvents, PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
-import type { ILogger, ITasker } from "../interface/infrastructure";
+import type { ILogger } from "../interface/infrastructure";
 import type {
   IWebhookProducerService,
   QueueBookingWebhookParams,
@@ -10,6 +10,7 @@ import type {
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
 } from "../interface/WebhookProducerService";
+import type { WebhookTasker } from "../tasker/WebhookTasker";
 import type { WebhookTaskPayload } from "../types/webhookTask";
 
 /**
@@ -20,14 +21,19 @@ import type { WebhookTaskPayload } from "../types/webhookTask";
  * This service queues minimal webhook tasks to be processed by WebhookTaskConsumer.
  * The consumer handles the heavy lifting (DB queries, payload building, HTTP delivery).
  */
+/**
+ * Dependencies for WebhookTaskerProducerService
+ */
+export interface IWebhookTaskerProducerServiceDeps {
+  webhookTasker: WebhookTasker;
+  logger: ILogger;
+}
+
 export class WebhookTaskerProducerService implements IWebhookProducerService {
   private readonly log: ILogger;
 
-  constructor(
-    private readonly tasker: ITasker,
-    logger: ILogger
-  ) {
-    this.log = logger.getSubLogger({ prefix: ["[WebhookTaskerProducerService]"] });
+  constructor(private readonly deps: IWebhookTaskerProducerServiceDeps) {
+    this.log = deps.logger.getSubLogger({ prefix: ["[WebhookTaskerProducerService]"] });
   }
 
   async queueBookingCreatedWebhook(params: QueueBookingWebhookParams): Promise<void> {
@@ -207,12 +213,16 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   }
 
   /**
-   * Internal helper to queue task via Tasker
+   * Internal helper to queue task via WebhookTasker
+   *
+   * The WebhookTasker automatically selects the appropriate execution mode:
+   * - Production: Queues to Trigger.dev for background processing
+   * - E2E Tests: Executes immediately via WebhookSyncTasker
    */
   private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
     try {
-      await this.tasker.create("webhookDelivery", taskPayload);
-      this.log.debug("Webhook delivery task queued", { operationId });
+      const result = await this.deps.webhookTasker.deliverWebhook(taskPayload);
+      this.log.debug("Webhook delivery task queued", { operationId, taskId: result.taskId });
     } catch (error) {
       this.log.error("Failed to queue webhook delivery task", {
         operationId,

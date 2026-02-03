@@ -14,11 +14,9 @@ import { useBookingCalendarData } from "~/bookings/hooks/useBookingCalendarData"
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useCalendarAllowedFilters } from "~/bookings/hooks/useCalendarAllowedFilters";
 import { useCalendarAutoSelector } from "~/bookings/hooks/useCalendarAutoSelector";
-import { useCalendarNavigationCapabilities } from "~/bookings/hooks/useCalendarNavigationCapabilities";
 import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { DataTableFilters } from "~/data-table/components/filters";
-
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
@@ -224,15 +222,15 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
 
   // Create navigation capabilities for calendar view
   // This hook handles probe queries and prefetching internally
-  const capabilities = useCalendarNavigationCapabilities({
-    currentWeekStart,
-    setCurrentWeekStart,
-    userWeekStart,
-    filters: { statuses: STATUSES, userIds },
-  });
+  // const capabilities = useCalendarNavigationCapabilities({
+  //   currentWeekStart,
+  //   setCurrentWeekStart,
+  //   userWeekStart,
+  //   filters: { statuses: STATUSES, userIds },
+  // });
 
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingCalendarInner
         {...props}
         data={data}

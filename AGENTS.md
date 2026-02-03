@@ -271,6 +271,19 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - Fix type errors before test failures - they're often the root cause
 - Run `yarn prisma generate` if you see missing enum/type errors
 
+## Business rules
+1. Managed event types
+- When a managed event type is created we create a managed event type for team (parent managed event type) and for each user that has been assigned to it (child managed event type). Parent managed event type will have "teamId" set in the EventType table row and child one "userId". If we create managed event type and assign Alice and Bob then three rows will be inserted in the EventType table.
+- It is possible to book only child managed event type.
+
+2. Organizations and teams both are stored in the "Team" table. Organizations have "isOrganization" set to true, and if the entry has
+"parentId" set then it means it is a team within an organization.
+
+3. There are two types of OAuth clients you have to distinguish between:
+- "OAuth client" which resides in the "OAuthClient" table. This OAuth client allows 3rd party apps users to connect their cal.com accounts.
+- "Platform OAuth client" which resides in the "PlatformOAuthClient" table. This OAuth client is used only by platform customers integrating cal.com scheduling directly in their platforms.
+If someone says "platform OAuth client" then they mean the one in the "PlatformOAuthClient" table.
+
 ## Extended Documentation
 
 For detailed information, see the `agents/` directory:

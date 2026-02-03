@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import SAMLSSO from "~/ee/sso/views/user-sso-view";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
