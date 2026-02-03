@@ -57,6 +57,20 @@ export function transformRoutingFormResponsesToVariableFormat(
 
 export function formatIdentifierToVariable(key: string): string {
   return key
+    .replace(/[^a-zA-Z0-9_ ]/g, "")
+    .trim()
+    .replaceAll(" ", "_")
+    .toUpperCase();
+}
+
+/**
+ * Legacy version of formatIdentifierToVariable that strips underscores.
+ * Used for backward compatibility with templates that were created when
+ * underscores were being stripped from identifiers.
+ * @deprecated Use formatIdentifierToVariable instead for new templates
+ */
+export function formatIdentifierToVariableLegacy(key: string): string {
+  return key
     .replace(/[^a-zA-Z0-9 ]/g, "")
     .trim()
     .replaceAll(" ", "_")
@@ -128,13 +142,13 @@ const customTemplate = (
 
   const attendeeFirstName = variables.attendeeFirstName
     ? variables.attendeeFirstName
-    : attendeeNameWords?.[0] ?? "";
+    : (attendeeNameWords?.[0] ?? "");
 
   const attendeeLastName = variables.attendeeLastName
     ? variables.attendeeLastName
     : attendeeNameWordCount > 1
-    ? attendeeNameWords![attendeeNameWordCount - 1]
-    : "";
+      ? attendeeNameWords![attendeeNameWordCount - 1]
+      : "";
 
   let dynamicText = text
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
@@ -196,9 +210,12 @@ const customTemplate = (
     // handle custom variables from form/booking responses
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
-        const formatedToVariable = formatIdentifierToVariable(customInput);
+        const formattedVariable = formatIdentifierToVariable(customInput);
+        // Legacy format for backward compatibility with templates created before underscore support
+        const legacyFormattedVariable = formatIdentifierToVariableLegacy(customInput);
 
-        if (variable === formatedToVariable && variables.responses) {
+        // Match either the new format (with underscores) or the legacy format (without underscores)
+        if ((variable === formattedVariable || variable === legacyFormattedVariable) && variables.responses) {
           const response = variables.responses[customInput];
           if (response?.value !== undefined) {
             const responseValue = response.value;
