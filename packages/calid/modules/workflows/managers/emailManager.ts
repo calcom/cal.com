@@ -24,8 +24,10 @@ import type { CalIdScheduleEmailReminderAction } from "../config/types";
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import { getBatchId, sendSendgridMail } from "../providers/sendgrid";
 import customTemplate from "../templates/customTemplate";
+import emailCancelledTemplate from "../templates/email/cancelled";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
+import emailRescheduledTemplate from "../templates/email/rescheduled";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 import { constructVariablesForTemplate } from "./constructTemplateVariable";
 
@@ -91,9 +93,9 @@ const determineScheduledTimestamp = (
       case WorkflowTriggerEvents.NEW_EVENT:
       case WorkflowTriggerEvents.EVENT_CANCELLED:
       case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-        // For traditionally immediate events, schedule relative to event start time
+        // For traditionally immediate events, schedule relative to current time
         // You can modify this logic based on your specific requirements
-        return dayjs(eventStart).add(timeOffset.time, timeUnitNormalized);
+        return dayjs().add(timeOffset.time, timeUnitNormalized);
 
       default:
         return null;
@@ -207,7 +209,6 @@ const generateEmailContentFromTemplate = (
       eventData.organizer.timeFormat,
       hideBrandingFlag
     );
-
     return {
       emailSubject: processedSubject.text,
       emailBody: processedBody.html,
@@ -257,6 +258,37 @@ const generateEmailContentFromTemplate = (
         timeFormat: eventData.organizer.timeFormat,
         ...commonTemplateParams,
         otherPerson: participantName,
+      });
+
+    case WorkflowTemplates.CANCELLED:
+      return emailCancelledTemplate({
+        isEditingMode: false,
+        locale: eventData.organizer.language.locale,
+        action: workflowAction,
+        startTime,
+        endTime,
+        eventName: eventData.title,
+        timeZone: targetTimezone,
+        location: eventData.location || "",
+        otherPerson: participantName,
+        name: targetName,
+        cancellationReason: eventData.cancellationReason,
+      });
+
+    case WorkflowTemplates.RESCHEDULED:
+      return emailRescheduledTemplate({
+        isEditingMode: false,
+        locale: eventData.organizer.language.locale,
+        action: workflowAction,
+        timeFormat: eventData.organizer.timeFormat,
+        startTime,
+        endTime,
+        eventName: eventData.title,
+        timeZone: targetTimezone,
+        location: eventData.location || "",
+        meetingUrl: bookingMetadataSchema.parse(eventData.metadata || {})?.videoCallUrl || "",
+        otherPerson: participantName,
+        name: targetName,
       });
 
     default:

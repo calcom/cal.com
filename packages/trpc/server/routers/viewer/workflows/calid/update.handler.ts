@@ -20,6 +20,7 @@ import {
   verifyCalIdEmailSender,
   removeCalIdSmsReminderFieldForEventTypes,
   isCalIdStepEdited,
+  isCalIdStepFieldsEdited,
   getCalIdEmailTemplateText,
 } from "../util.calid";
 import type { TCalIdUpdateInputSchema } from "./update.schema";
@@ -220,6 +221,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
     await scheduleCalIdWorkflowNotifications({
+      workflow: userWorkflow,
       activeOn: newActiveOn,
       isCalIdTeam: false,
       workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
@@ -265,6 +267,12 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
         },
       },
     });
+
+    let newEditedStep = {
+      ...newStep,
+      verifiedAt: oldStep.verifiedAt,
+    };
+
     //step was deleted
     if (!newStep) {
       // cancel all workflow reminders from deleted steps
@@ -275,7 +283,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
           id: oldStep.id,
         },
       });
-    } else if (isCalIdStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
+    } else if (isCalIdStepEdited(oldStep, newEditedStep)) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =
@@ -315,27 +323,36 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
 
       const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
+      const updatedData = {
+        action: newStep.action,
+        sendTo: requiresSender ? newStep.sendTo : null,
+        stepNumber: newStep.stepNumber,
+        workflowId: newStep.workflowId,
+        reminderBody: newStep.reminderBody,
+        emailSubject: newStep.emailSubject,
+        template: newStep.template,
+        metaTemplateName: newStep.metaTemplateName,
+        metaTemplatePhoneNumberId: newStep.metaTemplatePhoneNumberId,
+        numberRequired: newStep.numberRequired,
+        sender: newStep.sender,
+        numberVerificationPending: false,
+        includeCalendarEvent: newStep.includeCalendarEvent,
+        verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+      };
+
       await ctx.prisma.calIdWorkflowStep.update({
         where: {
           id: oldStep.id,
         },
-        data: {
-          action: newStep.action,
-          sendTo: requiresSender ? newStep.sendTo : null,
-          stepNumber: newStep.stepNumber,
-          workflowId: newStep.workflowId,
-          reminderBody: newStep.reminderBody,
-          emailSubject: newStep.emailSubject,
-          template: newStep.template,
-          metaTemplateName: newStep.metaTemplateName,
-          metaTemplatePhoneNumberId: newStep.metaTemplatePhoneNumberId,
-          numberRequired: newStep.numberRequired,
-          sender: newStep.sender,
-          numberVerificationPending: false,
-          includeCalendarEvent: newStep.includeCalendarEvent,
-          verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
-        },
+        data: updatedData,
       });
+
+      const fieldsEdited = isCalIdStepFieldsEdited(oldStep, newEditedStep);
+
+      if (fieldsEdited) {
+        // cancel all notifications of edited step
+        await CalIdWorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+      }
 
       if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
         await tasker.create("scanWorkflowBody", {
@@ -344,21 +361,21 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
           createdAt: new Date().toISOString(),
         });
       } else {
-        // schedule notifications for edited steps
-        await scheduleCalIdWorkflowNotifications({
-          activeOn,
-          isCalIdTeam: false,
-          workflowSteps: [newStep],
-          time,
-          timeUnit,
-          trigger,
-          userId: user.id,
-          calIdTeamId: userWorkflow.calIdTeamId,
-        });
+        if (fieldsEdited) {
+          // schedule notifications for edited steps
+          await scheduleCalIdWorkflowNotifications({
+            workflow: userWorkflow,
+            activeOn,
+            isCalIdTeam: false,
+            workflowSteps: [newStep],
+            time,
+            timeUnit,
+            trigger,
+            userId: user.id,
+            calIdTeamId: userWorkflow.calIdTeamId,
+          });
+        }
       }
-
-      // cancel all notifications of edited step
-      await CalIdWorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
     }
   });
 
@@ -429,6 +446,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
     } else {
       // schedule notification for new step
       await scheduleCalIdWorkflowNotifications({
+        workflow: userWorkflow,
         activeOn,
         isCalIdTeam: false,
         workflowSteps: createdSteps,

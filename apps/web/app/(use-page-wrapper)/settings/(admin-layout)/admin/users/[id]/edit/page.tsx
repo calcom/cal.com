@@ -1,3 +1,4 @@
+import AdminUserEditPage from "@calid/features/modules/admin/user/pages/user-edit";
 import { type Params } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { z } from "zod";
@@ -39,15 +40,19 @@ const Page = async ({ params }: { params: Params }) => {
 
   if (!input.success) throw new Error("Invalid access");
 
-  const userRepo = new UserRepository(prisma);
-  const user = await userRepo.adminFindById(input.data.id);
+  const useEeAdmin = false;
   const t = await getTranslate();
+  const user = useEeAdmin ? await new UserRepository(prisma).adminFindById(input.data.id) : null;
 
   return (
     <SettingsHeader title={t("editing_user")} description={t("admin_users_edit_description")}>
-      <LicenseRequired>
-        <UsersEditView user={user} />
-      </LicenseRequired>
+      {useEeAdmin && user ? (
+        <LicenseRequired>
+          <UsersEditView user={user} />
+        </LicenseRequired>
+      ) : (
+        <AdminUserEditPage />
+      )}
     </SettingsHeader>
   );
 };

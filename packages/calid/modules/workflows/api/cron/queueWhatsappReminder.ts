@@ -88,6 +88,10 @@ const processMessageQueue = async (): Promise<number> => {
       const templateVariables = constructVariablesForTemplate(
         {
           uid: message.booking.uid,
+          title: message.booking.title,
+          location: message.booking.location,
+          metadata: message.booking.metadata,
+          additionalNotes: message.booking.description,
           eventTypeId: message.booking.eventTypeId,
           eventType: message.booking.eventType,
           startTime: message.booking.startTime.toISOString(),
@@ -138,11 +142,11 @@ const processMessageQueue = async (): Promise<number> => {
         data: {
           action: message.workflowStep.action,
           eventTypeId: message.booking.eventTypeId,
-          workflowId: message.workflowStep.workflowId,
-          workflowStepId: message.workflowStepId,
+          workflowId: message.workflowStep.workflow.id,
+          workflowStepId: message.workflowStep.id,
           recipientNumber,
           reminderId: message.id,
-          bookingUid: message.bookingUid,
+          bookingUid: message.booking.uid,
           scheduledDate: scheduledDate.toISOString(),
           variableData: templateVariables,
           userId: workflowUserId,

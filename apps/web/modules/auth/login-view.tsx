@@ -17,7 +17,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
+import { useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
@@ -155,6 +155,8 @@ export default function Login({
     else if (!res.error) {
       setLastUsed("credentials");
       router.push(callbackUrl);
+    } else if (res.error === ErrorCode.UserAccountLocked || res.url?.includes("/auth/locked")) {
+      router.push("/auth/locked");
     } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
     else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
     else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
@@ -279,7 +281,7 @@ export default function Login({
                               <span className="hidden sm:inline">{t("signin_with_google")}</span>
                             </Button>
                             {lastUsed === "google" && (
-                              <span className="absolute -top-3 right-2 z-10 rounded-full border border-gray-200 bg-default px-2.5 py-1 text-xs font-semibold text-default">
+                              <span className="bg-default text-default absolute -top-3 right-2 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold">
                                 ⭐ Last Used
                               </span>
                             )}
@@ -367,7 +369,7 @@ export default function Login({
                         <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                       </Button>
                       {lastUsed === "credentials" && (
-                        <span className="bg-default absolute right-2 -top-3 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold text-default">
+                        <span className="bg-default text-default absolute -top-3 right-2 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold">
                           ⭐ Last Used
                         </span>
                       )}

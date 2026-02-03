@@ -1,9 +1,11 @@
+import { parse, serialize } from "cookie";
 import { LRUCache } from "lru-cache";
-import type { GetServerSidePropsContext, NextApiRequest } from "next";
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -17,6 +19,7 @@ const log = logger.getSubLogger({ prefix: ["getServerSession"] });
  *
  */
 const CACHE = new LRUCache<string, Session>({ max: 1000 });
+const LAST_ACTIVE_CACHE = new LRUCache<number, true>({ max: 10000, ttl: 12 * 60 * 60 * 1000 });
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
@@ -31,9 +34,10 @@ const CACHE = new LRUCache<string, Session>({ max: 1000 });
  */
 export async function getServerSession(options: {
   req: NextApiRequest | GetServerSidePropsContext["req"];
+  res?: NextApiResponse | GetServerSidePropsContext["res"];
   authOptions?: AuthOptions;
 }) {
-  const { req, authOptions: { secret } = {} } = options;
+  const { req, res, authOptions: { secret } = {} } = options;
 
   const token = await getToken({
     req,
@@ -45,6 +49,42 @@ export async function getServerSession(options: {
   if (!token || !token.email || !token.sub) {
     log.debug("Couldn't get token");
     return null;
+  }
+
+  const userId = Number(token.sub);
+  if (Number.isFinite(userId)) {
+    const cookieHeader = req.headers?.cookie ?? "";
+    const { last_active_throttle } = parse(cookieHeader);
+    if (!last_active_throttle && !LAST_ACTIVE_CACHE.has(userId)) {
+      try {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { lastActiveAt: new Date() },
+        });
+        LAST_ACTIVE_CACHE.set(userId, true);
+        if (res) {
+          const useSecureCookies = WEBAPP_URL?.startsWith("https://");
+          const cookieValue = serialize("last_active_throttle", "1", {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: useSecureCookies,
+            path: "/",
+            maxAge: 12 * 60 * 60,
+          });
+          const existing = res.getHeader("Set-Cookie");
+          if (existing) {
+            res.setHeader(
+              "Set-Cookie",
+              Array.isArray(existing) ? [...existing, cookieValue] : [existing, cookieValue]
+            );
+          } else {
+            res.setHeader("Set-Cookie", [cookieValue]);
+          }
+        }
+      } catch (error) {
+        log.debug("Failed to update lastActiveAt in getServerSession", safeStringify({ error }));
+      }
+    }
   }
 
   const cachedSession = CACHE.get(JSON.stringify(token));

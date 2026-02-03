@@ -49,6 +49,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -676,7 +677,7 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   const bioValue = formMethods.watch("bio") || "";
-  const getText = React.useCallback(() => bioValue, [bioValue]);
+  const getText = React.useCallback(() => md.render(bioValue), [bioValue]);
 
   // Watch phone number to conditionally show WhatsApp checkbox
   const phoneNumber = formMethods.watch("metadata.phoneNumber");

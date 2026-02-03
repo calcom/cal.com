@@ -9,6 +9,7 @@ import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentRem
 import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
 import { handleCalendlyImportEvent } from "@calcom/web/pages/api/import/calendly";
 
+import { triggerScheduledWebhook } from "./trigger-scheduled-webhook";
 import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
 
 export const inngestClient = new Inngest({
@@ -76,16 +77,24 @@ const handleWhatsappReminderScheduled = inngestClient.createFunction(
         event: `whatsapp/reminder.cancelled-${key}`,
         match: "data.reminderId",
       },
-      {
-        event: "booking/cancelled",
-        match: "data.bookingUid",
-      },
     ],
   },
   {
     event: `whatsapp/reminder.scheduled-${key}`,
   },
   whatsappReminderScheduled
+);
+
+const handleScheduledWebhookTrigger = inngestClient.createFunction(
+  {
+    id: `webhook-schedule-trigger-${key}`,
+    name: "Trigger scheduled webhook",
+    retries: 1,
+  },
+  {
+    event: `webhook/schedule.trigger-${key}`,
+  },
+  triggerScheduledWebhook
 );
 
 const handleRazorpayAppRevoked = inngestClient.createFunction(
@@ -172,6 +181,7 @@ export default serve({
     handleBookingEmailsRequest,
     handleBookingEmailsRescheduled,
     handleBookingEmailsCancelled,
+    handleScheduledWebhookTrigger,
   ],
   signingKey: process.env.INNGEST_SIGNING_KEY || "",
 });
