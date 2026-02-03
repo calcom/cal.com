@@ -885,7 +885,7 @@ export default class EventManager {
         }
           const createdEvent = await createEvent(credential, event);
           log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
-          if (createdEvent?.success) {
+          if (createdEvent) {
             createdEvents.push(createdEvent);
           }
       }
@@ -959,7 +959,7 @@ export default class EventManager {
           }
           if (credential) {
             const createdEvent = await createEvent(credential, event, destination.externalId);
-            if (createdEvent?.success) {
+            if (createdEvent) {
               createdEvents.push(createdEvent);
               eventCreated = true;
             }
@@ -1002,7 +1002,7 @@ export default class EventManager {
               })
             );
             const createdEvent = await createEvent(firstCalendarCredential, event);
-            if (createdEvent?.success) {
+            if (createdEvent) {
               createdEvents.push(createdEvent);
               eventCreated = true;
             }
@@ -1025,9 +1025,7 @@ export default class EventManager {
         .filter((cred) => cred.type.includes("other_calendar"))
         .map(async (cred) => await createEvent(cred, event))
     );
-    createdEvents = createdEvents.concat(
-      otherCalendarResults.filter((result) => result?.success)
-    );
+    createdEvents = createdEvents.concat(otherCalendarResults);
 
     return createdEvents;
   }
