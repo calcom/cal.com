@@ -77,7 +77,7 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
     displayLocations: ["settings"],
     scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
     formbricks: {
-      waitAfterDays: 0, // Set to 3 for production
+      waitAfterDays: 3,
       showOn: "desktop",
       surveyId: "cml6ps4f0psk9ad019a2kzedz",
       questions: {
