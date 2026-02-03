@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 import { submitAndWaitForResponse } from "./lib/testUtils";
 
@@ -19,8 +18,10 @@ test.describe("unauthorized user sees correct translations (de)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Willkommen zurück");
-      const locator = page.getByText("Willkommen zurück", { exact: true });
+      await page.waitForSelector("text=Willkommen zurück! Melden Sie sich an, um fortzufahren");
+      const locator = page.getByText("Willkommen zurück! Melden Sie sich an, um fortzufahren", {
+        exact: true,
+      });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -44,8 +45,8 @@ test.describe("unauthorized user sees correct translations (ar)", async () => {
     await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=أهلاً بك من جديد");
-      const locator = page.getByText("أهلاً بك من جديد", { exact: true });
+      await page.waitForSelector("text=مرحباً بعودتك! سجّل الدخول للمتابعة");
+      const locator = page.getByText("مرحباً بعودتك! سجّل الدخول للمتابعة", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -69,8 +70,8 @@ test.describe("unauthorized user sees correct translations (zh)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=欢迎回来");
-      const locator = page.getByText("欢迎回来", { exact: true });
+      await page.waitForSelector("text=欢迎回来！请登录以继续");
+      const locator = page.getByText("欢迎回来！请登录以继续", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -94,8 +95,8 @@ test.describe("unauthorized user sees correct translations (zh-CN)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=欢迎回来");
-      const locator = page.getByText("欢迎回来", { exact: true });
+      await page.waitForSelector("text=欢迎回来！请登录以继续");
+      const locator = page.getByText("欢迎回来！请登录以继续", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -119,8 +120,8 @@ test.describe("unauthorized user sees correct translations (zh-TW)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=歡迎回來");
-      const locator = page.getByText("歡迎回來", { exact: true });
+      await page.waitForSelector("text=歡迎回來！請登入以繼續");
+      const locator = page.getByText("歡迎回來！請登入以繼續", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -144,8 +145,8 @@ test.describe("unauthorized user sees correct translations (pt)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Olá novamente");
-      const locator = page.getByText("Olá novamente", { exact: true });
+      await page.waitForSelector("text=Bem-vindo de volta! Inicie sessão para continuar");
+      const locator = page.getByText("Bem-vindo de volta! Inicie sessão para continuar", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -169,8 +170,8 @@ test.describe("unauthorized user sees correct translations (pt-br)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Bem-vindo(a) novamente");
-      const locator = page.getByText("Bem-vindo(a) novamente", { exact: true });
+      await page.waitForSelector("text=Bem-vindo de volta! Faça login para continuar");
+      const locator = page.getByText("Bem-vindo de volta! Faça login para continuar", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
@@ -195,8 +196,8 @@ test.describe("unauthorized user sees correct translations (es-419)", async () =
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Bienvenido de nuevo");
-      const locator = page.getByText("Bienvenido de nuevo", { exact: true });
+      await page.waitForSelector("text=¡Bienvenido de nuevo! Inicia sesión para continuar");
+      const locator = page.getByText("¡Bienvenido de nuevo! Inicia sesión para continuar", { exact: true });
       expect(await locator.count()).toEqual(1);
     }
 
