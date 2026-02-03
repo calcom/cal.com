@@ -254,7 +254,7 @@ struct UpcomingBookingsWidgetEntryView: View {
                         // Vertical layout for small and large widgets
                         let maxBookings = family == .systemSmall ? 2 : 6
                         ForEach(entry.bookings.prefix(maxBookings)) { booking in
-                            Link(destination: URL(string: "calcom://bookings/\(booking.id)")!) {
+                            Link(destination: URL(string: "calcom://(tabs)/(bookings)/booking-detail?uid=\(booking.id)")!) {
                                 BookingRowView(booking: booking)
                             }
                             if booking.id != entry.bookings.prefix(maxBookings).last?.id {
@@ -267,7 +267,7 @@ struct UpcomingBookingsWidgetEntryView: View {
             }
             .padding(12)
         }
-        .widgetURL(URL(string: "calcom://bookings"))
+        .widgetURL(URL(string: "calcom://(tabs)/(bookings)"))
     }
 }
 
@@ -277,7 +277,7 @@ struct MediumBookingCard: View {
     let booking: BookingData
     
     var body: some View {
-        Link(destination: URL(string: "calcom://bookings/\(booking.id)")!) {
+        Link(destination: URL(string: "calcom://(tabs)/(bookings)/booking-detail?uid=\(booking.id)")!) {
             HStack(spacing: 6) {
                 // Left accent bar
                 RoundedRectangle(cornerRadius: 2)
