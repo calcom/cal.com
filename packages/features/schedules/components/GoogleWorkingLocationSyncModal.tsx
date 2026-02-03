@@ -162,9 +162,8 @@ export function GoogleWorkingLocationSyncModal({ isOpen, onClose }: GoogleWorkin
       <label className="border-subtle hover:bg-muted flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors">
         <Checkbox
           checked={field.value.includes(option.value)}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
-            const checked = e.target.checked;
-            if (checked) {
+          onCheckedChange={(checked) => {
+            if (checked === true) {
               field.onChange([...field.value, option.value]);
             } else {
               field.onChange(field.value.filter((v) => v !== option.value));
