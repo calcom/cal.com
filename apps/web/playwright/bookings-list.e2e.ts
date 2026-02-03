@@ -625,7 +625,9 @@ test.describe("Bookings", () => {
           return await bookingListItems.count();
         })
         .toBe(1);
-      await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(teamBooking!.title);
+      await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
+        teamBooking!.title
+      );
     });
 
     test("Team filter shows bookings for managed event types (child events)", async ({
@@ -674,7 +676,7 @@ test.describe("Bookings", () => {
 
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
-      
+
       await expect
         .poll(async () => {
           return await bookingListItems.count();
