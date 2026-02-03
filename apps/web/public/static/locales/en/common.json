@@ -1617,6 +1617,7 @@
   "after_guests_cal_video_no_show": "After guests didn't join cal video",
     "wrong_routing": "Wrong routing",
     "wrong_routing_description": "Review and manage reports of incorrectly routed bookings",
+    "view_form_submission": "View form submission",
     "wrong_assignment_report": "Wrong assignment report",
     "wrong_assignment_reports": "Wrong Assignment Reports",
   "wrong_assignment_reports_description": "Review and manage reports of incorrectly routed bookings",

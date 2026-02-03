@@ -21,6 +21,7 @@ export type WrongAssignmentReportRow = {
     endTime: Date;
     user: { id: number; name: string | null; email: string } | null;
     attendees: { name: string; email: string }[];
+    routedFromRoutingFormReponse: { id: number } | null;
   } | null;
   reportedBy: { id: number; name: string | null; email: string };
   routingForm: { id: string; name: string } | null;

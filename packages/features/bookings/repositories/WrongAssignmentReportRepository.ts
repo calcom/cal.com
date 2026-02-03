@@ -292,6 +292,11 @@ export class WrongAssignmentReportRepository {
                   email: true,
                 },
               },
+              routedFromRoutingFormReponse: {
+                select: {
+                  id: true,
+                },
+              },
             },
           },
           reportedBy: {

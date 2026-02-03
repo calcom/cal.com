@@ -116,6 +116,17 @@ export function WrongAssignmentReportsDashboard() {
                         {t("routing_trace")}
                       </DropdownItem>
                     </DropdownMenuItem>
+                    {report.booking?.routedFromRoutingFormReponse?.id && report.routingForm?.id && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          href={`/routing/form-edit/${report.routingForm.id}/responses?responseId=${report.booking.routedFromRoutingFormReponse.id}`}
+                          target="_blank">
+                          <Icon name="file-text" className="mr-2 h-4 w-4" />
+                          {t("view_form_submission")}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                   </>
                 )}
