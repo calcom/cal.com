@@ -686,13 +686,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const activeOnValue = form.watch("activeOn");
 
   useEffect(() => {
+    if (!isAllDataLoaded) return;
+    const activeOnValues = Array.isArray(activeOnValue) ? activeOnValue : [];
     const current = {
       workflowName: workflowName.trim(),
       trigger: trigger || "",
       triggerTiming,
       customTime: customTime.trim(),
       timeUnit,
-      selectedOptions: selectedOptions.map((opt) => opt.value).sort(),
+      selectedOptions: activeOnValues.map((opt) => opt.value).sort(),
     };
     const initial = initialMetaRef.current;
     const metaChanged =
@@ -703,7 +705,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       current.timeUnit !== initial.timeUnit ||
       current.selectedOptions.join(",") !== initial.selectedOptions.join(",");
     setIsMetaDirty(metaChanged);
-  }, [workflowName, trigger, triggerTiming, customTime, timeUnit, selectedOptions]);
+  }, [workflowName, trigger, triggerTiming, customTime, timeUnit, activeOnValue, isAllDataLoaded]);
 
   useEffect(() => {
     if (!isNewWorkflow) return;
@@ -1345,8 +1347,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const hasAnyStep = (steps ?? []).length > 0;
   const isPristineCustom =
     !workflowName.trim() && !hasAnyStep && selectedOptions.length === 0 && !trigger && !customTime.trim();
-  const saveDisabled =
-    readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty && isPristineCustom);
+  const saveDisabled = readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty);
   const deleteDisabled =
     readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty && isPristineCustom);
 
