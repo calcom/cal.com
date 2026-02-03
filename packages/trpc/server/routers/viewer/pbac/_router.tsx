@@ -193,7 +193,7 @@ export const permissionsRouter = router({
       }
 
       if (!teamHasPBACFeature) {
-        throw new Error("PBAC is not enabled for this team");
+        return [];
       }
 
       // Check if user has permission to view roles
@@ -249,7 +249,12 @@ export const permissionsRouter = router({
     }
 
     // Enable PBAC feature for the organization
-    await featureRepo.enableFeatureForTeam(orgId, "pbac", "opt-in by user: " + ctx.user.id);
+    await featureRepo.setTeamFeatureState({
+      teamId: orgId,
+      featureId: "pbac",
+      state: "enabled",
+      assignedBy: "opt-in by user: " + ctx.user.id,
+    });
 
     return { success: true, message: "PBAC enabled successfully" };
   }),

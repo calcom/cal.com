@@ -129,7 +129,7 @@ const columns = [
   },
   {
     id: "role",
-    header: "Role", 
+    header: "Role",
     accessorKey: "role",
     meta: {
       type: ColumnFilterType.SINGLE_SELECT,
@@ -146,7 +146,7 @@ function UserTable() {
   });
 
   const pathname = usePathname();
-  const tableIdentifier = "hard-coded idenfidier" // or pathname;
+  const tableIdentifier = "hard-coded idenfidier"; // or pathname;
 
   return (
     <DataTableProvider tableIdentifier={tableIdentifier}>
@@ -182,13 +182,13 @@ The context provider that manages all table state including filters, sorting, pa
 
 ```tsx
 interface DataTableProviderProps {
-  tableIdentifier: string;           // Unique identifier for the table (throws if empty)
+  tableIdentifier: string; // Unique identifier for the table (throws if empty)
   children: React.ReactNode;
-  useSegments?: UseSegments;          // Custom segment hook
-  defaultPageSize?: number;           // Default: 10
-  ctaContainerClassName?: string;     // CSS class for CTA container
-  segments?: FilterSegmentOutput[];   // Provided segments
-  timeZone?: string;                  // Timezone for date filters
+  useSegments?: UseSegments; // Custom segment hook
+  defaultPageSize?: number; // Default: 10
+  ctaContainerClassName?: string; // CSS class for CTA container
+  segments?: FilterSegmentOutput[]; // Provided segments
+  timeZone?: string; // Timezone for date filters
   preferredSegmentId?: SegmentIdentifier | null;
   systemSegments?: SystemFilterSegment[];
 }
@@ -264,19 +264,18 @@ type DataTableWrapperProps<TData> = {
   // Toolbar slots
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
-  
+
   // Loading states
   EmptyView?: React.ReactNode;
   LoaderView?: React.ReactNode;
-} & (
-  // Infinite pagination
+} & ( // Infinite pagination
   | {
       paginationMode: "infinite";
       hasNextPage: boolean;
       fetchNextPage: () => void;
       isFetching: boolean;
     }
-  // Standard pagination  
+  // Standard pagination
   | {
       paginationMode: "standard";
       hasNextPage?: never;
@@ -297,6 +296,150 @@ The core table component with column resizing and pinning support.
 - **Responsive design** - Adapts to mobile screens
 - **Accessibility** - Full keyboard navigation support
 - **Optional virtualization** - Available for infinite mode (use with caution)
+
+## Separator Rows
+
+The DataTable supports separator rows that act as visual group headers between regular data rows. Separators are useful for grouping related data and providing visual organization.
+
+### Type Definitions
+
+```tsx
+export type SeparatorRow = {
+  type: "separator";
+  label: string;
+  className?: string;
+};
+
+export type DataTableRow<TData> = TData | SeparatorRow;
+
+export function isSeparatorRow<TData>(row: DataTableRow<TData>): row is SeparatorRow {
+  return typeof row === "object" && row !== null && "type" in row && row.type === "separator";
+}
+```
+
+### Usage
+
+Separator rows are defined in your data array alongside regular rows:
+
+```tsx
+const data = [
+  { type: "separator", label: "Active Users" },
+  { id: 1, name: "Alice", status: "active" },
+  { id: 2, name: "Bob", status: "active" },
+  { type: "separator", label: "Inactive Users" },
+  { id: 3, name: "Charlie", status: "inactive" },
+];
+
+<DataTableWrapper
+  table={table}
+  hideSeparatorsOnSort={true}
+  separatorClassName="custom-separator"
+  // ... other props
+/>;
+```
+
+### Configuration Options
+
+#### Props
+
+- `hideSeparatorsOnSort?: boolean` (default: `true`) - Hide separators when sorting is active
+- `hideSeparatorsOnFilter?: boolean` (default: `false`) - Hide separators when filtering is active
+- `separatorClassName?: string` - Global CSS class applied to all separator rows
+
+#### Per-Separator Styling
+
+Each separator can have its own styling:
+
+```tsx
+const data = [
+  {
+    type: "separator",
+    label: "Active Users",
+    className: "bg-green-50 text-green-900",
+  },
+  { id: 1, name: "Alice" },
+  {
+    type: "separator",
+    label: "Inactive Users",
+    className: "bg-red-50 text-red-900",
+  },
+  { id: 2, name: "Bob" },
+];
+```
+
+### Behavior with Sorting and Filtering
+
+**Default Behavior:**
+
+- Separators are visible when no sorting/filtering is applied
+- Separators automatically hide when sorting is applied (if `hideSeparatorsOnSort` is true)
+- Separators reappear when sorting is cleared
+
+**Why Hide on Sort?**
+When users sort by a column, the logical grouping may no longer make sense. For example, if you group by status but then sort by name, the status groups become meaningless. Hiding separators during sorting provides a cleaner, more intuitive experience.
+
+**Custom Behavior:**
+You can disable automatic hiding by setting `hideSeparatorsOnSort={false}` and handle separator positioning in your data preparation logic.
+
+### Styling
+
+Separator rows use the same styling as table headers and span the full width of the table:
+
+```css
+.separator-row {
+  display: flex;
+  width: 100%;
+  border: none;
+}
+
+.separator-row > div {
+  background-color: var(--muted);
+  font-weight: 600;
+  color: var(--emphasis);
+  padding: 0.5rem 0.75rem;
+}
+```
+
+You can customize styling using:
+
+- `separatorClassName` prop for global styling
+- `className` property on individual separator objects
+- CSS targeting `.separator-row` class
+
+### Example: User Management with Status Groups
+
+```tsx
+function UserTable() {
+  const data = useMemo(() => {
+    const users = getUsers();
+    const groupedUsers = [];
+
+    // Add active users group
+    const activeUsers = users.filter((u) => u.status === "active");
+    if (activeUsers.length > 0) {
+      groupedUsers.push({ type: "separator", label: "Active Users" });
+      groupedUsers.push(...activeUsers);
+    }
+
+    // Add inactive users group
+    const inactiveUsers = users.filter((u) => u.status === "inactive");
+    if (inactiveUsers.length > 0) {
+      groupedUsers.push({ type: "separator", label: "Inactive Users" });
+      groupedUsers.push(...inactiveUsers);
+    }
+
+    return groupedUsers;
+  }, [users]);
+
+  return (
+    <DataTableWrapper
+      table={table}
+      hideSeparatorsOnSort={true}
+      separatorClassName="uppercase text-xs tracking-wide"
+    />
+  );
+}
+```
 
 ## Filter System
 
@@ -343,6 +486,7 @@ The DataTable supports 5 filter types with various operators and options.
 ```
 
 **Available operators:**
+
 - `equals` - Exact match
 - `notEquals` - Not equal
 - `contains` - Contains substring
@@ -361,6 +505,7 @@ The DataTable supports 5 filter types with various operators and options.
 ```
 
 **Available operators:**
+
 - `eq` - Equal to
 - `neq` - Not equal to
 - `gt` - Greater than
@@ -422,20 +567,20 @@ const table = useReactTable({
     switch (columnId) {
       case "teamId":
         return convertFacetedValuesToMap(
-          teams.map(team => ({
+          teams.map((team) => ({
             label: team.name,
-            value: team.id
+            value: team.id,
           }))
         );
       case "role":
         return convertFacetedValuesToMap([
           { label: "Admin", value: "admin" },
-          { label: "Member", value: "member" }
+          { label: "Member", value: "member" },
         ]);
       default:
         return new Map();
     }
-  }
+  },
 });
 ```
 
@@ -448,7 +593,7 @@ export function useFacetedUniqueValues() {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
-  
+
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
       if (columnId === "eventTypeId") {
@@ -495,7 +640,7 @@ const table = useReactTable({
       }
     }
     return new Map();
-  }
+  },
 });
 ```
 
@@ -556,19 +701,15 @@ const systemSegments: SystemFilterSegment[] = [
         f: "status",
         v: {
           type: ColumnFilterType.SINGLE_SELECT,
-          data: "active"
-        }
-      }
+          data: "active",
+        },
+      },
     ],
     sorting: [{ id: "lastLogin", desc: true }],
-  }
+  },
 ];
 
-<DataTableProvider 
-  systemSegments={systemSegments}
->
-  {/* ... */}
-</DataTableProvider>
+<DataTableProvider systemSegments={systemSegments}>{/* ... */}</DataTableProvider>;
 ```
 
 ### User Segments
@@ -607,14 +748,11 @@ Segments saved by users with personal or team scope:
 Traditional page-based pagination is the recommended approach:
 
 ```tsx
-<DataTableWrapper
-  paginationMode="standard"
-  totalRowCount={totalCount}
-  table={table}
-/>
+<DataTableWrapper paginationMode="standard" totalRowCount={totalCount} table={table} />
 ```
 
 **Features:**
+
 - Page numbers and navigation
 - Configurable page sizes
 - Total count display
@@ -640,11 +778,13 @@ Alternative infinite scroll mode with known limitations:
 ```
 
 **Features:**
+
 - Automatic loading on scroll
 - Virtualized rendering
 - Fixed container height (80dvh)
 
 **Known Issues:**
+
 - Virtualized infinite loading has several problems
 - Can cause performance and UX issues
 - Standard mode was introduced to address these problems
@@ -672,8 +812,8 @@ Container and utility components for table toolbars:
 <DataTableToolbar.ClearFiltersButton />
 
 // Custom action button
-<DataTableToolbar.CTA 
-  color="secondary" 
+<DataTableToolbar.CTA
+  color="secondary"
   StartIcon="download"
   onClick={handleExport}
 >
@@ -686,19 +826,17 @@ Container and utility components for table toolbars:
 For bulk actions when rows are selected:
 
 ```tsx
-{numberOfSelectedRows > 0 && (
-  <DataTableSelectionBar.Root>
-    <p>{t("number_selected", { count: numberOfSelectedRows })}</p>
-    
-    <DataTableSelectionBar.Button
-      color="destructive"
-      icon="trash-2"
-      onClick={handleBulkDelete}
-    >
-      Delete Selected
-    </DataTableSelectionBar.Button>
-  </DataTableSelectionBar.Root>
-)}
+{
+  numberOfSelectedRows > 0 && (
+    <DataTableSelectionBar.Root>
+      <p>{t("number_selected", { count: numberOfSelectedRows })}</p>
+
+      <DataTableSelectionBar.Button color="destructive" icon="trash-2" onClick={handleBulkDelete}>
+        Delete Selected
+      </DataTableSelectionBar.Button>
+    </DataTableSelectionBar.Root>
+  );
+}
 ```
 
 ## Advanced Usage
@@ -719,7 +857,7 @@ const { data } = trpc.users.list.useQuery({
   limit,
   offset,
   sorting,
-  filters: columnFilters
+  filters: columnFilters,
 });
 ```
 
@@ -758,10 +896,11 @@ const whereClause: Prisma.MembershipWhereInput = {
       })),
   },
   teamId: organizationId,
-  ...(roleFilter && makeWhereClause({
-    columnName: "role",
-    filterValue: roleFilter.value,
-  })),
+  ...(roleFilter &&
+    makeWhereClause({
+      columnName: "role",
+      filterValue: roleFilter.value,
+    })),
 };
 ```
 
@@ -774,7 +913,7 @@ For performance-critical queries, use raw SQL with `makeSqlCondition`:
 async getFilterConditions(): Promise<Prisma.Sql | null> {
   const conditions: Prisma.Sql[] = [];
   const columnFilters = this.filters.columnFilters || [];
-  
+
   // Convert columnFilters array to object for easier access
   const filtersMap = columnFilters.reduce((acc, filter) => {
     acc[filter.id] = filter;
@@ -815,7 +954,7 @@ For complex cases where you need to manipulate filter data before sending to the
 // packages/features/insights/hooks/useInsightsRoutingParameters.ts
 export function useInsightsRoutingParameters() {
   const { scope, selectedTeamId } = useInsightsOrgTeams();
-  
+
   // Get date range filter and manipulate it
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   const startDate = useChangeTimeZoneWithPreservedLocalTime(
@@ -825,7 +964,7 @@ export function useInsightsRoutingParameters() {
         .toISOString();
     }, [createdAtRange?.startDate])
   );
-  
+
   // Get other column filters excluding the manipulated ones
   const columnFilters = useColumnFilters({
     exclude: ["createdAt"],
@@ -863,15 +1002,8 @@ The DataTable system provides utility functions for both Prisma and raw SQL appr
 Access the DataTable context:
 
 ```tsx
-const {
-  activeFilters,
-  sorting,
-  columnVisibility,
-  pageIndex,
-  pageSize,
-  searchTerm,
-  selectedSegment,
-} = useDataTable();
+const { activeFilters, sorting, columnVisibility, pageIndex, pageSize, searchTerm, selectedSegment } =
+  useDataTable();
 ```
 
 #### useColumnFilters
@@ -903,16 +1035,15 @@ Create custom filter implementations:
 ```tsx
 function CustomStatusFilter({ column }: { column: Column<any> }) {
   const { updateFilter } = useDataTable();
-  
+
   return (
     <Select
-      onValueChange={(value) => 
+      onValueChange={(value) =>
         updateFilter(column.id, {
           type: ColumnFilterType.SINGLE_SELECT,
-          data: value
+          data: value,
         })
-      }
-    >
+      }>
       {/* Custom filter UI */}
     </Select>
   );
@@ -926,12 +1057,15 @@ Use portals for toolbar actions:
 ```tsx
 const { ctaContainerRef } = useDataTable();
 
-{ctaContainerRef.current && createPortal(
-  <div className="flex gap-2">
-    <Button>Custom Action</Button>
-  </div>,
-  ctaContainerRef.current
-)}
+{
+  ctaContainerRef.current &&
+    createPortal(
+      <div className="flex gap-2">
+        <Button>Custom Action</Button>
+      </div>,
+      ctaContainerRef.current
+    );
+}
 ```
 
 ## Real-world Examples
@@ -960,14 +1094,13 @@ From `packages/features/users/components/UserTable/UserListTable.tsx`:
       <DataTableSegment.SaveButton />
       <DataTableSegment.Select />
     </>
-  }
->
+  }>
   {/* Selection bar for bulk actions */}
   {numberOfSelectedRows > 0 && (
     <DataTableSelectionBar.Root>
       <p>{t("number_selected", { count: numberOfSelectedRows })}</p>
       <DeleteBulkUsers
-        users={table.getSelectedRowModel().flatRows.map(row => row.original)}
+        users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
         onRemove={() => table.toggleAllPageRowsSelected(false)}
       />
     </DataTableSelectionBar.Root>
@@ -991,9 +1124,7 @@ From `apps/web/modules/bookings/components/BookingsList.tsx`:
   totalRowCount={query.data?.totalCount}
   variant="compact"
   paginationMode="standard"
-  ToolbarLeft={
-    <DataTableFilters.FilterBar table={table} />
-  }
+  ToolbarLeft={<DataTableFilters.FilterBar table={table} />}
   ToolbarRight={
     <>
       <DataTableFilters.ClearFiltersButton />
@@ -1038,8 +1169,7 @@ From `packages/features/ee/teams/components/MemberList.tsx`:
       <DataTableSegment.SaveButton />
       <DataTableSegment.Select />
     </>
-  }
->
+  }>
   {/* Bulk selection and actions */}
   {numberOfSelectedRows > 0 && (
     <DataTableSelectionBar.Root>
@@ -1056,23 +1186,21 @@ From `packages/features/ee/teams/components/MemberList.tsx`:
 
 ```tsx
 // Filter value types
-type FilterValue = 
+type FilterValue =
   | SingleSelectFilterValue
-  | MultiSelectFilterValue  
+  | MultiSelectFilterValue
   | TextFilterValue
   | NumberFilterValue
   | DateRangeFilterValue;
 
 // Active filter structure
 type ActiveFilter = {
-  f: string;           // field/column ID
-  v?: FilterValue;     // filter value
+  f: string; // field/column ID
+  v?: FilterValue; // filter value
 };
 
 // Segment types
-type SegmentIdentifier = 
-  | { id: string; type: "system" }
-  | { id: number; type: "user" };
+type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
 
 // Column filter metadata
 type ColumnFilterMeta = {
@@ -1187,29 +1315,29 @@ type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegment;
 
 ```tsx
 // ✅ Good: Memoize column definitions
-const columns = useMemo(() => [
-  {
-    id: "name",
-    header: "Name",
-    accessorKey: "name",
-    meta: { type: ColumnFilterType.TEXT },
-  },
-], []);
+const columns = useMemo(
+  () => [
+    {
+      id: "name",
+      header: "Name",
+      accessorKey: "name",
+      meta: { type: ColumnFilterType.TEXT },
+    },
+  ],
+  []
+);
 
 // ✅ Good: Extract filter logic
 const useUserFilters = () => {
   const columnFilters = useColumnFilters();
-  return useMemo(() => 
-    transformFiltersForAPI(columnFilters), 
-    [columnFilters]
-  );
+  return useMemo(() => transformFiltersForAPI(columnFilters), [columnFilters]);
 };
 
 // ✅ Good: Separate concerns
 function UserTableContainer() {
   const filters = useUserFilters();
   const { data, isPending } = useUsers(filters);
-  
+
   return (
     <DataTableProvider>
       <UserTable data={data} isPending={isPending} />
@@ -1226,17 +1354,20 @@ function UserTableContainer() {
 function useTableData() {
   const columnFilters = useColumnFilters();
   const { sorting, pageIndex, pageSize, searchTerm } = useDataTable();
-  
-  const queryParams = useMemo(() => ({
-    filters: columnFilters,
-    sorting,
-    page: pageIndex,
-    limit: pageSize,
-    search: searchTerm,
-  }), [columnFilters, sorting, pageIndex, pageSize, searchTerm]);
-  
+
+  const queryParams = useMemo(
+    () => ({
+      filters: columnFilters,
+      sorting,
+      page: pageIndex,
+      limit: pageSize,
+      search: searchTerm,
+    }),
+    [columnFilters, sorting, pageIndex, pageSize, searchTerm]
+  );
+
   return useQuery({
-    queryKey: ['table-data', queryParams],
+    queryKey: ["table-data", queryParams],
     queryFn: () => fetchData(queryParams),
   });
 }
@@ -1247,13 +1378,14 @@ function useTableData() {
 ```tsx
 function useStatusFilterOptions() {
   const { data: statuses } = useStatuses();
-  
-  return useMemo(() => 
-    statuses?.map(status => ({
-      label: status.name,
-      value: status.id,
-      section: status.category,
-    })) || [],
+
+  return useMemo(
+    () =>
+      statuses?.map((status) => ({
+        label: status.name,
+        value: status.id,
+        section: status.category,
+      })) || [],
     [statuses]
   );
 }
@@ -1270,15 +1402,15 @@ const BOOKING_SEGMENTS: SystemFilterSegment[] = [
     activeFilters: [
       {
         f: "status",
-        v: { type: ColumnFilterType.SINGLE_SELECT, data: "confirmed" }
+        v: { type: ColumnFilterType.SINGLE_SELECT, data: "confirmed" },
       },
       {
         f: "startTime",
-        v: { 
-          type: ColumnFilterType.DATE_RANGE, 
-          data: { preset: "future", startDate: null, endDate: null }
-        }
-      }
+        v: {
+          type: ColumnFilterType.DATE_RANGE,
+          data: { preset: "future", startDate: null, endDate: null },
+        },
+      },
     ],
     sorting: [{ id: "startTime", desc: false }],
   },

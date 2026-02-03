@@ -1,5 +1,9 @@
 import { z } from "zod";
 
-export const ZFormByResponseIdInputSchema = z.object({
+export type TFormByResponseIdInputSchema = {
+  formResponseId: number;
+};
+
+export const ZFormByResponseIdInputSchema: z.ZodType<TFormByResponseIdInputSchema> = z.object({
   formResponseId: z.number(),
 });

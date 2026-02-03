@@ -1,27 +1,35 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
-import type { Membership, Team, User, VerificationToken, Profile } from "@calcom/prisma/client";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import type { Membership, Profile, Team, User, VerificationToken } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TeamService } from "./teamService";
 
-vi.mock("@calcom/features/ee/billing/teams");
+const { MockSeatChangeTrackingService } = vi.hoisted(() => {
+  class MockSeatChangeTrackingService {
+    logSeatAddition = vi.fn().mockResolvedValue(undefined);
+    logSeatRemoval = vi.fn().mockResolvedValue(undefined);
+  }
+  return { MockSeatChangeTrackingService };
+});
+
+vi.mock("@calcom/ee/billing/di/containers/Billing");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");
 vi.mock("@calcom/features/ee/teams/lib/queries");
+vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
+  SeatChangeTrackingService: MockSeatChangeTrackingService,
+}));
 
 const mockTeamBilling = {
   cancel: vi.fn(),
@@ -30,12 +38,19 @@ const mockTeamBilling = {
   downgrade: vi.fn(),
 };
 
-vi.mocked(TeamBilling.findAndInit).mockResolvedValue(mockTeamBilling);
+const mockTeamBillingFactory = {
+  findAndInit: vi.fn().mockResolvedValue(mockTeamBilling),
+  findAndInitMany: vi.fn().mockResolvedValue([mockTeamBilling]),
+};
 
 describe("TeamService", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetAllMocks();
-    vi.mocked(TeamBilling.findAndInit).mockResolvedValue(mockTeamBilling);
+    mockTeamBillingFactory.findAndInit.mockResolvedValue(mockTeamBilling);
+    mockTeamBillingFactory.findAndInitMany.mockResolvedValue([mockTeamBilling]);
+
+    const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
+    vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockTeamBillingFactory);
   });
 
   afterEach(() => {
@@ -51,15 +66,17 @@ describe("TeamService", () => {
         slug: "deleted-team",
       };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
       } as Pick<TeamRepository, "deleteById">;
-      vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo);
+      vi.mocked(TeamRepository).mockImplementation(function () {
+        return mockTeamRepo;
+      });
 
       const result = await TeamService.delete({ id: 1 });
 
-      expect(TeamBilling.findAndInit).toHaveBeenCalledWith(1);
+      expect(mockTeamBillingFactory.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.cancel).toHaveBeenCalled();
       expect(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).toHaveBeenCalledWith(1);
       expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
@@ -71,7 +88,7 @@ describe("TeamService", () => {
   describe("inviteMemberByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamService.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
+      await expect(TeamService.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(ErrorWithCode);
     });
 
     it("should create provisional membership and update billing", async () => {
@@ -229,7 +246,7 @@ describe("TeamService", () => {
   describe("acceptInvitationByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamService.acceptInvitationByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
+      await expect(TeamService.acceptInvitationByToken("invalid-token", 1)).rejects.toThrow(ErrorWithCode);
     });
 
     it("should throw error if token is not associated with team", async () => {
@@ -245,10 +262,7 @@ describe("TeamService", () => {
       );
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({
-          code: "NOT_FOUND",
-          message: "Invite token is not associated with any team",
-        })
+        new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team")
       );
     });
 
@@ -266,7 +280,7 @@ describe("TeamService", () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({ code: "NOT_FOUND", message: "User not found" })
+        new ErrorWithCode(ErrorCode.NotFound, "User not found")
       );
     });
 
@@ -289,10 +303,7 @@ describe("TeamService", () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser as User);
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({
-          code: "FORBIDDEN",
-          message: "This invitation is not for your account",
-        })
+        new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account")
       );
     });
 
@@ -315,10 +326,7 @@ describe("TeamService", () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser as User);
 
       await expect(TeamService.acceptInvitationByToken("valid-token", 1)).rejects.toThrow(
-        new TRPCError({
-          code: "FORBIDDEN",
-          message: "This invitation is not for your account",
-        })
+        new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account")
       );
     });
 
@@ -393,7 +401,7 @@ describe("TeamService", () => {
     it("should call publish on TeamBilling", async () => {
       await TeamService.publish(1);
 
-      expect(TeamBilling.findAndInit).toHaveBeenCalledWith(1);
+      expect(mockTeamBillingFactory.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.publish).toHaveBeenCalled();
     });
   });

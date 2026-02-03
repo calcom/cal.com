@@ -5,6 +5,7 @@ permissions:
   contents: read
 env:
   NODE_OPTIONS: --max-old-space-size=4096
+  INTEGRATION_TESTS: "true"
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
@@ -44,7 +45,7 @@ jobs:
   integration:
     timeout-minutes: 20
     name: Integration
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:13
@@ -78,11 +79,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
       - name: Run Tests
-        run: yarn test -- --integrationTestsOnly
+        run: VITEST_MODE=integration yarn test
       # TODO: Generate test results so we can upload them
       # - name: Upload Test Results
       #   if: ${{ always() }}

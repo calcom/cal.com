@@ -4,9 +4,10 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
-import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
@@ -58,11 +59,16 @@ async function handler(request: NextRequest) {
     });
 
     if (checkoutSessionSubscription) {
-      const { subscriptionStart } =
-        StripeBillingService.extractSubscriptionDates(checkoutSessionSubscription);
+      const billingService = getBillingProviderService();
+      const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+        billingService.extractSubscriptionDates(checkoutSessionSubscription);
 
-      const internalBillingService = new InternalTeamBilling(finalizedTeam);
-      await internalBillingService.saveTeamBilling({
+      const { billingPeriod, pricePerSeat, paidSeats } =
+        extractBillingDataFromStripeSubscription(checkoutSessionSubscription);
+
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
+      const teamBillingService = teamBillingServiceFactory.init(finalizedTeam);
+      await teamBillingService.saveTeamBilling({
         teamId: finalizedTeam.id,
         subscriptionId: checkoutSessionSubscription.id,
         subscriptionItemId: checkoutSessionSubscription.items.data[0].id,
@@ -70,7 +76,12 @@ async function handler(request: NextRequest) {
         // TODO: Implement true subscription status when webhook events are implemented
         status: SubscriptionStatus.ACTIVE,
         planName: Plan.TEAM,
-        subscriptionStart,
+        subscriptionStart: subscriptionStart ?? undefined,
+        subscriptionEnd: subscriptionEnd ?? undefined,
+        subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+        billingPeriod,
+        pricePerSeat,
+        paidSeats,
       });
     }
 

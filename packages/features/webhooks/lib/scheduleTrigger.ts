@@ -13,6 +13,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma, Webhook, Booking, ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { DEFAULT_WEBHOOK_VERSION, type WebhookVersion } from "./interface/IWebhookRepository";
 
 const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_ENDED,
@@ -657,7 +658,7 @@ export async function scheduleNoShowTaskForBooking(
     triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
       ? "triggerHostNoShowWebhook"
       : "triggerGuestNoShowWebhook";
-
+  const version = (webhook.version as WebhookVersion) ?? DEFAULT_WEBHOOK_VERSION;
   await tasker.create(
     taskType,
     {
@@ -667,6 +668,7 @@ export async function scheduleNoShowTaskForBooking(
         ...webhook,
         time: webhook.time ?? 0,
         timeUnit: webhook.timeUnit ?? "HOUR",
+        version,
       },
     },
     {

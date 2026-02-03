@@ -28,7 +28,7 @@ const generateEventMetaSkeleton = () => {
             <h1 data-testid="event-title" class="text-text text-xl font-semibold my-2 mb-4">
               <div class="animate-pulse bg-emphasis h-6 w-20 rounded-sm"></div>
             </h1>
-            <div class="space-y-3 font-medium">
+            <div class="stack-y-3 font-medium">
               ${eventMetaOptions}
             </div>
           </div>
@@ -73,7 +73,7 @@ const generateDatePickerSkeleton = () => {
   for (let i = 1; i <= daysInMonth; i++) {
     dates += `
   <div class="relative w-full pt-[100%]">
-    <button class="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition" disabled="">
+    <button class="bg-cal-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition" disabled="">
       <span class="font-size-0 bg-emphasis inline-block animate-pulse rounded-md empty:before:inline-block empty:before:content-[''] h-9 w-9"></span>
     </button>
   </div>`;
@@ -101,13 +101,13 @@ const generateDatePickerSkeleton = () => {
               </span>
               <div class="text-emphasis">
                 <div class="flex">
-                  <button class="group whitespace-nowrap items-center font-medium relative rounded-[10px] disabled:cursor-not-allowed gap-1 flex justify-center text-subtle border border-transparent enabled:hover:bg-subtle enabled:hover:text-emphasis enabled:hover:border-subtle hover:border disabled:opacity-30 focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-0 focus-visible:border-subtle focus-visible:shadow-button-outline-gray-focused enabled:active:shadow-outline-gray-active duration-200 text-sm leading-none min-h-[36px] min-w-[36px] !p-2 hover:border-default group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180" data-testid="decrementMonth" aria-label="View previous month" type="button" disabled>
+                  <button class="group whitespace-nowrap items-center font-medium relative rounded-[10px] disabled:cursor-not-allowed gap-1 flex justify-center text-subtle border border-transparent enabled:hover:bg-subtle enabled:hover:text-emphasis enabled:hover:border-subtle hover:border disabled:opacity-30 focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-0 focus-visible:border-subtle focus-visible:shadow-button-outline-gray-focused enabled:active:shadow-outline-gray-active duration-200 text-sm leading-none min-h-[36px] min-w-[36px] p-2! hover:border-default group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180" data-testid="decrementMonth" aria-label="View previous month" type="button" disabled>
                     <svg height="16" width="16" class="fill-transparent visible button-icon group-active:translate-y-[0.5px] h-4 w-4" data-name="start-icon" aria-hidden="true">
                       <use href="#chevron-left"></use>
                     </svg>
                     <div class="contents visible group-active:translate-y-[0.5px]"></div>
                   </button>
-                  <button class="group whitespace-nowrap items-center font-medium relative rounded-[10px] disabled:cursor-not-allowed gap-1 flex justify-center text-subtle border border-transparent enabled:hover:bg-subtle enabled:hover:text-emphasis enabled:hover:border-subtle hover:border disabled:opacity-30 focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-0 focus-visible:border-subtle focus-visible:shadow-button-outline-gray-focused enabled:active:shadow-outline-gray-active duration-200 text-sm leading-none min-h-[36px] min-w-[36px] !p-2 hover:border-default group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180 undefined" data-testid="incrementMonth" aria-label="View next month" type="button">
+                  <button class="group whitespace-nowrap items-center font-medium relative rounded-[10px] disabled:cursor-not-allowed gap-1 flex justify-center text-subtle border border-transparent enabled:hover:bg-subtle enabled:hover:text-emphasis enabled:hover:border-subtle hover:border disabled:opacity-30 focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-0 focus-visible:border-subtle focus-visible:shadow-button-outline-gray-focused enabled:active:shadow-outline-gray-active duration-200 text-sm leading-none min-h-[36px] min-w-[36px] p-2! hover:border-default group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180 undefined" data-testid="incrementMonth" aria-label="View next month" type="button">
                     <svg height="16" width="16" class="fill-transparent visible button-icon group-active:translate-y-[0.5px] h-4 w-4" data-name="start-icon" aria-hidden="true">
                       <use href="#chevron-right"></use>
                     </svg>
@@ -130,18 +130,18 @@ const generateBookingSlotsPageSkeleton = ({ layout }: { layout: AllPossibleLayou
     return `
   <div 
     data-testid="booker-container" 
-    class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px] bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row border-subtle rounded-md" 
+    class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-main-width:480px] [--booker-meta-width:340px] lg:[--booker-meta-width:424px] bg-default dark:bg-cal-muted grid max-w-full items-start dark:scheme-dark sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row border-subtle rounded-md" 
     style="grid-template-areas: &quot;meta&quot; &quot;header&quot; &quot;main&quot; &quot;timeslots&quot;; width: 100%; grid-template-columns: 100%; grid-template-rows: minmax(min-content, max-content) 1fr; min-height: 0px; height: auto;">
      <div 
         class="relative z-10 flex [grid-area:meta]">
-        <div class="[grid-area:meta] max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+        <div class="[grid-area:meta] max-w-screen flex w-full flex-col md:w-(--booker-meta-width)">
         ${generateEventMetaSkeleton()}
         <div class="mt-auto px-5 py-3">
         ${generateDatePickerSkeleton()}
         </div>
         </div>
       </div>
-      <div class="[grid-area:main] md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]" style="opacity: 1; transform: none;">
+      <div class="[grid-area:main] md:border-subtle -ml-px h-full shrink px-5 py-3 md:border-l lg:w-(--booker-main-width)" style="opacity: 1; transform: none;">
       </div>
   </div>
 `;
@@ -150,14 +150,14 @@ const generateBookingSlotsPageSkeleton = ({ layout }: { layout: AllPossibleLayou
   return `
   <div 
     data-testid="booker-container" 
-    class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-meta-width:240px] [--booker-main-width:480px] lg:[--booker-meta-width:280px] bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:motion-reduce:transition-none md:flex-row rounded-md sm:transition-[width] sm:duration-300 border-subtle border undefined" 
+    class="[--booker-timeslots-width:240px] lg:[--booker-timeslots-width:280px] [--booker-meta-width:240px] [--booker-main-width:480px] lg:[--booker-meta-width:280px] bg-default grid max-w-full items-start dark:scheme-dark sm:motion-reduce:transition-none md:flex-row rounded-md sm:transition-[width] sm:duration-300 border-subtle border undefined" 
     style="grid-template-areas: &quot;meta main main&quot; &quot;meta main main&quot;; width: calc(var(--booker-meta-width) + var(--booker-main-width)); grid-template-columns: var(--booker-meta-width) var(--booker-main-width); grid-template-rows: 1fr 0fr; min-height: 450px; height: auto;">
      <div 
         class="relative z-10 flex [grid-area:meta]" 
         style="position: sticky; top: 0px;">
         ${generateEventMetaSkeleton()}
       </div>
-      <div class="[grid-area:main] md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]" style="opacity: 1; transform: none;">
+      <div class="[grid-area:main] md:border-subtle -ml-px h-full shrink px-5 py-3 md:border-l lg:w-(--booker-main-width)" style="opacity: 1; transform: none;">
         ${generateDatePickerSkeleton()}
       </div>
   </div>

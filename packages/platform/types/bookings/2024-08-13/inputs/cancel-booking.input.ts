@@ -11,7 +11,7 @@ export class CancelBookingInput_2024_08_13 {
   @IsOptional()
   @ApiPropertyOptional({
     description:
-      "For recurring non-seated booking - if true, cancel booking with the bookingUid of the individual recurrence and all recurrences that come after it.",
+      "For recurring non-seated booking only - if true, cancel booking with the bookingUid of the individual recurrence and all recurrences that come after it.",
   })
   cancelSubsequentBookings?: boolean;
 }

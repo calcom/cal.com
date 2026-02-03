@@ -1,19 +1,31 @@
-import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { PrismaClient } from "@calcom/prisma";
 import type { TConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 
 type ConnectedCalendarsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TConnectedCalendarsInputSchema;
 };
 
-export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalendarsOptions) => {
-  const { user } = ctx;
+type GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult = Awaited<
+  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
+>;
+
+type ConnectedCalendarsHandlerResult = {
+  destinationCalendar: GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["destinationCalendar"];
+  connectedCalendars: (GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["connectedCalendars"][number] & {
+    cacheUpdatedAt: null;
+  })[];
+};
+
+export const connectedCalendarsHandler = async ({
+  ctx: { user, prisma },
+  input,
+}: ConnectedCalendarsOptions): Promise<ConnectedCalendarsHandlerResult> => {
   const onboarding = input?.onboarding || false;
 
   const { connectedCalendars, destinationCalendar } =
@@ -21,18 +33,13 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       user,
       onboarding,
       eventTypeId: input?.eventTypeId ?? null,
+      skipSync: input?.skipSync ?? false,
       prisma,
     });
 
-  const credentialIds = connectedCalendars.map((cal) => cal.credentialId);
-  const cacheRepository = new CalendarCacheRepository();
-  const cacheStatuses = await cacheRepository.getCacheStatusByCredentialIds(credentialIds);
-
-  const cacheStatusMap = new Map(cacheStatuses.map((cache) => [cache.credentialId, cache.updatedAt]));
-
   const enrichedConnectedCalendars = connectedCalendars.map((calendar) => ({
     ...calendar,
-    cacheUpdatedAt: cacheStatusMap.get(calendar.credentialId) || null,
+    cacheUpdatedAt: null,
   }));
 
   return {

@@ -1,7 +1,8 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import React, {
+import React from "react";
+import {
   useMemo,
   useState,
   useEffect,
@@ -15,7 +16,7 @@ import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "re
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -23,14 +24,14 @@ import type {
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import WebSchedule, {
+import {
   ScheduleComponent as PlatformSchedule,
-} from "@calcom/features/schedules/components/Schedule";
-import WebShell from "@calcom/features/shell/Shell";
+} from "@calcom/features/schedules/components/ScheduleComponent";
+import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -43,6 +44,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import WebShell from "@calcom/web/modules/shell/Shell";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
@@ -99,7 +101,7 @@ export type AvailabilitySettingsScheduleType = {
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: AvailabilitySettingsScheduleType;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
   handleDelete: () => void;
   allowDelete?: boolean;
   allowSetToDefault?: boolean;
@@ -195,7 +197,7 @@ const DateOverride = ({
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: Awaited<ReturnType<typeof TravelScheduleRepository.findTravelSchedulesByUserId>>;
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
   classNames?: {
@@ -234,7 +236,7 @@ const DateOverride = ({
       <p className={cn("text-subtle mb-4 text-sm", classNames?.description)}>
         {t("date_overrides_subtitle")}
       </p>
-      <div className="space-y-2">
+      <div className="stack-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
           replace={replace}
@@ -278,13 +280,11 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
   return (
     <div
       className={classNames(
-        open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
-          : ""
+        open ? "fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity sm:hidden" : ""
       )}>
       <div
         className={classNames(
-          "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+          "bg-default stack-y-2 fixed right-0 z-20 flex h-screen w-80 flex-col overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
           open ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
         )}>
         {open ? children : null}
@@ -322,7 +322,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const form = useForm<AvailabilityFormValues>({
       defaultValues: {
-        ...schedule,
+        name: schedule.name,
+        timeZone: schedule.timeZone,
+        isDefault: schedule.isDefault,
+        dateOverrides: schedule.dateOverrides,
         schedule: schedule.availability || [],
       },
     });
@@ -330,6 +333,20 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     const watchedValues = useWatch({
       control: form.control,
     });
+
+    const initialValuesRef = useRef<AvailabilityFormValues | null>(null);
+    useEffect(() => {
+      initialValuesRef.current = form.getValues() as AvailabilityFormValues;
+    }, [form, schedule]);
+
+    const formHasChanges = useMemo(() => {
+      if (!initialValuesRef.current) return false;
+      try {
+        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
+      } catch {
+        return form.formState.isDirty;
+      }
+    }, [watchedValues, form.formState.isDirty]);
 
     // Trigger callback whenever the form state changes
     useEffect(() => {
@@ -429,13 +446,13 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         }
         CTA={
           <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-            <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+            <div className="sm:hover:bg-cal-muted hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
                   <Skeleton
                     as={Label}
                     htmlFor="hiddenSwitch"
-                    className="mt-2 cursor-pointer self-center pe-2"
+                    className="pe-2 mt-2 cursor-pointer self-center"
                     loadingClassName="me-4"
                     waitForTranslation={!isPlatform}>
                     {t("set_to_default")}
@@ -459,7 +476,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       />
                     )}
                   />
-                  <VerticalDivider className="hidden sm:inline" />
                 </>
               ) : null}
             </div>
@@ -479,6 +495,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
             {allowDelete && (
               <>
+                <VerticalDivider className="hidden sm:inline" />
                 <DeleteDialogButton
                   buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
                   disabled={schedule.isLastSchedule}
@@ -493,12 +510,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity sm:hidden"
                       : ""
                   )}>
                   <div
                     className={classNames(
-                      "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
+                      "bg-default stack-y-2 fixed right-0 z-20 flex h-screen w-80 flex-col overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
                       openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                     )}>
                     <div className="flex flex-row items-center pt-16">
@@ -561,7 +578,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
+                    <div className="min-w-40 stack-y-2 col-span-3 px-2 py-4 lg:col-span-1">
                       <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                         <div>
                           <Skeleton
@@ -593,8 +610,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                         </div>
                         {!isPlatform && (
                           <>
-                            <hr className="border-subtle my-7" />
-                            <div className="rounded-md md:block">
+                            <hr className="border-subtle my-8" />
+                            <div className="border-subtle rounded-md border p-4 md:block">
                               <Skeleton
                                 as="h3"
                                 className="mb-0 inline-block text-sm font-medium"
@@ -625,7 +642,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               className="ml-4 lg:ml-0"
               type="submit"
               form="availability-form"
-              loading={isSaving}>
+              loading={isSaving}
+              disabled={isLoading || !formHasChanges}
+            >
               {t("save")}
             </Button>
             <Button
@@ -645,7 +664,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               handleSubmit(props);
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
-            <div className="flex-1 flex-row xl:mr-0">
+            <div className="flex-1">
               <div
                 className={cn(
                   "border-subtle mb-6 rounded-md border",
@@ -681,25 +700,33 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <BookerStoreProvider>
-                  <DateOverride
-                    isDryRun={isDryRun}
-                    workingHours={schedule.workingHours}
-                    userTimeFormat={timeFormat}
-                    handleSubmit={handleSubmit}
-                    travelSchedules={travelSchedules}
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                    classNames={customClassNames?.dateOverrideClassNames}
-                  />
-                </BookerStoreProvider>
+                <div className="border-subtle rounded-md border mb-6">
+                  <BookerStoreProvider>
+                    <DateOverride
+                      isDryRun={isDryRun}
+                      workingHours={schedule.workingHours}
+                      userTimeFormat={timeFormat}
+                      handleSubmit={handleSubmit}
+                      travelSchedules={travelSchedules}
+                      weekStart={
+                        [
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                      }
+                      overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                      classNames={customClassNames?.dateOverrideClassNames}
+                    />
+                  </BookerStoreProvider>
+                </div>
               )}
             </div>
-            <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
+            <div className="min-w-40 stack-y-2 col-span-3 hidden md:block lg:col-span-1">
               <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                 <div>
                   <Skeleton
@@ -729,8 +756,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   <></>
                 ) : (
                   <>
-                    <hr className="border-subtle my-6 mr-8" />
-                    <div className="rounded-md">
+                    <hr className="border-subtle my-8 mr-8" />
+                    <div className="border-subtle rounded-md border p-4">
                       <Skeleton
                         as="h3"
                         className="mb-0 inline-block text-sm font-medium"

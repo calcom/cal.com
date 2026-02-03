@@ -2,7 +2,7 @@ import { it, expect, describe, beforeAll } from "vitest";
 
 import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { match, pathToRegexp } = require("next/dist/compiled/path-to-regexp");
 type MatcherRes = (path: string) => { params: Record<string, string> };
 let orgUserTypeRouteMatch: MatcherRes;
@@ -12,11 +12,7 @@ beforeAll(async () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   process.env.NEXT_PUBLIC_WEBAPP_URL = "http://example.com";
-  const {
-    orgUserRoutePath,
-    orgUserTypeRoutePath,
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-  } = require("../../pagesAndRewritePaths");
+  const { orgUserRoutePath, orgUserTypeRoutePath } = await import("../../pagesAndRewritePaths");
 
   orgUserTypeRouteMatch = match(orgUserTypeRoutePath);
 
@@ -161,6 +157,81 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserTypeRouteMatch("/success/abcd")).toEqual(false);
       expect(orgUserRouteMatch("/forms/xdsdf-sd")).toEqual(false);
       expect(orgUserRouteMatch("/router?form=")).toEqual(false);
+    });
+
+    it("Whitelisted routes should match on org domains", () => {
+      expect(orgUserRouteMatch("/onboarding")?.params).toEqual({
+        user: "onboarding",
+      });
+      expect(orgUserTypeRouteMatch("/onboarding/30min")?.params).toEqual({
+        user: "onboarding",
+        type: "30min",
+      });
+    });
+
+    describe("Character validation in org slugs", () => {
+      it("should allow valid characters: alphanumeric, hyphens, and underscores", () => {
+        // Valid usernames with allowed characters
+        expect(orgUserRouteMatch("/john-doe")?.params).toEqual({
+          user: "john-doe",
+        });
+        expect(orgUserRouteMatch("/john_doe")?.params).toEqual({
+          user: "john_doe",
+        });
+        expect(orgUserRouteMatch("/user123")?.params).toEqual({
+          user: "user123",
+        });
+        expect(orgUserRouteMatch("/ABC-123_xyz")?.params).toEqual({
+          user: "ABC-123_xyz",
+        });
+      });
+
+      it("should reject invalid punctuation characters in org slugs", () => {
+        // These should NOT match because they contain invalid characters
+        // The character class [a-zA-Z0-9-_] when hyphen is unescaped between 9 and _
+        // creates a range from - (ASCII 45) to _ (ASCII 95), which includes : ; < = > ? @ [ \ ] ^
+
+        // Colon (:) - ASCII 58
+        expect(orgUserRouteMatch("/user:name")).toEqual(false);
+
+        // Semicolon (;) - ASCII 59
+        expect(orgUserRouteMatch("/user;name")).toEqual(false);
+
+        // Less than (<) - ASCII 60
+        expect(orgUserRouteMatch("/user<name")).toEqual(false);
+
+        // Equals (=) - ASCII 61
+        expect(orgUserRouteMatch("/user=name")).toEqual(false);
+
+        // Greater than (>) - ASCII 62
+        expect(orgUserRouteMatch("/user>name")).toEqual(false);
+
+        // Question mark (?) - ASCII 63
+        expect(orgUserRouteMatch("/user?name")).toEqual(false);
+
+        // At symbol (@) - ASCII 64
+        expect(orgUserRouteMatch("/user@name")).toEqual(false);
+
+        // Square brackets ([, ]) - ASCII 91, 93
+        expect(orgUserRouteMatch("/user[name")).toEqual(false);
+        expect(orgUserRouteMatch("/user]name")).toEqual(false);
+
+        // Backslash (\) - ASCII 92
+        expect(orgUserRouteMatch("/user\\name")).toEqual(false);
+
+        // Caret (^) - ASCII 94
+        expect(orgUserRouteMatch("/user^name")).toEqual(false);
+
+        // Other common punctuation that should also be rejected
+        expect(orgUserRouteMatch("/user.name")).toEqual(false);
+        expect(orgUserRouteMatch("/user!name")).toEqual(false);
+        expect(orgUserRouteMatch("/user#name")).toEqual(false);
+        expect(orgUserRouteMatch("/user$name")).toEqual(false);
+        expect(orgUserRouteMatch("/user%name")).toEqual(false);
+        expect(orgUserRouteMatch("/user&name")).toEqual(false);
+        expect(orgUserRouteMatch("/user*name")).toEqual(false);
+        expect(orgUserRouteMatch("/user+name")).toEqual(false);
+      });
     });
   });
 });

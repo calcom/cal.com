@@ -1,11 +1,12 @@
 import { z } from "zod";
 
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialConfigurationError,
   CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
-import { handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -37,9 +38,27 @@ const getO365VideoAppKeys = async () => {
 };
 
 const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenantId): VideoApiAdapter => {
-  console.log("TeamsVideoApiAdapter--credential: ", credential);
+  const log = logger.getSubLogger({ prefix: ["TeamsVideoApiAdapter"] });
   let azureUserId: string | null;
   const tokenResponse = oAuthManagerHelper.getTokenObjectFromCredential(credential);
+
+  async function triggerDelegationCredentialError(error: Error): Promise<void> {
+    if (credential.userId && credential.user && credential.appId && credential.delegatedToId) {
+      await triggerDelegationCredentialErrorWebhook({
+        error,
+        credential: {
+          id: credential.id,
+          type: credential.type,
+          appId: credential.appId,
+        },
+        user: {
+          id: credential.userId ?? 0,
+          email: credential.user.email,
+        },
+        delegationCredentialId: credential.delegatedToId,
+      });
+    }
+  }
 
   const auth = new OAuthManager({
     credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
@@ -63,12 +82,16 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         : await getO365VideoAppKeys();
 
       if (isDelegated && (!credentials.client_id || !credentials.client_secret)) {
-        throw new CalendarAppDelegationCredentialConfigurationError(
+        const error = new CalendarAppDelegationCredentialConfigurationError(
           "Delegation credential without clientId or Secret"
         );
+
+        await triggerDelegationCredentialError(error);
+
+        throw error;
       }
 
-      const url = getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+      const url = await getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
       const scope = isDelegated ? "https://graph.microsoft.com/.default" : OFFICE365_VIDEO_SCOPES.join(" ");
 
       const params: Record<string, string> = {
@@ -97,19 +120,23 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
     expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
     updateTokenObject: (tokenObject) => {
-      if (!Boolean(credential.delegatedTo)) {
+      if (!credential.delegatedTo) {
         return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
       }
       return Promise.resolve();
     },
   });
 
-  function getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
+  async function getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
     if (delegatedTo) {
       if (!tenantId) {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+        const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
+
+        await triggerDelegationCredentialError(error);
+
+        throw error;
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
     }
@@ -132,15 +159,19 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
 
     if (!isDelegated) return null;
 
-    const url = getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+    const url = await getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
     const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
 
     if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
-      throw new CalendarAppDelegationCredentialConfigurationError(
+      const error = new CalendarAppDelegationCredentialConfigurationError(
         "Delegation credential without clientId or Secret"
       );
+
+      await triggerDelegationCredentialError(error);
+
+      throw error;
     }
     const loginResponse = await fetch(url, {
       method: "POST",
@@ -172,9 +203,13 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     const parsedBody = await response.json();
 
     if (!parsedBody?.value?.[0]?.id) {
-      throw new CalendarAppDelegationCredentialInvalidGrantError(
+      const error = new CalendarAppDelegationCredentialInvalidGrantError(
         "User might not exist in Microsoft Azure Active Directory"
       );
+
+      await triggerDelegationCredentialError(error);
+
+      throw error;
     }
     azureUserId = parsedBody.value[0].id;
     return azureUserId;
@@ -193,59 +228,92 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       return Promise.resolve([]);
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent) => {
-      const resultString = await auth
-        .requestRaw({
+      try {
+        const response = await auth.requestRaw({
           url: `${await getUserEndpoint()}/onlineMeetings`,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
           },
-        })
-        .then(handleErrorsRaw);
+        });
 
-      const resultObject = JSON.parse(resultString);
+        if (!response.ok) {
+          throw new HttpError({
+            statusCode: response.status,
+            message: response.statusText,
+          });
+        }
 
-      return Promise.resolve({
-        type: "office365_video",
-        id: resultObject.id,
-        password: "",
-        url: resultObject.joinWebUrl || resultObject.joinUrl,
-      });
+        const resultString = await response.text();
+        const resultObject = JSON.parse(resultString);
+
+        return Promise.resolve({
+          type: "office365_video",
+          id: resultObject.id,
+          password: "",
+          url: resultObject.joinWebUrl || resultObject.joinUrl,
+        });
+      } catch (error) {
+        log.error(`Error updating MS Teams meeting for booking ${event.uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
+        throw new HttpError({
+          statusCode: 500,
+          message: `Error updating MS Teams meeting for booking ${event.uid}`,
+        });
+      }
     },
-    deleteMeeting: () => {
+    deleteMeeting:() => {
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      console.log("=======>createMeeting: ");
-
       const url = `${await getUserEndpoint()}/onlineMeetings`;
-      console.log("urllllllllllll: ", url);
-      console.log("translateEvent(event): ", translateEvent(event));
-      const resultString = await auth
-        .requestRaw({
+      try {
+        const response = await auth.requestRaw({
           url,
           options: {
             method: "POST",
             body: JSON.stringify(translateEvent(event)),
           },
-        })
-        .then(handleErrorsRaw);
+        });
 
-      const resultObject = JSON.parse(resultString);
+        if (!response.ok) {
+          throw new HttpError({
+            statusCode: response.status,
+            message: response.statusText,
+          });
+        }
 
-      if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
+        const resultString = await response.text();
+
+        const resultObject = JSON.parse(resultString);
+
+        if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
+          throw new HttpError({
+            statusCode: 500,
+            message: `Error creating MS Teams meeting: ${resultObject.error?.message || "missing required fields in response"}`,
+          });
+        }
+
+        log.debug("Teams meeting created", { meetingId: resultObject.id });
+
+        return Promise.resolve({
+          type: "office365_video",
+          id: resultObject.id,
+          password: "",
+          url: resultObject.joinWebUrl || resultObject.joinUrl,
+        });
+      } catch (error) {
+        log.error(`Error creating MS Teams meeting for booking ${event.uid}`, error);
+        if (error instanceof HttpError) {
+          throw error;
+        }
         throw new HttpError({
           statusCode: 500,
-          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
+          message: `Error creating MS Teams meeting for booking ${event.uid}`,
         });
       }
-
-      return Promise.resolve({
-        type: "office365_video",
-        id: resultObject.id,
-        password: "",
-        url: resultObject.joinWebUrl || resultObject.joinUrl,
-      });
     },
   };
 };

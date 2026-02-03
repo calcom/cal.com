@@ -34,8 +34,8 @@ export class EventGroupBuilder {
   }> {
     const { userId, userUpId, filters, forRoutingForms } = input;
 
-    // Get user profile
-    const profile = await this.dependencies.profileRepository.findByUpId(userUpId);
+    // Get user profile with authorization check
+    const profile = await this.dependencies.profileRepository.findByUpIdWithAuth(userUpId, userId);
     if (!profile) {
       throw new Error("Profile not found");
     }

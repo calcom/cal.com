@@ -19,7 +19,7 @@ const ChooseLicense = (
   return (
     <form
       {...rest}
-      className="space-y-4"
+      className="stack-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(value);
@@ -36,7 +36,7 @@ const ChooseLicense = (
         <RadioGroup.Item value="FREE">
           <div
             className={classNames(
-              "bg-default cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "bg-default cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "FREE" && "ring-2 ring-black"
             )}>
             <h2 className="font-cal text-emphasis text-xl">{t("agplv3_license")}</h2>
@@ -51,7 +51,7 @@ const ChooseLicense = (
         </RadioGroup.Item>
         <RadioGroup.Item value="EE" disabled>
           <Link href="https://cal.com/sales" target="_blank">
-            <div className={classNames("bg-default h-full cursor-pointer space-y-2 rounded-md border p-4")}>
+            <div className={classNames("bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4")}>
               <h2 className="font-cal text-emphasis text-xl">{t("custom_plan")}</h2>
               <p className="font-medium text-green-800">{t("contact_sales")}</p>
               <p className="text-subtle">Build on top of Cal.com</p>

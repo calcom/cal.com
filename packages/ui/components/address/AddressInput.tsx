@@ -22,6 +22,7 @@ function AddressInput({ value, onChange, ...rest }: AddressInputProps) {
       />
       <Input
         {...rest}
+        autoComplete="address-line1"
         value={value}
         onChange={(e) => {
           onChange(e.target.value);

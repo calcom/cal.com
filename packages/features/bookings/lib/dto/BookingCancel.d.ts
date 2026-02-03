@@ -32,4 +32,5 @@ export type HandleCancelBookingResponse = {
   onlyRemovedAttendee: boolean;
   bookingId: number;
   bookingUid: string;
+  isPlatformManagedUserBooking: boolean;
 };

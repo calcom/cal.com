@@ -1,3 +1,5 @@
+import type { TrackingData } from "@calcom/lib/tracking";
+
 import type {
   AIPhoneServiceProvider,
   AIPhoneServiceProviderType,
@@ -169,6 +171,7 @@ export class RetellAIPhoneServiceProvider
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    tracking?: TrackingData;
   }): Promise<{ url: string; message: string }> {
     return await this.service.generatePhoneNumberCheckoutSession(params);
   }
@@ -264,6 +267,8 @@ export class RetellAIPhoneServiceProvider
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
   }

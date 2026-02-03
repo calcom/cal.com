@@ -1,9 +1,9 @@
-import { createContainer } from "@calcom/lib/di/di";
+import { createContainer } from "@calcom/features/di/di";
 
 import {
   type BookingCancelService,
   moduleLoader as bookingCancelServiceModule,
-} from "../modules/BookingCancelService.module";
+} from "./BookingCancelService.module";
 
 const bookingCancelServiceContainer = createContainer();
 

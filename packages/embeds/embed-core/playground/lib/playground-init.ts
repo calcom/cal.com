@@ -7,6 +7,7 @@ const emailQueryParam = url.searchParams.get("param.email");
 window.params = {
   email: emailQueryParam,
   formId: url.searchParams.get("param.formId"),
+  disablePrerender: url.searchParams.get("param.disablePrerender") === "true",
 };
 
 window.generateRandomHexColor = function generateRandomHexColor() {

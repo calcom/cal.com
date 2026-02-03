@@ -4,7 +4,6 @@ import { formatInTimeZone } from "date-fns-tz";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger } from "@calcom/ui/components/dialog";
@@ -15,6 +14,13 @@ import DateOverrideInputDialog from "./DateOverrideInputDialog";
 const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRange[]; id: string }) => {
   return a.ranges[0].start > b.ranges[0].start ? 1 : -1;
 };
+
+interface TravelSchedule {
+  id: number;
+  startDate: Date;
+  endDate: Date | null;
+  timeZone: string;
+}
 
 // I would like this to be decoupled, but RHF really doesn't support this.
 const DateOverrideList = ({
@@ -36,7 +42,7 @@ const DateOverrideList = ({
   excludedDates?: string[];
   userTimeFormat: number | null;
   hour12: boolean;
-  travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
+  travelSchedules?: TravelSchedule[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
   isDryRun?: boolean;
@@ -55,7 +61,7 @@ const DateOverrideList = ({
 
   const timeSpan = ({ start, end }: TimeRange) => {
     if (isPlatform) {
-      return `${formatInTimeZone(start, "UTC", "h a")} - ${formatInTimeZone(end, "UTC", "h a")}`;
+      return `${formatInTimeZone(start, "UTC", "h:mm a")} - ${formatInTimeZone(end, "UTC", "h:mm a")}`;
     }
 
     return `${new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12 }).format(
@@ -136,7 +142,7 @@ const DateOverrideList = ({
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
                   date: isPlatform
-                    ? formatInTimeZone(new Date(item.ranges[0].start), "UTC", "h a")
+                    ? formatInTimeZone(new Date(item.ranges[0].start), "UTC", "h:mm a")
                     : new Intl.DateTimeFormat(i18n.language, {
                         weekday: "long",
                         month: "long",

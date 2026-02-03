@@ -1,25 +1,24 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import type { PlatformBilling, Team } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import Stripe from "stripe";
-import * as request from "supertest";
+import request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
-
-import type { Team, PlatformBilling } from "@calcom/prisma/client";
+import { withApiAuth } from "test/utils/withApiAuth";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CheckPlatformBillingResponseDto } from "@/modules/billing/controllers/outputs/CheckPlatformBillingResponse.dto";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { StripeService } from "@/modules/stripe/stripe.service";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;
@@ -32,8 +31,10 @@ describe("Platform Billing Controller (e2e)", () => {
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let organization: Team;
+  let organization2: Team;
+
   beforeAll(async () => {
-    const moduleRef = await withNextAuth(
+    const moduleRef = await withApiAuth(
       userEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -47,6 +48,10 @@ describe("Platform Billing Controller (e2e)", () => {
 
     organization = await organizationsRepositoryFixture.create({
       name: `billing-organization-${randomString()}`,
+      isPlatform: true,
+    });
+    organization2 = await organizationsRepositoryFixture.create({
+      name: `billing-organization-2-${randomString()}`,
       isPlatform: true,
     });
 
@@ -120,7 +125,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())
@@ -133,7 +138,7 @@ describe("Platform Billing Controller (e2e)", () => {
       });
   });
 
-  it("/billing/webhook (GET) should  get billing plan for org", () => {
+  it("/billing/:orgId/check (GET) should check billing plan for org", () => {
     return request(app.getHttpServer())
       .get(`/v2/billing/${organization.id}/check`)
       .expect(200)
@@ -141,6 +146,10 @@ describe("Platform Billing Controller (e2e)", () => {
         const data = res.body.data as CheckPlatformBillingResponseDto;
         expect(data?.plan).toEqual("FREE");
       });
+  });
+
+  it("/billing/:organizationId/check (GET) should not be able to check other org plan", () => {
+    return request(app.getHttpServer()).get(`/v2/billing/${organization2.id}/check`).expect(403);
   });
 
   it("/billing/webhook (POST) failed payment should set billing free plan to overdue", () => {
@@ -160,7 +169,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
@@ -189,7 +198,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())
@@ -222,7 +231,7 @@ describe("Platform Billing Controller (e2e)", () => {
               };
             },
           },
-        } as unknown as Stripe)
+        }) as unknown as Stripe
     );
 
     return request(app.getHttpServer())

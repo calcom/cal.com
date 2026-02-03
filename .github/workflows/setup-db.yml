@@ -1,0 +1,58 @@
+name: Setup Database
+
+on:
+  workflow_call:
+    inputs:
+      DB_CACHE_HIT:
+        required: false
+        type: string
+        default: "false"
+        description: "Whether the DB cache was hit (skip yarn-install and cache-db if true)"
+
+permissions:
+  contents: read
+
+env:
+  CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+  DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+  E2E_TEST_CALCOM_QA_EMAIL: ${{ secrets.E2E_TEST_CALCOM_QA_EMAIL }}
+  E2E_TEST_CALCOM_QA_PASSWORD: ${{ secrets.E2E_TEST_CALCOM_QA_PASSWORD }}
+  E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ secrets.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
+  GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  setup-db:
+    name: Setup Database
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calendso
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+        if: inputs.DB_CACHE_HIT != 'true'
+      - run: yarn prisma generate
+        if: inputs.DB_CACHE_HIT != 'true'
+      - uses: ./.github/actions/cache-db
+        if: inputs.DB_CACHE_HIT != 'true'

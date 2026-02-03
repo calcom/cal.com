@@ -13,7 +13,6 @@ export type RoutingFormSearchParams = {
   ["cal.reroutingFormResponses"]?: string;
   ["cal.skipContactOwner"]?: string;
   ["cal.isBookingDryRun"]?: string;
-  ["cal.cache"]?: string;
   ["cal.routingFormResponseId"]?: string;
   ["cal.crmAppSlug"]?: string;
   ["cal.crmOwnerRecordType"]?: string;

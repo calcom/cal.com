@@ -6,12 +6,13 @@ import { Button } from "@calcom/ui/components/button";
 import { ConfirmDialog } from "./confirmDialog";
 
 interface IWipeMyCalActionButtonProps {
+  className?: string;
   bookingsEmpty: boolean;
   bookingStatus: "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 }
 
 const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
-  const { bookingsEmpty, bookingStatus } = props;
+  const { className, bookingsEmpty, bookingStatus } = props;
   const [openDialog, setOpenDialog] = useState(false);
   const { isSuccess, isPending, data } = trpc.viewer.apps.integrations.useQuery({
     variant: "other",
@@ -28,7 +29,7 @@ const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   return (
     <>
       {data && isSuccess && !isPending && credentialId && (
-        <div className="mb-4">
+        <div className={className}>
           <ConfirmDialog isOpenDialog={openDialog} setIsOpenDialog={setOpenDialog} />
           <Button color="primary" onClick={() => setOpenDialog(true)} data-testid="wipe-today-button">
             Wipe Today

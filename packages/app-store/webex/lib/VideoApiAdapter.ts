@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import prisma from "@calcom/prisma";
+import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { Credential } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -112,7 +113,7 @@ const webexAuth = (credential: CredentialPayload) => {
       let credentialKey: WebexToken | null = null;
       try {
         credentialKey = webexTokenSchema.parse(credential.key);
-      } catch (error) {
+      } catch {
         return Promise.reject("Webex credential keys parsing error");
       }
 
@@ -148,8 +149,6 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
   const fetchWebexApi = async (endpoint: string, options?: RequestInit) => {
     const auth = webexAuth(credential);
     const accessToken = await auth.getToken();
-    console.log("result of accessToken in fetchWebexApi", accessToken);
-    console.log("createMeeting options in fetchWebexApi", options);
     const response = await fetch(`https://webexapis.com/v1/${endpoint}`, {
       method: "GET",
       ...options,
@@ -172,97 +171,84 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
           start: meeting.start,
           end: meeting.end,
         }));
-      } catch (err) {
-        console.error(err);
-
+      } catch {
+        logger.error("Error fetching Webex availability");
         return [];
       }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/create-a-meeting */
-      try {
-        console.log("Creating meeting", event);
-        console.log("meting body", translateEvent(event));
-        console.log("request body in createMeeting", JSON.stringify(translateEvent(event)));
-        const response = await fetchWebexApi("meetings", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        });
-        console.log("Webex create meeting response", response);
-        if (response.error) {
-          if (response.error === "invalid_grant") {
-            await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
-          }
+      const response = await fetchWebexApi("meetings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      });
+      if (response.error) {
+        if (response.error === "invalid_grant") {
+          await invalidateCredential(credential.id);
+          return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
         }
-
-        const result = webexEventResultSchema.parse(response);
-        if (result.id && result.webLink) {
-          return {
-            type: "webex_video",
-            id: result.id.toString(),
-            password: result.password || "",
-            url: result.webLink,
-          };
-        }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
-      } catch (err) {
-        console.error(err);
-        throw new Error("Unexpected error");
       }
+
+      const result = webexEventResultSchema.parse(response);
+      if (result.id && result.webLink) {
+        logger.debug("Webex meeting created", { meetingId: result.id });
+        return {
+          type: "webex_video",
+          id: result.id.toString(),
+          password: result.password || "",
+          url: result.webLink,
+        };
+      }
+      throw new Error("Failed to create meeting: missing id or webLink in response");
     },
     deleteMeeting: async (uid: string): Promise<void> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/delete-a-meeting */
       try {
+        logger.debug("Deleting Webex meeting", { meetingId: uid });
         const response = await fetchWebexApi(`meetings/${uid}`, {
           method: "DELETE",
         });
-        console.log("Webex delete meeting response", response);
         if (response.error) {
           if (response.error === "invalid_grant") {
             await invalidateCredential(credential.id);
             return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
           }
         }
+        logger.debug("Webex meeting deleted", { meetingId: uid });
         return Promise.resolve();
-      } catch (err) {
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       /** @link https://developer.webex.com/docs/api/v1/meetings/update-a-meeting */
-      try {
-        const response = await fetchWebexApi(`meetings/${bookingRef.uid}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(translateEvent(event)),
-        });
-        if (response.error) {
-          if (response.error === "invalid_grant") {
-            await invalidateCredential(credential.id);
-            return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
-          }
+      const response = await fetchWebexApi(`meetings/${bookingRef.uid}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(translateEvent(event)),
+      });
+      if (response.error) {
+        if (response.error === "invalid_grant") {
+          await invalidateCredential(credential.id);
+          return Promise.reject(new Error("Invalid grant for Cal.com webex app"));
         }
-
-        const result = webexEventResultSchema.parse(response);
-        if (result.id && result.webLink) {
-          return {
-            type: "webex_video",
-            id: bookingRef.meetingId as string,
-            password: result.password || "",
-            url: result.webLink,
-          };
-        }
-        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
-      } catch (err) {
-        console.error(err);
-        throw new Error("Unexpected error");
       }
+
+      const result = webexEventResultSchema.parse(response);
+      if (result.id && result.webLink) {
+        return {
+          type: "webex_video",
+          id: bookingRef.meetingId as string,
+          password: result.password || "",
+          url: result.webLink,
+        };
+      }
+      throw new Error("Failed to update meeting: missing id or webLink in response");
     },
   };
 };

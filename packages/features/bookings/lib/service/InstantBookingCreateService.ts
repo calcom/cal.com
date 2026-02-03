@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -27,6 +27,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
+import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
@@ -70,6 +71,7 @@ const handleInstantMeetingWebhookTrigger = async (args: {
         payloadTemplate: true,
         appId: true,
         secret: true,
+        version: true,
       },
     });
 
@@ -80,7 +82,10 @@ const handleInstantMeetingWebhookTrigger = async (args: {
         secretKey: sub.secret,
         triggerEvent: eventTrigger,
         createdAt: new Date().toISOString(),
-        webhook: sub,
+        webhook: {
+          ...sub,
+          version: sub.version as WebhookVersion,
+        },
         data: webhookData,
       }).catch((e) => {
         console.error(
@@ -197,8 +202,18 @@ export async function handler(
   const attendeeTimezone = reqBody.timeZone;
   const attendeeLanguage = reqBody.language;
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
+  const tEnglish = await getTranslation("en", "common");
 
   const fullName = getFullName(bookerName);
+
+  // Determine whether to auto-translate the instant meeting title based on the event type setting
+  // Default is true (opt-out), so we only skip translation when explicitly set to false
+  const shouldAutoTranslateInstantMeetingTitle = eventType.autoTranslateInstantMeetingTitleEnabled;
+
+  // Get the booking title - either translated to attendee's language or in English
+  const bookingTitle = shouldAutoTranslateInstantMeetingTitle
+    ? tAttendees("instant_meeting_with_title", { name: fullName })
+    : tEnglish("instant_meeting_with_title", { name: fullName });
 
   const invitee = [
     {
@@ -242,7 +257,7 @@ export async function handler(
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
     responses: reqBody.responses === null ? Prisma.JsonNull : reqBody.responses,
-    title: tAttendees("instant_meeting_with_title", { name: invitee[0].name }),
+    title: bookingTitle,
     startTime: dayjs.utc(reqBody.start).toDate(),
     endTime: dayjs.utc(reqBody.end).toDate(),
     description: reqBody.notes,
@@ -279,17 +294,7 @@ export async function handler(
 
   const token = randomBytes(32).toString("hex");
 
-  const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
-    where: {
-      id: bookingData.eventTypeId,
-    },
-    select: {
-      instantMeetingExpiryTimeOffsetInSeconds: true,
-    },
-  });
-
-  const instantMeetingExpiryTimeOffsetInSeconds =
-    eventTypeWithExpiryTimeOffset?.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+  const instantMeetingExpiryTimeOffsetInSeconds = eventType.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
 
   const instantMeetingToken = await prisma.instantMeetingToken.create({
     data: {

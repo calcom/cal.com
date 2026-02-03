@@ -2,6 +2,7 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
@@ -10,13 +11,18 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import {
+  HAS_ORG_OPT_IN_FEATURES,
+  HAS_TEAM_OPT_IN_FEATURES,
+  HAS_USER_OPT_IN_FEATURES,
+} from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
-import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -29,6 +35,8 @@ import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
+import Shell from "~/shell/Shell";
+
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
     {
@@ -36,13 +44,50 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       href: "/settings/my-account",
       icon: "user",
       children: [
-        { name: "profile", href: "/settings/my-account/profile" },
-        { name: "general", href: "/settings/my-account/general" },
-        { name: "calendars", href: "/settings/my-account/calendars" },
-        { name: "conferencing", href: "/settings/my-account/conferencing" },
-        { name: "appearance", href: "/settings/my-account/appearance" },
-        { name: "out_of_office", href: "/settings/my-account/out-of-office" },
-        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
+        {
+          name: "profile",
+          href: "/settings/my-account/profile",
+          trackingMetadata: { section: "my_account", page: "profile" },
+        },
+        {
+          name: "general",
+          href: "/settings/my-account/general",
+          trackingMetadata: { section: "my_account", page: "general" },
+        },
+        {
+          name: "calendars",
+          href: "/settings/my-account/calendars",
+          trackingMetadata: { section: "my_account", page: "calendars" },
+        },
+        {
+          name: "conferencing",
+          href: "/settings/my-account/conferencing",
+          trackingMetadata: { section: "my_account", page: "conferencing" },
+        },
+        {
+          name: "appearance",
+          href: "/settings/my-account/appearance",
+          trackingMetadata: { section: "my_account", page: "appearance" },
+        },
+        {
+          name: "out_of_office",
+          href: "/settings/my-account/out-of-office",
+          trackingMetadata: { section: "my_account", page: "out_of_office" },
+        },
+        {
+          name: "push_notifications",
+          href: "/settings/my-account/push-notifications",
+          trackingMetadata: { section: "my_account", page: "push_notifications" },
+        },
+        ...(HAS_USER_OPT_IN_FEATURES
+          ? [
+              {
+                name: "features",
+                href: "/settings/my-account/features",
+                trackingMetadata: { section: "my_account", page: "features" },
+              },
+            ]
+          : []),
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -52,16 +97,39 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       href: "/settings/security",
       icon: "key",
       children: [
-        { name: "password", href: "/settings/security/password" },
-        { name: "impersonation", href: "/settings/security/impersonation" },
-        { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+        {
+          name: "password",
+          href: "/settings/security/password",
+          trackingMetadata: { section: "security", page: "password" },
+        },
+        {
+          name: "impersonation",
+          href: "/settings/security/impersonation",
+          trackingMetadata: { section: "security", page: "impersonation" },
+        },
+        {
+          name: "2fa_auth",
+          href: "/settings/security/two-factor-auth",
+          trackingMetadata: { section: "security", page: "2fa_auth" },
+        },
+        {
+          name: "compliance",
+          href: "/settings/security/compliance",
+          trackingMetadata: { section: "security", page: "compliance" },
+        },
       ],
     },
     {
       name: "billing",
       href: "/settings/billing",
       icon: "credit-card",
-      children: [{ name: "manage_billing", href: "/settings/billing" }],
+      children: [
+        {
+          name: "manage_billing",
+          href: "/settings/billing",
+          trackingMetadata: { section: "billing", page: "manage_billing" },
+        },
+      ],
     },
     {
       name: "developer",
@@ -69,9 +137,26 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       icon: "terminal",
       children: [
         //
-        { name: "webhooks", href: "/settings/developer/webhooks" },
-        { name: "api_keys", href: "/settings/developer/api-keys" },
-        { name: "admin_api", href: "/settings/organizations/admin-api" },
+        {
+          name: "webhooks",
+          href: "/settings/developer/webhooks",
+          trackingMetadata: { section: "developer", page: "webhooks" },
+        },
+        {
+          name: "oAuth",
+          href: "/settings/developer/oauth",
+          trackingMetadata: { section: "developer", page: "oauth_clients" },
+        },
+        {
+          name: "api_keys",
+          href: "/settings/developer/api-keys",
+          trackingMetadata: { section: "developer", page: "api_keys" },
+        },
+        {
+          name: "admin_api",
+          href: "/settings/organizations/admin-api",
+          trackingMetadata: { section: "developer", page: "admin_api" },
+        },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds" },
       ],
@@ -83,10 +168,16 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "profile",
           href: "/settings/organizations/profile",
+          trackingMetadata: { section: "organization", page: "profile" },
         },
         {
           name: "general",
           href: "/settings/organizations/general",
+          trackingMetadata: { section: "organization", page: "general" },
+        },
+        {
+          name: "guest_notifications",
+          href: "/settings/organizations/guest-notifications",
         },
         ...(orgBranding
           ? [
@@ -94,28 +185,40 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
                 name: "members",
                 href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
                 isExternalLink: true,
+                trackingMetadata: { section: "organization", page: "members" },
               },
             ]
           : []),
         {
           name: "privacy_and_security",
           href: "/settings/organizations/privacy",
+          trackingMetadata: { section: "organization", page: "privacy_and_security" },
         },
-
-        { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
         {
           name: "SSO",
           href: "/settings/organizations/sso",
+          trackingMetadata: { section: "organization", page: "sso" },
         },
         {
           name: "directory_sync",
           href: "/settings/organizations/dsync",
+          trackingMetadata: { section: "organization", page: "directory_sync" },
         },
         {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
           isExternalLink: true,
+          trackingMetadata: { section: "organization", page: "admin_api" },
         },
+        ...(HAS_ORG_OPT_IN_FEATURES
+          ? [
+              {
+                name: "features",
+                href: "/settings/organizations/features",
+                trackingMetadata: { section: "organization", page: "features" },
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -136,33 +239,95 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       icon: "lock",
       children: [
         //
-        { name: "features", href: "/settings/admin/flags" },
-        { name: "license", href: "/auth/setup?step=1" },
-        { name: "impersonation", href: "/settings/admin/impersonation" },
-        { name: "apps", href: "/settings/admin/apps/calendar" },
-        { name: "users", href: "/settings/admin/users" },
-        { name: "organizations", href: "/settings/admin/organizations" },
-        { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
-        { name: "oAuth", href: "/settings/admin/oAuth" },
-        { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
-        { name: "Playground", href: "/settings/admin/playground" },
+        {
+          name: "features",
+          href: "/settings/admin/flags",
+          trackingMetadata: { section: "admin", page: "features" },
+        },
+        {
+          name: "license",
+          href: "/auth/setup?step=1",
+          trackingMetadata: { section: "admin", page: "license" },
+        },
+        {
+          name: "admin_billing",
+          href: "/settings/admin/billing",
+          trackingMetadata: { section: "admin", page: "billing" },
+        },
+        {
+          name: "impersonation",
+          href: "/settings/admin/impersonation",
+          trackingMetadata: { section: "admin", page: "impersonation" },
+        },
+        {
+          name: "apps",
+          href: "/settings/admin/apps/calendar",
+          trackingMetadata: { section: "admin", page: "apps" },
+        },
+        {
+          name: "users",
+          href: "/settings/admin/users",
+          trackingMetadata: { section: "admin", page: "users" },
+        },
+        {
+          name: "organizations",
+          href: "/settings/admin/organizations",
+          trackingMetadata: { section: "admin", page: "organizations" },
+        },
+        {
+          name: "lockedSMS",
+          href: "/settings/admin/lockedSMS",
+          trackingMetadata: { section: "admin", page: "locked_sms" },
+        },
+        {
+          name: "pbac_resource_blocklist",
+          href: "/settings/admin/blocklist",
+          trackingMetadata: { section: "admin", page: "blocklist" },
+        },
+        {
+          name: "oAuth",
+          href: "/settings/admin/oauth",
+          trackingMetadata: { section: "admin", page: "oauth" },
+        },
+        {
+          name: "Workspace Platforms",
+          href: "/settings/admin/workspace-platforms",
+          trackingMetadata: { section: "admin", page: "workspace_platforms" },
+        },
+        {
+          name: "Playground",
+          href: "/settings/admin/playground",
+          trackingMetadata: { section: "admin", page: "playground" },
+        },
       ],
     },
   ];
 
-  tabs.find((tab) => {
+  for (const tab of tabs) {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
-      tab.children?.push({ name: "sso_configuration", href: "/settings/security/sso" });
+      tab.children?.push({
+        name: "sso_configuration",
+        href: "/settings/security/sso",
+        trackingMetadata: { section: "security", page: "sso_configuration" },
+      });
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
+
     if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_org", href: "/settings/organizations/new" });
+      tab.children?.push({
+        name: "create_org",
+        href: "/settings/organizations/new",
+        trackingMetadata: { section: "admin", page: "create_org" },
+      });
+
+      tab.children?.push({
+        name: "create_license_key",
+        href: "/settings/license-key/new",
+        trackingMetadata: { section: "admin", page: "create_license_key" },
+      });
     }
-    if (tab.name === "admin" && IS_CALCOM) {
-      tab.children?.push({ name: "create_license_key", href: "/settings/license-key/new" });
-    }
-  });
+  }
 
   return tabs;
 };
@@ -173,16 +338,16 @@ const organizationRequiredKeys = ["organization"];
 const organizationAdminKeys = [
   "privacy",
   "privacy_and_security",
-  "OAuth Clients",
   "SSO",
   "directory_sync",
   "delegation_credential",
 ];
 
-export interface SettingsPermissions {
+interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
+  canViewAttributes?: boolean;
 }
 
 const useTabs = ({
@@ -213,10 +378,11 @@ const useTabs = ({
           (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
         );
 
-        if (permissions?.canUpdateOrganization) {
+        if (permissions?.canViewAttributes) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
+            trackingMetadata: { section: "organization", page: "attributes" },
           });
         }
 
@@ -225,6 +391,7 @@ const useTabs = ({
           newArray.push({
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
+            trackingMetadata: { section: "organization", page: "delegation_credential" },
           });
         }
 
@@ -234,6 +401,7 @@ const useTabs = ({
             newArray.push({
               name: "roles_and_permissions",
               href: "/settings/organizations/roles",
+              trackingMetadata: { section: "organization", page: "roles_and_permissions" },
             });
           }
 
@@ -241,6 +409,7 @@ const useTabs = ({
             newArray.push({
               name: "billing",
               href: "/settings/organizations/billing",
+              trackingMetadata: { section: "organization", page: "billing" },
             });
           }
         } else {
@@ -248,6 +417,7 @@ const useTabs = ({
             newArray.push({
               name: "billing",
               href: "/settings/organizations/billing",
+              trackingMetadata: { section: "organization", page: "billing" },
             });
           }
           // Show roles page (modal will appear if PBAC not enabled)
@@ -255,7 +425,8 @@ const useTabs = ({
             newArray.push({
               name: "roles",
               href: "/settings/organizations/roles",
-              isBadged: true, // Show "New" badge
+              isBadged: true, // Show "New" badge,
+              trackingMetadata: { section: "organization", page: "roles" },
             });
           }
         }
@@ -346,6 +517,7 @@ const TeamRolesNavItem = ({
     <VerticalTabItem
       name={t("roles_and_permissions")}
       href={`/settings/teams/${team.id}/roles`}
+      trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
       textClassNames="px-3 text-emphasis font-medium text-sm"
       disableChevron
     />
@@ -358,21 +530,26 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
   const searchParams = useCompatSearchParams();
+  const pathname = usePathname();
+  const searchParamsId = searchParams?.get("id");
+  const pathTeamId = pathname?.match(/\/settings\/teams\/(\d+)/)?.[1];
+  const activeTeamId = pathTeamId || searchParamsId;
+
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+        teamMenuOpen: String(team.id) === activeTeamId,
       }));
       setTeamMenuState(teamStates);
-      setTimeout(() => {
-        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
-          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
-        )[1];
-        tabMembers?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      if (activeTeamId) {
+        setTimeout(() => {
+          const teamTrigger = document.querySelector(`[aria-controls="team-content-${activeTeamId}"]`);
+          teamTrigger?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      }
     }
-  }, [searchParams?.get("id"), teams]);
+  }, [activeTeamId, teams]);
 
   return (
     <>
@@ -382,7 +559,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
           if (!teamMenuState[index]) {
             return null;
           }
-          if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+          if (teamMenuState.some((teamState) => teamState.teamId === team.id)) {
             return (
               <Collapsible
                 className="cursor-pointer"
@@ -430,10 +607,13 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         <Icon name="chevron-right" className="h-4 w-4" />
                       )}
                     </div>
+                    {}
                     {!team.parentId && (
-                      <img
+                      <Image
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        width={16}
+                        height={16}
+                        className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                         alt={team.name || "Team logo"}
                       />
                     )}
@@ -445,21 +625,23 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     )}
                   </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
+                <CollapsibleContent className="flex flex-col space-y-1" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
+                      trackingMetadata={{ section: "team", page: "profile", teamId: team.id }}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
-                      className="me-5 h-7 w-auto !px-2"
+                      className="px-2! me-5 h-7 w-auto"
                       disableChevron
                     />
                   )}
                   <VerticalTabItem
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
+                    trackingMetadata={{ section: "team", page: "members", teamId: team.id }}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className="me-5 h-7 w-auto !px-2"
+                    className="px-2! me-5 h-7 w-auto"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -480,9 +662,20 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        trackingMetadata={{ section: "team", page: "appearance", teamId: team.id }}
+                        className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
+                      {HAS_TEAM_OPT_IN_FEATURES && (
+                        <VerticalTabItem
+                          name={t("features")}
+                          href={`/settings/teams/${team.id}/features`}
+                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                          trackingMetadata={{ section: "team", page: "features", teamId: team.id }}
+                          className="px-2! me-5 h-7 w-auto"
+                          disableChevron
+                        />
+                      )}
                       {/* Hide if there is a parent ID */}
                       {!team.parentId ? (
                         <>
@@ -490,7 +683,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
-                            className="me-5 h-7 w-auto !px-2"
+                            trackingMetadata={{ section: "team", page: "billing", teamId: team.id }}
+                            className="px-2! me-5 h-7 w-auto"
                             disableChevron
                           />
                         </>
@@ -499,7 +693,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        trackingMetadata={{ section: "team", page: "settings", teamId: team.id }}
+                        className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
                     </>
@@ -507,6 +702,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 </CollapsibleContent>
               </Collapsible>
             );
+          }
+
+          return null;
         })}
     </>
   );
@@ -522,12 +720,13 @@ const SettingsSidebarContainer = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [otherTeamMenuState, setOtherTeamMenuState] =
+    useState<
+      {
+        teamId: number | undefined;
+        teamMenuOpen: boolean;
+      }[]
+    >();
   const session = useSession();
 
   const organizationId = session.data?.user?.org?.id;
@@ -554,12 +753,13 @@ const SettingsSidebarContainer = ({
     enabled: !!session.data?.user?.org,
   });
 
+  const searchParamsId = searchParams?.get("id");
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
       const otherTeamStates = otherTeams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: String(team.id) === searchParams?.get("id"),
+        teamMenuOpen: String(team.id) === searchParamsId,
       }));
       setOtherTeamMenuState(otherTeamStates);
       setTimeout(() => {
@@ -570,13 +770,13 @@ const SettingsSidebarContainer = ({
         tabMembers?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     }
-  }, [searchParams?.get("id"), otherTeams]);
+  }, [searchParamsId, otherTeams]);
 
   return (
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
-        "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -590,7 +790,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
-                  <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
+                  <div className={`${!tab.children?.length ? "mb-3!" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
                         <Icon
@@ -598,9 +798,12 @@ const SettingsSidebarContainer = ({
                           className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                         />
                       )}
+                      {}
                       {!tab.icon && tab?.avatar && (
-                        <img
-                          className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
+                        <Image
+                          width={16}
+                          height={16}
+                          className="rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
                           alt="Organization Logo"
                         />
@@ -614,16 +817,17 @@ const SettingsSidebarContainer = ({
                       </Skeleton>
                     </div>
                   </div>
-                  <div className="my-3 space-y-px">
+                  <div className="flex flex-col space-y-1">
                     {tab.children?.map((child, index) => (
                       <div key={child.href} className="flex items-start gap-2">
                         <VerticalTabItem
                           name={t(child.name)}
                           isExternalLink={child.isExternalLink}
                           href={child.href || "/"}
+                          trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`h-7 w-fit !px-2 ${
-                            tab.children && index === tab.children?.length - 1 && "!mb-3"
+                          className={`px-2! py-1! min-h-7 h-auto w-fit ${
+                            tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
                         />
@@ -663,8 +867,9 @@ const SettingsSidebarContainer = ({
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
+                        trackingMetadata={{ section: "team", page: "add_a_team" }}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        className="px-2! me-5 h-7 w-auto"
                         icon="plus"
                         disableChevron
                       />
@@ -749,10 +954,13 @@ const SettingsSidebarContainer = ({
                                       <Icon name="chevron-right" className="h-4 w-4" />
                                     )}
                                   </div>
+                                  {}
                                   {!otherTeam.parentId && (
-                                    <img
+                                    <Image
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      width={16}
+                                      height={16}
+                                      className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
@@ -760,20 +968,30 @@ const SettingsSidebarContainer = ({
                                 </button>
                               </CollapsibleTrigger>
                               <CollapsibleContent
-                                className="space-y-0.5"
+                                className="flex flex-col space-y-1"
                                 id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
+                                  trackingMetadata={{
+                                    section: "other_team",
+                                    page: "profile",
+                                    teamId: otherTeam.id,
+                                  }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto !px-2"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
+                                  trackingMetadata={{
+                                    section: "other_team",
+                                    page: "members",
+                                    teamId: otherTeam.id,
+                                  }}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto !px-2"
+                                  className="px-2! me-5 h-7 w-auto"
                                   disableChevron
                                 />
                                 <>
@@ -803,10 +1021,13 @@ const SettingsSidebarContainer = ({
 const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const isStandalone = useIsStandalone();
+
+  if (isStandalone) return null;
 
   return (
     <>
-      <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
+      <nav className="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
         <div className="flex items-center space-x-3">
           <Button StartIcon="menu" color="minimal" variant="icon" onClick={props.onSideContainerOpen}>
             <span className="sr-only">{t("show_navigation")}</span>
@@ -824,14 +1045,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export type SettingsLayoutProps = {
+type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
+function SettingsLayoutAppDirClient({
   children,
   teamFeatures,
   permissions,
@@ -852,13 +1073,11 @@ export default function SettingsLayoutAppDirClient({
     return () => {
       window.removeEventListener("resize", closeSideContainer);
     };
-  }, []);
+  }, [setSideContainerOpen]);
 
   useEffect(() => {
-    if (sideContainerOpen) {
-      setSideContainerOpen(!sideContainerOpen);
-    }
-  }, [pathname]);
+    setSideContainerOpen((prev) => (prev ? false : prev));
+  }, [pathname, setSideContainerOpen]);
 
   return (
     <Shell
@@ -877,7 +1096,7 @@ export default function SettingsLayoutAppDirClient({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex flex-1 [&>*]:flex-1">
+      <div className="*:flex-1 flex flex-1">
         <div
           className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
@@ -922,3 +1141,6 @@ const SidebarContainerElement = ({
     </>
   );
 };
+
+export type { SettingsLayoutProps, SettingsPermissions };
+export default SettingsLayoutAppDirClient;

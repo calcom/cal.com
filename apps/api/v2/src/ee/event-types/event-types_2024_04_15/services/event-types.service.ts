@@ -129,7 +129,7 @@ export class EventTypesService_2024_04_15 {
   }
 
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_04_15, user: UserWithProfile) {
-    this.checkCanUpdateEventType(user.id, eventTypeId);
+    await this.checkCanUpdateEventType(user.id, eventTypeId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
     const bookingFields = [...(body.bookingFields || [])];
 

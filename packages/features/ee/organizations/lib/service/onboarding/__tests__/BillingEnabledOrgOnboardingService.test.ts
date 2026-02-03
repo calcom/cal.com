@@ -1,4 +1,4 @@
-import prismock from "../../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
@@ -223,6 +223,181 @@ describe("BillingEnabledOrgOnboardingService", () => {
       });
     });
 
+    it("should automatically migrate team with conflicting slug", async () => {
+      // Create a team owned by the user with the same slug as the org
+      const conflictingTeam = await prismock.team.create({
+        data: {
+          id: 100,
+          name: "Test Org Team",
+          slug: "test-org", // Same as mockInput.slug
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: conflictingTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const inputWithoutConflictingTeam = {
+        ...mockInput,
+        teams: [{ id: -1, name: "Engineering", isBeingMigrated: false, slug: null }],
+      };
+
+      await service.createOnboardingIntent(inputWithoutConflictingTeam);
+
+      // Verify the conflicting team was automatically added to migration
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: expect.arrayContaining([
+            { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+            { id: 100, name: "Test Org Team", isBeingMigrated: true, slug: "test-org" },
+          ]),
+        })
+      );
+    });
+
+    it("should mark existing team for migration if slug conflicts", async () => {
+      // Create a team owned by the user with the same slug as the org
+      const conflictingTeam = await prismock.team.create({
+        data: {
+          id: 100,
+          name: "Test Org Team",
+          slug: "test-org", // Same as mockInput.slug
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: conflictingTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const inputWithConflictingTeamNotMigrated = {
+        ...mockInput,
+        teams: [
+          { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+          { id: 100, name: "Test Org Team", isBeingMigrated: false, slug: "test-org" },
+        ],
+      };
+
+      await service.createOnboardingIntent(inputWithConflictingTeamNotMigrated);
+
+      // Verify the conflicting team was marked for migration
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: expect.arrayContaining([
+            { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+            { id: 100, name: "Test Org Team", isBeingMigrated: true, slug: "test-org" },
+          ]),
+        })
+      );
+    });
+
+    it("should not duplicate team if already marked for migration with conflicting slug", async () => {
+      // Create a team owned by the user with the same slug as the org
+      const conflictingTeam = await prismock.team.create({
+        data: {
+          id: 100,
+          name: "Test Org Team",
+          slug: "test-org", // Same as mockInput.slug
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: conflictingTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const inputWithConflictingTeamAlreadyMigrated = {
+        ...mockInput,
+        teams: [
+          { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+          { id: 100, name: "Test Org Team", isBeingMigrated: true, slug: "test-org" },
+        ],
+      };
+
+      await service.createOnboardingIntent(inputWithConflictingTeamAlreadyMigrated);
+
+      // Verify no duplication occurred
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: [
+            { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+            { id: 100, name: "Test Org Team", isBeingMigrated: true, slug: "test-org" },
+          ],
+        })
+      );
+    });
+
+    it("should not migrate team with non-conflicting slug", async () => {
+      // Create a team owned by the user with a different slug
+      const nonConflictingTeam = await prismock.team.create({
+        data: {
+          id: 100,
+          name: "Different Team",
+          slug: "different-team",
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: nonConflictingTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      await service.createOnboardingIntent(mockInput);
+
+      // Verify the non-conflicting team was NOT added
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: mockInput.teams,
+        })
+      );
+    });
+
+    it("should only migrate teams where user is OWNER or ADMIN", async () => {
+      // Create a team with conflicting slug but user is only a MEMBER
+      const teamAsMember = await prismock.team.create({
+        data: {
+          id: 100,
+          name: "Team As Member",
+          slug: "test-org",
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: teamAsMember.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      });
+
+      await service.createOnboardingIntent(mockInput);
+
+      // Verify the team was NOT migrated (user isn't owner/admin)
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: mockInput.teams,
+        })
+      );
+    });
+
     it("should immediately create organization when admin creates org for self", async () => {
       vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
 
@@ -286,6 +461,202 @@ describe("BillingEnabledOrgOnboardingService", () => {
       expect(result.checkoutUrl).toBeNull();
       expect(result.handoverUrl).toContain("/settings/organizations/new/resume");
       expect(mockPaymentService.createPaymentIntent).not.toHaveBeenCalled();
+    });
+
+    it("should handle explicitly migrated teams with slugs", async () => {
+      const existingTeam1 = await prismock.team.create({
+        data: {
+          id: 101,
+          name: "Engineering",
+          slug: "engineering",
+        },
+      });
+
+      const existingTeam2 = await prismock.team.create({
+        data: {
+          id: 102,
+          name: "Marketing",
+          slug: "marketing",
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: existingTeam1.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: existingTeam2.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const inputWithMigratedTeams = {
+        ...mockInput,
+        teams: [
+          { id: 101, name: "Engineering", isBeingMigrated: true, slug: "engineering" },
+          { id: 102, name: "Marketing", isBeingMigrated: true, slug: "marketing" },
+          { id: -1, name: "Sales", isBeingMigrated: false, slug: null },
+        ],
+      };
+
+      await service.createOnboardingIntent(inputWithMigratedTeams);
+
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: expect.arrayContaining([
+            { id: 101, name: "Engineering", isBeingMigrated: true, slug: "engineering" },
+            { id: 102, name: "Marketing", isBeingMigrated: true, slug: "marketing" },
+            { id: -1, name: "Sales", isBeingMigrated: false, slug: null },
+          ]),
+        })
+      );
+    });
+
+    it("should handle migrated members with teamId", async () => {
+      const existingTeam = await prismock.team.create({
+        data: {
+          id: 103,
+          name: "Engineering",
+          slug: "engineering",
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: existingTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const inputWithMigratedMembers = {
+        ...mockInput,
+        teams: [{ id: 103, name: "Engineering", isBeingMigrated: true, slug: "engineering" }],
+        invitedMembers: [
+          { email: "migrated1@example.com", teamId: 103, role: "MEMBER" },
+          { email: "migrated2@example.com", teamId: 103, role: "MEMBER" },
+          { email: "newinvite@example.com", teamName: "Engineering", teamId: -1, role: "ADMIN" },
+        ],
+      };
+
+      await service.createOnboardingIntent(inputWithMigratedMembers);
+
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          invitedMembers: expect.arrayContaining([
+            expect.objectContaining({
+              email: "migrated1@example.com",
+              teamId: 103,
+              role: "MEMBER",
+            }),
+            expect.objectContaining({
+              email: "migrated2@example.com",
+              teamId: 103,
+              role: "MEMBER",
+            }),
+            expect.objectContaining({
+              email: "newinvite@example.com",
+              teamName: "Engineering",
+              teamId: -1,
+              role: "ADMIN",
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("should handle mixed migrated teams and members with new teams and invites", async () => {
+      const existingTeam1 = await prismock.team.create({
+        data: {
+          id: 104,
+          name: "Engineering",
+          slug: "engineering",
+        },
+      });
+
+      const existingTeam2 = await prismock.team.create({
+        data: {
+          id: 105,
+          name: "Marketing",
+          slug: "marketing",
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: existingTeam1.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      await prismock.membership.create({
+        data: {
+          userId: mockUser.id,
+          teamId: existingTeam2.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const inputWithMixedMigration = {
+        ...mockInput,
+        teams: [
+          { id: 104, name: "Engineering", isBeingMigrated: true, slug: "engineering" },
+          { id: 105, name: "Marketing", isBeingMigrated: true, slug: "marketing" },
+          { id: -1, name: "Sales", isBeingMigrated: false, slug: null },
+        ],
+        invitedMembers: [
+          { email: "eng-member@example.com", teamId: 104, role: "MEMBER" },
+          { email: "marketing-member@example.com", teamId: 105, role: "MEMBER" },
+          { email: "new-sales-member@example.com", teamName: "Sales", teamId: -1, role: "MEMBER" },
+          { email: "org-member@example.com", role: "ADMIN" },
+        ],
+      };
+
+      await service.createOnboardingIntent(inputWithMixedMigration);
+
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teams: expect.arrayContaining([
+            { id: 104, name: "Engineering", isBeingMigrated: true, slug: "engineering" },
+            { id: 105, name: "Marketing", isBeingMigrated: true, slug: "marketing" },
+            { id: -1, name: "Sales", isBeingMigrated: false, slug: null },
+          ]),
+          invitedMembers: expect.arrayContaining([
+            expect.objectContaining({
+              email: "eng-member@example.com",
+              teamId: 104,
+              role: "MEMBER",
+            }),
+            expect.objectContaining({
+              email: "marketing-member@example.com",
+              teamId: 105,
+              role: "MEMBER",
+            }),
+            expect.objectContaining({
+              email: "new-sales-member@example.com",
+              teamName: "Sales",
+              teamId: -1,
+              role: "MEMBER",
+            }),
+            expect.objectContaining({
+              email: "org-member@example.com",
+              role: "ADMIN",
+            }),
+          ]),
+        })
+      );
     });
   });
 

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { ORGANIZATION_SELF_SERVE_MIN_SEATS } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -42,15 +41,19 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => ({
-  StripeBillingService: vi.fn().mockImplementation(() => ({
-    createCustomer: vi.fn().mockResolvedValue({ id: "mock_customer_id" }),
-    createPrice: vi.fn().mockResolvedValue({ id: "mock_price_id", isCustom: false }),
-    createSubscription: vi.fn().mockResolvedValue({ id: "mock_subscription_id" }),
-    createSubscriptionCheckout: vi.fn().mockResolvedValue({
-      checkoutUrl: "https://checkout.stripe.com/mock-checkout-url",
-    }),
-  })),
+const mockBillingService = {
+  createCustomer: vi.fn().mockResolvedValue({ id: "mock_customer_id" }),
+  createPrice: vi.fn().mockResolvedValue({ id: "mock_price_id", isCustom: false }),
+  createSubscription: vi.fn().mockResolvedValue({ id: "mock_subscription_id" }),
+  createSubscriptionCheckout: vi.fn().mockResolvedValue({
+    checkoutUrl: "https://checkout.stripe.com/mock-checkout-url",
+  }),
+};
+
+vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
+  getBillingProviderService: vi.fn(() => mockBillingService),
+  getTeamBillingServiceFactory: vi.fn(),
+  getTeamBillingDataRepository: vi.fn(),
 }));
 
 describe("OrganizationPaymentService", () => {
@@ -73,9 +76,8 @@ describe("OrganizationPaymentService", () => {
       validatePermissions: vi.fn().mockResolvedValue(true),
     };
     service = new OrganizationPaymentService(mockUser, mockPermissionService);
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ metadata: {} } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ metadata: {} });
 
-    // Mock successful organization onboarding creation
     vi.mocked(prisma.organizationOnboarding.create).mockResolvedValue({
       id: 1,
       name: "Test Org",
@@ -86,7 +88,7 @@ describe("OrganizationPaymentService", () => {
       pricePerSeat: 20,
       stripeCustomerId: "mock_customer_id",
       isComplete: false,
-    } as any);
+    });
   });
 
   describe("createPaymentIntent", () => {
@@ -112,8 +114,8 @@ describe("OrganizationPaymentService", () => {
       ).rejects.toThrow("You do not have permission to modify the default payment settings");
     });
 
-    it("should use minimum seats when total unique members is less than minimum", async () => {
-      // Mock 3 unique members (less than minimum of 5)
+    it("should use max of onboarding seats and unique member count (no minimum enforcement)", async () => {
+      // Mock 3 unique members - should use max of onboarding seats (5) and unique count (4)
       vi.mocked(prisma.membership.findMany).mockImplementation(async () => [
         { userId: 1, user: { email: "user1@example.com" } },
         { userId: 2, user: { email: "user2@example.com" } },
@@ -123,15 +125,15 @@ describe("OrganizationPaymentService", () => {
       const result = await service.createPaymentIntent(
         {
           ...baseInput,
-          invitedMembers: [{ email: "invited1@example.com" }], // Adding 1 invited member
+          invitedMembers: [{ email: "invited1@example.com" }], // Adding 1 invited member = 4 total unique
         },
-        defaultOrgOnboarding
+        defaultOrgOnboarding // Has seats: 5 set
       );
 
       expect(result).toBeDefined();
       const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
       expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-      const { updatedAt, ...data } = updateCall.data;
+      const { updatedAt: _updatedAt, ...data } = updateCall.data;
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
@@ -153,7 +155,7 @@ describe("OrganizationPaymentService", () => {
         stripeCustomerId: "mock_stripe_customer_id",
         pricePerSeat: defaultOrgOnboarding.pricePerSeat,
         billingPeriod: "MONTHLY",
-        seats: Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
+        seats: 5, // Max of onboarding seats (5) and unique members (4) = 5
       });
     });
 
@@ -181,7 +183,7 @@ describe("OrganizationPaymentService", () => {
       expect(result).toBeDefined();
       const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
       expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-      const { updatedAt, ...data } = updateCall.data;
+      const { updatedAt: _updatedAt, ...data } = updateCall.data;
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
@@ -216,7 +218,7 @@ describe("OrganizationPaymentService", () => {
         vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
       });
 
-      it("should allow admin to override minimum seats to a lower value", async () => {
+      it("should allow admin to set custom seat count", async () => {
         const customSeats = 3;
         await service.createPaymentIntent(
           {
@@ -232,7 +234,7 @@ describe("OrganizationPaymentService", () => {
         expect(vi.mocked(prisma.organizationOnboarding.update)).toHaveBeenCalled();
         const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
         expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-        const { updatedAt, ...data } = updateCall.data;
+        const { updatedAt: _updatedAt, ...data } = updateCall.data;
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
@@ -264,7 +266,7 @@ describe("OrganizationPaymentService", () => {
         expect(result).toBeDefined();
         const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
         expect(updateCall.where).toEqual({ id: "onboard-id-1" });
-        const { updatedAt, ...data } = updateCall.data;
+        const { updatedAt: _updatedAt, ...data } = updateCall.data;
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
@@ -315,6 +317,95 @@ describe("OrganizationPaymentService", () => {
             }),
           })
         );
+      });
+    });
+
+    describe("seat count flexibility", () => {
+      beforeEach(() => {
+        mockPermissionService.validatePermissions.mockResolvedValue(true);
+        mockPermissionService.hasModifiedDefaultPayment.mockReturnValue(false);
+        vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
+      });
+
+      it("should allow creating organization with 1 seat", async () => {
+        vi.mocked(prisma.organizationOnboarding.create).mockResolvedValue({
+          id: 1,
+          name: "Small Org",
+          slug: "small-org",
+          orgOwnerEmail: "owner@example.com",
+          billingPeriod: "MONTHLY",
+          seats: 1,
+          pricePerSeat: 20,
+          stripeCustomerId: null,
+          isComplete: false,
+        });
+
+        const result = await service.createOrganizationOnboarding({
+          name: "Small Org",
+          slug: "small-org",
+          orgOwnerEmail: "owner@example.com",
+          createdByUserId: 1,
+          seats: 1,
+        });
+
+        expect(result).toBeDefined();
+        const createCall = vi.mocked(prisma.organizationOnboarding.create).mock.calls[0][0];
+        expect(createCall.data.seats).toBe(1);
+      });
+
+      it("should default to 1 seat when seats not provided", async () => {
+        vi.mocked(prisma.organizationOnboarding.create).mockResolvedValue({
+          id: 1,
+          name: "Default Org",
+          slug: "default-org",
+          orgOwnerEmail: "owner@example.com",
+          billingPeriod: "MONTHLY",
+          seats: 1,
+          pricePerSeat: 20,
+          stripeCustomerId: null,
+          isComplete: false,
+        });
+
+        const result = await service.createOrganizationOnboarding({
+          name: "Default Org",
+          slug: "default-org",
+          orgOwnerEmail: "owner@example.com",
+          createdByUserId: 1,
+        });
+
+        expect(result).toBeDefined();
+        const createCall = vi.mocked(prisma.organizationOnboarding.create).mock.calls[0][0];
+        expect(createCall.data.seats).toBe(1);
+      });
+
+      it("should allow creating organization with any seat count", async () => {
+        const seatCounts = [1, 2, 5, 10, 50, 100];
+
+        for (const seatCount of seatCounts) {
+          vi.clearAllMocks();
+          vi.mocked(prisma.organizationOnboarding.create).mockResolvedValue({
+            id: 1,
+            name: `Org ${seatCount}`,
+            slug: `org-${seatCount}`,
+            orgOwnerEmail: `owner${seatCount}@example.com`,
+            billingPeriod: "MONTHLY",
+            seats: seatCount,
+            pricePerSeat: 20,
+            stripeCustomerId: null,
+            isComplete: false,
+          });
+
+          await service.createOrganizationOnboarding({
+            name: `Org ${seatCount}`,
+            slug: `org-${seatCount}`,
+            orgOwnerEmail: `owner${seatCount}@example.com`,
+            createdByUserId: 1,
+            seats: seatCount,
+          });
+
+          const createCall = vi.mocked(prisma.organizationOnboarding.create).mock.calls[0][0];
+          expect(createCall.data.seats).toBe(seatCount);
+        }
       });
     });
   });

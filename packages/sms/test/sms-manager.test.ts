@@ -2,21 +2,25 @@ import type { TFunction } from "i18next";
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
-vi.mock("@calcom/lib/checkRateLimitAndThrowError");
+vi.mock("@calcom/lib/smsLockState");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/messageDispatcher");
-vi.mock("@calcom/prisma", () => ({
-  default: {
+vi.mock("@calcom/prisma", () => {
+  const mockObj = {
     team: {
       findUnique: vi.fn(),
     },
-  },
-}));
+  };
+  return {
+    default: mockObj,
+    prisma: mockObj,
+  };
+});
 
 interface TestAttendee extends Person {
   name: string;
@@ -137,20 +141,22 @@ describe("SMSManager", () => {
       const result = await smsManager.sendSMSToAttendee(mockCalEvent.attendees[0], "test-booking-uid");
 
       expect(checkSMSRateLimit).toHaveBeenCalledWith({
-        identifier: "handleSendingSMS:user:1",
+        identifier: "handleSendingSMS:org-user-1",
         rateLimitingType: "sms",
       });
 
-      expect(sendSmsOrFallbackEmail).toHaveBeenCalledWith({
-        twilioData: {
-          phoneNumber: mockCalEvent.attendees[0].phoneNumber,
-          body: expect.stringContaining(mockCalEvent.attendees[0].name),
-          sender: expect.any(String),
-          teamId: undefined,
-          userId: 1,
-          bookingUid: "test-booking-uid",
-        },
-      });
+      expect(sendSmsOrFallbackEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          twilioData: expect.objectContaining({
+            phoneNumber: mockCalEvent.attendees[0].phoneNumber,
+            body: expect.stringContaining(mockCalEvent.attendees[0].name),
+            sender: expect.any(String),
+            userId: 1,
+            bookingUid: "test-booking-uid",
+          }),
+          creditCheckFn: expect.any(Function),
+        })
+      );
 
       expect(result).toEqual(mockSmsResponse);
     });

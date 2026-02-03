@@ -71,9 +71,9 @@ const emailReminderTemplate = ({
     "date_and_time"
   )}: </strong></div>${eventDate} - ${endTime} (${timeZone})<br><br>`;
 
-  const attendeeHtml = `<div><strong class="editor-text-bold">${t("attendees")}: </strong></div>${t(
-    "you_and_conjunction"
-  )} ${otherPerson}<br><br>`;
+  const attendeeHtml = `<div><strong class="editor-text-bold">${t(
+    "attendees"
+  )}: </strong></div>${t("you_and_conjunction")} ${otherPerson}<br><br>`;
 
   const locationHtml = `<div><strong class="editor-text-bold">${t(
     "location"
@@ -82,7 +82,7 @@ const emailReminderTemplate = ({
   const branding =
     !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>${t("scheduling_by")} ${APP_NAME}` : "";
 
-  const endingHtml = `${t("email_reminder_triggered_by_workflow")}${branding}</body>`;
+  const endingHtml = `${branding}</body>`;
 
   const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + locationHtml + endingHtml;
 
@@ -91,4 +91,4 @@ const emailReminderTemplate = ({
 
 export default emailReminderTemplate;
 
-export const plainTextTemplate = `Hi {ORGANIZER},This is a reminder about your upcoming event.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ATTENDEE}Location: {LOCATION} {MEETING_URL}This reminder was triggered by a Workflow in Cal.`;
+export const plainTextTemplate = `Hi {ORGANIZER},This is a reminder about your upcoming event.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ATTENDEE}Location: {LOCATION} {MEETING_URL}`;

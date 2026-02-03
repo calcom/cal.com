@@ -1,4 +1,4 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -70,13 +70,14 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  const billingService = new StripeBillingService();
+  const billingService = getBillingProviderService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,
     quantity,
     successUrl: redirectUrl,
     cancelUrl: redirectUrl,
+    allowPromotionCodes: true,
     metadata: {
       ...(teamId && { teamId: teamId.toString() }),
       userId: ctx.user.id.toString(),

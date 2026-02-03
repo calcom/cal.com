@@ -133,10 +133,12 @@ export interface BaseCardProps extends CVACardType {
     "data-testid"?: string;
   };
   learnMore?: {
-    href: string;
+    href?: string;
     text: string;
+    onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   };
   mediaLink?: string;
+  mediaLinkOnClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   thumbnailUrl?: string;
   structure?: string;
   coverPhoto?: string;
@@ -157,8 +159,9 @@ export function Card({
   learnMore,
   coverPhoto,
   buttonClassName,
+  mediaLinkOnClick,
 }: BaseCardProps) {
-  const LinkComponent = learnMore && learnMore.href.startsWith("https") ? "a" : Link;
+  const LinkComponent = learnMore?.href?.startsWith("https") ? "a" : Link;
   return (
     <div
       className={classNames(
@@ -200,13 +203,13 @@ export function Card({
       </div>
       {variant === "SidebarCard" && mediaLink && (
         <a
-          onClick={actionButton?.onClick}
+          onClick={mediaLinkOnClick}
           target="_blank"
           rel="noreferrer noopener"
           href={mediaLink}
           data-testid={actionButton?.["data-testid"]}
           className="group relative my-3 flex aspect-video items-center overflow-hidden rounded">
-          <div className="absolute inset-0 bg-black bg-opacity-50 transition group-hover:bg-opacity-40" />
+          <div className="absolute inset-0 bg-black/50 transition group-hover:bg-black/40" />
           <svg
             className="text-inverted absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 transform rounded-full shadow-lg transition-all hover:-mt-px"
             viewBox="0 0 32 32"
@@ -249,18 +252,30 @@ export function Card({
       {(variant === "SidebarCard" || variant === "NewLaunchSidebarCard") && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <LinkComponent
-              href={learnMore.href}
-              target="_blank"
-              rel="noreferrer"
-              className={classNames("text-default text-xs font-medium", buttonClassName)}>
-              {learnMore.text}
-            </LinkComponent>
+            <>
+              {learnMore.href ? (
+                <LinkComponent
+                  href={learnMore.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={learnMore.onClick}
+                  className={classNames("text-default text-xs font-medium cursor-pointer", buttonClassName)}>
+                  {learnMore.text}
+                </LinkComponent>
+              ) : learnMore.onClick ? (
+                <button type="button"
+                  color="minimal"
+                  onClick={learnMore.onClick}
+                  className={classNames("cursor-pointer text-default text-xs font-medium", buttonClassName)}>
+                  {learnMore.text}
+                </button>
+              ) : undefined}
+            </>
           )}
           {actionButton?.child && (
             <button
               className={classNames(
-                "text-default hover:text-emphasis p-0 text-xs font-normal",
+                "text-default hover:text-emphasis p-0 text-xs font-normal cursor-pointer",
                 buttonClassName
               )}
               color="minimal"

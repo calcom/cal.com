@@ -12,10 +12,10 @@ const dynamicImportHandler = async () => await import("./reserveSlot.handler");
 
 // The repository instance method is used to check for an existing reservation by someone else.
 // To keep this unit test isolated from the database layer, we stub this to always resolve falsey.
-vi.mock("@calcom/lib/server/repository/PrismaSelectedSlotRepository", () => ({
-  PrismaSelectedSlotRepository: vi.fn().mockImplementation(() => ({
+vi.mock("@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository", () => ({
+  PrismaSelectedSlotRepository: vi.fn().mockImplementation(function() { return {
     findReservedByOthers: vi.fn().mockResolvedValue(null),
-  })),
+  }; }),
 }));
 
 // A tiny helper to build a canned handler context with stubbed Prisma methods.

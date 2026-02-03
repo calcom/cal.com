@@ -16,6 +16,7 @@ export const lucideIconList = new Set([
   "binary",
   "blocks",
   "bold",
+  "book",
   "book-open-check",
   "book-open",
   "book-user",

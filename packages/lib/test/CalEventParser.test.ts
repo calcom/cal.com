@@ -56,7 +56,7 @@ describe("getVideoCallUrl", () => {
       }),
     });
 
-    expect(getVideoCallUrlFromCalEvent(calEvent)).toEqual(getPublicVideoCallUrl(calEvent));
+    expect(getVideoCallUrlFromCalEvent(calEvent)).toEqual(getPublicVideoCallUrl(calEvent.uid));
   });
 });
 
@@ -68,12 +68,12 @@ describe("getVideoCallPassword", () => {
       }),
     });
 
-    expect(getVideoCallPassword(calEvent)).toEqual("");
+    expect(getVideoCallPassword(calEvent.videoCallData)).toEqual("");
   });
   it("should return original password for other video call meetings", () => {
     const calEvent = buildCalendarEvent();
 
     expect(calEvent?.videoCallData?.type).not.toBe("daily_video");
-    expect(getVideoCallPassword(calEvent)).toEqual(calEvent?.videoCallData.password);
+    expect(getVideoCallPassword(calEvent.videoCallData)).toEqual(calEvent?.videoCallData?.password);
   });
 });

@@ -4,28 +4,28 @@ import {
   getSMSMessageWithVariables,
   shouldUseTwilio,
 } from "@calcom/ee/workflows/lib/reminders/utils";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { TimeFormat } from "@calcom/lib/timeFormat";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
+import type { FormSubmissionData, BookingInfo } from "../types";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
-import type { FormSubmissionData } from "./reminderScheduler";
+import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
 
 export enum timeUnitLowerCase {
@@ -34,45 +34,6 @@ export enum timeUnitLowerCase {
   YEAR = "year",
 }
 const log = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
-
-export type AttendeeInBookingInfo = {
-  name: string;
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  phoneNumber?: string | null;
-  timeZone: string;
-  language: { locale: string };
-};
-
-export type BookingInfo = {
-  uid?: string | null;
-  bookerUrl: string;
-  attendees: AttendeeInBookingInfo[];
-  organizer: {
-    language: { locale: string };
-    name: string;
-    email: string;
-    timeZone: string;
-    timeFormat?: TimeFormat;
-    username?: string;
-  };
-  eventType?: {
-    slug: string;
-    recurringEvent?: RecurringEvent | null;
-    customReplyToEmail?: string | null;
-  };
-  startTime: string;
-  endTime: string;
-  title: string;
-  location?: string | null;
-  additionalNotes?: string | null;
-  responses?: CalEventResponses | null;
-  metadata?: Prisma.JsonValue;
-  cancellationReason?: string | null;
-  rescheduleReason?: string | null;
-  hideOrganizerEmail?: boolean;
-};
 
 export type ScheduleTextReminderAction = Extract<
   WorkflowActions,
@@ -87,6 +48,7 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
+  creditCheckFn: CreditCheckFn;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
@@ -171,6 +133,7 @@ const scheduleSMSReminderForEvt = async (
     userId,
     teamId,
     seatReferenceUid,
+    creditCheckFn,
   } = args;
 
   const { startTime, endTime } = evt;
@@ -182,6 +145,17 @@ const scheduleSMSReminderForEvt = async (
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
+  }
+
+  if (
+    scheduledDate &&
+    triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT &&
+    dayjs(scheduledDate).isBefore(dayjs())
+  ) {
+    log.debug(
+      `Skipping reminder for workflow step ${workflowStepId} - scheduled date ${scheduledDate} is in the past`
+    );
+    return;
   }
 
   const useTwilio = shouldUseTwilio(triggerEvent, scheduledDate);
@@ -241,6 +215,7 @@ const scheduleSMSReminderForEvt = async (
                   replyTo: evt.organizer.email,
                 }
               : undefined,
+            creditCheckFn,
           });
         } catch (error) {
           log.error(`Error sending SMS with error ${error}`);
@@ -272,6 +247,7 @@ const scheduleSMSReminderForEvt = async (
                   workflowStepId,
                 }
               : undefined,
+            creditCheckFn,
           });
 
           if (scheduledNotification?.sid) {
@@ -316,9 +292,21 @@ const scheduleSMSReminderForForm = async (
     formData: FormSubmissionData;
   }
 ) => {
-  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData } = args;
+  const { message, triggerEvent, reminderPhone, sender, userId, teamId, action, formData, creditCheckFn } =
+    args;
 
-  const smsMessage = message;
+  let smsMessage = message;
+
+  if (smsMessage && formData.responses) {
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
+
+    const variables = {
+      responses: transformRoutingFormResponsesToVariableFormat(formData.responses),
+    };
+
+    const processedMessage = customTemplate(smsMessage, variables, formData.user.locale, timeFormat);
+    smsMessage = processedMessage.text;
+  }
 
   if (smsMessage.trim().length > 0) {
     const smsMessageWithoutOptOut = await WorkflowOptOutService.addOptOutMessage(
@@ -349,6 +337,7 @@ const scheduleSMSReminderForForm = async (
                 replyTo: formData.user.email,
               }
             : undefined,
+        creditCheckFn,
       });
     } catch (error) {
       log.error(`Error sending SMS with error ${error}`);
