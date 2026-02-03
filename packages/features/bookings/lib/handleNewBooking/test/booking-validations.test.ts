@@ -2,7 +2,7 @@
  * Booking Validation Specifications
  * These specifications verify the business rules and validation behavior for booking creation
  */
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   createBookingScenario,
@@ -12,19 +12,20 @@ import {
   getScenarioData,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+  getMockBookingAttendee,
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { afterEach, beforeEach, vi } from "vitest";
 import { describe, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
-vi.mock("@calcom/trpc/server/routers/viewer/auth/util", () => ({
+vi.mock("@calcom/features/auth/lib/verifyCodeUnAuthenticated", () => ({
   verifyCodeUnAuthenticated: vi.fn(),
 }));
 
@@ -39,7 +40,7 @@ vi.mock("@calcom/features/users/repositories/UserRepository", async (importOrigi
 
   return {
     ...actual,
-    UserRepository: vi.fn().mockImplementation((prisma) => {
+    UserRepository: vi.fn(function (prisma) {
       const realInstance = new OriginalUserRepository(prisma);
       realInstance.findManyByEmailsWithEmailVerificationSettings =
         mockFindManyByEmailsWithEmailVerificationSettings;
@@ -402,6 +403,122 @@ describe("Booking Validation Specifications", () => {
         );
       }
     });
+
+    test("includes seatUid in reschedule error for seated events", async () => {
+      vi.setSystemTime(new Date("2025-01-01"));
+      const plus1DateString = "2025-01-02";
+      const plus2DateString = "2025-01-03";
+
+      const handleNewBooking = getNewBookingHandler();
+
+      const bookerA = getBooker({
+        email: "bookerA@example.com",
+        name: "Booker A",
+      });
+
+      const bookerB = getBooker({
+        email: "bookerB@example.com",
+        name: "Booker B",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const seatReferenceUidA = "seat-reference-uid-a";
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              maxActiveBookingsPerBooker: 1,
+              maxActiveBookingPerBookerOfferReschedule: true,
+              seatsPerTimeSlot: 3,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"]],
+          bookings: [
+            {
+              uid: "existing-booking-1",
+              eventTypeId: 1,
+              userId: organizer.id,
+              startTime: `${plus1DateString}T10:00:00.000Z`,
+              endTime: `${plus1DateString}T10:30:00.000Z`,
+              title: "Existing Booking",
+              status: BookingStatus.ACCEPTED,
+              attendees: [
+                getMockBookingAttendee({
+                  id: 1,
+                  name: bookerA.name,
+                  email: bookerA.email,
+                  locale: "en",
+                  timeZone: "America/Toronto",
+                  bookingSeat: {
+                    referenceUid: seatReferenceUidA,
+                    data: {},
+                  },
+                }),
+                getMockBookingAttendee({
+                  id: 2,
+                  name: bookerB.name,
+                  email: bookerB.email,
+                  locale: "en",
+                  timeZone: "America/Toronto",
+                  bookingSeat: {
+                    referenceUid: "seat-reference-uid-b",
+                    data: {},
+                  },
+                }),
+              ],
+            },
+          ],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: `${plus2DateString}T10:00:00.000Z`,
+          end: `${plus2DateString}T10:30:00.000Z`,
+          responses: {
+            email: bookerA.email,
+            name: bookerA.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      try {
+        await handleNewBooking({
+          bookingData: mockBookingData,
+        });
+        expect.fail("Expected booking to throw booker_limit_exceeded_error_reschedule");
+      } catch (error) {
+        expect(error.message).toEqual("booker_limit_exceeded_error_reschedule");
+        expect(error.data).toEqual(
+          expect.objectContaining({
+            rescheduleUid: "existing-booking-1",
+            seatUid: seatReferenceUidA,
+          })
+        );
+      }
+    });
   });
 
   describe("User Email Verification Setting", () => {
@@ -554,7 +671,9 @@ describe("Booking Validation Specifications", () => {
 
     test("should create booking when main booker provides valid verification code", async () => {
       const handleNewBooking = getNewBookingHandler();
-      const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
+      const { verifyCodeUnAuthenticated } = await import(
+        "@calcom/features/auth/lib/verifyCodeUnAuthenticated"
+      );
 
       vi.mocked(verifyCodeUnAuthenticated).mockResolvedValue(true);
 
@@ -1067,7 +1186,9 @@ describe("Booking Validation Specifications", () => {
 
     test("should throw error when invalid verification code is provided", async () => {
       const handleNewBooking = getNewBookingHandler();
-      const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
+      const { verifyCodeUnAuthenticated } = await import(
+        "@calcom/features/auth/lib/verifyCodeUnAuthenticated"
+      );
 
       vi.mocked(verifyCodeUnAuthenticated).mockResolvedValue(false);
 

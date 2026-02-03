@@ -2,11 +2,6 @@ import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
-import type {
-  TLocationOptions,
-  TEventTypeLocation,
-} from "@calcom/features/eventtypes/components/locations/Locations";
-import Locations from "@calcom/features/eventtypes/components/locations/Locations";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,6 +15,8 @@ import { QueryCell } from "@lib/QueryCell";
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
 
 import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
+import Locations from "~/event-types/components/locations/Locations";
+import type { TLocationOptions, TEventTypeLocation } from "~/event-types/components/locations/Locations";
 
 const LocationsWrapper = ({
   eventType,

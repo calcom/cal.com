@@ -5,7 +5,7 @@ icon: "google"
 
 Deploying Cal.com on Google Cloud Platform (GCP)
 
-In this guide, we will go over the steps to deploy cal.com on Google Cloud Platform (GCP). We will cover how to create a virtual machine, configure it, install Docker, and finally deploy the cal.com application.
+In this guide, we will go over the steps to deploy Cal.com on Google Cloud Platform (GCP). We will cover how to create a virtual machine, configure it, install Docker, and finally deploy the Cal.com application.
 
 ## One Click Deployment
 
@@ -92,11 +92,11 @@ In this guide, we will go over the steps to deploy cal.com on Google Cloud Platf
         ```
     </Step>
     <Step title="Deploying Cal.com">
-        Now that Docker is installed and running, you can deploy cal.com on your virtual machine.
+        Now that Docker is installed and running, you can deploy Cal.com on your virtual machine.
 
         ### Pull the Docker Image
 
-        Use the following command to pull the cal.com Docker image from Docker Hub:
+        Use the following command to pull the Cal.com Docker image from Docker Hub:
         ```bash
         docker pull cal/calcom
         ```
@@ -106,12 +106,12 @@ In this guide, we will go over the steps to deploy cal.com on Google Cloud Platf
         ```bash
         docker run -d -p 80:80 cal/cal.com
         ```
-        This command maps port 80 on your local machine to port 80 inside the container, so you can access cal.com from outside the container.
+        This command maps port 80 on your local machine to port 80 inside the container, so you can access Cal.com from outside the container.
 
         ### Access Cal.com
 
-        Open a web browser and navigate to `http://localhost`. You should now be able to access the cal.com homepage.
+        Open a web browser and navigate to `http://localhost`. You should now be able to access the Cal.com homepage.
     </Step>
 </Steps>
 
-Congratulations! You have successfully deployed cal.com on Google Cloud Platform.
+Congratulations! You have successfully deployed Cal.com on Google Cloud Platform.

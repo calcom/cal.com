@@ -3,8 +3,8 @@ import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import jackson from "./jackson";
 import { tenantPrefix, samlProductID } from "./saml";
@@ -29,21 +29,13 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
   let memberships = await getAllAcceptedMemberships({ prisma, email });
 
   if (!memberships || memberships.length === 0) {
-    if (!HOSTED_CAL_FEATURES)
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "no_account_exists",
-      });
+    if (!HOSTED_CAL_FEATURES) throw new ErrorWithCode(ErrorCode.Unauthorized, "no_account_exists");
 
     const domain = email.split("@")[1];
     const organizationRepository = getOrganizationRepository();
     const organization = await organizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
 
-    if (!organization)
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "no_account_exists",
-      });
+    if (!organization) throw new ErrorWithCode(ErrorCode.Unauthorized, "no_account_exists");
 
     const createUsersAndConnectToOrgProps = {
       emailsToCreate: [email],
@@ -58,10 +50,7 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
     memberships = await getAllAcceptedMemberships({ prisma, email });
 
     if (!memberships || memberships.length === 0)
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "no_account_exists",
-      });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "no_account_exists");
   }
 
   // Check SSO connections for each team user is a member of
@@ -81,11 +70,10 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
     .filter((connections) => connections.length > 0);
 
   if (connectionsFound.length === 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message:
-        "Could not find a SSO Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal",
-    });
+    throw new ErrorWithCode(
+      ErrorCode.BadRequest,
+      "Could not find a SSO Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal"
+    );
   }
 
   return {

@@ -6,7 +6,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
-import type { AttendeeInBookingInfo, BookingInfo } from "./smsReminderManager";
+import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, { transformBookingResponsesToVariableFormat } from "./templates/customTemplate";
 

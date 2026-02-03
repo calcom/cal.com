@@ -19,18 +19,17 @@
   ],
   "dependencies": {
     "@calcom/lib": "workspace:*",
-    "ink": "^3.2.0",
-    "ink-select-input": "^4.2.1",
-    "ink-text-input": "^4.0.3",
-    "meow": "^9.0.0",
-    "react": "^18.2.0"
+    "ink": "3.2.0",
+    "ink-select-input": "4.2.1",
+    "ink-text-input": "4.0.3",
+    "meow": "9.0.0",
+    "react": "18.2.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.8",
     "@types/react": "18.0.26",
-    "chokidar": "^3.5.3",
-    "eslint-plugin-react": "^7.30.1",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.9.0-beta"
+    "chokidar": "3.6.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3"
   }
 }

@@ -6,8 +6,7 @@ export function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, 
   }
 
   // Consider setting atleast ES2015 as target
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   for (const [key, value] of entries) {
     if (result.hasOwnProperty(key)) {
       let currentValue = result[key];

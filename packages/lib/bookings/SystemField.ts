@@ -16,6 +16,13 @@ export const SystemField = z.enum([
 export const SMS_REMINDER_NUMBER_FIELD = "smsReminderNumber";
 export const CAL_AI_AGENT_PHONE_NUMBER_FIELD = "aiAgentCallPhoneNumber";
 export const TITLE_FIELD = "title";
+export const ATTENDEE_PHONE_NUMBER_FIELD = "attendeePhoneNumber";
+
+export const SYSTEM_PHONE_FIELDS = new Set([
+  ATTENDEE_PHONE_NUMBER_FIELD,
+  SMS_REMINDER_NUMBER_FIELD,
+  CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+]);
 
 /**
  * Check if a field should be displayed in custom responses section.

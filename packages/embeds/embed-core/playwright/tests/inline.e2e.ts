@@ -18,7 +18,7 @@ test.describe("Inline Iframe", () => {
     await embeds.gotoPlayground({ calNamespace: "", url: "/?only=ns:default" });
     const calNamespace = "";
     const embedIframe = await ensureEmbedIframe({ calNamespace, page, pathname: "/pro" });
-    expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
       searchParams: {
         theme: "dark",
       },
@@ -57,7 +57,7 @@ test.describe("Inline Iframe", () => {
     await embeds.gotoPlayground({ calNamespace, url: `?only=ns:autoScrollTest` });
     const calLink = `${user.username}/multiple-duration`;
     await page.goto(`/?only=ns:autoScrollTest&cal-link=${calLink}`);
-    const embedIframe = await ensureEmbedIframe({ calNamespace, page, pathname: `/${calLink}` });
+    await ensureEmbedIframe({ calNamespace, page, pathname: `/${calLink}` });
     const finalScrollPosition = await page.evaluate(() => window.scrollY);
     expect(finalScrollPosition).toBe(0);
   });

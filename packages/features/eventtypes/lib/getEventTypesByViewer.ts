@@ -9,6 +9,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -17,8 +19,6 @@ import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -39,7 +39,7 @@ export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer
 
 export const getEventTypesByViewer = async (user: User, filters?: Filters, forRoutingForms?: boolean) => {
   const userProfile = user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, user.id);
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
   const isFilterSet = filters && hasFilter(filters);
@@ -52,13 +52,19 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     shouldListUserEvents = true;
   }
 
-  // Get teams where user has eventType.read permission for PBAC readonly check
   const permissionCheckService = new PermissionCheckService();
-  const teamsWithEventTypeReadPermission = await permissionCheckService.getTeamIdsWithPermission({
-    userId: user.id,
-    permission: "eventType.read",
-    fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-  });
+  const [teamsWithEventTypeReadPermission, teamsWithEventTypeUpdatePermission] = await Promise.all([
+    permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "eventType.read",
+      fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+    }),
+    permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "eventType.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }),
+  ]);
 
   const eventTypeRepo = new EventTypeRepository(prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
@@ -96,7 +102,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   ]);
 
   if (!profile) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Profile not found");
   }
 
   const memberships = profileMemberships.map((membership) => ({
@@ -118,31 +124,27 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const mapEventType = async (eventType: UserEventTypes) => {
     const userRepo = new UserRepository(prisma);
+    const eventTypeUsers = eventType?.hosts?.length
+      ? eventType.hosts.map((host) => host.user)
+      : eventType.users;
+    const enrichedUsers = await userRepo.enrichUsersWithTheirProfiles(eventTypeUsers);
+
+    const children = eventType.children || [];
+    const allChildUsers = children.flatMap((c) => c.users);
+    const enrichedAllChildUsers = await userRepo.enrichUsersWithTheirProfiles(allChildUsers);
+    const enrichedUsersMap = new Map(enrichedAllChildUsers.map((user) => [user.id, user]));
+
+    const enrichedChildren = children.map((c) => ({
+      ...c,
+      users: c.users.map((user) => enrichedUsersMap.get(user.id)).filter((user) => !!user),
+    }));
+
     return {
       ...eventType,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-      users: await Promise.all(
-        (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-          async (u) =>
-            await userRepo.enrichUserWithItsProfile({
-              user: u,
-            })
-        )
-      ),
+      users: enrichedUsers,
       metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
-      children: await Promise.all(
-        (eventType.children || []).map(async (c) => ({
-          ...c,
-          users: await Promise.all(
-            c.users.map(
-              async (u) =>
-                await userRepo.enrichUserWithItsProfile({
-                  user: u,
-                })
-            )
-          ),
-        }))
-      ),
+      children: enrichedChildren,
     };
   };
 
@@ -299,7 +301,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                 return res;
               })
               .filter((evType) =>
-                membership.role === MembershipRole.MEMBER
+                !teamsWithEventTypeUpdatePermission.includes(team.id)
                   ? evType.schedulingType !== SchedulingType.MANAGED
                   : true
               )

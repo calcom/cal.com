@@ -76,10 +76,10 @@ const mockSendCreditBalanceLimitReachedEmails = vi.fn();
 const mockSendCreditBalanceLowWarningEmails = vi.fn();
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
-  CreditService: vi.fn().mockImplementation(() => ({
+  CreditService: vi.fn().mockImplementation(function() { return {
     hasAvailableCredits: mockHasAvailableCredits,
     chargeCredits: mockChargeCredits,
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/emails/email-manager", () => ({
@@ -91,16 +91,16 @@ vi.mock("@calcom/emails/email-manager", () => ({
 const mockFindByPhoneNumber = vi.fn();
 const mockFindByProviderAgentId = vi.fn();
 
-vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
-  PrismaPhoneNumberRepository: vi.fn().mockImplementation(() => ({
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => ({
+  PrismaPhoneNumberRepository: vi.fn().mockImplementation(function() { return {
     findByPhoneNumber: mockFindByPhoneNumber,
-  })),
+  }; }),
 }));
 
-vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
-  PrismaAgentRepository: vi.fn().mockImplementation(() => ({
+vi.mock("@calcom/features/calAIPhone/repositories/PrismaAgentRepository", () => ({
+  PrismaAgentRepository: vi.fn().mockImplementation(function() { return {
     findByProviderAgentId: mockFindByProviderAgentId,
-  })),
+  }; }),
 }));
 
 vi.mock("next/server", () => ({

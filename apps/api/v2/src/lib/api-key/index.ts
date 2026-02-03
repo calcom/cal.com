@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 export const sha256Hash = (token: string): string => createHash("sha256").update(token).digest("hex");
 

@@ -9,11 +9,14 @@
   "dependencies": {
     "@calcom/dayjs": "workspace:*",
     "@calcom/lib": "workspace:*",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "rrule": "^2.7.1"
+    "rrule": "2.7.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@calcom/testing": "workspace:*",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*"
   }

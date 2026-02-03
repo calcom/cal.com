@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,9 +20,17 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
 
   const handleLearnMore = () => {
     const redirectPath = flags["onboarding-v3"]
-      ? "/onboarding/organization/details"
+      ? "/onboarding/organization/details?migrate=true"
       : "/settings/organizations/new";
+
+    posthog.capture("company_email_banner_upgrade_clicked");
+
     router.push(redirectPath);
+  };
+
+  const handleDismiss = () => {
+    posthog.capture("company_email_banner_dismissed");
+    onDismissAction();
   };
 
   if (!flags["onboarding-v3"]) {
@@ -70,7 +79,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
             <p className="text-default text-sm">{t("explore_organizational_plan_description")}</p>
           </div>
           <div className="mt-2 flex gap-2">
-            <Button color="secondary" onClick={onDismissAction}>
+            <Button color="secondary" onClick={handleDismiss}>
               {t("dismiss")}
             </Button>
             <Button color="primary" EndIcon="external-link" onClick={handleLearnMore}>

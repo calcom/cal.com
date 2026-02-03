@@ -8,6 +8,7 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -26,7 +27,7 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
  * user and input it in our system. A Setup page was created when trying to install
  * Sendgrid in order to instruct how to create such resource and to obtain it.
  */
-export default class CloseComCalendarService implements Calendar {
+class SendgridCalendarService implements Calendar {
   private integrationName = "";
   private sendgrid: Sendgrid;
   private log: typeof logger;
@@ -87,15 +88,20 @@ export default class CloseComCalendarService implements Calendar {
     return Promise.resolve();
   }
 
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(_params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     return Promise.resolve([]);
   }
 
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
   }
+}
+
+/**
+ * Factory function that creates a Sendgrid Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new SendgridCalendarService(credential);
 }

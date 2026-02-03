@@ -3,13 +3,15 @@
  * This file is deprecated. The only use of this file is to seed the database for E2E tests. Each test should take care of seeding it's own data going forward.
  */
 import dotEnv from "dotenv";
-import path from "path";
+import path from "node:path"
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { shouldEnableApp } from "@calcom/app-store/_utils/validateAppKeys";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 
+dotEnv.config({ path: path.resolve(__dirname, "../.env") });
 dotEnv.config({ path: path.resolve(__dirname, "../.env.appStore") });
 
 async function createApp(
@@ -47,8 +49,9 @@ async function createApp(
       },
     });
 
-    // We need to enable seeded apps as they are used in tests.
-    const data = { slug, dirName, categories, keys, enabled: true };
+    // Only enable apps if they have valid keys (or don't require keys)
+    const enabled = shouldEnableApp(dirName, keys as Prisma.JsonValue);
+    const data = { slug, dirName, categories, keys, enabled };
 
     if (!foundApp) {
       await prisma.app.create({
@@ -255,7 +258,6 @@ export default async function main() {
 if (require.main === module) {
   (async () => {
     await main();
-    await seedAppData();
   })()
     .catch((e) => {
       console.error(e);

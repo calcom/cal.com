@@ -1,4 +1,36 @@
-## 1.1.2
+## 2.1.0
+
+## 2.2.0
+
+### Minor Changes
+
+- [#25819](https://github.com/calcom/cal.com/pull/25819) [`b4e773d`](https://github.com/calcom/cal.com/commit/b4e773da69ee2ad57d8fa22e780232af8e1c7637) Thanks [@supalarry](https://github.com/supalarry)! - feat: Booker accepts rrHostSubsetIds to specify round robin hosts
+
+### Minor Changes
+
+- feat: Booker accepts rrHostSubsetIds to specify round robin hosts
+
+## 2.0.0
+
+⚠️ This version contains a breaking change ⚠️. Specifically, the tailwind upgrade under major changes. Atoms now use tailwind at version 4, which means that you have to upgrade your project to use tailwind at version 4.
+
+### Major Changes
+
+- [#25577](https://github.com/calcom/cal.com/pull/25577) [`a1e1bf8`](https://github.com/calcom/cal.com/commit/a1e1bf8b76da5489f91895c3a776c38dea346cee) Thanks [@supalarry](https://github.com/supalarry)! - feat: use tailwind v4 (breaking change).
+
+### Minor Changes
+
+- [#24857](https://github.com/calcom/cal.com/pull/24857) [`c6daa61`](https://github.com/calcom/cal.com/commit/c6daa61e5efe24665f3d3dd0bea33c79dda6f797) Thanks [@ibex088](https://github.com/ibex088)! - Fix Booker atom verify email dialog infinite re-render when entering verification code
+
+- [#24896](https://github.com/calcom/cal.com/pull/24896) [`957d197`](https://github.com/calcom/cal.com/commit/957d19740ed31834e8346d3fa309605a6d657c11) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR introduces two variants for the calendar view atom, a generic calendar view and an event type specific view containing bookings data and busy times from connected calendars.
+
+- [#25093](https://github.com/calcom/cal.com/pull/25093) [`3e7a848`](https://github.com/calcom/cal.com/commit/3e7a848769d49295ee6e4251cf4afd2390793ae2) Thanks [@ibex088](https://github.com/ibex088)! - Refactor SettingsHeader to accept onBackButtonClick callback instead of using useRouter directly.
+
+- [#25204](https://github.com/calcom/cal.com/pull/25204) [`037cb8e`](https://github.com/calcom/cal.com/commit/037cb8ee2a83c1d725d5d913d47911a5997bee01) Thanks [@ThyMinimalDev](https://github.com/ThyMinimalDev)! - Add defaultPhoneCountry prop to BookerPlatformWrapper with ISO 3166-1 alpha-2 type safety
+
+### Patch Changes
+
+- [#25418](https://github.com/calcom/cal.com/pull/25418) [`8fcbf2c`](https://github.com/calcom/cal.com/commit/8fcbf2c167ce747e302c0c03095ddcdbebc728a3) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR fixes the issue of connect atoms not working inside iframes. It also updates the atoms exports to include the `useAvailableSlots` hook.
 
 ## 1.12.1
 

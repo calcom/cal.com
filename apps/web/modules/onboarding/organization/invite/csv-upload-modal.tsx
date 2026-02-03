@@ -148,7 +148,9 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
             <Logo className="h-10 w-auto" />
           </div>
 
-          <div className="relative mx-auto flex items-center justify-center" style={{ width: 320, height: 180 }}>
+          <div
+            className="relative mx-auto flex items-center justify-center"
+            style={{ width: 320, height: 180 }}>
             <div
               className="from-default to-muted border-subtle flex items-center justify-center rounded-2xl border bg-gradient-to-br p-8 shadow-sm"
               style={{ width: 200, height: 150 }}>
@@ -165,7 +167,11 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
               ) : (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon name="upload" className="text-emphasis opacity-70" style={{ width: 32, height: 32 }} />
+                    <Icon
+                      name="upload"
+                      className="text-emphasis opacity-70"
+                      style={{ width: 32, height: 32 }}
+                    />
                   </div>
                   <p className="text-subtle text-center text-sm">{t("upload_csv_subtitle")}</p>
                 </div>
@@ -179,7 +185,7 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
           </div>
 
           <div className="mb-2 flex flex-col gap-3">
-            <div className="bg-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
+            <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
                 <Icon name="download" className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
@@ -192,7 +198,7 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
               </Button>
             </div>
 
-            <div className="bg-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
+            <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
                 <Icon name="upload" className="text-emphasis" style={{ width: 16, height: 16 }} />
               </div>
@@ -220,7 +226,7 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
           </div>
         </div>
 
-        <div className="bg-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
+        <div className="bg-cal-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
           <Button color="minimal" onClick={handleClose} disabled={isUploading}>
             {t("cancel")}
           </Button>
@@ -236,4 +242,3 @@ export const OrganizationCSVUploadModal = ({ isOpen, onClose }: OrganizationCSVU
     </Dialog>
   );
 };
-

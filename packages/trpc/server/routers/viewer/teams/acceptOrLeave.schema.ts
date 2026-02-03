@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-export const ZAcceptOrLeaveInputSchema = z.object({
+export type TAcceptOrLeaveInputSchema = {
+  teamId: number;
+  accept: boolean;
+};
+
+export const ZAcceptOrLeaveInputSchema: z.ZodType<TAcceptOrLeaveInputSchema> = z.object({
   teamId: z.number(),
   accept: z.boolean(),
 });
-
-export type TAcceptOrLeaveInputSchema = z.infer<typeof ZAcceptOrLeaveInputSchema>;

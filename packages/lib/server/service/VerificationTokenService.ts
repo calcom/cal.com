@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from "crypto";
+import { randomBytes, createHash } from "node:crypto";
 
 import { VerificationTokenRepository } from "../repository/verificationToken";
 

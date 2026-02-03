@@ -9,15 +9,25 @@ on:
 jobs:
   cron-scheduleSMSReminders:
     env:
-      APP_URL: ${{ secrets.APP_URL }}
-      CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
+      APP_URL_US: ${{ vars.APP_URL_US }}
+      APP_URL_EU: ${{ vars.APP_URL_EU }}
+      CRON_API_KEY_US: ${{ secrets.CRON_API_KEY }}
+      CRON_API_KEY_EU: ${{ secrets.CRON_API_KEY_EU }}
     runs-on: ubuntu-latest
     steps:
-      - name: cURL request
-        if: ${{ env.APP_URL && env.CRON_API_KEY }}
+      - name: cURL request EU
+        if: ${{ env.APP_URL_EU && env.CRON_API_KEY_EU }}
         run: |
-          curl ${{ secrets.APP_URL }}/api/cron/workflows/scheduleSMSReminders \
+          curl ${{ env.APP_URL_EU }}/api/cron/workflows/scheduleSMSReminders \
             -X POST \
             -H 'content-type: application/json' \
-            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            -H 'authorization: ${{ env.CRON_API_KEY_EU }}' \
+            -sSf
+      - name: cURL request US
+        if: ${{ env.APP_URL_US && env.CRON_API_KEY_US }}
+        run: |
+          curl ${{ env.APP_URL_US }}/api/cron/workflows/scheduleSMSReminders \
+            -X POST \
+            -H 'content-type: application/json' \
+            -H 'authorization: ${{ env.CRON_API_KEY_US }}' \
             -sSf

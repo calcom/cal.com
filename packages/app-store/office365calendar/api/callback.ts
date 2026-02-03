@@ -104,15 +104,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     logger.info("Office365 Calendar: handleErrorsJson completed", {
       userId: req.session?.user?.id,
-      calendarCount: calBody.value.length ?? 0,
+      calendarCount: calBody.value?.length ?? 0,
     });
 
     if (typeof responseBody === "string") {
       calBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
     }
 
-    const findDefaultCalendar = calBody.value.find((calendar) => calendar.isDefaultCalendar);
-
+    const findDefaultCalendar = (calBody.value ?? []).find((calendar) => calendar.isDefaultCalendar);
     if (findDefaultCalendar) {
       defaultCalendar = findDefaultCalendar;
     }
@@ -124,7 +123,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  if (defaultCalendar?.id && req.session?.user?.id) {
+  if (!defaultCalendar?.id) {
+    const errorMessage = "no_default_calendar";
+    res.redirect(
+      `${getSafeRedirectUrl(state?.onErrorReturnTo) ?? getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })}?error=${errorMessage}`
+    );
+    return;
+  }
+
+  if (req.session?.user?.id) {
     const credential = await prisma.credential.create({
       data: {
         type: "office365_calendar",

@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-export const ZActivateEventTypeInputSchema = z.object({
+export type TActivateEventTypeInputSchema = {
+  eventTypeId: number;
+  workflowId: number;
+};
+
+export const ZActivateEventTypeInputSchema: z.ZodType<TActivateEventTypeInputSchema> = z.object({
   eventTypeId: z.number(),
   workflowId: z.number(),
 });
-
-export type TActivateEventTypeInputSchema = z.infer<typeof ZActivateEventTypeInputSchema>;

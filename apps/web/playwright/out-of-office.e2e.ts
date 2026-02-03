@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { randomString } from "@calcom/lib/random";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { addFilter } from "./filter-helpers";
@@ -23,18 +23,8 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
     await page.getByTestId("reason_select").click();
 
@@ -80,18 +70,8 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
     await page.getByTestId("reason_select").click();
 
@@ -102,7 +82,8 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("profile-redirect-switch").click();
 
-    await page.getByTestId(`team_username_select_${userTo.id}`).click();
+    await page.getByTestId("team_username_select").click();
+    await page.getByTestId(`select-option-${userTo.id}`).click();
 
     // send request
     await saveAndWaitForResponse(page);
@@ -167,12 +148,7 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
+    await goToOOOPage(page);
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -183,7 +159,8 @@ test.describe("Out of office", () => {
     await page.getByTestId("notes_input").click();
     await page.getByTestId("notes_input").fill("Changed notes");
 
-    await page.getByTestId(`team_username_select_${userToSecond.id}`).click();
+    await page.getByTestId("team_username_select").click();
+    await page.getByTestId(`select-option-${userToSecond.id}`).click();
 
     // send request
     await saveAndWaitForResponse(page);
@@ -231,22 +208,10 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
-
-    await selectToAndFromDates(page, "13", "22", true);
+    await selectToAndFromDates(page, "13", "22", "previous");
 
     // send request
     await saveAndWaitForResponse(page);
@@ -280,20 +245,8 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -302,11 +255,7 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
-    await entriesListRespPromise;
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
+    await openOOODialog(page);
 
     await selectToAndFromDates(page, "11", "24");
 
@@ -321,20 +270,8 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -343,11 +280,7 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
-    await entriesListRespPromise;
-    await page.getByTestId("add_entry_ooo").click();
-    await reasonListRespPromise;
-
-    await page.locator('[data-testid="date-range"]').click();
+    await openOOODialog(page);
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -359,32 +292,16 @@ test.describe("Out of office", () => {
     const user = await users.create({ name: "userOne" });
     await user.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await addOOOButton.click();
-    await reasonListRespPromise;
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
     //Creates 2 OOO entries:
     //First OOO is created on Next month 1st - 3rd
-    await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
     //Second OOO is created on Next month 4th - 6th
-    await entriesListRespPromise;
-    await addOOOButton.click();
-    await reasonListRespPromise;
-    await dateButton.click();
+    await openOOODialog(page);
     await selectDateAndCreateOOO(page, "4", "6");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
   });
@@ -403,23 +320,10 @@ test.describe("Out of office", () => {
 
     await owner.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
-    await addOOOButton.click();
-    await reasonListRespPromise;
+    await goToOOOPage(page);
+    await openOOODialog(page);
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
     await expect(
       page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
@@ -427,12 +331,8 @@ test.describe("Out of office", () => {
 
     //As member1, OOO is created on Next month 4th - 5th, forwarding to 'owner'
     await member1User?.apiLogin();
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-    await addOOOButton.click();
-    await reasonListRespPromise;
-    await dateButton.click();
+    await goToOOOPage(page);
+    await openOOODialog(page);
     await selectDateAndCreateOOO(page, "4", "5", owner.id);
     await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
   });
@@ -452,22 +352,10 @@ test.describe("Out of office", () => {
 
     await owner.apiLogin();
 
-    const entriesListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-    );
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
+    await goToOOOPage(page);
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    const reasonListRespPromise = page.waitForResponse(
-      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-    );
     await test.step("As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'", async () => {
-      await addOOOButton.click();
-      await reasonListRespPromise;
-      await dateButton.click();
+      await openOOODialog(page);
       await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
       await expect(
         page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
@@ -476,12 +364,8 @@ test.describe("Out of office", () => {
 
     await test.step("As member1, expect error while OOO is created on Next month 4th - 5th, forwarding to 'owner'", async () => {
       await member1User?.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await entriesListRespPromise;
-      await addOOOButton.click();
-      await reasonListRespPromise;
-      await dateButton.click();
+      await goToOOOPage(page);
+      await openOOODialog(page);
       await selectDateAndCreateOOO(page, "2", "5", owner.id, 400);
       await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
     });
@@ -505,30 +389,13 @@ test.describe("Out of office", () => {
       const member3User = users.get().find((user) => user.name === "member-3");
       await teamAdmin.apiLogin();
 
-      const entriesListRespPromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-      );
-      await page.goto("/settings/my-account/out-of-office?type=team");
-      await page.waitForLoadState("domcontentloaded");
-      await entriesListRespPromise;
-
-      const addOOOButton = page.getByTestId("add_entry_ooo");
-      const dateButton = page.locator('[data-testid="date-range"]');
-      const reasonListRespPromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
-      );
-      const legacyListMembersRespPromise = page.waitForResponse(
-        (response) => response.url().includes("legacyListMembers") && response.status() === 200
-      );
-      await addOOOButton.click();
-      await reasonListRespPromise;
-      await legacyListMembersRespPromise;
-      await legacyListMembersRespPromise;
+      await goToOOOPage(page, "team");
+      await openOOODialog(page);
 
       await test.step("Admin can create OOO for team member and add redirect", async () => {
         //OOO is created for 'member-1' on Next month 1st - 3rd, forwarding to 'member-2'
-        await page.getByTestId(`ooofor_username_select_${member1User?.id}`).click();
-        await dateButton.click();
+        await page.getByTestId("ooofor_username_select").click();
+        await page.getByTestId(`select-option-${member1User?.id}`).click();
 
         await selectDateAndCreateOOO(page, "1", "3", member2User?.id, 200, true);
         await expect(
@@ -538,13 +405,10 @@ test.describe("Out of office", () => {
 
       await test.step("Reverse redirect not allowed for team member", async () => {
         //Try to create OOO for 'member-2' on Next month 1st - 3rd, forwarding to 'member-1'
-        await page.getByTestId("add_entry_ooo").click();
-        await reasonListRespPromise;
-        await legacyListMembersRespPromise;
-        await legacyListMembersRespPromise;
+        await openOOODialog(page);
 
-        await page.getByTestId(`ooofor_username_select_${member2User?.id}`).click();
-        await dateButton.click();
+        await page.getByTestId("ooofor_username_select").click();
+        await page.getByTestId(`select-option-${member2User?.id}`).click();
         await selectDateAndCreateOOO(page, "1", "3", member1User?.id, 400, true);
         expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
         await page.locator(`text=${t("cancel")}`).click();
@@ -553,11 +417,9 @@ test.describe("Out of office", () => {
       await test.step("Edit OOO and change redirect member", async () => {
         //Change redirect member to 'member-3' for OOO created in step 1
         await page.getByTestId(`ooo-edit-${member2User?.username}`).click();
-        await reasonListRespPromise;
-        await legacyListMembersRespPromise;
-        await legacyListMembersRespPromise;
 
-        await page.getByTestId(`team_username_select_${member3User?.id}`).click();
+        await page.getByTestId("team_username_select").click();
+        await page.getByTestId(`select-option-${member3User?.id}`).click();
         await saveAndWaitForResponse(page);
         await expect(
           page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
@@ -620,12 +482,7 @@ test.describe("Out of office", () => {
 
       await test.step("member3 logins and navigates to team OOO", async () => {
         await member3User?.apiLogin();
-        const entriesListRespPromise = page.waitForResponse(
-          (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-        );
-        await page.goto("/settings/my-account/out-of-office?type=team");
-        await page.waitForLoadState("domcontentloaded");
-        await entriesListRespPromise;
+        await goToOOOPage(page, "team");
 
         //Non-Admin canNot create OOO for team members
         await expect(page.locator('[data-testid="add_entry_ooo"]')).toBeDisabled();
@@ -653,12 +510,7 @@ test.describe("Out of office", () => {
     test("Default date range filter set to `Last 7 Days`", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      const responsePromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-      );
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await responsePromise;
+      await goToOOOPage(page);
       await addFilter(page, "dateRange");
       await expect(
         page.locator('[data-testid="filter-popover-trigger-dateRange"]', { hasText: "Last 7 Days" }).first()
@@ -668,12 +520,7 @@ test.describe("Out of office", () => {
     test("Can choose date range presets", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      const responsePromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-      );
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await responsePromise;
+      await goToOOOPage(page);
       await addFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
@@ -697,8 +544,6 @@ test.describe("Out of office", () => {
           teammates: teamMatesObj,
         }
       );
-      const member1User = users.get().find((user) => user.name === member1Name);
-      const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate+2Days, end:currentDate+4days (future ooo)
       await prisma.outOfOfficeEntry.create({
@@ -717,12 +562,7 @@ test.describe("Out of office", () => {
       });
 
       await member3User?.apiLogin();
-      const entriesListRespPromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-      );
-      await page.goto("/settings/my-account/out-of-office");
-      await entriesListRespPromise;
-      await page.waitForLoadState("domcontentloaded");
+      await goToOOOPage(page);
 
       //By Default future OOO will be displayed
       //1 OOO record should be visible for member3, end=currentDate+4days
@@ -747,7 +587,6 @@ test.describe("Out of office", () => {
           teammates: teamMatesObj,
         }
       );
-      const member1User = users.get().find((user) => user.name === member1Name);
       const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate-2Days, end:currentDate-4days (for Last 7 Days)
@@ -768,12 +607,7 @@ test.describe("Out of office", () => {
       });
 
       await member3User?.apiLogin();
-      const entriesListRespPromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-      );
-      await page.goto("/settings/my-account/out-of-office");
-      await entriesListRespPromise;
-      await page.waitForLoadState("domcontentloaded");
+      await goToOOOPage(page);
 
       //Default filter 'Last 7 Days' when DateRange Filter is selected
       await test.step("Default filter - 'Last 7 Days'", async () => {
@@ -809,7 +643,6 @@ test.describe("Out of office", () => {
         }
       );
       const member1User = users.get().find((user) => user.name === member1Name);
-      const member2User = users.get().find((user) => user.name === member2Name);
 
       //create OOO for member3, start:currentDate-12Days, end:currentDate-10days (for Last 30 Days)
       await prisma.outOfOfficeEntry.create({
@@ -829,12 +662,7 @@ test.describe("Out of office", () => {
       });
 
       await member3User?.apiLogin();
-      const entriesListRespPromise = page.waitForResponse(
-        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
-      );
-      await page.goto("/settings/my-account/out-of-office");
-      await entriesListRespPromise;
-      await page.waitForLoadState("domcontentloaded");
+      await goToOOOPage(page);
 
       //Select 'Last 30 Days'
       await test.step("select 'Last 30 Days'", async () => {
@@ -871,13 +699,21 @@ async function saveAndWaitForResponse(page: Page, expectedStatusCode = 200) {
   });
 }
 
-async function selectToAndFromDates(page: Page, fromDate: string, toDate: string, isRangeInPast = false) {
-  const month = isRangeInPast ? "previous" : "next";
+async function selectToAndFromDates(
+  page: Page,
+  fromDate: string,
+  toDate: string,
+  month: "previous" | "next" = "next"
+) {
+  await page.getByTestId("date-range").click();
+  await page.locator(".rdp").waitFor({ state: "visible" });
 
   await page.locator(`button[name="${month}-month"]`).click();
 
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
+
+  await page.keyboard.press("Escape");
 }
 
 async function selectDateAndCreateOOO(
@@ -891,21 +727,37 @@ async function selectDateAndCreateOOO(
   editMode = false
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="${month}-month"]`).click();
-  await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
-  await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
-  editMode
-    ? await page.locator(`text=${t("edit_an_out_of_office")}`).click()
-    : forTeamMember
-    ? await page.locator(`text=${t("create_ooo_dialog_team_title")}`).click()
-    : await page.locator(`text=${t("create_an_out_of_office")}`).click();
+
+  await selectToAndFromDates(page, fromDate, toDate, month);
+
+  if (editMode) {
+    await page.locator(`text=${t("edit_an_out_of_office")}`).click();
+  } else if (forTeamMember) {
+    await page.locator(`text=${t("create_ooo_dialog_team_title")}`).click();
+  } else {
+    await page.locator(`text=${t("create_an_out_of_office")}`).click();
+  }
   await page.getByTestId("reason_select").click();
   await page.getByTestId("select-option-4").click();
   await page.getByTestId("notes_input").click();
   await page.getByTestId("notes_input").fill("Demo notes");
   if (redirectToUserId) {
     await page.getByTestId("profile-redirect-switch").click();
-    await page.getByTestId(`team_username_select_${redirectToUserId}`).click();
+    await page.getByTestId("team_username_select").click();
+    await page.getByTestId(`select-option-${redirectToUserId}`).click();
   }
   await saveAndWaitForResponse(page, expectedStatusCode);
+}
+
+async function goToOOOPage(page: Page, type: "individual" | "team" = "individual") {
+  const entriesListRespPromise = page.waitForResponse(
+    (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+  );
+  await page.goto("/settings/my-account/out-of-office" + (type === "team" ? "?type=team" : ""));
+  await page.waitForLoadState("domcontentloaded");
+  await entriesListRespPromise;
+}
+
+async function openOOODialog(page: Page) {
+  await page.getByTestId("add_entry_ooo").click();
 }

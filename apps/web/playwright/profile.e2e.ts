@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import type { createUsersFixture } from "playwright/fixtures/users";
+import type { createUsersFixture } from "./fixtures/users";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
@@ -53,17 +53,18 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
-    const emailInput = page.getByTestId("profile-form-email-0");
+    const emailInput = page.getByTestId("profile-form-email-0").first();
 
     await emailInput.fill(email);
 
-    await page.getByTestId("profile-submit-button").click();
+    await page.getByTestId("profile-submit-button").first().click();
 
-    await page.getByTestId("password").fill(user?.username ?? "Nameless User");
+    await page.getByTestId("password").first().fill(user?.username ?? "Nameless User");
 
     await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
-      action: () => page.getByTestId("profile-update-email-submit-button").click(),
+      action: () => page.getByTestId("profile-update-email-submit-button").first().click(),
     });
 
     // Instead of dealing with emails in e2e lets just get the token and navigate to it
@@ -219,6 +220,7 @@ test.describe("Update Profile", () => {
 
     await user.apiLogin();
     await page.goto("/settings/my-account/profile");
+    await page.waitForLoadState("networkidle");
 
     await page.getByTestId("add-secondary-email").click();
 

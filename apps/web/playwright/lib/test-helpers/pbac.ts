@@ -1,3 +1,5 @@
+import type { FeatureId } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PERMISSION_REGISTRY } from "@calcom/features/pbac/domain/types/permission-registry";
 import { prisma } from "@calcom/prisma";
 
@@ -18,12 +20,11 @@ export const createAllPermissionsArray = () => {
 };
 
 export const enablePBACForTeam = async (teamId: number) => {
-  await prisma.teamFeatures.create({
-    data: {
-      featureId: "pbac",
-      teamId: teamId,
-      assignedBy: "e2e",
-      assignedAt: new Date(),
-    },
+  const featuresRepository = new FeaturesRepository(prisma);
+  await featuresRepository.setTeamFeatureState({
+    teamId,
+    featureId: "pbac" as FeatureId,
+    state: "enabled",
+    assignedBy: "e2e",
   });
 };

@@ -4,9 +4,25 @@ import type { ICalendarSubscriptionPort } from "@calcom/features/calendar-subscr
 
 export type CalendarSubscriptionProvider = "google_calendar" | "office365_calendar";
 
+/**
+ * Generic calendar suffixes that should be excluded from subscription.
+ * These are special calendars (holidays, contacts, shared, imported, resources)
+ * that are not user's personal calendars and shouldn't be subscribed to for sync.
+ */
+export const GENERIC_CALENDAR_SUFFIXES: Record<CalendarSubscriptionProvider, string[]> = {
+  google_calendar: [
+    "@group.v.calendar.google.com",
+    "@group.calendar.google.com",
+    "@import.calendar.google.com",
+    "@resource.calendar.google.com",
+  ],
+  office365_calendar: [],
+};
+
 export interface AdapterFactory {
   get(provider: CalendarSubscriptionProvider): ICalendarSubscriptionPort;
   getProviders(): CalendarSubscriptionProvider[];
+  getGenericCalendarSuffixes(): string[];
 }
 
 /**
@@ -40,5 +56,15 @@ export class DefaultAdapterFactory implements AdapterFactory {
   getProviders(): CalendarSubscriptionProvider[] {
     const providers: CalendarSubscriptionProvider[] = ["google_calendar"];
     return providers;
+  }
+
+  /**
+   * Returns all generic calendar suffixes that should be excluded from subscription
+   * across all supported providers.
+   *
+   * @returns
+   */
+  getGenericCalendarSuffixes(): string[] {
+    return this.getProviders().flatMap((provider) => GENERIC_CALENDAR_SUFFIXES[provider]);
   }
 }

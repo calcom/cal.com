@@ -1,16 +1,9 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { EmailService } from "@/modules/email/email.service";
-import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
-import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { AttributeOption, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -20,9 +13,15 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User, Team, AttributeOption } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { EmailService } from "@/modules/email/email.service";
+import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
+import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Users Endpoints", () => {
   const bio = "I am a bio";
@@ -167,7 +166,7 @@ describe("Organizations Users Endpoints", () => {
 
       await userRepositoryFixture.create({
         email: nonMemberEmail,
-        username: "non-member",
+        username: `non-member-${randomString()}`,
       });
 
       const orgMembers = await Promise.all(
@@ -377,6 +376,108 @@ describe("Organizations Users Endpoints", () => {
         locale: null,
       });
       createdUser = userData;
+    });
+
+    it("creates a new org user with username and avatarUrl", async () => {
+      const shortRandom = randomString().substring(0, 8);
+      const testUsername = `user${shortRandom}`;
+      const testEmail = `org-user-${shortRandom}@api.com`;
+      const githubAvatarUrl = "https://avatars.githubusercontent.com/u/583231?v=4";
+
+      const newOrgUserWithUsernameAndAvatar: CreateUserInput = {
+        email: testEmail,
+        username: testUsername,
+        avatarUrl: githubAvatarUrl,
+        bio,
+        metadata,
+        timeZone: "America/Sao_Paulo",
+        timeFormat: 24,
+        locale: "pt",
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send(newOrgUserWithUsernameAndAvatar)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      // Verify response status
+      expect(body.status).toBe(SUCCESS_STATUS);
+
+      // Verify all user fields are correctly set
+      expect(userData.email).toBe(testEmail);
+      expect(userData.username).toBe(testUsername);
+      expect(userData.avatarUrl).toBe(githubAvatarUrl);
+      expect(userData.bio).toBe(bio);
+      expect(userData.metadata).toEqual(metadata);
+      expect(userData.timeZone).toBe("America/Sao_Paulo");
+      expect(userData.timeFormat).toBe(24);
+      expect(userData.locale).toBe("pt");
+
+      // Verify email was sent with correct parameters (using email, not username)
+      expect(emailSpy).toHaveBeenCalledWith({
+        usernameOrEmail: testEmail,
+        orgName: org.name,
+        orgId: org.id,
+        inviterName: userEmail,
+        locale: "pt",
+      });
+
+      // Clean up the created user
+      await userRepositoryFixture.deleteByEmail(testEmail);
+    });
+
+    it("creates a new org user with avatarUrl as base64 image", async () => {
+      const shortRandom = randomString().substring(0, 8);
+      const testEmail = `org-b64-${shortRandom}@api.com`;
+      const base64Avatar =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
+      const newOrgUserWithBase64Avatar: CreateUserInput = {
+        email: testEmail,
+        avatarUrl: base64Avatar,
+        bio,
+        metadata,
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send(newOrgUserWithBase64Avatar)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data;
+
+      // Verify response status
+      expect(body.status).toBe(SUCCESS_STATUS);
+
+      // Verify base64 avatar is accepted and stored
+      expect(userData.email).toBe(testEmail);
+      expect(userData.avatarUrl).toBe(base64Avatar);
+      expect(userData.bio).toBe(bio);
+      expect(userData.metadata).toEqual(metadata);
+
+      // Verify email was sent
+      expect(emailSpy).toHaveBeenCalledWith({
+        usernameOrEmail: testEmail,
+        orgName: org.name,
+        orgId: org.id,
+        inviterName: userEmail,
+        locale: null,
+      });
+
+      // Clean up the created user
+      await userRepositoryFixture.deleteByEmail(testEmail);
     });
 
     it("should delete an org user", async () => {

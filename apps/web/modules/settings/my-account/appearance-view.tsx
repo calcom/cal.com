@@ -7,10 +7,10 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
-import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import ThemeLabel from "@calcom/features/settings/ThemeLabel";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
+import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
+import ThemeLabel from "@calcom/web/modules/settings/components/ThemeLabel";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
@@ -22,11 +22,12 @@ import type { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
+
+import { UpgradeTeamsBadgeWebWrapper } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
 
 const useBrandColors = (
   currentTheme: string | null,
@@ -393,7 +394,7 @@ const AppearanceView = ({
             disabled={!hasPaidPlan || mutation?.isPending}
             description={t("removes_cal_branding", { appName: APP_NAME })}
             checked={hasPaidPlan ? hideBrandingValue : false}
-            Badge={<UpgradeTeamsBadge />}
+            Badge={<UpgradeTeamsBadgeWebWrapper />}
             onCheckedChange={(checked) => {
               setHideBrandingValue(checked);
               mutation.mutate({ hideBranding: checked });

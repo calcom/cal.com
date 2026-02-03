@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { BookingStatus, BookingReportReason } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
 import { reportBookingHandler } from "./reportBooking.handler";
 
-vi.mock("@calcom/lib/server/repository/bookingReport");
+vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/bookings/services/BookingAccessService");
@@ -58,9 +58,9 @@ describe("reportBookingHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepo);
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(() => mockReportRepo);
-    vi.mocked(BookingAccessService).mockImplementation(() => mockBookingAccessService);
+    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepo; });
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(function() { return mockReportRepo; });
+    vi.mocked(BookingAccessService).mockImplementation(function() { return mockBookingAccessService; });
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
   });
 

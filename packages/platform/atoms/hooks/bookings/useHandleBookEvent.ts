@@ -2,8 +2,8 @@ import { useSearchParams } from "next/navigation";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -31,6 +31,7 @@ type UseHandleBookingProps = {
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
   isBookingDryRun?: boolean;
+  rrHostSubsetIds?: number[];
 };
 
 export const useHandleBookEvent = ({
@@ -44,6 +45,7 @@ export const useHandleBookEvent = ({
   locationUrl,
   routingFormSearchParams,
   isBookingDryRun,
+  rrHostSubsetIds,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStoreContext((state) => state.setFormValues);
@@ -115,6 +117,7 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
+        rrHostSubsetIds,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

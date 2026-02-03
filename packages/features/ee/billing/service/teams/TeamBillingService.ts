@@ -1,8 +1,6 @@
-import type { z } from "zod";
-
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
@@ -10,18 +8,20 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
+import type { z } from "zod";
+import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
 // import billing from "../..";
 import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
-import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import {
-  TeamBillingPublishResponseStatus,
   type ITeamBillingService,
   type TeamBillingInput,
+  TeamBillingPublishResponseStatus,
 } from "./ITeamBillingService";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
@@ -161,23 +161,23 @@ export class TeamBillingService implements ITeamBillingService {
       if (!url && !isOrganization) return;
 
       // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
-      const { subscriptionId, subscriptionItemId, orgSeats } = metadata;
-      // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
-      // We can't go below this quantity for subscription
-      const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
+      const { subscriptionId, subscriptionItemId } = metadata;
       const membershipCount = await prisma.membership.count({ where: { teamId } });
-      if (isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
-        log.info(
-          `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
-        );
-        return;
-      }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
-      await this.billingProviderService.handleSubscriptionUpdate({
+
+      const billingPeriodService = new BillingPeriodService();
+      const shouldApplyMonthlyProration = await billingPeriodService.shouldApplyMonthlyProration(teamId);
+      if (shouldApplyMonthlyProration) {
+        log.info(`Skipping subscription update for team ${teamId} because monthly proration is enabled.`);
+        return;
+      }
+
+      await updateSubscriptionQuantity({
+        billingService: this.billingProviderService,
         subscriptionId,
         subscriptionItemId,
-        membershipCount,
+        quantity: membershipCount,
       });
       log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
     } catch (error) {
@@ -230,6 +230,6 @@ export class TeamBillingService implements ITeamBillingService {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-await this.billingRepository.create(args);
+    await this.billingRepository.create(args);
   }
 }
