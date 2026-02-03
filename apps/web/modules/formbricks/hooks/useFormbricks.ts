@@ -4,14 +4,14 @@ import { useEffect } from "react";
 
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
-const initFormbricks = ({
+const initFormbricks = async ({
   userId,
   attributes,
 }: {
   userId: string;
   attributes: { [key: string]: string | null | undefined };
 }) => {
-  const filteredAttributes: Record<string, string | number> = {};
+  const filteredAttributes: Record<string, string> = {};
   Object.entries(attributes).forEach(([key, value]) => {
     if (value !== null && value !== undefined) {
       filteredAttributes[key] = value;
@@ -19,13 +19,12 @@ const initFormbricks = ({
   });
 
   if (process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL && process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID) {
-    formbricks.setup({
+    await formbricks.setup({
       environmentId: process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID,
       appUrl: process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL,
-      debug: process.env.NODE_ENV === "development",
-      userId,
-      attributes: filteredAttributes,
     });
+    await formbricks.setUserId(userId);
+    await formbricks.setAttributes(filteredAttributes);
   }
 };
 
