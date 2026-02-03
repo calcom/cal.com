@@ -99,6 +99,8 @@ function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditE
           surveyId={optInBanner.formbricksTracking.feedbackDialogProps.surveyId}
           ratingQuestionId={optInBanner.formbricksTracking.feedbackDialogProps.ratingQuestionId}
           commentQuestionId={optInBanner.formbricksTracking.feedbackDialogProps.commentQuestionId}
+          titleKey={optInBanner.formbricksTracking.feedbackDialogProps.titleKey}
+          descriptionKey={optInBanner.formbricksTracking.feedbackDialogProps.descriptionKey}
         />
       )}
     </div>

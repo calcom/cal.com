@@ -12,6 +12,8 @@ export interface FormbricksOptInTrackingResult {
     surveyId: string;
     ratingQuestionId: string;
     commentQuestionId: string;
+    titleKey?: string;
+    descriptionKey?: string;
   } | null;
   /** Call this when the dialog is closed (either submitted or skipped) */
   onFeedbackComplete: () => void;
@@ -74,6 +76,8 @@ function useFormbricksOptInTracking(
         surveyId: featureConfig.formbricks.surveyId,
         ratingQuestionId: featureConfig.formbricks.questions.ratingQuestionId,
         commentQuestionId: featureConfig.formbricks.questions.commentQuestionId,
+        titleKey: featureConfig.formbricks.titleKey,
+        descriptionKey: featureConfig.formbricks.descriptionKey,
       }
     : null;
 

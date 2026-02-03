@@ -47,6 +47,10 @@ export interface OptInFeatureConfig {
       /** Question ID for the comment field */
       commentQuestionId: string;
     };
+    /** i18n key for the feedback dialog title (defaults to "feedback_dialog_title") */
+    titleKey?: string;
+    /** i18n key for the feedback dialog description (defaults to "feedback_dialog_description") */
+    descriptionKey?: string;
   };
 }
 
@@ -78,6 +82,8 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
         ratingQuestionId: "ajt82ni0hue3x5qkltj9t359",
         commentQuestionId: "kwjw0g7vqkgd5w9s61dba8de",
       },
+      titleKey: "bookings_v3_feedback_title",
+      descriptionKey: "bookings_v3_feedback_description",
     },
   },
 ];
