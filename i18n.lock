@@ -2269,6 +2269,8 @@ checksums:
     event_end_time_info: dff59c43944ee9ec4f0b14788f916ead
     cancel_url_variable: 07203aef11c344e47a12a8dc3434a914
     cancel_url_info: 3e8674a30d8f4f5d59cb0023a1af3c56
+    cancellation_reason_variable: c4fcfdbbd2cd497885d0fe1f776a4ae0
+    cancellation_reason_info: bd85f7ac594bafc97d9fb6900d6a3fef
     cancel_reason_variable: c4fcfdbbd2cd497885d0fe1f776a4ae0
     cancel_reason_info: a9605eb91c41ba58cdb5eb2070a050c6
     reschedule_url_variable: 07bbd334e84c8b81712a1fddceef7349
@@ -3393,7 +3395,7 @@ checksums:
     email_survey_triggered_by_workflow: 8ee502957ac3828ba4066e295f4ff93f
     skip_trial: 1a5167579af6f2bf1f5812b34e87116c
     team_trials_skipped_successfully: c19c7975a048b7fb0be913f5c1482691
-    sms_workflow_consent: d5d140beed4e53ad79aa7a659e643731
+    sms_workflow_consent: bb293c45a35afd01c43c7821d364e625
     routing_preview_more_info_found_insights: 8bccc340f8d7e0c85e0c0be29328ff61
     results: 1a8f50c90d0a0d500624dd3a62aab6ee
     view_form: 4c60dbda532d24ff38f8b41333543a3a
