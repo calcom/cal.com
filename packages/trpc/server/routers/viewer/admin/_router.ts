@@ -1,5 +1,6 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { calidAdminUsersRouter } from "./calid/usersRouter";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZGetAllServicesInputSchema } from "./getAllServices.schema";
 import { ZGetServiceProviderInputSchema } from "./getServiceProvider.schema";
@@ -18,10 +19,6 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-
-const NAMESPACE = "admin";
-
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
@@ -103,5 +100,11 @@ export const adminRouter = router({
         const handler = (await import("./updateServiceProvider.handler")).updateServiceProviderHandler;
         return handler(input);
       }),
+  }),
+  calid: router({
+    users: (await import("./calid/usersRouter")).calidAdminUsersRouter,
+  }),
+  calid: router({
+    users: calidAdminUsersRouter,
   }),
 });

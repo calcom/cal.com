@@ -5,6 +5,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -65,8 +67,9 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
-        <DialogHeader>
+        <DialogHeader showIcon iconName="user-plus" iconVariant="info">
           <DialogTitle>{t("additional_guests")}</DialogTitle>
+          <DialogDescription>{t("additional_guests_sub")}</DialogDescription>
         </DialogHeader>
         <div className="w-full pt-1">
           <div className="bg-default">
@@ -90,17 +93,10 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
           )}
         </div>
         <DialogFooter className="mt-8">
-          <Button
-            onClick={() => {
-              setMultiEmailValue([""]);
-              setIsInvalidEmail(false);
-              setIsOpenDialog(false);
-            }}
-            color="secondary">
-            {t("cancel")}
-          </Button>
+          <DialogClose />
           <Button
             data-testid="add_members"
+            StartIcon="plus"
             loading={addGuestsMutation.isPending}
             disabled={!hasValidEmails}
             onClick={handleAdd}>

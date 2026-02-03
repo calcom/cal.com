@@ -249,13 +249,14 @@ function Dialogs({
       />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("delete_form")}</DialogTitle>
             <DialogDescription>
               {t("delete_form_confirmation")} {t("delete_form_confirmation_2")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
+            <DialogClose />
             <Button
               color="destructive"
               StartIcon="trash"
@@ -267,7 +268,6 @@ function Dialogs({
               }}>
               {t("delete")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>

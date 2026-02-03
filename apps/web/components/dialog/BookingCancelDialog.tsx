@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@calid/features/ui/components/dialog";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Switch } from "@calid/features/ui/components/switch";
@@ -151,9 +152,9 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
     if (isCancellingEntireSeries && recurringEvent) {
       // Case 1: Viewing recurring series - show recurrence summary
       return (
-        <div className="flex gap-3">
-          <span className="text-emphasis min-w-16 font-medium">{t("when")}</span>
-          <div className="text-default">
+        <div className="text-default flex gap-3 text-sm">
+          <span className="min-w-14 font-medium">{t("when")}</span>
+          <div>
             <div className="font-medium">
               {getEveryFreqFor({
                 t,
@@ -182,9 +183,9 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
     } else {
       // Case 2 & 3: Single instance or non-recurring booking
       return (
-        <div className="flex gap-3">
-          <span className="text-emphasis min-w-16 font-medium">{t("when")}</span>
-          <span className="text-default">
+        <div className="text-default flex gap-3 text-sm">
+          <span className="min-w-14 font-medium">{t("when")}</span>
+          <span>
             {dayjs(props.startTime).format("MMMM D, YYYY")} | {dayjs(props.startTime).format("h:mm A")} -{" "}
             {dayjs(props.endTime).format("h:mm A")}
           </span>
@@ -204,7 +205,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent size="default">
-        <DialogHeader>
+        <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
           <DialogTitle>
             {isCancellingEntireSeries
               ? t("cancel_recurring_event")
@@ -212,23 +213,21 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
               ? t("cancel_event_instance")
               : t("cancel_event")}
           </DialogTitle>
+          <DialogDescription>{t("cancel_event_description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="bg-muted my-0 mb-6 space-y-3 rounded-lg p-4">
-          <div className="flex gap-3">
-            <span className="text-emphasis min-w-16 font-medium">{t("event_upper_case")}</span>
-            <span className="text-default">{props.eventType?.title || props.title}</span>
+        <div className="border-default my-0 mb-6 space-y-3 rounded-lg border p-4">
+          <div className="text-default flex gap-3 text-sm">
+            <span className="min-w-14 font-medium">{t("event_upper_case")}</span>
+            <span>{props.eventType?.title || props.title}</span>
           </div>
-
           {renderWhenSection()}
-
-          <div className="flex gap-3">
-            <span className="text-emphasis min-w-16 font-medium">{t("where")}</span>
-            <span className="text-default">{props.location?.split(":")[1] || "*LOCATION"}</span>
+          <div className="text-default flex gap-3 text-sm">
+            <span className="min-w-14 font-medium">{t("where")}</span>
+            <span className="capitalize">{props.location?.split(":")[1] || "*LOCATION"}</span>
           </div>
-
-          <div className="flex gap-3">
-            <span className="text-emphasis min-w-16 font-medium">{t("with")}</span>
+          <div className="text-default flex gap-3 text-sm">
+            <span className="min-w-14 font-medium">{t("with")}</span>
             <div className="flex flex-wrap gap-1">
               {props.attendees?.map((attendee, index) => (
                 <div key={index}>
@@ -242,10 +241,9 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
               )) || "*ATTENDEES"}
             </div>
           </div>
-
           {props.description && (
             <div className="flex gap-3">
-              <span className="text-emphasis min-w-16 font-medium">{t("additional_notes")}</span>
+              <span className="text-default min-w-14 font-medium">{t("additional_notes")}</span>
               <span className="text-default">{props.description}</span>
             </div>
           )}
@@ -259,12 +257,12 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         )}
 
         <div className="mb-6">
-          <label className="text-emphasis mb-3 block text-sm font-medium">{t("cancellation_reason")}</label>
+          <label className="text-default mb-1 block text-sm font-medium">{t("cancellation_reason")}</label>
           <TextArea
             data-testid="cancel_reason"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            className="border-default h-24 w-full resize-none rounded-md border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border-default focus:shadow-outline-gray-focused h-24 w-full resize-none rounded-md border p-3 text-sm focus:outline-none focus:ring-2"
             placeholder={t("cancellation_reason_placeholder")}
           />
           {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
@@ -292,6 +290,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         <DialogFooter>
           <DialogClose />
           <Button
+            StartIcon="check"
             data-testid="confirm_cancel"
             color="primary"
             loading={loading}

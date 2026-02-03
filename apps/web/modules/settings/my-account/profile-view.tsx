@@ -1,7 +1,4 @@
 "use client";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { CustomImageUploader } from "@calid/features/ui/components/uploader";
-
 
 import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
@@ -29,6 +26,7 @@ import {
 } from "@calid/features/ui/components/input/phone-number-field";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
@@ -51,6 +49,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -378,6 +377,7 @@ const ProfileView = ({ user }: Props) => {
                 {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
               </div>
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   StartIcon="trash"
@@ -386,7 +386,6 @@ const ProfileView = ({ user }: Props) => {
                   loading={deleteMeMutation.isPending}>
                   {t("delete_my_account")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </>
           </DialogContent>
@@ -429,6 +428,7 @@ const ProfileView = ({ user }: Props) => {
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
           <DialogFooter>
+            <DialogClose />
             <Button
               data-testid="profile-update-email-submit-button"
               color="primary"
@@ -436,30 +436,27 @@ const ProfileView = ({ user }: Props) => {
               onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
-        <DialogContent>
-          <DialogHeader showIcon variant="success">
+        <DialogContent showCloseButton={true}>
+          <DialogHeader showIcon iconName="check" iconVariant="success">
             <DialogTitle>{t("create_account_password")}</DialogTitle>
             <DialogDescription>{t("create_account_password_hint")}</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <DialogClose />
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showAccountDisconnectWarning} onOpenChange={setShowAccountDisconnectWarning}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("disconnect_account")}</DialogTitle>
             <DialogDescription>{t("disconnect_account_hint")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
+            <DialogClose />
             <Button
               color="primary"
               onClick={() => {
@@ -468,7 +465,6 @@ const ProfileView = ({ user }: Props) => {
               }}>
               {t("confirm")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -681,7 +677,7 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
 
   const bioValue = formMethods.watch("bio") || "";
-  const getText = React.useCallback(() => bioValue, [bioValue]);
+  const getText = React.useCallback(() => md.render(bioValue), [bioValue]);
 
   // Watch phone number to conditionally show WhatsApp checkbox
   const phoneNumber = formMethods.watch("metadata.phoneNumber");

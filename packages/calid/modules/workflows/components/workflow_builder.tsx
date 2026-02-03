@@ -6,6 +6,14 @@ import { Button } from "@calid/features/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
 import { Collapsible, CollapsibleContent } from "@calid/features/ui/components/collapsible";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@calid/features/ui/components/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
@@ -18,7 +26,7 @@ import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 
@@ -49,8 +57,10 @@ import {
   shouldScheduleEmailReminder,
 } from "../config/utils";
 import { workflowFormSchema as formSchema } from "../config/validation";
+import emailCancelledTemplate from "../templates/email/cancelled";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
+import emailRescheduledTemplate from "../templates/email/rescheduled";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 // Add these imports to your WorkflowBuilder component
 import { type VariableMapping } from "./utils";
@@ -112,8 +122,11 @@ export interface WorkflowBuilderProps {
 export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, builderTemplate }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { t, i18n } = useLocale();
   const session = useSession();
+  const isNewWorkflow = searchParams?.get("new") === "1";
+  const isFromTemplate = searchParams?.get("fromTemplate") === "1";
 
   // Real data hooks from old implementation
   const userQuery = useMeQuery();
@@ -295,6 +308,20 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const [showEventTypeSection, setShowEventTypeSection] = useState(false);
   const [showTriggerSection, setShowTriggerSection] = useState(false);
   const [showActionsSection, setShowActionsSection] = useState(false);
+  const [isMetaDirty, setIsMetaDirty] = useState(false);
+  const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [hasSaved, setHasSaved] = useState(false);
+  const initialMetaRef = useRef({
+    workflowName: "",
+    trigger: "",
+    triggerTiming: "immediately",
+    customTime: "",
+    timeUnit: "HOUR",
+    selectedOptions: [] as string[],
+  });
+
+  const isDirty = form.formState.isDirty || isMetaDirty;
 
   // Step-specific states for verification
   const [verificationCodes, setVerificationCodes] = useState<{ [stepId: string]: string }>({});
@@ -444,12 +471,43 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           }),
           "success"
         );
+        form.reset(form.getValues());
+        setIsMetaDirty(false);
+        setHasSaved(true);
+        initialMetaRef.current = {
+          workflowName: workflowName.trim(),
+          trigger: trigger || "",
+          triggerTiming,
+          customTime: customTime.trim(),
+          timeUnit,
+          selectedOptions: selectedOptions.map((opt) => opt.value).sort(),
+        };
+        if (searchParams?.get("new") === "1") {
+          router.replace(pathname);
+        }
+        if (pendingNavigation) {
+          const destination = pendingNavigation;
+          setPendingNavigation(null);
+          setUnsavedDialogOpen(false);
+          router.push(destination);
+        }
       }
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         triggerToast(message, "error");
+      }
+    },
+  });
+
+  const deleteMutation = trpc.viewer.workflows.calid_delete.useMutation({
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        triggerToast(message, "error");
+      } else {
+        triggerToast(t("something_went_wrong"), "error");
       }
     },
   });
@@ -601,6 +659,16 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
         setIsAllDataLoaded(true);
         isInitialLoadRef.current = false;
+        setIsMetaDirty(false);
+        initialMetaRef.current = {
+          workflowName: workflowDataInput.name || "",
+          trigger: workflowDataInput.trigger || "",
+          triggerTiming: workflowDataInput.time ? "custom" : "immediately",
+          customTime: String(workflowDataInput.time || ""),
+          timeUnit: workflowDataInput.timeUnit || "HOUR",
+          selectedOptions: (activeOn || []).map((opt) => opt.value).sort(),
+        };
+        setHasSaved(!isNewWorkflow);
       }
     },
     [
@@ -612,11 +680,74 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       t,
       getNumberVerificationStatus,
       getEmailVerificationStatus,
+      isNewWorkflow,
     ]
   );
 
   // Watch the activeOn field
   const activeOnValue = form.watch("activeOn");
+
+  useEffect(() => {
+    const current = {
+      workflowName: workflowName.trim(),
+      trigger: trigger || "",
+      triggerTiming,
+      customTime: customTime.trim(),
+      timeUnit,
+      selectedOptions: selectedOptions.map((opt) => opt.value).sort(),
+    };
+    const initial = initialMetaRef.current;
+    const metaChanged =
+      current.workflowName !== initial.workflowName ||
+      current.trigger !== initial.trigger ||
+      current.triggerTiming !== initial.triggerTiming ||
+      current.customTime !== initial.customTime ||
+      current.timeUnit !== initial.timeUnit ||
+      current.selectedOptions.join(",") !== initial.selectedOptions.join(",");
+    setIsMetaDirty(metaChanged);
+  }, [workflowName, trigger, triggerTiming, customTime, timeUnit, selectedOptions]);
+
+  useEffect(() => {
+    const shouldBlockNavigation = !hasSaved || isDirty;
+    if (!shouldBlockNavigation) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const backButton = target.closest('[data-testid="go-back-button"]');
+      if (backButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        setPendingNavigation("/workflows");
+        setUnsavedDialogOpen(true);
+        return;
+      }
+
+      const anchor = target.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("#") || href === pathname) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      setPendingNavigation(href);
+      setUnsavedDialogOpen(true);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleClick, true);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleClick, true);
+    };
+  }, [hasSaved, isDirty, pathname]);
 
   // Load initial data only once
   useEffect(() => {
@@ -680,7 +811,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           }
         }
 
-        form.setValue("activeOn", newOptions);
+        form.setValue("activeOn", newOptions, { shouldDirty: true });
         return newOptions;
       });
     },
@@ -931,6 +1062,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                   isEditingMode: true,
                   timeFormat,
                 }).emailSubject;
+              } else if (newTemplate === WorkflowTemplates.CANCELLED) {
+                updatedStep.emailSubject = emailCancelledTemplate({
+                  isEditingMode: true,
+                  locale: i18n.language,
+                  action: actionType,
+                }).emailSubject;
+              } else if (newTemplate === WorkflowTemplates.RESCHEDULED) {
+                updatedStep.emailSubject = emailRescheduledTemplate({
+                  isEditingMode: true,
+                  locale: i18n.language,
+                  action: actionType,
+                  timeFormat,
+                }).emailSubject;
               }
             }
 
@@ -1171,6 +1315,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     await router.push("/workflows");
   }, [router]);
 
+  const handleDiscardChanges = useCallback(async () => {
+    const destination = pendingNavigation || "/workflows";
+    setUnsavedDialogOpen(false);
+    setPendingNavigation(null);
+
+    if (workflowId) {
+      await deleteMutation.mutateAsync({ id: workflowId });
+    }
+
+    router.push(destination);
+  }, [deleteMutation, pendingNavigation, router, workflowId]);
+
   // Loading and error states
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
@@ -1200,6 +1356,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     return text.replace(/\n/g, "<br>");
   };
 
+  const hasAnyStep = (steps ?? []).length > 0;
+  const isPristineCustom =
+    !workflowName.trim() && !hasAnyStep && selectedOptions.length === 0 && !trigger && !customTime.trim();
+  const saveDisabled =
+    readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty && isPristineCustom);
+  const deleteDisabled =
+    readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty && isPristineCustom);
+
   return (
     <Shell withoutMain backPath="/workflows">
       <ShellMain
@@ -1216,12 +1380,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                   variant="icon"
                   StartIcon="trash"
                   onClick={() => setIsDeleteDialogOpen(true)}
+                  disabled={deleteDisabled}
                 />
               )}
               <Button
                 data-testid="save-workflow"
                 onClick={handleSaveWorkflow}
-                loading={updateMutation.isPending}>
+                loading={updateMutation.isPending}
+                disabled={saveDisabled}>
                 {t("save")}
               </Button>
             </div>
@@ -1260,7 +1426,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                       <Input
                         id="workflow-name"
                         value={workflowName}
-                        onChange={(e) => setWorkflowName(e.target.value)}
+                        onChange={(e) => {
+                          setWorkflowName(e.target.value);
+                        }}
                         className="mt-2"
                         placeholder="Enter workflow name"
                         disabled={readOnly}
@@ -1325,7 +1493,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                         <div>
                           <Select
                             value={triggerOptions.find((option) => option.value === trigger) || null}
-                            onChange={(option) => setTrigger((option?.value as WorkflowTriggerEvents) || "")}
+                            onChange={(option) => {
+                              setTrigger((option?.value as WorkflowTriggerEvents) || "");
+                            }}
                             options={triggerOptions}
                             placeholder="Select an occurrence"
                             isDisabled={readOnly}
@@ -1356,7 +1526,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       name="timing"
                                       value="immediately"
                                       checked={triggerTiming === "immediately"}
-                                      onChange={(e) => setTriggerTiming(e.target.value)}
+                                      onChange={(e) => {
+                                        setTriggerTiming(e.target.value);
+                                      }}
                                       disabled={readOnly}
                                     />
                                     <Label htmlFor="immediately" className="text-muted-foreground text-sm">
@@ -1378,16 +1550,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                     name="timing"
                                     value="custom"
                                     checked={triggerTiming === "custom"}
-                                    onChange={(e) => setTriggerTiming(e.target.value)}
+                                    onChange={(e) => {
+                                      setTriggerTiming(e.target.value);
+                                    }}
                                     disabled={readOnly}
                                   />
                                   <div className="flex flex-1 items-center space-x-2">
                                     <Input
                                       value={customTime}
-                                      onChange={(e) => setCustomTime(e.target.value)}
+                                      onChange={(e) => {
+                                        setCustomTime(e.target.value);
+                                      }}
                                       className="w-20"
                                       placeholder="24"
-                                      onClick={() => setTriggerTiming("custom")}
+                                      onClick={() => {
+                                        setTriggerTiming("custom");
+                                      }}
                                       disabled={readOnly}
                                     />
                                     <Select
@@ -1397,9 +1575,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                           { value: "HOUR", label: "hours" },
                                         ].find((option) => option.value === timeUnit) || null
                                       }
-                                      onChange={(option) =>
-                                        setTimeUnit((option?.value as TimeUnit) || "HOUR")
-                                      }
+                                      onChange={(option) => {
+                                        setTimeUnit((option?.value as TimeUnit) || "HOUR");
+                                      }}
                                       options={[
                                         { value: "MINUTE", label: "minutes" },
                                         { value: "HOUR", label: "hours" },
@@ -1966,7 +2144,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               <Label className={cn("flex-none", readOnly ? "mb-2" : "mb-0")}>
                                                 {t("email_subject")}
                                               </Label>
-                                              {!readOnly && (
+                                              {!readOnly && step.template == WorkflowTemplates.CUSTOM && (
                                                 <div className="flex-grow text-right">
                                                   <VariableDropdown
                                                     onSelect={(variable) =>
@@ -2155,6 +2333,27 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           additionalFunction={handleDeleteSuccess}
         />
       )}
+
+      <Dialog
+        open={unsavedDialogOpen}
+        onOpenChange={(open) => {
+          if (open) setUnsavedDialogOpen(true);
+        }}>
+        <DialogContent preventCloseOnOutsideClick>
+          <DialogHeader>
+            <DialogTitle>{t("leave_without_saving")}</DialogTitle>
+            <DialogDescription>{t("leave_without_saving_description")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2">
+            <Button onClick={handleSaveWorkflow} disabled={saveDisabled} loading={updateMutation.isPending}>
+              {t("save_changes")}
+            </Button>
+            <Button color="destructive" onClick={handleDiscardChanges} disabled={deleteMutation.isPending}>
+              {t("leave_without_saving")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Variable Documentation Dialog */}
       <VariableDocsDialog isOpen={isVariableDocsOpen} setIsOpen={setIsVariableDocsOpen} />

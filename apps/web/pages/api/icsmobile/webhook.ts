@@ -165,7 +165,7 @@ async function notifySmsDeliveryFailure({
             ${errorCode}
           </td>
         </tr>
-         <tr>
+        <tr>
           <td style="padding: 8px 12px; font-weight: bold; border: 1px solid #d0d7de;">
             ICS Error Description
           </td>

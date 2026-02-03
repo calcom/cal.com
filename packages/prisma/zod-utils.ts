@@ -133,6 +133,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     .optional()
     .nullable(),
   billingAddressRequired: z.boolean().optional(),
+  showBusy: z.boolean().optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
@@ -203,7 +204,7 @@ export const eventTypeLocations = z.array(
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
   .object({
-    dtstart: z.date().optional(),
+    dtstart: z.union([z.date(), z.string()]).optional(),
     interval: z.number(),
     count: z.number(),
     freq: z.nativeEnum(Frequency),
@@ -446,7 +447,7 @@ const dateFromString = z.preprocess((arg) => {
   return arg;
 }, z.date());
 export const recurringEventSchema = z.object({
-  dtstart: z.date().optional(),
+  dtstart: z.union([z.date(), z.string()]).optional(),
   freq: z.number(), // Could also use z.enum(["DAILY","WEEKLY",...]) if you have Frequency enum
   interval: z.number().optional(),
   count: z.number().optional(),

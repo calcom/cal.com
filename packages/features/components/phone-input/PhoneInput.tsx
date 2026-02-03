@@ -1,5 +1,6 @@
 "use client";
 
+import { CUSTOM_PHONE_MASKS } from "@calid/features/ui/components/input/phone-input";
 import { isSupportedCountry } from "libphonenumber-js";
 import moment from "moment-timezone";
 import { useState, useEffect, useMemo } from "react";
@@ -61,6 +62,7 @@ function BasePhoneInput({
       disableSearchIcon
       country={defaultCountry}
       autoFormat={autoFormat}
+      masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name: name,
         required: rest.required,
@@ -98,6 +100,7 @@ function BasePhoneInputWeb({
   className = "",
   onChange,
   value,
+  autoFormat,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
@@ -107,7 +110,9 @@ function BasePhoneInputWeb({
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       country={value ? undefined : defaultCountry}
       enableSearch
+      autoFormat={autoFormat}
       disableSearchIcon
+      masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name: name,
         required: rest.required,
