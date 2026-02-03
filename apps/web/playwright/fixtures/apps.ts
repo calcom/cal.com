@@ -48,11 +48,11 @@ export function createAppsFixture(page: Page) {
 
       await page.click(`[data-testid="save-event-types"]`);
 
-      // adding random-tracking-id to gtm-tracking-id-input because this field is required and the test fails without it
+      // adding valid GTM container ID to gtm-tracking-id-input because this field is required and the test fails without it
       if (app === "gtm") {
         await page.waitForLoadState("domcontentloaded");
         for (let index = 0; index < eventTypeIds.length; index++) {
-          await page.getByTestId("gtm-tracking-id-input").nth(index).fill("random-tracking-id");
+          await page.getByTestId("gtm-tracking-id-input").nth(index).fill("GTM-ABC123");
         }
       }
       await page.click(`[data-testid="configure-step-save"]`);
