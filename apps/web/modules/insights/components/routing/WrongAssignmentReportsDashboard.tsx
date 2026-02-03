@@ -13,6 +13,7 @@ import {
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
@@ -24,6 +25,7 @@ import {
   DataTableSkeleton,
 } from "@calcom/web/modules/data-table/components";
 
+import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
 import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
 import { useWrongAssignmentFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useWrongAssignmentFacetedUniqueValues";
@@ -38,6 +40,7 @@ export function WrongAssignmentReportsDashboard() {
   const { t } = useLocale();
   const { teamId, userId, isAll } = useInsightsOrgTeams();
   const [activeTab, setActiveTab] = useState<TabType>("pending");
+  const [routingTraceBookingUid, setRoutingTraceBookingUid] = useState<string | null>(null);
 
   const { sorting, limit, offset } = useDataTable();
 
@@ -103,6 +106,19 @@ export function WrongAssignmentReportsDashboard() {
                 <Button color="secondary" size="sm" StartIcon="ellipsis" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {report.bookingUid && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() => setRoutingTraceBookingUid(report.bookingUid)}>
+                        <Icon name="git-merge" className="mr-2 h-4 w-4" />
+                        {t("routing_trace")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {report.status === WrongAssignmentReportStatus.PENDING && (
                   <>
                     <DropdownMenuItem>
@@ -189,46 +205,57 @@ export function WrongAssignmentReportsDashboard() {
   }
 
   return (
-    <DataTableWrapper<WrongAssignmentReportRow>
-      table={table}
-      isPending={isPending}
-      rowClassName="min-h-14"
-      paginationMode="standard"
-      totalRowCount={data?.totalCount}
-      LoaderView={<DataTableSkeleton columns={6} columnWidths={[220, 150, 150, 150, 100, 80]} />}
-      ToolbarLeft={
-        <>
-          <OrgTeamsFilter />
-          <Button
-            color={activeTab === "pending" ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => setActiveTab("pending")}>
-            {t("pending")}
-          </Button>
-          <Button
-            color={activeTab === "reviewed" ? "primary" : "secondary"}
-            size="sm"
-            onClick={() => setActiveTab("reviewed")}>
-            {t("reviewed")}
-          </Button>
-          <DataTableFilters.FilterBar table={table} />
-        </>
-      }
-      ToolbarRight={<DataTableFilters.ClearFiltersButton />}
-      EmptyView={
-        <EmptyScreen
-          headline={activeTab === "pending" ? t("no_pending_reports") : t("no_reviewed_reports")}
-          description={
-            activeTab === "pending"
-              ? t("no_pending_reports_description")
-              : t("no_reviewed_reports_description")
-          }
-          Icon="file-text"
-          className="bg-muted mb-16"
-          iconWrapperClassName="bg-default"
-          dashedBorder={false}
+    <>
+      <DataTableWrapper<WrongAssignmentReportRow>
+        table={table}
+        isPending={isPending}
+        rowClassName="min-h-14"
+        paginationMode="standard"
+        totalRowCount={data?.totalCount}
+        LoaderView={<DataTableSkeleton columns={6} columnWidths={[220, 150, 150, 150, 100, 80]} />}
+        ToolbarLeft={
+          <>
+            <OrgTeamsFilter />
+            <Button
+              color={activeTab === "pending" ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setActiveTab("pending")}>
+              {t("pending")}
+            </Button>
+            <Button
+              color={activeTab === "reviewed" ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setActiveTab("reviewed")}>
+              {t("reviewed")}
+            </Button>
+            <DataTableFilters.FilterBar table={table} />
+          </>
+        }
+        ToolbarRight={<DataTableFilters.ClearFiltersButton />}
+        EmptyView={
+          <EmptyScreen
+            headline={activeTab === "pending" ? t("no_pending_reports") : t("no_reviewed_reports")}
+            description={
+              activeTab === "pending"
+                ? t("no_pending_reports_description")
+                : t("no_reviewed_reports_description")
+            }
+            Icon="file-text"
+            className="bg-muted mb-16"
+            iconWrapperClassName="bg-default"
+            dashedBorder={false}
+          />
+        }
+      />
+      {routingTraceBookingUid && (
+        <RoutingTraceSheet
+          isOpen={!!routingTraceBookingUid}
+          setIsOpen={(open) => {
+            if (!open) setRoutingTraceBookingUid(null);
+          }}
+          bookingUid={routingTraceBookingUid}
         />
-      }
-    />
+      )}
+    </>
   );
 }
