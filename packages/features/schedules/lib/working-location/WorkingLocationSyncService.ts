@@ -338,6 +338,9 @@ export class WorkingLocationSyncService {
         type: "google_calendar",
         invalid: { not: true },
       },
+      select: {
+        id: true,
+      },
     });
 
     if (!credential) {
