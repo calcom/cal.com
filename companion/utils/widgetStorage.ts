@@ -50,11 +50,15 @@ async function updateIOSWidget(widgetData: WidgetData): Promise<void> {
   // ExtensionStorage.set() handles JSON serialization internally, so we pass the object directly
   // biome-ignore lint/suspicious/noExplicitAny: ExtensionStorage.set() expects any for the value parameter
   iosStorage.set(WIDGET_BOOKINGS_KEY, widgetData as any);
-  console.log("[Widget Debug] Data written to ExtensionStorage with key:", WIDGET_BOOKINGS_KEY);
+  if (__DEV__) {
+    console.log("[Widget Debug] Data written to ExtensionStorage with key:", WIDGET_BOOKINGS_KEY);
+  }
 
   // Trigger widget refresh so it picks up the new data
   ExtensionStorage.reloadWidget();
-  console.log("[Widget Debug] ExtensionStorage.reloadWidget() called");
+  if (__DEV__) {
+    console.log("[Widget Debug] ExtensionStorage.reloadWidget() called");
+  }
 }
 
 async function updateAndroidWidget(widgetData: WidgetData): Promise<void> {
@@ -90,7 +94,9 @@ export async function updateWidgetBookings(
     location?: string;
   }>
 ): Promise<void> {
-  console.log("[Widget Debug] updateWidgetBookings called with", bookings.length, "bookings");
+  if (__DEV__) {
+    console.log("[Widget Debug] updateWidgetBookings called with", bookings.length, "bookings");
+  }
 
   try {
     const widgetBookings: WidgetBookingData[] = bookings.slice(0, 5).map((booking) => {
@@ -130,7 +136,9 @@ export async function updateWidgetBookings(
     };
 
     if (Platform.OS === "ios") {
-      console.log("[Widget Debug] Platform is iOS, calling updateIOSWidget");
+      if (__DEV__) {
+        console.log("[Widget Debug] Platform is iOS, calling updateIOSWidget");
+      }
       await updateIOSWidget(widgetData);
     } else if (Platform.OS === "android") {
       await updateAndroidWidget(widgetData);
