@@ -1,9 +1,9 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import { FeedbackDialog } from "@calcom/features/feedback/components/FeedbackDialog";
 import type { ReactElement } from "react";
 import { createPortal } from "react-dom";
-
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
 import type { FeatureOptInMutations } from "./FeatureOptInConfirmDialog";
 import { FeatureOptInConfirmDialog } from "./FeatureOptInConfirmDialog";
@@ -13,6 +13,18 @@ type UserRoleContext = {
   orgId: number | null;
   adminTeamIds: number[];
   adminTeamNames: { id: number; name: string }[];
+};
+
+type FormbricksTrackingState = {
+  showFeedbackDialog: boolean;
+  feedbackDialogProps: {
+    surveyId: string;
+    ratingQuestionId: string;
+    commentQuestionId: string;
+    titleKey?: string;
+    descriptionKey?: string;
+  } | null;
+  onFeedbackComplete: () => void;
 };
 
 type FeatureOptInBannerState = {
@@ -28,6 +40,7 @@ type FeatureOptInBannerState = {
   dismiss: () => void;
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
+  formbricksTracking: FormbricksTrackingState;
 };
 
 interface FeatureOptInBannerWrapperProps {
@@ -60,6 +73,18 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           featureConfig={state.featureConfig}
           userRoleContext={state.userRoleContext}
           mutations={state.mutations}
+        />
+      )}
+      {state.formbricksTracking.feedbackDialogProps && (
+        <FeedbackDialog
+          isOpen={state.formbricksTracking.showFeedbackDialog}
+          onClose={state.formbricksTracking.onFeedbackComplete}
+          onSubmitSuccess={state.formbricksTracking.onFeedbackComplete}
+          surveyId={state.formbricksTracking.feedbackDialogProps.surveyId}
+          ratingQuestionId={state.formbricksTracking.feedbackDialogProps.ratingQuestionId}
+          commentQuestionId={state.formbricksTracking.feedbackDialogProps.commentQuestionId}
+          titleKey={state.formbricksTracking.feedbackDialogProps.titleKey}
+          descriptionKey={state.formbricksTracking.feedbackDialogProps.descriptionKey}
         />
       )}
     </>
