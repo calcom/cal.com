@@ -1,5 +1,6 @@
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SelectField } from "@calcom/ui/components/form";
 import { startTransition, useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -25,6 +26,7 @@ export function EventTypeSelectComponent({
   eventTypes,
   isPending,
 }: EventTypeSelectComponentProps): JSX.Element {
+  const { t } = useLocale();
   const { event: selectedEventType, setEvent: setSelectedEventType } =
     useTroubleshooterStore(
       (state) => ({
@@ -88,7 +90,7 @@ export function EventTypeSelectComponent({
 
   return (
     <SelectField
-      label="Event Type"
+      label={t("event_type")}
       options={options}
       isDisabled={isPending || options.length === 0}
       value={
