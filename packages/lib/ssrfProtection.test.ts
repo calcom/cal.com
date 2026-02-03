@@ -1,4 +1,10 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock constants for tests (simulates Cal.com SaaS)
+vi.mock("@calcom/lib/constants", () => ({
+  IS_SELF_HOSTED: false,
+  IS_PRODUCTION: false,
+}));
 
 import {
   isBlockedHostname,
@@ -116,7 +122,7 @@ describe("isTrustedInternalUrl", () => {
   });
 });
 
-describe("E2E test environment exception", () => {
+describe("HTTP webhook exceptions", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });

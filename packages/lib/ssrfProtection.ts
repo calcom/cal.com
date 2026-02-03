@@ -1,5 +1,6 @@
 import dns from "node:dns/promises";
 import ipaddr from "ipaddr.js";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
 const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({ prefix: ["ssrf-protection"] });
@@ -87,11 +88,9 @@ export interface SSRFValidationResult {
   error?: string;
 }
 
-/**
- * Check if running in E2E test environment where localhost webhook receivers are needed
- */
-function isE2ETestEnvironment(): boolean {
-  return process.env.NEXT_PUBLIC_IS_E2E === "1";
+// Allow HTTP in E2E tests and self-hosted deployments
+function shouldAllowHttpWebhooks(): boolean {
+  return process.env.NEXT_PUBLIC_IS_E2E === "1" || IS_SELF_HOSTED;
 }
 
 /**
@@ -115,8 +114,7 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
     return { isValid: false, error: ERRORS.INVALID_URL };
   }
 
-  // Allow localhost HTTP in E2E tests for local webhook receivers
-  if (isE2ETestEnvironment()) {
+  if (shouldAllowHttpWebhooks()) {
     const isLocalhost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
     if (isLocalhost && (url.protocol === "http:" || url.protocol === "https:")) {
       return { isValid: true };
