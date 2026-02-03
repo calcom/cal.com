@@ -15,6 +15,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import LocationSettingsContainer from "@calcom/web/modules/event-types/components/locations/LocationSettingsContainer";
+import { InfoBadge } from "@calcom/ui/components/badge";
 
 const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
   const { t } = useLocale();
