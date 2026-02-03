@@ -30,12 +30,20 @@ export class EventTypesService_2024_04_15 {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
     private usersService: UsersService
-  ) {}
+  ) { }
 
   async createUserEventType(
     user: UserWithProfile,
     body: CreateEventTypeInput_2024_04_15
   ): Promise<EventTypeOutput> {
+    if (!body.length && body.lengthInMinutes) {
+      body.length = body.lengthInMinutes;
+    }
+
+    if (!body.length) {
+      throw new BadRequestException("length or lengthInMinutes must be provided");
+    }
+
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const { eventType } = await createEventType({

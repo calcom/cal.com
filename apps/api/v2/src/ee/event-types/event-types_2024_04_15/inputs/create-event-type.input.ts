@@ -21,10 +21,17 @@ export const CREATE_EVENT_DESCRIPTION_EXAMPLE =
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested.
 export class CreateEventTypeInput_2024_04_15 {
+  @IsOptional()
   @IsNumber()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
-  length!: number;
+  length?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
+  lengthInMinutes?: number;
 
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
