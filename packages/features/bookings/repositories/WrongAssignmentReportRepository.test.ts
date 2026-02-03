@@ -9,7 +9,7 @@ describe("WrongAssignmentReportRepository", () => {
 
   const mockPrisma = {
     wrongAssignmentReport: {
-      findFirst: vi.fn(),
+      findUnique: vi.fn(),
       create: vi.fn(),
     },
   } as unknown as PrismaClient;
@@ -21,36 +21,36 @@ describe("WrongAssignmentReportRepository", () => {
 
   describe("existsByBookingUid", () => {
     it("should return true when a report exists for the booking", async () => {
-      mockPrisma.wrongAssignmentReport.findFirst.mockResolvedValue({ id: "report-123" });
+      mockPrisma.wrongAssignmentReport.findUnique.mockResolvedValue({ id: "report-123" });
 
       const result = await repository.existsByBookingUid("test-booking-uid");
 
       expect(result).toBe(true);
-      expect(mockPrisma.wrongAssignmentReport.findFirst).toHaveBeenCalledWith({
+      expect(mockPrisma.wrongAssignmentReport.findUnique).toHaveBeenCalledWith({
         where: { bookingUid: "test-booking-uid" },
         select: { id: true },
       });
     });
 
     it("should return false when no report exists for the booking", async () => {
-      mockPrisma.wrongAssignmentReport.findFirst.mockResolvedValue(null);
+      mockPrisma.wrongAssignmentReport.findUnique.mockResolvedValue(null);
 
       const result = await repository.existsByBookingUid("non-existent-booking-uid");
 
       expect(result).toBe(false);
-      expect(mockPrisma.wrongAssignmentReport.findFirst).toHaveBeenCalledWith({
+      expect(mockPrisma.wrongAssignmentReport.findUnique).toHaveBeenCalledWith({
         where: { bookingUid: "non-existent-booking-uid" },
         select: { id: true },
       });
     });
 
     it("should handle empty string bookingUid", async () => {
-      mockPrisma.wrongAssignmentReport.findFirst.mockResolvedValue(null);
+      mockPrisma.wrongAssignmentReport.findUnique.mockResolvedValue(null);
 
       const result = await repository.existsByBookingUid("");
 
       expect(result).toBe(false);
-      expect(mockPrisma.wrongAssignmentReport.findFirst).toHaveBeenCalledWith({
+      expect(mockPrisma.wrongAssignmentReport.findUnique).toHaveBeenCalledWith({
         where: { bookingUid: "" },
         select: { id: true },
       });

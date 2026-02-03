@@ -14,6 +14,14 @@ vi.mock("@calcom/features/bookings/services/BookingAccessService");
 vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/prisma", () => ({ default: {} }));
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn().mockResolvedValue((key: string) => {
+    const translations: Record<string, string> = {
+      wrong_assignment_already_reported: "A wrong assignment report has already been submitted for this booking",
+    };
+    return translations[key] || key;
+  }),
+}));
 vi.mock("@calcom/lib/logger", () => ({
   default: {
     getSubLogger: () => ({
