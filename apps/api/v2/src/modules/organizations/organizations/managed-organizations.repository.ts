@@ -68,7 +68,7 @@ export class ManagedOrganizationsRepository {
       managedOrganization: managedOrganizationFilter,
     };
 
-    const [totalItems, linkRows] = await this.dbRead.prisma.$transaction([
+    const [totalItems, linkRows] = await Promise.all([
       this.dbRead.prisma.managedOrganization.count({ where }),
       this.dbRead.prisma.managedOrganization.findMany({
         where,

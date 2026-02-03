@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "fonio.ai",
+  "slug": "fonio-ai",
+  "type": "fonio-ai_automation",
+  "logo": "icon.png",
+  "url": "https://docs.fonio.ai/Tools/Terminbuchung",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "fonio GmbH",
+  "email": "info@fonio.ai",
+  "description": "Der KI-Telefonassistent auf Deutsch\r",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -47,8 +48,14 @@ export default function MaxActiveBookingsPerBookerController({
               isChecked && "rounded-b-none"
             )}
             childrenClassName={classNames("lg:ml-0")}
-            title={t("booker_booking_limit")}
-            description={t("booker_booking_limit_description")}
+            title={t("booker_upcoming_limit")}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="booker_booking_limit_description"
+                href="https://cal.com/help/event-types/booker-active-booking-limit"
+              />
+            }
             checked={isChecked}
             onCheckedChange={(active) => {
               if (active) {
@@ -76,7 +83,7 @@ export default function MaxActiveBookingsPerBookerController({
               <CheckboxField
                 checked={!!maxActiveBookingPerBookerOfferReschedule}
                 descriptionAsLabel
-                description={t("offer_to_reschedule_last_booking")}
+                description={t("reschedule_last_booking_offer")}
                 disabled={maxActiveBookingsPerBookerLocked.disabled}
                 onChange={(e) => {
                   formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", e.target.checked, {

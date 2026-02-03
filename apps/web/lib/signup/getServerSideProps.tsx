@@ -30,6 +30,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     "email-verification"
   );
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
+  const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -62,6 +63,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
+    onboardingV3Enabled,
   };
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
@@ -154,9 +156,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   let username = guessUsernameFromEmail(verificationToken.identifier);
 
+  if (!verificationToken?.team) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/auth/error?error=Verification Token is not associated with any team`,
+      },
+    } as const;
+  }
+
   const tokenTeam = {
-    ...verificationToken?.team,
-    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
+    ...verificationToken.team,
+    metadata: teamMetadataSchema.parse(verificationToken.team.metadata ?? null),
   };
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;

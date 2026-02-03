@@ -2,8 +2,6 @@ import { expect } from "@playwright/test";
 import type { Page, Browser, Route, Response } from "@playwright/test";
 import type { z } from "zod";
 
-import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
-import { getTimeMin, getTimeMax } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { prisma } from "@calcom/prisma";
 import type { Team, EventType, User } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -65,10 +63,7 @@ test.describe("Booking Race Condition Prevention", () => {
     await setupGoogleCalendarCredentials(teamMembers);
     await createIdenticalBookingHistories(teamMembers, teamEvent.id);
 
-    const { selectedDate, selectedDateISO } = await getDynamicBookingDate(page, org, team, teamEvent);
-
-    const { targetHost, calendarCacheHits } = await setupCalendarCache(teamMembers, selectedDateISO);
-    await enableCalendarCacheFeatures(team.id);
+    const { selectedDate } = await getDynamicBookingDate(page, org, team, teamEvent);
 
     const { firstResponse, secondResponse } = await performConcurrentBookings(
       page,
@@ -224,82 +219,6 @@ async function getDynamicBookingDate(
     selectedDate: firstAvailableDayText,
     selectedDateISO,
   };
-}
-
-async function setupCalendarCache(teamMembers: User[], selectedDateISO: string) {
-  const cacheTimeRange = {
-    timeMin: getTimeMin(selectedDateISO),
-    timeMax: getTimeMax(selectedDateISO),
-  };
-
-  const credentials = await prisma.credential.findMany({
-    where: {
-      userId: { in: teamMembers.map((m) => m.id) },
-      type: "google_calendar",
-    },
-  });
-
-  const calendarCacheRepo = new CalendarCacheRepository(null);
-  const targetHost = teamMembers[0];
-  const calendarCacheHits: string[] = [];
-
-  for (let i = 0; i < credentials.length; i++) {
-    const credential = credentials[i];
-    const member = teamMembers[i];
-
-    const cacheArgs = {
-      timeMin: cacheTimeRange.timeMin,
-      timeMax: cacheTimeRange.timeMax,
-      items: [{ id: member.email! }],
-    };
-
-    const availabilityData = {
-      kind: "calendar#freeBusy",
-      calendars: {
-        [member.email!]: {
-          busy:
-            member.id === targetHost.id
-              ? []
-              : [
-                  {
-                    start: `${selectedDateISO.slice(0, 10)}T08:00:00.000Z`,
-                    end: `${selectedDateISO.slice(0, 10)}T08:30:00.000Z`,
-                  },
-                ],
-        },
-      },
-    };
-
-    await calendarCacheRepo.upsertCachedAvailability({
-      credentialId: credential.id,
-      userId: member.id,
-      args: cacheArgs,
-      value: availabilityData,
-    });
-
-    calendarCacheHits.push(`${member.email}-${credential.id}`);
-  }
-
-  return { targetHost, calendarCacheHits };
-}
-
-async function enableCalendarCacheFeatures(teamId: number) {
-  await prisma.teamFeatures.createMany({
-    data: [
-      {
-        teamId,
-        featureId: "calendar-cache",
-        assignedAt: new Date(),
-        assignedBy: "race-condition-test",
-      },
-      {
-        teamId,
-        featureId: "calendar-cache-serve",
-        assignedAt: new Date(),
-        assignedBy: "race-condition-test",
-      },
-    ],
-  });
 }
 
 async function mockGoogleCalendarAPI(page: Page, selectedDateISO: string) {

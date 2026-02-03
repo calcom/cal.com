@@ -73,6 +73,16 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   })
   attendeeName?: string;
 
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings by the booking Uid.",
+    example: "2NtaeaVcKfpmSZ4CthFdfk",
+  })
+  bookingUid?: string;
+
   @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === "string") {

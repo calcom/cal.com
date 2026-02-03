@@ -18,7 +18,7 @@ const scheduleRule = ` ## Schedule Rule
 
 // Key are from components/sections/template/data/workflows.ts page in https://github.com/calcom/website
 export const calAIPhoneWorkflowTemplates = {
-  //  name: "Cal AI No-show Follow-up Call",
+  //  name: "Cal.ai No-show Follow-up Call",
   // description: "Automatically call attendee when marked as no-show"
   "wf-10": {
     generalPrompt: `## You are calling an attendee who was marked as a no-show for their appointment. Your goal is to help them reschedule. Be understanding, friendly, and non-judgmental.
@@ -47,7 +47,7 @@ ${responseGuideline}
   9. Thank them for their time and call function end_call to hang up.`,
   },
 
-  //   name: "Cal AI 1-hour Meeting Reminder",
+  //   name: "Cal.ai 1-hour Meeting Reminder",
   // description: "Remind attendee 1 hour before the meeting"
   "wf-11": {
     generalPrompt: `## You are calling to remind an attendee about their upcoming appointment in 1 hour. Be friendly, helpful, and concise.

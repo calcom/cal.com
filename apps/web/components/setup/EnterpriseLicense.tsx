@@ -89,7 +89,7 @@ const EnterpriseLicense = (
 
   return (
     <FormProvider {...formMethods}>
-      <form {...rest} className="bg-default space-y-4 rounded-md px-8 py-10" onSubmit={handleSubmit}>
+      <form {...rest} className="bg-default stack-y-4 rounded-md px-8 py-10" onSubmit={handleSubmit}>
         <div>
           <Button
             className="w-full justify-center text-lg"

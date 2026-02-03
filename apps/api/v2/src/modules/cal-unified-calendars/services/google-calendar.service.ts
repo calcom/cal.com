@@ -1,4 +1,4 @@
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
 import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
 import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { calendar_v3 } from "@googleapis/calendar";

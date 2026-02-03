@@ -1,6 +1,9 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
+import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -71,7 +74,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
 
   const { credentialId, delegationCredentialId } = firstConnectedCalendar || {};
 
-  let where;
+  let where: { eventTypeId: number } | { userId: number };
 
   if (!credentialId && !delegationCredentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });

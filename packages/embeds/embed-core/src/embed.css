@@ -6,4 +6,9 @@
   min-height: 300px;
   margin: 0 auto;
   width: 100%;
+  /**
+   * Following properties are added to ensure that the embedding page isn't able to affect these properties
+   */
+  display: block !important; /* A website made all iframes' display flex breaking the embed */
+  color-scheme: unset !important; /* A website had explicitly set color-scheme to something for all iframes */
 }

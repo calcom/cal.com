@@ -39,7 +39,10 @@ export interface IAbstractPaymentService {
   ): Promise<Payment>;
 
   update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Promise<Payment>;
-  refund(paymentId: Payment["id"]): Promise<Payment>;
+  /**
+   * @returns Payment if successful, null if payment to refund does not exist (anymore)
+   */
+  refund(paymentId: Payment["id"]): Promise<Payment | null>;
   getPaymentPaidStatus(): Promise<string>;
   getPaymentDetails(): Promise<Payment>;
   afterPayment(

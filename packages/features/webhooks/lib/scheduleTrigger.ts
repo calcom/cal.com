@@ -1,10 +1,10 @@
 import { v4 } from "uuid";
 
+import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import tasker from "@calcom/features/tasker";
-import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -12,6 +12,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Webhook, Booking, ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { DEFAULT_WEBHOOK_VERSION, type WebhookVersion } from "./interface/IWebhookRepository";
 
 const SCHEDULING_TRIGGER: WebhookTriggerEvents[] = [
   WebhookTriggerEvents.MEETING_ENDED,
@@ -204,6 +206,7 @@ export async function listBookings(
         id: "desc",
       },
       select: {
+        uid: true,
         title: true,
         description: true,
         customInputs: true,
@@ -213,6 +216,7 @@ export async function listBookings(
         location: true,
         cancellationReason: true,
         status: true,
+        metadata: true,
         user: {
           select: {
             username: true,
@@ -249,6 +253,7 @@ export async function listBookings(
     const t = await getTranslation(bookings[0].user?.locale ?? "en", "common");
 
     const updatedBookings = bookings.map((booking) => {
+      const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata || {});
       return {
         ...booking,
         ...getCalEventResponses({
@@ -256,6 +261,9 @@ export async function listBookings(
           booking,
         }),
         location: getHumanReadableLocationValue(booking.location || "", t),
+        metadata: {
+          videoCallUrl: parsedMetadata.success ? parsedMetadata.data?.videoCallUrl : undefined,
+        },
       };
     });
 
@@ -650,7 +658,7 @@ export async function scheduleNoShowTaskForBooking(
     triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
       ? "triggerHostNoShowWebhook"
       : "triggerGuestNoShowWebhook";
-
+  const version = (webhook.version as WebhookVersion) ?? DEFAULT_WEBHOOK_VERSION;
   await tasker.create(
     taskType,
     {
@@ -660,6 +668,7 @@ export async function scheduleNoShowTaskForBooking(
         ...webhook,
         time: webhook.time ?? 0,
         timeUnit: webhook.timeUnit ?? "HOUR",
+        version,
       },
     },
     {

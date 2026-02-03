@@ -143,7 +143,7 @@ async function saveBooking(
   const createBookingObj = {
     include: {
       user: {
-        select: { email: true, name: true, timeZone: true, username: true },
+        select: { uuid: true, email: true, name: true, timeZone: true, username: true, isPlatformManaged: true },
       },
       attendees: true,
       payment: true,
@@ -182,7 +182,7 @@ async function saveBooking(
       await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
     }
 
-    return booking;
+    return { ...booking, userUuid: booking.user?.uuid ?? null };
   });
 }
 
@@ -258,8 +258,8 @@ function buildNewBookingData(params: CreateBookingParams) {
     destinationCalendar:
       evt.destinationCalendar && evt.destinationCalendar.length > 0
         ? {
-            connect: { id: evt.destinationCalendar[0].id },
-          }
+          connect: { id: evt.destinationCalendar[0].id },
+        }
         : undefined,
 
     routedFromRoutingFormReponse: routingFormResponseId

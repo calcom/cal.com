@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { Linter } from "eslint";
+import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { parse } from "node-html-parser";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -9,11 +10,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 
-const linter = new Linter();
-const eslintRules = {
-  "no-undef": "error",
-  "no-unused-vars": "off",
-} as const;
+const nodeRequire = createRequire(__filename);
+const biomeBin = nodeRequire.resolve("@biomejs/biome/bin/biome");
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -60,7 +58,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
@@ -98,7 +95,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
@@ -136,7 +132,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
@@ -176,7 +171,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
@@ -234,7 +228,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
@@ -275,7 +268,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
@@ -315,7 +307,6 @@ test.describe("Embed Code Generator Tests", () => {
         });
 
         // To prevent early timeouts
-        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
@@ -333,8 +324,7 @@ function chooseEmbedType(page: Page, embedType: EmbedType) {
 }
 
 async function goToReactCodeTab(page: Page) {
-  // To prevent early timeouts
-  // eslint-disable-next-line playwright/no-wait-for-timeout
+  // To prevent early timeo
   await page.waitForTimeout(1000);
   await page.locator("[data-testid=horizontal-tab-react]").click();
 }
@@ -343,7 +333,7 @@ async function clickEmbedButton(page: Page) {
   const embedButton = page.locator("[data-testid=embed]");
   const embedUrl = await embedButton.getAttribute("data-test-embed-url");
   embedButton.click();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   return embedUrl!;
 }
 
@@ -439,52 +429,41 @@ async function expectValidHtmlEmbedSnippet(
 }
 
 function assertThatCodeIsValidVanillaJsCode(code: string) {
-  const lintResult = linter.verify(code, {
-    env: {
-      browser: true,
-    },
-    parserOptions: {
-      ecmaVersion: 2021,
-    },
-    globals: {
-      Cal: "readonly",
-    },
-    rules: eslintRules,
+  // Use Biome to check if the code is syntactically valid JavaScript
+  const result = spawnSync("node", [biomeBin, "format", "--stdin-file-path", "snippet.js"], {
+    input: code,
+    encoding: "utf-8",
   });
-  if (lintResult.length) {
+
+  if (result.status !== 0) {
     console.log(
       JSON.stringify({
-        lintResult,
+        biomeError: result.stderr,
         code,
       })
     );
   }
-  expect(lintResult.length).toBe(0);
+
+  expect(result.status).toBe(0);
 }
 
 function assertThatCodeIsValidReactCode(code: string) {
-  const lintResult = linter.verify(code, {
-    env: {
-      browser: true,
-    },
-    parserOptions: {
-      ecmaVersion: 2021,
-      ecmaFeatures: {
-        jsx: true,
-      },
-      sourceType: "module",
-    },
-    rules: eslintRules,
+  // Use Biome to check if the code is syntactically valid JSX
+  const result = spawnSync("node", [biomeBin, "format", "--stdin-file-path", "snippet.jsx"], {
+    input: code,
+    encoding: "utf-8",
   });
-  if (lintResult.length) {
+
+  if (result.status !== 0) {
     console.log(
       JSON.stringify({
-        lintResult,
+        biomeError: result.stderr,
         code,
       })
     );
   }
-  expect(lintResult.length).toBe(0);
+
+  expect(result.status).toBe(0);
 }
 
 async function expectValidReactEmbedSnippet(

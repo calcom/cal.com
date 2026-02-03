@@ -21,12 +21,12 @@ const handlePaymentRefund = async (
   }
 
   const paymentAppModule = await paymentAppImportFn;
-  if (!paymentAppModule?.PaymentService) {
+  if (!paymentAppModule?.BuildPaymentService) {
     console.warn(`payment App service not found for key: ${key}`);
     return false;
   }
-  const PaymentService = paymentAppModule.PaymentService;
-  const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
+  const createPaymentService = paymentAppModule.BuildPaymentService;
+  const paymentInstance = createPaymentService(paymentAppCredentials) as IAbstractPaymentService;
   const refund = await paymentInstance.refund(paymentId);
   return refund;
 };

@@ -61,7 +61,9 @@ const checkActiveBookingsLimit = async ({
 
   if (bookingsCount >= maxActiveBookingsPerBooker) {
     log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
-    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded);
+    throw new ErrorWithCode(ErrorCode.BookerLimitExceeded, ErrorCode.BookerLimitExceeded, {
+      count: maxActiveBookingsPerBooker,
+    });
   }
 };
 
@@ -100,12 +102,22 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
         select: {
           name: true,
           email: true,
+          bookingSeat: {
+            select: {
+              referenceUid: true,
+            },
+          },
+        },
+        where: {
+          email: bookerEmail,
         },
       },
     },
   });
 
   const lastBooking = bookingsCount[bookingsCount.length - 1];
+  // Get the seatUid for the booker's seat in this booking (if it's a seated event)
+  const seatUid = lastBooking?.attendees[0]?.bookingSeat?.referenceUid;
 
   if (bookingsCount.length >= maxActiveBookingsPerBooker) {
     log.warn(`Maximum booking limit reached for ${bookerEmail} for event type ${eventTypeId}`);
@@ -116,6 +128,7 @@ const checkActiveBookingsLimitAndOfferReschedule = async ({
         rescheduleUid: lastBooking.uid,
         startTime: lastBooking.startTime,
         attendees: lastBooking.attendees,
+        seatUid,
       }
     );
   }

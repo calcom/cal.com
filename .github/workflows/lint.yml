@@ -6,12 +6,13 @@ permissions:
   contents: read
 jobs:
   lint:
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint
-        continue-on-error: true

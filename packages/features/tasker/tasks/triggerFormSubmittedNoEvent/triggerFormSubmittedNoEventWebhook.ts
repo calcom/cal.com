@@ -2,8 +2,11 @@ import { z } from "zod";
 
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/lib/incompleteBooking/actionFunctions";
+import { DEFAULT_WEBHOOK_VERSION, WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import prisma from "@calcom/prisma";
+
+import { getSubmitterEmail, shouldTriggerFormSubmittedNoEvent } from "./formSubmissionValidation";
 
 export type ResponseData = {
   responseId: number;
@@ -21,6 +24,7 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
     appId: z.string().nullable(),
     payloadTemplate: z.string().nullable(),
     secret: z.string().nullable(),
+    version: z.nativeEnum(WebhookVersion).optional(),
   }),
   responseId: z.number(),
   responses: z.any(),
@@ -40,72 +44,32 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
-  const bookingFromResponse = await prisma.booking.findFirst({
-    where: {
-      routedFromRoutingFormReponse: {
-        id: responseId,
-      },
-    },
+
+  const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
+    formId: form.id,
+    responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
+    responseId,
   });
 
-  if (bookingFromResponse) {
-    return;
-  }
-
-  const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const recentResponses =
-    (await prisma.app_RoutingForms_FormResponse.findMany({
-      where: {
-        formId: form.id,
-        createdAt: {
-          gte: sixtyMinutesAgo,
-          lt: new Date(),
-        },
-        routedToBookingUid: {
-          not: null,
-        },
-        NOT: {
-          id: responseId,
-        },
-      },
-    })) ?? [];
-
-  const emailValue = Object.values(responses).find(
-    (response): response is { value: string; label: string } => {
-      const value =
-        typeof response === "object" && response && "value" in response ? response.value : response;
-      return typeof value === "string" && value.includes("@");
-    }
-  )?.value;
-  // Check for duplicate email in recent responses
-  const hasDuplicate =
-    emailValue &&
-    recentResponses.some((response) => {
-      return Object.values(response.response as Record<string, { value: string; label: string }>).some(
-        (field) => {
-          if (!response.response || typeof response.response !== "object") return false;
-
-          return typeof field.value === "string" && field.value.toLowerCase() === emailValue.toLowerCase();
-        }
-      );
-    });
-
-  if (hasDuplicate) {
-    return;
-  }
+  if (!shouldTrigger) return;
 
   await sendGenericWebhookPayload({
     secretKey: webhook.secret,
     triggerEvent: "FORM_SUBMITTED_NO_EVENT",
     createdAt: new Date().toISOString(),
-    webhook,
+    webhook: {
+      subscriberUrl: webhook.subscriberUrl,
+      appId: webhook.appId,
+      payloadTemplate: webhook.payloadTemplate,
+      version: webhook.version ?? DEFAULT_WEBHOOK_VERSION,
+    },
     data: {
       formId: form.id,
       formName: form.name,
       teamId: form.teamId,
       redirect,
       responseId,
-      responses,
+      responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
     },
   }).catch((e) => {
     console.error(`Error executing FORM_SUBMITTED_NO_EVENT webhook`, webhook, e);
@@ -125,6 +89,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       // Get action function
       const bookingActionFunction = incompleteBookingActionFunctions[actionType];
 
+      const emailValue = getSubmitterEmail(responses as FORM_SUBMITTED_WEBHOOK_RESPONSES);
       if (emailValue) {
         await bookingActionFunction(incompleteBookingAction, emailValue);
       }

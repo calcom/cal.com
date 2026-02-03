@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
+  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition cursor-pointer disabled:cursor-not-allowed gap-1",
   {
     variants: {
       variant: {
@@ -54,7 +54,7 @@ export const buttonClasses = cva(
           "bg-brand-default",
           "text-brand",
           // Hover state
-          "enabled:hover:bg-brand-emphasis",
+          "not-disabled:hover:bg-brand-emphasis",
           // Focus state
           "focus-visible:outline-none",
           "focus-visible:ring-0",
@@ -65,8 +65,8 @@ export const buttonClasses = cva(
           "disabled:opacity-30",
           // Shadows and effects
           "shadow-button-solid-brand-default",
-          "enabled:active:shadow-button-solid-brand-active",
-          "enabled:hover:shadow-button-solid-brand-hover",
+          "not-disabled:active:shadow-button-solid-brand-active",
+          "not-disabled:hover:shadow-button-solid-brand-hover",
           "transition-shadow",
           "transition-transform",
           "duration-100",
@@ -79,8 +79,8 @@ export const buttonClasses = cva(
           "border",
           "border-default",
           // Hover state
-          "enabled:hover:bg-muted",
-          "enabled:hover:text-emphasis",
+          "not-disabled:hover:bg-cal-muted",
+          "not-disabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",
           // Focus state
@@ -90,8 +90,8 @@ export const buttonClasses = cva(
           "focus-visible:shadow-outline-gray-focused",
           // Shadows and effects
           "shadow-outline-gray-rested",
-          "enabled:hover:shadow-outline-gray-hover",
-          "enabled:active:shadow-outline-gray-active",
+          "not-disabled:hover:shadow-outline-gray-hover",
+          "not-disabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -101,9 +101,9 @@ export const buttonClasses = cva(
           "text-subtle",
           "border border-transparent",
           // Hover
-          "enabled:hover:bg-subtle",
-          "enabled:hover:text-emphasis",
-          "enabled:hover:border-subtle hover:border",
+          "not-disabled:hover:bg-subtle",
+          "not-disabled:hover:text-emphasis",
+          "not-disabled:hover:border-subtle hover:border",
           // Disabled
           "disabled:opacity-30",
           // Focus
@@ -114,7 +114,7 @@ export const buttonClasses = cva(
           "focus-visible:shadow-button-outline-gray-focused",
 
           // Shadows and effects
-          "enabled:active:shadow-outline-gray-active",
+          "not-disabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -142,8 +142,8 @@ export const buttonClasses = cva(
           "disabled:opacity-30",
           // Shadows and effects
           "shadow-outline-red-rested",
-          "enabled:hover:shadow-outline-red-hover",
-          "enabled:active:shadow-outline-red-active",
+          "not-disabled:hover:shadow-outline-red-hover",
+          "not-disabled:active:shadow-outline-red-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -187,22 +187,22 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
+        className: "min-h-[36px] min-w-[36px] p-2! hover:border-default",
       },
       {
         variant: "icon",
         size: "xs",
-        className: "h-5 w-5 !p-1 rounded-md",
+        className: "h-5 w-5 p-1! rounded-md",
       },
       {
         variant: "icon",
         size: "sm",
-        className: "h-6 w-6 !p-1 rounded-md",
+        className: "h-6 w-6 p-1! rounded-md",
       },
       {
         variant: "icon",
         size: "lg",
-        className: "h-10 w-10 !p-1",
+        className: "h-10 w-10 p-1!",
       },
       {
         variant: "fab",
@@ -239,41 +239,34 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     ...passThroughProps
   } = props;
   // Buttons are **always** disabled if we're in a `loading` state
-  const disabled = props.disabled || loading;
-  // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
+  const disabled = props.disabled || loading || false;
+  // If pass an `href`-attr is passed it's Link, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
-  const element = React.createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      disabled,
-      type: !isLink ? type : undefined,
-      ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      // if we click a disabled button, we prevent going through the click handler
-      onClick: disabled
-        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.preventDefault();
-          }
-        : props.onClick,
-    },
+  const buttonClassName = classNames(buttonClasses({ color, size, loading, variant }), props.className);
+  const handleClick = disabled
+    ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        e.preventDefault();
+      }
+    : props.onClick;
+
+  const buttonContent = (
     <>
       {CustomStartIcon ||
         (StartIcon && (
           <>
             {variant === "fab" ? (
               <>
-                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
-                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+                <Icon name={StartIcon} className="hidden h-4 w-4 shrink-0 stroke-[1.5px]  md:inline-flex" />
+                <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
               </>
             ) : (
               <Icon
                 data-name="start-icon"
                 name={StartIcon}
                 className={classNames(
+                  "shrink-0",
                   loading ? "invisible" : "visible",
-                  "button-icon group-active:translate-y-[0.5px]",
+                  "button-icon group-[:not(div):active]:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
                   variant === "button" && "h-4 w-4 stroke-[1.5px] "
                 )}
@@ -286,7 +279,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           "contents", // This makes the div behave like it doesn't exist in the layout
           loading ? "invisible" : "visible",
           variant === "fab" ? "hidden md:contents" : "",
-          "group-active:translate-y-[0.5px]"
+          "group-[:not(div):active]:translate-y-[0.5px]"
         )}>
         {props.children}
       </div>
@@ -313,15 +306,16 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {variant === "fab" ? (
             <>
-              <Icon name={EndIcon} className="-mr-1 me-2 ms-2 hidden h-5 w-5 md:inline" />
-              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
+              <Icon name={EndIcon} className="hidden h-4 w-4 shrink-0 stroke-[1.5px] md:inline-flex" />
+              <Icon name="plus" data-testid="plus" className="inline h-6 w-6 shrink-0 md:hidden" />
             </>
           ) : (
             <Icon
               name={EndIcon}
               className={classNames(
+                "shrink-0",
                 loading ? "invisible" : "visible",
-                "group-active:translate-y-[0.5px]",
+                "group-[:not(div):active]:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
                 variant === "button" && "h-4 w-4 stroke-[1.5px] "
               )}
@@ -332,18 +326,36 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     </>
   );
 
-  return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
+  // Render Link or button separately to avoid type conflicts
+  // Link manages its own anchor element, so we don't pass ref to it
+  if (isLink) {
+    return (
+      <Link
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)}
+        shallow={shallow && shallow}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </Link>
+    );
+  }
+
+  return (
     <Wrapper
       data-testid="wrapper"
       tooltip={props.tooltip}
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
       tooltipClassName={tooltipClassName}>
-      {element}
+      <button
+        {...(passThroughProps as Omit<JSX.IntrinsicElements["button"], "onClick" | "ref">)}
+        ref={forwardedRef as React.Ref<HTMLButtonElement>}
+        disabled={disabled}
+        type={type as "button" | "submit" | "reset"}
+        className={buttonClassName}
+        onClick={handleClick}>
+        {buttonContent}
+      </button>
     </Wrapper>
   );
 });

@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { teamMetadataSchema } from "@calcom/platform-libraries";
-import { Prisma } from "@calcom/prisma/client";
+import type { Membership, Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class TeamsRepository {
@@ -41,7 +41,7 @@ export class TeamsRepository {
       return [];
     }
 
-    return teamMembers.map((member) => member.userId);
+    return teamMembers.map((member: Membership) => member.userId);
   }
 
   async getTeamManagedUsersIds(teamId: number) {
@@ -57,7 +57,7 @@ export class TeamsRepository {
       return [];
     }
 
-    return teamMembers.map((member) => member.userId);
+    return teamMembers.map((member: Membership) => member.userId);
   }
 
   async getTeamsUserIsMemberOf(userId: number) {
@@ -117,32 +117,6 @@ export class TeamsRepository {
         slug,
         isOrganization: false,
         parentId: null,
-      },
-    });
-  }
-
-  async getTeamMemberEmails(teamId: number) {
-    return this.dbRead.prisma.user.findMany({
-      where: {
-        teams: {
-          some: {
-            teamId,
-          },
-        },
-      },
-      select: {
-        id: true,
-        email: true,
-        secondaryEmails: {
-          where: {
-            emailVerified: {
-              not: null,
-            },
-          },
-          select: {
-            email: true,
-          },
-        },
       },
     });
   }

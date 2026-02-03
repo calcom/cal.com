@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+
+import { SkipTakePagination, SortOrder, SortOrderType } from "../../../pagination/pagination.input";
 
 export class GetEventTypesQuery_2024_06_14 {
   @IsOptional()
@@ -46,6 +48,14 @@ export class GetEventTypesQuery_2024_06_14 {
     type: Number,
   })
   orgId?: number;
+
+  @ApiPropertyOptional({
+    enum: SortOrder,
+    description: "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+  })
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortCreatedAt?: SortOrderType;
 }
 
 export class GetTeamEventTypesQuery_2024_06_14 {
@@ -64,6 +74,24 @@ export class GetTeamEventTypesQuery_2024_06_14 {
       "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
   })
   hostsLimit?: number;
+
+  @ApiPropertyOptional({
+    enum: SortOrder,
+    description: "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+  })
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortCreatedAt?: SortOrderType;
+}
+
+export class GetOrganizationEventTypesQuery_2024_06_14 extends SkipTakePagination {
+  @ApiPropertyOptional({
+    enum: SortOrder,
+    description: "Sort event types by creation date. When not provided, no explicit ordering is applied.",
+  })
+  @IsOptional()
+  @IsEnum(SortOrder)
+  sortCreatedAt?: SortOrderType;
 }
 
 function TransformUsernames() {

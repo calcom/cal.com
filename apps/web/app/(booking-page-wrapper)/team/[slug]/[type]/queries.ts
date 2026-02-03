@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
   getEventTypeHosts,
   getProfileFromEvent,
@@ -11,10 +12,9 @@ import {
 } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventType";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -124,6 +124,7 @@ export async function getCRMData(
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
+  const crmLookupDoneParam = query["cal.crmLookupDone"];
 
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
   let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
@@ -132,7 +133,11 @@ export async function getCRMData(
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
   let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+  // If crmLookupDone is true, the router already performed the CRM lookup, so skip it here
+  const crmLookupDone =
+    (Array.isArray(crmLookupDoneParam) ? crmLookupDoneParam[0] : crmLookupDoneParam) === "true";
+
+  if (!crmLookupDone && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );

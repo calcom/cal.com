@@ -1,5 +1,5 @@
-import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import type { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TeamAccessUseCase } from "../teamAccessUseCase";
@@ -34,8 +34,8 @@ export class EventGroupBuilder {
   }> {
     const { userId, userUpId, filters, forRoutingForms } = input;
 
-    // Get user profile
-    const profile = await this.dependencies.profileRepository.findByUpId(userUpId);
+    // Get user profile with authorization check
+    const profile = await this.dependencies.profileRepository.findByUpIdWithAuth(userUpId, userId);
     if (!profile) {
       throw new Error("Profile not found");
     }
@@ -68,7 +68,8 @@ export class EventGroupBuilder {
       },
     }));
 
-    const teamMemberships = accessibleMemberships.map((membership) => ({
+    // This ensures org roles are considered when calculating effective permissions
+    const teamMemberships = profileMemberships.map((membership) => ({
       teamId: membership.team.id,
       membershipRole: membership.role,
     }));

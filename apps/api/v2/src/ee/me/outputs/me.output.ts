@@ -23,6 +23,18 @@ export class MeOutput {
   @DocsProperty()
   email!: string;
 
+  @IsString()
+  @DocsProperty({ type: String, nullable: true })
+  name!: string | null;
+
+  @IsString()
+  @DocsProperty({ type: String, nullable: true })
+  avatarUrl!: string | null;
+
+  @IsString()
+  @DocsProperty({ type: String, nullable: true })
+  bio!: string | null;
+
   @IsInt()
   @DocsProperty()
   timeFormat!: number;

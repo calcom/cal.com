@@ -10,10 +10,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*"
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

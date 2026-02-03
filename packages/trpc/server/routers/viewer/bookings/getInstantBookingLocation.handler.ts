@@ -12,11 +12,11 @@ type GetOptions = {
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   const { prisma } = ctx;
-  const { bookingId } = input;
+  const { bookingUid } = input;
 
   const booking = await prisma.booking.findUnique({
     where: {
-      id: bookingId,
+      uid: bookingUid,
       status: BookingStatus.ACCEPTED,
     },
     select: {

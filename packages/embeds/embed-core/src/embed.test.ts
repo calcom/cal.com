@@ -735,6 +735,9 @@ describe("Cal", () => {
       };
       // Reset document.querySelector mock before each test
       vi.restoreAllMocks();
+      // Mock document.querySelector to return null by default (no existing modal)
+      // This prevents isInFailedState from being true
+      vi.spyOn(document, "querySelector").mockReturnValue(null);
     });
 
     it("should return fullReload when cal link is different", () => {

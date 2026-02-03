@@ -1,9 +1,14 @@
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import {
+  Resource,
+  CustomAction,
+  PermissionString,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -100,11 +105,23 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     // PBAC not enabled or error occurred, continue with traditional roles
   }
 
-  const membersWithApps = await Promise.all(
-    teamMembers.map(async (member) => {
-      const user = await new UserRepository(prisma).enrichUserWithItsProfile({
-        user: member.user,
-      });
+  const users = teamMembers.map((member) => member.user);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfileExcludingOrgMetadata(
+    users
+  );
+
+  const enrichedUserMap = new Map<number, (typeof enrichedUsers)[0]>();
+  enrichedUsers.forEach((enrichedUser) => {
+    enrichedUserMap.set(enrichedUser.id, enrichedUser);
+  });
+
+  const membersWithApps = teamMembers
+    .map((member) => {
+      const user = enrichedUserMap.get(member.user.id);
+      if (!user) {
+        return null;
+      }
+
       const { profile, ...restUser } = user;
 
       // Determine the role to display
@@ -135,7 +152,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
           : null,
       };
     })
-  );
+    .filter((member): member is NonNullable<typeof member> => member !== null);
 
   return {
     members: membersWithApps,
@@ -157,37 +174,22 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   if (!team) return false;
 
-  // Get user's membership in the team
-  const membership = await prisma.membership.findFirst({
-    where: {
-      teamId,
-      userId: ctx.user.id,
-      accepted: true,
-    },
-  });
-
-  if (!membership) return false;
-
   // Determine the resource type based on whether this is an org or team
   const resource = isTargetingOrg ? Resource.Organization : Resource.Team;
+  const targetAction = team.isPrivate ? CustomAction.ListMembersPrivate : CustomAction.ListMembers;
+  const permissionString = `${resource}.${targetAction}` as PermissionString;
 
   // Check PBAC permissions for listing members
-  const permissions = await getSpecificPermissions({
+  const permissionCheckService = new PermissionCheckService();
+
+  return permissionCheckService.checkPermission({
     userId: ctx.user.id,
     teamId: teamId,
-    resource: resource,
-    userRole: membership.role,
-    actions: [CustomAction.ListMembers],
-    fallbackRoles: {
-      [CustomAction.ListMembers]: {
-        roles: team.isPrivate
-          ? [MembershipRole.ADMIN, MembershipRole.OWNER]
-          : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-      },
-    },
+    permission: permissionString,
+    fallbackRoles: team.isPrivate
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+      : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
   });
-
-  return permissions[CustomAction.ListMembers];
 };
 
 export default listMembersHandler;
