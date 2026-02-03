@@ -30,8 +30,8 @@ function hasApiV2RouteInEnv() {
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
   const session = await getServerSession({ req });
-  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = query;
+    const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
+    const { rescheduleUid, bookingUid, isInstantMeeting: queryIsInstantMeeting } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
 
@@ -55,11 +55,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-  if (eventData.schedulingType === SchedulingType.MANAGED) {
-    return { notFound: true } as const;
-  }
+    if (eventData.schedulingType === SchedulingType.MANAGED) {
+      return { notFound: true } as const;
+    }
 
-  if (rescheduleUid && eventData.disableRescheduling) {
+    // Redirect if no routing form response and redirect URL is configured
+    // Don't redirect if this is a reschedule flow or seated booking flow
+    const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
+    if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && eventData.redirectUrlOnNoRoutingFormResponse) {
+      return {
+        redirect: {
+          destination: eventData.redirectUrlOnNoRoutingFormResponse,
+          permanent: false,
+        },
+      };
+    }
+
+    if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
 
@@ -239,19 +251,20 @@ const getTeamWithEventsData = async (
         where: {
           slug: meetingSlug,
         },
-        select: {
-          id: true,
-          title: true,
-          isInstantEvent: true,
-          schedulingType: true,
-          metadata: true,
-          length: true,
-          hidden: true,
-          disableCancelling: true,
-          disableRescheduling: true,
-          allowReschedulingCancelledBookings: true,
-          interfaceLanguage: true,
-          hosts: {
+                select: {
+                  id: true,
+                  title: true,
+                  isInstantEvent: true,
+                  schedulingType: true,
+                  metadata: true,
+                  length: true,
+                  hidden: true,
+                  disableCancelling: true,
+                  disableRescheduling: true,
+                  allowReschedulingCancelledBookings: true,
+                  redirectUrlOnNoRoutingFormResponse: true,
+                  interfaceLanguage: true,
+                  hosts: {
             take: 3,
             select: {
               user: {

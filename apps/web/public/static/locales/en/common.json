@@ -1435,6 +1435,8 @@
   "you_are_being_redirected": "You are being redirected to {{ url }} in $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
   "redirect_url_description": "Redirect to a custom URL after a successful booking",
+  "redirect_on_no_routing_form": "Redirect when accessed without routing form",
+  "redirect_on_no_routing_form_description": "Redirect to set URL if the event type was not routed to via a routing form",
   "duplicate": "Duplicate",
   "offer_seats": "Offer seats",
   "offer_seats_description": "Offer seats for booking. This automatically disables guest & opt-in bookings. <0>Learn more</0>",
