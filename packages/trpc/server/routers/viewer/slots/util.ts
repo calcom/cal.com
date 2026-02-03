@@ -190,6 +190,96 @@ export class AvailableSlotsService {
     }
   }
 
+  /**
+   * When rescheduling, check if the guest (attendee) is a Cal.com user.
+   * If they are, fetch their availability and return time ranges when they're available.
+   * This allows hosts to only see time slots when both parties are free.
+   */
+  private async _getGuestAvailabilityForReschedule({
+    rescheduleUid,
+    startTime,
+    endTime,
+    timeZone,
+  }: {
+    rescheduleUid: string;
+    startTime: Dayjs;
+    endTime: Dayjs;
+    timeZone: string | undefined;
+  }): Promise<{ start: Dayjs; end: Dayjs }[] | null> {
+    const bookingRepo = this.dependencies.bookingRepo;
+    const userRepo = this.dependencies.userRepo;
+
+    // Fetch the original booking with attendees
+    const booking = await bookingRepo.findByUidIncludeEventType({ bookingUid: rescheduleUid });
+    if (!booking || !booking.attendees || booking.attendees.length === 0) {
+      return null;
+    }
+
+    // Get attendee emails (excluding the host)
+    const hostEmails = new Set<string>();
+    if (booking.user?.email) hostEmails.add(booking.user.email.toLowerCase());
+    if (booking.eventType?.hosts) {
+      booking.eventType.hosts.forEach((h) => {
+        if (h.user?.email) hostEmails.add(h.user.email.toLowerCase());
+      });
+    }
+    if (booking.eventType?.users) {
+      booking.eventType.users.forEach((u) => {
+        if (u.email) hostEmails.add(u.email.toLowerCase());
+      });
+    }
+
+    const guestEmails = booking.attendees
+      .map((a) => a.email.toLowerCase())
+      .filter((email) => !hostEmails.has(email));
+
+    if (guestEmails.length === 0) {
+      return null;
+    }
+
+    // Check if any guest is a Cal.com user
+    let guestUser = null;
+    for (const email of guestEmails) {
+      const user = await userRepo.findByEmail({ email });
+      if (user) {
+        guestUser = user;
+        break; // Use the first Cal.com user found
+      }
+    }
+
+    if (!guestUser) {
+      return null; // Guest is not a Cal.com user, skip availability check
+    }
+
+    // Fetch the guest's availability using the user availability service
+    try {
+      const guestAvailability = await this.dependencies.userAvailabilityService.getUserAvailability({
+        userId: guestUser.id,
+        dateFrom: startTime,
+        dateTo: endTime,
+        returnDateOverrides: false,
+      });
+
+      if (!guestAvailability || !guestAvailability.dateRanges) {
+        return null;
+      }
+
+      // Return the guest's available date ranges
+      return guestAvailability.dateRanges.map((range) => ({
+        start: dayjs(range.start),
+        end: dayjs(range.end),
+      }));
+    } catch (error) {
+      log.warn("Failed to fetch guest availability for reschedule", { error, guestUserId: guestUser.id });
+      return null; // On error, don't block - just skip guest availability check
+    }
+  }
+
+  private getGuestAvailabilityForReschedule = withReporting(
+    this._getGuestAvailabilityForReschedule.bind(this),
+    "getGuestAvailabilityForReschedule"
+  );
+
   private async _getDynamicEventType(
     input: TGetScheduleInputSchema,
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -1208,6 +1298,46 @@ export class AvailableSlotsService {
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+
+    // When rescheduling, check if the guest is a Cal.com user and intersect their availability
+    if (input.rescheduleUid) {
+      const guestAvailability = await this.getGuestAvailabilityForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        startTime,
+        endTime,
+        timeZone: input.timeZone,
+      });
+
+      if (guestAvailability && guestAvailability.length > 0) {
+        // Intersect host availability with guest availability
+        // Only keep time ranges where both host and guest are available
+        aggregatedAvailability = aggregatedAvailability.flatMap((hostRange) => {
+          const intersections: typeof aggregatedAvailability = [];
+
+          for (const guestRange of guestAvailability) {
+            // Find overlap between host and guest ranges
+            const overlapStart = hostRange.start.isAfter(guestRange.start) ? hostRange.start : guestRange.start;
+            const overlapEnd = hostRange.end.isBefore(guestRange.end) ? hostRange.end : guestRange.end;
+
+            // If there's a valid overlap, add it
+            if (overlapStart.isBefore(overlapEnd)) {
+              intersections.push({
+                start: overlapStart,
+                end: overlapEnd,
+              });
+            }
+          }
+
+          return intersections;
+        });
+
+        loggerWithEventDetails.info("Intersected host availability with guest Cal.com user availability", {
+          rescheduleUid: input.rescheduleUid,
+          originalRanges: allUsersAvailability.length,
+          intersectedRanges: aggregatedAvailability.length,
+        });
+      }
+    }
 
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
