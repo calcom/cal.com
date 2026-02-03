@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
+      "appleTeamId": "ADWKXDJV75",
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.cal.companion",
       "infoPlist": {

@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "prewidget": "EXPO_NO_GIT_STATUS=1 npx expo prebuild --template ./node_modules/@bacons/apple-targets/prebuild-blank.tgz --clean",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
     "typecheck:all": "npm run typecheck && npm run typecheck:extension",

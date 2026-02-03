@@ -128,7 +128,7 @@ struct UpcomingBookingsWidgetEntryView: View {
                 .frame(maxWidth: .infinity)
                 Spacer()
             } else {
-                let maxBookings = family == .systemSmall ? 2 : 4
+                let maxBookings = family == .systemSmall ? 2 : (family == .systemLarge ? 6 : 4)
                 ForEach(entry.bookings.prefix(maxBookings)) { booking in
                     BookingRowView(booking: booking)
                     if booking.id != entry.bookings.prefix(maxBookings).last?.id {
@@ -152,7 +152,7 @@ struct UpcomingBookingsWidget: Widget {
         }
         .configurationDisplayName("Upcoming Bookings")
         .description("View your upcoming Cal.com bookings at a glance.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 
@@ -173,5 +173,17 @@ struct UpcomingBookingsWidget: Widget {
         BookingData(id: "1", title: "Team Standup", startTime: "10:00 AM", endTime: "10:30 AM", attendeeName: "John Doe", location: nil),
         BookingData(id: "2", title: "Product Review", startTime: "2:00 PM", endTime: "3:00 PM", attendeeName: "Jane Smith", location: nil),
         BookingData(id: "3", title: "Client Call", startTime: "4:00 PM", endTime: "5:00 PM", attendeeName: "Bob Wilson", location: nil)
+    ])
+}
+
+#Preview(as: .systemLarge) {
+    UpcomingBookingsWidget()
+} timeline: {
+    BookingEntry(date: .now, bookings: [
+        BookingData(id: "1", title: "Team Standup", startTime: "10:00 AM", endTime: "10:30 AM", attendeeName: "John Doe", location: nil),
+        BookingData(id: "2", title: "Product Review", startTime: "2:00 PM", endTime: "3:00 PM", attendeeName: "Jane Smith", location: nil),
+        BookingData(id: "3", title: "Client Call", startTime: "4:00 PM", endTime: "5:00 PM", attendeeName: "Bob Wilson", location: nil),
+        BookingData(id: "4", title: "Interview", startTime: "5:30 PM", endTime: "6:00 PM", attendeeName: "Alice Johnson", location: nil),
+        BookingData(id: "5", title: "Wrap Up", startTime: "6:00 PM", endTime: "6:15 PM", attendeeName: "Team", location: nil)
     ])
 }

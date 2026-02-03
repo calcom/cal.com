@@ -33,12 +33,17 @@ function formatTime(dateString: string): string {
 }
 
 async function updateIOSWidget(widgetData: WidgetData): Promise<void> {
+  console.log("[Widget Debug] updateIOSWidget called with:", JSON.stringify(widgetData, null, 2));
+
   // Use ExtensionStorage from @bacons/apple-targets to store data in App Groups
-  // This properly stores data that iOS widgets can read
-  iosStorage.set(WIDGET_BOOKINGS_KEY, JSON.stringify(widgetData));
+  // ExtensionStorage.set() handles JSON serialization internally, so we pass the object directly
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  iosStorage.set(WIDGET_BOOKINGS_KEY, widgetData as any);
+  console.log("[Widget Debug] Data written to ExtensionStorage with key:", WIDGET_BOOKINGS_KEY);
 
   // Trigger widget refresh so it picks up the new data
   ExtensionStorage.reloadWidget();
+  console.log("[Widget Debug] ExtensionStorage.reloadWidget() called");
 }
 
 async function updateAndroidWidget(widgetData: WidgetData): Promise<void> {
@@ -64,21 +69,36 @@ export async function updateWidgetBookings(
     id: number;
     uid: string;
     title: string;
-    startTime: string;
-    endTime: string;
+    startTime?: string;
+    endTime?: string;
+    start?: string;
+    end?: string;
     attendees?: Array<{ name: string; email: string }>;
     location?: string;
   }>
 ): Promise<void> {
+  console.log("[Widget Debug] updateWidgetBookings called with", bookings.length, "bookings");
+
   try {
-    const widgetBookings: WidgetBookingData[] = bookings.slice(0, 5).map((booking) => ({
-      id: booking.uid || String(booking.id),
-      title: booking.title,
-      startTime: formatTime(booking.startTime),
-      endTime: formatTime(booking.endTime),
-      attendeeName: booking.attendees?.[0]?.name || null,
-      location: booking.location || null,
-    }));
+    const widgetBookings: WidgetBookingData[] = bookings.slice(0, 5).map((booking) => {
+      // Handle both property name formats (startTime/endTime vs start/end)
+      const startTimeStr = booking.startTime || booking.start || "";
+      const endTimeStr = booking.endTime || booking.end || "";
+
+      return {
+        id: booking.uid || String(booking.id),
+        title: booking.title,
+        startTime: formatTime(startTimeStr),
+        endTime: formatTime(endTimeStr),
+        attendeeName: booking.attendees?.[0]?.name || null,
+        location: booking.location || null,
+      };
+    });
+
+    console.log(
+      "[Widget Debug] Formatted widget bookings:",
+      JSON.stringify(widgetBookings, null, 2)
+    );
 
     const widgetData: WidgetData = {
       bookings: widgetBookings,
@@ -86,6 +106,7 @@ export async function updateWidgetBookings(
     };
 
     if (Platform.OS === "ios") {
+      console.log("[Widget Debug] Platform is iOS, calling updateIOSWidget");
       await updateIOSWidget(widgetData);
     } else if (Platform.OS === "android") {
       await updateAndroidWidget(widgetData);
