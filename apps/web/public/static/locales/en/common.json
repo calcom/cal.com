@@ -47,6 +47,8 @@
   "too_weak": "Too Weak",
   "get_started": "Get Started",
   "cancel_instances": "Cancel Instances",
+  "cancel_instance": "Cancel Instance",
+  "cancel_instance_description": "Select the instance you want to cancel",
   "cancel_this_instance": "Cancel this instance",
   "cancel_recurring_event": "Cancel recurring event",
   "cancel_event_instance": "Cancel event instance",

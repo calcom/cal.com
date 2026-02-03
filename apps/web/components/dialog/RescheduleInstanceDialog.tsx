@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@calid/features/ui/components/dialog";
+import { Form, FormField } from "@calid/features/ui/components/form";
 import { Icon } from "@calid/features/ui/components/icon";
 import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
@@ -19,7 +20,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -92,11 +93,6 @@ export function RescheduleInstanceDialog({
       console.warn("No valid recurringEvent provided");
       return [];
     }
-    console.log(
-      "Generating recurring instances for:",
-      JSON.stringify(recurringEvent),
-      validatedEventStartTime
-    );
     return generateRecurringInstances(recurringEvent, validatedEventStartTime);
   }, [recurringEvent, validatedEventStartTime]);
 
@@ -114,11 +110,12 @@ export function RescheduleInstanceDialog({
       }));
   }, [allRecurringDates, now]);
 
-  const { control, handleSubmit, watch, setValue } = useForm<{ instances: RescheduleInstanceDate[] }>({
+  const form = useForm<{ instances: RescheduleInstanceDate[] }>({
     defaultValues: { instances: futureDates },
     mode: "onBlur",
   });
 
+  const { control, watch, setValue } = form;
   const watchedInstances = watch("instances");
   const isSubmitDisabled = !watchedInstances?.some((instance) => instance.isSelected);
 
@@ -140,10 +137,8 @@ export function RescheduleInstanceDialog({
   const shouldShowSearch = futureDates.length > 10;
   const shouldUseScrollArea = futureDates.length > 10;
 
-  const handleCheckboxChange = (selectedIndex: number, currentValue: boolean) => {
-    const newValue = !currentValue;
-
-    if (newValue) {
+  const handleCheckboxChange = (selectedIndex: number, checked: boolean) => {
+    if (checked) {
       fields.forEach((_, index) => {
         setValue(`instances.${index}.isSelected`, index === selectedIndex);
       });
@@ -205,22 +200,22 @@ export function RescheduleInstanceDialog({
   }
 
   const renderCheckboxList = () => {
-    const checkboxes = filteredFields.map((field, index) => {
+    const checkboxes = filteredFields.map((field) => {
       const originalIndex = fields.findIndex((f) => f.id === field.id);
       const formatted = dayjs(field.date)
         .tz(userTimeZone)
         .format(userTimeFormat === 24 ? "dddd, D MMM YYYY HH:mm" : "dddd, D MMM YYYY h:mm A");
 
       return (
-        <Controller
+        <FormField
           key={field.id}
-          name={`instances.${originalIndex}.isSelected`}
           control={control}
+          name={`instances.${originalIndex}.isSelected`}
           render={({ field: { value } }) => (
             <CheckboxField
-              checked={value}
+              checked={value ?? false}
               description={formatted}
-              onChange={() => handleCheckboxChange(originalIndex, value)}
+              onCheckedChange={(checked) => handleCheckboxChange(originalIndex, checked ?? false)}
             />
           )}
         />
@@ -241,11 +236,11 @@ export function RescheduleInstanceDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent enableOverflow>
-        <DialogHeader showIcon iconName="clock" iconVariant="info">
+        <DialogHeader showIcon iconName="calendar-range" iconVariant="info">
           <DialogTitle>{t("reschedule_instance")}</DialogTitle>
           <DialogDescription>{t("reschedule_instance_description")}</DialogDescription>
         </DialogHeader>
-        <form>
+        <Form id="reschedule-instance-form" form={form} onSubmit={handleReschedule}>
           {shouldShowSearch && (
             <div className="mb-4">
               <div className="relative">
@@ -272,13 +267,14 @@ export function RescheduleInstanceDialog({
           ) : (
             renderCheckboxList()
           )}
-        </form>
+        </Form>
 
         <DialogFooter>
           <DialogClose />
           <Button
+            type="submit"
+            form="reschedule-instance-form"
             StartIcon="rotate-cw"
-            onClick={handleSubmit(handleReschedule)}
             disabled={isSubmitDisabled}
             data-testid="reschedule-selected-instance">
             {t("reschedule")}

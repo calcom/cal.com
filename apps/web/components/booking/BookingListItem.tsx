@@ -310,14 +310,6 @@ export default function BookingListItem(booking: BookingItemProps) {
 
   const rescheduleEventLink = getRescheduleEventLink(actionContext);
 
-  const RequestSentMessage = () => {
-    return (
-      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
-        {t("reschedule_request_sent")}
-      </Badge>
-    );
-  };
-
   const bookingYear = dayjs(booking.startTime).year();
   const currentYear = dayjs().year();
   const isDifferentYear = bookingYear !== currentYear;
@@ -811,11 +803,6 @@ export default function BookingListItem(booking: BookingItemProps) {
                           )}
                       </div>
                     )}
-                    {isCancelled && booking.rescheduled && (
-                      <div className="mt-2 inline-block md:hidden">
-                        <RequestSentMessage />
-                      </div>
-                    )}
                     <BookingItemBadges
                       booking={booking}
                       isPending={isPending}
@@ -823,6 +810,8 @@ export default function BookingListItem(booking: BookingItemProps) {
                       userTimeFormat={userTimeFormat}
                       userTimeZone={userTimeZone}
                       isRescheduled={isRescheduled}
+                      isRejected={isRejected}
+                      isCancelledAndRescheduled={isCancelled && !!booking.rescheduled}
                     />
                   </div>
                 </div>
@@ -830,19 +819,18 @@ export default function BookingListItem(booking: BookingItemProps) {
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-                    {hasWorkflowInsights && !isRejected && (
-                      <Button
-                        color="secondary"
-                        StartIcon="zap"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsWorkflowStatusDialogOpen(true);
-                        }}
-                        className="flex items-center space-x-2"
-                        aria-label="View workflow status">
-                        <span>{t("workflow_status")}</span>
-                      </Button>
-                    )}
+                    <Button
+                      color="secondary"
+                      disabled={!hasWorkflowInsights || isRejected}
+                      StartIcon="zap"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsWorkflowStatusDialogOpen(true);
+                      }}
+                      className="flex items-center space-x-2"
+                      aria-label="View workflow status">
+                      <span>{t("workflow_status")}</span>
+                    </Button>
 
                     {showBookingSeatsDialogButton && (
                       <Button
@@ -874,13 +862,6 @@ export default function BookingListItem(booking: BookingItemProps) {
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
-
-                    {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-                    {isCancelled && booking.rescheduled && (
-                      <div className="hidden h-full w-full items-center md:flex">
-                        <RequestSentMessage />
-                      </div>
-                    )}
                   </div>
 
                   <div className="flex-1" />
@@ -930,6 +911,8 @@ const BookingItemBadges = ({
   userTimeFormat,
   userTimeZone,
   isRescheduled,
+  isRejected,
+  isCancelledAndRescheduled,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
@@ -937,11 +920,19 @@ const BookingItemBadges = ({
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
   isRescheduled: boolean;
+  isRejected?: boolean;
+  isCancelledAndRescheduled?: boolean;
 }) => {
   const { t } = useLocale();
 
   return (
     <div className="flex flex-row flex-wrap items-center gap-2">
+      {isRejected && <Badge variant="gray">{t("rejected")}</Badge>}
+      {isCancelledAndRescheduled && (
+        <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
+          {t("reschedule_request_sent")}
+        </Badge>
+      )}
       {isPending && <Badge variant="orange">{t("unconfirmed")}</Badge>}
       {isRescheduled && (
         <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>

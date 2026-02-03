@@ -288,16 +288,16 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         )}
 
         <DialogFooter>
+          <DialogClose />
           <Button
-            data-testid="confirm_cancel"
             StartIcon="check"
+            data-testid="confirm_cancel"
             color="primary"
             loading={loading}
             disabled={loading}
             onClick={handleCancel}>
             {getCancelButtonText()}
           </Button>
-          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -256,6 +256,7 @@ function Dialogs({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
+            <DialogClose />
             <Button
               color="destructive"
               StartIcon="trash"
@@ -267,7 +268,6 @@ function Dialogs({
               }}>
               {t("delete")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>

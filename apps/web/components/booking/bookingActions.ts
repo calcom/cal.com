@@ -155,7 +155,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       href: `/reschedule/${booking.uid}${
         booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
       }`,
-      disabled: hasFutureInstances ? false : isBookingInPast || isCancelled || isDisabledRescheduling,
+      disabled: hasFutureInstances ? false : isDisabledRescheduling,
     },
     !isRecurring
       ? {
@@ -182,7 +182,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       id: "change_location",
       label: t("edit_location"),
       icon: "map-pin",
-      disabled: false,
+      disabled: isBookingInPast || isCancelled || isRejected,
     },
     booking.eventType?.disableGuests
       ? null
@@ -204,7 +204,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     {
       id: "meeting_notes",
       label: t("meeting_notes"),
-      icon: "scroll-text",
+      icon: "square-pen",
       disabled: false,
     },
     attendeePhoneNumber
@@ -219,7 +219,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       label:
         attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
       icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : "eye-off",
-      disabled: false,
+      disabled: isCancelled || isRejected,
     },
     {
       id: "cancel_event",

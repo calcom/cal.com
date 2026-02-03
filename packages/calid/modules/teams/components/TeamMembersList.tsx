@@ -647,6 +647,7 @@ export function TeamMembersList({
             <DialogDescription>{t("remove_team_member_description")}</DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-end space-x-3">
+            <DialogClose />
             <Button
               variant="button"
               color="destructive"
@@ -661,7 +662,6 @@ export function TeamMembersList({
               disabled={isRemoving}>
               {t("remove_team_member")}
             </Button>
-            <DialogClose />
           </div>
         </DialogContent>
       </Dialog>
@@ -686,6 +686,7 @@ export function TeamMembersList({
               This action cannot be undone. All selected members will lose access to team resources.
             </p>
             <div className="flex items-center justify-end space-x-3">
+              <DialogClose />
               <Button
                 variant="button"
                 color="destructive"
@@ -701,7 +702,6 @@ export function TeamMembersList({
                 disabled={isRemoving}>
                 {isRemoving ? t("removing") : t("remove_members")}
               </Button>
-              <DialogClose />
             </div>
           </div>
         </DialogContent>

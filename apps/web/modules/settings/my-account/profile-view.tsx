@@ -376,6 +376,7 @@ const ProfileView = ({ user }: Props) => {
                 {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
               </div>
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   StartIcon="trash"
@@ -384,7 +385,6 @@ const ProfileView = ({ user }: Props) => {
                   loading={deleteMeMutation.isPending}>
                   {t("delete_my_account")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </>
           </DialogContent>
@@ -427,6 +427,7 @@ const ProfileView = ({ user }: Props) => {
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
           <DialogFooter>
+            <DialogClose />
             <Button
               data-testid="profile-update-email-submit-button"
               color="primary"
@@ -434,20 +435,16 @@ const ProfileView = ({ user }: Props) => {
               onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
-        <DialogContent>
+        <DialogContent showCloseButton={true}>
           <DialogHeader showIcon iconName="check" iconVariant="success">
             <DialogTitle>{t("create_account_password")}</DialogTitle>
             <DialogDescription>{t("create_account_password_hint")}</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <DialogClose />
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -458,6 +455,7 @@ const ProfileView = ({ user }: Props) => {
             <DialogDescription>{t("disconnect_account_hint")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
+            <DialogClose />
             <Button
               color="primary"
               onClick={() => {
@@ -466,7 +464,6 @@ const ProfileView = ({ user }: Props) => {
               }}>
               {t("confirm")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>

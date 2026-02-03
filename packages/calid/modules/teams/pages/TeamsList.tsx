@@ -294,6 +294,7 @@ export function TeamsList({
                                     </DialogDescription>
                                   </DialogHeader>
                                   <DialogFooter>
+                                    <DialogClose />
                                     <Button
                                       type="button"
                                       StartIcon="trash"
@@ -303,7 +304,6 @@ export function TeamsList({
                                       }}>
                                       {t("confirm_disband_team")}
                                     </Button>
-                                    <DialogClose />
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>

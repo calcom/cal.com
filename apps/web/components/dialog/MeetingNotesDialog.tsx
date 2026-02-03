@@ -61,7 +61,7 @@ export const MeetingNotesDialog = (props: IMeetingNotesDialog) => {
         </DialogTrigger>
       )}
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader showIcon iconName="square-pen" iconVariant="info">
           <DialogTitle className="text-default font-medium">{t("meeting_notes")}</DialogTitle>
           <DialogDescription className="text-sm">{t("meeting_notes_subtitle")}</DialogDescription>
         </DialogHeader>

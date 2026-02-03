@@ -101,15 +101,15 @@ export function RejectBookingDialog(props: RejectBookingDialogProps) {
         </div>
 
         <DialogFooter>
+          <DialogClose />
           <Button
-            disabled={mutation.isPending}
-            StartIcon="check"
             data-testid="rejection-confirm"
+            StartIcon="check"
+            disabled={mutation.isPending}
             color="destructive"
             onClick={handleReject}>
             {t("rejection_confirmation")}
           </Button>
-          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -302,6 +302,7 @@ function TeamProfileForm({
               </DialogHeader>
 
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
@@ -311,7 +312,6 @@ function TeamProfileForm({
                   }}>
                   {t("team_profile_confirm_disband_team")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -334,6 +334,7 @@ function TeamProfileForm({
               </DialogHeader>
 
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
@@ -342,7 +343,6 @@ function TeamProfileForm({
                   }}>
                   {t("leave_team")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </DialogContent>
           </Dialog>

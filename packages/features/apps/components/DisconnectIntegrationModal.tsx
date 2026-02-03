@@ -47,6 +47,7 @@ export default function DisconnectIntegrationModal({
         </DialogHeader>
 
         <DialogFooter>
+          <DialogClose />
           <Button
             color="destructive"
             StartIcon="trash"
@@ -68,7 +69,6 @@ export default function DisconnectIntegrationModal({
             }}>
             {t("yes_remove_app")}
           </Button>
-          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>
