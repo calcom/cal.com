@@ -706,6 +706,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   }, [workflowName, trigger, triggerTiming, customTime, timeUnit, selectedOptions]);
 
   useEffect(() => {
+    if (!isNewWorkflow) return;
     const shouldBlockNavigation = !hasSaved || isDirty;
     if (!shouldBlockNavigation) return;
 
@@ -745,7 +746,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("click", handleClick, true);
     };
-  }, [hasSaved, isDirty, pathname]);
+  }, [hasSaved, isDirty, isNewWorkflow, pathname]);
 
   // Load initial data only once
   useEffect(() => {
