@@ -54,21 +54,19 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import { EmbedTabName, type tabs } from "./EmbedTabs";
+import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 import { getDimension } from "@calcom/features/embed/lib/getDimension";
 import { useEmbedDialogCtx } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "@calcom/features/embed/lib/hooks/useEmbedParams";
 import type {
+  EmbedTabs,
   EmbedType,
+  EmbedTypes,
   PreviewState,
   EmbedConfig,
 } from "@calcom/features/embed/types";
-import { useEmbedTypes } from "../hooks/useEmbedTypes";
-
-type EmbedTypes = ReturnType<typeof useEmbedTypes>;
-type EmbedTabs = typeof tabs;
 
 type EventType =
   | RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]
