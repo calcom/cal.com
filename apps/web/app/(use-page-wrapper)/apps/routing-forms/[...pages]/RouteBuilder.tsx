@@ -789,8 +789,7 @@ const Route = ({
             t={t}
           />
         </div>
-        {(route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl ||
-          (!route.fallbackAction && route.fallbackAttributesQueryBuilderState)) &&
+        {route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl &&
           route.fallbackAttributesQueryBuilderState &&
           attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <div className="mt-2">
