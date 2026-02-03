@@ -24,13 +24,13 @@ export class CreateEventTypeInput_2024_04_15 {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
+  @ApiPropertyOptional({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   length?: number;
 
   @IsOptional()
   @IsNumber()
   @Min(1)
-  @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
+  @ApiPropertyOptional({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes?: number;
 
   @IsString()
