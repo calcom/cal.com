@@ -73,8 +73,8 @@ export function GoogleWorkingLocationSyncModal({ isOpen, onClose }: GoogleWorkin
   const utils = trpc.useUtils();
 
   // Fetch Google Calendar credentials
-  const { data: credentials, isLoading: isLoadingCredentials } = trpc.viewer.credentials.list.useQuery(
-    { type: "google_calendar" },
+  const { data: credentialsData, isLoading: isLoadingCredentials } = trpc.viewer.apps.appCredentialsByType.useQuery(
+    { appType: "google_calendar" },
     { enabled: isOpen }
   );
 
@@ -102,7 +102,7 @@ export function GoogleWorkingLocationSyncModal({ isOpen, onClose }: GoogleWorkin
     onError: handleMutationError,
   });
 
-  const googleCalendarCredentials = credentials?.items?.filter((c) => c.type === "google_calendar") ?? [];
+  const googleCalendarCredentials = credentialsData?.credentials?.filter((c) => c.type === "google_calendar") ?? [];
   const hasGoogleCalendar = googleCalendarCredentials.length > 0;
 
   const credentialOptions: CredentialOption[] = googleCalendarCredentials.map((cred) => ({
