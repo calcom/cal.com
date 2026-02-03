@@ -36,6 +36,7 @@ const BLOCKED_HOSTNAMES: string[] = [...CLOUD_METADATA_ENDPOINTS, "localhost"];
 
 const ERRORS = {
   HTTPS_ONLY: "Only HTTPS URLs are allowed",
+  INVALID_PROTOCOL: "Only HTTP and HTTPS protocols are allowed",
   PRIVATE_IP: "Private IP address",
   PRIVATE_IP_DNS: "Hostname resolves to private IP",
   BLOCKED_HOSTNAME: "Blocked hostname",
@@ -131,7 +132,11 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
   }
 
   // Self-hosted: allow HTTP and private IPs (for internal webhooks)
+  // Still restrict to HTTP/HTTPS protocols only (no file://, ftp://, etc.)
   if (IS_SELF_HOSTED) {
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return { isValid: false, error: ERRORS.INVALID_PROTOCOL };
+    }
     return { isValid: true };
   }
 
