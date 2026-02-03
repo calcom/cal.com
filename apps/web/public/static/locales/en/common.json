@@ -4199,5 +4199,11 @@
   "home_remote": "Home / Remote",
   "office": "Office",
   "other_location": "Other Location",
+  "google_working_location_home_remote": "Home / Remote",
+  "google_working_location_home_remote_description": "Days when you're working from home",
+  "google_working_location_office": "Office",
+  "google_working_location_office_description": "Days when you're working from an office",
+  "google_working_location_other": "Other Location",
+  "google_working_location_other_description": "Days at a custom location",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
