@@ -2,7 +2,11 @@
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFeatureOptInTimestamp, isFeatureTracked, setFeatureTracked } from "../lib/feature-opt-in-storage";
+import {
+  getFeatureOptInTimestamp,
+  isFeatureFeedbackShown,
+  setFeatureFeedbackShown,
+} from "../lib/feature-opt-in-storage";
 
 /** Delay before showing the feedback dialog to let the page finish loading */
 const PAGE_LOAD_DELAY_MS = 5000;
@@ -17,6 +21,7 @@ export interface FormbricksOptInTrackingResult {
     commentQuestionId: string;
     titleKey?: string;
     descriptionKey?: string;
+    showOn?: "all" | "desktop" | "mobile";
   } | null;
   /** Call this when the dialog is closed (either submitted or skipped) */
   onFeedbackComplete: () => void;
@@ -35,7 +40,7 @@ function useFormbricksOptInTracking(
 
   const onFeedbackComplete = useCallback(() => {
     setShowFeedbackDialog(false);
-    setFeatureTracked(featureId);
+    setFeatureFeedbackShown(featureId);
   }, [featureId]);
 
   useEffect(() => {
@@ -44,9 +49,9 @@ function useFormbricksOptInTracking(
     // Don't trigger if already triggered this session
     if (hasTriggeredRef.current) return;
 
-    // Don't trigger if already tracked (persisted in localStorage)
-    const alreadyTracked = isFeatureTracked(featureId);
-    if (alreadyTracked) return;
+    // Don't show if feedback was already shown (persisted in localStorage)
+    const alreadyShown = isFeatureFeedbackShown(featureId);
+    if (alreadyShown) return;
 
     // Don't trigger if user hasn't opted in yet
     const optInTimestamp = getFeatureOptInTimestamp(featureId);
@@ -56,12 +61,13 @@ function useFormbricksOptInTracking(
     const { surveyId, questions } = featureConfig.formbricks;
     if (!surveyId || !questions?.ratingQuestionId || !questions?.commentQuestionId) return;
 
-    const { delayMs } = featureConfig.formbricks;
+    const { waitAfterDays } = featureConfig.formbricks;
+    const waitAfterMs = waitAfterDays * 24 * 60 * 60 * 1000;
     const timeSinceOptIn = Date.now() - optInTimestamp;
 
     // Don't show feedback if not enough time has passed since opt-in
     // (e.g., wait 3 days after opt-in before asking for feedback)
-    if (timeSinceOptIn < delayMs) return;
+    if (timeSinceOptIn < waitAfterMs) return;
 
     const triggerFeedback = (): void => {
       hasTriggeredRef.current = true;
@@ -80,6 +86,7 @@ function useFormbricksOptInTracking(
         commentQuestionId: featureConfig.formbricks.questions.commentQuestionId,
         titleKey: featureConfig.formbricks.titleKey,
         descriptionKey: featureConfig.formbricks.descriptionKey,
+        showOn: featureConfig.formbricks.showOn,
       }
     : null;
 

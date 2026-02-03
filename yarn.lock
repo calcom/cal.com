@@ -3340,6 +3340,7 @@ __metadata:
   resolution: "@calcom/trpc@workspace:packages/trpc"
   dependencies:
     "@biomejs/biome": "npm:2.3.10"
+    "@formbricks/api": "npm:3.0.0"
     "@tanstack/react-query": "npm:5.17.19"
     "@trpc/client": "npm:11.0.0-next-beta.222"
     "@trpc/next": "npm:11.0.0-next-beta.222"

@@ -1,6 +1,5 @@
 "use client";
 
-import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
@@ -21,11 +20,13 @@ export interface FeedbackDialogProps {
   commentQuestionId: string;
   titleKey?: string;
   descriptionKey?: string;
+  /** Where to show the dialog: "all" | "desktop" | "mobile". Defaults to "all". */
+  showOn?: "all" | "desktop" | "mobile";
 }
 
 /**
- * Bottom-right positioned feedback dialog.
- * Uses z-index 10000 to stay below Intercom (which uses very high z-indexes).
+ * Bottom-right positioned feedback card (non-blocking).
+ * Styled similar to the feature opt-in banner.
  */
 export function FeedbackDialog({
   isOpen,
@@ -36,7 +37,8 @@ export function FeedbackDialog({
   commentQuestionId,
   titleKey = "feedback_dialog_title",
   descriptionKey = "feedback_dialog_description",
-}: FeedbackDialogProps): ReactElement {
+  showOn = "all",
+}: FeedbackDialogProps): ReactElement | null {
   const { t } = useLocale();
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
@@ -75,95 +77,109 @@ export function FeedbackDialog({
     onClose();
   };
 
-  const dialogContent = isSuccess ? (
-    <>
-      <div className="flex flex-col gap-2 p-6 pb-4">
-        <DialogPrimitive.Title className="font-heading font-semibold text-xl leading-none">
-          {t("feedback_submitted_title")}
-        </DialogPrimitive.Title>
-        <DialogPrimitive.Description className="text-muted-foreground text-sm">
-          {t("feedback_submitted_description")}
-        </DialogPrimitive.Description>
-      </div>
-      <div className="flex justify-end gap-2 border-t bg-muted/72 px-6 py-4">
-        <Button onClick={resetAndClose}>{t("done")}</Button>
-      </div>
-    </>
-  ) : (
-    <>
-      <div className="flex flex-col gap-2 p-6 pb-3">
-        <DialogPrimitive.Title className="font-heading font-semibold text-xl leading-none">
-          {t(titleKey)}
-        </DialogPrimitive.Title>
-        <DialogPrimitive.Description className="text-muted-foreground text-sm">
-          {t(descriptionKey)}
-        </DialogPrimitive.Description>
-      </div>
-      <div className="space-y-4 px-6 pb-4">
-        <div className="flex justify-center gap-2">
-          {RATING_OPTIONS.map((option) => (
+  if (!isOpen) {
+    return null;
+  }
+
+  // Visibility classes based on showOn
+  const visibilityClass = showOn === "desktop" ? "hidden sm:block" : showOn === "mobile" ? "sm:hidden" : "";
+  const showMobileBackdrop = showOn !== "desktop";
+
+  if (isSuccess) {
+    return (
+      <>
+        {/* Mobile-only backdrop */}
+        {showMobileBackdrop && (
+          <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={resetAndClose} />
+        )}
+        <div
+          data-testid="feedback-success-dialog"
+          className={cn(
+            "bg-default border-subtle fixed bottom-24 left-5 right-5 z-50 rounded-lg border shadow-lg sm:bottom-5 sm:left-auto sm:max-w-sm",
+            visibilityClass
+          )}>
+          <div className="relative p-4">
             <button
-              key={option.value}
               type="button"
-              onClick={() => setSelectedRating(option.value)}
-              className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-lg text-2xl transition-all",
-                selectedRating === option.value ? "bg-emphasis" : "hover:bg-subtle"
-              )}
-              aria-label={`Rating ${option.value}`}>
-              {option.emoji}
+              onClick={resetAndClose}
+              className="absolute top-2 right-2 rounded-md p-1 hover:bg-subtle"
+              aria-label={t("close")}>
+              <XIcon className="h-4 w-4" />
             </button>
-          ))}
+            <h3 className="text-emphasis text-lg font-semibold">{t("feedback_submitted_title")}</h3>
+            <p className="text-subtle mt-1 text-sm">{t("feedback_submitted_description")}</p>
+            <div className="mt-4 flex justify-end">
+              <Button size="sm" onClick={resetAndClose}>
+                {t("done")}
+              </Button>
+            </div>
+          </div>
         </div>
-        <Textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder={t("feedback_comment_placeholder")}
-          rows={3}
-        />
-      </div>
-      <div className="flex flex-col-reverse gap-2 border-t bg-muted/72 px-6 py-4 sm:flex-row sm:justify-end">
-        <DialogPrimitive.Close render={<Button variant="outline" />} onClick={handleSkip}>
-          {t("skip")}
-        </DialogPrimitive.Close>
-        <Button onClick={handleSubmit} disabled={selectedRating === null || submitFeedbackMutation.isPending}>
-          {t("submit_feedback")}
-        </Button>
-      </div>
-    </>
-  );
+      </>
+    );
+  }
 
   return (
-    <DialogPrimitive.Root open={isOpen} onOpenChange={resetAndClose}>
-      <DialogPrimitive.Portal>
-        {/* Backdrop - blocking overlay */}
-        <DialogPrimitive.Backdrop
-          className={cn(
-            "fixed inset-0 z-[9999] bg-black/32 backdrop-blur-sm",
-            "transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0"
-          )}
-        />
-        {/* Bottom-right positioned container */}
-        <div className="fixed inset-0 z-[10000] flex items-end justify-end p-4 pb-24 sm:pb-4">
-          <DialogPrimitive.Popup
-            className={cn(
-              "relative flex w-full max-w-md flex-col rounded-2xl border bg-popover text-popover-foreground shadow-lg",
-              "transition-all duration-200",
-              "data-ending-style:translate-y-4 data-ending-style:opacity-0",
-              "data-starting-style:translate-y-4 data-starting-style:opacity-0"
-            )}
-            data-testid={isSuccess ? "feedback-success-dialog" : "feedback-dialog"}>
-            {dialogContent}
-            <DialogPrimitive.Close
-              aria-label="Close"
-              className="absolute end-2 top-2"
-              render={<Button size="icon" variant="ghost" />}>
-              <XIcon />
-            </DialogPrimitive.Close>
-          </DialogPrimitive.Popup>
+    <>
+      {/* Mobile-only backdrop */}
+      {showMobileBackdrop && (
+        <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={handleSkip} />
+      )}
+      <div
+        data-testid="feedback-dialog"
+        className={cn(
+          "bg-default border-subtle fixed bottom-24 left-5 right-5 z-50 rounded-lg border shadow-lg sm:bottom-5 sm:left-auto sm:max-w-sm",
+          visibilityClass
+        )}>
+        <div className="relative p-4">
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="absolute top-2 right-2 rounded-md p-1 hover:bg-subtle"
+            aria-label={t("close")}>
+            <XIcon className="h-4 w-4" />
+          </button>
+          <h3 className="text-emphasis text-lg font-semibold">{t(titleKey)}</h3>
+          <p className="text-subtle mt-1 text-sm">{t(descriptionKey)}</p>
+
+          <div className="mt-4 flex justify-center gap-2">
+            {RATING_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSelectedRating(option.value)}
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-lg text-xl transition-all",
+                  selectedRating === option.value ? "bg-emphasis" : "hover:bg-subtle"
+                )}
+                aria-label={`Rating ${option.value}`}>
+                {option.emoji}
+              </button>
+            ))}
+          </div>
+
+          <Textarea
+            className="mt-3"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t("feedback_comment_placeholder")}
+            rows={2}
+          />
+
+          <div className="mt-3 flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={handleSkip}>
+              {t("skip")}
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSubmit}
+              disabled={selectedRating === null || submitFeedbackMutation.isPending}>
+              {t("submit_feedback")}
+            </Button>
+          </div>
         </div>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+      </div>
+    </>
   );
 }
 

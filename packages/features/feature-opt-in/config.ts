@@ -36,8 +36,10 @@ export interface OptInFeatureConfig {
    * has passed since the user opted in, allowing time for feature usage before collecting feedback.
    */
   formbricks?: {
-    /** Show feedback form only after a certain delay (in milliseconds) */
-    delayMs: number;
+    /** Number of days to wait after opt-in before showing the feedback dialog */
+    waitAfterDays: number;
+    /** Where to show the feedback dialog: "all" | "desktop" | "mobile". Defaults to "all". */
+    showOn?: "all" | "desktop" | "mobile";
     /** Formbricks survey ID to submit responses to */
     surveyId: string;
     /** Question IDs for the survey fields */
@@ -75,9 +77,9 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
     displayLocations: ["settings"],
     scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
     formbricks: {
-      delayMs: 0, // 3 days
-      // delayMs: 3 * 24 * 60 * 60 * 1000, // 3 days
-      surveyId: "cmkmgh0u426jaad01ee3jbpjn",
+      waitAfterDays: 0, // Set to 3 for production
+      showOn: "desktop",
+      surveyId: "cml6ps4f0psk9ad019a2kzedz",
       questions: {
         ratingQuestionId: "ajt82ni0hue3x5qkltj9t359",
         commentQuestionId: "kwjw0g7vqkgd5w9s61dba8de",

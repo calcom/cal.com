@@ -1,8 +1,12 @@
 import { FormbricksAPI } from "@formbricks/api";
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+
+const log = logger.getSubLogger({ prefix: ["feedback"] });
 
 export const feedbackRouter = router({
   /**
@@ -26,16 +30,21 @@ export const feedbackRouter = router({
       }
 
       const api = new FormbricksAPI({
-        appUrl: hostUrl,
+        apiHost: hostUrl,
         environmentId,
       });
 
-      await api.client.response.create({
+      const result = await api.client.response.create({
         surveyId: input.surveyId,
         userId: ctx.user.id.toString(),
         finished: true,
         data: input.data,
       });
+
+      if (!result.ok) {
+        log.error("Formbricks API error", { error: result.error });
+        return { success: false };
+      }
 
       return { success: true };
     }),

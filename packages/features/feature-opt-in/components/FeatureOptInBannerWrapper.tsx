@@ -23,6 +23,7 @@ type FormbricksTrackingState = {
     commentQuestionId: string;
     titleKey?: string;
     descriptionKey?: string;
+    showOn?: "all" | "desktop" | "mobile";
   } | null;
   onFeedbackComplete: () => void;
 };
@@ -85,6 +86,7 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           commentQuestionId={state.formbricksTracking.feedbackDialogProps.commentQuestionId}
           titleKey={state.formbricksTracking.feedbackDialogProps.titleKey}
           descriptionKey={state.formbricksTracking.feedbackDialogProps.descriptionKey}
+          showOn={state.formbricksTracking.feedbackDialogProps.showOn}
         />
       )}
     </>
