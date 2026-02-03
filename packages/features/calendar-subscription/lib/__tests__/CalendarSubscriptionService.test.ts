@@ -2,6 +2,13 @@ import "../__mocks__/delegationCredential";
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
+vi.mock("@sentry/nextjs", () => ({
+  metrics: {
+    count: vi.fn(),
+    distribution: vi.fn(),
+  },
+}));
+
 import type { AdapterFactory } from "@calcom/features/calendar-subscription/adapters/AdaptersFactory";
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
@@ -38,6 +45,8 @@ const mockSelectedCalendar: SelectedCalendar = {
   channelResourceUri: "test-resource-uri",
   channelExpiration: new Date(Date.now() + 86400000),
   syncSubscribedAt: new Date(),
+  syncSubscribedErrorAt: null,
+  syncSubscribedErrorCount: 0,
   syncToken: "test-sync-token",
   syncedAt: new Date(),
   syncErrorAt: null,
@@ -153,6 +162,8 @@ describe("CalendarSubscriptionService", () => {
       calendarSyncService: mockCalendarSyncService,
     });
 
+    mockSelectedCalendar.syncSubscribedErrorCount = 0;
+
     const { getCredentialForSelectedCalendar } = await import("../__mocks__/delegationCredential");
     getCredentialForSelectedCalendar.mockResolvedValue(mockCredential);
   });
@@ -171,7 +182,34 @@ describe("CalendarSubscriptionService", () => {
         channelKind: "google_calendar",
         channelExpiration: mockSubscriptionResult.expiration,
         syncSubscribedAt: expect.any(Date),
+        syncSubscribedErrorAt: null,
+        syncSubscribedErrorCount: 0,
       });
+    });
+
+    test("should record subscribe errors and retry later", async () => {
+      const subscribeError = new Error("subscribe failed");
+      mockAdapter.subscribe.mockRejectedValue(subscribeError);
+
+      await expect(service.subscribe("test-calendar-id")).rejects.toThrow(subscribeError);
+
+      expect(mockSelectedCalendarRepository.updateSubscription).toHaveBeenCalledWith("test-calendar-id", {
+        syncSubscribedAt: null,
+        syncSubscribedErrorAt: expect.any(Date),
+        syncSubscribedErrorCount: 1,
+      });
+    });
+
+    test("should skip subscription attempts after hitting error threshold", async () => {
+      mockSelectedCalendarRepository.findById.mockResolvedValue({
+        ...mockSelectedCalendar,
+        syncSubscribedErrorCount: CalendarSubscriptionService.MAX_SUBSCRIBE_ERRORS,
+      });
+
+      await service.subscribe("test-calendar-id");
+
+      expect(mockAdapter.subscribe).not.toHaveBeenCalled();
+      expect(mockSelectedCalendarRepository.updateSubscription).not.toHaveBeenCalled();
     });
 
     test("should return early if selected calendar not found", async () => {
@@ -384,13 +422,10 @@ describe("CalendarSubscriptionService", () => {
 
       await service.checkForNewSubscriptions();
 
-      expect(mockFeaturesRepository.getTeamsWithFeatureEnabled).toHaveBeenCalledWith(
-        "calendar-subscription-cache"
-      );
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
-        teamIds: [1, 2, 3],
+        featureIds: ["calendar-subscription-cache"],
         genericCalendarSuffixes: [
           "@group.v.calendar.google.com",
           "@group.calendar.google.com",
@@ -401,11 +436,9 @@ describe("CalendarSubscriptionService", () => {
       expect(subscribeSpy).toHaveBeenCalledWith(mockSelectedCalendar.id);
     });
 
-    test("should handle mixed cache scenario where some teams have cache enabled and some do not", async () => {
+    test("should handle multiple calendars returned from batch", async () => {
       const calendarWithCache = { ...mockSelectedCalendar, id: "calendar-with-cache", userId: 1 };
       const calendarWithCache2 = { ...mockSelectedCalendar, id: "calendar-with-cache-2", userId: 2 };
-
-      mockFeaturesRepository.getTeamsWithFeatureEnabled.mockResolvedValue([10, 20]);
 
       mockSelectedCalendarRepository.findNextSubscriptionBatch.mockResolvedValue([
         calendarWithCache,
@@ -416,13 +449,10 @@ describe("CalendarSubscriptionService", () => {
 
       await service.checkForNewSubscriptions();
 
-      expect(mockFeaturesRepository.getTeamsWithFeatureEnabled).toHaveBeenCalledWith(
-        "calendar-subscription-cache"
-      );
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
-        teamIds: [10, 20],
+        featureIds: ["calendar-subscription-cache"],
         genericCalendarSuffixes: [
           "@group.v.calendar.google.com",
           "@group.calendar.google.com",
@@ -435,58 +465,17 @@ describe("CalendarSubscriptionService", () => {
       expect(subscribeSpy).toHaveBeenCalledWith("calendar-with-cache-2");
     });
 
-    test("should only fetch calendars for teams with feature enabled, not entire organization hierarchy", async () => {
-      const teamId = 100;
-      const parentOrgId = 1;
-
-      mockFeaturesRepository.getTeamsWithFeatureEnabled.mockResolvedValue([teamId]);
-
-      const calendarForTeamMember = { ...mockSelectedCalendar, id: "team-member-calendar", userId: 5 };
-      mockSelectedCalendarRepository.findNextSubscriptionBatch.mockResolvedValue([calendarForTeamMember]);
-
-      const subscribeSpy = vi.spyOn(service, "subscribe").mockResolvedValue(undefined);
-
-      await service.checkForNewSubscriptions();
-
-      expect(mockFeaturesRepository.getTeamsWithFeatureEnabled).toHaveBeenCalledWith(
-        "calendar-subscription-cache"
-      );
-      expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
-        take: 100,
-        integrations: ["google_calendar", "office365_calendar"],
-        teamIds: [teamId],
-        genericCalendarSuffixes: [
-          "@group.v.calendar.google.com",
-          "@group.calendar.google.com",
-          "@import.calendar.google.com",
-          "@resource.calendar.google.com",
-        ],
-      });
-      expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          teamIds: expect.arrayContaining([parentOrgId]),
-        })
-      );
-      expect(subscribeSpy).toHaveBeenCalledTimes(1);
-      expect(subscribeSpy).toHaveBeenCalledWith("team-member-calendar");
-    });
-
-    test("should not process any calendars when no teams have the feature enabled", async () => {
-      mockFeaturesRepository.getTeamsWithFeatureEnabled.mockResolvedValue([]);
-
+    test("should not process any calendars when no calendars are returned", async () => {
       mockSelectedCalendarRepository.findNextSubscriptionBatch.mockResolvedValue([]);
 
       const subscribeSpy = vi.spyOn(service, "subscribe").mockResolvedValue(undefined);
 
       await service.checkForNewSubscriptions();
 
-      expect(mockFeaturesRepository.getTeamsWithFeatureEnabled).toHaveBeenCalledWith(
-        "calendar-subscription-cache"
-      );
       expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).toHaveBeenCalledWith({
         take: 100,
         integrations: ["google_calendar", "office365_calendar"],
-        teamIds: [],
+        featureIds: ["calendar-subscription-cache"],
         genericCalendarSuffixes: [
           "@group.v.calendar.google.com",
           "@group.calendar.google.com",

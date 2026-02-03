@@ -39,6 +39,16 @@ jobs:
       - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
 
+      - name: Build platform packages
+        run: |
+          yarn turbo run build \
+            --filter=@calcom/platform-constants \
+            --filter=@calcom/platform-enums \
+            --filter=@calcom/platform-utils \
+            --filter=@calcom/platform-types \
+            --filter=@calcom/platform-libraries \
+            --filter=@calcom/trpc
+
       - name: Generate Swagger
         working-directory: apps/api/v2
         run: |

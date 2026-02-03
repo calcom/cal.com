@@ -1,8 +1,7 @@
-import { describe, expect, it, beforeAll, vi } from "vitest";
-
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
-
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import getSlots from "./slots";
 
 let dateRangesNextDay: DateRange[];
@@ -886,7 +885,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     });
 
     expect(day2Slots.length).toBeGreaterThan(0);
-    
+
     // Day 2 slots should be marked as away
     day2Slots.forEach((slot) => {
       expect(slot.away).toBe(true);
@@ -1053,5 +1052,136 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
     expect(targetSlot?.reason).toBe("OOO");
 
     vi.useRealTimers();
+  });
+});
+
+describe("Tests 40-minute duration slot generation", () => {
+  beforeAll(() => {
+    vi.setSystemTime(dayjs.utc("2021-06-20T11:59:59Z").toDate());
+  });
+
+  it("generates correct number of 40-minute slots for a full day", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      {
+        start: nextDay,
+        end: nextDay.endOf("day"),
+      },
+    ];
+
+    const slots = getSlots({
+      inviteeDate: nextDay,
+      frequency: 40,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 40,
+      offsetStart: 0,
+    });
+
+    // 24 hours = 1440 minutes, 1440 / 40 = 36 slots
+    expect(slots).toHaveLength(36);
+  });
+
+  it("generates 40-minute slots with correct time intervals", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      {
+        start: nextDay.hour(9),
+        end: nextDay.hour(11),
+      },
+    ];
+
+    const slots = getSlots({
+      inviteeDate: nextDay,
+      frequency: 40,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 40,
+      offsetStart: 0,
+    });
+
+    // 2 hours = 120 minutes, 120 / 40 = 3 slots (9:00, 9:40, 10:20)
+    expect(slots).toHaveLength(3);
+    expect(slots[0].time.format("HH:mm")).toBe("09:00");
+    expect(slots[1].time.format("HH:mm")).toBe("09:40");
+    expect(slots[2].time.format("HH:mm")).toBe("10:20");
+  });
+
+  it("handles 40-minute slots as default duration in variable length event", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      {
+        start: nextDay.hour(10),
+        end: nextDay.hour(12),
+      },
+    ];
+
+    const slots = getSlots({
+      inviteeDate: nextDay,
+      frequency: 40,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 40,
+      offsetStart: 0,
+    });
+
+    // 2 hours = 120 minutes, 120 / 40 = 3 slots
+    expect(slots).toHaveLength(3);
+    // Verify each slot has correct 40-minute spacing
+    for (let i = 1; i < slots.length; i++) {
+      const diff = slots[i].time.diff(slots[i - 1].time, "minute");
+      expect(diff).toBe(40);
+    }
+  });
+
+  it("generates 40-minute slots with minimum booking notice on same day", async () => {
+    // System time is set to 2021-06-20T11:59:59Z (almost noon)
+    const today = dayjs.utc().startOf("day");
+    const dateRanges = [
+      {
+        start: today,
+        end: today.endOf("day"),
+      },
+    ];
+
+    const slots = getSlots({
+      inviteeDate: today,
+      frequency: 40,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 40,
+      offsetStart: 0,
+    });
+
+    // System time is ~12:00, so only slots from 12:00 onwards should be available
+    // From 12:00 to 24:00 = 12 hours = 720 minutes, 720 / 40 = 18 slots
+    expect(slots).toHaveLength(18);
+  });
+
+  it("handles 40-minute slots across multiple date ranges", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      {
+        start: nextDay.hour(9),
+        end: nextDay.hour(10).minute(20),
+      },
+      {
+        start: nextDay.hour(14),
+        end: nextDay.hour(15).minute(20),
+      },
+    ];
+
+    const slots = getSlots({
+      inviteeDate: nextDay,
+      frequency: 40,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 40,
+      offsetStart: 0,
+    });
+
+    // First range: 9:00-10:20 = 80 minutes = 2 slots (9:00, 9:40)
+    // Second range: 14:00-15:20 = 80 minutes = 2 slots (14:00, 14:40)
+    expect(slots).toHaveLength(4);
   });
 });

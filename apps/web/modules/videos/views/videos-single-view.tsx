@@ -608,6 +608,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             <>
               <h3>{t("description")}:</h3>
 
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
               <div
                 className="prose-sm prose prose-invert"
                 dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}

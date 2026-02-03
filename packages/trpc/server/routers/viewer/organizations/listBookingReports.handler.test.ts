@@ -91,7 +91,7 @@ describe("listBookingReportsHandler (Organization)", () => {
   };
 
   const mockReportRepo = {
-    findAllReportedBookings: vi.fn(),
+    findGroupedReportedBookings: vi.fn(),
   };
 
   beforeEach(() => {
@@ -138,12 +138,12 @@ describe("listBookingReportsHandler (Organization)", () => {
         message: "You are not authorized to view booking reports",
       });
 
-      expect(mockReportRepo.findAllReportedBookings).not.toHaveBeenCalled();
+      expect(mockReportRepo.findGroupedReportedBookings).not.toHaveBeenCalled();
     });
 
     it("should check permission with correct parameters", async () => {
       mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -168,7 +168,7 @@ describe("listBookingReportsHandler (Organization)", () => {
     });
 
     it("should return paginated booking reports for organization", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       const result = await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -181,17 +181,18 @@ describe("listBookingReportsHandler (Organization)", () => {
       expect(result).toEqual(mockReportData);
       expect(result.rows).toHaveLength(2);
       expect(result.meta.totalRowCount).toBe(2);
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 0,
         take: 10,
         searchTerm: undefined,
         filters: undefined,
+        sortBy: undefined,
       });
     });
 
     it("should pass search term to repository", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -202,17 +203,18 @@ describe("listBookingReportsHandler (Organization)", () => {
         },
       });
 
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 0,
         take: 10,
         searchTerm: "spam@example.com",
         filters: undefined,
+        sortBy: undefined,
       });
     });
 
     it("should pass filters to repository", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       const filters = {
         reason: [BookingReportReason.SPAM, BookingReportReason.DONT_KNOW_PERSON],
@@ -229,12 +231,13 @@ describe("listBookingReportsHandler (Organization)", () => {
         },
       });
 
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 10,
         take: 20,
         searchTerm: undefined,
         filters,
+        sortBy: undefined,
       });
     });
 
@@ -243,7 +246,7 @@ describe("listBookingReportsHandler (Organization)", () => {
         rows: [mockReportData.rows[0]],
         meta: { totalRowCount: 1 },
       };
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(customData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(customData);
 
       const result = await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -264,7 +267,7 @@ describe("listBookingReportsHandler (Organization)", () => {
     });
 
     it("should correctly pass limit and offset to repository", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue({
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue({
         rows: [],
         meta: { totalRowCount: 0 },
       });
@@ -277,17 +280,18 @@ describe("listBookingReportsHandler (Organization)", () => {
         },
       });
 
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 100,
         take: 50,
         searchTerm: undefined,
         filters: undefined,
+        sortBy: undefined,
       });
     });
 
     it("should handle first page correctly", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -297,17 +301,18 @@ describe("listBookingReportsHandler (Organization)", () => {
         },
       });
 
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 0,
         take: 25,
         searchTerm: undefined,
         filters: undefined,
+        sortBy: undefined,
       });
     });
 
     it("should handle pagination with search and filters", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -319,12 +324,13 @@ describe("listBookingReportsHandler (Organization)", () => {
         },
       });
 
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 30,
         take: 15,
         searchTerm: "test@example.com",
         filters: { hasWatchlist: false },
+        sortBy: undefined,
       });
     });
   });
@@ -335,7 +341,7 @@ describe("listBookingReportsHandler (Organization)", () => {
     });
 
     it("should only return reports from user's organization", async () => {
-      mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
+      mockReportRepo.findGroupedReportedBookings.mockResolvedValue(mockReportData);
 
       await listBookingReportsHandler({
         ctx: { user: mockUser },
@@ -345,12 +351,13 @@ describe("listBookingReportsHandler (Organization)", () => {
         },
       });
 
-      expect(mockReportRepo.findAllReportedBookings).toHaveBeenCalledWith({
+      expect(mockReportRepo.findGroupedReportedBookings).toHaveBeenCalledWith({
         organizationId: 100,
         skip: 0,
         take: 10,
         searchTerm: undefined,
         filters: undefined,
+        sortBy: undefined,
       });
     });
   });

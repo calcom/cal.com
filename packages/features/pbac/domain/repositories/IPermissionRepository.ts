@@ -63,19 +63,23 @@ export interface IPermissionRepository {
 
   /**
    * Gets all team IDs where the user has a specific permission
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
   getTeamIdsWithPermission(params: {
     userId: number;
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]>;
 
   /**
    * Gets all team IDs where the user has all of the specified permissions
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
   getTeamIdsWithPermissions(params: {
     userId: number;
     permissions: PermissionString[];
     fallbackRoles: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]>;
 }

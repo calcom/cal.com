@@ -23,7 +23,7 @@ export async function checkSMSRateLimit({
 }
 
 async function changeSMSLockState(identifier: string, status: SMSLockState) {
-  let userId, teamId;
+  let userId: number | undefined, teamId: number | undefined;
 
   if (identifier.startsWith("sms:user:")) {
     userId = Number(identifier.slice(9));

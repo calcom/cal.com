@@ -41,6 +41,8 @@ export type Environment = {
   ENABLE_SLOTS_WORKERS: string;
   SLOTS_WORKER_POOL_SIZE: string;
   USE_POOL: string;
+  VERCEL: string;
+  ENABLE_ASYNC_TASKER: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

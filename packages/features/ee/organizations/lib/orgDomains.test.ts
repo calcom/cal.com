@@ -7,7 +7,7 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import * as constants from "@calcom/lib/constants";
 
-function setupEnvs({ WEBAPP_URL = "https://app.cal.com", WEBSITE_URL } = {}) {
+function setupEnvs({ WEBAPP_URL = "https://app.cal.com", WEBSITE_URL = "https://cal.com" } = {}) {
   Object.defineProperty(constants, "WEBAPP_URL", { value: WEBAPP_URL });
   Object.defineProperty(constants, "WEBSITE_URL", { value: WEBSITE_URL });
   Object.defineProperty(constants, "ALLOWED_HOSTNAMES", {
@@ -89,12 +89,19 @@ describe("Org Domains Utils", () => {
   });
 
   describe("getOrgFullOrigin", () => {
-    it("should return the regular(non-org) origin if slug is null", () => {
+    it("should return WEBSITE_URL when slug is null and domains match", () => {
       setupEnvs({
         WEBAPP_URL: "https://app.cal.com",
-        WEBSITE_URL: "https://abc.com",
+        WEBSITE_URL: "https://cal.com",
       });
-      expect(getOrgFullOrigin(null)).toEqual("https://abc.com");
+      expect(getOrgFullOrigin(null)).toEqual("https://cal.com");
+    });
+    it("should return WEBAPP_URL when slug is null and domains differ (EU case)", () => {
+      setupEnvs({
+        WEBAPP_URL: "https://app.cal.eu",
+        WEBSITE_URL: "https://cal.com",
+      });
+      expect(getOrgFullOrigin(null)).toEqual("https://app.cal.eu");
     });
     it("should return the org origin if slug is set", () => {
       setupEnvs({

@@ -25,8 +25,19 @@ export interface BillingRecord {
   status: SubscriptionStatus;
 }
 
+export interface IBillingRepositoryUpdateArgs {
+  paidSeats?: number | null;
+  subscriptionStart?: Date | null;
+  subscriptionEnd?: Date | null;
+  subscriptionTrialEnd?: Date | null;
+  billingPeriod?: "MONTHLY" | "ANNUALLY" | null;
+  pricePerSeat?: number | null;
+}
+
 export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
+  findBySubscriptionId(subscriptionId: string): Promise<{ id: string; teamId: number } | null>;
+  updateById(id: string, data: IBillingRepositoryUpdateArgs): Promise<void>;
 }
 
 export interface IBillingRepositoryConstructorArgs {

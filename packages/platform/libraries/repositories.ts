@@ -11,5 +11,8 @@ export { UserRepository as PrismaUserRepository } from "@calcom/features/users/r
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 export { HostRepository as PrismaHostRepository } from "@calcom/features/host/repositories/HostRepository";
+export { BookingReferenceRepository as PrismaBookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
+export { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
+export { ProfileRepository as PrismaProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export { AccessCodeRepository as PrismaAccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 export { OAuthClientRepository as PrismaOAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";

@@ -25,12 +25,12 @@ export const getAnalyticsService = async ({
 
   const analyticsApp = await analyticsAppImportFn;
 
-  const AnalyticsService = analyticsApp.default;
+  const createAnalyticsService = analyticsApp.default;
 
-  if (!AnalyticsService || typeof AnalyticsService !== "function") {
+  if (!createAnalyticsService || typeof createAnalyticsService !== "function") {
     log.warn(`analytics of type ${analyticsType} is not implemented`);
     return null;
   }
 
-  return new AnalyticsService(credential);
+  return createAnalyticsService(credential);
 };

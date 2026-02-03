@@ -7,7 +7,11 @@
   "scripts": {
     "generate:schema": "graphql-introspection-json-to-sdl ./schema.json > ./schema.graphql",
     "codegen": "graphql-codegen --config codegen.ts",
-    "codegen:watch": "graphql-codegen --config codegen.ts --watch"
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch",
+    "scratch-org:create": "sf org create scratch --definition-file scratch-org-def.json --alias calcom-test --duration-days 7 --set-default",
+    "scratch-org:start": "sf org open --target-org calcom-test",
+    "sfdc:deploy": "cd sfdc-package && sf project deploy start",
+    "sfdc:deploy:preview": "cd sfdc-package && sf project deploy preview"
   },
   "dependencies": {
     "@calcom/lib": "workspace:*",

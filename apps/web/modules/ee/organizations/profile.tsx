@@ -9,7 +9,7 @@ import { z } from "zod";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -163,6 +163,7 @@ const OrgProfileView = ({
               {!isBioEmpty && (
                 <>
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
+                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
                   <div
                     className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     dangerouslySetInnerHTML={{

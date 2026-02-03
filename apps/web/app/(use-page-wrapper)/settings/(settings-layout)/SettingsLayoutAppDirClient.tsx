@@ -11,13 +11,18 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
-import { HAS_OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
+import {
+  HAS_ORG_OPT_IN_FEATURES,
+  HAS_TEAM_OPT_IN_FEATURES,
+  HAS_USER_OPT_IN_FEATURES,
+} from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -74,7 +79,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/my-account/push-notifications",
           trackingMetadata: { section: "my_account", page: "push_notifications" },
         },
-        ...(HAS_OPT_IN_FEATURES
+        ...(HAS_USER_OPT_IN_FEATURES
           ? [
               {
                 name: "features",
@@ -136,6 +141,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "webhooks",
           href: "/settings/developer/webhooks",
           trackingMetadata: { section: "developer", page: "webhooks" },
+        },
+        {
+          name: "oAuth",
+          href: "/settings/developer/oauth",
+          trackingMetadata: { section: "developer", page: "oauth_clients" },
         },
         {
           name: "api_keys",
@@ -200,7 +210,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           isExternalLink: true,
           trackingMetadata: { section: "organization", page: "admin_api" },
         },
-        ...(HAS_OPT_IN_FEATURES
+        ...(HAS_ORG_OPT_IN_FEATURES
           ? [
               {
                 name: "features",
@@ -276,7 +286,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         {
           name: "oAuth",
-          href: "/settings/admin/oAuth",
+          href: "/settings/admin/oauth",
           trackingMetadata: { section: "admin", page: "oauth" },
         },
         {
@@ -293,7 +303,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     },
   ];
 
-  tabs.find((tab) => {
+  for (const tab of tabs) {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
       tab.children?.push({
         name: "sso_configuration",
@@ -303,21 +313,21 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
+
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({
         name: "create_org",
         href: "/settings/organizations/new",
         trackingMetadata: { section: "admin", page: "create_org" },
       });
-    }
-    if (tab.name === "admin" && IS_CALCOM) {
+
       tab.children?.push({
         name: "create_license_key",
         href: "/settings/license-key/new",
         trackingMetadata: { section: "admin", page: "create_license_key" },
       });
     }
-  });
+  }
 
   return tabs;
 };
@@ -333,7 +343,7 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-export interface SettingsPermissions {
+interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
@@ -549,7 +559,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
           if (!teamMenuState[index]) {
             return null;
           }
-          if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+          if (teamMenuState.some((teamState) => teamState.teamId === team.id)) {
             return (
               <Collapsible
                 className="cursor-pointer"
@@ -656,7 +666,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
-                      {HAS_OPT_IN_FEATURES && (
+                      {HAS_TEAM_OPT_IN_FEATURES && (
                         <VerticalTabItem
                           name={t("features")}
                           href={`/settings/teams/${team.id}/features`}
@@ -692,6 +702,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 </CollapsibleContent>
               </Collapsible>
             );
+          }
+
+          return null;
         })}
     </>
   );
@@ -813,7 +826,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`px-2! h-7 w-fit ${
+                          className={`px-2! py-1! min-h-7 h-auto w-fit ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
@@ -1008,6 +1021,9 @@ const SettingsSidebarContainer = ({
 const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const isStandalone = useIsStandalone();
+
+  if (isStandalone) return null;
 
   return (
     <>
@@ -1029,14 +1045,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export type SettingsLayoutProps = {
+type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
+function SettingsLayoutAppDirClient({
   children,
   teamFeatures,
   permissions,
@@ -1125,3 +1141,6 @@ const SidebarContainerElement = ({
     </>
   );
 };
+
+export type { SettingsLayoutProps, SettingsPermissions };
+export default SettingsLayoutAppDirClient;

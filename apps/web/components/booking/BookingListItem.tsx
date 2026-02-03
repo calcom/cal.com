@@ -40,6 +40,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
@@ -273,7 +274,12 @@ function BookingListItem(booking: BookingItemProps) {
 
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
   const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
-
+  const isOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.isOpenWrongAssignmentDialog
+  );
+  const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.setIsOpenWrongAssignmentDialog
+  );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
@@ -431,6 +437,9 @@ function BookingListItem(booking: BookingItemProps) {
                   currentEmail={userEmail}
                   bookingUid={booking.uid}
                   isBookingInPast={isBookingInPast}
+                  hideOrganizerEmail={booking.eventType?.hideOrganizerEmail}
+                  organizerEmail={booking.user?.email}
+                  eventTypeHosts={booking.eventType?.hosts}
                 />
               )}
               {isCancelled && booking.rescheduled && (
@@ -509,7 +518,22 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeFormat={userTimeFormat}
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
+        onAssignmentReasonClick={
+          isBookingFromRoutingForm ? () => setIsOpenWrongAssignmentDialog(true) : undefined
+        }
       />
+      {isBookingFromRoutingForm && (
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
     </div>
   );
 }
@@ -522,6 +546,7 @@ const BookingItemBadges = ({
   userTimeFormat,
   userTimeZone,
   isRescheduled,
+  onAssignmentReasonClick,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
@@ -530,6 +555,7 @@ const BookingItemBadges = ({
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
   isRescheduled: boolean;
+  onAssignmentReasonClick?: () => void;
 }) => {
   const { t } = useLocale();
 
@@ -558,7 +584,10 @@ const BookingItemBadges = ({
         </Badge>
       )}
       {booking?.assignmentReason.length > 0 && (
-        <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+        <AssignmentReasonTooltip
+          assignmentReason={booking.assignmentReason[0]}
+          onClick={onAssignmentReasonClick}
+        />
       )}
       {booking.report && (
         <Tooltip
@@ -686,14 +715,20 @@ interface UserProps {
 const FirstAttendee = ({
   user,
   currentEmail,
+  hideOrganizerEmail,
 }: {
   user: UserProps;
   currentEmail: string | null | undefined;
+  hideOrganizerEmail?: boolean;
 }) => {
   const { t } = useLocale();
-  return user.email === currentEmail ? (
-    <div className="inline-block">{t("you")}</div>
-  ) : (
+  if (user.email === currentEmail) {
+    return <div className="inline-block">{t("you")}</div>;
+  }
+  if (hideOrganizerEmail) {
+    return <span className="inline-block">{user.name || ""}</span>;
+  }
+  return (
     <a
       key={user.email}
       className="hover:text-blue-500"
@@ -709,8 +744,26 @@ type NoShowProps = {
   isBookingInPast: boolean;
 };
 
-const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow, phoneNumber, user } = attendeeProps;
+const Attendee = (
+  attendeeProps: BookingAttendee &
+    NoShowProps & {
+      hideOrganizerEmail?: boolean;
+      organizerEmail?: string | null;
+      eventTypeHosts?: Array<{ user: { email: string } | null }> | null;
+    }
+) => {
+  const {
+    email,
+    name,
+    bookingUid,
+    isBookingInPast,
+    noShow,
+    phoneNumber,
+    user,
+    hideOrganizerEmail,
+    organizerEmail,
+    eventTypeHosts,
+  } = attendeeProps;
   const { t } = useLocale();
 
   const utils = trpc.useUtils();
@@ -718,16 +771,21 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      showToast(data.message, "success");
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
+      onSuccess: async (data) => {
+        showToast(data.message, "success");
+        await utils.viewer.bookings.invalidate();
+      },
+      onError: (err) => {
+        showToast(err.message, "error");
+      },
+    });
 
   const displayName = user?.name || name || user?.email || email;
+
+  const isTeamMemberOrHost =
+    email === organizerEmail ||
+    eventTypeHosts?.some((host) => host.user?.email === email);
+  const shouldHideEmail = hideOrganizerEmail && isTeamMemberOrHost;
 
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
@@ -747,7 +805,7 @@ const Attendee = (attendeeProps: BookingAttendee & NoShowProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent>
-          {!isSmsCalEmail(email) && (
+          {!isSmsCalEmail(email) && !shouldHideEmail && (
             <DropdownMenuItem className="focus:outline-none">
               <DropdownItem
                 StartIcon="mail"
@@ -993,21 +1051,34 @@ const DisplayAttendees = ({
   currentEmail,
   bookingUid,
   isBookingInPast,
+  hideOrganizerEmail,
+  organizerEmail,
+  eventTypeHosts,
 }: {
   attendees: BookingAttendee[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
   isBookingInPast: boolean;
+  hideOrganizerEmail?: boolean;
+  organizerEmail?: string | null;
+  eventTypeHosts?: Array<{ user: { email: string } | null }> | null;
 }) => {
   const { t } = useLocale();
   attendees.sort((a, b) => a.id - b.id);
 
   return (
     <div className="text-emphasis text-sm" onClick={(e) => e.stopPropagation()}>
-      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
+      {user && <FirstAttendee user={user} currentEmail={currentEmail} hideOrganizerEmail={hideOrganizerEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+      <Attendee
+        {...attendees[0]}
+        bookingUid={bookingUid}
+        isBookingInPast={isBookingInPast}
+        hideOrganizerEmail={hideOrganizerEmail}
+        organizerEmail={organizerEmail}
+        eventTypeHosts={eventTypeHosts}
+      />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
@@ -1015,7 +1086,14 @@ const DisplayAttendees = ({
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+                  <Attendee
+                    {...attendee}
+                    bookingUid={bookingUid}
+                    isBookingInPast={isBookingInPast}
+                    hideOrganizerEmail={hideOrganizerEmail}
+                    organizerEmail={organizerEmail}
+                    eventTypeHosts={eventTypeHosts}
+                  />
                 </p>
               ))}>
               {isBookingInPast ? (
@@ -1025,7 +1103,14 @@ const DisplayAttendees = ({
               )}
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+            <Attendee
+              {...attendees[1]}
+              bookingUid={bookingUid}
+              isBookingInPast={isBookingInPast}
+              hideOrganizerEmail={hideOrganizerEmail}
+              organizerEmail={organizerEmail}
+              eventTypeHosts={eventTypeHosts}
+            />
           )}
         </>
       )}
@@ -1033,12 +1118,21 @@ const DisplayAttendees = ({
   );
 };
 
-const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: AssignmentReason }) => {
+const AssignmentReasonTooltip = ({
+  assignmentReason,
+  onClick,
+}: {
+  assignmentReason: AssignmentReason;
+  onClick?: () => void;
+}) => {
   const { t } = useLocale();
   const badgeTitle = assignmentReasonBadgeTitleMap(assignmentReason.reasonEnum);
   return (
     <Tooltip content={<p>{assignmentReason.reasonString}</p>}>
-      <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+      <Badge
+        className={classNames("ltr:mr-2 rtl:ml-2", onClick && "cursor-pointer hover:opacity-80")}
+        variant="gray"
+        onClick={onClick}>
         {t(badgeTitle)}
       </Badge>
     </Tooltip>
