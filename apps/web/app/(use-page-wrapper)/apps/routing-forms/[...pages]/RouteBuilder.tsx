@@ -1037,6 +1037,17 @@ function useRoutes({
         if (isRouter(route)) {
           return route;
         }
+        // Initialize fallbackAction from action if not set and action is EventTypeRedirectUrl
+        // This handles the case where user creates a new route and changes action to an event type
+        const fallbackAction =
+          route.fallbackAction ??
+          (route.action?.type === RouteActionType.EventTypeRedirectUrl
+            ? {
+                type: route.action.type,
+                value: route.action.value,
+                eventTypeId: route.action.eventTypeId,
+              }
+            : undefined);
         return {
           id: route.id,
           name: route.name,
@@ -1047,7 +1058,7 @@ function useRoutes({
           attributesQueryValue: route.attributesQueryValue,
           fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
           attributeIdForWeights: route.attributeIdForWeights,
-          fallbackAction: route.fallbackAction,
+          fallbackAction,
         };
       });
     }
