@@ -99,7 +99,7 @@ export function FeedbackDialog({
           {t(descriptionKey)}
         </DialogPrimitive.Description>
       </div>
-      <div className="space-y-4 px-6 pb-1">
+      <div className="space-y-4 px-6 pb-4">
         <div className="flex justify-center gap-2">
           {RATING_OPTIONS.map((option) => (
             <button
@@ -107,10 +107,8 @@ export function FeedbackDialog({
               type="button"
               onClick={() => setSelectedRating(option.value)}
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-lg border-2 text-2xl transition-all",
-                selectedRating === option.value
-                  ? "border-emphasis bg-emphasis"
-                  : "border-default hover:border-subtle hover:bg-subtle"
+                "flex h-12 w-12 items-center justify-center rounded-lg text-2xl transition-all",
+                selectedRating === option.value ? "bg-emphasis" : "hover:bg-subtle"
               )}
               aria-label={`Rating ${option.value}`}>
               {option.emoji}
