@@ -193,6 +193,29 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
+  const isBannerUploaded =
+    !!input.bannerUrl &&
+    input.bannerUrl !== "delete" &&
+    (input.bannerUrl.startsWith("data:image/png;base64,") ||
+      input.bannerUrl.startsWith("data:image/jpeg;base64,") ||
+      input.bannerUrl.startsWith("data:image/jpg;base64,"));
+  const isFaviconUploaded =
+    !!input.faviconUrl &&
+    input.faviconUrl !== "delete" &&
+    (input.faviconUrl.startsWith("data:image/png;base64,") ||
+      input.faviconUrl.startsWith("data:image/jpeg;base64,") ||
+      input.faviconUrl.startsWith("data:image/jpg;base64,"));
+  if ((isBannerUploaded || isFaviconUploaded) && input.hideBranding !== false) {
+    data.hideBranding = true;
+  }
+
+  const nextBannerUrl = data.bannerUrl !== undefined ? data.bannerUrl : user.bannerUrl;
+  const nextFaviconUrl = data.faviconUrl !== undefined ? data.faviconUrl : user.faviconUrl;
+  const hasCustomBrandingAssets = !!(nextBannerUrl || nextFaviconUrl);
+  if (input.hideBranding === true && !hasCustomBrandingAssets) {
+    data.hideBranding = false;
+  }
+
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findUnique({
       where: {

@@ -1,6 +1,6 @@
 import type { CalIdWorkflow } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -18,6 +18,7 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
+  const creatingFromTemplateRef = useRef(false);
 
   const userQuery = useMeQuery();
   const user = userQuery.data;
@@ -27,8 +28,9 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
     onSuccess: async ({ workflow, builderTemplate }) => {
       // Only directly navigate if no builder template is being used, otherwise we'll wait for the update query to also complete
       if (!builderTemplate) {
-        await router.replace(`/workflows/${workflow.id}`);
+        await router.replace(`/workflows/${workflow.id}?new=1`);
       } else {
+        creatingFromTemplateRef.current = true;
         handleUpdateWorkflowFromBuilderTemplate(workflow, builderTemplate);
       }
 
@@ -96,7 +98,7 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
   // Duplicate workflow mutation
   const duplicateMutation = trpc.viewer.workflows.calid_duplicate.useMutation({
     onSuccess: async ({ workflow }) => {
-      router.replace(`/workflows/${workflow.id}`);
+      router.replace(`/workflows/${workflow.id}?new=1&fromTemplate=1&duplicated=1`);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -121,7 +123,9 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
       if (workflow) {
         utils.viewer.workflows.calid_get.setData({ id: workflow.id }, workflow);
 
-        router.replace(`/workflows/${workflow.id}`);
+        const newParam = creatingFromTemplateRef.current ? "?new=1&fromTemplate=1" : "";
+        creatingFromTemplateRef.current = false;
+        router.replace(`/workflows/${workflow.id}${newParam}`);
       }
     },
     onError: (err) => {

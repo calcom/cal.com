@@ -1,12 +1,17 @@
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import type { VariablesType } from "../templates/customTemplate";
 
 const messageLogger = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const constructVariablesForTemplate = (
   eventData: CalIdBookingInfo,
@@ -34,6 +39,7 @@ export const constructVariablesForTemplate = (
     eventTypeName: eventData.eventType.title || "",
     eventName: eventData.title || "",
     organizerName: eventData.organizer.name,
+    organizerFirstName: eventData.organizer.name.split(" ")[0],
     attendeeName: participantData.name,
     attendeeFirstName: participantData.firstName || participantData.name.split(" ")[0],
     attendeeLastName:
@@ -41,7 +47,8 @@ export const constructVariablesForTemplate = (
         ? participantData.name.split(" ")[1]
         : "",
     attendeeEmail: participantData.email,
-    eventDate: dayjs(eventStartTime).tz(targetTimezone),
+    eventDate: formatTimestamp(eventData?.startTime, "DD MMM YYYY"),
+    eventStartTime: dayjs(eventStartTime).tz(targetTimezone),
     eventEndTime: dayjs(eventEndTime).tz(targetTimezone),
     timezone: targetTimezone,
     location: eventData.location,
@@ -53,8 +60,10 @@ export const constructVariablesForTemplate = (
     ratingUrl: `${bookerBaseUrl}/booking/${eventData.uid}?rating`,
     noShowUrl: `${bookerBaseUrl}/booking/${eventData.uid}?noShow=true`,
     attendeeTimezone: eventData.attendees[0].timeZone,
-    eventStartTimeInAttendeeTimezone: dayjs(eventStartTime).tz(eventData.attendees[0].timeZone),
-    eventEndTimeInAttendeeTimezone: dayjs(eventEndTime).tz(eventData.attendees[0].timeZone),
+    eventStartTimeInAttendeeTimezone: dayjs.utc(eventStartTime).tz(eventData.attendees[0].timeZone),
+    eventEndTimeInAttendeeTimezone: dayjs.utc(eventEndTime).tz(eventData.attendees[0].timeZone),
     eventTime: formatTimestamp(eventData?.startTime, "ddd, MMM D, YYYY h:mma"),
+    cancellationReason: eventData.cancellationReason || "",
+    eventTimeFormatted: formatTimestamp(eventData?.startTime, "h:mma [GMT]Z"),
   };
 };

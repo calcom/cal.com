@@ -113,16 +113,24 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     label: string;
     avatarUrl: string | null;
   }[] =
-    redirectMembers?.data?.members // ?.pages
-      // .flatMap((page) => page.members)
-      ?.filter((member) =>
-        oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
-      )
-      .map((member) => ({
-        value: member.user.id,
-        label: member.user.username || member.user.name || "",
-        avatarUrl: member.user.avatarUrl,
-      })) || [];
+    Array.from(
+      new Map(
+        redirectMembers?.data?.members
+          ?.filter((member) =>
+            oooType === OutOfOfficeTab.MINE
+              ? me?.data?.id !== member.user.id
+              : oooType === OutOfOfficeTab.TEAM
+          )
+          .map((member) => [
+            member.user.id, // 👈 unique key
+            {
+              value: member.user.id,
+              label: member.user.username || member.user.name || "",
+              avatarUrl: member.user.avatarUrl,
+            },
+          ]) ?? []
+      ).values()
+    ) || [];
   const { ref: observerRefRedirect } = useInViewObserver(() => {
     if (redirectMembers.hasNextPage && !redirectMembers.isFetching) {
       redirectMembers.fetchNextPage();
@@ -198,11 +206,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }}>
         <form
           id="create-or-edit-ooo-form"
-          onSubmit={handleSubmit((data) => {
+          onSubmit={handleSubmit(async (data) => {
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
-              createOrEditOutOfOfficeEntry.mutate({
+              await createOrEditOutOfOfficeEntry.mutateAsync({
                 ...data,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),

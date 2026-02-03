@@ -1,3 +1,4 @@
+import { ProBadge } from "@calid/features/modules/claim-pro/ProBadge";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -63,6 +64,12 @@ export default function BottomNav() {
           </Tooltip>
           <span className="text-default text-sm font-medium">{t("view_public_page")}</span>
         </div>
+        {user?.metadata?.isProUser?.yearClaimed > 0 && user?.metadata?.isProUser?.verified && (
+          <ProBadge
+            yearClaimed={user.metadata.isProUser.yearClaimed}
+            validTillDate={user.metadata.isProUser.validTillDate}
+          />
+        )}
         <ProductHuntBadge />
       </div>
       <div className="flex justify-between">

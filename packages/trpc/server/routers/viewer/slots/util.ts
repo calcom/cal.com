@@ -1,4 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
+import { createHash } from "crypto";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -67,6 +68,39 @@ const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
+};
+
+const getStableSlotScore = (eventTypeId: number, time: string) => {
+  const hash = createHash("sha256").update(`${eventTypeId}:${time}`).digest("hex");
+  return parseInt(hash.slice(0, 8), 16);
+};
+
+const applySoBusyFilter = <T extends { time: string }>(
+  slotsByDate: Record<string, T[]>,
+  eventTypeId: number
+) => {
+  const filtered: typeof slotsByDate = {};
+
+  for (const [date, slots] of Object.entries(slotsByDate)) {
+    if (!slots.length) continue;
+
+    const targetCount = Math.ceil(slots.length / 2);
+    const scored = slots
+      .map((slot) => ({
+        time: slot.time,
+        score: getStableSlotScore(eventTypeId, slot.time),
+      }))
+      .sort((a, b) => a.score - b.score);
+
+    const keep = new Set(scored.slice(0, targetCount).map((slot) => slot.time));
+    const keptSlots = slots.filter((slot) => keep.has(slot.time));
+
+    if (keptSlots.length) {
+      filtered[date] = keptSlots;
+    }
+  }
+
+  return filtered;
 };
 
 export interface IGetAvailableSlots {
@@ -1361,9 +1395,12 @@ export class AvailableSlotsService {
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
+    const finalSlotsMappedToDate = eventType.metadata?.showBusy
+      ? applySoBusyFilter(withinBoundsSlotsMappedToDate, eventType.id)
+      : withinBoundsSlotsMappedToDate;
 
     // We only want to run this on single targeted events and not dynamic
-    if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
         // TODO: DI handleNotificationWhenNoSlots
         await handleNotificationWhenNoSlots({
@@ -1406,7 +1443,7 @@ export class AvailableSlotsService {
       : null;
 
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: finalSlotsMappedToDate,
       ...troubleshooterData,
     };
   }

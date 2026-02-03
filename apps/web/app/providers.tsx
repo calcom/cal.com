@@ -24,13 +24,12 @@ export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) 
   const isBookingPage = useIsBookingPage();
 
   useEffect(() => {
+    if (isBookingPage) {
+      return;
+    }
     const link: HTMLLinkElement = document.createElement("link");
     link.rel = "icon";
-
-    if (!isBookingPage) {
-      link.href = "/calid_favicon.svg";
-    }
-
+    link.href = "/calid_favicon.svg";
     link.type = "image/png";
     document.head.appendChild(link);
   }, [isBookingPage]);
