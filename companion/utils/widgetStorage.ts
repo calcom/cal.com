@@ -48,7 +48,7 @@ function formatDate(dateString: string): string {
 async function updateIOSWidget(widgetData: WidgetData): Promise<void> {
   // Use ExtensionStorage from @bacons/apple-targets to store data in App Groups
   // ExtensionStorage.set() handles JSON serialization internally, so we pass the object directly
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // biome-ignore lint/suspicious/noExplicitAny: ExtensionStorage.set() expects any for the value parameter
   iosStorage.set(WIDGET_BOOKINGS_KEY, widgetData as any);
   console.log("[Widget Debug] Data written to ExtensionStorage with key:", WIDGET_BOOKINGS_KEY);
 
