@@ -214,9 +214,11 @@ const Item = ({
         </Badge>
       )}
       {showAssignedBadge && (
-        <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
-          {t("assigned")}
-        </Badge>
+        <Tooltip content={t("you_are_assigned_to_this_event")}>
+          <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+            {t("assigned")}
+          </Badge>
+        </Tooltip>
       )}
     </div>
   );
@@ -256,9 +258,11 @@ const Item = ({
                 </Badge>
               )}
               {showAssignedBadge && (
-                <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
-                  {t("assigned")}
-                </Badge>
+                <Tooltip content={t("you_are_assigned_to_this_event")}>
+                  <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+                    {t("assigned")}
+                  </Badge>
+                </Tooltip>
               )}
             </div>
             <EventTypeDescription

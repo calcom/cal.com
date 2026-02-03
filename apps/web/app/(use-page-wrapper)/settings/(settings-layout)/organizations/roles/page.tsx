@@ -9,7 +9,7 @@ import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/Permissio
 import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { prisma } from "@calcom/prisma";
 
 import { validateUserHasOrg } from "../actions/validateUserHasOrg";

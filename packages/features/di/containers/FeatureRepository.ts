@@ -1,10 +1,10 @@
-import type { IFeatureRepository } from "@calcom/features/flags/repositories/FeatureRepository";
-import { moduleLoader as featureRepositoryModuleLoader } from "../../flags/di/FeatureRepository.module";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import { moduleLoader as cachedFeatureRepositoryModuleLoader } from "../../flags/di/CachedFeatureRepository.module";
 import { type Container, createContainer } from "../di";
 
 const featureRepositoryContainer: Container = createContainer();
 
 export function getFeatureRepository(): IFeatureRepository {
-  featureRepositoryModuleLoader.loadModule(featureRepositoryContainer);
-  return featureRepositoryContainer.get<IFeatureRepository>(featureRepositoryModuleLoader.token);
+  cachedFeatureRepositoryModuleLoader.loadModule(featureRepositoryContainer);
+  return featureRepositoryContainer.get<IFeatureRepository>(cachedFeatureRepositoryModuleLoader.token);
 }
