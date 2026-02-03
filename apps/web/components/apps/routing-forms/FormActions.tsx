@@ -95,7 +95,7 @@ function NewFormDialog({
     <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
-          <h3 className="text-emphasis font-heading! text-xl" id="modal-title">
+          <h3 className="text-emphasis !font-cal text-semibold text-xl font-medium" id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>

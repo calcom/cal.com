@@ -1,27 +1,44 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
-
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { MembershipRole } from "@calcom/prisma/enums";
-
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TeamWithParent } from "./types";
 import type { UserWithMembership } from "./utils";
-import { INVITE_STATUS } from "./utils";
 import {
-  ensureAtleastAdminPermissions,
-  getUniqueInvitationsOrThrowIfEmpty,
-  getOrgState,
-  getOrgConnectionInfo,
   canBeInvited,
-  getAutoJoinStatus,
   checkInputEmailIsValid,
   createMemberships,
+  createNewUsersConnectToOrgIfExists,
+  ensureAtleastAdminPermissions,
+  getAutoJoinStatus,
+  getOrgConnectionInfo,
+  getOrgState,
+  getUniqueInvitationsOrThrowIfEmpty,
+  INVITE_STATUS,
 } from "./utils";
 
-const { mockCreateMany } = vi.hoisted(() => {
+const { mockCreateMany, mockUserCreate, mockMembershipCreate, mockTransaction } = vi.hoisted(() => {
   const mockCreateManyFn = vi.fn();
-  return { mockCreateMany: mockCreateManyFn };
+  const mockUserCreateFn = vi.fn();
+  const mockMembershipCreateFn = vi.fn();
+  const mockTransactionFn = vi.fn(async (callback: (tx: any) => Promise<unknown>) => {
+    return callback({
+      user: {
+        create: mockUserCreateFn,
+      },
+      membership: {
+        create: mockMembershipCreateFn,
+      },
+    });
+  });
+
+  return {
+    mockCreateMany: mockCreateManyFn,
+    mockUserCreate: mockUserCreateFn,
+    mockMembershipCreate: mockMembershipCreateFn,
+    mockTransaction: mockTransactionFn,
+  };
 });
 
 vi.mock("@calcom/prisma", () => {
@@ -30,6 +47,10 @@ vi.mock("@calcom/prisma", () => {
       membership: {
         createMany: mockCreateMany,
       },
+      user: {
+        create: mockUserCreate,
+      },
+      $transaction: mockTransaction,
     },
   };
 });
@@ -46,6 +67,20 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
     PermissionCheckService: vi.fn(),
   };
 });
+
+const { mockLogSeatAddition } = vi.hoisted(() => {
+  return { mockLogSeatAddition: vi.fn() };
+});
+
+vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
+  SeatChangeTrackingService: class {
+    logSeatAddition = mockLogSeatAddition;
+  },
+}));
+
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn().mockResolvedValue((key: string) => key),
+}));
 
 vi.mock("@calcom/lib/logger", () => {
   const mockSubLogger = {
@@ -635,6 +670,50 @@ describe("Invite Member Utils", () => {
         autoAccept: true,
         needToCreateOrgMembership: false,
         needToCreateProfile: false,
+      });
+    });
+  });
+
+  describe("createNewUsersConnectToOrgIfExists", () => {
+    beforeEach(() => {
+      mockUserCreate.mockReset();
+      mockMembershipCreate.mockReset();
+      mockTransaction.mockClear();
+      mockLogSeatAddition.mockClear();
+    });
+
+    it("logs seat changes for new users on regular teams", async () => {
+      let nextId = 100;
+      mockUserCreate.mockImplementation(async ({ data }) => ({
+        id: nextId++,
+        email: data.email,
+      }));
+      mockMembershipCreate.mockResolvedValue({});
+
+      const invitations = [
+        { usernameOrEmail: "new1@example.com", role: MembershipRole.MEMBER },
+        { usernameOrEmail: "new2@example.com", role: MembershipRole.MEMBER },
+      ];
+      const orgConnectInfoByUsernameOrEmail = {
+        "new1@example.com": { orgId: undefined, autoAccept: false },
+        "new2@example.com": { orgId: undefined, autoAccept: false },
+      };
+
+      const result = await createNewUsersConnectToOrgIfExists({
+        invitations,
+        isOrg: false,
+        teamId: mockedRegularTeam.id,
+        parentId: null,
+        autoAcceptEmailDomain: null,
+        orgConnectInfoByUsernameOrEmail,
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      expect(result).toHaveLength(2);
+      expect(mockLogSeatAddition).toHaveBeenCalledWith({
+        teamId: mockedRegularTeam.id,
+        seatCount: 2,
       });
     });
   });

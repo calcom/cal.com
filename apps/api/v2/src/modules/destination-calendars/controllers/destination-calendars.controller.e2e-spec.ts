@@ -120,6 +120,7 @@ describe("Platform Destination Calendar Endpoints", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date(),
           updatedAt: new Date(),
+          customCalendarReminder: 10,
         },
       })
     );

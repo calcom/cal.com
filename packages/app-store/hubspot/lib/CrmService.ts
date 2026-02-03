@@ -1,4 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
+import { getLocation } from "@calcom/lib/CalEventParser";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
+import prisma from "@calcom/prisma";
+import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
+import type { Contact, ContactCreateInput, CRM, CrmEvent } from "@calcom/types/CrmService";
 import * as hubspot from "@hubspot/api-client";
 import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
 import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
@@ -7,26 +20,13 @@ import type {
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 import type { z } from "zod";
-
-import { getLocation } from "@calcom/lib/CalEventParser";
-import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
-import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
-
 import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
-export default class HubspotCalendarService implements CRM {
+class HubspotCalendarService implements CRM {
   private url = "";
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<HubspotToken | void | never[]> }>;
@@ -55,7 +55,12 @@ export default class HubspotCalendarService implements CRM {
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
     const userFields = getLabelValueMapFromResponses(event);
     const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-    const location = getLocation(event);
+    const location = getLocation({
+      videoCallData: event.videoCallData,
+      additionalInformation: event.additionalInformation,
+      location: event.location,
+      uid: event.uid,
+    });
     const userFieldsHtml = Object.entries(userFields)
       .map(([key, value]) => {
         const formattedValue = typeof value === "boolean" ? (value ? "Yes" : "No") : value || "-";
@@ -64,15 +69,17 @@ export default class HubspotCalendarService implements CRM {
       .join("<br><br>");
 
     const organizerName = event.organizer.name || event.organizer.email;
-    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email
-      })`;
+    const organizerInfo = `<b>${event.organizer.language.translate("organizer")}:</b> ${organizerName} (${event.organizer.email})`;
 
-    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${event.attendees[0].timeZone
-      }<br><br>${event.additionalNotes
-        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${event.additionalNotes
-        }<br><br>`
+    return `${organizerInfo}<br><br><b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
+      event.attendees[0].timeZone
+    }<br><br>${
+      event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
+            event.additionalNotes
+          }<br><br>`
         : ""
-      }
+    }
     ${userFieldsHtml}<br><br>
     <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
     ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
@@ -82,7 +89,7 @@ export default class HubspotCalendarService implements CRM {
   private async ensureFieldsExistOnMeeting(fieldsToTest: string[]) {
     const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnMeeting]`] });
     const fieldSet = new Set(fieldsToTest);
-    const foundFields: Array<{ name: string; type: string;[key: string]: any }> = [];
+    const foundFields: Array<{ name: string; type: string; [key: string]: any }> = [];
 
     try {
       const properties = await this.hubspotClient.crm.properties.coreApi.getAll("meetings");
@@ -283,7 +290,12 @@ export default class HubspotCalendarService implements CRM {
       hs_timestamp: Date.now().toString(),
       hs_meeting_title: event.title,
       hs_meeting_body: this.getHubspotMeetingBody(event),
-      hs_meeting_location: getLocation(event),
+      hs_meeting_location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
       hs_meeting_start_time: new Date(event.startTime).toISOString(),
       hs_meeting_end_time: new Date(event.endTime).toISOString(),
       hs_meeting_outcome: "SCHEDULED",
@@ -323,7 +335,12 @@ export default class HubspotCalendarService implements CRM {
         hs_timestamp: Date.now().toString(),
         hs_meeting_title: event.title,
         hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
+        hs_meeting_location: getLocation({
+          videoCallData: event.videoCallData,
+          additionalInformation: event.additionalInformation,
+          location: event.location,
+          uid: event.uid,
+        }),
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "RESCHEDULED",
@@ -347,34 +364,6 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
-  private getHubspotOwnerIdByEmail = async (email: string): Promise<string | undefined> => {
-    try {
-      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage(
-        email,
-        undefined,
-        100,
-        false
-      );
-
-      if (ownersResponse.results && ownersResponse.results.length > 0) {
-        const matchingOwner = ownersResponse.results.find(
-          (owner) => owner.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (matchingOwner) {
-          this.log.debug("hubspot:owner:found", { ownerId: matchingOwner.id });
-          return matchingOwner.id;
-        }
-      }
-
-      this.log.debug("hubspot:owner:not_found");
-      return undefined;
-    } catch (error) {
-      this.log.error("hubspot:owner:lookup_error", { error });
-      return undefined;
-    }
-  };
-
   private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
@@ -385,11 +374,7 @@ export default class HubspotCalendarService implements CRM {
     let currentToken = credential.key as unknown as HubspotToken;
 
     const isTokenValid = (token: HubspotToken) =>
-      token &&
-      token.tokenType &&
-      token.accessToken &&
-      token.expiryDate &&
-      token.expiryDate > Date.now();
+      token && token.tokenType && token.accessToken && token.expiryDate && token.expiryDate > Date.now();
 
     const refreshAccessToken = async (refreshToken: string) => {
       try {
@@ -440,14 +425,25 @@ export default class HubspotCalendarService implements CRM {
     const organizerEmail = event.organizer.email;
     this.log.debug("hubspot:meeting:fetching_owner");
 
-    const hubspotOwnerId = await this.getHubspotOwnerIdByEmail(organizerEmail);
+    const hubspotOwnerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
 
-    const meetingEvent = await this.hubspotCreateMeeting(event, hubspotOwnerId);
+    const meetingEvent = await this.hubspotCreateMeeting(event, hubspotOwnerId ?? undefined);
     if (meetingEvent) {
       this.log.debug("meeting:creation:ok", { meetingId: meetingEvent.id, hubspotOwnerId });
       const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
       if (associatedMeeting) {
         this.log.debug("association:creation:ok", { associatedMeeting });
+
+        const firstContact = contacts[0];
+        const appOptions = this.getAppOptions();
+        if (hubspotOwnerId && firstContact?.id && appOptions?.setOrganizerAsOwner) {
+          await this.setContactOwnerIfAllowed(
+            firstContact.id,
+            hubspotOwnerId,
+            appOptions?.overwriteContactOwner ?? false
+          );
+        }
+
         return Promise.resolve({
           uid: meetingEvent.id,
           id: meetingEvent.id,
@@ -487,11 +483,24 @@ export default class HubspotCalendarService implements CRM {
     await this.hubspotCancelMeeting(uid);
   }
 
-  async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
+  async getContacts({
+    emails,
+    includeOwner,
+    forRoundRobinSkip,
+  }: {
+    emails: string | string[];
+    includeOwner?: boolean;
+    forRoundRobinSkip?: boolean;
+  }): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
     const emailArray = Array.isArray(emails) ? emails : [emails];
+
+    const shouldIncludeOwner = includeOwner || forRoundRobinSkip;
+
+    const skipDueToFreeEmail =
+      forRoundRobinSkip && (await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
 
     const publicObjectSearchRequest: PublicObjectSearchRequest = {
       filterGroups: emailArray.map((attendeeEmail) => ({
@@ -504,7 +513,10 @@ export default class HubspotCalendarService implements CRM {
         ],
       })),
       sorts: ["hs_object_id"],
-      properties: ["hs_object_id", "email"],
+      properties:
+        shouldIncludeOwner && !skipDueToFreeEmail
+          ? ["hs_object_id", "email", "hubspot_owner_id"]
+          : ["hs_object_id", "email"],
       limit: 10,
       after: 0,
     };
@@ -512,6 +524,27 @@ export default class HubspotCalendarService implements CRM {
     const contacts = await this.hubspotClient.crm.contacts.searchApi
       .doSearch(publicObjectSearchRequest)
       .then((apiResponse) => apiResponse.results);
+
+    if (shouldIncludeOwner && !skipDueToFreeEmail) {
+      return await Promise.all(
+        contacts.map(async (contact) => {
+          const ownerId = contact.properties.hubspot_owner_id;
+          let ownerEmail: string | undefined;
+
+          if (ownerId) {
+            ownerEmail = await this.getOwnerEmailFromId(ownerId);
+          }
+
+          return {
+            id: contact.id,
+            email: contact.properties.email,
+            ownerId,
+            ownerEmail,
+            recordType: "CONTACT",
+          };
+        })
+      );
+    }
 
     return contacts.map((contact) => {
       return {
@@ -527,12 +560,18 @@ export default class HubspotCalendarService implements CRM {
 
     const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      const properties: Record<string, string> = {
+        firstname,
+        lastname,
+        email: attendee.email,
+      };
+      
+      if (attendee.phone) {
+        properties.phone = attendee.phone;
+      }
+      
       return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
+        properties,
       };
     });
     const createdContacts = await Promise.all(
@@ -566,4 +605,89 @@ export default class HubspotCalendarService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+
+  private async getHubspotOwnerIdFromEmail(email: string): Promise<string | null> {
+    try {
+      const ownersResponse = await this.hubspotClient.crm.owners.ownersApi.getPage(
+        email,
+        undefined,
+        100,
+        false
+      );
+      if (ownersResponse.results && ownersResponse.results.length > 0) {
+        const owner = ownersResponse.results.find((o) => o.email?.toLowerCase() === email.toLowerCase());
+        return owner?.id ?? null;
+      }
+      return null;
+    } catch (error) {
+      this.log.error("Error fetching HubSpot owner:", error);
+      return null;
+    }
+  }
+
+  private async setContactOwner(contactId: string, ownerId: string): Promise<void> {
+    try {
+      await this.hubspotClient.crm.contacts.basicApi.update(contactId, {
+        properties: { hubspot_owner_id: ownerId },
+      });
+    } catch (error) {
+      this.log.error("Error setting contact owner:", error);
+    }
+  }
+
+  private async getContactOwnerId(contactId: string): Promise<string | null> {
+    const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, ["hubspot_owner_id"]);
+    return contact.properties.hubspot_owner_id ?? null;
+  }
+
+  private async setContactOwnerIfAllowed(
+    contactId: string,
+    ownerId: string,
+    overwriteContactOwner: boolean
+  ): Promise<void> {
+    if (overwriteContactOwner) {
+      await this.setContactOwner(contactId, ownerId);
+      return;
+    }
+
+    try {
+      const currentOwnerId = await this.getContactOwnerId(contactId);
+      if (!currentOwnerId) {
+        await this.setContactOwner(contactId, ownerId);
+      }
+    } catch (error) {
+      this.log.error("Error fetching contact owner, skipping owner update:", error);
+    }
+  }
+
+  private async getOwnerEmailFromId(ownerId: string): Promise<string | undefined> {
+    try {
+      const owner = await this.hubspotClient.crm.owners.ownersApi.getById(parseInt(ownerId, 10));
+      return owner.email ?? undefined;
+    } catch (error) {
+      this.log.error("Error fetching owner by ID:", error);
+      return undefined;
+    }
+  }
+
+  private async shouldSkipAttendeeIfFreeEmailDomain(attendeeEmail: string): Promise<boolean> {
+    const appOptions = this.getAppOptions();
+    if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
+
+    const response = await checkIfFreeEmailDomain({ email: attendeeEmail });
+    return response;
+  }
+}
+
+/**
+ * Factory function that creates a HubSpot CRM service instance.
+ * This is exported instead of the class to prevent SDK types (like hubspot.Client)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all 1,800+ HubSpot SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  appOptions?: Record<string, unknown>
+): CRM {
+  return new HubspotCalendarService(credential, appOptions);
 }

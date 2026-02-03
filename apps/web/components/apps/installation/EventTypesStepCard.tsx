@@ -63,6 +63,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
             </small>
           </div>
           {Boolean(description) && (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
             <div
               className="text-subtle line-clamp-4 wrap-break-word text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                

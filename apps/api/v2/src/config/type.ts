@@ -35,4 +35,6 @@ export type AppConfig = {
   e2e: boolean;
   enableSlotsWorkers: boolean;
   slotsWorkerPoolSize: number;
+  vercel: boolean;
+  enableAsyncTasker: boolean;
 };

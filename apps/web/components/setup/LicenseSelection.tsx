@@ -122,7 +122,7 @@ const LicenseSelection = (
               "bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "FREE" && "ring-2 ring-black"
             )}>
-            <h2 className="font-heading text-emphasis text-xl">{t("agplv3_license")}</h2>
+            <h2 className="font-cal text-emphasis text-xl">{t("agplv3_license")}</h2>
             <p className="font-medium text-green-800">{t("free_license_fee")}</p>
             <p className="text-subtle">{t("forever_open_and_free")}</p>
             <ul className="text-subtle ml-4 list-disc text-left text-xs">
@@ -139,7 +139,7 @@ const LicenseSelection = (
               "bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "EXISTING" && "ring-2 ring-black"
             )}>
-            <h2 className="font-heading text-emphasis text-xl">{t("enter_license_key")}</h2>
+            <h2 className="font-cal text-emphasis text-xl">{t("enter_license_key")}</h2>
             <p className="font-medium text-green-800">{t("enter_existing_license")}</p>
             <p className="text-subtle">{t("enter_your_license_key")}</p>
             <p className="text-subtle text-xs">

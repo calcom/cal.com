@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
-import type { BulkUpdatParams } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -120,6 +120,10 @@ export const AvailabilitySettingsWebWrapper = ({
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
       handleSubmit={async ({ dateOverrides, ...values }) => {
+        if (!values.name.trim()) {
+          showToast(t("schedule_name_cannot_be_empty"), "error");
+          return;
+        }
         scheduleId &&
           updateMutation.mutate({
             scheduleId,

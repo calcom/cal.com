@@ -123,7 +123,7 @@ Here is what you need to be able to run Cal.com.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales)
+1. Clone the repo (or fork https://github.com/calcom/cal.com/fork). The code is licensed under [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE), which requires you to provide source code to users who interact with the software over a network. For commercial use without these requirements, [acquire a commercial license](https://cal.com/sales)
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -384,6 +384,50 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
    ```
 
 1. Enjoy the new version.
+
+## AI-Assisted Development
+
+This repository includes configuration for AI coding assistants. All AI configuration lives in the `agents/` directory as a single source of truth.
+
+### Structure
+
+```
+agents/
+├── rules/           # Modular engineering rules
+├── skills/          # Reusable skills/prompts
+├── commands.md      # Command reference
+└── knowledge-base.md # Domain knowledge
+
+AGENTS.md            # Main agent instructions
+```
+
+### Tool Configuration
+
+We use symlinks to share configuration across tools:
+
+```
+.claude/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+
+.cursor/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+```
+
+### Using Other Tools
+
+If you prefer other AI tools (Windsurf, Goose, OpenCode, etc.), you can create your own dot folders and exclude them from git:
+
+```bash
+# Add to .git/info/exclude (local only, not committed)
+.windsurf/
+.goose/
+.opencode/
+```
+
+This keeps the repository clean while allowing personal tool preferences.
+
 <!-- DEPLOYMENT -->
 
 ## Deployment
@@ -887,6 +931,19 @@ following
 ### Obtaining Pipedrive Client ID and Secret
 
 [Follow these steps](./packages/app-store/pipedrive-crm/)
+
+### Rate Limiting with Unkey
+
+Cal.com uses [Unkey](https://unkey.com) for rate limiting. This is an optional feature and is not required for testing or self-hosting.
+
+If you want to enable rate limiting:
+
+1. Sign up for an account at [unkey.com](https://unkey.com)
+2. Create a Root key with permissions for 
+   `ratelimit.create_namespace` and `ratelimit.limit`
+3. Copy the root key to your `.env` file into the `UNKEY_ROOT_KEY` field
+
+Note: If you don't configure Unkey, Cal.com will work normally without rate limiting enabled.
 
 ## Workflows
 
