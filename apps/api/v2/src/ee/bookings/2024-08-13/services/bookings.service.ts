@@ -899,7 +899,7 @@ export class BookingsService_2024_08_13 {
       platformBookingUrl: bookingRequest.platformBookingUrl,
     });
 
-    if (!res.onlyRemovedAttendee) {
+    if (!res.onlyRemovedAttendee && res.isPlatformManagedUserBooking) {
       await this.billingService.cancelUsageByBookingUid(res.bookingUid);
     }
 
@@ -983,6 +983,11 @@ export class BookingsService_2024_08_13 {
       return;
     }
 
+    const user = await this.usersRepository.findById(hostId);
+    if (!user?.isPlatformManaged) {
+      return;
+    }
+
     await this.billingService.increaseUsageByUserId(hostId, {
       uid: booking.uid,
       startTime: new Date(booking.start),
@@ -993,6 +998,11 @@ export class BookingsService_2024_08_13 {
     const hostId = newBooking.hosts[0].id;
     if (!hostId) {
       this.logger.error(`Booking with uid=${newBooking.uid} has no host`);
+      return;
+    }
+
+    const user = await this.usersRepository.findById(hostId);
+    if (!user?.isPlatformManaged) {
       return;
     }
 
