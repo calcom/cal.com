@@ -187,6 +187,36 @@ async function getLocationInEvtFormatOrThrow({
     throw e;
   }
 }
+/**
+ * Finds the credential ID for the organizer's default conferencing app.
+ * This is used when the user selects "Organizer Default App" as the location,
+ * which doesn't include a credential ID in the input.
+ */
+async function findOrganizerDefaultConferencingAppCredentialId({
+  organizerId,
+  organizerMetadata,
+}: {
+  organizerId: number;
+  organizerMetadata: UserMetadata;
+}): Promise<number | null> {
+  const defaultConferencingApp = organizerMetadata?.defaultConferencingApp;
+  if (!defaultConferencingApp?.appSlug) {
+    return null;
+  }
+
+  const app = getAppFromSlug(defaultConferencingApp.appSlug);
+  if (!app) {
+    return null;
+  }
+
+  // Find the organizer's credential for this app type
+  const credential = await CredentialRepository.findFirstByUserIdAndType({
+    userId: organizerId,
+    type: app.type,
+  });
+
+  return credential?.id ?? null;
+}
 // #endregion
 
 /**
@@ -260,13 +290,23 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
 }
 
 export async function editLocationHandler({ ctx, input, actionSource }: EditLocationOptions) {
-  const { newLocation, credentialId: conferenceCredentialId } = input;
+  const { newLocation, credentialId: inputCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
   const oldLocation = booking.location;
 
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
+
+  // When selecting "Organizer Default App" and no credential ID is provided,
+  // automatically find the organizer's default conferencing app credential
+  let conferenceCredentialId = inputCredentialId;
+  if (newLocation === OrganizerDefaultConferencingAppType && !conferenceCredentialId) {
+    conferenceCredentialId = await findOrganizerDefaultConferencingAppCredentialId({
+      organizerId: booking.userId || 0,
+      organizerMetadata: organizer.metadata,
+    });
+  }
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
