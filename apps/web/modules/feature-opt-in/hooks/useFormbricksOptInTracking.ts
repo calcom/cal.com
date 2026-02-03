@@ -59,17 +59,17 @@ function useFormbricksOptInTracking(
     const { delayMs } = featureConfig.formbricks;
     const timeSinceOptIn = Date.now() - optInTimestamp;
 
+    // Don't show feedback if not enough time has passed since opt-in
+    // (e.g., wait 3 days after opt-in before asking for feedback)
+    if (timeSinceOptIn < delayMs) return;
+
     const triggerFeedback = (): void => {
       hasTriggeredRef.current = true;
       setShowFeedbackDialog(true);
     };
 
-    // Calculate the delay: max of (remaining opt-in delay, page load delay)
-    // This ensures we wait for both the opt-in delay AND page load delay
-    const remainingOptInDelay = Math.max(0, delayMs - timeSinceOptIn);
-    const effectiveDelay = Math.max(remainingOptInDelay, PAGE_LOAD_DELAY_MS);
-
-    const timer = setTimeout(triggerFeedback, effectiveDelay);
+    // Show after page load delay to let the page finish loading
+    const timer = setTimeout(triggerFeedback, PAGE_LOAD_DELAY_MS);
     return () => clearTimeout(timer);
   }, [featureId, featureConfig]);
 
