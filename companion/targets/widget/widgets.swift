@@ -104,13 +104,14 @@ struct UpcomingBookingsWidgetEntryView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Header
             HStack {
                 Image(systemName: "calendar")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 Text("Upcoming")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 Spacer()
             }
             .padding(.bottom, 8)
@@ -128,19 +129,59 @@ struct UpcomingBookingsWidgetEntryView: View {
                 .frame(maxWidth: .infinity)
                 Spacer()
             } else {
-                let maxBookings = family == .systemSmall ? 2 : (family == .systemLarge ? 6 : 4)
-                ForEach(entry.bookings.prefix(maxBookings)) { booking in
-                    BookingRowView(booking: booking)
-                    if booking.id != entry.bookings.prefix(maxBookings).last?.id {
-                        Divider()
+                // Different layouts for different widget sizes
+                if family == .systemMedium {
+                    // Horizontal layout for medium widget - 2 bookings side by side
+                    HStack(alignment: .top, spacing: 12) {
+                        ForEach(entry.bookings.prefix(2)) { booking in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(booking.title)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.primary)
+                                    .lineLimit(2)
+                                
+                                HStack(spacing: 4) {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.secondary)
+                                    Text(booking.startTime)
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                if let attendee = booking.attendeeName {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "person")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(.secondary)
+                                        Text(attendee)
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
+                    Spacer(minLength: 0)
+                } else {
+                    // Vertical layout for small and large widgets
+                    let maxBookings = family == .systemSmall ? 2 : 6
+                    ForEach(entry.bookings.prefix(maxBookings)) { booking in
+                        BookingRowView(booking: booking)
+                        if booking.id != entry.bookings.prefix(maxBookings).last?.id {
+                            Divider()
+                        }
+                    }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
             }
         }
         .padding(12)
     }
 }
+
 
 struct UpcomingBookingsWidget: Widget {
     let kind: String = "UpcomingBookingsWidget"
