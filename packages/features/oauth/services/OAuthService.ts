@@ -273,13 +273,13 @@ export class OAuthService {
       });
     }
 
-    const accessCode = await this.accessCodeRepository.findValidCode(code, clientId);
 
-    await this.accessCodeRepository.deleteExpiredAndUsedCodes(code, clientId);
+    const accessCode = await this.accessCodeRepository.verifyAndConsumeCode(code, clientId);
 
     if (!accessCode) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "code_invalid_or_expired" });
     }
+
 
     const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {

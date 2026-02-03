@@ -65,4 +65,50 @@ export class AccessCodeRepository {
       },
     });
   }
+
+  /**
+   * Atomically verify and consume an authorization code.
+   * This prevents TOCTOU race conditions by performing validation and deletion
+   * within a single transaction, ensuring single-use codes per RFC 6749 Section 4.1.2.
+   */
+  async verifyAndConsumeCode(code: string, clientId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      // Find the valid code
+      const accessCode = await tx.accessCode.findFirst({
+        where: {
+          code,
+          clientId,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        select: {
+          userId: true,
+          teamId: true,
+          scopes: true,
+          codeChallenge: true,
+          codeChallengeMethod: true,
+        },
+      });
+
+      // Delete expired codes and the used code atomically
+      await tx.accessCode.deleteMany({
+        where: {
+          OR: [
+            {
+              expiresAt: {
+                lt: new Date(),
+              },
+            },
+            {
+              code,
+              clientId,
+            },
+          ],
+        },
+      });
+
+      return accessCode;
+    });
+  }
 }
