@@ -4,6 +4,9 @@ import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config"
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getFeatureOptInTimestamp, isFeatureTracked, setFeatureTracked } from "../lib/feature-opt-in-storage";
 
+/** Delay before showing the feedback dialog to let the page finish loading */
+const PAGE_LOAD_DELAY_MS = 5000;
+
 export interface FormbricksOptInTrackingResult {
   /** Whether the feedback dialog should be shown */
   showFeedbackDialog: boolean;
@@ -61,14 +64,13 @@ function useFormbricksOptInTracking(
       setShowFeedbackDialog(true);
     };
 
-    if (timeSinceOptIn >= delayMs) {
-      triggerFeedback();
-    } else {
-      const remainingTime = delayMs - timeSinceOptIn;
-      const timer = setTimeout(triggerFeedback, remainingTime);
+    // Calculate the delay: max of (remaining opt-in delay, page load delay)
+    // This ensures we wait for both the opt-in delay AND page load delay
+    const remainingOptInDelay = Math.max(0, delayMs - timeSinceOptIn);
+    const effectiveDelay = Math.max(remainingOptInDelay, PAGE_LOAD_DELAY_MS);
 
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(triggerFeedback, effectiveDelay);
+    return () => clearTimeout(timer);
   }, [featureId, featureConfig]);
 
   const feedbackDialogProps = featureConfig?.formbricks?.surveyId
