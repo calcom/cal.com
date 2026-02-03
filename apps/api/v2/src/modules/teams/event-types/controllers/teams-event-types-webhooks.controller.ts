@@ -13,7 +13,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
@@ -45,7 +45,7 @@ export class TeamsEventTypesWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
     private readonly teamEventTypeWebhooksService: TeamEventTypeWebhooksService
-  ) {}
+  ) { }
 
   @Post("/")
   @ApiOperation({ summary: "Create a webhook for a team event type" })
@@ -88,6 +88,7 @@ export class TeamsEventTypesWebhooksController {
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook for a team event type" })
   @Roles("TEAM_MEMBER")
+  @ApiParam({ name: "webhookId", type: "string" })
   async getTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -122,6 +123,7 @@ export class TeamsEventTypesWebhooksController {
   @Delete("/:webhookId")
   @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Delete a webhook for a team event type" })
+  @ApiParam({ name: "webhookId", type: "string" })
   async deleteTeamEventTypeWebhook(
     @GetWebhook() webhook: Webhook
   ): Promise<EventTypeWebhookOutputResponseDto> {
