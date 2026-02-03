@@ -303,7 +303,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && (
+            {fields.length > 1 && (
               <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
             )}
           </div>
