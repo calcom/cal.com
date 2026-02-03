@@ -49,8 +49,8 @@ export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
     TFieldValues,
     Key
   > extends TValue
-    ? Key
-    : never;
+  ? Key
+  : never;
 }[FieldPath<TFieldValues>];
 
 export const ScheduleDay = <TFieldValues extends FieldValues>({
@@ -264,7 +264,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     <div className={cn("flex flex-col gap-2", classNames?.dayRanges)}>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="flex gap-1 last:mb-0 sm:gap-2">
+          <div className="flex items-center gap-1 last:mb-0 sm:gap-2">
             <Controller
               name={`${name}.${index}`}
               render={({ field }) => (
@@ -370,7 +370,7 @@ const TimeRangeField = ({
 
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
+    <div className={cn("flex flex-row items-center gap-2 sm:gap-3", className)}>
       <LazySelect
         userTimeFormat={userTimeFormat}
         className="block w-[90px] sm:w-[100px]"
@@ -534,11 +534,11 @@ const LazySelect = ({
     options.find((option) => option.value === currentValue) ||
     (value
       ? {
-          value: currentValue,
-          label: dayjs(value)
-            .utc()
-            .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
-        }
+        value: currentValue,
+        label: dayjs(value)
+          .utc()
+          .format(userTimeFormat === 12 ? "h:mma" : "HH:mm"),
+      }
       : null);
 
   const errorInnerClassNames: SelectInnerClassNames = {
