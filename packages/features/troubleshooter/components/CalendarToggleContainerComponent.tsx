@@ -137,7 +137,7 @@ export function CalendarToggleContainerComponent({
                 key={calendar.credentialId}
                 title={calendar.integration.name}
                 colorDot="#000000"
-                subtitle={foundPrimary?.name ?? "Nameless Calendar"}
+                subtitle={foundPrimary?.name ?? t("nameless_calendar")}
                 status={calendar.error ? "not_found" : "connected"}
                 calendars={calendar.calendars?.map((item) => {
                   return {

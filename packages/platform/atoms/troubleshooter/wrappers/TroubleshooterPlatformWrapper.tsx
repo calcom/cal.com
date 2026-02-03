@@ -25,8 +25,8 @@ export const TroubleshooterComponent = ({
           className={classNames(
             "text-default flex min-h-full w-full flex-col items-center overflow-clip",
             isMobile
-              ? "[--troublehooster-meta-width:0px]"
-              : "[--troublehooster-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
+              ? "[--troubleshooter-meta-width:0px]"
+              : "[--troubleshooter-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
           )}
         >
           <div
@@ -46,7 +46,7 @@ export const TroubleshooterComponent = ({
               <TroubleshooterSidebar />
             </div>
 
-            <div className="ml[-1px] border-subtle [grid-area:main]">
+            <div className="ml-[-1px] border-subtle [grid-area:main]">
               <LargeCalendar />
             </div>
           </div>
