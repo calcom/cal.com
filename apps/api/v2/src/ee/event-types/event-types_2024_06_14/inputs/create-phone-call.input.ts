@@ -29,11 +29,13 @@ export class CreatePhoneCallInput {
   calApiKey!: string;
 
   @IsBoolean()
-  @DocsProperty({ description: "Enabled status", default: true })
+  @IsOptional()
+  @ApiPropertyOptional({ description: "Enabled status", default: true })
   enabled = true;
 
   @IsEnum(TemplateType)
-  @DocsProperty({ description: "Template type", enum: TemplateType })
+  @IsOptional()
+  @ApiPropertyOptional({ description: "Template type", enum: TemplateType, default: TemplateType.CUSTOM_TEMPLATE })
   templateType: TemplateType = TemplateType.CUSTOM_TEMPLATE;
 
   @IsOptional()
