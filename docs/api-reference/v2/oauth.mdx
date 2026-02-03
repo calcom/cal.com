@@ -41,7 +41,6 @@ To initiate the OAuth flow, direct users to the following authorization URL:
 | `client_id` | Yes | Your OAuth client ID |
 | `redirect_uri` | Yes | Where users will be redirected after authorization. Must exactly match the registered redirect URI. |
 | `state` | Recommended | A securely generated random string to mitigate CSRF attacks |
-| `scope` | No | Space-separated list of scopes (e.g. `READ_BOOKING READ_PROFILE`) |
 | `code_challenge` | For public clients | PKCE code challenge (S256 method) |
 
 After users click **Allow**, they will be redirected to the `redirect_uri` with `code` (authorization code) and `state` as URL parameters:
