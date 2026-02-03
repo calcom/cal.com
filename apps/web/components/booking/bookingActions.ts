@@ -211,6 +211,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       ? {
           id: "whatsapp_chat",
           label: t("whatsapp"),
+          icon: "message-circle",
           disabled: false,
         }
       : null,
