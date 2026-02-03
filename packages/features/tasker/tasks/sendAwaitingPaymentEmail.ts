@@ -7,7 +7,7 @@ import { AttendeeRepository } from "@calcom/features/bookings/repositories/Atten
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
+import { PrismaBookingPaymentRepository } from "@calcom/features/bookings/repositories/PrismaBookingPaymentRepository";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["sendAwaitingPaymentEmail"] });

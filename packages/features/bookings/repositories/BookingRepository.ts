@@ -15,7 +15,7 @@ import type {
   IBookingRepository,
   BookingUpdateData,
   BookingWhereUniqueInput,
-} from "@calcom/lib/server/repository/dto/IBookingRepository";
+} from "./IBookingRepository";
 
 const workflowReminderSelect = {
   id: true,
