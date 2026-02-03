@@ -1,20 +1,13 @@
 "use client";
 
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogPanel,
-  DialogPopup,
-  DialogTitle,
-} from "@coss/ui/components/dialog";
 import { Textarea } from "@coss/ui/components/textarea";
 import { toastManager } from "@coss/ui/components/toast";
+import { cn } from "@coss/ui/lib/utils";
+import { XIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { useState } from "react";
 import { RATING_OPTIONS } from "../../bookings/lib/rating";
@@ -26,10 +19,14 @@ export interface FeedbackDialogProps {
   surveyId: string;
   ratingQuestionId: string;
   commentQuestionId: string;
-  title?: string;
-  description?: string;
+  titleKey?: string;
+  descriptionKey?: string;
 }
 
+/**
+ * Bottom-right positioned feedback dialog.
+ * Uses z-index 10000 to stay below Intercom (which uses very high z-indexes).
+ */
 export function FeedbackDialog({
   isOpen,
   onClose,
@@ -37,8 +34,8 @@ export function FeedbackDialog({
   surveyId,
   ratingQuestionId,
   commentQuestionId,
-  title,
-  description,
+  titleKey = "feedback_dialog_title",
+  descriptionKey = "feedback_dialog_description",
 }: FeedbackDialogProps): ReactElement {
   const { t } = useLocale();
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
@@ -78,74 +75,104 @@ export function FeedbackDialog({
     onClose();
   };
 
-  if (isSuccess) {
-    return (
-      <Dialog open={isOpen} onOpenChange={resetAndClose}>
-        <DialogPopup className="sm:max-w-md" data-testid="feedback-success-dialog">
-          <DialogHeader>
-            <DialogTitle>{t("feedback_submitted_title")}</DialogTitle>
-            <DialogDescription>{t("feedback_submitted_description")}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={resetAndClose}>{t("done")}</Button>
-          </DialogFooter>
-        </DialogPopup>
-      </Dialog>
-    );
-  }
+  const dialogContent = isSuccess ? (
+    <>
+      <div className="flex flex-col gap-2 p-6 pb-4">
+        <DialogPrimitive.Title className="font-heading font-semibold text-xl leading-none">
+          {t("feedback_submitted_title")}
+        </DialogPrimitive.Title>
+        <DialogPrimitive.Description className="text-muted-foreground text-sm">
+          {t("feedback_submitted_description")}
+        </DialogPrimitive.Description>
+      </div>
+      <div className="flex justify-end gap-2 border-t bg-muted/72 px-6 py-4">
+        <Button onClick={resetAndClose}>{t("done")}</Button>
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="flex flex-col gap-2 p-6 pb-3">
+        <DialogPrimitive.Title className="font-heading font-semibold text-xl leading-none">
+          {t(titleKey)}
+        </DialogPrimitive.Title>
+        <DialogPrimitive.Description className="text-muted-foreground text-sm">
+          {t(descriptionKey)}
+        </DialogPrimitive.Description>
+      </div>
+      <div className="space-y-4 px-6 pb-1">
+        <div className="space-y-2">
+          <p className="font-medium text-default text-sm">{t("feedback_rating_question")}</p>
+          <div className="flex justify-center gap-2">
+            {RATING_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSelectedRating(option.value)}
+                className={cn(
+                  "flex h-12 w-12 items-center justify-center rounded-lg border-2 text-2xl transition-all",
+                  selectedRating === option.value
+                    ? "border-emphasis bg-emphasis"
+                    : "border-default hover:border-subtle hover:bg-subtle"
+                )}
+                aria-label={`Rating ${option.value}`}>
+                {option.emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="font-medium text-default text-sm">{t("feedback_comment_question")}</p>
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t("feedback_comment_placeholder")}
+            rows={3}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col-reverse gap-2 border-t bg-muted/72 px-6 py-4 sm:flex-row sm:justify-end">
+        <DialogPrimitive.Close render={<Button variant="outline" />} onClick={handleSkip}>
+          {t("skip")}
+        </DialogPrimitive.Close>
+        <Button onClick={handleSubmit} disabled={selectedRating === null || submitFeedbackMutation.isPending}>
+          {t("submit_feedback")}
+        </Button>
+      </div>
+    </>
+  );
 
   return (
-    <Dialog open={isOpen} onOpenChange={resetAndClose}>
-      <DialogPopup className="sm:max-w-md" data-testid="feedback-dialog">
-        <DialogHeader>
-          <DialogTitle>{title || t("feedback_dialog_title")}</DialogTitle>
-          <DialogDescription>{description || t("feedback_dialog_description")}</DialogDescription>
-        </DialogHeader>
-        <DialogPanel>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-default text-sm font-medium">{t("feedback_rating_question")}</p>
-              <div className="flex justify-center gap-2">
-                {RATING_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setSelectedRating(option.value)}
-                    className={`flex h-12 w-12 items-center justify-center rounded-lg border-2 text-2xl transition-all ${
-                      selectedRating === option.value
-                        ? "border-emphasis bg-emphasis"
-                        : "border-default hover:border-subtle hover:bg-subtle"
-                    }`}
-                    aria-label={`Rating ${option.value}`}>
-                    {option.emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-default text-sm font-medium">{t("feedback_comment_question")}</p>
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder={t("feedback_comment_placeholder")}
-                rows={3}
-              />
-            </div>
-          </div>
-        </DialogPanel>
-        <DialogFooter>
-          <DialogClose render={<Button variant="outline" />} onClick={handleSkip}>
-            {t("skip")}
-          </DialogClose>
-          <Button
-            onClick={handleSubmit}
-            disabled={selectedRating === null || submitFeedbackMutation.isPending}>
-            {t("submit_feedback")}
-          </Button>
-        </DialogFooter>
-      </DialogPopup>
-    </Dialog>
+    <DialogPrimitive.Root open={isOpen} onOpenChange={resetAndClose}>
+      <DialogPrimitive.Portal>
+        {/* Backdrop - blocking overlay */}
+        <DialogPrimitive.Backdrop
+          className={cn(
+            "fixed inset-0 z-[9999] bg-black/32 backdrop-blur-sm",
+            "transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0"
+          )}
+        />
+        {/* Bottom-right positioned container */}
+        <div className="fixed inset-0 z-[10000] flex items-end justify-end p-4 pb-24 sm:pb-4">
+          <DialogPrimitive.Popup
+            className={cn(
+              "relative flex w-full max-w-md flex-col rounded-2xl border bg-popover text-popover-foreground shadow-lg",
+              "transition-all duration-200",
+              "data-ending-style:translate-y-4 data-ending-style:opacity-0",
+              "data-starting-style:translate-y-4 data-starting-style:opacity-0"
+            )}
+            data-testid={isSuccess ? "feedback-success-dialog" : "feedback-dialog"}>
+            {dialogContent}
+            <DialogPrimitive.Close
+              aria-label="Close"
+              className="absolute end-2 top-2"
+              render={<Button size="icon" variant="ghost" />}>
+              <XIcon />
+            </DialogPrimitive.Close>
+          </DialogPrimitive.Popup>
+        </div>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }
 

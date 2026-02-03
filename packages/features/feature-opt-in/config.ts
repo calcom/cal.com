@@ -71,11 +71,12 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
     displayLocations: ["settings"],
     scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
     formbricks: {
-      delayMs: 3 * 24 * 60 * 60 * 1000, // 3 days
-      surveyId: "", // TODO: Add Formbricks survey ID
+      delayMs: 0, // 3 days
+      // delayMs: 3 * 24 * 60 * 60 * 1000, // 3 days
+      surveyId: "cmkmgh0u426jaad01ee3jbpjn",
       questions: {
-        ratingQuestionId: "", // TODO: Add rating question ID from Formbricks
-        commentQuestionId: "", // TODO: Add comment question ID from Formbricks
+        ratingQuestionId: "ajt82ni0hue3x5qkltj9t359",
+        commentQuestionId: "kwjw0g7vqkgd5w9s61dba8de",
       },
     },
   },
