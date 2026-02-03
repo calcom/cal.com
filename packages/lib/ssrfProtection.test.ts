@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock constants for tests (simulates Cal.com SaaS)
+// Default mock for Cal.com SaaS (IS_SELF_HOSTED = false)
 vi.mock("@calcom/lib/constants", () => ({
   IS_SELF_HOSTED: false,
   IS_PRODUCTION: false,
@@ -137,5 +137,49 @@ describe("HTTP webhook exceptions", () => {
     vi.stubEnv("NEXT_PUBLIC_IS_E2E", "1");
     expect(validateUrlForSSRFSync("http://evil.com/webhook").isValid).toBe(false);
     expect(validateUrlForSSRFSync("http://192.168.1.1/webhook").isValid).toBe(false);
+  });
+});
+
+// Test self-hosted behavior with separate describe block using vi.doMock
+describe("Self-hosted environment behavior", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.doMock("@calcom/lib/constants", () => ({
+      IS_SELF_HOSTED: true,
+      IS_PRODUCTION: false,
+    }));
+  });
+
+  afterEach(() => {
+    vi.doUnmock("@calcom/lib/constants");
+  });
+
+  it("allows private IPs for self-hosted (internal webhooks)", async () => {
+    const { validateUrlForSSRFSync: validateSelfHosted } = await import("./ssrfProtection");
+    expect(validateSelfHosted("http://192.168.1.1/webhook").isValid).toBe(true);
+    expect(validateSelfHosted("http://10.0.0.1/webhook").isValid).toBe(true);
+    expect(validateSelfHosted("http://172.16.0.1/webhook").isValid).toBe(true);
+  });
+
+  it("allows HTTP URLs for self-hosted", async () => {
+    const { validateUrlForSSRFSync: validateSelfHosted } = await import("./ssrfProtection");
+    expect(validateSelfHosted("http://internal-service.local/webhook").isValid).toBe(true);
+    expect(validateSelfHosted("http://localhost:3000/webhook").isValid).toBe(true);
+  });
+
+  it("still blocks cloud metadata endpoints even on self-hosted", async () => {
+    const { validateUrlForSSRFSync: validateSelfHosted } = await import("./ssrfProtection");
+    // AWS/Azure/DigitalOcean/Oracle metadata
+    expect(validateSelfHosted("http://169.254.169.254/latest/meta-data/").isValid).toBe(false);
+    // GCP metadata
+    expect(validateSelfHosted("http://metadata.google.internal/computeMetadata/v1/").isValid).toBe(false);
+    expect(validateSelfHosted("http://metadata.google.com/computeMetadata/v1/").isValid).toBe(false);
+    // Azure alternate
+    expect(validateSelfHosted("http://169.254.169.253/metadata/instance").isValid).toBe(false);
+  });
+
+  it("allows HTTPS URLs for self-hosted", async () => {
+    const { validateUrlForSSRFSync: validateSelfHosted } = await import("./ssrfProtection");
+    expect(validateSelfHosted("https://example.com/webhook").isValid).toBe(true);
   });
 });
