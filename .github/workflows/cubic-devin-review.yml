@@ -192,9 +192,9 @@ jobs:
               ? `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
               : `### Devin AI is addressing Cubic AI's review feedback\n\nNew feedback has been sent to the existing Devin session.\n\n[View Devin Session](${sessionUrl})`;
             
-            const fs = require('fs');
-            const contextData = JSON.parse(fs.readFileSync('review-context.json', 'utf8'));
-            const prNumber = contextData.pr_number;
+            // Use the PR number from the extract-prompt step output instead of reading the file
+            // (the file was deleted by the checkout step)
+            const prNumber = parseInt('${{ steps.extract-prompt.outputs.pr-number }}', 10);
             
             const { data: comment } = await github.rest.issues.createComment({
               owner: context.repo.owner,
