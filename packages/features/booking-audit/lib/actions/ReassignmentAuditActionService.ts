@@ -3,7 +3,7 @@ import { z } from "zod";
 import { StringChangeSchema } from "../common/changeSchemas";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
-  BaseStoredAuditData,
+  GetDisplayFieldsParams,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
   IAuditActionService,
@@ -123,7 +123,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     };
   }
 
-  async getDisplayFields(storedData: BaseStoredAuditData): Promise<
+  async getDisplayFields({ storedData }: GetDisplayFieldsParams): Promise<
     Array<{
       labelKey: string;
       valueKey: string;
