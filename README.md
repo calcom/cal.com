@@ -398,7 +398,7 @@ agents/
 ├── commands.md      # Command reference
 └── knowledge-base.md # Domain knowledge
 
-AGENTS.md            # Main agent instructions (symlinked as CLAUDE.md)
+AGENTS.md            # Main agent instructions
 ```
 
 ### Tool Configuration
