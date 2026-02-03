@@ -112,7 +112,7 @@ export const EventDuration = ({
         </button>
       )}
       <ul
-        className="bg-default no-scrollbar flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md p-1"
+        className="bg-default no-scrollbar flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md p-1 pr-10"
         onScroll={(e) => calculateScroll(e)}
         ref={ref}>
         {durations
