@@ -1,15 +1,3 @@
-import {
-  GOOGLE_CALENDAR,
-  GOOGLE_CALENDAR_ID,
-  GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR,
-  OFFICE_365_CALENDAR_ID,
-  OFFICE_365_CALENDAR_TYPE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
-import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
-import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
-import type { Credential, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -22,6 +10,29 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { IcsCalendarServiceMock } from "test/mocks/ics-calendar-service-mock";
 import { randomString } from "test/utils/randomString";
+
+import {
+  GOOGLE_CALENDAR,
+  GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_TYPE,
+  OFFICE_365_CALENDAR,
+  OFFICE_365_CALENDAR_ID,
+  OFFICE_365_CALENDAR_TYPE,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
+import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
+import type { Credential, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+
+// Mock the BuildIcsFeedCalendarService factory function
+const mockBuildIcsFeedCalendarService = jest.fn();
+jest.mock("@calcom/platform-libraries/app-store", () => {
+  const actual = jest.requireActual("@calcom/platform-libraries/app-store");
+  return {
+    ...actual,
+    BuildIcsFeedCalendarService: (...args: unknown[]) => mockBuildIcsFeedCalendarService(...args),
+  };
+});
+
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
@@ -220,9 +231,13 @@ describe("Platform Calendars Endpoints", () => {
       urls: ["https://cal.com/ics/feed.ics"],
       readOnly: false,
     };
-    jest
-      .spyOn(IcsFeedCalendarService.prototype, "listCalendars")
-      .mockImplementation(IcsCalendarServiceMock.prototype.listCalendars);
+    mockBuildIcsFeedCalendarService.mockReturnValue({
+      listCalendars: new IcsCalendarServiceMock().listCalendars,
+      createEvent: jest.fn(),
+      deleteEvent: jest.fn(),
+      updateEvent: jest.fn(),
+      getAvailability: jest.fn(),
+    });
     await request(app.getHttpServer())
       .post(`/v2/calendars/${ICS_CALENDAR}/save`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
@@ -275,6 +290,75 @@ describe("Platform Calendars Endpoints", () => {
 
     expect(data.destinationCalendar).toBeDefined();
     expect(data.destinationCalendar.integration).toEqual(GOOGLE_CALENDAR_TYPE);
+  });
+
+  it(`/GET/v2/calendars/busy-times: should return 400 when neither timeZone nor loggedInUsersTz is provided`, async () => {
+    const response = await request(app.getHttpServer())
+      .get(
+        `/v2/calendars/busy-times?dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=${googleCalendarCredentials.id}&calendarsToLoad[0][externalId]=test@example.com`
+      )
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(400);
+
+    expect(response.body.error).toBeDefined();
+    expect(response.body.error.message).toContain("Either timeZone or loggedInUsersTz must be provided");
+  });
+
+  it(`/GET/v2/calendars/busy-times: should work with valid timeZone parameter`, async () => {
+    const mockBusyTimes = [
+      {
+        start: new Date("2024-12-18T10:00:00Z"),
+        end: new Date("2024-12-18T11:00:00Z"),
+        source: "google_calendar",
+      },
+    ];
+
+    const getBusyTimesSpy = jest
+      .spyOn(CalendarsService.prototype, "getBusyTimes")
+      .mockResolvedValue(mockBusyTimes);
+
+    const response = await request(app.getHttpServer())
+      .get(
+        `/v2/calendars/busy-times?timeZone=America/New_York&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=${googleCalendarCredentials.id}&calendarsToLoad[0][externalId]=test@example.com`
+      )
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(200);
+
+    expect(response.body.status).toEqual(SUCCESS_STATUS);
+    expect(response.body.data).toBeDefined();
+    expect(Array.isArray(response.body.data)).toBe(true);
+
+    getBusyTimesSpy.mockRestore();
+  });
+
+  it(`/GET/v2/calendars/busy-times: should work with loggedInUsersTz parameter (backwards compatibility)`, async () => {
+    const mockBusyTimes = [
+      {
+        start: new Date("2024-12-18T10:00:00Z"),
+        end: new Date("2024-12-18T11:00:00Z"),
+        source: "google_calendar",
+      },
+    ];
+
+    const getBusyTimesSpy = jest
+      .spyOn(CalendarsService.prototype, "getBusyTimes")
+      .mockResolvedValue(mockBusyTimes);
+
+    const response = await request(app.getHttpServer())
+      .get(
+        `/v2/calendars/busy-times?loggedInUsersTz=Europe/London&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=${googleCalendarCredentials.id}&calendarsToLoad[0][externalId]=test@example.com`
+      )
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(200);
+
+    expect(response.body.status).toEqual(SUCCESS_STATUS);
+    expect(response.body.data).toBeDefined();
+    expect(Array.isArray(response.body.data)).toBe(true);
+
+    getBusyTimesSpy.mockRestore();
   });
 
   it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {

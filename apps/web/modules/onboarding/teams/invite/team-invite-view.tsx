@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import React, { useEffect } from "react";
 
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
-import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { TextAreaField } from "@calcom/ui/components/form";
