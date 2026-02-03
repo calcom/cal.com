@@ -1,36 +1,8 @@
 # Cal.com Agent Documentation Index
 
-This directory contains comprehensive documentation for AI agents working on the Cal.com codebase. Load specific rules as needed based on task context.
-
-## Quick Links
-
-- **[commands.md](commands.md)** - Build, test, and development commands
+- **[../AGENTS.md](../AGENTS.md)** - Main guide (structure, tech stack, commands, examples)
+- **[commands.md](commands.md)** - Command reference
 - **[knowledge-base.md](knowledge-base.md)** - Domain knowledge and business rules
-- **[rules/](rules/)** - Modular engineering rules
-
-## Project Structure
-
-```
-apps/web/                    # Main Next.js application
-packages/prisma/             # Database schema and migrations
-packages/trpc/               # tRPC API layer
-packages/ui/                 # Shared UI components
-packages/features/           # Feature-specific code (framework-agnostic)
-packages/app-store/          # Third-party integrations
-packages/lib/                # Shared utilities
-```
-
-## Tech Stack
-
-- **Framework**: Next.js 13+ (App Router)
-- **Language**: TypeScript (strict)
-- **Database**: PostgreSQL with Prisma ORM
-- **API**: tRPC for type-safe APIs
-- **Auth**: NextAuth.js
-- **Styling**: Tailwind CSS
-- **Testing**: Vitest (unit), Playwright (E2E)
-
----
 
 ## Rules Index
 
