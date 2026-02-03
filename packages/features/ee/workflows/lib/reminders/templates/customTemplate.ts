@@ -69,7 +69,7 @@ export function formatIdentifierToVariable(key: string): string {
  * underscores were being stripped from identifiers.
  * @deprecated Use formatIdentifierToVariable instead for new templates
  */
-export function formatIdentifierToVariableLegacy(key: string): string {
+function formatIdentifierToVariableLegacy(key: string): string {
   return key
     .replace(/[^a-zA-Z0-9 ]/g, "")
     .trim()
