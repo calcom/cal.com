@@ -46,6 +46,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       id: 0,
       user: { email: user.email },
       ...data,
+      encryptedKey: null,
     });
     await dav?.listCalendars();
     await prisma.credential.create({
