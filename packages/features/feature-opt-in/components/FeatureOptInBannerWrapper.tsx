@@ -15,7 +15,7 @@ type UserRoleContext = {
   adminTeamNames: { id: number; name: string }[];
 };
 
-type FormbricksTrackingState = {
+type FeedbackState = {
   showFeedbackDialog: boolean;
   feedbackDialogProps: {
     surveyId: string;
@@ -41,7 +41,7 @@ type FeatureOptInBannerState = {
   dismiss: () => void;
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
-  formbricksTracking: FormbricksTrackingState;
+  feedback: FeedbackState;
 };
 
 interface FeatureOptInBannerWrapperProps {
@@ -76,17 +76,17 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           mutations={state.mutations}
         />
       )}
-      {state.formbricksTracking.feedbackDialogProps && (
+      {state.feedback.feedbackDialogProps && (
         <FeedbackDialog
-          isOpen={state.formbricksTracking.showFeedbackDialog}
-          onClose={state.formbricksTracking.onFeedbackComplete}
-          onSubmitSuccess={state.formbricksTracking.onFeedbackComplete}
-          surveyId={state.formbricksTracking.feedbackDialogProps.surveyId}
-          ratingQuestionId={state.formbricksTracking.feedbackDialogProps.ratingQuestionId}
-          commentQuestionId={state.formbricksTracking.feedbackDialogProps.commentQuestionId}
-          titleKey={state.formbricksTracking.feedbackDialogProps.titleKey}
-          descriptionKey={state.formbricksTracking.feedbackDialogProps.descriptionKey}
-          showOn={state.formbricksTracking.feedbackDialogProps.showOn}
+          isOpen={state.feedback.showFeedbackDialog}
+          onClose={state.feedback.onFeedbackComplete}
+          onSubmitSuccess={state.feedback.onFeedbackComplete}
+          surveyId={state.feedback.feedbackDialogProps.surveyId}
+          ratingQuestionId={state.feedback.feedbackDialogProps.ratingQuestionId}
+          commentQuestionId={state.feedback.feedbackDialogProps.commentQuestionId}
+          titleKey={state.feedback.feedbackDialogProps.titleKey}
+          descriptionKey={state.feedback.feedbackDialogProps.descriptionKey}
+          showOn={state.feedback.feedbackDialogProps.showOn}
         />
       )}
     </>

@@ -11,7 +11,7 @@ import {
 /** Delay before showing the feedback dialog to let the page finish loading */
 const PAGE_LOAD_DELAY_MS = 5000;
 
-export interface FormbricksOptInTrackingResult {
+export interface OptInFeedbackState {
   /** Whether the feedback dialog should be shown */
   showFeedbackDialog: boolean;
   /** Props to pass to the FeedbackDialog component */
@@ -28,13 +28,13 @@ export interface FormbricksOptInTrackingResult {
 }
 
 /**
- * Hook to handle delayed Formbricks feedback after a user opts into a feature.
- * Returns state to control a custom feedback dialog instead of using Formbricks' built-in popup.
+ * Hook to manage feedback dialog display after a user opts into a feature.
+ * Shows a custom feedback dialog after a configurable delay (waitAfterDays).
  */
-function useFormbricksOptInTracking(
+function useOptInFeedback(
   featureId: string,
   featureConfig: OptInFeatureConfig | null
-): FormbricksOptInTrackingResult {
+): OptInFeedbackState {
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const hasTriggeredRef = useRef(false);
 
@@ -97,4 +97,4 @@ function useFormbricksOptInTracking(
   };
 }
 
-export { useFormbricksOptInTracking };
+export { useOptInFeedback };
