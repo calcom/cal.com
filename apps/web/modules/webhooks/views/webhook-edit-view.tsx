@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import SettingsHeaderWithBackButton from "@calcom/web/modules/settings/components/SettingsHeaderWithBackButton";
+import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import {
   WEBHOOK_VERSION_OPTIONS,
   getWebhookVersionLabel,
