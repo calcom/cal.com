@@ -88,6 +88,8 @@ export async function getBooking(bookingId: number) {
               parentId: true,
             },
           },
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
         },
       },
       metadata: true,
@@ -196,6 +198,8 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
   };
 
   return {
