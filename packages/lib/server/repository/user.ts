@@ -804,14 +804,14 @@ export class UserRepository {
   }
 
   async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
-    const isAdminOrOwnerOfTeam = await this.prismaClient.calIdMembership.findUnique({
+    const isAdminOrOwnerOfTeam = await this.prismaClient.membership.findUnique({
       where: {
-        userId_calIdTeamId: {
+        userId_teamId: {
           userId,
           teamId: teamId,
         },
         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-        acceptedInvitation: true,
+        accepted: true,
       },
       select: {
         id: true,
