@@ -856,7 +856,17 @@ const Route = ({
                 action={route.action}
                 onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
                 onEventTypeChange={(newAction) => {
-                  setRoute(route.id, { action: newAction, attributeRoutingConfig: {} });
+                  // Initialize fallbackAction with the same event type if not already set
+                  const fallbackAction =
+                    route.fallbackAction ??
+                    (newAction.type === RouteActionType.EventTypeRedirectUrl
+                      ? {
+                          type: newAction.type,
+                          value: newAction.value,
+                          eventTypeId: newAction.eventTypeId,
+                        }
+                      : undefined);
+                  setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                   setCustomEventTypeSlug("");
                 }}
                 eventTypeOptions={eventTypeRedirectUrlOptions}
@@ -882,7 +892,18 @@ const Route = ({
                     action={route.action}
                     onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
                     onEventTypeChange={(newAction) => {
-                      setRoute(route.id, { action: newAction, attributeRoutingConfig: {} });
+                      // Initialize fallbackAction with the same event type if not already set
+                      // This ensures the fallback action selector has a valid value when it becomes visible
+                      const fallbackAction =
+                        route.fallbackAction ??
+                        (newAction.type === RouteActionType.EventTypeRedirectUrl
+                          ? {
+                              type: newAction.type,
+                              value: newAction.value,
+                              eventTypeId: newAction.eventTypeId,
+                            }
+                          : undefined);
+                      setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                       setCustomEventTypeSlug("");
                     }}
                     eventTypeOptions={eventTypeRedirectUrlOptions}
