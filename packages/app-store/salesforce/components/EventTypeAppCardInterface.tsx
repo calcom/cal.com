@@ -491,7 +491,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
           </Section.SubSectionHeader>
           {sendNoShowAttendeeData ? (
             <Section.SubSectionContent classNames={{ container: "p-3" }}>
-              <Label for="send-no-show-attendee-data-field-name" className="text-subtle text-sm font-medium">
+              <Label htmlFor="send-no-show-attendee-data-field-name" className="text-subtle text-sm font-medium">
                 Field name to check (must be checkbox data type)
               </Label>
               <InputField
