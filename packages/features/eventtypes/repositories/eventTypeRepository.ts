@@ -622,6 +622,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
+      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -637,6 +638,13 @@ export class EventTypeRepository implements IEventTypesRepository {
         select: {
           id: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -653,6 +661,8 @@ export class EventTypeRepository implements IEventTypesRepository {
           slug: true,
           parentId: true,
           rrTimestampBasis: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           parent: {
             select: {
               slug: true,
@@ -713,6 +723,16 @@ export class EventTypeRepository implements IEventTypesRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -720,6 +740,7 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -778,11 +799,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -922,6 +938,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
+      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -937,6 +954,13 @@ export class EventTypeRepository implements IEventTypesRepository {
         select: {
           id: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -953,6 +977,8 @@ export class EventTypeRepository implements IEventTypesRepository {
           slug: true,
           parentId: true,
           rrTimestampBasis: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           parent: {
             select: {
               slug: true,
@@ -1013,6 +1039,16 @@ export class EventTypeRepository implements IEventTypesRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -1020,6 +1056,7 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -1078,11 +1115,6 @@ export class EventTypeRepository implements IEventTypesRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -1584,6 +1616,16 @@ export class EventTypeRepository implements IEventTypesRepository {
         id,
       },
       select: {
+        teamId: true,
+      },
+    });
+  }
+
+  async findByIdWithTeamId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
         teamId: true,
       },
     });

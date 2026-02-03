@@ -47,6 +47,7 @@ export class MonthlyProrationRepository {
     additionalData?: {
       invoiceItemId?: string;
       invoiceId?: string;
+      invoiceUrl?: string;
       chargedAt?: Date;
       failedAt?: Date;
       failureReason?: string;
@@ -86,6 +87,19 @@ export class MonthlyProrationRepository {
         retryCount: {
           increment: 1,
         },
+      },
+    });
+  }
+
+  async findForEmail(prorationId: string) {
+    return await this.prisma.monthlyProration.findUnique({
+      where: { id: prorationId },
+      select: {
+        invoiceId: true,
+        monthKey: true,
+        netSeatIncrease: true,
+        proratedAmount: true,
+        status: true,
       },
     });
   }

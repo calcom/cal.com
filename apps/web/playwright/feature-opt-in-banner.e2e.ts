@@ -1,4 +1,4 @@
-import { OPT_IN_FEATURES } from "@calcom/features/feature-opt-in/config";
+import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 
@@ -10,7 +10,8 @@ test.describe("Feature Opt-In Banner", () => {
     users,
     prisma,
   }) => {
-    if (!OPT_IN_FEATURES.some((item) => item.slug === "bookings-v3")) {
+    const featureConfig = getOptInFeatureConfig("bookings-v3");
+    if (!featureConfig || !shouldDisplayFeatureAt(featureConfig, "banner")) {
       return;
     }
 
