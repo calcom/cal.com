@@ -15,41 +15,41 @@ const mockFindAllByUserId: Mock = vi.fn();
 
 // Mock the OPT_IN_FEATURES config
 vi.mock("../config", () => {
-    const mockFeatures = [
-      {
-        slug: "test-feature-1",
-        i18n: { title: "test_feature_1_title", name: "test_feature_1", description: "test_feature_1_desc" },
-        policy: "permissive",
-      },
-      {
-        slug: "test-feature-2",
-        i18n: { title: "test_feature_2_title", name: "test_feature_2", description: "test_feature_2_desc" },
-        policy: "permissive",
-      },
-      {
-        slug: "org-only-feature",
-        i18n: { title: "org_only_title", name: "org_only", description: "org_only_desc" },
-        policy: "permissive",
-        scope: ["org"],
-      },
-      {
-        slug: "team-only-feature",
-        i18n: { title: "team_only_title", name: "team_only", description: "team_only_desc" },
-        policy: "permissive",
-        scope: ["team"],
-      },
-      {
-        slug: "user-only-feature",
-        i18n: { title: "user_only_title", name: "user_only", description: "user_only_desc" },
-        policy: "permissive",
-        scope: ["user"],
-      },
-      {
-        slug: "strict-feature",
-        i18n: { title: "strict_feature_title", name: "strict_feature", description: "strict_feature_desc" },
-        policy: "strict",
-      },
-    ];
+  const mockFeatures = [
+    {
+      slug: "test-feature-1",
+      i18n: { title: "test_feature_1_title", name: "test_feature_1", description: "test_feature_1_desc" },
+      policy: "permissive",
+    },
+    {
+      slug: "test-feature-2",
+      i18n: { title: "test_feature_2_title", name: "test_feature_2", description: "test_feature_2_desc" },
+      policy: "permissive",
+    },
+    {
+      slug: "org-only-feature",
+      i18n: { title: "org_only_title", name: "org_only", description: "org_only_desc" },
+      policy: "permissive",
+      scope: ["org"],
+    },
+    {
+      slug: "team-only-feature",
+      i18n: { title: "team_only_title", name: "team_only", description: "team_only_desc" },
+      policy: "permissive",
+      scope: ["team"],
+    },
+    {
+      slug: "user-only-feature",
+      i18n: { title: "user_only_title", name: "user_only", description: "user_only_desc" },
+      policy: "permissive",
+      scope: ["user"],
+    },
+    {
+      slug: "strict-feature",
+      i18n: { title: "strict_feature_title", name: "strict_feature", description: "strict_feature_desc" },
+      policy: "strict",
+    },
+  ];
   return {
     OPT_IN_FEATURES: mockFeatures,
     isOptInFeature: (slug: string) => mockFeatures.some((feature) => feature.slug === slug),

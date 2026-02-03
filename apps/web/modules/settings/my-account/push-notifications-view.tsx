@@ -1,7 +1,7 @@
 "use client";
 
 import { useWebPush } from "@calcom/web/modules/notifications/hooks/useWebPush";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
