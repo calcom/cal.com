@@ -1308,34 +1308,46 @@ export class AvailableSlotsService {
         timeZone: input.timeZone,
       });
 
-      if (guestAvailability && guestAvailability.length > 0) {
-        // Intersect host availability with guest availability
-        // Only keep time ranges where both host and guest are available
-        aggregatedAvailability = aggregatedAvailability.flatMap((hostRange) => {
-          const intersections: typeof aggregatedAvailability = [];
+      // guestAvailability is:
+      // - null: Guest is not a Cal.com user, show host-only availability
+      // - []: Guest IS a Cal.com user with NO availability, return no slots
+      // - [...]: Guest has availability, intersect with host
+      if (guestAvailability !== null) {
+        if (guestAvailability.length > 0) {
+          // Intersect host availability with guest availability
+          // Only keep time ranges where both host and guest are available
+          aggregatedAvailability = aggregatedAvailability.flatMap((hostRange) => {
+            const intersections: typeof aggregatedAvailability = [];
 
-          for (const guestRange of guestAvailability) {
-            // Find overlap between host and guest ranges
-            const overlapStart = hostRange.start.isAfter(guestRange.start) ? hostRange.start : guestRange.start;
-            const overlapEnd = hostRange.end.isBefore(guestRange.end) ? hostRange.end : guestRange.end;
+            for (const guestRange of guestAvailability) {
+              // Find overlap between host and guest ranges
+              const overlapStart = hostRange.start.isAfter(guestRange.start) ? hostRange.start : guestRange.start;
+              const overlapEnd = hostRange.end.isBefore(guestRange.end) ? hostRange.end : guestRange.end;
 
-            // If there's a valid overlap, add it
-            if (overlapStart.isBefore(overlapEnd)) {
-              intersections.push({
-                start: overlapStart,
-                end: overlapEnd,
-              });
+              // If there's a valid overlap, add it
+              if (overlapStart.isBefore(overlapEnd)) {
+                intersections.push({
+                  start: overlapStart,
+                  end: overlapEnd,
+                });
+              }
             }
-          }
 
-          return intersections;
-        });
+            return intersections;
+          });
 
-        loggerWithEventDetails.info("Intersected host availability with guest Cal.com user availability", {
-          rescheduleUid: input.rescheduleUid,
-          originalRanges: allUsersAvailability.length,
-          intersectedRanges: aggregatedAvailability.length,
-        });
+          loggerWithEventDetails.info("Intersected host availability with guest Cal.com user availability", {
+            rescheduleUid: input.rescheduleUid,
+            originalRanges: allUsersAvailability.length,
+            intersectedRanges: aggregatedAvailability.length,
+          });
+        } else {
+          // Guest is a Cal.com user with NO availability - no reschedule slots available
+          aggregatedAvailability = [];
+          loggerWithEventDetails.info("Guest Cal.com user has no availability - no reschedule slots available", {
+            rescheduleUid: input.rescheduleUid,
+          });
+        }
       }
     }
 
