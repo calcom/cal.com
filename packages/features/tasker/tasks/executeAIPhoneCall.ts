@@ -3,7 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
-import { formatIdentifierToVariable } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
+import { getVariableFormats } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
@@ -52,12 +52,13 @@ function getVariablesFromFormResponse({
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
-    // Include any custom form responses
+    // Include custom form responses with both current and legacy variable formats for backward compatibility
     ...Object.fromEntries(
-      Object.entries(responses || {}).map(([key, value]) => [
-        formatIdentifierToVariable(key),
-        value.value?.toString() || "",
-      ])
+      Object.entries(responses || {}).flatMap(([key, value]) => {
+        const formats = getVariableFormats(key);
+        const valueStr = value.value?.toString() || "";
+        return formats.map((format) => [format, valueStr]);
+      })
     ),
   };
 }
@@ -102,12 +103,13 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
       .format("h:mm A"),
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
     eventTypeId: booking.eventTypeId?.toString() || "",
-    // Include any custom form responses
+    // Include custom form responses with both current and legacy variable formats for backward compatibility
     ...Object.fromEntries(
-      Object.entries(responses || {}).map(([key, value]) => [
-        formatIdentifierToVariable(key),
-        value.value?.toString() || "",
-      ])
+      Object.entries(responses || {}).flatMap(([key, value]) => {
+        const formats = getVariableFormats(key);
+        const valueStr = value.value?.toString() || "";
+        return formats.map((format) => [format, valueStr]);
+      })
     ),
   };
 }
@@ -176,8 +178,8 @@ export async function executeAIPhoneCall(payload: string) {
     const rateLimitIdentifier = data.teamId
       ? `executeAIPhoneCall:team-${data.teamId}`
       : data.userId
-      ? `executeAIPhoneCall:user-${data.userId}`
-      : null;
+        ? `executeAIPhoneCall:user-${data.userId}`
+        : null;
 
     if (!rateLimitIdentifier) {
       log.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {

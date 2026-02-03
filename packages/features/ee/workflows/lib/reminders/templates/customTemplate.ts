@@ -67,7 +67,6 @@ export function formatIdentifierToVariable(key: string): string {
  * Legacy version of formatIdentifierToVariable that strips underscores.
  * Used for backward compatibility with templates that were created when
  * underscores were being stripped from identifiers.
- * @deprecated Use formatIdentifierToVariable instead for new templates
  */
 function formatIdentifierToVariableLegacy(key: string): string {
   return key
@@ -75,6 +74,22 @@ function formatIdentifierToVariableLegacy(key: string): string {
     .trim()
     .replaceAll(" ", "_")
     .toUpperCase();
+}
+
+/**
+ * Returns all variable formats for a given key.
+ * Includes both the current format (with underscores preserved) and the legacy format
+ * (without underscores) for backward compatibility with existing templates.
+ * @returns Array of unique variable formats
+ */
+export function getVariableFormats(key: string): string[] {
+  const current = formatIdentifierToVariable(key);
+  const legacy = formatIdentifierToVariableLegacy(key);
+
+  if (current === legacy) {
+    return [current];
+  }
+  return [current, legacy];
 }
 
 export type VariablesType = {
