@@ -14,6 +14,7 @@ import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import type { SortOrderType } from "@calcom/platform-types";
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -25,7 +26,7 @@ export class TeamsEventTypesService {
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly usersService: UsersService
-  ) {}
+  ) { }
 
   async createTeamEventType(
     user: UserWithProfile,
@@ -44,9 +45,7 @@ export class TeamsEventTypesService {
       input: { teamId: teamId, ...rest },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
 
@@ -128,9 +127,7 @@ export class TeamsEventTypesService {
       },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
 

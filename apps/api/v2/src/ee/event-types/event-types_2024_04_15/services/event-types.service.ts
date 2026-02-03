@@ -19,6 +19,7 @@ import {
   EventTypesPublic,
   getEventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -50,9 +51,7 @@ export class EventTypesService_2024_04_15 {
       input: body,
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
     return eventType as EventTypeOutput;
@@ -156,9 +155,7 @@ export class EventTypesService_2024_04_15 {
       input: { id: eventTypeId, ...body, bookingFields },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
 

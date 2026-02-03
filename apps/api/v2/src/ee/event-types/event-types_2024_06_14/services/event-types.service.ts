@@ -22,6 +22,7 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
 import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
@@ -36,7 +37,7 @@ export class EventTypesService_2024_06_14 {
     private readonly dbWrite: PrismaWriteService,
     private readonly schedulesRepository: SchedulesRepository_2024_06_11,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) {}
+  ) { }
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
     if (body.bookingFields) {
@@ -47,17 +48,13 @@ export class EventTypesService_2024_06_14 {
 
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     const { eventType: eventTypeCreated } = await createEventType({
-      input: rest,
+      input: rest as any,
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
-    });
+    }) as { eventType: EventType };
 
     await updateEventType({
       input: {
@@ -66,9 +63,7 @@ export class EventTypesService_2024_06_14 {
       },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
 
@@ -316,9 +311,7 @@ export class EventTypesService_2024_06_14 {
       input: { id: eventTypeId, ...body },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
 

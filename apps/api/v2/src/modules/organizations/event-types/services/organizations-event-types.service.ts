@@ -15,6 +15,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { createEventType } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class OrganizationsEventTypesService {
@@ -26,7 +27,7 @@ export class OrganizationsEventTypesService {
     private readonly teamsEventTypesService: TeamsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersService: UsersService
-  ) {}
+  ) { }
 
   async createOrganizationTeamEventType(
     user: UserWithProfile,
@@ -44,9 +45,7 @@ export class OrganizationsEventTypesService {
       },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        prisma: this.dbWrite.prisma,
+        prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
     });
     this.logger.debug(
