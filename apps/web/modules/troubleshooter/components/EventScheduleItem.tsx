@@ -1,21 +1,11 @@
+import { EventScheduleItemComponent } from "@calcom/features/troubleshooter/components/EventScheduleItemComponent";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
-import { Label } from "@calcom/ui/components/form";
 import Link from "next/link";
-import type React from "react";
-import { TroubleshooterListItemHeader } from "./TroubleshooterListItemContainer";
 
-interface ScheduleItem {
-  id: number;
-  name: string;
-}
-
-interface EventScheduleItemComponentProps {
-  schedule: ScheduleItem | null;
-  suffixSlot?: React.ReactNode;
-}
+export { EventScheduleItemComponent };
 
 export function EventScheduleItem(): JSX.Element {
   const { t } = useLocale();
@@ -48,22 +38,5 @@ export function EventScheduleItem(): JSX.Element {
         )
       }
     />
-  );
-}
-
-export function EventScheduleItemComponent({
-  schedule,
-  suffixSlot,
-}: EventScheduleItemComponentProps): JSX.Element {
-  return (
-    <div>
-      <Label>Availability Schedule</Label>
-      <TroubleshooterListItemHeader
-        className="group rounded-md border-b"
-        prefixSlot={<div className="w-4 rounded-[4px] bg-black" />}
-        title={schedule?.name ?? "Loading"}
-        suffixSlot={suffixSlot}
-      />
-    </div>
   );
 }

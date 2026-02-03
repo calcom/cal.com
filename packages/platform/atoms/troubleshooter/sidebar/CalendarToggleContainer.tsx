@@ -1,4 +1,4 @@
-import { CalendarToggleContainerComponent } from "@calcom/web/modules/troubleshooter/components/CalendarToggleContainer";
+import { CalendarToggleContainerComponent } from "@calcom/features/troubleshooter/components/CalendarToggleContainerComponent";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 
 export function CalendarToggleContainer(): JSX.Element {

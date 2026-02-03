@@ -1,4 +1,4 @@
-import { EventTypeSelectComponent } from "@calcom/web/modules/troubleshooter/components/EventTypeSelect";
+import { EventTypeSelectComponent } from "@calcom/features/troubleshooter/components/EventTypeSelectComponent";
 import { useEventTypesList } from "../../hooks/useEventTypesList";
 
 export function EventTypeSelect(): JSX.Element {
