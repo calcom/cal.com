@@ -23,14 +23,16 @@ const BLOCKED_IP_RANGES: readonly string[] = [
   "benchmarking", // 198.18.0.0/15 (RFC 2544)
 ] as const;
 
-// Cloud metadata endpoints
-const BLOCKED_HOSTNAMES: string[] = [
-  "localhost",
+// Cloud metadata endpoints (blocked even on self-hosted)
+const CLOUD_METADATA_ENDPOINTS: string[] = [
   "169.254.169.254", // AWS/Azure/DigitalOcean/Oracle metadata
   "169.254.169.253", // Azure alternate
   "metadata.google.internal", // GCP metadata
   "metadata.google.com", // GCP alternate
 ];
+
+// Hostnames blocked on Cal.com SaaS (includes metadata + localhost)
+const BLOCKED_HOSTNAMES: string[] = [...CLOUD_METADATA_ENDPOINTS, "localhost"];
 
 const ERRORS = {
   HTTPS_ONLY: "Only HTTPS URLs are allowed",
@@ -83,14 +85,15 @@ export function isBlockedHostname(hostname: string): boolean {
   return BLOCKED_HOSTNAMES.includes(normalized);
 }
 
+// Check if hostname is a cloud metadata endpoint (blocked even on self-hosted)
+function isCloudMetadataEndpoint(hostname: string): boolean {
+  const normalized = normalizeHostname(hostname);
+  return CLOUD_METADATA_ENDPOINTS.includes(normalized);
+}
+
 export interface SSRFValidationResult {
   isValid: boolean;
   error?: string;
-}
-
-// Allow HTTP in E2E tests and self-hosted deployments
-function shouldAllowHttpWebhooks(): boolean {
-  return process.env.NEXT_PUBLIC_IS_E2E === "1" || IS_SELF_HOSTED;
 }
 
 /**
@@ -114,11 +117,22 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
     return { isValid: false, error: ERRORS.INVALID_URL };
   }
 
-  if (shouldAllowHttpWebhooks()) {
+  // E2E tests: allow localhost only
+  if (process.env.NEXT_PUBLIC_IS_E2E === "1") {
     const isLocalhost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-    if (isLocalhost && (url.protocol === "http:" || url.protocol === "https:")) {
+    if (isLocalhost) {
       return { isValid: true };
     }
+  }
+
+  // Always block cloud metadata endpoints (even self-hosted may run on AWS/GCP/Azure)
+  if (isCloudMetadataEndpoint(url.hostname)) {
+    return { isValid: false, error: ERRORS.BLOCKED_HOSTNAME };
+  }
+
+  // Self-hosted: allow HTTP and private IPs (for internal webhooks)
+  if (IS_SELF_HOSTED) {
+    return { isValid: true };
   }
 
   if (url.protocol !== "https:") {
