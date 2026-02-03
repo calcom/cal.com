@@ -14,7 +14,7 @@ import { InputField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { GoogleWorkingLocationSyncModal } from "./GoogleWorkingLocationSyncModal";
+import { GoogleWorkingLocationSyncModal } from "@calcom/features/schedules/components/GoogleWorkingLocationSyncModal";
 
 export function NewScheduleButton({
   name = "new-schedule",
@@ -87,6 +87,23 @@ export function NewScheduleButton({
                 setValueAs: (v) => (!v || v.trim() === "" ? null : v),
               })}
             />
+            {/* Google Working Location Sync Option */}
+            <div className="border-subtle mt-4 mb-4 border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setShowGoogleWorkingLocationModal(true)}
+                className="hover:bg-subtle text-default flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors">
+                <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-md">
+                  <Icon name="calendar" className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{t("sync_with_google_working_location")}</p>
+                  <p className="text-subtle text-sm">{t("sync_with_google_working_location_description")}</p>
+                </div>
+                <Icon name="chevron-right" className="text-subtle h-5 w-5" />
+              </button>
+            </div>
+
             <DialogFooter>
               <DialogClose />
               <Button type="submit" loading={createMutation.isPending}>
@@ -94,23 +111,6 @@ export function NewScheduleButton({
               </Button>
             </DialogFooter>
           </Form>
-
-          {/* Google Working Location Sync Option */}
-          <div className="border-subtle mt-6 border-t pt-4">
-            <button
-              type="button"
-              onClick={() => setShowGoogleWorkingLocationModal(true)}
-              className="hover:bg-subtle text-default flex w-full items-center gap-3 rounded-md p-3 text-left transition-colors">
-              <div className="bg-subtle flex h-10 w-10 items-center justify-center rounded-md">
-                <Icon name="calendar" className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">{t("sync_with_google_working_location")}</p>
-                <p className="text-subtle text-sm">{t("sync_with_google_working_location_description")}</p>
-              </div>
-              <Icon name="chevron-right" className="text-subtle h-5 w-5" />
-            </button>
-          </div>
         </DialogContent>
       </Dialog>
 

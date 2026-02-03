@@ -174,6 +174,15 @@ export const DialogTrigger: ForwardRefExoticComponent<
 
 DialogTrigger.displayName = "DialogTrigger";
 
+export const DialogTitle = React.forwardRef<
+  HTMLHeadingElement,
+  React.ComponentProps<(typeof DialogPrimitive)["Title"]>
+>((props, ref) => {
+  return <DialogPrimitive.Title {...props} ref={ref} />;
+});
+
+DialogTitle.displayName = "DialogTitle";
+
 export function DialogClose(
   props: {
     "data-testid"?: string;
