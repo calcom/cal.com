@@ -143,6 +143,8 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -169,6 +171,8 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -230,6 +234,8 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateInstantMeetingTitleEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -356,6 +362,8 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -383,6 +391,8 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -446,6 +456,8 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -520,6 +532,8 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -554,6 +568,8 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -579,6 +595,8 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId: null,
         assignRRMembersUsingSegment: false,
         includeNoShowInRRCalculation: false,
+        enablePerHostLocations,
+        redirectUrlOnNoRoutingFormResponse,
         ...evType,
       };
 

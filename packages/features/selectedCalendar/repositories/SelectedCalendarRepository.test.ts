@@ -117,7 +117,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        teamIds: [1, 2, 3],
+        featureIds: ["calendar-subscription-cache"],
         integrations: ["google_calendar", "office365_calendar"],
       });
 
@@ -127,8 +127,15 @@ describe("SelectedCalendarRepository", () => {
           user: {
             teams: {
               some: {
-                teamId: { in: [1, 2, 3] },
                 accepted: true,
+                team: {
+                  features: {
+                    some: {
+                      featureId: { in: ["calendar-subscription-cache"] },
+                      enabled: true,
+                    },
+                  },
+                },
               },
             },
           },
@@ -163,7 +170,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 5,
-        teamIds: [10, 20],
+        featureIds: ["calendar-subscription-cache"],
         integrations: [],
       });
 
@@ -173,8 +180,15 @@ describe("SelectedCalendarRepository", () => {
           user: {
             teams: {
               some: {
-                teamId: { in: [10, 20] },
                 accepted: true,
+                team: {
+                  features: {
+                    some: {
+                      featureId: { in: ["calendar-subscription-cache"] },
+                      enabled: true,
+                    },
+                  },
+                },
               },
             },
           },
@@ -203,52 +217,6 @@ describe("SelectedCalendarRepository", () => {
       expect(result).toEqual(mockCalendars);
     });
 
-    test("should handle empty teamIds array", async () => {
-      const mockCalendars: SelectedCalendar[] = [];
-      vi.mocked(mockPrismaClient.selectedCalendar.findMany).mockResolvedValue(mockCalendars);
-
-      const result = await repository.findNextSubscriptionBatch({
-        take: 10,
-        teamIds: [],
-        integrations: ["google_calendar"],
-      });
-
-      expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
-        where: {
-          integration: { in: ["google_calendar"] },
-          user: {
-            teams: {
-              some: {
-                teamId: { in: [] },
-                accepted: true,
-              },
-            },
-          },
-          AND: [
-            {
-              OR: [
-                { syncSubscribedAt: null },
-                { channelExpiration: null },
-                { channelExpiration: { lte: expect.any(Date) } },
-              ],
-            },
-            {
-              OR: [
-                { syncSubscribedErrorAt: null },
-                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
-              ],
-            },
-            {
-              syncSubscribedErrorCount: { lt: 3 },
-            },
-          ],
-        },
-        take: 10,
-      });
-
-      expect(result).toEqual(mockCalendars);
-    });
-
     test("should filter out generic calendars when genericCalendarSuffixes is provided", async () => {
       const mockCalendars = [mockSelectedCalendar];
       vi.mocked(mockPrismaClient.selectedCalendar.findMany).mockResolvedValue(mockCalendars);
@@ -257,7 +225,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        teamIds: [1, 2],
+        featureIds: ["calendar-subscription-cache"],
         integrations: ["google_calendar"],
         genericCalendarSuffixes: genericSuffixes,
       });
@@ -268,8 +236,15 @@ describe("SelectedCalendarRepository", () => {
           user: {
             teams: {
               some: {
-                teamId: { in: [1, 2] },
                 accepted: true,
+                team: {
+                  features: {
+                    some: {
+                      featureId: { in: ["calendar-subscription-cache"] },
+                      enabled: true,
+                    },
+                  },
+                },
               },
             },
           },

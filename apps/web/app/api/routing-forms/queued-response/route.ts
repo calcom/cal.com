@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { PrismaPendingRoutingTraceRepository } from "@calcom/features/routing-trace/repositories/PrismaPendingRoutingTraceRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
@@ -57,6 +58,18 @@ export const queuedResponseHandler = async ({
     // We use the queuedFormResponse's chosenRouteId because that is what decided routed team members
     chosenRouteId: queuedFormResponse.chosenRouteId,
   });
+
+  // Link the pending routing trace to the new formResponseId so it can be found when booking is created
+  try {
+    const pendingTraceRepo = new PrismaPendingRoutingTraceRepository(prisma);
+    await pendingTraceRepo.linkToFormResponse({
+      queuedFormResponseId: queuedFormResponse.id,
+      formResponseId: formResponse.id,
+    });
+  } catch (error) {
+    // Log but don't fail - trace linking is not critical
+    logger.warn("Failed to link pending routing trace to form response", safeStringify(error));
+  }
 
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
   await onSubmissionOfFormResponse({
