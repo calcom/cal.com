@@ -14,10 +14,14 @@ type CreateFromGoogleWorkingLocationOptions = {
   input: TCreateFromGoogleWorkingLocationSchema;
 };
 
+type CreateFromGoogleWorkingLocationResult = {
+  schedule: { id: number; name: string };
+};
+
 export const createFromGoogleWorkingLocationHandler = async ({
   input,
   ctx,
-}: CreateFromGoogleWorkingLocationOptions) => {
+}: CreateFromGoogleWorkingLocationOptions): Promise<CreateFromGoogleWorkingLocationResult> => {
   const { user } = ctx;
 
   // Validate the credential belongs to the user
@@ -67,9 +71,16 @@ export const createFromGoogleWorkingLocationHandler = async ({
 
     return { schedule };
   } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+    let errorMessage = "Failed to create synced schedule";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: error instanceof Error ? error.message : "Failed to create synced schedule",
+      message: errorMessage,
     });
   }
 };
