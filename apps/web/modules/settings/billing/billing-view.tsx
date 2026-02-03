@@ -10,8 +10,8 @@ import { showToast } from "@calcom/ui/components/toast";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-
 import BillingCredits from "~/settings/billing/components/BillingCredits";
+import { InvoicesTable } from "~/settings/billing/components/InvoicesTable";
 
 interface CtaRowProps {
   title: string;
@@ -146,6 +146,7 @@ const BillingView = () => {
         </div>
       </div>
       <BillingCredits />
+      <InvoicesTable />
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
         <DialogContent>
