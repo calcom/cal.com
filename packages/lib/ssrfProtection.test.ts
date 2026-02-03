@@ -182,4 +182,11 @@ describe("Self-hosted environment behavior", () => {
     const { validateUrlForSSRFSync: validateSelfHosted } = await import("./ssrfProtection");
     expect(validateSelfHosted("https://example.com/webhook").isValid).toBe(true);
   });
+
+  it("blocks non-HTTP protocols for self-hosted", async () => {
+    const { validateUrlForSSRFSync: validateSelfHosted } = await import("./ssrfProtection");
+    expect(validateSelfHosted("file:///etc/passwd").isValid).toBe(false);
+    expect(validateSelfHosted("ftp://internal-server/file").isValid).toBe(false);
+    expect(validateSelfHosted("javascript:alert(1)").isValid).toBe(false);
+  });
 });

@@ -1,9 +1,8 @@
 import { BadRequestException } from "@nestjs/common";
-import { describe, expect, it, vi, beforeEach } from "vitest";
 
 // Mock the platform-libraries module
-const mockValidateUrlForSSRFSync = vi.fn();
-vi.mock("@calcom/platform-libraries", () => ({
+const mockValidateUrlForSSRFSync: jest.Mock = jest.fn();
+jest.mock("@calcom/platform-libraries", () => ({
   validateUrlForSSRFSync: (url: string) => mockValidateUrlForSSRFSync(url),
 }));
 
