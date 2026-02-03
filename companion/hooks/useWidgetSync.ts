@@ -13,7 +13,10 @@ export function useWidgetSync() {
   const queryClient = useQueryClient();
 
   const syncBookingsToWidget = useCallback(async () => {
+    console.log("[Widget Debug] syncBookingsToWidget called, Platform:", Platform.OS);
+
     if (Platform.OS === "web") {
+      console.log("[Widget Debug] Skipping - web platform");
       return;
     }
 
@@ -29,6 +32,12 @@ export function useWidgetSync() {
     let cachedBookings: Booking[] | undefined;
     for (const filters of possibleFilters) {
       const cached = queryClient.getQueryData<Booking[]>(queryKeys.bookings.list(filters));
+      console.log(
+        "[Widget Debug] Checking cache for filters:",
+        JSON.stringify(filters),
+        "found:",
+        cached?.length ?? 0
+      );
       if (cached !== undefined && cached.length > 0) {
         cachedBookings = cached;
         break;
@@ -36,33 +45,68 @@ export function useWidgetSync() {
     }
 
     if (cachedBookings !== undefined && cachedBookings.length > 0) {
+      console.log("[Widget Debug] Using cached bookings, count:", cachedBookings.length);
+      console.log("[Widget Debug] Current time (UTC):", new Date().toISOString());
+
+      // Log each booking's times for debugging - check both property name formats
+      cachedBookings.slice(0, 3).forEach((booking, i) => {
+        console.log(
+          `[Widget Debug] Booking ${i}: startTime=${booking.startTime}, start=${booking.start}, endTime=${booking.endTime}, end=${booking.end}`
+        );
+      });
+
       try {
+        // Filter bookings that haven't ended yet (includes ongoing meetings)
+        // Sort by start time to show soonest first
+        // Note: API may return either start/end or startTime/endTime
         const upcomingBookings = cachedBookings
           .filter((booking) => {
-            const startTime = new Date(booking.startTime);
-            return startTime > new Date();
+            const endTimeStr = booking.endTime || booking.end;
+            if (!endTimeStr) {
+              console.log(`[Widget Debug] Booking ${booking.id}: No end time found, skipping`);
+              return false;
+            }
+            const endTime = new Date(endTimeStr);
+            const isUpcoming = endTime > new Date();
+            console.log(
+              `[Widget Debug] Booking ${booking.id}: endTime=${endTime.toISOString()}, isUpcoming=${isUpcoming}`
+            );
+            return isUpcoming;
           })
-          .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+          .sort((a, b) => {
+            const aStart = new Date(a.startTime || a.start || "").getTime();
+            const bStart = new Date(b.startTime || b.start || "").getTime();
+            return aStart - bStart;
+          });
 
+        console.log("[Widget Debug] Filtered upcoming bookings, count:", upcomingBookings.length);
         await updateWidgetBookings(upcomingBookings);
       } catch (error) {
         console.warn("Failed to sync cached bookings to widget:", error);
       }
     } else {
       // No cached data found, fetch from API
+      console.log("[Widget Debug] No cached data, fetching from API...");
       try {
         const bookings = await CalComAPIService.getBookings({
           status: ["upcoming"],
           limit: 10,
         });
 
+        console.log("[Widget Debug] API returned bookings, count:", bookings.length);
+
+        // Filter bookings that haven't ended yet (includes ongoing meetings)
         const upcomingBookings = bookings
           .filter((booking) => {
-            const startTime = new Date(booking.startTime);
-            return startTime > new Date();
+            const endTime = new Date(booking.endTime);
+            return endTime > new Date();
           })
           .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
+        console.log(
+          "[Widget Debug] Filtered upcoming bookings from API, count:",
+          upcomingBookings.length
+        );
         await updateWidgetBookings(upcomingBookings);
       } catch (error) {
         console.warn("Failed to fetch and sync bookings to widget:", error);

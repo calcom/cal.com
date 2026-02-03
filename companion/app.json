@@ -2,7 +2,7 @@
   "expo": {
     "name": "Calcom",
     "slug": "calcom-companion",
-    "scheme": "expo-wxt-app",
+    "scheme": "calcom",
     "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
+      "appleTeamId": "ADWKXDJV75",
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.cal.companion",
       "userInterfaceStyle": "automatic",
