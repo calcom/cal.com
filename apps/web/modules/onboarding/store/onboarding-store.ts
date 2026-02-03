@@ -204,35 +204,40 @@ export const useOnboardingStore = create<OnboardingState>()(
     {
       name: "cal-onboarding-storage", // Storage key
       storage: onboardingIndexedDBStorage, // Use IndexedDB instead of localStorage for larger capacity
-      version: 1, // Increment this when making breaking changes to persisted state
+      // Version 0: Had issue with Image sizes being too large. 
+      // Version 1: We fixed that and also migrated to version-1 to facilitate one-time cleanup of all oversized images.
+      version: 1,
       migrate: (persistedState, version) => {
-        const state = persistedState as Partial<OnboardingState>;
+        if (version >= 1) {
+          return persistedState as OnboardingState;
+        }
+        const state = persistedState as OnboardingState;
 
         // Migration from version 0 (no version) to version 1:
         // Clear oversized images that were uploaded before the cropping fix (PR #27285)
         // These large images cause 429 errors when sent to the server
-        if (version === 0) {
-          if (state.organizationBrand) {
-            if (isOversizedImage(state.organizationBrand.logo, LOGO_SIZE_THRESHOLD)) {
-              state.organizationBrand.logo = null;
-            }
-            if (isOversizedImage(state.organizationBrand.banner, BANNER_SIZE_THRESHOLD)) {
-              state.organizationBrand.banner = null;
-            }
+        if (state.organizationBrand) {
+          if (isOversizedImage(state.organizationBrand.logo, LOGO_SIZE_THRESHOLD)) {
+            state.organizationBrand.logo = null;
           }
-          if (state.teamBrand) {
-            if (isOversizedImage(state.teamBrand.logo, LOGO_SIZE_THRESHOLD)) {
-              state.teamBrand.logo = null;
-            }
-          }
-          if (state.personalDetails) {
-            if (isOversizedImage(state.personalDetails.avatar, LOGO_SIZE_THRESHOLD)) {
-              state.personalDetails.avatar = null;
-            }
+          if (isOversizedImage(state.organizationBrand.banner, BANNER_SIZE_THRESHOLD)) {
+            state.organizationBrand.banner = null;
           }
         }
 
-        return state as OnboardingState;
+        if (state.teamBrand) {
+          if (isOversizedImage(state.teamBrand.logo, LOGO_SIZE_THRESHOLD)) {
+            state.teamBrand.logo = null;
+          }
+        }
+
+        if (state.personalDetails) {
+          if (isOversizedImage(state.personalDetails.avatar, LOGO_SIZE_THRESHOLD)) {
+            state.personalDetails.avatar = null;
+          }
+        }
+
+        return state;
       },
       // Only persist certain fields
       partialize: (state) => ({
