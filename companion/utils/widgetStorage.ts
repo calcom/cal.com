@@ -33,8 +33,6 @@ function formatTime(dateString: string): string {
 }
 
 async function updateIOSWidget(widgetData: WidgetData): Promise<void> {
-  console.log("[Widget Debug] updateIOSWidget called with:", JSON.stringify(widgetData, null, 2));
-
   // Use ExtensionStorage from @bacons/apple-targets to store data in App Groups
   // ExtensionStorage.set() handles JSON serialization internally, so we pass the object directly
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -94,11 +92,6 @@ export async function updateWidgetBookings(
         location: booking.location || null,
       };
     });
-
-    console.log(
-      "[Widget Debug] Formatted widget bookings:",
-      JSON.stringify(widgetBookings, null, 2)
-    );
 
     const widgetData: WidgetData = {
       bookings: widgetBookings,
