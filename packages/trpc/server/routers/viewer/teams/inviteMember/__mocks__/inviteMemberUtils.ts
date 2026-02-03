@@ -17,8 +17,7 @@ const inviteMemberUtilsMock = mockDeep<typeof inviteMemberUtils>();
 export const inviteMemberutilsScenarios = {
   checkPermissions: {
     fakePassed: () =>
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      // @ts-expect-error
       inviteMemberUtilsMock.checkPermissions.mockResolvedValue(undefined),
   },
   getTeamOrThrow: {
@@ -29,8 +28,7 @@ export const inviteMemberutilsScenarios = {
         parentId: null,
         ...team,
       };
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      // @ts-expect-error
       inviteMemberUtilsMock.getTeamOrThrow.mockImplementation((teamId) => {
         if (forInput.teamId === teamId) {
           return fakedVal;
@@ -49,8 +47,6 @@ export const inviteMemberutilsScenarios = {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       return inviteMemberUtilsMock.getOrgState.mockImplementation(actualImport.getOrgState);
     },
   },
@@ -58,8 +54,6 @@ export const inviteMemberutilsScenarios = {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       return inviteMemberUtilsMock.getUniqueInvitationsOrThrowIfEmpty.mockImplementation(
         actualImport.getUniqueInvitationsOrThrowIfEmpty
       );
@@ -90,8 +84,6 @@ export const inviteMemberutilsScenarios = {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       return inviteMemberUtilsMock.getOrgConnectionInfo.mockImplementation(actualImport.getOrgConnectionInfo);
     },
   },

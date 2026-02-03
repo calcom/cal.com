@@ -1,0 +1,33 @@
+name: Companion Lint
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint Companion App
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.0
+          cache: false
+
+      - name: Install dependencies
+        working-directory: companion
+        run: bun install --frozen-lockfile
+
+      - name: Run lint
+        working-directory: companion
+        run: bun run lint:all

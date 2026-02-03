@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { expect, test, vi, describe } from "vitest";
 
@@ -56,6 +56,7 @@ const testCredential = {
   teamId: 1,
   delegatedTo: null,
   delegationCredentialId: null,
+  encryptedKey: null,
 };
 
 describe("createMeeting", () => {

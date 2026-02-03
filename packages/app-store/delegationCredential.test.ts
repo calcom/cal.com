@@ -1,6 +1,6 @@
 import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -126,6 +126,7 @@ const buildDelegationCredential = (overrides = {}) => ({
   delegatedTo: {
     serviceAccountKey: mockServiceAccountKey,
   },
+  encryptedKey: null,
   ...overrides,
 });
 
@@ -158,6 +159,7 @@ const buildRegularCredential = (overrides = {}): CredentialForCalendarService =>
   delegatedTo: null,
   // Regular credentials have it set to null always
   delegationCredentialId: null,
+  encryptedKey: null,
   ...overrides,
 });
 

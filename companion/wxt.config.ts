@@ -46,6 +46,9 @@ export default defineConfig({
     "build:manifestGenerated": (_wxt, manifest) => {
       manifest.browser_specific_settings ??= {};
       manifest.browser_specific_settings.gecko ??= {};
+      // Stable extension ID for Firefox development - ensures consistent OAuth redirect URL
+      // This must be an email-like string for Firefox to accept it
+      manifest.browser_specific_settings.gecko.id = "companion@cal.com";
       manifest.browser_specific_settings.gecko.data_collection_permissions = {
         required: ["none"],
       };
@@ -56,10 +59,15 @@ export default defineConfig({
   publicDir: "extension/public",
   outDir: ".output",
   manifest: {
-    name: "Cal.com Companion",
+    name: browserTarget === "safari" ? "Cal.com" : "Cal.com Companion",
     version: "1.7.5",
     description: "Your calendar companion for quick booking and scheduling",
-    permissions: ["activeTab", "storage", "identity"],
+    permissions: [
+      "activeTab",
+      "storage",
+      // Safari doesn't support Chrome's identity API
+      ...(browserTarget !== "safari" ? ["identity"] : []),
+    ],
     host_permissions: [
       "https://companion.cal.com/*",
       "https://api.cal.com/*",

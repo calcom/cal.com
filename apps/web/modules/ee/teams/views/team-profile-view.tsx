@@ -11,8 +11,8 @@ import { z } from "zod";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
-import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
+import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -169,6 +169,7 @@ const ProfileView = () => {
             {team && !isBioEmpty && (
               <>
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
+                {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
                 <div
                   className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}

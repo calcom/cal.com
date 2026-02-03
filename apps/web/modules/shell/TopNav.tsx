@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
@@ -11,7 +12,8 @@ import { UserDropdown } from "./user-dropdown/UserDropdown";
 
 export function TopNavContainer() {
   const { status } = useSession();
-  if (status !== "authenticated") return null;
+  const isStandalone = useIsStandalone();
+  if (status !== "authenticated" || isStandalone) return null;
   return <TopNav />;
 }
 

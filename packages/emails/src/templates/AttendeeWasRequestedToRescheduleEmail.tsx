@@ -13,6 +13,7 @@ export const AttendeeWasRequestedToRescheduleEmail = (
         <>
           {t("request_reschedule_subtitle", {
             organizer: props.calEvent.organizer.name,
+            interpolation: { escapeValue: false },
           })}
         </>
       }

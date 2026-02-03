@@ -1,7 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Image, Platform, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Platform,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalComAPIService, type UserProfile } from "@/services/calcom";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
@@ -53,8 +61,19 @@ export function Header({
 }: HeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // iOS system colors for dark mode
+  const colors = {
+    text: isDark ? "#FFFFFF" : "#000000",
+    textSecondary: isDark ? "#A3A3A3" : "#666666",
+    background: isDark ? "#000000" : "#FFFFFF",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
+    logoColor: isDark ? "#FFFFFF" : "#333333",
+  };
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -86,12 +105,12 @@ export function Header({
 
   return (
     <View
-      className="flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-2 md:px-4"
+      className="flex-row items-center justify-between border-b border-[#E5E5EA] bg-white px-2 dark:border-[#4D4D4D] dark:bg-black md:px-4"
       style={{ paddingTop: insets.top + 4, paddingBottom: 4 }}
     >
       {/* Left: Cal.com Logo */}
       <View className="ms-1">
-        <CalComLogo width={101} height={22} color="#333" />
+        <CalComLogo width={101} height={22} color={colors.logoColor} />
       </View>
 
       {/* Right: Filter Dropdown + Profile */}
@@ -103,11 +122,10 @@ export function Header({
         {filterOptions && filterOptions.length > 0 && onFilterChange && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <AppPressable className="flex-row items-center gap-1 px-2 py-2">
-                <Text className="text-[16px] font-semibold text-[#007AFF]">
+              <AppPressable className="h-10 flex-row items-center justify-center gap-2 rounded-full border border-[#E5E5E5] bg-white px-4 dark:border-[#262626] dark:bg-[#171717]">
+                <Text className="text-[15px] font-medium text-[#000000] dark:text-white">
                   {activeFilterLabel}
                 </Text>
-                <Ionicons name="chevron-down" size={16} color="#007AFF" />
               </AppPressable>
             </DropdownMenuTrigger>
 
@@ -143,11 +161,13 @@ export function Header({
                       <Ionicons
                         name={isSelected ? "checkmark-circle" : getFilterIcon(option.key)}
                         size={16}
-                        color={isSelected ? "#007AFF" : "#666"}
+                        color={isSelected ? colors.text : colors.textSecondary}
                       />
                       <Text
                         className={
-                          isSelected ? "text-base font-semibold text-[#007AFF]" : "text-base"
+                          isSelected
+                            ? "text-base font-semibold text-[#000000] dark:text-white"
+                            : "text-base dark:text-gray-300"
                         }
                       >
                         {option.label}
@@ -165,14 +185,14 @@ export function Header({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <AppPressable className="relative p-2">
-                <Ionicons name="options-outline" size={22} color="#007AFF" />
+                <Ionicons name="options-outline" size={22} color={colors.text} />
                 {/* Badge for active filters */}
                 {eventTypeFilterConfig.activeFilterCount > 0 && (
                   <View
-                    className="absolute -top-0.5 -right-0.5 items-center justify-center rounded-full bg-[#007AFF]"
+                    className="absolute -top-0.5 -right-0.5 items-center justify-center rounded-full bg-[#000000] dark:bg-white"
                     style={{ width: 16, height: 16 }}
                   >
-                    <Text className="text-[10px] font-bold text-white">
+                    <Text className="text-[10px] font-bold text-white dark:text-black">
                       {eventTypeFilterConfig.activeFilterCount}
                     </Text>
                   </View>
@@ -190,8 +210,8 @@ export function Header({
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <View className="flex-row items-center gap-2">
-                    <Ionicons name="swap-vertical-outline" size={16} color="#666" />
-                    <Text className="text-base">Sort by</Text>
+                    <Ionicons name="swap-vertical-outline" size={16} color={colors.textSecondary} />
+                    <Text className="text-base dark:text-gray-300">Sort by</Text>
                   </View>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
@@ -206,13 +226,17 @@ export function Header({
                             : "text-outline"
                         }
                         size={16}
-                        color={eventTypeFilterConfig.sortBy === "alphabetical" ? "#007AFF" : "#666"}
+                        color={
+                          eventTypeFilterConfig.sortBy === "alphabetical"
+                            ? colors.text
+                            : colors.textSecondary
+                        }
                       />
                       <Text
                         className={
                           eventTypeFilterConfig.sortBy === "alphabetical"
-                            ? "text-base font-semibold text-[#007AFF]"
-                            : "text-base"
+                            ? "text-base font-semibold text-[#000000] dark:text-white"
+                            : "text-base dark:text-gray-300"
                         }
                       >
                         Alphabetical
@@ -228,13 +252,17 @@ export function Header({
                             : "calendar-outline"
                         }
                         size={16}
-                        color={eventTypeFilterConfig.sortBy === "newest" ? "#007AFF" : "#666"}
+                        color={
+                          eventTypeFilterConfig.sortBy === "newest"
+                            ? colors.text
+                            : colors.textSecondary
+                        }
                       />
                       <Text
                         className={
                           eventTypeFilterConfig.sortBy === "newest"
-                            ? "text-base font-semibold text-[#007AFF]"
-                            : "text-base"
+                            ? "text-base font-semibold text-[#000000] dark:text-white"
+                            : "text-base dark:text-gray-300"
                         }
                       >
                         Newest First
@@ -250,13 +278,17 @@ export function Header({
                             : "time-outline"
                         }
                         size={16}
-                        color={eventTypeFilterConfig.sortBy === "duration" ? "#007AFF" : "#666"}
+                        color={
+                          eventTypeFilterConfig.sortBy === "duration"
+                            ? colors.text
+                            : colors.textSecondary
+                        }
                       />
                       <Text
                         className={
                           eventTypeFilterConfig.sortBy === "duration"
-                            ? "text-base font-semibold text-[#007AFF]"
-                            : "text-base"
+                            ? "text-base font-semibold text-[#000000] dark:text-white"
+                            : "text-base dark:text-gray-300"
                         }
                       >
                         By Duration
@@ -271,8 +303,10 @@ export function Header({
               {/* Filter Label */}
               <DropdownMenuLabel>
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name="filter-outline" size={16} color="#666" />
-                  <Text className="text-sm font-medium text-gray-500">Filters</Text>
+                  <Ionicons name="filter-outline" size={16} color={colors.textSecondary} />
+                  <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Filters
+                  </Text>
                 </View>
               </DropdownMenuLabel>
 
@@ -286,13 +320,15 @@ export function Header({
                         : "eye-off-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.hiddenOnly ? "#007AFF" : "#666"}
+                    color={
+                      eventTypeFilterConfig.filters.hiddenOnly ? colors.text : colors.textSecondary
+                    }
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.hiddenOnly
-                        ? "text-base font-semibold text-[#007AFF]"
-                        : "text-base"
+                        ? "text-base font-semibold text-[#000000] dark:text-white"
+                        : "text-base dark:text-gray-300"
                     }
                   >
                     Hidden Only
@@ -307,13 +343,15 @@ export function Header({
                       eventTypeFilterConfig.filters.paidOnly ? "checkmark-circle" : "cash-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.paidOnly ? "#007AFF" : "#666"}
+                    color={
+                      eventTypeFilterConfig.filters.paidOnly ? colors.text : colors.textSecondary
+                    }
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.paidOnly
-                        ? "text-base font-semibold text-[#007AFF]"
-                        : "text-base"
+                        ? "text-base font-semibold text-[#000000] dark:text-white"
+                        : "text-base dark:text-gray-300"
                     }
                   >
                     Paid Events
@@ -330,13 +368,15 @@ export function Header({
                         : "people-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.seatedOnly ? "#007AFF" : "#666"}
+                    color={
+                      eventTypeFilterConfig.filters.seatedOnly ? colors.text : colors.textSecondary
+                    }
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.seatedOnly
-                        ? "text-base font-semibold text-[#007AFF]"
-                        : "text-base"
+                        ? "text-base font-semibold text-[#000000] dark:text-white"
+                        : "text-base dark:text-gray-300"
                     }
                   >
                     Seated Events
@@ -356,14 +396,16 @@ export function Header({
                     }
                     size={16}
                     color={
-                      eventTypeFilterConfig.filters.requiresConfirmationOnly ? "#007AFF" : "#666"
+                      eventTypeFilterConfig.filters.requiresConfirmationOnly
+                        ? colors.text
+                        : colors.textSecondary
                     }
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.requiresConfirmationOnly
-                        ? "text-base font-semibold text-[#007AFF]"
-                        : "text-base"
+                        ? "text-base font-semibold text-[#000000] dark:text-white"
+                        : "text-base dark:text-gray-300"
                     }
                   >
                     Requires Confirmation
@@ -382,13 +424,17 @@ export function Header({
                         : "repeat-outline"
                     }
                     size={16}
-                    color={eventTypeFilterConfig.filters.recurringOnly ? "#007AFF" : "#666"}
+                    color={
+                      eventTypeFilterConfig.filters.recurringOnly
+                        ? colors.text
+                        : colors.textSecondary
+                    }
                   />
                   <Text
                     className={
                       eventTypeFilterConfig.filters.recurringOnly
-                        ? "text-base font-semibold text-[#007AFF]"
-                        : "text-base"
+                        ? "text-base font-semibold text-[#000000] dark:text-white"
+                        : "text-base dark:text-gray-300"
                     }
                   >
                     Recurring
@@ -415,7 +461,7 @@ export function Header({
         {/* Profile Picture */}
         <TouchableOpacity onPress={handleProfile} className="p-1">
           {loading ? (
-            <ActivityIndicator size="small" color="#666" />
+            <ActivityIndicator size="small" color={colors.textSecondary} />
           ) : userProfile?.avatarUrl ? (
             <Image
               source={{ uri: getAvatarUrl(userProfile.avatarUrl) }}
@@ -424,10 +470,10 @@ export function Header({
             />
           ) : (
             <View
-              className="items-center justify-center rounded-full bg-[#E5E5EA]"
+              className="items-center justify-center rounded-full bg-[#E5E5EA] dark:bg-[#4D4D4D]"
               style={{ width: 32, height: 32 }}
             >
-              <Ionicons name="person-outline" size={20} color="#666" />
+              <Ionicons name="person-outline" size={20} color={colors.textSecondary} />
             </View>
           )}
         </TouchableOpacity>

@@ -1,23 +1,18 @@
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import logger from "@calcom/lib/logger";
-import { withSpan } from "@calcom/lib/sentryWrapper";
+import { metrics } from "@sentry/nextjs";
 import type {
   Calendar,
   CalendarEvent,
   CalendarServiceEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
 
-/**
- * A wrapper to load cache from database and cache it.
- *
- * @see Calendar
- */
 export class CalendarCacheWrapper implements Calendar {
   constructor(
     private deps: {
@@ -56,85 +51,85 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Combined array of busy date ranges
    */
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return withSpan(
-      {
-        name: "CalendarCacheWrapper.getAvailability",
-        op: "calendar.cache.internal.getAvailability",
-        attributes: {
-          calendarCount: selectedCalendars?.length ?? 0,
-        },
-      },
-      async (span) => {
-        log.debug("getAvailability (mixed cache + original)", {
-          dateFrom,
-          dateTo,
-          calendarIds: selectedCalendars.map((c) => c.id),
-          calendarCount: selectedCalendars.length,
-        });
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
 
-        if (!selectedCalendars?.length) return [];
+    log.debug("getAvailability (mixed cache + original)", {
+      dateFrom,
+      dateTo,
+      calendarIds: selectedCalendars.map((c) => c.id),
+      calendarCount: selectedCalendars.length,
+    });
 
-        const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-        const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+    if (!selectedCalendars?.length) return [];
 
-        const results: EventBusyDate[] = [];
+    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
+    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
 
-        // Fetch from cache for synced calendars
-        if (withSync.length) {
-          const cacheStartTime = performance.now();
-          const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
-          const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
-            ids,
-            new Date(dateFrom),
-            new Date(dateTo)
-          );
-          const cacheDurationMs = performance.now() - cacheStartTime;
-          results.push(...cached);
+    const results: EventBusyDate[] = [];
 
-          span.setAttribute("cachedCalendarCount", withSync.length);
-          span.setAttribute("cacheFetchDurationMs", cacheDurationMs);
-          span.setAttribute("cachedEventsCount", cached.length);
-          log.info("Calendar cache fetch completed", {
-            cachedCalendarCount: withSync.length,
-            cacheFetchDurationMs: cacheDurationMs,
-            cachedEventsCount: cached.length,
-          });
-        }
+    // ===== CACHE PATH =====
+    if (withSync.length) {
+      const cacheStartTime = performance.now();
 
-        // Fetch from original calendar for unsynced ones
-        if (withoutSync.length) {
-          const originalStartTime = performance.now();
-          const original = await this.deps.originalCalendar.getAvailability(dateFrom, dateTo, withoutSync);
-          const originalDurationMs = performance.now() - originalStartTime;
-          results.push(...original);
+      const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
+      const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
+        ids,
+        new Date(dateFrom),
+        new Date(dateTo)
+      );
 
-          span.setAttribute("originalCalendarCount", withoutSync.length);
-          span.setAttribute("originalFetchDurationMs", originalDurationMs);
-          span.setAttribute("originalEventsCount", original.length);
-          log.info("Original calendar fetch completed", {
-            originalCalendarCount: withoutSync.length,
-            originalFetchDurationMs: originalDurationMs,
-            originalEventsCount: original.length,
-          });
-        }
+      const cacheDurationMs = performance.now() - cacheStartTime;
 
-        span.setAttribute("cacheUsed", withSync.length > 0);
-        span.setAttribute("totalEventsCount", results.length);
+      results.push(
+        ...cached.map((event) => ({
+          ...event,
+          timeZone: event.timeZone ?? undefined,
+        }))
+      );
 
-        return results;
-      }
-    );
+      metrics.count("calendar.cache.hit.calls", 1);
+      metrics.distribution("calendar.cache.hit.duration_ms", cacheDurationMs);
+      metrics.distribution("calendar.cache.hit.events_count", cached.length);
+
+      log.debug("Calendar cache fetch completed", {
+        cachedCalendarCount: withSync.length,
+        cacheFetchDurationMs: cacheDurationMs,
+        cachedEventsCount: cached.length,
+      });
+    }
+
+    // ===== ORIGINAL PATH =====
+    if (withoutSync.length) {
+      const originalStartTime = performance.now();
+
+      const original = await this.deps.originalCalendar.getAvailability({
+        dateFrom,
+        dateTo,
+        selectedCalendars: withoutSync,
+        mode: params.mode,
+        fallbackToPrimary: params.fallbackToPrimary,
+      });
+
+      const originalDurationMs = performance.now() - originalStartTime;
+
+      results.push(...original);
+
+      metrics.count("calendar.cache.miss.calls", 1);
+      metrics.distribution("calendar.cache.miss.duration_ms", originalDurationMs);
+      metrics.distribution("calendar.cache.miss.events_count", original.length);
+
+      log.debug("Original calendar fetch completed", {
+        originalCalendarCount: withoutSync.length,
+        originalFetchDurationMs: originalDurationMs,
+        originalEventsCount: original.length,
+      });
+    }
+
+    metrics.distribution("calendar.getAvailability.total_events_count", results.length);
+
+    return results;
   }
 
   /**
@@ -143,95 +138,72 @@ export class CalendarCacheWrapper implements Calendar {
    * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
    * - Calendars **without** one of them → fetched directly from the original calendar.
    * - Results are merged into a single array with `{ start, end, timeZone }` format.
-   *
-   * @param dateFrom - Start date (ISO string)
-   * @param dateTo - End date (ISO string)
-   * @param selectedCalendars - List of calendars to retrieve availability from
-   * @returns Combined array of time-zone-aware availability ranges
    */
-  async getAvailabilityWithTimeZones(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
-    return withSpan(
-      {
-        name: "CalendarCacheWrapper.getAvailabilityWithTimeZones",
-        op: "calendar.cache.internal.getAvailabilityWithTimeZones",
-        attributes: {
-          calendarCount: selectedCalendars?.length ?? 0,
-        },
-      },
-      async (span) => {
-        log.debug("getAvailabilityWithTimeZones (mixed cache + original)", {
-          dateFrom,
-          dateTo,
-          calendarIds: selectedCalendars.map((c) => c.id),
-          calendarCount: selectedCalendars.length,
-        });
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
 
-        if (!selectedCalendars?.length) return [];
+    log.debug("getAvailabilityWithTimeZones (mixed cache + original)", {
+      dateFrom,
+      dateTo,
+      calendarIds: selectedCalendars.map((c) => c.id),
+      calendarCount: selectedCalendars.length,
+    });
 
-        const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-        const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+    if (!selectedCalendars?.length) return [];
 
-        const results: { start: Date | string; end: Date | string; timeZone: string }[] = [];
+    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
+    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
 
-        // Fetch from cache for synced calendars
-        if (withSync.length) {
-          const cacheStartTime = performance.now();
-          const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
-          const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
-            ids,
-            new Date(dateFrom),
-            new Date(dateTo)
-          );
-          const cacheDurationMs = performance.now() - cacheStartTime;
-          results.push(
-            ...cached.map(({ start, end, timeZone }) => ({
-              start,
-              end,
-              timeZone: timeZone || "UTC",
-            }))
-          );
+    const results: EventBusyDate[] = [];
 
-          span.setAttribute("cachedCalendarCount", withSync.length);
-          span.setAttribute("cacheFetchDurationMs", cacheDurationMs);
-          span.setAttribute("cachedEventsCount", cached.length);
-          log.info("Calendar cache fetch with timezones completed", {
-            cachedCalendarCount: withSync.length,
-            cacheFetchDurationMs: cacheDurationMs,
-            cachedEventsCount: cached.length,
-          });
-        }
+    if (withSync.length) {
+      const cacheStartTime = performance.now();
 
-        // Fetch from original calendar for unsynced ones
-        if (withoutSync.length) {
-          const originalStartTime = performance.now();
-          const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(
-            dateFrom,
-            dateTo,
-            withoutSync
-          );
-          const originalDurationMs = performance.now() - originalStartTime;
-          if (original?.length) results.push(...original);
+      const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
+      const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
+        ids,
+        new Date(dateFrom),
+        new Date(dateTo)
+      );
 
-          span.setAttribute("originalCalendarCount", withoutSync.length);
-          span.setAttribute("originalFetchDurationMs", originalDurationMs);
-          span.setAttribute("originalEventsCount", original?.length ?? 0);
-          log.info("Original calendar fetch with timezones completed", {
-            originalCalendarCount: withoutSync.length,
-            originalFetchDurationMs: originalDurationMs,
-            originalEventsCount: original?.length ?? 0,
-          });
-        }
+      const cacheDurationMs = performance.now() - cacheStartTime;
 
-        span.setAttribute("cacheUsed", withSync.length > 0);
-        span.setAttribute("totalEventsCount", results.length);
+      results.push(
+        ...cached.map(({ start, end, timeZone }) => ({
+          start,
+          end,
+          timeZone: timeZone || "UTC",
+        }))
+      );
 
-        return results;
-      }
-    );
+      metrics.count("calendar.cache.hit.timezone.calls", 1);
+      metrics.distribution("calendar.cache.hit.timezone.duration_ms", cacheDurationMs);
+      metrics.distribution("calendar.cache.hit.timezone.events_count", cached.length);
+    }
+
+    if (withoutSync.length) {
+      const originalStartTime = performance.now();
+
+      const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.({
+        dateFrom,
+        dateTo,
+        selectedCalendars: withoutSync,
+        mode: params.mode,
+        fallbackToPrimary: params.fallbackToPrimary,
+      });
+
+      const originalDurationMs = performance.now() - originalStartTime;
+
+      if (original?.length) results.push(...original);
+
+      metrics.count("calendar.cache.miss.timezone.calls", 1);
+      metrics.distribution("calendar.cache.miss.timezone.duration_ms", originalDurationMs);
+      metrics.distribution("calendar.cache.miss.timezone.events_count", original?.length ?? 0);
+    }
+
+    metrics.distribution("calendar.getAvailabilityWithTimeZones.total_events_count", results.length);
+
+    return results;
   }
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
@@ -244,19 +216,5 @@ export class CalendarCacheWrapper implements Calendar {
 
   testDelegationCredentialSetup?(): Promise<boolean> {
     return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
-  }
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown> {
-    return this.deps.originalCalendar.watchCalendar?.(options) || Promise.resolve();
-  }
-
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void> {
-    return this.deps.originalCalendar.unwatchCalendar?.(options) || Promise.resolve();
   }
 }

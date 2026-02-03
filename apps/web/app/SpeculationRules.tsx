@@ -23,6 +23,7 @@ export function SpeculationRules({
   };
 
   return (
+    // biome-ignore lint/security/noDangerouslySetInnerHtml: Speculation rules require inline script
     <Script
       dangerouslySetInnerHTML={{
         __html: `${JSON.stringify(speculationRules)}`,

@@ -2,11 +2,13 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import MeetingSessionDetailsScreenComponent from "@/components/screens/MeetingSessionDetailsScreen";
 import { CalComAPIService } from "@/services/calcom";
 import type { ConferencingSession } from "@/services/types/bookings.types";
+import { showErrorAlert } from "@/utils/alerts";
 
 /**
  * Get the presentation style for the meeting session details sheet
@@ -26,6 +28,9 @@ export default function MeetingSessionDetailsIOS() {
   const insets = useSafeAreaInsets();
   const [sessions, setSessions] = useState<ConferencingSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   useEffect(() => {
     if (uid) {
@@ -35,13 +40,13 @@ export default function MeetingSessionDetailsIOS() {
           setSessions(sessionsData);
         })
         .catch(() => {
-          Alert.alert("Error", "Failed to load session details");
+          showErrorAlert("Error", "Failed to load session details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
@@ -59,7 +64,7 @@ export default function MeetingSessionDetailsIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "transparent" : theme.background,
           },
         }}
       />
@@ -77,14 +82,14 @@ export default function MeetingSessionDetailsIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "transparent" : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
       >
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={theme.text} />
           </View>
         ) : (
           <MeetingSessionDetailsScreenComponent

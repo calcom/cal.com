@@ -296,6 +296,7 @@ function EventTypeSingleLayout({
               className="primary-navigation w-64"
               tabs={EventTypeTabs}
               sticky
+              stickyOffset="var(--navbar-height, 64px)"
               linkShallow
               itemClassname="items-start"
             />

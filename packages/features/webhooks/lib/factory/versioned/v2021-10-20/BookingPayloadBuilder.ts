@@ -45,6 +45,7 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           extra: {
             cancelledBy: dto.cancelledBy,
             cancellationReason: dto.cancellationReason,
+            requestReschedule: dto.requestReschedule ?? false,
           },
         });
 
