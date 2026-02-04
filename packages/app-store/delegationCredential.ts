@@ -301,7 +301,7 @@ async function _getDelegationCredentialsMapPerUser({
   return credentialsByUserId;
 }
 
-export async function checkIfSuccessfullyConfiguredInWorkspace({
+export async function assertSuccessfullyConfiguredInWorkspace({
   delegationCredential,
   user,
 }: {

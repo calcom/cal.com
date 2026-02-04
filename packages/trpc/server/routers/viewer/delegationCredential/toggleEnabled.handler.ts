@@ -1,4 +1,4 @@
-import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
+import { assertSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
 import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/integration-email-service";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
@@ -141,7 +141,7 @@ const assertWorkspaceConfigured = async ({
     throw new Error("Domain wide delegation doesn't have service account key");
   }
 
-  await checkIfSuccessfullyConfiguredInWorkspace({
+  await assertSuccessfullyConfiguredInWorkspace({
     delegationCredential,
     user,
   });
