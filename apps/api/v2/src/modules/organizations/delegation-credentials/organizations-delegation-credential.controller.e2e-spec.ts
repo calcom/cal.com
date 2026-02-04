@@ -1,6 +1,17 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { encryptServiceAccountKey } from "@calcom/platform-libraries";
 import type { Team, User } from "@calcom/prisma/client";
+
+// Mock the toggleDelegationCredentialEnabled function to bypass Google API calls
+const mockToggleDelegationCredentialEnabled = jest.fn();
+jest.mock("@calcom/platform-libraries/app-store", () => {
+  const actual = jest.requireActual("@calcom/platform-libraries/app-store");
+  return {
+    ...actual,
+    toggleDelegationCredentialEnabled: (...args: unknown[]) => mockToggleDelegationCredentialEnabled(...args),
+  };
+});
+
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -153,13 +164,16 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: { enabled: false },
       });
 
-      // Get the service from app after initialization and set up spies
+      // Mock toggleDelegationCredentialEnabled to return a valid response
+      mockToggleDelegationCredentialEnabled.mockResolvedValue({
+        id: delegationCredentialId,
+        enabled: true,
+      });
+
+      // Get the service from app after initialization and set up spy for ensureDefaultCalendars
       const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
       const ensureDefaultCalendarsSpy = jest
         .spyOn(delegationCredentialService, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-      const updateDelegationCredentialEnabledSpy = jest
-        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
         .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
@@ -177,7 +191,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "@test-domain.com");
 
       ensureDefaultCalendarsSpy.mockRestore();
-      updateDelegationCredentialEnabledSpy.mockRestore();
+      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     it("should not call ensureDefaultCalendars when disabling delegation credentials", async () => {
@@ -186,13 +200,16 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: { enabled: true },
       });
 
-      // Get the service from app after initialization and set up spies
+      // Mock toggleDelegationCredentialEnabled to return a valid response
+      mockToggleDelegationCredentialEnabled.mockResolvedValue({
+        id: delegationCredentialId,
+        enabled: false,
+      });
+
+      // Get the service from app after initialization and set up spy for ensureDefaultCalendars
       const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
       const ensureDefaultCalendarsSpy = jest
         .spyOn(delegationCredentialService, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-      const updateDelegationCredentialEnabledSpy = jest
-        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
         .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
@@ -210,7 +227,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
 
       ensureDefaultCalendarsSpy.mockRestore();
-      updateDelegationCredentialEnabledSpy.mockRestore();
+      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     it("should not call ensureDefaultCalendars when enabling already enabled delegation credentials", async () => {
@@ -219,13 +236,16 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: { enabled: true },
       });
 
-      // Get the service from app after initialization and set up spies
+      // Mock toggleDelegationCredentialEnabled to return a valid response
+      mockToggleDelegationCredentialEnabled.mockResolvedValue({
+        id: delegationCredentialId,
+        enabled: true,
+      });
+
+      // Get the service from app after initialization and set up spy for ensureDefaultCalendars
       const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
       const ensureDefaultCalendarsSpy = jest
         .spyOn(delegationCredentialService, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-      const updateDelegationCredentialEnabledSpy = jest
-        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
         .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
@@ -243,7 +263,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
 
       ensureDefaultCalendarsSpy.mockRestore();
-      updateDelegationCredentialEnabledSpy.mockRestore();
+      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     afterAll(async () => {
