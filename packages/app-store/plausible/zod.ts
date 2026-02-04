@@ -24,7 +24,7 @@ const domainSchema = z.preprocess(
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     PLAUSIBLE_URL: safeUrlSchema.optional().default("https://plausible.io/js/script.js").or(z.undefined()),
-    trackingId: domainSchema,
+    trackingId: domainSchema.optional(),
   })
 );
 

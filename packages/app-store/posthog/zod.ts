@@ -20,7 +20,7 @@ const posthogIdSchema = z.preprocess(
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    TRACKING_ID: posthogIdSchema,
+    TRACKING_ID: posthogIdSchema.optional(),
     API_HOST: safeUrlSchema.optional(),
   })
 );

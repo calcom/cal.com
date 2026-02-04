@@ -18,7 +18,7 @@ const twiplaSiteIdSchema = z.preprocess(
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    SITE_ID: twiplaSiteIdSchema,
+    SITE_ID: twiplaSiteIdSchema.optional(),
   })
 );
 
