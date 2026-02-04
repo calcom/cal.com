@@ -2199,6 +2199,7 @@
                   "organization.manageBilling",
                   "organization.changeMemberRole",
                   "organization.impersonate",
+                  "organization.passwordReset",
                   "organization.update",
                   "booking.read",
                   "booking.readOrgBookings",
@@ -27480,6 +27481,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -27587,6 +27589,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -27722,6 +27725,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -27828,6 +27832,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -31195,8 +31200,6 @@
               }
             ],
             "type": "array",
-            "minItems": 1,
-            "maxItems": 10,
             "items": {
               "$ref": "#/components/schemas/Guest"
             }
