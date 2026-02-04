@@ -29,6 +29,9 @@ describe("formatIdentifierToVariable", () => {
   it("should trim whitespace", () => {
     expect(formatIdentifierToVariable("  Company Name  ")).toBe("COMPANY_NAME");
   });
+  it("should preserve numbers", () => {
+    expect(formatIdentifierToVariable("Company123_Name")).toBe("COMPANY123_NAME");
+  });
 });
 
 describe("getVariableFormats", () => {
