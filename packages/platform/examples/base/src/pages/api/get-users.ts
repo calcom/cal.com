@@ -15,7 +15,7 @@ export type Data = {
 // example endpoint to endpoint to fetch managed users
 export default async function handler(_req: NextApiRequest, res: NextApiResponse<Data>) {
   const existingUsers = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
-  if (existingUsers && existingUsers.length > 2) {
+  if (existingUsers && existingUsers.length) {
     return res.status(200).json({
       users: existingUsers.map((item) => ({
         id: item.calcomUserId,
