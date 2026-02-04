@@ -503,7 +503,8 @@ export class ManagedEventManualReassignmentService {
         .withIdentifiers({
           iCalUID: newBooking.iCalUID || undefined,
         })
-        .withUid(newBooking.uid);
+        .withUid(newBooking.uid)
+        .withHideBranding(!!newUser.hideBranding);
 
       if (newUser.destinationCalendar) {
         builder.withDestinationCalendar([newUser.destinationCalendar]);
@@ -716,7 +717,8 @@ export class ManagedEventManualReassignmentService {
         .withLocation({
           location: bookingLocation || null,
         })
-        .withUid(newBooking.uid);
+        .withUid(newBooking.uid)
+        .withHideBranding(!!newUser.hideBranding);
 
       if (videoCallData) {
         emailBuilder.withVideoCallData(videoCallData);
