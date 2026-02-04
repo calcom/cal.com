@@ -33,55 +33,60 @@ export interface BookingActionContext {
   }>;
   getSeatReferenceUid: () => string | undefined;
   t: (key: string) => string;
-  checkIfUserIsAuthorizedToConfirmBooking: () => boolean;
+}
+
+function checkIfUserIsHost(booking: BookingItemProps, userId?: number | null): boolean {
+  if (!userId) return false;
+
+  return !!(
+    booking.user?.id === userId ||
+    booking.eventType.hosts?.some(
+      (host) =>
+        host.user?.id === userId &&
+        booking.attendees.some((attendee) => attendee.email === host.user?.email)
+    )
+  );
+}
+
+export function checkIfUserIsAuthorizedToConfirmBooking(booking: BookingItemProps): boolean {
+  const isUserOwner = booking.user?.id === booking.loggedInUser.userId;
+  const isUserTeamEventHost = checkIfUserIsHost(booking, booking.loggedInUser.userId);
+  const isUserTeamAdminOrOwner = booking.loggedInUser.teamsWhereUserIsAdminOrOwner?.some(
+    (team) =>
+      team.teamId === booking.eventType?.team?.id || team.teamId === booking.eventType?.parent?.teamId
+  );
+  return !!(
+    isUserOwner ||
+    isUserTeamEventHost ||
+    booking.loggedInUser.userIsOrgAdminOrOwner ||
+    isUserTeamAdminOrOwner
+  );
 }
 
 export function getPendingActions(context: BookingActionContext): ActionType[] {
-  const {
-    booking,
-    isPending,
-    isTabRecurring,
-    isTabUnconfirmed,
-    isRecurring,
-    showPendingPayment,
-    t,
-    checkIfUserIsAuthorizedToConfirmBooking,
-    getSeatReferenceUid,
-  } = context;
+  const { booking, isPending, isTabRecurring, isTabUnconfirmed, isRecurring, showPendingPayment, t } =
+    context;
 
   const actions: ActionType[] = [];
 
-  if (!checkIfUserIsAuthorizedToConfirmBooking()) {
+  // For bookings with payment, only confirm if the booking is paid for
+  // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
+  if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
     actions.push({
-      id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
-      icon: "circle-x",
-      color: "destructive",
-      disabled: isActionDisabled("cancel", context),
-    });
-  } else {
-    actions.push({
-      id: "reject",
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      icon: "ban",
+      id: "confirm",
+      bookingUid: booking.uid,
+      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+      icon: "check" as const,
       disabled: false, // This would be controlled by mutation state in the component
     });
-
-    // For bookings with payment, only confirm if the booking is paid for
-    // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
-    if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
-      actions.push({
-        id: "confirm",
-        bookingUid: booking.uid,
-        label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-        icon: "check" as const,
-        disabled: false, // This would be controlled by mutation state in the component
-      });
-    }
   }
+
+  actions.push({
+    id: "reject",
+    label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
+    icon: "ban",
+    disabled: false, // This would be controlled by mutation state in the component
+  });
 
   return actions;
 }
@@ -239,8 +244,8 @@ export function getAfterEventActions(context: BookingActionContext): ActionType[
 }
 
 export function shouldShowPendingActions(context: BookingActionContext): boolean {
-  const { isPending, isUpcoming, isCancelled } = context;
-  return isPending && isUpcoming && !isCancelled;
+  const { booking, isPending, isUpcoming, isCancelled } = context;
+  return isPending && isUpcoming && !isCancelled && checkIfUserIsAuthorizedToConfirmBooking(booking);
 }
 
 export function shouldShowEditActions(context: BookingActionContext): boolean {
