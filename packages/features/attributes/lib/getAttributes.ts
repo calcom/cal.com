@@ -350,7 +350,7 @@ async function _queryAllData({
   const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] =
     await Promise.all([
       _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
-      attributeRepo.findManyByOrgId({ orgId }),
+      attributeRepo.findManyByOrgId({ orgId, attributeIds }),
     ]);
 
   const orgMembershipIds = Array.from(
