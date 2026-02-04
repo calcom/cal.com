@@ -93,9 +93,8 @@ export const zodNonRouterRoute = z.object({
     value: z.string(),
   }),
   /**
-   * Fallback action for the fallback attributes query.
-   * Used when the fallback query matches but no users are found or as an alternative action.
-   * Has the same structure as the main action.
+   * Fallback action used when the main attributes query finds no matching team members
+   * and no CRM contact owner (if configured to check) exists.
    */
   fallbackAction: z
     .object({
