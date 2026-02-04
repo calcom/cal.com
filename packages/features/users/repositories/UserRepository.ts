@@ -1331,7 +1331,6 @@ export class UserRepository {
         locale: true,
         timeFormat: true,
         metadata: true,
-        hideBranding: true,
         credentials: {
           select: credentialForCalendarServiceSelect,
         },

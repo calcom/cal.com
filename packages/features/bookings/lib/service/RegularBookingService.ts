@@ -1574,7 +1574,6 @@ async function handler(
   }
 
   let evt: CalendarEvent = builtEvt;
-  evt.hideBranding = !!eventType.owner?.hideBranding;
 
   if (input.bookingData.thirdPartyRecurringEventId) {
     const updatedEvt = CalendarEventBuilder.fromEvent(evt)
