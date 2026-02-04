@@ -9,7 +9,10 @@ export enum ErrorCode {
   // Domain-specific error codes
   PaymentCreationFailure = "payment_not_created_error",
   NoAvailableUsersFound = "no_available_users_found_error",
+  // Thrown when charging a card fails (e.g., insufficient funds, card declined during actual payment)
   ChargeCardFailure = "couldnt_charge_card_error",
+  // Thrown when collecting/verifying a payment method fails (e.g., card setup failed during HOLD payment flow)
+  CollectCardFailure = "couldnt_collect_card_error",
   RequestBodyWithouEnd = "request_body_end_time_internal_error",
   AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
   FixedHostsUnavailableForBooking = "fixed_hosts_unavailable_for_booking",

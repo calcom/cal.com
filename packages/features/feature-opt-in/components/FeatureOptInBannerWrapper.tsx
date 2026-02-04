@@ -2,6 +2,7 @@
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import type { ReactElement } from "react";
+import { createPortal } from "react-dom";
 
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
 import type { FeatureOptInMutations } from "./FeatureOptInConfirmDialog";
@@ -12,6 +13,12 @@ type UserRoleContext = {
   orgId: number | null;
   adminTeamIds: number[];
   adminTeamNames: { id: number; name: string }[];
+};
+
+type FeatureOptInTrackingData = {
+  enableFor: "user" | "organization" | "teams";
+  teamCount?: number;
+  autoOptIn: boolean;
 };
 
 type FeatureOptInBannerState = {
@@ -27,6 +34,7 @@ type FeatureOptInBannerState = {
   dismiss: () => void;
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
+  trackFeatureEnabled: (data: FeatureOptInTrackingData) => void;
 };
 
 interface FeatureOptInBannerWrapperProps {
@@ -40,13 +48,16 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
 
   return (
     <>
-      {state.shouldShow && (
-        <FeatureOptInBanner
-          featureConfig={state.featureConfig}
-          onDismiss={state.dismiss}
-          onOpenDialog={state.openDialog}
-        />
-      )}
+      {state.shouldShow &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <FeatureOptInBanner
+            featureConfig={state.featureConfig}
+            onDismiss={state.dismiss}
+            onOpenDialog={state.openDialog}
+          />,
+          document.body
+        )}
       {state.userRoleContext && (
         <FeatureOptInConfirmDialog
           isOpen={state.isDialogOpen}
@@ -56,6 +67,7 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           featureConfig={state.featureConfig}
           userRoleContext={state.userRoleContext}
           mutations={state.mutations}
+          onTrackFeatureEnabled={state.trackFeatureEnabled}
         />
       )}
     </>

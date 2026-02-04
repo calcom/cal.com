@@ -1,6 +1,11 @@
 "use client";
 
-import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+} from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
@@ -10,15 +15,23 @@ import {
   convertFacetedValuesToMap,
   useDataTable,
 } from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters } from "~/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+} from "~/data-table/components";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/lib/types";
+import type {
+  CallDetailsState,
+  CallDetailsAction,
+} from "@calcom/features/ee/workflows/lib/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { CallDetailsSheet } from "@calcom/web/modules/ee/workflows/components/CallDetailsSheet";
 
@@ -47,7 +60,10 @@ const initialState: CallDetailsState = {
   },
 };
 
-function reducer(state: CallDetailsState, action: CallDetailsAction): CallDetailsState {
+function reducer(
+  state: CallDetailsState,
+  action: CallDetailsAction
+): CallDetailsState {
   switch (action.type) {
     case "OPEN_CALL_DETAILS":
       return { ...state, callDetailsSheet: action.payload };
@@ -65,7 +81,11 @@ function CallHistoryTable(props: CallHistoryProps) {
   const pathname = usePathname();
   if (!pathname) return null;
   return (
-    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider
+      tableIdentifier={pathname}
+      useSegments={useSegments}
+      defaultPageSize={25}
+    >
       <CallHistoryContent {...props} />
     </DataTableProvider>
   );
@@ -95,20 +115,29 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
 
     return callsData.calls.map((call) => ({
       id: call.call_id || Math.random().toString(),
-      time: call.start_timestamp ? new Date(call.start_timestamp).toISOString() : new Date().toISOString(),
+      time: call.start_timestamp
+        ? new Date(call.start_timestamp).toISOString()
+        : new Date().toISOString(),
       duration: Math.round((call.duration_ms || 0) / 1000),
-      channelType: (call.call_type || "phone_call") as "web_call" | "phone_call",
+      channelType: (call.call_type || "phone_call") as
+        | "web_call"
+        | "phone_call",
       sessionId: call.call_id || t("unknown"),
       endReason: call.disconnection_reason || t("unknown"),
       sessionStatus:
-        call.call_status === "ended" ? "completed" : call.call_status === "ongoing" ? "ongoing" : "failed",
+        call.call_status === "ended"
+          ? "completed"
+          : call.call_status === "ongoing"
+          ? "ongoing"
+          : "failed",
       userSentiment:
         call.call_analysis?.user_sentiment?.toLowerCase() === "positive"
           ? "positive"
           : call.call_analysis?.user_sentiment?.toLowerCase() === "negative"
           ? "negative"
           : "neutral",
-      from: "from_number" in call ? call.from_number || t("unknown") : t("unknown"),
+      from:
+        "from_number" in call ? call.from_number || t("unknown") : t("unknown"),
       to: "to_number" in call ? call.to_number || t("unknown") : t("unknown"),
       callCreated: call.call_analysis?.call_successful ?? true,
       inVoicemail: call.call_analysis?.in_voicemail ?? false,
@@ -141,7 +170,11 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           const seconds = row.original.duration;
           const minutes = Math.floor(seconds / 60);
           const remainingSeconds = seconds % 60;
-          return <span>{`${minutes}:${remainingSeconds.toString().padStart(2, "0")}`}</span>;
+          return (
+            <span>{`${minutes}:${remainingSeconds
+              .toString()
+              .padStart(2, "0")}`}</span>
+          );
         },
       },
       {
@@ -159,7 +192,9 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         accessorKey: "sessionId",
         header: t("session_id"),
         size: 210,
-        cell: ({ row }) => <code className="text-xs">{row.original.sessionId}</code>,
+        cell: ({ row }) => (
+          <code className="text-xs">{row.original.sessionId}</code>
+        ),
       },
       {
         id: "endReason",
@@ -178,7 +213,12 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         },
         cell: ({ row }) => {
           const status = row.original.sessionStatus;
-          const variant = status === "completed" ? "green" : status === "ongoing" ? "blue" : "red";
+          const variant =
+            status === "completed"
+              ? "green"
+              : status === "ongoing"
+              ? "blue"
+              : "red";
           return <Badge variant={variant}>{status}</Badge>;
         },
       },
@@ -192,7 +232,12 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         },
         cell: ({ row }) => {
           const sentiment = row.original.userSentiment;
-          const variant = sentiment === "positive" ? "green" : sentiment === "negative" ? "red" : "gray";
+          const variant =
+            sentiment === "positive"
+              ? "green"
+              : sentiment === "negative"
+              ? "red"
+              : "gray";
           return <Badge variant={variant}>{sentiment}</Badge>;
         },
       },
@@ -216,7 +261,11 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         cell: ({ row }) => {
           const created = row.original.callCreated;
           const variant = created ? "green" : "red";
-          return <Badge variant={variant}>{created ? t("successful") : t("unsuccessful")}</Badge>;
+          return (
+            <Badge variant={variant}>
+              {created ? t("successful") : t("unsuccessful")}
+            </Badge>
+          );
         },
       },
       {
@@ -227,7 +276,9 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         cell: ({ row }) => {
           const inVoicemail = row.original.inVoicemail;
           const variant = inVoicemail ? "blue" : "gray";
-          return <Badge variant={variant}>{inVoicemail ? t("yes") : t("no")}</Badge>;
+          return (
+            <Badge variant={variant}>{inVoicemail ? t("yes") : t("no")}</Badge>
+          );
         },
       },
     ],
@@ -286,7 +337,9 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         paginationMode="standard"
         rowClassName="cursor-pointer hover:bg-subtle"
         onRowMouseclick={(row) => {
-          const callIndex = callHistoryData.findIndex((call) => call.id === row.original.id);
+          const callIndex = callHistoryData.findIndex(
+            (call) => call.id === row.original.id
+          );
           if (callIndex !== -1 && callsData?.calls?.[callIndex]) {
             dispatch({
               type: "OPEN_CALL_DETAILS",
@@ -312,14 +365,27 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         EmptyView={
           <EmptyScreen
             Icon="phone"
-            headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
+            headline={
+              searchTerm
+                ? t("no_result_found_for", { searchTerm })
+                : t("no_call_history")
+            }
             description={t("no_call_history_description")}
             className="mb-16"
+            buttonRaw={
+              !searchTerm && (
+                <Button href="/workflow/new?action=calAi&templateWorkflowId=wf-11">
+                  {t("create_first_workflow")}
+                </Button>
+              )
+            }
           />
         }
       />
 
-      {state.callDetailsSheet.showModal && <CallDetailsSheet state={state} dispatch={dispatch} />}
+      {state.callDetailsSheet.showModal && (
+        <CallDetailsSheet state={state} dispatch={dispatch} />
+      )}
     </>
   );
 }

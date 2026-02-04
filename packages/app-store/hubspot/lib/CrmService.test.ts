@@ -1,12 +1,10 @@
-import type { TFunction } from "i18next";
-
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM } from "@calcom/types/CrmService";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import type { TFunction } from "i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
-
 import { CrmFieldType, DateFieldType, WhenToWrite } from "../../_lib/crm-enums";
 import type { appDataSchema } from "../zod";
 
@@ -18,6 +16,7 @@ const {
   mockGetAppKeysFromSlug,
   mockTrackingRepository,
   mockBookingRepository,
+  mockCheckIfFreeEmailDomain,
 }: {
   mockHubspotClient: {
     crm: {
@@ -28,7 +27,7 @@ const {
           create: ReturnType<typeof vi.fn>;
           getById: ReturnType<typeof vi.fn>;
           update: ReturnType<typeof vi.fn>;
-        }; 
+        };
       };
       objects: {
         meetings: {
@@ -40,7 +39,7 @@ const {
         };
       };
       associations: { batchApi: { create: ReturnType<typeof vi.fn> } };
-      owners: { ownersApi: { getPage: ReturnType<typeof vi.fn> } };
+      owners: { ownersApi: { getPage: ReturnType<typeof vi.fn>; getById: ReturnType<typeof vi.fn> } };
     };
     oauth: { tokensApi: { createToken: ReturnType<typeof vi.fn> } };
     setAccessToken: ReturnType<typeof vi.fn>;
@@ -48,6 +47,7 @@ const {
   mockGetAppKeysFromSlug: ReturnType<typeof vi.fn>;
   mockTrackingRepository: { findByBookingUid: ReturnType<typeof vi.fn> };
   mockBookingRepository: { findBookingByUid: ReturnType<typeof vi.fn> };
+  mockCheckIfFreeEmailDomain: ReturnType<typeof vi.fn>;
 } = vi.hoisted(() => {
   const mockHubspotClient = {
     crm: {
@@ -83,6 +83,7 @@ const {
       owners: {
         ownersApi: {
           getPage: vi.fn(),
+          getById: vi.fn(),
         },
       },
     },
@@ -107,7 +108,15 @@ const {
     findBookingByUid: vi.fn(),
   };
 
-  return { mockHubspotClient, mockGetAppKeysFromSlug, mockTrackingRepository, mockBookingRepository };
+  const mockCheckIfFreeEmailDomain = vi.fn();
+
+  return {
+    mockHubspotClient,
+    mockGetAppKeysFromSlug,
+    mockTrackingRepository,
+    mockBookingRepository,
+    mockCheckIfFreeEmailDomain,
+  };
 });
 
 vi.mock("@hubspot/api-client", () => {
@@ -144,6 +153,10 @@ vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   },
 }));
 
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: mockCheckIfFreeEmailDomain,
+}));
+
 import BuildCrmService from "./CrmService";
 
 describe("HubspotCalendarService", () => {
@@ -178,6 +191,7 @@ describe("HubspotCalendarService", () => {
         email: "test-user@example.com",
       },
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
     service = BuildCrmService(mockCredential, {}) as CRM & { getAppOptions: () => AppOptions };
@@ -283,6 +297,198 @@ describe("HubspotCalendarService", () => {
       const result = await service.getContacts({ emails: "nonexistent@example.com" });
 
       expect(result).toEqual([]);
+    });
+
+    describe("forRoundRobinSkip param is passed", () => {
+      it("should return contact with owner info when forRoundRobinSkip is true", async () => {
+        mockAppOptions({ roundRobinLeadSkip: true });
+
+        mockHubspotClient.crm.contacts.searchApi.doSearch.mockResolvedValueOnce({
+          results: [
+            {
+              id: "contact-1",
+              properties: {
+                email: "test@example.com",
+                hubspot_owner_id: "12345",
+              },
+            },
+          ],
+        });
+
+        mockHubspotClient.crm.owners.ownersApi.getById.mockResolvedValueOnce({
+          id: "12345",
+          email: "owner@example.com",
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact-1",
+            email: "test@example.com",
+            ownerId: "12345",
+            ownerEmail: "owner@example.com",
+            recordType: "CONTACT",
+          },
+        ]);
+
+        expect(mockHubspotClient.crm.contacts.searchApi.doSearch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: ["hs_object_id", "email", "hubspot_owner_id"],
+          })
+        );
+
+        expect(mockHubspotClient.crm.owners.ownersApi.getById).toHaveBeenCalledWith(12345);
+      });
+
+      it("should return contact without ownerEmail when contact has no owner", async () => {
+        mockAppOptions({ roundRobinLeadSkip: true });
+
+        mockHubspotClient.crm.contacts.searchApi.doSearch.mockResolvedValueOnce({
+          results: [
+            {
+              id: "contact-1",
+              properties: {
+                email: "test@example.com",
+                hubspot_owner_id: null,
+              },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact-1",
+            email: "test@example.com",
+            ownerId: null,
+            ownerEmail: undefined,
+            recordType: "CONTACT",
+          },
+        ]);
+
+        expect(mockHubspotClient.crm.owners.ownersApi.getById).not.toHaveBeenCalled();
+      });
+
+      it("should skip owner lookup for free email domains when ifFreeEmailDomainSkipOwnerCheck is enabled", async () => {
+        mockAppOptions({ roundRobinLeadSkip: true, ifFreeEmailDomainSkipOwnerCheck: true });
+        mockCheckIfFreeEmailDomain.mockResolvedValueOnce(true);
+
+        mockHubspotClient.crm.contacts.searchApi.doSearch.mockResolvedValueOnce({
+          results: [
+            {
+              id: "contact-1",
+              properties: {
+                email: "user@gmail.com",
+              },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "user@gmail.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact-1",
+            email: "user@gmail.com",
+          },
+        ]);
+
+        expect(mockCheckIfFreeEmailDomain).toHaveBeenCalledWith({ email: "user@gmail.com" });
+        expect(mockHubspotClient.crm.contacts.searchApi.doSearch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: ["hs_object_id", "email"],
+          })
+        );
+        expect(mockHubspotClient.crm.owners.ownersApi.getById).not.toHaveBeenCalled();
+      });
+
+      it("should include owner lookup for business email domains even when ifFreeEmailDomainSkipOwnerCheck is enabled", async () => {
+        mockAppOptions({ roundRobinLeadSkip: true, ifFreeEmailDomainSkipOwnerCheck: true });
+        mockCheckIfFreeEmailDomain.mockResolvedValueOnce(false);
+
+        mockHubspotClient.crm.contacts.searchApi.doSearch.mockResolvedValueOnce({
+          results: [
+            {
+              id: "contact-1",
+              properties: {
+                email: "user@company.com",
+                hubspot_owner_id: "45678",
+              },
+            },
+          ],
+        });
+
+        mockHubspotClient.crm.owners.ownersApi.getById.mockResolvedValueOnce({
+          id: "45678",
+          email: "owner@company.com",
+        });
+
+        const result = await service.getContacts({
+          emails: "user@company.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact-1",
+            email: "user@company.com",
+            ownerId: "45678",
+            ownerEmail: "owner@company.com",
+            recordType: "CONTACT",
+          },
+        ]);
+
+        expect(mockCheckIfFreeEmailDomain).toHaveBeenCalledWith({ email: "user@company.com" });
+        expect(mockHubspotClient.crm.contacts.searchApi.doSearch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: ["hs_object_id", "email", "hubspot_owner_id"],
+          })
+        );
+      });
+
+      it("should handle owner lookup API error gracefully", async () => {
+        mockAppOptions({ roundRobinLeadSkip: true });
+
+        mockHubspotClient.crm.contacts.searchApi.doSearch.mockResolvedValueOnce({
+          results: [
+            {
+              id: "contact-1",
+              properties: {
+                email: "test@example.com",
+                hubspot_owner_id: "99999",
+              },
+            },
+          ],
+        });
+
+        mockHubspotClient.crm.owners.ownersApi.getById.mockRejectedValueOnce(new Error("Owner not found"));
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact-1",
+            email: "test@example.com",
+            ownerId: "99999",
+            ownerEmail: undefined,
+            recordType: "CONTACT",
+          },
+        ]);
+      });
     });
   });
 

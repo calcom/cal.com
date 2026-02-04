@@ -1,10 +1,12 @@
-import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
-import { moduleLoader as teamFeatureRepositoryModuleLoader } from "../../flags/di/TeamFeatureRepository.module";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import { moduleLoader as cachedTeamFeatureRepositoryModuleLoader } from "../../flags/di/CachedTeamFeatureRepository.module";
 import { createContainer } from "../di";
 
 const teamFeatureRepositoryContainer = createContainer();
 
 export function getTeamFeatureRepository(): ITeamFeatureRepository {
-  teamFeatureRepositoryModuleLoader.loadModule(teamFeatureRepositoryContainer);
-  return teamFeatureRepositoryContainer.get<ITeamFeatureRepository>(teamFeatureRepositoryModuleLoader.token);
+  cachedTeamFeatureRepositoryModuleLoader.loadModule(teamFeatureRepositoryContainer);
+  return teamFeatureRepositoryContainer.get<ITeamFeatureRepository>(
+    cachedTeamFeatureRepositoryModuleLoader.token
+  );
 }

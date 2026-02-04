@@ -1,11 +1,11 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import IntegrationAttributeSyncView from "@calcom/features/ee/integration-attribute-sync/IntegrationAttributeSyncView";
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
+import IntegrationAttributeSyncView from "@calcom/web/modules/integration-attribute-sync/components/IntegrationAttributeSyncView";
 
 import { validateUserHasOrgPerms } from "../../../actions/validateUserHasOrgPerms";
 

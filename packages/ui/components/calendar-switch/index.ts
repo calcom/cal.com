@@ -1,1 +1,1 @@
-export { CalendarSwitchComponent } from "./CalendarSwitch";
+export { CalendarSwitchComponent, type ICalendarSwitchProps } from "./CalendarSwitch";
