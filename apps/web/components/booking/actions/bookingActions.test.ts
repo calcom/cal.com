@@ -13,6 +13,7 @@ import {
   shouldShowRecurringCancelAction,
   isActionDisabled,
   getActionLabel,
+  checkIfUserIsAuthorizedToConfirmBooking,
   type BookingActionContext,
 } from "./bookingActions";
 
@@ -125,14 +126,85 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
     ],
     getSeatReferenceUid: () => undefined,
     t: mockT,
-    checkIfUserIsAuthorizedToConfirmBooking: () => true,
     ...overrides,
-  } as BookingActionContext;
+  };
 }
+
+describe("checkIfUserIsAuthorizedToConfirmBooking", () => {
+  it("should return true when user is the booking owner", () => {
+    const booking = createMockContext().booking;
+    // booking.user.id === 1, loggedInUser.userId === 1
+    expect(checkIfUserIsAuthorizedToConfirmBooking(booking)).toBe(true);
+  });
+
+  it("should return false when user is not owner and not a host", () => {
+    const booking = {
+      ...createMockContext().booking,
+      loggedInUser: {
+        userId: 999,
+        userTimeZone: "America/New_York",
+        userTimeFormat: 12,
+        userEmail: "other@example.com",
+      },
+    };
+    expect(checkIfUserIsAuthorizedToConfirmBooking(booking)).toBe(false);
+  });
+
+  it("should return true when user is a team event host", () => {
+    const booking = {
+      ...createMockContext().booking,
+      user: { id: 1, name: "Organizer", email: "organizer@example.com" },
+      loggedInUser: {
+        userId: 2,
+        userTimeZone: "America/New_York",
+        userTimeFormat: 12,
+        userEmail: "host@example.com",
+      },
+      eventType: {
+        ...createMockContext().booking.eventType,
+        hosts: [{ user: { id: 2, email: "host@example.com" } }],
+      },
+      attendees: [{ id: 1, email: "host@example.com", name: "Host", timeZone: "UTC", phoneNumber: null, locale: "en", bookingId: 1, noShow: false }],
+    };
+    expect(checkIfUserIsAuthorizedToConfirmBooking(booking)).toBe(true);
+  });
+
+  it("should return true when user is org admin or owner", () => {
+    const booking = {
+      ...createMockContext().booking,
+      loggedInUser: {
+        userId: 999,
+        userTimeZone: "America/New_York",
+        userTimeFormat: 12,
+        userEmail: "admin@example.com",
+        userIsOrgAdminOrOwner: true,
+      },
+    };
+    expect(checkIfUserIsAuthorizedToConfirmBooking(booking)).toBe(true);
+  });
+
+  it("should return true when user is team admin or owner", () => {
+    const booking = {
+      ...createMockContext().booking,
+      loggedInUser: {
+        userId: 999,
+        userTimeZone: "America/New_York",
+        userTimeFormat: 12,
+        userEmail: "teamadmin@example.com",
+        teamsWhereUserIsAdminOrOwner: [{ teamId: 1 }],
+      },
+      eventType: {
+        ...createMockContext().booking.eventType,
+        team: { id: 1, name: "Test Team" },
+      },
+    };
+    expect(checkIfUserIsAuthorizedToConfirmBooking(booking)).toBe(true);
+  });
+});
 
 describe("Booking Actions", () => {
   describe("getPendingActions", () => {
-    it("should return reject action for pending booking", () => {
+    it("should return confirm and reject actions for pending booking", () => {
       const context = createMockContext({ isPending: true });
       const actions = getPendingActions(context);
 
@@ -150,47 +222,6 @@ describe("Booking Actions", () => {
         icon: "ban",
         disabled: false,
       });
-    });
-
-
-    it("should return cancel action for pending bookings when user is booker", () => {
-      const context = createMockContext({
-        isPending: true,
-        isConfirmed: false,
-        checkIfUserIsAuthorizedToConfirmBooking: () => false,
-      });
-      const actions = getPendingActions(context);
-      expect(actions).toEqual([
-        {
-          id: "cancel",
-          label: "cancel_event",
-          href: "/booking/booking-123?cancel=true",
-          icon: "circle-x",
-          color: "destructive",
-          disabled: false,
-        },
-      ]);
-    });
-
-    it("should return cancel all action for pending recurring bookings when user is booker", () => {
-      const context = createMockContext({
-        isPending: true,
-        isConfirmed: false,
-        isRecurring: true,
-        isTabRecurring: true,
-        checkIfUserIsAuthorizedToConfirmBooking: () => false,
-      });
-      const actions = getPendingActions(context);
-      expect(actions).toEqual([
-        {
-          id: "cancel",
-          label: "cancel_all_remaining",
-          href: "/booking/booking-123?cancel=true&allRemainingBookings=true",
-          icon: "circle-x",
-          color: "destructive",
-          disabled: false,
-        },
-      ]);
     });
 
     it("should return reject action only for non-pending booking", () => {
@@ -547,9 +578,28 @@ describe("Booking Actions", () => {
   });
 
   describe("shouldShowPendingActions", () => {
-    it("should return true for pending upcoming bookings", () => {
+    it("should return true for pending upcoming bookings when user is authorized (owner)", () => {
       const context = createMockContext({ isPending: true, isUpcoming: true, isCancelled: false });
+      // Default mock has user.id === loggedInUser.userId (both are 1), so user is owner
       expect(shouldShowPendingActions(context)).toBe(true);
+    });
+
+    it("should return false for pending upcoming bookings when user is not authorized", () => {
+      const context = createMockContext({
+        isPending: true,
+        isUpcoming: true,
+        isCancelled: false,
+        booking: {
+          ...createMockContext().booking,
+          loggedInUser: {
+            userId: 999, // Different from booking.user.id (1)
+            userTimeZone: "America/New_York",
+            userTimeFormat: 12,
+            userEmail: "other@example.com",
+          },
+        },
+      });
+      expect(shouldShowPendingActions(context)).toBe(false);
     });
 
     it("should return false for cancelled bookings", () => {
