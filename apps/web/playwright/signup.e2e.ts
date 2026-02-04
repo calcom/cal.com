@@ -1,15 +1,14 @@
-import type { Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { hashSync } from "bcryptjs";
 import { randomBytes } from "node:crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
-import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
-import { getEmailsReceivedByUser } from "./lib/testUtils";
+import { getEmailsReceivedByUser, getInviteLink } from "./lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./team/expects";
 
 test.describe.configure({ mode: "parallel" });
@@ -423,130 +422,56 @@ test.describe("Email Signup Flow Test", async () => {
     await expect(submitButton).toBeEnabled();
   });
 
-  test("Signup with invite-link token (API v2 flow) creates user and joins team", async ({
-    page,
-    prisma,
-    users,
-  }) => {
-    const token = randomBytes(32).toString("hex");
-    const userEmail = `newuser-${Date.now()}@example.com`;
-
+  test("Signup with org invite link creates user and joins organization", async ({ page, users, browser }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
-
-    const verificationToken = await prisma.verificationToken.create({
-      data: {
-        identifier: `invite-link-for-teamId-${org.id}`,
-        token,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        expiresInDays: 7,
-        teamId: org.id,
-      },
-    });
-
-    await page.goto(`/signup?token=${token}&callbackUrl=/getting-started`);
-    await preventFlakyTest(page);
-    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
-
-    const usernameField = page.locator('input[name="username"]');
-    const isUsernameFieldVisible = await usernameField.isVisible().catch(() => false);
-    expect(isUsernameFieldVisible).toBe(false);
-
-    const emailField = page.locator('input[name="email"]');
-    expect(await emailField.inputValue()).toBe("");
-
-    await emailField.fill(userEmail);
-    await page.locator('input[name="password"]').fill("Password99!");
-
-    const submitButton = page.getByTestId("signup-submit-button");
-    await submitButton.click();
-
-    await expect(page).toHaveURL(/\/getting-started/);
-
-    const usernameDerivedFromEmail = getOrgUsernameFromEmail(userEmail, null);
-
     await orgOwner.apiLogin();
+    await page.goto(`/settings/organizations/${org.slug}/members`);
+
+    await page.getByTestId("new-organization-member-button").click();
+    const inviteLink = await getInviteLink(page);
+
+    const email = users.trackEmail({ username: "rick", domain: "domain.com" });
+    const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+
+    await signupFromInviteLink({ browser, inviteLink, email });
+
     await expectUserToBeAMemberOfOrganization({
       page,
       orgSlug: org.slug,
       username: usernameDerivedFromEmail,
-      email: userEmail,
       role: "member",
       isMemberShipAccepted: true,
-    });
-
-    await prisma.verificationToken.deleteMany({
-      where: { id: verificationToken.id },
+      email,
     });
   });
 
-  test("Signup with invite-link token for sub-team creates user and joins both team and org", async ({
+  test("Signup with sub-team invite link creates user and joins both team and org", async ({
     page,
-    prisma,
     users,
+    browser,
   }) => {
-    const token = randomBytes(32).toString("hex");
-    const userEmail = `newuser-${Date.now()}@example.com`;
-
-    const orgOwner = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      hasSubteam: true,
-    });
-    const { team: org } = await orgOwner.getOrgMembership();
-    const { team: subTeam } = await orgOwner.getFirstTeamMembership();
-
-    await prisma.team.update({
-      where: { id: org.id },
-      data: {
-        name: "Parent Organization",
-        organizationSettings: {
-          upsert: {
-            create: {
-              orgAutoAcceptEmail: "example.com",
-            },
-            update: {
-              orgAutoAcceptEmail: "example.com",
-            },
-          },
-        },
-      },
-    });
-
-    const verificationToken = await prisma.verificationToken.create({
-      data: {
-        identifier: `invite-link-for-teamId-${subTeam.id}`,
-        token,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        expiresInDays: 7,
-        teamId: subTeam.id,
-      },
-    });
-
-    await page.goto(`/signup?token=${token}&callbackUrl=/getting-started`);
-    await preventFlakyTest(page);
-    await expect(page.getByTestId("signup-submit-button")).toBeVisible();
-
-    const usernameField = page.locator('input[name="username"]');
-    const isUsernameFieldVisible = await usernameField.isVisible().catch(() => false);
-    expect(isUsernameFieldVisible).toBe(false);
-
-    await page.locator('input[name="email"]').fill(userEmail);
-    await page.locator('input[name="password"]').fill("Password99!");
-
-    await page.getByTestId("signup-submit-button").click();
-
-    await expect(page).toHaveURL(/\/getting-started/);
-
-    const usernameDerivedFromEmail = getOrgUsernameFromEmail(userEmail, "example.com");
-
+    const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true, hasSubteam: true });
     await orgOwner.apiLogin();
+    const { team: subTeam } = await orgOwner.getFirstTeamMembership();
+    const { team: org } = await orgOwner.getOrgMembership();
+
+    await page.goto(`/settings/teams/${subTeam.id}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500);
+    await page.getByTestId("new-member-button").click();
+    const inviteLink = await getInviteLink(page);
+
+    const email = users.trackEmail({ username: "rick", domain: "domain.com" });
+    const usernameDerivedFromEmail = `${email.split("@")[0]}-domain`;
+
+    await signupFromInviteLink({ browser, inviteLink, email });
 
     await expectUserToBeAMemberOfTeam({
       page,
       teamId: subTeam.id,
       username: usernameDerivedFromEmail,
-      email: userEmail,
+      email,
       role: "member",
       isMemberShipAccepted: true,
     });
@@ -555,13 +480,9 @@ test.describe("Email Signup Flow Test", async () => {
       page,
       orgSlug: org.slug,
       username: usernameDerivedFromEmail,
-      email: userEmail,
       role: "member",
       isMemberShipAccepted: true,
-    });
-
-    await prisma.verificationToken.deleteMany({
-      where: { id: verificationToken.id },
+      email,
     });
   });
 
@@ -692,4 +613,28 @@ async function expectUserToBeAMemberOfTeam({
   } else {
     await expect(page.locator(`[data-testid="email-${email.replace("@", "")}-pending"]`)).toBeVisible();
   }
+}
+
+async function signupFromInviteLink({
+  browser,
+  inviteLink,
+  email,
+}: {
+  browser: Browser;
+  inviteLink: string;
+  email: string;
+}) {
+  const context = await browser.newContext();
+  const inviteLinkPage = await context.newPage();
+  await inviteLinkPage.goto(inviteLink);
+  await expect(inviteLinkPage.locator("text=Create your account")).toBeVisible();
+
+  const button = inviteLinkPage.locator("button[type=submit][disabled]");
+  await expect(button).toBeVisible();
+
+  await inviteLinkPage.locator("input[name=email]").fill(email);
+  await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+  await inviteLinkPage.locator("button[type=submit]").click();
+  await inviteLinkPage.waitForURL("/getting-started");
+  await context.close();
 }
