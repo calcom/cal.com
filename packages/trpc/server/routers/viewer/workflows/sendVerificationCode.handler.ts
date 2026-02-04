@@ -1,5 +1,6 @@
 import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { sendVerificationCode } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -33,6 +34,11 @@ export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificati
   if (!isCurrentUsernamePremium && !isTeamsPlan && hasNoAdditionalCredits) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  await checkRateLimitAndThrowError({
+    identifier: `sendVerificationCode:${user.id}`,
+    rateLimitingType: "core",
+  });
 
   const { phoneNumber } = input;
   return sendVerificationCode(phoneNumber);
