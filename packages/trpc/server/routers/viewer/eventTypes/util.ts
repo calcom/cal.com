@@ -176,9 +176,9 @@ export const createEventPbacProcedure = (
         const isAllowed = (function () {
           if (event.team) {
             const allTeamMembers = event.team.members.map((member) => member.userId);
-            return input.users!.every((userId: number) => allTeamMembers.includes(userId));
+            return input.users?.every((userId: number) => allTeamMembers.includes(userId)) ?? true;
           }
-          return input.users!.every((userId: number) => userId === ctx.user.id);
+          return input.users?.every((userId: number) => userId === ctx.user.id) ?? true;
         })();
 
         if (!isAllowed) {

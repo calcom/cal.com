@@ -20,7 +20,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
 
   const handleLearnMore = () => {
     const redirectPath = flags["onboarding-v3"]
-      ? "/onboarding/organization/details"
+      ? "/onboarding/organization/details?migrate=true"
       : "/settings/organizations/new";
 
     posthog.capture("company_email_banner_upgrade_clicked");

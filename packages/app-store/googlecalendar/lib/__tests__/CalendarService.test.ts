@@ -20,8 +20,8 @@ import "vitest-fetch-mock";
 import logger from "@calcom/lib/logger";
 import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
-import CalendarService from "../CalendarService";
-import { createMockJWTInstance } from "./utils";
+import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
+import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -52,11 +52,12 @@ const mockCredential: CredentialForCalendarServiceWithEmail = {
   delegatedTo: null,
   invalid: false,
   teamId: null,
+  encryptedKey: null,
 };
 
 describe("getAvailability", () => {
   test("returns availability for selected calendars", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockedBusyTimes1 = [
       {
@@ -125,7 +126,7 @@ describe("getAvailability", () => {
 
 describe("getPrimaryCalendar", () => {
   test("should fetch primary calendar using 'primary' keyword", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = createGoogleCalendarServiceWithGoogleType(mockCredential);
     setFullMockOAuthManagerRequest();
     const mockPrimaryCalendar = {
       id: "user@example.com",
@@ -327,7 +328,7 @@ describe("Date Optimization Benchmarks", () => {
   });
 
   test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockBusyData = [
@@ -371,7 +372,7 @@ describe("Date Optimization Benchmarks", () => {
 
 describe("createEvent", () => {
   test("should create event with correct input/output format and handle all expected properties", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock Google Calendar API response
@@ -570,7 +571,7 @@ describe("createEvent", () => {
   });
 
   test("should handle recurring events correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock recurring event response
@@ -672,7 +673,7 @@ describe("createEvent", () => {
   });
 
   test("should use default reminders when no custom reminder is configured", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     const mockGoogleEvent = {
@@ -736,7 +737,7 @@ describe("createEvent", () => {
   });
 
   test("should handle 'just in time' reminder (0 minutes) correctly", async () => {
-    const calendarService = new CalendarService(mockCredential);
+    const calendarService = BuildCalendarService(mockCredential);
     setFullMockOAuthManagerRequest();
 
     // Mock the getReminderDuration method to return 0 (just in time)
@@ -801,5 +802,242 @@ describe("createEvent", () => {
     });
 
     log.info("createEvent with just in time reminders test passed");
+  });
+});
+
+describe("listCalendars", () => {
+  test("should filter out Google holiday calendars", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "user@example.com",
+              summary: "Primary Calendar",
+              primary: true,
+              accessRole: "owner",
+            },
+            {
+              id: "en.usa#holiday@group.v.calendar.google.com",
+              summary: "Holidays in United States",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: "en.christian#holiday@group.v.calendar.google.com",
+              summary: "Christian Holidays",
+              primary: false,
+              accessRole: "reader",
+            },
+          ],
+        },
+      };
+    });
+
+    const calendars = await calendarService.listCalendars();
+
+    expect(calendars).toHaveLength(1);
+    expect(calendars[0].externalId).toBe("user@example.com");
+    expect(calendars[0].name).toBe("Primary Calendar");
+  });
+
+  test("should filter out Google birthdays/contacts calendar", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "user@example.com",
+              summary: "Primary Calendar",
+              primary: true,
+              accessRole: "owner",
+            },
+            {
+              id: "addressbook#contacts@group.v.calendar.google.com",
+              summary: "Birthdays",
+              primary: false,
+              accessRole: "reader",
+            },
+          ],
+        },
+      };
+    });
+
+    const calendars = await calendarService.listCalendars();
+
+    expect(calendars).toHaveLength(1);
+    expect(calendars[0].externalId).toBe("user@example.com");
+  });
+
+  test("should filter out all Google system calendars while keeping regular calendars", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "user@example.com",
+              summary: "Primary Calendar",
+              primary: true,
+              accessRole: "owner",
+            },
+            {
+              id: "work@example.com",
+              summary: "Work Calendar",
+              primary: false,
+              accessRole: "owner",
+            },
+            {
+              id: "en.usa#holiday@group.v.calendar.google.com",
+              summary: "Holidays in United States",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: "addressbook#contacts@group.v.calendar.google.com",
+              summary: "Birthdays",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: "shared@example.com",
+              summary: "Shared Calendar",
+              primary: false,
+              accessRole: "writer",
+            },
+          ],
+        },
+      };
+    });
+
+    const calendars = await calendarService.listCalendars();
+
+    expect(calendars).toHaveLength(3);
+    const calendarIds = calendars.map((cal) => cal.externalId);
+    expect(calendarIds).toContain("user@example.com");
+    expect(calendarIds).toContain("work@example.com");
+    expect(calendarIds).toContain("shared@example.com");
+    expect(calendarIds).not.toContain("en.usa#holiday@group.v.calendar.google.com");
+    expect(calendarIds).not.toContain("addressbook#contacts@group.v.calendar.google.com");
+  });
+
+  test("should return empty array when all calendars are system calendars", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "en.usa#holiday@group.v.calendar.google.com",
+              summary: "Holidays in United States",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: "addressbook#contacts@group.v.calendar.google.com",
+              summary: "Birthdays",
+              primary: false,
+              accessRole: "reader",
+            },
+          ],
+        },
+      };
+    });
+
+    const calendars = await calendarService.listCalendars();
+
+    expect(calendars).toHaveLength(0);
+  });
+
+  test("should handle calendars with null or undefined ids", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "user@example.com",
+              summary: "Primary Calendar",
+              primary: true,
+              accessRole: "owner",
+            },
+            {
+              id: null,
+              summary: "Calendar with null id",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: undefined,
+              summary: "Calendar with undefined id",
+              primary: false,
+              accessRole: "reader",
+            },
+          ],
+        },
+      };
+    });
+
+    const calendars = await calendarService.listCalendars();
+
+    expect(calendars).toHaveLength(3);
+    expect(calendars[0].externalId).toBe("user@example.com");
+    expect(calendars[1].externalId).toBe("No id");
+    expect(calendars[2].externalId).toBe("No id");
+  });
+
+  test("should correctly identify various holiday calendar formats", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    calendarListMock.mockImplementation(() => {
+      return {
+        data: {
+          items: [
+            {
+              id: "user@example.com",
+              summary: "Primary Calendar",
+              primary: true,
+              accessRole: "owner",
+            },
+            {
+              id: "en.uk#holiday@group.v.calendar.google.com",
+              summary: "Holidays in United Kingdom",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: "de.german#holiday@group.v.calendar.google.com",
+              summary: "Holidays in Germany",
+              primary: false,
+              accessRole: "reader",
+            },
+            {
+              id: "ja.japanese#holiday@group.v.calendar.google.com",
+              summary: "Holidays in Japan",
+              primary: false,
+              accessRole: "reader",
+            },
+          ],
+        },
+      };
+    });
+
+    const calendars = await calendarService.listCalendars();
+
+    expect(calendars).toHaveLength(1);
+    expect(calendars[0].externalId).toBe("user@example.com");
   });
 });

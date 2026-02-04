@@ -1,8 +1,5 @@
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookVersion } from "../../interface/IWebhookRepository";
-
 import type {
   AfterGuestsNoShowDTO,
   AfterHostsNoShowDTO,
@@ -18,14 +15,11 @@ import type {
   TranscriptionGeneratedDTO,
   WebhookEventDTO,
 } from "../../dto/types";
+import type { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { WebhookPayload } from "../types";
 
 const log = logger.getSubLogger({ prefix: ["WebhookPayloadBuilderFactory"] });
 
-/**
- * Generic base interface for all payload builders
- * Ensures type-safe input DTOs and output payloads
- */
 export interface IPayloadBuilder<TInput extends WebhookEventDTO = WebhookEventDTO> {
   build(dto: TInput): WebhookPayload;
 }
@@ -65,10 +59,6 @@ export interface IDelegationPayloadBuilder extends IPayloadBuilder<DelegationCre
   build(dto: DelegationCredentialErrorDTO): WebhookPayload;
 }
 
-/**
- * Set of all payload builders for a specific webhook version
- * Each builder is properly typed for its respective event DTOs
- */
 export interface PayloadBuilderSet {
   booking: IBookingPayloadBuilder;
   form: IFormPayloadBuilder;
@@ -79,9 +69,6 @@ export interface PayloadBuilderSet {
   delegation: IDelegationPayloadBuilder;
 }
 
-/**
- * Builder categories - used for explicit routing
- */
 type BuilderCategory = keyof PayloadBuilderSet;
 
 /**
@@ -123,15 +110,12 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
 
   // Delegation events
   [WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR]: "delegation",
+
+  // Wrong assignment report events
+  [WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT]: "booking",
 };
 
-/**
- * Type mapping: TriggerEvent → DTO type
- * Used for compile-time type safety
- *
- * Note: WebhookTriggerEvents is a const object, so we use typeof to extract literal types
- */
-type BookingTriggerEvents =
+export type BookingTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_CREATED
   | typeof WebhookTriggerEvents.BOOKING_RESCHEDULED
   | typeof WebhookTriggerEvents.BOOKING_CANCELLED
@@ -141,25 +125,29 @@ type BookingTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_PAID
   | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
 
-type DelegationTriggerEvents = typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+export type PaymentTriggerEvents =
+  | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
+  | typeof WebhookTriggerEvents.BOOKING_PAID;
 
-type FormTriggerEvents =
+export type DelegationTriggerEvents = typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+
+export type FormTriggerEvents =
   | typeof WebhookTriggerEvents.FORM_SUBMITTED
   | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
 
-type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
+export type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
 
-type RecordingTriggerEvents =
+export type RecordingTriggerEvents =
   | typeof WebhookTriggerEvents.RECORDING_READY
   | typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
 
-type MeetingTriggerEvents =
+export type MeetingTriggerEvents =
   | typeof WebhookTriggerEvents.MEETING_STARTED
   | typeof WebhookTriggerEvents.MEETING_ENDED
   | typeof WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   | typeof WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW;
 
-type InstantMeetingTriggerEvents = typeof WebhookTriggerEvents.INSTANT_MEETING;
+export type InstantMeetingTriggerEvents = typeof WebhookTriggerEvents.INSTANT_MEETING;
 
 /**
  * Factory that routes to version-specific payload builders

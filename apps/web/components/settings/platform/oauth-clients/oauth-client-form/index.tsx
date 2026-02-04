@@ -231,6 +231,7 @@ export const OAuthClientForm = ({
               </div>
             </Tooltip>
           </div>
+          <p className="text-subtle mt-2 text-sm">{t("calendar_events_disabled_video_limitation")}</p>
         </div>
         <div className="mt-6">
           <div className="flex items-center">

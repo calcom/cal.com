@@ -508,7 +508,7 @@ export class MembershipRepository {
     return teams;
   }
 
-  static async findAllByUserId({
+  async findAllByUserId({
     userId,
     filters,
   }: {
@@ -518,7 +518,7 @@ export class MembershipRepository {
       roles?: MembershipRole[];
     };
   }) {
-    return prisma.membership.findMany({
+    return this.prismaClient.membership.findMany({
       where: {
         userId,
         ...(filters?.accepted !== undefined && { accepted: filters.accepted }),
@@ -592,5 +592,25 @@ export class MembershipRepository {
       },
     });
     return !!pendingInvite;
+  }
+
+  /**
+   * Checks if a user has any team membership (pending or accepted).
+   * Used during onboarding to detect users who signed up via invite token,
+   * where the membership is auto-accepted.
+   */
+  static async hasAnyTeamMembershipByUserId({ userId }: { userId: number }): Promise<boolean> {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        team: {
+          isOrganization: false,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!membership;
   }
 }

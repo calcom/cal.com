@@ -32,7 +32,6 @@
     "CALCOM_TELEMETRY_DISABLED",
     "CALCOM_CREDENTIAL_SYNC_HEADER_NAME",
     "CALENDSO_ENCRYPTION_KEY",
-    "CALCOM_CREDENTIAL_SYNC_SECRET",
     "CI",
     "CLOSECOM_CLIENT_ID",
     "CLOSECOM_CLIENT_SECRET",
@@ -90,7 +89,6 @@
     "INTEGRATION_TEST_MODE",
     "INTEGRATION_TESTS",
     "INTERCOM_SECRET",
-    "INTERCOM_SECRET",
     "INSIGHTS_DATABASE_URL",
     "IP_BANLIST",
     "LARK_OPEN_APP_ID",
@@ -102,7 +100,6 @@
     "NEXT_PUBLIC_APP_NAME",
     "NEXT_PUBLIC_CALCOM_VERSION",
     "NEXT_PUBLIC_COMPANY_NAME",
-    "NEXT_PUBLIC_CONSOLE_URL",
     "NEXT_PUBLIC_LOGGER_LEVEL",
     "NEXT_PUBLIC_DISABLE_SIGNUP",
     "NEXT_PUBLIC_EMBED_LIB_URL",
@@ -119,10 +116,8 @@
     "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
     "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
     "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
-    "NEXT_PUBLIC_STRIPE_PRICING_TABLE_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
     "ORG_MONTHLY_CREDITS",
-    "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS",
     "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
     "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
     "NEXT_PUBLIC_TEAM_IMPERSONATION",
@@ -130,8 +125,6 @@
     "NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE",
     "NEXT_PUBLIC_CLOUDFLARE_SITEKEY",
     "NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER",
-    "NEXT_PUBLIC_VERCEL_ENV",
-    "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
     "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
@@ -148,8 +141,6 @@
     "PAYMENT_FEE_PERCENTAGE",
     "PLAYWRIGHT_HEADLESS",
     "PLAYWRIGHT_TEST_BASE_URL",
-    "PRISMA_FIELD_ENCRYPTION_KEY",
-    "PRISMA_GENERATE_DATAPROXY",
     "PROJECT_ID_VERCEL",
     "QUICK",
     "RAILWAY_STATIC_URL",
@@ -188,7 +179,6 @@
     "STRIPE_ORG_MONTHLY_PRICE_ID",
     "STRIPE_ORG_PRODUCT_ID",
     "STRIPE_ORG_TRIAL_DAYS",
-    "ORG_MONTHLY_CREDITS",
     "TANDEM_BASE_URL",
     "TANDEM_CLIENT_ID",
     "TANDEM_CLIENT_SECRET",
@@ -221,9 +211,6 @@
     "ZOHOCRM_CLIENT_SECRET",
     "ZOOM_CLIENT_ID",
     "ZOOM_CLIENT_SECRET",
-    "REVERT_API_KEY",
-    "REVERT_API_URL",
-    "REVERT_PUBLIC_TOKEN",
     "RESEND_API_KEY",
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
@@ -243,7 +230,6 @@
     "NEXT_PUBLIC_QUICK_AVAILABILITY_ROLLOUT",
     "NEXT_PUBLIC_HEAD_SCRIPTS",
     "NEXT_PUBLIC_BODY_SCRIPTS",
-    "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
     "NEXT_PUBLIC_API_V2_ROOT_URL",
     "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
     "VAPID_PRIVATE_KEY",
@@ -253,7 +239,6 @@
     "CAL_VIDEO_MEETING_LINK_FOR_TESTING",
     "NEXT_PUBLIC_POSTHOG_KEY",
     "NEXT_PUBLIC_POSTHOG_HOST",
-    "VAPID_PRIVATE_KEY",
     "HUDDLE01_API_TOKEN",
     "LINGO_DOT_DEV_API_KEY",
     "DIRECTORY_IDS_TO_LOG",
@@ -290,7 +275,6 @@
     "TRIGGER_DEV_VERCEL_PROJECT_ID",
     "TRIGGER_DEV_VERCEL_TEAM_ID",
     "ENABLE_ASYNC_TASKER",
-    "STRIPE_ORG_PRODUCT_ID",
     "GOOGLE_ADS_ENABLED",
     "LINKEDIN_ADS_ENABLED",
     "SEED_PLATFORM_OAUTH_CLIENT_ID",
@@ -352,6 +336,9 @@
     "@calcom/prisma#dx": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-up"]
+    },
+    "@calcom/app-store#build:types": {
+      "outputs": ["types/**"]
     },
     "@calcom/trpc#build": {
       "dependsOn": ["@calcom/prisma#post-install"],
@@ -495,7 +482,7 @@
       "outputs": ["dist/**", "build/**"]
     },
     "@calcom/web#dev": {
-      "dependsOn": ["@calcom/trpc#build", "//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
       "cache": false
     },
     "dev": {
@@ -546,7 +533,10 @@
     },
     "post-install": {
       "dependsOn": [],
-      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
+      "outputs": [
+        "../../node_modules/@prisma/client/**",
+        "../../node_modules/@prisma/admin-client/**"
+      ],
       "inputs": ["./schema.prisma", "./prisma/schema.prisma"],
       "env": ["PRISMA_GENERATE_DATAPROXY"]
     },
@@ -587,7 +577,10 @@
         "../../packages/app-store/**/pages/**",
         "../../packages/app-store-cli/src/**"
       ],
-      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"]
+      "outputs": [
+        "../../packages/app-store/*.generated.ts",
+        "../../packages/app-store/*.generated.tsx"
+      ]
     },
     "@calcom/embed-react#type-check": {
       "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],

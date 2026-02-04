@@ -140,11 +140,20 @@ type InputWorkflowReminder = {
   workflowId: number;
 };
 
+type InputHostLocation = {
+  type: string;
+  credentialId?: number | null;
+  link?: string | null;
+  address?: string | null;
+  phoneNumber?: string | null;
+};
+
 type InputHost = {
   userId: number;
   isFixed?: boolean;
   scheduleId?: number | null;
   groupId?: string | null;
+  location?: InputHostLocation | null;
 };
 
 type InputSelectedSlot = {
@@ -362,6 +371,20 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
       await prismock.host.create({
         data,
       });
+
+      if (host.location) {
+        await prismock.hostLocation.create({
+          data: {
+            userId: host.userId,
+            eventTypeId: eventType.id,
+            type: host.location.type,
+            credentialId: host.location.credentialId ?? null,
+            link: host.location.link ?? null,
+            address: host.location.address ?? null,
+            phoneNumber: host.location.phoneNumber ?? null,
+          },
+        });
+      }
     }
   }
 }
@@ -1813,9 +1836,7 @@ export async function mockCalendar(
   const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
   if (calendarServicePromise) {
     const resolvedService = await calendarServicePromise;
-    vi.mocked(resolvedService.default).mockImplementation(
-      // @ts-expect-error - Mock implementation satisfies Calendar interface but TypeScript expects specific calendar service types
-      function MockCalendarService(credential) {
+    vi.mocked(resolvedService.default).mockImplementation(function MockCalendarService(credential) {
         return {
           createEvent: async function (
             ...rest: Parameters<Calendar["createEvent"]>
