@@ -1,0 +1,23 @@
+{
+  "name": "@calid/queue",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "bullmq": "^5.67.2",
+    "ioredis": "^5.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
