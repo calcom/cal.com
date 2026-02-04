@@ -188,6 +188,7 @@ export const buildDryRunBooking = ({
     username: string | null;
     email: string;
     timeZone: string;
+    isPlatformManaged?: boolean;
   };
   eventName: string;
   startTime: string;
@@ -204,6 +205,7 @@ export const buildDryRunBooking = ({
     username: organizerUser.username,
     email: organizerUser.email,
     timeZone: organizerUser.timeZone,
+    isPlatformManaged: organizerUser.isPlatformManaged ?? false,
   };
   const booking = {
     id: -101,

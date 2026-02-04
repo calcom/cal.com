@@ -18,13 +18,15 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import { SalesforceRoutingTraceService } from "./tracing";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
-import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry } from "../zod";
+import type { writeToRecordDataSchema, appDataSchema, writeToBookingEntry, RRSkipFieldRule } from "../zod";
+import { RRSkipFieldRuleActionEnum } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -129,6 +131,7 @@ class SalesforceCRMService implements CRM {
   private instanceUrl: string;
   private hasAttemptedRefresh = false;
   private credentialId: number;
+  private describeCache = new Map<string, Set<string>>();
 
   constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
     this.integrationName = "salesforce_other_calendar";
@@ -566,13 +569,52 @@ class SalesforceCRMService implements CRM {
         })
       );
 
+      // Validate field rules early, before branching to GraphQL or SOQL paths
+      let validatedFieldRules: RRSkipFieldRule[] | undefined;
+      if (forRoundRobinSkip && appOptions?.rrSkipFieldRules?.length) {
+        log.info(
+          "Validating field rules",
+          safeStringify({
+            rules: appOptions.rrSkipFieldRules,
+            recordToSearch,
+          })
+        );
+        const existingFieldNames = await this.getObjectFieldNames(recordToSearch);
+        log.info(`Found ${existingFieldNames.size} fields on ${recordToSearch}`);
+        if (existingFieldNames.size > 0) {
+          const filtered = appOptions.rrSkipFieldRules.filter((r) => existingFieldNames.has(r.field));
+          if (filtered.length > 0) {
+            validatedFieldRules = filtered;
+            log.info("Validated field rules", safeStringify({ validatedFieldRules }));
+            SalesforceRoutingTraceService.fieldRulesValidated({
+              recordType: recordToSearch,
+              configuredCount: appOptions.rrSkipFieldRules.length,
+              validCount: filtered.length,
+              validFields: filtered.map((r) => r.field),
+            });
+          } else {
+            log.warn(
+              "No field rules matched existing fields",
+              safeStringify({
+                configuredFields: appOptions.rrSkipFieldRules.map((r) => r.field),
+              })
+            );
+            SalesforceRoutingTraceService.fieldRulesValidated({
+              recordType: recordToSearch,
+              configuredCount: appOptions.rrSkipFieldRules.length,
+              validCount: 0,
+            });
+          }
+        }
+      }
+
       if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip) {
         try {
           const client = new SalesforceGraphQLClient({
             accessToken: this.accessToken,
             instanceUrl: this.instanceUrl,
           });
-          return await client.GetAccountRecordsForRRSkip(emailArray[0]);
+          return await client.GetAccountRecordsForRRSkip(emailArray[0], validatedFieldRules);
         } catch (error) {
           log.error("Error getting account records for round robin skip", safeStringify({ error }));
           return [];
@@ -610,15 +652,19 @@ class SalesforceCRMService implements CRM {
       }
 
       if (records.length === 0) {
+        // Build extra SELECT fields from validated field rules so we don't need a second query
+        const extraFields =
+          validatedFieldRules?.length ? ", " + validatedFieldRules.map((r) => r.field).join(", ") : "";
+
         // Handle Account record type
         if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
           // For an account let's assume that the first email is the one we should be querying against
           const attendeeEmail = emailArray[0];
           log.info("[recordToSearch=ACCOUNT] Searching contact for email", safeStringify({ attendeeEmail }));
-          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+          soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website${extraFields} FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
         } else {
           // Handle Contact/Lead record types
-          soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
+          soql = `SELECT Id, Email, OwnerId, Owner.Email${extraFields} FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
             "','"
           )}')`;
         }
@@ -634,6 +680,18 @@ class SalesforceCRMService implements CRM {
 
         if (!records.length && results?.records?.length) {
           records = results.records as ContactRecord[];
+        }
+      }
+
+      // Apply field rules if configured and this is for round robin skip
+      if (forRoundRobinSkip && validatedFieldRules?.length && records.length > 0) {
+        records = this.applyFieldRules(records, validatedFieldRules);
+        if (records.length === 0) {
+          log.info("All records filtered out by field rules");
+          SalesforceRoutingTraceService.allRecordsFilteredByFieldRules({
+            recordType: recordToSearch,
+          });
+          return [];
         }
       }
 
@@ -1051,7 +1109,62 @@ class SalesforceCRMService implements CRM {
     };
   }
 
-  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string) {
+  /**
+   * Gets all field names for a Salesforce object.
+   * Uses a two-level cache: in-memory (per request) and Redis (cross-request, 1hr TTL).
+   */
+  private async getObjectFieldNames(sobject: string): Promise<Set<string>> {
+    const log = logger.getSubLogger({ prefix: [`[getObjectFieldNames]`] });
+
+    // Level 1: in-memory cache (same request)
+    const memoryCached = this.describeCache.get(sobject);
+    if (memoryCached) {
+      return memoryCached;
+    }
+
+    // Level 2: Redis cache (cross-request)
+    const cacheKey = `salesforce:describe:${this.instanceUrl}:${sobject}`;
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+    try {
+      const redis = getRedisService();
+      const redisCached = await redis.get<string[]>(cacheKey);
+      if (redisCached) {
+        log.info(`Redis cache hit for ${sobject} field names`);
+        const fieldNames = new Set(redisCached);
+        this.describeCache.set(sobject, fieldNames);
+        return fieldNames;
+      }
+    } catch (cacheError) {
+      log.warn(`Redis cache unavailable, falling back to API`, safeStringify({ error: cacheError }));
+    }
+
+    // Level 3: Salesforce API
+    const conn = await this.conn;
+
+    try {
+      const salesforceEntity = await conn.describe(sobject);
+      const fieldNamesList = salesforceEntity.fields.map((f) => f.name);
+      const fieldNames = new Set(fieldNamesList);
+      this.describeCache.set(sobject, fieldNames);
+
+      // Persist to Redis for other requests
+      try {
+        const redis = getRedisService();
+        await redis.set(cacheKey, fieldNamesList, { ttl: CACHE_TTL_MS });
+        log.info(`Cached ${sobject} field names in Redis (${fieldNamesList.length} fields)`);
+      } catch (cacheError) {
+        log.warn(`Failed to cache field names in Redis`, safeStringify({ error: cacheError }));
+      }
+
+      return fieldNames;
+    } catch (e) {
+      log.error(`Error fetching field names for ${sobject}`, safeStringify({ error: e }));
+      return new Set();
+    }
+  }
+
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], sobject: string): Promise<Field[]> {
     const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnObject]`] });
     const conn = await this.conn;
 
@@ -1075,6 +1188,65 @@ class SalesforceCRMService implements CRM {
       log.error(`Error ensuring fields ${fieldsToTest} exist on object ${sobject} with error ${e}`);
       return [];
     }
+  }
+
+  /**
+   * Filters records in-memory based on pre-validated field rules.
+   * Field rule values are expected to already be present on the records
+   * (included in the original SOQL SELECT).
+   * Records without the field value (e.g. from SOSL path) are kept.
+   *
+   * @param records - The records to filter (must already contain field rule field values)
+   * @param validRules - Array of pre-validated rules (fields already confirmed to exist on the object)
+   * @returns Filtered records that pass all rules (AND logic)
+   */
+  private applyFieldRules(records: ContactRecord[], validRules: RRSkipFieldRule[]): ContactRecord[] {
+    const log = logger.getSubLogger({ prefix: [`[applyFieldRules]`] });
+
+    if (!validRules.length || !records.length) {
+      return records;
+    }
+
+    log.info("Applying field rules", {
+      ruleCount: validRules.length,
+      recordCount: records.length,
+    });
+
+    return records.filter((record) => {
+      for (const rule of validRules) {
+        // Access dynamic field via bracket notation — value is on the record from SOQL
+        const rawRecord = record as unknown as Record<string, unknown>;
+        const actualValue = String(rawRecord[rule.field] ?? "").toLowerCase();
+        const ruleValue = rule.value.toLowerCase();
+        const matches = actualValue === ruleValue;
+
+        // If field value is missing (empty string from nullish coalescing), skip the rule.
+        // This handles records from SOSL path that don't have field rule fields.
+        if (rawRecord[rule.field] === undefined || rawRecord[rule.field] === null) {
+          log.info(`Record ${record.Id} missing field "${rule.field}", skipping rule`);
+          continue;
+        }
+
+        if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
+          log.info(`Record ${record.Id} filtered out by ignore rule`, {
+            field: rule.field,
+            value: rule.value,
+          });
+          return false;
+        }
+
+        if (rule.action === RRSkipFieldRuleActionEnum.MUST_INCLUDE && !matches) {
+          log.info(`Record ${record.Id} filtered out by must_include rule`, {
+            field: rule.field,
+            expectedValue: rule.value,
+            actualValue,
+          });
+          return false;
+        }
+      }
+
+      return true;
+    });
   }
 
   private async checkRecordOwnerNameFromRecordId(id: string, newOwnerId: string) {

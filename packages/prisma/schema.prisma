@@ -235,6 +235,8 @@ model EventType {
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                       String?
   forwardParamsSuccessRedirect             Boolean?                  @default(true)
+  /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
+  redirectUrlOnNoRoutingFormResponse       String?
   workflows                                WorkflowsOnEventTypes[]
   /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                            Json?
@@ -300,17 +302,18 @@ model EventType {
 }
 
 model Credential {
-  id     Int     @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   // @@type is deprecated
-  type   String
-  key    Json
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId Int?
-  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  type         String
+  key          Json
+  encryptedKey String?
+  user         User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int?
+  team         Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       Int?
+  app          App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId  String?
+  appId        String?
 
   // paid apps
   subscriptionId    String?
