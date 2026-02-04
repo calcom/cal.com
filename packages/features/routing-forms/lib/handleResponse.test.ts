@@ -385,7 +385,7 @@ describe("handleResponse", () => {
 
       vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
         teamMembersMatchingAttributeLogic: [], // Empty array = no users found
-        checkedFallback: false,
+        checkedFallback: true, // Fallback was checked and triggered
         fallbackAttributeLogicBuildingWarnings: [],
         mainAttributeLogicBuildingWarnings: [],
         timeTaken: {},

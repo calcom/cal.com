@@ -234,8 +234,25 @@ const _handleResponse = async ({
       }
 
       const hasCrmContactOwner = crmContactOwnerEmail !== null;
+      if (hasCrmContactOwner) {
+        return null;
+      }
 
-      if (checkedFallback && !hasCrmContactOwner) {
+      if (checkedFallback) {
+        return chosenRoute.fallbackAction;
+      }
+
+      // Handle case where attribute routing was configured but couldn't run (e.g., missing orgId)
+      const attributesQueryValue =
+        "attributesQueryValue" in chosenRoute ? chosenRoute.attributesQueryValue : null;
+      const hasAttributeRoutingConfigured =
+        attributesQueryValue &&
+        typeof attributesQueryValue === "object" &&
+        "children1" in attributesQueryValue &&
+        attributesQueryValue.children1 &&
+        Object.keys(attributesQueryValue.children1 as Record<string, unknown>).length > 0;
+
+      if (hasAttributeRoutingConfigured && teamMemberIdsMatchingAttributeLogic === null) {
         return chosenRoute.fallbackAction;
       }
 
