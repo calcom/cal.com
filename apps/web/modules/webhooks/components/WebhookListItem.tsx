@@ -72,6 +72,7 @@ export default function WebhookListItem(props: {
 
   return (
     <div
+      data-testid="webhook-list-item"
       className={classNames(
         "flex w-full justify-between p-4",
         props.lastItem ? "" : "border-subtle border-b"

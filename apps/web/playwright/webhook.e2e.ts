@@ -891,8 +891,8 @@ test.describe("Webhook deletion", async () => {
       page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
     ]);
 
-    const webhookText = page.getByText("https://example.com/test-webhook");
-    await expect(webhookText).toBeVisible();
+    const webhookListItem = page.getByTestId("webhook-list-item");
+    await expect(webhookListItem).toBeVisible();
 
     const deleteButton = page.getByTestId("delete-webhook");
     await expect(deleteButton).toBeVisible();
@@ -905,6 +905,6 @@ test.describe("Webhook deletion", async () => {
     const deleteResponse = await deleteResponsePromise;
     expect(deleteResponse.ok()).toBe(true);
 
-    await expect(webhookText).not.toBeVisible();
+    await expect(webhookListItem).not.toBeVisible();
   });
 });
