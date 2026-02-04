@@ -6,7 +6,7 @@ import type {
   SettingsToggleClassNames,
   TeamMember,
 } from "@calcom/features/eventtypes/lib/types";
-import { Segment } from "@calcom/web/modules/event-types/components/Segment";
+import { Segment } from "@calcom/features/Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
@@ -15,9 +15,9 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
 
-import AssignAllTeamMembers from "./AssignAllTeamMembers";
-import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
-import CheckedTeamSelect from "./CheckedTeamSelect";
+import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 
 interface IUserToValue {
   id: number | null;
