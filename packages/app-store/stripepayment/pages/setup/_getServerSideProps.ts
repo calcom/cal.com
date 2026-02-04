@@ -78,7 +78,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     };
   } catch (error) {
-    console.error("Error initiating Stripe OAuth:", error);
     return {
       redirect: {
         destination: `${WEBAPP_URL}/apps/installed/payment?error=stripe_oauth_failed`,
