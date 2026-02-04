@@ -12,7 +12,7 @@ const metaPixelIdSchema = z
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    trackingId: metaPixelIdSchema,
+    trackingId: metaPixelIdSchema.optional(),
   })
 );
 export const appKeysSchema = z.object({});
