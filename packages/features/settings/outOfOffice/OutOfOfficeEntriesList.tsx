@@ -521,14 +521,7 @@ function OutOfOfficeEntriesListContent() {
             <DataTableFilters.FilterBar table={table} />
           </div>
         }
-        ToolbarRight={
-          <>
-            {/* <DataTableFilters.ClearFiltersButton />
-            <DataTableSegment.SaveButton />
-            <DataTableSegment.Select /> */}
-            <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
-          </>
-        }
+        ToolbarRight={<CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />}
         EmptyView={
           <BlankCard
             className="mt-6"

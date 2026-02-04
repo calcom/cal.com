@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar } from "@calid/features/ui/components/avatar";
-import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { SocialIcon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
@@ -52,32 +51,26 @@ const useBrandColors = (
 };
 const socialProfilesSchema = z.object({
   socialProfiles: z.object({
-    // LinkedIn: Standard
     linkedin: z
       .string()
       .regex(/^$|^https:\/\/(www\.)?linkedin\.com\/.*$/, "Invalid LinkedIn URL")
       .optional(),
-    // Facebook: Supports facebook.com AND fb.com
     facebook: z
       .string()
       .regex(/^$|^https:\/\/(www\.)?(facebook\.com|fb\.com)\/.*$/, "Invalid Facebook URL")
       .optional(),
-    // Twitter: Supports twitter.com AND x.com
     twitter: z
       .string()
       .regex(/^$|^https:\/\/(www\.)?(twitter\.com|x\.com)\/.*$/, "Invalid Twitter/X URL")
       .optional(),
-    // Instagram: Supports instagram.com AND instagr.am
     instagram: z
       .string()
       .regex(/^$|^https:\/\/(www\.)?(instagram\.com|instagr\.am)\/.*$/, "Invalid Instagram URL")
       .optional(),
-    // YouTube: Standard
     youtube: z
       .string()
       .regex(/^$|^https:\/\/(www\.)?youtube\.com\/.*$/, "Invalid YouTube URL")
       .optional(),
-    // GitHub: Standard
     github: z
       .string()
       .regex(/^$|^https:\/\/(www\.)?github\.com\/.*$/, "Invalid GitHub URL")
@@ -230,8 +223,6 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
         <div className="flex flex-col">
           <div className="flex flex-row items-baseline gap-2">
             <Label>{t("booking_page_banner")}</Label>
-            <Badge variant="secondary">({t("image_limits", { limit: "3200 x 320" })})</Badge>
-            {/* <span className="text-subtle mb-2 text-sm"> </span> */}
           </div>
           <span className="text-subtle text-sm">{t("booking_page_banner_description")}</span>
           <div className="bg-muted mb-4 flex aspect-[10/1] w-full items-center justify-start overflow-hidden rounded-lg">
@@ -245,6 +236,7 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
           <div className="flex gap-2">
             <CustomBannerUploader
               target="metadata.headerUrl"
+              startIcon="upload"
               id="header-upload"
               buttonMsg={t("upload_image")}
               uploading={uploadingBanner}
@@ -256,11 +248,11 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                 await handleBannerUpdate(newHeaderUrl);
               }}
               imageSrc={getPlaceholderHeader(bannerUrl, bannerUrl) ?? undefined}
-              triggerButtonColor={bannerUrl ? "secondary" : "primary"}
             />
             {bannerUrl && (
               <Button
-                color="secondary"
+                color="destructive"
+                StartIcon="trash"
                 onClick={() => {
                   handleBannerUpdate(null);
                 }}>
@@ -550,8 +542,6 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                       <div className="flex flex-col">
                         <div className="flex flex-row items-baseline gap-2">
                           <Label>{t("brand_logo")}</Label>
-                          <Badge variant="secondary">({t("image_limits", { limit: "600 x 400" })})</Badge>
-                          {/* <span className="text-subtle mb-2 text-sm"> </span> */}
                         </div>
 
                         <div className="text-subtle text-sm">{t("brand_logo_description")}</div>
@@ -567,6 +557,8 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                             startIcon="upload"
                             fieldName="logo"
                             id="logo-upload"
+                            width={600}
+                            height={400}
                             buttonMsg={t("upload_logo")}
                             uploading={mutation.isPending}
                             handleAvatarChange={(newAvatar) => {
@@ -619,16 +611,7 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                       <div className="flex flex-col">
                         <div className="flex flex-row items-baseline gap-2">
                           <Label>{t("brand_favicon")}</Label>
-                          <Badge variant="secondary">
-                            (
-                            {t("image_limits_only_size", {
-                              size: 1,
-                            })}
-                            )
-                          </Badge>
-                          {/* <span className="text-subtle mb-2 text-sm"> </span> */}
                         </div>
-
                         <div className="text-subtle text-sm">{t("brand_favicon_description")}</div>
                       </div>
                     </div>
@@ -652,6 +635,7 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                             mutation.mutate({ faviconUrl: newAvatar });
                           }}
                           imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
+                          fileSize={1}
                         />
 
                         {showRemoveFaviconButton && (

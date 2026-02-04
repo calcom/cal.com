@@ -3606,7 +3606,6 @@
   "team_settings_limit_booking_frequency_title": "Ограничаване честотата на резервации",
   "team_settings_limit_booking_frequency_description": "Ограничете броя на резервациите, които потребител може да направи за определен период от време",
   "team_settings_updated_successfully": "Настройките на екипа са обновени успешно",
-  "view_member_public_page": "Преглед на публична страница",
   "edit_team_member": "Редактирай",
   "resend_invite_to_team_member": "Изпрати поканата отново",
   "remove_team_member": "Премахни",

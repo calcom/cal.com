@@ -282,13 +282,13 @@ export function TeamsList({
                                   e.preventDefault(); // optional — if you don't want dropdown to close
                                   setIsDisbandDialogOpen(true);
                                 }}>
-                                {t("disband_team")}
+                                {t("team_profile_disband_team")}
                               </DropdownMenuItem>
 
                               <Dialog open={isDisbandDialogOpen} onOpenChange={setIsDisbandDialogOpen}>
                                 <DialogContent>
                                   <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
-                                    <DialogTitle>{t("disband_team")}</DialogTitle>
+                                    <DialogTitle>{t("team_profile_disband_team")}</DialogTitle>
                                     <DialogDescription>
                                       {t("disband_team_confirmation_message")}
                                     </DialogDescription>

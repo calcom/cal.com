@@ -3623,7 +3623,6 @@
   "team_settings_limit_booking_frequency_description": "تحديد عدد الحجوزات التي يمكن للمستخدم إجراؤها في فترة زمنية معينة",
   "team_settings_updated_successfully": "تم تحديث إعدادات الفريق بنجاح",
   "only_admin_can_see_members_of_team": "المسؤولون فقط يمكنهم رؤية أعضاء هذا الفريق",
-  "view_member_public_page": "عرض الصفحة العامة",
   "edit_team_member": "تعديل",
   "resend_invite_to_team_member": "إعادة إرسال الدعوة",
   "remove_team_member": "إزالة",

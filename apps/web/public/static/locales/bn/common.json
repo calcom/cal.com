@@ -3606,7 +3606,6 @@
   "team_settings_limit_booking_frequency_title": "বুকিং ফ্রিকোয়েন্সি সীমিত করুন",
   "team_settings_limit_booking_frequency_description": "একটি নির্দিষ্ট সময়ের মধ্যে একজন ব্যবহারকারী কতগুলি বুকিং করতে পারবেন তা সীমিত করুন",
   "team_settings_updated_successfully": "দলের সেটিংস সফলভাবে আপডেট হয়েছে",
-  "view_member_public_page": "পাবলিক পৃষ্ঠা দেখুন",
   "edit_team_member": "সম্পাদনা করুন",
   "resend_invite_to_team_member": "আমন্ত্রণ পুনরায় পাঠান",
   "remove_team_member": "সরান",

@@ -211,6 +211,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
               <div className="flex gap-2">
                 <CustomBannerUploader
                   target="metadata.headerUrl"
+                  startIcon="upload"
                   id="public-banner-upload"
                   buttonMsg={t("upload_image")}
                   uploading={uploadingPublicBanner}
@@ -222,11 +223,11 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                     await handlePublicBannerUpdate(newHeaderUrl);
                   }}
                   imageSrc={getPlaceholderHeader(publicBannerUrl, publicBannerUrl) ?? undefined}
-                  triggerButtonColor={publicBannerUrl ? "secondary" : "primary"}
                 />
                 {publicBannerUrl && (
                   <Button
-                    color="secondary"
+                    color="destructive"
+                    StartIcon="trash"
                     onClick={() => {
                       handlePublicBannerUpdate(null);
                     }}>
