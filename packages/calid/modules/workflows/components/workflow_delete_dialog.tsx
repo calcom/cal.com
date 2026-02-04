@@ -72,14 +72,15 @@ export const WorkflowDeleteDialog = ({
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleOpenChange}>
       <DialogContent preventCloseOnOutsideClick>
-        <DialogHeader>
+        <DialogHeader showIcon={true} iconName="triangle-alert" iconVariant="warning">
           <DialogTitle>{t("delete_workflow")}</DialogTitle>
           <DialogDescription>{t("delete_workflow_description")}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-4 gap-2">
+        <DialogFooter className="mt-8">
           <DialogClose />
           <Button
             color="destructive"
+            StartIcon="trash"
             onClick={handleConfirm}
             disabled={deleteMutation.isPending}
             className="gap-2">

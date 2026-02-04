@@ -16,6 +16,7 @@ import {
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -28,7 +29,6 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import SkeletonLoader from "../components/SkeletonLoader";
 
@@ -194,14 +194,15 @@ function TeamProfileForm({
                       </div>
                       <div className="flex-1">
                         <div className="flex gap-2">
-                          <ImageUploader
+                          <CustomImageUploader
                             target="logo"
+                            fieldName="Logo"
                             startIcon="upload"
                             id="avatar-upload"
                             buttonMsg={t("upload_logo")}
                             handleAvatarChange={onChange}
-                            triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                             imageSrc={getDefaultAvatar(value, form.getValues("name"))}
+                            fileSize={5}
                           />
                           {showRemoveLogoButton && (
                             <Button color="destructive" StartIcon="trash" onClick={() => onChange(null)}>

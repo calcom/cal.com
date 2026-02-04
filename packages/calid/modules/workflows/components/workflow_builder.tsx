@@ -1376,7 +1376,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               {workflowId && (
                 <Button
                   data-testid="delete-workflow"
-                  color="destructive"
+                  color="secondary"
+                  className="text-error enabled:hover:text-error"
                   variant="icon"
                   StartIcon="trash"
                   onClick={() => setIsDeleteDialogOpen(true)}
@@ -2345,11 +2346,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             <DialogDescription>{t("leave_without_saving_description")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 gap-2">
-            <Button onClick={handleSaveWorkflow} disabled={saveDisabled} loading={updateMutation.isPending}>
-              {t("save_changes")}
+            <Button
+              StartIcon="x"
+              color="secondary"
+              onClick={handleDiscardChanges}
+              disabled={deleteMutation.isPending}>
+              {t("leave")}
             </Button>
-            <Button color="destructive" onClick={handleDiscardChanges} disabled={deleteMutation.isPending}>
-              {t("leave_without_saving")}
+            <Button
+              StartIcon="check"
+              onClick={handleSaveWorkflow}
+              disabled={saveDisabled}
+              loading={updateMutation.isPending}>
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
