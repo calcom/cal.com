@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
-} from "@calcom/features/filters/components/TeamsFilter";
+} from "~/filters/components/TeamsFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

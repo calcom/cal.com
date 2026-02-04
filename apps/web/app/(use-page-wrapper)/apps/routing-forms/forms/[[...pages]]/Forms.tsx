@@ -2,8 +2,8 @@
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { FilterResults } from "~/filters/components/FilterResults";
+import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
