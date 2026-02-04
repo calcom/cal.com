@@ -46,6 +46,16 @@ import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 
+/** Normalize busy times to UTC for subtract(); used by getUserAvailability and tests. */
+export function formatBusyTimesToUtc(
+  busyTimes: { start: Date | string; end: Date | string }[]
+): { start: Dayjs; end: Dayjs }[] {
+  return busyTimes.map((busy) => ({
+    start: dayjs(busy.start).utc(),
+    end: dayjs(busy.end).utc(),
+  }));
+}
+
 type GetUsersAvailabilityQuery = {
   dateFrom: string;
   dateTo: string;
@@ -631,10 +641,7 @@ export class UserAvailabilityService {
       })}`
     );
 
-    const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-      start: dayjs(busy.start).utc(),
-      end: dayjs(busy.end).utc(),
-    }));
+    const formattedBusyTimes = formatBusyTimesToUtc(detailedBusyTimes);
 
     const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
     const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);

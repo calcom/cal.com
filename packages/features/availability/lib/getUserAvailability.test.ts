@@ -1,28 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { formatBusyTimesToUtc } from "@calcom/features/availability/lib/getUserAvailability";
 import { subtract } from "@calcom/features/schedules/lib/date-ranges";
 
 /**
  * Tests for timezone normalization in getUserAvailability.
  *
  * These tests verify that busy times are properly normalized to UTC before
- * being passed to subtract(), which is the same logic path used in
- * getUserAvailability (formattedBusyTimes → subtract → dateRanges).
- * Critical for Round Robin where team members may be in different timezones.
+ * being passed to subtract(), using the real formatBusyTimesToUtc from
+ * getUserAvailability. Critical for Round Robin where team members may be
+ * in different timezones.
  *
  * Related issue: #22150
  */
-
-/** Same normalization as in getUserAvailability: busy times → UTC Dayjs ranges for subtract() */
-function formatBusyTimesToUtc(
-  busyTimes: { start: string; end: string }[]
-): { start: dayjs.Dayjs; end: dayjs.Dayjs }[] {
-  return busyTimes.map((busy) => ({
-    start: dayjs(busy.start).utc(),
-    end: dayjs(busy.end).utc(),
-  }));
-}
 
 describe("Timezone Normalization for Busy Times", () => {
   describe("availability after subtract (getUserAvailability logic path)", () => {
