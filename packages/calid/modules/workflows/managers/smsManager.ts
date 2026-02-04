@@ -154,7 +154,7 @@ const buildMessageVariables = (
 
 const getEventTitleFromBookingTitle = (str: string) => {
   const match = str.match(/^(.*?)\s+between\b/i);
-  return match ? match[1].trim() : "";
+  return match ? match[1].trim() : str;
 };
 
 const generateMessageContent = (

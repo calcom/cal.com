@@ -497,8 +497,6 @@ export const sendDeclinedEmailsAndSMS = async (
 
   await Promise.all(emailsToSend);
 
-  //return early if similar sms workflow is already set
-  if (hasRelevantSmsWorkflow) return;
   const eventDeclindedSms = new EventDeclinedSMS(calEvent);
   await eventDeclindedSms.sendSMSToAttendees();
 };
