@@ -72,10 +72,10 @@ function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
-        typeof booking.eventType,
-        // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
-        "id" | "length" | "title" | "slug" | "schedulingType" | "team"
-      >)
+      typeof booking.eventType,
+      // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
+      "id" | "length" | "title" | "slug" | "schedulingType" | "team"
+    >)
     : null;
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
@@ -211,34 +211,6 @@ function BookingListItem(booking: BookingItemProps) {
     return userSeat?.referenceUid;
   };
 
-  const checkIfUserIsHost = (userId?: number | null) => {
-    if (!userId) return false;
-
-    return (
-      booking.user?.id === userId ||
-      booking.eventType.hosts?.some(
-        (host) =>
-          host.user?.id === userId &&
-          booking.attendees.some((attendee) => attendee.email === host.user?.email)
-      )
-    );
-  };
-
-  const checkIfUserIsAuthorizedToConfirmBooking = () => {
-    const isUserOwner = booking.user?.id === booking.loggedInUser.userId;
-    const isUserTeamEventHost = checkIfUserIsHost(booking.loggedInUser.userId);
-    const isUserTeamAdminOrOwner = booking.loggedInUser.teamsWhereUserIsAdminOrOwner?.some(
-      (team) =>
-        team.teamId === booking.eventType?.team?.id || team.teamId === booking.eventType?.parent?.teamId
-    );
-    return (
-      isUserOwner ||
-      isUserTeamEventHost ||
-      booking.loggedInUser.userIsOrgAdminOrOwner ||
-      isUserTeamAdminOrOwner
-    );
-  };
-
   const actionContext: BookingActionContext = {
     booking,
     isUpcoming,
@@ -265,8 +237,7 @@ function BookingListItem(booking: BookingItemProps) {
     attendeeList,
     getSeatReferenceUid,
     t,
-    checkIfUserIsAuthorizedToConfirmBooking,
-  } as BookingActionContext;
+  };
 
   const RequestSentMessage = () => {
     return (
@@ -326,7 +297,7 @@ function BookingListItem(booking: BookingItemProps) {
         "group relative w-full transition-all duration-100 ease-out",
         "hover:bg-cal-muted",
         isSelected &&
-          "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
+        "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
       )}>
       <div className="flex flex-col sm:flex-row">
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
@@ -718,13 +689,13 @@ const RecurringBookingsTooltip = ({
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining_other", {
-                        count: recurringCount,
-                      })}`
+                      count: recurringCount,
+                    })}`
                     : getEveryFreqFor({
-                        t,
-                        recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount: booking.recurringInfo.count,
-                      })}
+                      t,
+                      recurringEvent: booking.eventType.recurringEvent,
+                      recurringCount: booking.recurringInfo.count,
+                    })}
                 </p>
               </div>
             </Tooltip>
@@ -800,14 +771,14 @@ const Attendee = (
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-      onSuccess: async (data) => {
-        showToast(data.message, "success");
-        await utils.viewer.bookings.invalidate();
-      },
-      onError: (err) => {
-        showToast(err.message, "error");
-      },
-    });
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+      await utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
 
   const displayName = user?.name || name || user?.email || email;
 
