@@ -29,20 +29,17 @@ export const useIntercom = () => {
   const hookData = useIntercomHook();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { data } = trpc.viewer.me.get.useQuery();
-  const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
-    trpc: {
-      context: {
-        skipBatch: true,
-      },
-    },
-    // Only fetch stats when Intercom is enabled to avoid unnecessary API calls
-    enabled: isInterComEnabled,
-  });
+  const utils = trpc.useUtils();
   const { hasPaidPlan, plan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const boot = async () => {
-    if (!data || !statsData) return;
+  // Fetch stats on-demand when booting Intercom, not upfront
+  const fetchStatsAndBoot = async () => {
+    if (!data) return;
+
+    // Fetch stats only when actually creating the Intercom session
+    const statsData = await utils.viewer.me.myStats.fetch();
+
     let userHash;
     const req = await fetch(`/api/support/hash`);
     const res = await req.json();
@@ -88,8 +85,12 @@ export const useIntercom = () => {
   };
 
   const open = async () => {
-    let userHash;
+    if (!data) return;
 
+    // Fetch stats only when actually opening Intercom
+    const statsData = await utils.viewer.me.myStats.fetch();
+
+    let userHash;
     const req = await fetch(`/api/support/hash`);
     const res = await req.json();
     if (res?.hash) {
@@ -133,7 +134,7 @@ export const useIntercom = () => {
     });
     hookData.show();
   };
-  return { ...hookData, open, boot, statsData };
+  return { ...hookData, open, boot: fetchStatsAndBoot };
 };
 
 declare global {
@@ -148,8 +149,8 @@ declare global {
 export const useBootIntercom = () => {
   const { hasPaidPlan } = useHasPaidPlan();
   const flagMap = useFlagMap();
-  // statsData is now returned from useIntercom to avoid duplicate API calls
-  const { boot, open, update, statsData } = useIntercom();
+  // Stats are now fetched on-demand inside boot() when Intercom session is created
+  const { boot, open, update } = useIntercom();
 
   const { data: user } = trpc.viewer.me.get.useQuery();
   const isTieredSupportEnabled = flagMap["tiered-support-chat"];
@@ -160,7 +161,6 @@ export const useBootIntercom = () => {
       !isInterComEnabled ||
       showIntercom === "false" ||
       !user ||
-      !statsData ||
       (!hasPaidPlan && isTieredSupportEnabled)
     )
       return;
@@ -178,7 +178,7 @@ export const useBootIntercom = () => {
       window.dispatchEvent(new Event("support:ready"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);
+  }, [user, hasPaidPlan, isTieredSupportEnabled]);
 };
 
 export default useIntercom;
