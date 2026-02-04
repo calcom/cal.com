@@ -14,7 +14,7 @@ vi.mock("@formkit/auto-animate/react", () => ({
 }));
 
 // Mock Segment component
-vi.mock("@calcom/web/modules/event-types/components/Segment", () => ({
+vi.mock("@calcom/features/Segment", () => ({
   Segment: vi.fn().mockImplementation(({ onQueryValueChange }) => (
     <div data-testid="mock-segment">
       <button onClick={() => onQueryValueChange({ queryValue: { id: "test" } })}>Update Query</button>

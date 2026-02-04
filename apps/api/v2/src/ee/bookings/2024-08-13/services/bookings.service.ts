@@ -615,6 +615,50 @@ export class BookingsService_2024_08_13 {
     return this.outputService.getOutputRecurringBookings(ids);
   }
 
+  async getBookingBySeatUid(seatUid: string, authUser: AuthOptionalUser) {
+    const bookingSeat =
+      await this.bookingSeatRepository.getByReferenceUidIncludeBookingWithAttendeesAndUserAndEvent(seatUid);
+
+    if (!bookingSeat || !bookingSeat.booking) {
+      throw new NotFoundException(`Booking with seatUid=${seatUid} was not found in the database`);
+    }
+
+    const booking = bookingSeat.booking;
+    const userIsEventTypeAdminOrOwner =
+      authUser && booking.eventType
+        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+            authUser,
+            booking.eventType as EventType
+          )
+        : false;
+
+    const isRecurring = !!booking.recurringEventId;
+    const seatsShowAttendees = !!booking.eventType?.seatsShowAttendees;
+    const showAllAttendees = userIsEventTypeAdminOrOwner || seatsShowAttendees;
+
+    // When user is not admin and seatsShowAttendees is false, show only the attendee for this seatUid
+    if (!showAllAttendees) {
+      const seatAttendee = booking.attendees.find(
+        (attendee) => attendee.bookingSeat?.referenceUid === seatUid
+      );
+      const bookingWithFilteredAttendees = {
+        ...booking,
+        attendees: seatAttendee ? [seatAttendee] : [],
+      };
+
+      if (isRecurring) {
+        return this.outputService.getOutputRecurringSeatedBooking(bookingWithFilteredAttendees, true);
+      }
+      return this.outputService.getOutputSeatedBooking(bookingWithFilteredAttendees, true);
+    }
+
+    if (isRecurring) {
+      return this.outputService.getOutputRecurringSeatedBooking(booking, true);
+    }
+
+    return this.outputService.getOutputSeatedBooking(booking, true);
+  }
+
   async getBookings(
     queryParams: GetBookingsInput_2024_08_13,
     user: { email: string; id: number; orgId?: number },
