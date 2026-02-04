@@ -16,7 +16,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const session = await getServerSession({ req: ctx.req });
 
-  if (!session?.user?.id) {
+  if (!session?.user?.uuid) {
     return {
       redirect: {
         destination: "/auth/login",
@@ -27,7 +27,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const user = await prisma.user.findUnique({
     where: {
-      id: session.user.id,
+      uuid: session.user.uuid,
     },
     select: {
       email: true,

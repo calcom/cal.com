@@ -92,7 +92,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
       });
     });
 
-    it("should redirect to login when session has no user id", async () => {
+    it("should redirect to login when session has no user uuid", async () => {
       const ctx = createMockContext();
       mockGetServerSession.mockResolvedValue({
         user: {},
@@ -115,8 +115,9 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("User lookup", () => {
     it("should return notFound when user does not exist in database", async () => {
       const ctx = createMockContext();
+      const testUuid = "550e8400-e29b-41d4-a716-446655440000";
       mockGetServerSession.mockResolvedValue({
-        user: { id: 123 },
+        user: { uuid: testUuid },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
@@ -127,7 +128,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
 
       expect(result).toEqual({ notFound: true });
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 123 },
+        where: { uuid: testUuid },
         select: { email: true, name: true },
       });
     });
@@ -136,7 +137,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("OAuth redirect construction", () => {
     beforeEach(() => {
       mockGetServerSession.mockResolvedValue({
-        user: { id: 123 },
+        user: { uuid: "550e8400-e29b-41d4-a716-446655440000" },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
@@ -252,7 +253,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("Error handling", () => {
     beforeEach(() => {
       mockGetServerSession.mockResolvedValue({
-        user: { id: 123 },
+        user: { uuid: "550e8400-e29b-41d4-a716-446655440000" },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
@@ -281,7 +282,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("E2E mode", () => {
     beforeEach(() => {
       mockGetServerSession.mockResolvedValue({
-        user: { id: 123 },
+        user: { uuid: "550e8400-e29b-41d4-a716-446655440000" },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
