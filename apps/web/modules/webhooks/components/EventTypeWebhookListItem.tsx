@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -174,7 +175,7 @@ export default function EventTypeWebhookListItem(props: {
             });
           }}>
           <div className="mt-2">
-            <p className="text-subtle text-sm">{t("delete_webhook_confirmation_message")}</p>
+            <p className="text-subtle text-sm">{t("delete_webhook_confirmation_message", { appName: APP_NAME })}</p>
           </div>
         </ConfirmationDialogContent>
       </Dialog>

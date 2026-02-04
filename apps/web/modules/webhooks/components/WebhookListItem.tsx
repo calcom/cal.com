@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { getWebhookVersionDocsUrl, getWebhookVersionLabel } from "@calcom/features/webhooks/lib/constants";
 import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -216,7 +217,7 @@ export default function WebhookListItem(props: {
             });
           }}>
           <div className="mt-2">
-            <p className="text-subtle text-sm">{t("delete_webhook_confirmation_message")}</p>
+            <p className="text-subtle text-sm">{t("delete_webhook_confirmation_message", { appName: APP_NAME })}</p>
           </div>
         </ConfirmationDialogContent>
       </Dialog>
