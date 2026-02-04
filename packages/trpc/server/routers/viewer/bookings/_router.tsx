@@ -34,7 +34,8 @@ export const bookingsRouter = router({
     return requestRescheduleHandler({
       ctx,
       input,
-      source: "WEBAPP"
+      source: "WEBAPP",
+      impersonatedByUserUuid: ctx.session?.user?.impersonatedBy?.uuid,
     });
   }),
 
@@ -45,6 +46,7 @@ export const bookingsRouter = router({
       ctx,
       input,
       actionSource: "WEBAPP",
+      impersonatedByUserUuid: ctx.session?.user?.impersonatedBy?.uuid,
     });
   }),
 
@@ -55,6 +57,7 @@ export const bookingsRouter = router({
       ctx,
       input,
       actionSource: "WEBAPP",
+      impersonatedByUserUuid: ctx.session?.user?.impersonatedBy?.uuid,
     });
   }),
 
@@ -67,6 +70,7 @@ export const bookingsRouter = router({
         ...input,
         actor: makeUserActor(ctx.user.uuid),
         actionSource: "WEBAPP",
+        impersonatedByUserUuid: ctx.session?.user?.impersonatedBy?.uuid,
       }
     });
   }),

@@ -34,6 +34,7 @@ type AddGuestsOptions = {
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
   actionSource: ActionSource;
+  impersonatedByUserUuid?: string;
 };
 
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
@@ -44,6 +45,7 @@ export const addGuestsHandler = async ({
   input,
   emailsEnabled = true,
   actionSource,
+  impersonatedByUserUuid,
 }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
@@ -88,6 +90,7 @@ export const addGuestsHandler = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
   await bookingEventHandlerService.onAttendeeAdded({
     bookingUid: booking.uid,
     actor: makeUserActor(user.uuid),
@@ -96,6 +99,7 @@ export const addGuestsHandler = async ({
     auditData: {
       added: uniqueGuestEmails,
     },
+    context,
   });
 
   return { message: "Guests added" };

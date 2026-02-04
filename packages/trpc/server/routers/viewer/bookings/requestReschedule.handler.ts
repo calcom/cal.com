@@ -47,9 +47,10 @@ type RequestRescheduleOptions = {
   };
   input: TRequestRescheduleInputSchema;
   source: ActionSource;
+  impersonatedByUserUuid?: string;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({ ctx, input, source, impersonatedByUserUuid }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
@@ -315,6 +316,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   await Promise.all(promises);
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
   await bookingEventHandlerService.onRescheduleRequested({
     bookingUid: bookingToReschedule.uid,
     actor: makeUserActor(user.uuid),
@@ -324,5 +326,6 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
       rescheduleReason: cancellationReason ?? null,
       rescheduledRequestedBy: user.email,
     },
+    context,
   });
 };

@@ -35,6 +35,7 @@ type EditLocationOptions = {
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
   actionSource: ValidActionSource;
+  impersonatedByUserUuid?: string;
 };
 
 type UserMetadata = z.infer<typeof userMetadata>;
@@ -259,7 +260,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   return appLink;
 }
 
-export async function editLocationHandler({ ctx, input, actionSource }: EditLocationOptions) {
+export async function editLocationHandler({ ctx, input, actionSource, impersonatedByUserUuid }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
@@ -315,6 +316,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
   await bookingEventHandlerService.onLocationChanged({
     bookingUid: booking.uid,
     actor: makeUserActor(loggedInUser.uuid),
@@ -326,6 +328,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
         new: updatedLocation,
       },
     },
+    context,
   });
 
   return { message: "Location updated" };

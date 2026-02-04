@@ -44,6 +44,7 @@ async function fireBookingAcceptedEvent({
   actionSource,
   acceptedBookings,
   tracingLogger,
+  impersonatedByUserUuid,
 }: {
   actor: Actor;
   organizationId: number | null;
@@ -53,9 +54,11 @@ async function fireBookingAcceptedEvent({
     oldStatus: BookingStatus;
   }[];
   tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid?: string;
 }) {
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
+    const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
     if (acceptedBookings.length > 1) {
       const operationId = uuidv4();
       await bookingEventHandlerService.onBulkBookingsAccepted({
@@ -69,6 +72,7 @@ async function fireBookingAcceptedEvent({
         organizationId,
         operationId,
         source: actionSource,
+        context,
       });
     } else if (acceptedBookings.length === 1) {
       const acceptedBooking = acceptedBookings[0];
@@ -80,6 +84,7 @@ async function fireBookingAcceptedEvent({
           status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
         source: actionSource,
+        context,
       });
     }
   } catch (error) {
@@ -131,6 +136,7 @@ export async function handleConfirmation(args: {
   traceContext: TraceContext;
   actionSource: ActionSource;
   actor: Actor;
+  impersonatedByUserUuid?: string;
 }) {
   const {
     user,
@@ -145,6 +151,7 @@ export async function handleConfirmation(args: {
     traceContext,
     actionSource,
     actor,
+    impersonatedByUserUuid,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -418,6 +425,7 @@ export async function handleConfirmation(args: {
     organizationId: orgId ?? null,
     actionSource,
     tracingLogger,
+    impersonatedByUserUuid,
   });
 
   //Workflows - set reminders for confirmed events

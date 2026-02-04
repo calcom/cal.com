@@ -46,7 +46,7 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor; impersonatedByUserUuid?: string };
 };
 
 async function fireRejectionEvent({
@@ -56,6 +56,7 @@ async function fireRejectionEvent({
   rejectedBookings,
   rejectionReason,
   tracingLogger,
+  impersonatedByUserUuid,
 }: {
   actor: Actor;
   organizationId: number | null;
@@ -66,11 +67,13 @@ async function fireRejectionEvent({
     oldStatus: BookingStatus;
   }[];
   tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid?: string;
 }): Promise<void> {
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
     if (rejectedBookings.length > 1) {
       const operationId = uuidv4();
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
       await bookingEventHandlerService.onBulkBookingsRejected({
         bookings: rejectedBookings.map((booking) => ({
           bookingUid: booking.uid,
@@ -83,9 +86,11 @@ async function fireRejectionEvent({
         organizationId,
         operationId,
         source: actionSource,
+        context,
       });
     } else if (rejectedBookings.length === 1) {
       const booking = rejectedBookings[0];
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
       await bookingEventHandlerService.onBookingRejected({
         bookingUid: booking.uid,
         actor,
@@ -95,6 +100,7 @@ async function fireRejectionEvent({
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
         source: actionSource,
+        context,
       });
     }
   } catch (error) {
@@ -115,6 +121,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
     actionSource,
     actor,
+    impersonatedByUserUuid,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -416,6 +423,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       traceContext,
       actionSource,
       actor,
+      impersonatedByUserUuid,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -502,6 +510,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       rejectionReason: rejectionReason ?? null,
       rejectedBookings,
       tracingLogger: log,
+      impersonatedByUserUuid,
     });
 
     // send BOOKING_REJECTED webhooks
