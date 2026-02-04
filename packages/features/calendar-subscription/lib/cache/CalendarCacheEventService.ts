@@ -94,7 +94,6 @@ export class CalendarCacheEventService {
    */
   static isCalendarTypeSupported(type: string | null): boolean {
     if (!type) return false;
-    // return ["google_calendar", "office365_calendar"].includes(type);
-    return ["google_calendar"].includes(type);
+    return ["google_calendar", "office365_calendar"].includes(type);
   }
 }
