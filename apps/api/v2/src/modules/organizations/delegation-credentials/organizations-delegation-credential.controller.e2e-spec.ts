@@ -33,15 +33,12 @@ describe("Organizations Delegation Credentials Endpoints", () => {
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
     let prismaWriteService: PrismaWriteService;
-    let delegationCredentialService: OrganizationsDelegationCredentialService;
 
     let org: Team;
     let user: User;
     let apiKey: string;
     let delegationCredentialId: string;
     let workspacePlatformId: number;
-    let ensureDefaultCalendarsSpy: jest.SpyInstance;
-    let updateDelegationCredentialEnabledSpy: jest.SpyInstance;
 
     const userEmail = `delegation-credentials-admin-${randomString()}@api.com`;
 
@@ -57,7 +54,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       prismaWriteService = moduleRef.get(PrismaWriteService);
-      delegationCredentialService = moduleRef.get(OrganizationsDelegationCredentialService);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -138,24 +134,10 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       });
       delegationCredentialId = delegationCredential.id;
 
-      ensureDefaultCalendarsSpy = jest
-        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-
-      // Mock updateDelegationCredentialEnabled to bypass the workspace configuration check
-      // which tries to connect to Google's API
-      updateDelegationCredentialEnabledSpy = jest
-        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
-        .mockResolvedValue(undefined);
-
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
       await app.init();
-    });
-
-    beforeEach(() => {
-      ensureDefaultCalendarsSpy.mockClear();
     });
 
     it("should be defined", () => {
@@ -171,6 +153,15 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: { enabled: false },
       });
 
+      // Get the service from app after initialization and set up spies
+      const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
+      const ensureDefaultCalendarsSpy = jest
+        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .mockResolvedValue(undefined);
+      const updateDelegationCredentialEnabledSpy = jest
+        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
+        .mockResolvedValue(undefined);
+
       const response = await request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
         .set("Authorization", `Bearer ${apiKey}`)
@@ -184,6 +175,9 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.data.enabled).toEqual(true);
 
       expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "@test-domain.com");
+
+      ensureDefaultCalendarsSpy.mockRestore();
+      updateDelegationCredentialEnabledSpy.mockRestore();
     });
 
     it("should not call ensureDefaultCalendars when disabling delegation credentials", async () => {
@@ -191,6 +185,15 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         where: { id: delegationCredentialId },
         data: { enabled: true },
       });
+
+      // Get the service from app after initialization and set up spies
+      const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
+      const ensureDefaultCalendarsSpy = jest
+        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .mockResolvedValue(undefined);
+      const updateDelegationCredentialEnabledSpy = jest
+        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
+        .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
@@ -205,6 +208,9 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.data.enabled).toEqual(false);
 
       expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
+
+      ensureDefaultCalendarsSpy.mockRestore();
+      updateDelegationCredentialEnabledSpy.mockRestore();
     });
 
     it("should not call ensureDefaultCalendars when enabling already enabled delegation credentials", async () => {
@@ -212,6 +218,15 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         where: { id: delegationCredentialId },
         data: { enabled: true },
       });
+
+      // Get the service from app after initialization and set up spies
+      const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
+      const ensureDefaultCalendarsSpy = jest
+        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .mockResolvedValue(undefined);
+      const updateDelegationCredentialEnabledSpy = jest
+        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
+        .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
@@ -226,11 +241,12 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.data.enabled).toEqual(true);
 
       expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
+
+      ensureDefaultCalendarsSpy.mockRestore();
+      updateDelegationCredentialEnabledSpy.mockRestore();
     });
 
     afterAll(async () => {
-      ensureDefaultCalendarsSpy.mockRestore();
-      updateDelegationCredentialEnabledSpy.mockRestore();
       if (org?.id) {
         await prismaWriteService.prisma.delegationCredential.deleteMany({
           where: { organizationId: org.id },
