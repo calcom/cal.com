@@ -14,8 +14,6 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
-import type { CalEventResponses } from "@calcom/types/Calendar";
-
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
   agentId: string;
@@ -42,7 +40,7 @@ type BookingWithRelations = NonNullable<
  * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
  */
 export function convertResponsesToVariableFormats(
-  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | CalEventResponses
+  responses: Record<string, { value?: unknown }>
 ) {
   return Object.fromEntries(
     Object.entries(responses).flatMap(([key, value]) => {
@@ -71,7 +69,7 @@ function getVariablesFromFormResponse({
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
     // Include custom form responses with both current and legacy variable formats for backward compatibility
-    ...convertResponsesToVariableFormats(responses),
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
@@ -116,7 +114,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
     eventTypeId: booking.eventTypeId?.toString() || "",
     // Include custom form responses with both current and legacy variable formats for backward compatibility
-    ...convertResponsesToVariableFormats(responses),
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
