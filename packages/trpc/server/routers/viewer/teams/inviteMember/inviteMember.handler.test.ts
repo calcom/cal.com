@@ -37,7 +37,11 @@ vi.mock("@trpc/server", () => {
 
 vi.mock("@calcom/prisma", () => {
   return {
-    prisma: vi.fn(),
+    prisma: {
+      monthlyProration: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    },
   };
 });
 

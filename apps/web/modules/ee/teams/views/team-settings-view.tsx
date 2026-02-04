@@ -21,7 +21,7 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
-import { IntervalLimitsManager } from "@calcom/web/modules/event-types/components/tabs/limits/EventLimitsTab";
+import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";

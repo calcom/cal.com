@@ -323,6 +323,7 @@ export class MonthlyProrationService {
 
     let invoiceId: string | null = null;
     let invoiceFinalized = false;
+    let invoiceUrl: string | null = null;
 
     try {
       const invoice = await this.billingService.createInvoice({
@@ -335,8 +336,9 @@ export class MonthlyProrationService {
 
       invoiceId = invoice.invoiceId;
 
-      await this.billingService.finalizeInvoice(invoiceId);
+      const finalizedInvoice = await this.billingService.finalizeInvoice(invoiceId);
       invoiceFinalized = true;
+      invoiceUrl = finalizedInvoice.invoiceUrl;
 
       return await this.prorationRepository.updateProrationStatus(
         proration.id,
@@ -344,6 +346,7 @@ export class MonthlyProrationService {
         {
           invoiceItemId,
           invoiceId,
+          invoiceUrl: invoiceUrl ?? undefined,
         }
       );
     } catch (error) {
