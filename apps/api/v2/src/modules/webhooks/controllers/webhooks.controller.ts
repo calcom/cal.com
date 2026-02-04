@@ -56,6 +56,7 @@ export class WebhooksController {
 
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook" })
+  @ApiParam({ name: "webhookId", type: "string" })
   @UseGuards(IsUserWebhookGuard)
   async updateWebhook(
     @Param("webhookId") webhookId: string,
@@ -110,6 +111,7 @@ export class WebhooksController {
 
   @Delete("/:webhookId")
   @ApiOperation({ summary: "Delete a webhook" })
+  @ApiParam({ name: "webhookId", type: "string" })
   @UseGuards(IsUserWebhookGuard)
   async deleteWebhook(@Param("webhookId") webhookId: string): Promise<UserWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);

@@ -68,6 +68,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook for a team event type" })
+  @ApiParam({ name: "webhookId", type: "string" })
   @Roles("TEAM_ADMIN")
   async updateTeamEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,

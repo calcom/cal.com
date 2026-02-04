@@ -66,6 +66,7 @@ export class EventTypeWebhooksController {
 
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook" })
+  @ApiParam({ name: "webhookId", type: "string" })
   async updateEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string

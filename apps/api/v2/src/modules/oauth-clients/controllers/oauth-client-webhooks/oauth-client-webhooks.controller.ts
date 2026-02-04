@@ -71,6 +71,7 @@ export class OAuthClientWebhooksController {
     summary: "Update a webhook",
     description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
   })
+  @ApiParam({ name: "webhookId", type: "string" })
   @UseGuards(IsOAuthClientWebhookGuard)
   async updateOAuthClientWebhook(
     @Body() body: UpdateWebhookInputDto,
