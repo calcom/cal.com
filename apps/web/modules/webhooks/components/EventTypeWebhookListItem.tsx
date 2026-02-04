@@ -130,6 +130,7 @@ export default function EventTypeWebhookListItem(props: {
             color="destructive"
             StartIcon="trash"
             variant="icon"
+            data-testid="delete-webhook"
             onClick={() => setDeleteDialogOpen(true)}
             disabled={deleteWebhook.isPending}
           />
