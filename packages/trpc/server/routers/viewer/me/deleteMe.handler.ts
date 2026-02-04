@@ -2,6 +2,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { deleteUser } from "@calcom/features/users/lib/deleteUser";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { HttpError } from "@calcom/lib/http-error";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import { prisma } from "@calcom/prisma";
@@ -18,7 +19,19 @@ type DeleteMeOptions = {
 };
 
 export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
-  // TODO: First check password is part of input and meets requirements.
+  if (!input.password || input.password.trim().length === 0) {
+    throw new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword });
+  }
+
+  const password = input.password.trim();
+
+  const strict = ctx.user.role !== "USER";
+  if (!isPasswordValid(password, false, strict)) {
+    throw new HttpError({
+      statusCode: 400,
+      message: ErrorCode.PasswordPolicyViolation,
+    });
+  }
 
   // Check if input.password is correct
   const user = await prisma.user.findUnique({
@@ -47,7 +60,7 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
     throw new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword });
   }
 
-  const isCorrectPassword = await verifyPassword(input.password, user.password.hash);
+  const isCorrectPassword = await verifyPassword(password, user.password.hash);
   if (!isCorrectPassword) {
     throw new HttpError({ statusCode: 403, message: ErrorCode.IncorrectPassword });
   }
