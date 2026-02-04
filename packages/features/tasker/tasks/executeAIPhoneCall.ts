@@ -14,6 +14,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
@@ -35,6 +36,23 @@ type BookingWithRelations = NonNullable<
   >["booking"]
 >;
 
+/**
+ * Converts responses to variable format entries with both current and legacy formats
+ * for backward compatibility.
+ * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
+ */
+function convertResponsesToVariableFormats(
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | CalEventResponses | null | undefined
+) {
+  return Object.fromEntries(
+    Object.entries(responses || {}).flatMap(([key, value]) => {
+      const formats = getVariableFormats(key);
+      const valueStr = value.value?.toString() || "";
+      return formats.map((format) => [format, valueStr]);
+    })
+  );
+}
+
 function getVariablesFromFormResponse({
   responses,
   eventTypeId,
@@ -53,13 +71,7 @@ function getVariablesFromFormResponse({
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
     // Include custom form responses with both current and legacy variable formats for backward compatibility
-    ...Object.fromEntries(
-      Object.entries(responses || {}).flatMap(([key, value]) => {
-        const formats = getVariableFormats(key);
-        const valueStr = value.value?.toString() || "";
-        return formats.map((format) => [format, valueStr]);
-      })
-    ),
+    ...convertResponsesToVariableFormats(responses),
   };
 }
 
@@ -104,13 +116,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
     eventTypeId: booking.eventTypeId?.toString() || "",
     // Include custom form responses with both current and legacy variable formats for backward compatibility
-    ...Object.fromEntries(
-      Object.entries(responses || {}).flatMap(([key, value]) => {
-        const formats = getVariableFormats(key);
-        const valueStr = value.value?.toString() || "";
-        return formats.map((format) => [format, valueStr]);
-      })
-    ),
+    ...convertResponsesToVariableFormats(responses),
   };
 }
 

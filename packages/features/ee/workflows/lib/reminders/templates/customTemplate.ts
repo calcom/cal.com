@@ -225,12 +225,13 @@ const customTemplate = (
     // handle custom variables from form/booking responses
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
-        const formattedVariable = formatIdentifierToVariable(customInput);
+        const foundVariableInTemplate = variable;
+        const availableVariable = formatIdentifierToVariable(customInput);
         // Legacy format for backward compatibility with templates created before underscore support
-        const legacyFormattedVariable = formatIdentifierToVariableLegacy(customInput);
+        const availableVariableLegacyFormat = formatIdentifierToVariableLegacy(customInput);
+        const isFoundTemplateVariableValid = foundVariableInTemplate === availableVariable || foundVariableInTemplate === availableVariableLegacyFormat;
 
-        // Match either the new format (with underscores) or the legacy format (without underscores)
-        if ((variable === formattedVariable || variable === legacyFormattedVariable) && variables.responses) {
+        if (isFoundTemplateVariableValid && variables.responses) {
           const response = variables.responses[customInput];
           if (response?.value !== undefined) {
             const responseValue = response.value;
@@ -238,7 +239,7 @@ const customTemplate = (
               ? responseValue.join(", ")
               : String(responseValue);
 
-            dynamicText = dynamicText.replace(`{${variable}}`, valueString);
+            dynamicText = dynamicText.replace(`{${foundVariableInTemplate}}`, valueString);
           }
         }
       });
