@@ -11,12 +11,13 @@ const domainSchema = z
     (val) =>
       val === "" || /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(val),
     { message: "Invalid domain format. Expected format: example.com" }
-  );
+  )
+  .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     PLAUSIBLE_URL: safeUrlSchema.optional().default("https://plausible.io/js/script.js").or(z.undefined()),
-    trackingId: domainSchema.optional(),
+    trackingId: domainSchema,
   })
 );
 

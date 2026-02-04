@@ -8,7 +8,8 @@ const twiplaSiteIdSchema = z
   .transform((val): string => (typeof val === "string" ? val.trim() : ""))
   .refine((val) => !val || /^[A-Za-z0-9-]+$/.test(val), {
     message: "Invalid Twipla Site ID format. Expected alphanumeric characters or UUID",
-  });
+  })
+  .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

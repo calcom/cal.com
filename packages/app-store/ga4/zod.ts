@@ -5,7 +5,7 @@ import { createPrefixedIdSchema } from "@calcom/app-store/_lib/analytics-schemas
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    trackingId: createPrefixedIdSchema({ prefix: "G-", allowEmpty: true }),
+    trackingId: createPrefixedIdSchema({ prefix: "G-", allowEmpty: true }).optional(),
   })
 );
 

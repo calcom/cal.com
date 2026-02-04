@@ -13,7 +13,8 @@ const umamiSiteIdSchema = z
       /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(val) ||
       /^[0-9]+$/.test(val),
     { message: "Invalid Umami Website ID format. Expected UUID or numeric ID" }
-  );
+  )
+  .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

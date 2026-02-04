@@ -9,7 +9,8 @@ const posthogIdSchema = z
   .transform((val): string => (typeof val === "string" ? val.trim() : ""))
   .refine((val) => !val || /^[A-Za-z0-9_]+$/.test(val), {
     message: "Invalid PostHog Project API Key format. Expected alphanumeric characters or underscores",
-  });
+  })
+  .optional();
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

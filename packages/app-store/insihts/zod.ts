@@ -5,8 +5,8 @@ import { alphanumericIdSchema, safeUrlSchema } from "@calcom/app-store/_lib/anal
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    SITE_ID: alphanumericIdSchema,
-    SCRIPT_URL: safeUrlSchema,
+    SITE_ID: alphanumericIdSchema.optional(),
+    SCRIPT_URL: safeUrlSchema.optional(),
   })
 );
 

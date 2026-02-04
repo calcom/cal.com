@@ -5,8 +5,8 @@ import { numericIdSchema, safeUrlSchema } from "@calcom/app-store/_lib/analytics
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    MATOMO_URL: safeUrlSchema,
-    SITE_ID: numericIdSchema,
+    MATOMO_URL: safeUrlSchema.optional(),
+    SITE_ID: numericIdSchema.optional(),
   })
 );
 
