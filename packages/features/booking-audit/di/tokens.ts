@@ -9,4 +9,6 @@ export const BOOKING_AUDIT_DI_TOKENS = {
     BOOKING_AUDIT_REPOSITORY_MODULE: Symbol("BookingAuditRepositoryModule"),
     AUDIT_ACTOR_REPOSITORY: Symbol("AuditActorRepository"),
     AUDIT_ACTOR_REPOSITORY_MODULE: Symbol("AuditActorRepositoryModule"),
+    BOOKING_HISTORY_VIEWER_SERVICE: Symbol("BookingHistoryViewerService"),
+    BOOKING_HISTORY_VIEWER_SERVICE_MODULE: Symbol("BookingHistoryViewerServiceModule"),
 };

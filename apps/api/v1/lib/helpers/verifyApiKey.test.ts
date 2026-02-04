@@ -73,8 +73,8 @@ describe("Verify API key - Unit Tests", () => {
       verifyKeyByHashedKey: vi.fn(),
     } as unknown as ApiKeyService;
 
-    vi.mocked(ApiKeyService).mockImplementation(() => mockApiKeyService);
-    vi.mocked(PrismaApiKeyRepository).mockImplementation(() => ({} as unknown as PrismaApiKeyRepository));
+    vi.mocked(ApiKeyService).mockImplementation(function() { return mockApiKeyService; });
+    vi.mocked(PrismaApiKeyRepository).mockImplementation(function() { return {} as unknown as PrismaApiKeyRepository; });
 
     vi.mocked(isAdminGuard).mockReset();
     vi.mocked(isLockedOrBlocked).mockReset();
@@ -139,6 +139,7 @@ describe("Verify API key - Unit Tests", () => {
       valid: true,
       userId: 1,
       user: {
+        uuid: "test-uuid-1",
         role: UserPermissionRole.ADMIN,
         locked: false,
         email: "admin@example.com",
@@ -183,6 +184,7 @@ describe("Verify API key - Unit Tests", () => {
       valid: true,
       userId: 2,
       user: {
+        uuid: "test-uuid-2",
         role: UserPermissionRole.USER,
         locked: false,
         email: "org-admin@acme.com",
@@ -227,6 +229,7 @@ describe("Verify API key - Unit Tests", () => {
       valid: true,
       userId: 3,
       user: {
+        uuid: "test-uuid-3",
         role: UserPermissionRole.USER,
         locked: true,
         email: "locked@example.com",

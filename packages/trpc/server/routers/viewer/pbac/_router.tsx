@@ -249,7 +249,12 @@ export const permissionsRouter = router({
     }
 
     // Enable PBAC feature for the organization
-    await featureRepo.setTeamFeatureState(orgId, "pbac", "enabled", "opt-in by user: " + ctx.user.id);
+    await featureRepo.setTeamFeatureState({
+      teamId: orgId,
+      featureId: "pbac",
+      state: "enabled",
+      assignedBy: "opt-in by user: " + ctx.user.id,
+    });
 
     return { success: true, message: "PBAC enabled successfully" };
   }),

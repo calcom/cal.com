@@ -97,6 +97,9 @@ export const generateTeamCheckoutSession = async ({
     },
     subscription_data: {
       trial_period_days: 14, // Add a 14-day trial
+      metadata: {
+        ...(isOnboarding && { source: "onboarding" }),
+      },
     },
     metadata: {
       type: CHECKOUT_SESSION_TYPES.TEAM_CREATION,

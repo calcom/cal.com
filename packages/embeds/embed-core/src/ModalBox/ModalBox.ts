@@ -1,6 +1,6 @@
 import { EmbedElement } from "../EmbedElement";
 import { getErrorString } from "../lib/utils";
-import loaderCss from "../loader.css";
+import loaderCss from "../loader.css?inline";
 import modalBoxHtml, { getSkeletonData } from "./ModalBoxHtml";
 
 export class ModalBox extends EmbedElement {
@@ -12,8 +12,6 @@ export class ModalBox extends EmbedElement {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
   static get observedAttributes() {
     return ["state"];
   }

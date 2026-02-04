@@ -58,9 +58,9 @@ describe("reportBookingHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepo);
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(() => mockReportRepo);
-    vi.mocked(BookingAccessService).mockImplementation(() => mockBookingAccessService);
+    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepo; });
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(function() { return mockReportRepo; });
+    vi.mocked(BookingAccessService).mockImplementation(function() { return mockBookingAccessService; });
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
   });
 

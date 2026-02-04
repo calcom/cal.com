@@ -14,6 +14,7 @@ const parseIntSafe = (id: string | number): number => {
 // Simple utility functions for transformations
 const toAdapterUser = (user: User): AdapterUser => ({
   id: user.id.toString(),
+  uuid: user.uuid,
   name: user.name,
   email: user.email,
   emailVerified: user.emailVerified,

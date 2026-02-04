@@ -15,7 +15,7 @@ import type {
   BookingRecording,
   ConferencingSession,
 } from "@/services/types/bookings.types";
-import { showErrorAlert } from "@/utils/alerts";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 
 interface UseBookingActionModalsReturn {
   // Selected booking for actions
@@ -121,7 +121,7 @@ export function useBookingActionModals(): UseBookingActionModalsReturn {
       setIsAddingGuests(true);
       try {
         await CalComAPIService.addGuests(selectedBooking.uid, guests);
-        Alert.alert(
+        showSuccessAlert(
           "Success",
           "Guests added successfully. They will receive an email notification."
         );
@@ -160,7 +160,7 @@ export function useBookingActionModals(): UseBookingActionModalsReturn {
       setIsUpdatingLocation(true);
       try {
         await CalComAPIService.updateLocation(selectedBooking.uid, location);
-        Alert.alert(
+        showSuccessAlert(
           "Success",
           "Location updated successfully. Note: The calendar event may not be automatically updated."
         );
@@ -257,7 +257,10 @@ export function useBookingActionModals(): UseBookingActionModalsReturn {
       setIsMarkingNoShow(true);
       try {
         await CalComAPIService.markAbsent(selectedBooking.uid, attendeeEmail, absent);
-        Alert.alert("Success", absent ? "Attendee marked as no-show." : "No-show status removed.");
+        showSuccessAlert(
+          "Success",
+          absent ? "Attendee marked as no-show." : "No-show status removed."
+        );
         invalidateBookingQueries();
         closeMarkNoShowModal();
         setIsMarkingNoShow(false);

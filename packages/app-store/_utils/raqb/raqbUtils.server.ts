@@ -6,17 +6,20 @@
 import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
-import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
-import { caseInsensitive } from "@calcom/lib/raqb/utils";
-import { safeStringify } from "@calcom/lib/safeStringify";
+import { resolveQueryValue } from "@calcom/app-store/routing-forms/lib/resolveQueryValue";
 import type {
+  LocalRoute,
+  Attribute,
   AttributeOptionValueWithType,
   AttributeOptionValue,
-  Attribute,
-} from "@calcom/lib/service/attribute/server/getAttributes";
+} from "@calcom/app-store/routing-forms/types/types";
+import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
+import logger from "@calcom/lib/logger";
+import { caseInsensitive } from "@calcom/lib/raqb/utils";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { AttributeType } from "@calcom/prisma/enums";
+
+const log = logger.getSubLogger({ prefix: ["raqbUtils"] });
 
 function ensureArray(value: string | string[]) {
   return typeof value === "string" ? [value] : value;
@@ -89,7 +92,7 @@ export function getValueOfAttributeOption(
   ) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
-      console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
+      log.debug("A group option found. Using all its sub-options instead", safeStringify(subOptions));
       return subOptions;
     }
     return attributeOption.value;

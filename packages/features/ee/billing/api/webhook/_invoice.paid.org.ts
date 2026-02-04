@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
@@ -124,7 +125,11 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     // Get the Stripe subscription object
     const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
     const billingService = getBillingProviderService();
-    const { subscriptionStart } = billingService.extractSubscriptionDates(stripeSubscription);
+    const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+      billingService.extractSubscriptionDates(stripeSubscription);
+
+    const { billingPeriod, pricePerSeat, paidSeats } =
+      extractBillingDataFromStripeSubscription(stripeSubscription);
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = teamBillingServiceFactory.init(organization);
@@ -136,7 +141,12 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       // TODO: Write actual status when webhook events are added
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
-      subscriptionStart,
+      subscriptionStart: subscriptionStart ?? undefined,
+      subscriptionEnd: subscriptionEnd ?? undefined,
+      subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+      billingPeriod,
+      pricePerSeat,
+      paidSeats,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

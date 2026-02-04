@@ -52,7 +52,6 @@ import { appDataSchema as zoho_bigin_zod_ts } from "./zoho-bigin/zod";
 import { appDataSchema as zohocalendar_zod_ts } from "./zohocalendar/zod";
 import { appDataSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
-
 export const appDataSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,

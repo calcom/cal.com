@@ -12,11 +12,10 @@
     "react-awesome-query-builder": "5.1.2"
   },
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint ."
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write ."
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
     "@calcom/types": "workspace:*",
     "@types/json-logic-js": "1.2.1"
   }

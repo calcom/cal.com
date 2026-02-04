@@ -11,13 +11,14 @@ import {
   getMockBookingAttendee,
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, test, vi, expect } from "vitest";
 
+import prisma from "@calcom/prisma";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1085,5 +1086,157 @@ describe("Round Robin handleNewBooking", () => {
         subscriberUrl,
       });
     });
+  });
+
+  describe("Round Robin with requiresConfirmation", () => {
+    test(
+      "should not create calendar events for unconfirmed round robin bookings on first booking and reschedule",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const roundRobinHost1 = getOrganizer({
+          name: "RR Host 1",
+          email: "rrhost1@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "rrhost1@google-calendar.com",
+          },
+        });
+
+        const roundRobinHost2 = getOrganizer({
+          name: "RR Host 2",
+          email: "rrhost2@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "rrhost2@google-calendar.com",
+          },
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                requiresConfirmation: true,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                users: [
+                  {
+                    id: 101,
+                  },
+                  {
+                    id: 102,
+                  },
+                ],
+                hosts: [
+                  { userId: 101, isFixed: false },
+                  { userId: 102, isFixed: false },
+                ],
+                schedule: TestData.schedules.IstWorkHours,
+              },
+            ],
+            organizer: roundRobinHost1,
+            usersApartFromOrganizer: [roundRobinHost2],
+            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+          })
+        );
+
+        // Mock calendar - we should NOT see calendar events created for unconfirmed bookings
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            uid: "MOCK_ID",
+            iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+          },
+        });
+
+        // First booking with first host - should be PENDING and NO calendar events
+        const firstBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            user: roundRobinHost1.name,
+            start: `${plus1DateString}T05:00:00.000Z`,
+            end: `${plus1DateString}T05:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const firstBooking = await handleNewBooking({
+          bookingData: firstBookingData,
+        });
+
+        // Verify first booking is PENDING
+        expect(firstBooking.status).toBe(BookingStatus.PENDING);
+
+        // Verify first booking has NO calendar references (no calendar events created)
+        const firstBookingInDb = await prisma.booking.findUnique({
+          where: {
+            id: firstBooking.id,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(firstBookingInDb?.references).toHaveLength(0);
+        expect(firstBookingInDb?.status).toBe(BookingStatus.PENDING);
+
+        // Now reschedule with second host - should still be PENDING and NO calendar events
+        const rescheduleBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            user: roundRobinHost2.name,
+            rescheduleUid: firstBooking.uid,
+            start: `${plus1DateString}T06:00:00.000Z`,
+            end: `${plus1DateString}T06:15:00.000Z`,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            rescheduledBy: booker.email,
+          },
+        });
+
+        const rescheduledBooking = await handleNewBooking({
+          bookingData: rescheduleBookingData,
+        });
+
+        // Verify rescheduled booking is still PENDING
+        expect(rescheduledBooking.status).toBe(BookingStatus.PENDING);
+
+        // Verify rescheduled booking has NO calendar references (no calendar events created)
+        // This is the key fix: rescheduling unconfirmed bookings should NOT create calendar events
+        const rescheduledBookingInDb = await prisma.booking.findUnique({
+          where: {
+            id: rescheduledBooking.id,
+          },
+          include: {
+            references: true,
+          },
+        });
+
+        expect(rescheduledBookingInDb?.references).toHaveLength(0);
+        expect(rescheduledBookingInDb?.status).toBe(BookingStatus.PENDING);
+      }
+    );
   });
 });

@@ -74,7 +74,7 @@ test.describe("Team", () => {
       await page.goto(`/settings/teams/${team.id}/settings`);
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(0);
+      ).toHaveCount(0, { timeout: 0 });
     });
 
     await test.step("To the team by invite link", async () => {

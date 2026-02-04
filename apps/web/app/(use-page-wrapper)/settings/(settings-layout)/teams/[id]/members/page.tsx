@@ -4,11 +4,11 @@ import { unstable_cache } from "next/cache";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamMemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import { TeamMembersView } from "@calcom/web/modules/ee/teams/views/team-members-view";

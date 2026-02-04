@@ -1,4 +1,4 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
@@ -42,8 +42,7 @@ async function createTestTeam(data: {
       slug: data.slug || slugify(data.name),
       parentId: data.parentId,
       isOrganization: data.isOrganization ?? false,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       metadata: data.metadata || {},
       isPlatform: data.isPlatform ?? false,
     },

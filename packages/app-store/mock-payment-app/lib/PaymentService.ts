@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 import type { Booking, Payment, Prisma, PaymentOption } from "@calcom/prisma/client";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-export class PaymentService implements IAbstractPaymentService {
+class MockPaymentService implements IAbstractPaymentService {
   async create(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"]
@@ -138,4 +138,13 @@ export class PaymentService implements IAbstractPaymentService {
   isSetupAlready(): boolean {
     return true;
   }
+}
+
+/**
+ * Factory function that creates a Mock Payment service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export function BuildPaymentService(_credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+  return new MockPaymentService();
 }

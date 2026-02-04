@@ -1,6 +1,5 @@
-import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
+import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TGetInputSchema } from "./get.schema";
 
 type GetOptions = {
@@ -11,6 +10,6 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
-  const webhookRepository = WebhookRepository.getInstance();
+  const { repository: webhookRepository } = getWebhookFeature();
   return await webhookRepository.findByWebhookId(input.webhookId);
 };

@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-
-import { getWebhookVersionLabel, getWebhookVersionDocsUrl } from "@calcom/features/webhooks/lib/constants";
+import { getWebhookVersionDocsUrl, getWebhookVersionLabel } from "@calcom/features/webhooks/lib/constants";
 import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -23,6 +21,9 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
+import Link from "next/link";
+
+const MAX_BADGES_TWO_ROWS = 8; // Approximately 2 rows of badges
 
 export default function WebhookListItem(props: {
   webhook: Webhook;
@@ -105,7 +106,7 @@ export default function WebhookListItem(props: {
         </div>
         <Tooltip content={t("triggers_when")}>
           <div className="flex w-4/5 flex-wrap">
-            {webhook.eventTriggers.map((trigger) => (
+            {webhook.eventTriggers.slice(0, MAX_BADGES_TWO_ROWS).map((trigger) => (
               <Badge
                 key={trigger}
                 className="mt-2.5 basis-1/5 ltr:mr-2 rtl:ml-2"
@@ -114,6 +115,22 @@ export default function WebhookListItem(props: {
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
+            {webhook.eventTriggers.length > MAX_BADGES_TWO_ROWS && (
+              <Tooltip
+                content={
+                  <div className="flex flex-col gap-1 p-1">
+                    {webhook.eventTriggers.slice(MAX_BADGES_TWO_ROWS).map((trigger) => (
+                      <span key={trigger} className="text-xs">
+                        {t(`${trigger.toLowerCase()}`)}
+                      </span>
+                    ))}
+                  </div>
+                }>
+                <Badge className="mt-2.5 cursor-help ltr:mr-2 rtl:ml-2" variant="gray">
+                  +{webhook.eventTriggers.length - MAX_BADGES_TWO_ROWS} {t("more")}
+                </Badge>
+              </Tooltip>
+            )}
           </div>
         </Tooltip>
       </div>

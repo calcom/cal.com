@@ -15,9 +15,9 @@ vi.mock("@calcom/prisma", () => ({
 // Mock FeaturesRepository
 const mockCheckIfTeamHasFeature = vi.fn();
 vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(() => ({
+  FeaturesRepository: vi.fn().mockImplementation(function() { return {
     checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
-  })),
+  }; }),
 }));
 
 // Mock PBAC permissions
@@ -31,16 +31,18 @@ vi.mock("@calcom/features/pbac/lib/resource-permissions", () => ({
 // Mock PermissionCheckService
 const mockCheckPermission = vi.fn().mockResolvedValue(true);
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn().mockImplementation(() => ({
+  PermissionCheckService: vi.fn().mockImplementation(function() { return {
     checkPermission: mockCheckPermission,
-  })),
+  }; }),
 }));
 
 // Mock UserRepository
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
-  UserRepository: vi.fn().mockImplementation(() => ({
-    enrichUserWithItsProfile: vi.fn().mockImplementation(({ user }) => user),
-  })),
+  UserRepository: vi.fn().mockImplementation(function() {
+    return {
+      enrichUserWithItsProfile: vi.fn().mockImplementation(({ user }) => user),
+    };
+  }),
 }));
 
 const ORGANIZATION_ID = 123;
