@@ -4,14 +4,19 @@ import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
 import { safeUrlSchema } from "@calcom/app-store/_lib/analytics-schemas";
 
+// Preprocessor to handle null/undefined values
+const nullishToEmpty = (val: unknown) => (val === null || val === undefined ? "" : val);
+
 // PostHog Project API Keys (typically start with phc_) - allow alphanumeric to not break legacy data
-const posthogIdSchema = z
-  .string()
-  .transform((val) => val.trim())
-  .refine((val) => !val || /^[A-Za-z0-9_]+$/.test(val), {
-    message: "Invalid PostHog Project API Key format. Expected alphanumeric characters or underscores",
-  })
-  .optional();
+const posthogIdSchema = z.preprocess(
+  nullishToEmpty,
+  z
+    .string()
+    .transform((val) => val.trim())
+    .refine((val) => !val || /^[A-Za-z0-9_]+$/.test(val), {
+      message: "Invalid PostHog Project API Key format. Expected alphanumeric characters or underscores",
+    })
+);
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({

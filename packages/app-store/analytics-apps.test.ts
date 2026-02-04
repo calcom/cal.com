@@ -252,4 +252,52 @@ describe("Analytics Apps - Input Validation", () => {
       }
     });
   });
+
+  // Null/undefined handling for embed endpoint (PR 26976)
+  // Schemas convert null to empty string; .optional() schemas keep undefined as undefined
+  describe("Null/Undefined Handling", () => {
+    it("GTM converts null to empty string", () => {
+      expect(gtmSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("GA4 converts null to empty string", () => {
+      expect(ga4Schema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("Meta Pixel converts null to empty string", () => {
+      expect(metapixelSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("PostHog converts null to empty string", () => {
+      expect(posthogSchema.parse({ TRACKING_ID: null }).TRACKING_ID).toBe("");
+    });
+
+    it("Fathom converts null to empty string", () => {
+      expect(fathomSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("Plausible converts null to empty string", () => {
+      expect(plausibleSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("Matomo converts null to empty string", () => {
+      expect(matomoSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Umami converts null to empty string", () => {
+      expect(umamiSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Twipla converts null to empty string", () => {
+      expect(twiplaSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Insihts converts null to empty string", () => {
+      expect(insihtsSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Databuddy converts null to empty string", () => {
+      expect(databuddySchema.parse({ CLIENT_ID: null }).CLIENT_ID).toBe("");
+    });
+  });
 });
