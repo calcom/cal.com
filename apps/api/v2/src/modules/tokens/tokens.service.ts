@@ -1,3 +1,4 @@
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import jwt from "jsonwebtoken";
@@ -11,7 +12,22 @@ type OAuthTokenPayload = {
 
 @Injectable()
 export class TokensService {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly tokensRepository: TokensRepository
+  ) {}
+
+  async getAccessTokenOwnerId(accessToken: string): Promise<number | null> {
+    const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+
+    if (ownerId) {
+      return ownerId;
+    }
+
+    const decodedToken = this.getDecodedThirdPartyAccessToken(accessToken);
+
+    return decodedToken?.userId ?? null;
+  }
 
   getDecodedThirdPartyAccessToken(token: string): OAuthTokenPayload | null {
     const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
