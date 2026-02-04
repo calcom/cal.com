@@ -82,7 +82,8 @@ export const OAuthClientForm = ({
             <input
               {...register(`${permissionKey}Read`)}
               id={`${permissionKey}Read`}
-              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="border-default bg-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition checked:border-transparent checked:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              style={{ accentColor: "#ffffff" }}
               type="checkbox"
               disabled={!!defaultValues}
             />
@@ -94,7 +95,8 @@ export const OAuthClientForm = ({
             <input
               {...register(`${permissionKey}Write`)}
               id={`${permissionKey}Write`}
-              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="border-default bg-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition checked:border-transparent checked:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              style={{ accentColor: "#ffffff" }}
               type="checkbox"
               disabled={!!defaultValues}
             />
@@ -124,7 +126,7 @@ export const OAuthClientForm = ({
                   <TextField
                     type="url"
                     required={index === 0}
-                    className="w-[100%]"
+                    className="w-full"
                     label=""
                     disabled={isFormDisabled}
                     {...register(`redirectUris.${index}.uri` as const)}
@@ -162,42 +164,12 @@ export const OAuthClientForm = ({
             );
           })}
         </div>
-        {/** <div className="mt-6">
-          <Controller
-            control={control}
-            name="logo"
-            render={({ field: { value } }) => (
-              <>
-                <Label>Client logo</Label>
-                <div className="flex items-center">
-                  <Avatar
-                    alt=""
-                    imageSrc={value}
-                    fallback={<Icon name="plus" className="text-subtle h-4 w-4" />}
-                    size="sm"
-                  />
-                  <div className="ms-4">
-                    <ImageUploader
-                      target="avatar"
-                      id="vatar-upload"
-                      buttonMsg="Upload"
-                      imageSrc={value}
-                      handleAvatarChange={(newAvatar: string) => {
-                        setValue("logo", newAvatar);
-                      }}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          />
-        </div> */}
         <div className="mt-6">
           <Tooltip content={t("booking_redirect_uri")}>
             <TextField
               type="url"
               label="Booking redirect uri"
-              className="w-[100%]"
+              className="w-full"
               {...register("bookingRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -208,7 +180,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking cancel redirect uri"
-              className="w-[100%]"
+              className="w-full"
               {...register("bookingCancelRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -219,7 +191,7 @@ export const OAuthClientForm = ({
             <TextField
               type="url"
               label="Booking reschedule redirect uri"
-              className="w-[100%]"
+              className="w-full"
               {...register("bookingRescheduleRedirectUri")}
               disabled={isFormDisabled}
             />
@@ -229,7 +201,8 @@ export const OAuthClientForm = ({
           <input
             {...register("areEmailsEnabled")}
             id="areEmailsEnabled"
-            className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            className="border-default bg-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition checked:border-transparent checked:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+            style={{ accentColor: "#ffffff" }}
             type="checkbox"
             disabled={isFormDisabled}
           />
@@ -242,7 +215,8 @@ export const OAuthClientForm = ({
             <input
               {...register("areCalendarEventsEnabled")}
               id="areCalendarEventsEnabled"
-              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="border-default bg-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition checked:border-transparent checked:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              style={{ accentColor: "#ffffff" }}
               type="checkbox"
               disabled={isFormDisabled}
             />
@@ -257,13 +231,15 @@ export const OAuthClientForm = ({
               </div>
             </Tooltip>
           </div>
+          <p className="text-subtle mt-2 text-sm">{t("calendar_events_disabled_video_limitation")}</p>
         </div>
         <div className="mt-6">
           <div className="flex items-center">
             <input
               {...register("areDefaultEventTypesEnabled")}
               id="areDefaultEventTypesEnabled"
-              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              className="border-default bg-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition checked:border-transparent checked:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              style={{ accentColor: "#ffffff" }}
               type="checkbox"
               disabled={isFormDisabled}
             />

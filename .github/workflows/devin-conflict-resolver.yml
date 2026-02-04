@@ -1,0 +1,430 @@
+name: Devin PR Conflict Resolver
+
+on:
+  pull_request_target:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to resolve conflicts for'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  resolve-conflicts:
+    name: Resolve PR Conflicts with Devin
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # Only run when devin-conflict-resolution label is added, or on manual dispatch
+    if: |
+      (github.event_name == 'pull_request_target' && github.event.label.name == 'devin-conflict-resolution') ||
+      github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Get PR details
+        id: get-pr
+        uses: actions/github-script@v7
+        env:
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            let prNumber;
+            
+            if (context.eventName === 'workflow_dispatch') {
+              prNumber = parseInt(process.env.INPUT_PR_NUMBER, 10);
+              if (!prNumber) {
+                core.setFailed('PR number is required for manual dispatch');
+                return;
+              }
+            } else {
+              prNumber = context.payload.pull_request.number;
+            }
+            
+            console.log(`Processing PR #${prNumber}`);
+            
+            // Get PR details via GraphQL for complete info
+            const query = `
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    number
+                    title
+                    mergeable
+                    isDraft
+                    headRefName
+                    baseRefName
+                    url
+                    body
+                    headRepository {
+                      owner {
+                        login
+                      }
+                      name
+                    }
+                    maintainerCanModify
+                  }
+                }
+              }
+            `;
+            
+            const result = await github.graphql(query, { owner, repo, number: prNumber });
+            const pr = result.repository.pullRequest;
+            
+            if (!pr) {
+              core.setFailed(`PR #${prNumber} not found`);
+              return;
+            }
+            
+            const isFork = pr.headRepository?.owner?.login !== owner;
+            
+            // Check if fork PR has maintainer access
+            if (isFork && !pr.maintainerCanModify) {
+              console.log(`PR #${prNumber} is from a fork without maintainer access`);
+              core.setOutput('needs-maintainer-access', 'true');
+              core.setOutput('fork-author', pr.headRepository?.owner?.login);
+            } else {
+              core.setOutput('needs-maintainer-access', 'false');
+            }
+            
+            const headRepoOwner = pr.headRepository?.owner?.login || owner;
+            const headRepoName = pr.headRepository?.name || repo;
+            
+            const prData = {
+              number: pr.number,
+              title: pr.title,
+              head_ref: pr.headRefName,
+              base_ref: pr.baseRefName,
+              html_url: pr.url,
+              body: pr.body,
+              is_fork: isFork,
+              head_repo_owner: headRepoOwner,
+              head_repo_name: headRepoName,
+              mergeable: pr.mergeable
+            };
+            
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/pr-data.json', JSON.stringify(prData));
+            
+            core.setOutput('pr-number', prNumber.toString());
+            core.setOutput('has-pr', 'true');
+            core.setOutput('mergeable-status', pr.mergeable || 'UNKNOWN');
+            core.setOutput('has-conflicts', pr.mergeable === 'CONFLICTING' ? 'true' : 'false');
+            
+            console.log(`PR #${prNumber}: ${pr.title}`);
+            console.log(`Mergeable status: ${pr.mergeable}`);
+            console.log(`Is fork: ${isFork}`);
+            console.log(`Has conflicts: ${pr.mergeable === 'CONFLICTING'}`);
+
+      - name: Request maintainer access for fork PR
+        if: steps.get-pr.outputs.needs-maintainer-access == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = parseInt('${{ steps.get-pr.outputs.pr-number }}', 10);
+            const forkAuthor = '${{ steps.get-pr.outputs.fork-author }}';
+            
+            console.log(`Requesting maintainer access for PR #${prNumber}`);
+            
+            const commentBody = [
+              '### Maintainer Access Needed',
+              '',
+              `Hi @${forkAuthor}! Thanks for your contribution to Cal.com.`,
+              '',
+              'We noticed that this PR doesn\'t have "Allow edits from maintainers" enabled. We\'d love to help keep your PR up to date by resolving merge conflicts and making small fixes when needed.',
+              '',
+              '**Could you please enable this setting?** Here\'s how:',
+              '1. Scroll down to the bottom of this PR page',
+              '2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**',
+              '',
+              'This allows us to push commits directly to your PR branch, which helps us:',
+              '- Resolve merge conflicts automatically',
+              '- Make small adjustments to help get your PR merged faster',
+              '',
+              'Once you enable this setting, please remove and re-add the `devin-conflict-resolution` label to trigger conflict resolution.',
+              '',
+              'If you have any concerns about enabling this setting, feel free to let us know!'
+            ].join('\n');
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: commentBody
+            });
+            
+            // Add label to track that we've requested access
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels: ['maintainer-access-requested']
+            });
+            
+            // Remove the devin-conflict-resolution label since we can't proceed
+            await github.rest.issues.removeLabel({
+              owner,
+              repo,
+              issue_number: prNumber,
+              name: 'devin-conflict-resolution'
+            });
+            
+            console.log(`Posted comment and updated labels for PR #${prNumber}`);
+            core.setFailed('Cannot proceed without maintainer access on fork PR');
+
+      - name: Handle PR without conflicts
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = parseInt('${{ steps.get-pr.outputs.pr-number }}', 10);
+            const mergeableStatus = '${{ steps.get-pr.outputs.mergeable-status }}';
+            
+            console.log(`PR #${prNumber} does not have conflicts (status: ${mergeableStatus})`);
+            
+            let message;
+            if (mergeableStatus === 'MERGEABLE') {
+              message = `### No Conflicts Detected\n\nThis PR does not have any merge conflicts with the base branch. The \`devin-conflict-resolution\` label has been removed.\n\nIf you believe this PR should have conflicts, please check the PR status and try again.`;
+            } else {
+              message = `### Mergeable Status Unknown\n\nGitHub is still computing the mergeable status for this PR (current status: \`${mergeableStatus}\`). The \`devin-conflict-resolution\` label has been removed.\n\nPlease wait a moment and re-add the label if the PR has conflicts.`;
+            }
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: message
+            });
+            
+            try {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: prNumber,
+                name: 'devin-conflict-resolution'
+              });
+            } catch (e) {
+              console.log(`Label may have already been removed: ${e.message}`);
+            }
+            
+            console.log(`Posted comment and removed label for PR #${prNumber}`);
+
+      - name: Checkout repository
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
+        uses: actions/checkout@v4
+
+      - name: Check for existing Devin session
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
+        id: check-session
+        uses: ./.github/actions/devin-session
+        with:
+          devin-api-key: ${{ secrets.DEVIN_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.get-pr.outputs.pr-number }}
+
+      - name: Create Devin session for conflict resolution
+        if: steps.get-pr.outputs.has-pr == 'true' && steps.get-pr.outputs.needs-maintainer-access != 'true' && steps.get-pr.outputs.has-conflicts == 'true'
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_EXISTING_SESSION: ${{ steps.check-session.outputs.has-existing-session }}
+          EXISTING_SESSION_ID: ${{ steps.check-session.outputs.session-id }}
+          EXISTING_SESSION_URL: ${{ steps.check-session.outputs.session-url }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const pr = JSON.parse(fs.readFileSync('/tmp/pr-data.json', 'utf8'));
+            const { owner, repo } = context.repo;
+            
+            const hasExistingSession = process.env.HAS_EXISTING_SESSION === 'true';
+            const existingSessionId = process.env.EXISTING_SESSION_ID;
+            const existingSessionUrl = process.env.EXISTING_SESSION_URL;
+            
+            console.log(`Processing PR #${pr.number}: ${pr.title}${pr.is_fork ? ' (fork)' : ''}`);
+            
+            const forkInstructions = pr.is_fork ? `
+            IMPORTANT: This PR is from a fork.
+            - Clone the FORK repository: ${pr.head_repo_owner}/${pr.head_repo_name}
+            - The branch to work on is: ${pr.head_ref}
+            - Add the upstream remote for ${owner}/${repo}
+            - Fetch and merge the upstream ${pr.base_ref} branch using standard git merge
+            
+            IMPORTANT - Pushing to Fork PRs:
+            Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork.` : `
+            - Clone the repository: ${owner}/${repo}
+            - Check out the PR branch: ${pr.head_ref}
+            - Merge the base branch (${pr.base_ref}) using standard git merge`;
+            
+            const conflictResolutionInstructions = `You are resolving merge conflicts on PR #${pr.number} in repository ${owner}/${repo}.
+
+            PR Title: ${pr.title}
+            PR URL: ${pr.html_url}
+            Head Branch: ${pr.head_ref}
+            Base Branch: ${pr.base_ref}
+            ${pr.is_fork ? `Fork Repository: ${pr.head_repo_owner}/${pr.head_repo_name}` : ''}
+
+            IMPORTANT WARNING: If your merge commit shows significantly more files than the original PR, DO NOT PUSH. This indicates the merge was done incorrectly. Abort and leave a comment instead.
+
+            Your tasks:
+            ${forkInstructions}
+
+            Then:
+            1. Resolve all merge conflicts carefully:
+               - Review the conflicting changes from both branches
+               - Make intelligent decisions about how to combine the changes
+               - Preserve the intent of both the PR changes and the base branch updates
+               - If unsure about a conflict, prefer keeping both changes where possible
+            2. Test that the code still works after resolving conflicts (run lint/type checks).
+            3. Commit the merge resolution with a clear commit message.
+            4. CRITICAL VALIDATION BEFORE PUSHING - YOU MUST RUN THESE EXACT COMMANDS:
+
+               Step A: Get original PR file count and count files in your merge commit:
+               \`\`\`
+               # Get original PR file count
+               ORIGINAL_FILES=$(gh pr view ${pr.number} --json files -q '.files | length')
+               echo "Original PR files: $ORIGINAL_FILES"
+
+               # Count files in merge commit (what the PR contributes)
+               # HEAD^2 = base branch parent, so HEAD^2...HEAD shows the PR's contribution
+               MERGE_FILES=$(git diff --name-only HEAD^2...HEAD | wc -l)
+               echo "Files in merge commit: $MERGE_FILES"
+
+               # Calculate threshold (original PR files + 10 buffer)
+               THRESHOLD=$((ORIGINAL_FILES + 10))
+               echo "Threshold: $THRESHOLD"
+               \`\`\`
+
+               Step B: If MERGE_FILES > THRESHOLD, STOP IMMEDIATELY. DO NOT PUSH.
+               - A proper merge commit should show approximately the same files as the original PR
+               - If you see significantly more files, the merge was done INCORRECTLY
+               - This usually means you accidentally reproduced changes from ${pr.base_ref} instead of just resolving conflicts
+
+               Step C: Compare your merge to the original PR:
+               \`\`\`
+               git diff --stat HEAD^2...HEAD
+               \`\`\`
+               - This should show approximately the same files as the original PR (the PR's contribution to the base branch)
+               - If you see many more files or files unrelated to the original PR, STOP
+
+               Step D: If validation fails:
+               - DO NOT PUSH under any circumstances
+               - DO NOT attempt to fix it
+               - Leave a comment on the PR explaining that the merge validation failed
+               - ABORT THE TASK IMMEDIATELY
+               - It is better to leave the PR with conflicts than to push a broken merge commit that pollutes git history
+            5. Push the resolved changes to the PR branch only after validation passes.
+            6. After successfully pushing the resolved changes, remove the \`devin-conflict-resolution\` label from the PR using the GitHub API.
+
+            Rules and Guidelines:
+            1. Be careful when resolving conflicts - understand the context of both changes.
+               To help with this, try to find the recent PRs associated with the conflicting files to gain more context.
+            2. Follow the existing code style and conventions in the repository.
+            3. Run lint and type checks before pushing to ensure the code is valid.
+            4. If a conflict seems too complex or risky to resolve automatically, explain the situation in a PR comment instead.
+            5. Never ask for user confirmation. Never wait for user messages.
+            6. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.) even after using the DEVIN_ACTIONS_PAT, you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main ${owner}/${repo} repository as a workaround. Simply report the error and stop.
+            7. CRITICAL: Never reproduce or recreate changes from the target branch. Your merge commit should ONLY contain conflict resolutions. If you find yourself manually copying file contents from ${pr.base_ref} or creating changes that mirror what's already in ${pr.base_ref}, you are doing it wrong. Use git's merge functionality properly - it handles bringing in changes automatically.
+            8. CRITICAL: If your merge commit shows significantly more files than the original PR (more than original PR files + 10), DO NOT PUSH UNDER ANY CIRCUMSTANCES. This is a sign that the merge was done incorrectly. Abort the task and leave a comment explaining the issue. A bad merge commit in the git history is worse than leaving the PR with conflicts.`;
+
+            try {
+              let sessionUrl;
+              let isNewSession = false;
+              
+              if (hasExistingSession) {
+                console.log(`Sending message to existing session ${existingSessionId} for PR #${pr.number}`);
+                
+                const message = `PR #${pr.number} has merge conflicts that need to be resolved.
+
+            ${conflictResolutionInstructions}
+
+            Continue working on the same PR branch and push your fixes.`;
+                
+                const response = await fetch(`https://api.devin.ai/v1/sessions/${existingSessionId}/message`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ message })
+                });
+                
+                if (!response.ok) {
+                  console.error(`Failed to send message to session ${existingSessionId}: ${response.status}`);
+                  throw new Error(`Failed to send message to existing session: ${response.status}`);
+                }
+                
+                sessionUrl = existingSessionUrl;
+                console.log(`Message sent to existing session for PR #${pr.number}`);
+              } else {
+                console.log(`Creating new Devin session for PR #${pr.number}`);
+                
+                const response = await fetch('https://api.devin.ai/v1/sessions', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    prompt: conflictResolutionInstructions,
+                    title: `Resolve Conflicts: PR #${pr.number}`,
+                    tags: ['conflict-resolution', `pr-${pr.number}`]
+                  })
+                });
+                
+                if (!response.ok) {
+                  console.error(`Devin API error for PR #${pr.number}: ${response.status} ${response.statusText}`);
+                  throw new Error(`Failed to create Devin session: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                sessionUrl = data.url || data.session_url;
+                isNewSession = true;
+              }
+              
+              if (sessionUrl) {
+                if (isNewSession) {
+                  console.log(`Devin session created for PR #${pr.number}: ${sessionUrl}`);
+                }
+                
+                const sessionStatusMessage = isNewSession
+                  ? 'A Devin session has been created to automatically resolve them.'
+                  : 'The existing Devin session has been notified to resolve them.';
+                
+                const commentBody = `### Devin AI is resolving merge conflicts
+
+            This PR has merge conflicts with the \`${pr.base_ref}\` branch. ${sessionStatusMessage}
+
+            [View Devin Session](${sessionUrl})
+
+            Devin will:
+            1. Merge the latest \`${pr.base_ref}\` into this branch
+            2. Resolve any conflicts intelligently
+            3. Run lint/type checks to ensure validity
+            4. Push the resolved changes
+
+            If you prefer to resolve conflicts manually, you can close the Devin session and handle it yourself.`;
+                
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: pr.number,
+                  body: commentBody
+                });
+                
+                console.log(`Posted comment to PR #${pr.number}`);
+              } else {
+                throw new Error(`Failed to get session URL for PR #${pr.number}`);
+              }
+            } catch (error) {
+              console.error(`Error handling Devin session for PR #${pr.number}: ${error.message}`);
+              core.setFailed(error.message);
+            }

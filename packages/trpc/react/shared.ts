@@ -18,6 +18,8 @@ export const ENDPOINTS = [
   "eventTypes",
   "eventTypesHeavy",
   "features",
+  "holidays",
+  "featureOptIn",
   "i18n",
   "insights",
   "me",
@@ -44,4 +46,5 @@ export const ENDPOINTS = [
   "aiVoiceAgent",
   "phoneNumber",
   "pbac",
+  "attributeSync",
 ] as const;

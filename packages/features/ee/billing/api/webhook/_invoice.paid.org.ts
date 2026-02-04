@@ -1,16 +1,17 @@
 import { z } from "zod";
 
-import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
-import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 
+import { getTeamBillingServiceFactory } from "../../di/containers/Billing";
 import type { SWHMap } from "./__handler";
 
 const invoicePaidSchema = z.object({
@@ -123,10 +124,16 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
 
     // Get the Stripe subscription object
     const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
-    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(stripeSubscription);
+    const billingService = getBillingProviderService();
+    const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+      billingService.extractSubscriptionDates(stripeSubscription);
 
-    const internalTeamBillingService = new InternalTeamBilling(organization);
-    await internalTeamBillingService.saveTeamBilling({
+    const { billingPeriod, pricePerSeat, paidSeats } =
+      extractBillingDataFromStripeSubscription(stripeSubscription);
+
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(organization);
+    await teamBillingService.saveTeamBilling({
       teamId: organization.id,
       subscriptionId: paymentSubscriptionId,
       subscriptionItemId: paymentSubscriptionItemId,
@@ -134,7 +141,12 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       // TODO: Write actual status when webhook events are added
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
-      subscriptionStart,
+      subscriptionStart: subscriptionStart ?? undefined,
+      subscriptionEnd: subscriptionEnd ?? undefined,
+      subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+      billingPeriod,
+      pricePerSeat,
+      paidSeats,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

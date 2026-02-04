@@ -5,4 +5,3 @@ export type { NavTabProps } from "./tabs/HorizontalTabs";
 export { default as VerticalTabItem } from "./tabs/VerticalTabItem";
 export type { VerticalTabItemProps } from "./tabs/VerticalTabItem";
 export { default as VerticalTabs } from "./tabs/VerticalTabs";
-export { NavigationItem } from "./NavigationItem";

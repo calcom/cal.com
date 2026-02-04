@@ -1,20 +1,16 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
-import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import { FilterResults } from "~/filters/components/FilterResults";
+import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -38,6 +34,12 @@ import {
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
 
+import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import { ShellMain } from "~/shell/Shell";
+import { UpgradeTip } from "~/shell/UpgradeTip";
+
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
   return (
@@ -46,6 +48,7 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
       data-testid="new-routing-form"
       createFunction={(teamId) => {
         setNewFormDialogState({ action: "new", target: teamId ? String(teamId) : "" });
+        posthog.capture("new_routing_form_button_clicked", { teamId });
       }}
       withPermission={{
         permission: "routingForm.create",
@@ -76,6 +79,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
 
   useEffect(() => {
     hookForm.reset({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
@@ -145,6 +149,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   return (
     <LicenseRequired>
       <ShellMain
+        disableSticky={true}
         heading={t("routing")}
         CTA={
           hasPaidPlan && forms?.length ? (
@@ -160,12 +165,12 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
           buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+            <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                   {t("upgrade")}
                 </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                <Button color="minimal" href="https://cal.com/routing" target="_blank">
                   {t("learn_more")}
                 </Button>
               </ButtonGroup>
@@ -278,7 +283,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="edit"
                                       routingForm={form}
                                       color="minimal"
-                                      className="!flex"
+                                      className="flex!"
                                       StartIcon="pencil">
                                       {t("edit")}
                                     </FormAction>
@@ -301,7 +306,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="_delete"
                                       routingForm={form}
                                       color="destructive"
-                                      className="w-full"
+                                      className="w-full rounded-t-none"
                                       StartIcon="trash">
                                       {t("delete")}
                                     </FormAction>

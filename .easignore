@@ -1,0 +1,57 @@
+# EAS Build ignore file for monorepo
+# Only upload the companion app folder
+
+# ===========================================
+# IGNORE EVERYTHING AT ROOT LEVEL
+# ===========================================
+/*
+
+# ===========================================
+# EXCEPT THE COMPANION APP
+# ===========================================
+!companion
+
+# ===========================================
+# BUT IGNORE THESE INSIDE COMPANION
+# ===========================================
+
+# Native folders - EAS generates these during builds (~2.1 GB)
+companion/ios
+companion/android
+
+# Dependencies - EAS installs these during builds (~1.6 GB)
+companion/node_modules
+
+# Expo build cache
+companion/.expo
+companion/dist
+companion/web-build
+
+# Metro
+companion/.metro-health-check*
+
+# WXT Chrome Extension outputs (not needed for mobile builds)
+companion/.output
+companion/.wxt
+companion/dev
+
+# Kotlin cache
+companion/.kotlin
+
+# Build artifacts
+companion/*.jks
+companion/*.p8
+companion/*.p12
+companion/*.key
+companion/*.mobileprovision
+
+# Debug logs
+companion/*.log
+
+# TypeScript build info
+companion/*.tsbuildinfo
+
+# Environment files
+companion/.env
+companion/.env.*
+!companion/.env.example

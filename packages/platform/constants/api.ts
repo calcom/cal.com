@@ -71,3 +71,47 @@ export type API_VERSIONS_ENUM = (typeof API_VERSIONS)[number];
 export type API_VERSIONS_TYPE = typeof API_VERSIONS;
 export const CAL_API_VERSION_HEADER = "cal-api-version";
 export const MAX_SEATS_PER_TIME_SLOT = 1000;
+
+// Keep in sync with i18n.json locale.targets
+export const SUPPORTED_LOCALES = [
+  "",
+  "en",
+  "ar",
+  "az",
+  "bg",
+  "bn",
+  "ca",
+  "cs",
+  "da",
+  "de",
+  "el",
+  "es",
+  "es-419",
+  "eu",
+  "et",
+  "fi",
+  "fr",
+  "he",
+  "hu",
+  "it",
+  "ja",
+  "km",
+  "ko",
+  "nl",
+  "no",
+  "pl",
+  "pt-BR",
+  "pt",
+  "ro",
+  "ru",
+  "sk-SK",
+  "sr",
+  "sv",
+  "tr",
+  "uk",
+  "vi",
+  "zh-CN",
+  "zh-TW",
+] as const;
+
+export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

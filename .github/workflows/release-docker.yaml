@@ -1,5 +1,9 @@
 name: "Release Docker"
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   POSTGRES_USER: "unicorn_user"
   POSTGRES_PASSWORD: "magical_password"
@@ -13,19 +17,78 @@ on:
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:
+      BUILD_FROM_BRANCH:
+        description: "Build from the selected branch instead of a tag"
+        type: boolean
+        default: false
       RELEASE_TAG:
-        description: "v{Major}.{Minor}.{Patch}"
+        description: "Tag to build (e.g., v6.0.5) - required if BUILD_FROM_BRANCH is false"
+        required: false
+      PUSH_IMAGE:
+        description: "Push the Docker image to DockerHub"
+        type: boolean
+        default: true
 
 jobs:
+  prepare:
+    name: "Prepare Release"
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      release_tag: ${{ steps.determine-tag.outputs.release_tag }}
+      checkout_ref: ${{ steps.determine-tag.outputs.checkout_ref }}
+    steps:
+      - name: Validate inputs
+        if: github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH == false && inputs.RELEASE_TAG == ''
+        run: |
+          echo "::error::RELEASE_TAG is required when BUILD_FROM_BRANCH is false"
+          exit 1
+
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'workflow_dispatch' && inputs.BUILD_FROM_BRANCH) && github.ref || inputs.RELEASE_TAG || github.ref }}
+
+      - name: "Determine tag and ref"
+        id: determine-tag
+        run: |
+          # Determine checkout ref
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
+            echo "checkout_ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "checkout_ref=${{ inputs.RELEASE_TAG }}" >> $GITHUB_OUTPUT
+          else
+            echo "checkout_ref=${{ github.ref }}" >> $GITHUB_OUTPUT
+          fi
+
+          # Determine release tag
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.BUILD_FROM_BRANCH }}" = "true" ]; then
+              # Extract branch name and short SHA for the tag
+              BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+              # Sanitize branch name: replace all invalid Docker tag characters with dashes
+              # Docker tags can only contain lowercase/uppercase letters, digits, underscores, periods, and dashes
+              # Also remove any leading dashes or periods
+              SANITIZED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9_.-]/-/g' | sed 's/^[-.]*//')
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              echo "release_tag=${SANITIZED_BRANCH}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            else
+              echo "release_tag=${{ inputs.RELEASE_TAG }}" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "release_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
   release-amd64:
     name: "Release AMD64"
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    needs: prepare
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
-
-      - name: "Determine tag"
-        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
@@ -39,7 +102,8 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
+          use-as-latest: "true"
 
       - name: Notify Slack on Success
         if: success()
@@ -65,13 +129,15 @@ jobs:
 
   release-arm:
     name: "Release ARM"
+    needs: prepare
     runs-on: ubuntu-24.04-arm
+    env:
+      RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
-
-      - name: "Determine tag"
-        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
 
       - name: Build and test Docker image
         uses: ./.github/actions/docker-build-and-test
@@ -85,7 +151,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "true"
+          push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
 
       - name: Notify Slack on Success
         if: success()

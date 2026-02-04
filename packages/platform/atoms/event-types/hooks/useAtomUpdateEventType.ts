@@ -1,8 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
+import type { AxiosError } from "axios";
 
 import type { EventTypeUpdateInput } from "@calcom/features/eventtypes/lib/types";
 import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
 import { useAtomsContext } from "../../hooks/useAtomsContext";
@@ -32,19 +33,26 @@ export const useAtomUpdateEventType = ({
     onSuccess,
     onError,
     onSettled,
-    mutationFn: (data: EventTypeUpdateInput) => {
+    mutationFn: async (data: EventTypeUpdateInput) => {
       if (!data.id) throw new Error("Event type id is required");
       let pathname = `/atoms/${V2_ENDPOINTS.eventTypes}/${data.id}`;
 
       if (teamId) {
         pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/${V2_ENDPOINTS.eventTypes}/${data.id}`;
       }
-      return http?.patch<ApiResponse<EventType>>(pathname, data).then((res) => {
-        if (res.data.status === SUCCESS_STATUS) {
+      try {
+        const res = await http?.patch<ApiResponse<EventType>>(pathname, data);
+        if (res?.data.status === SUCCESS_STATUS) {
           return (res.data as ApiSuccessResponse<EventType>).data;
         }
-        throw new Error(res.data.error.message);
-      });
+        throw new Error(res?.data.error.message);
+      } catch (err) {
+        const axiosError = err as AxiosError<ApiErrorResponse>;
+        if (axiosError.response?.data?.error?.message) {
+          throw new Error(axiosError.response.data.error.message);
+        }
+        throw err;
+      }
     },
   });
 };

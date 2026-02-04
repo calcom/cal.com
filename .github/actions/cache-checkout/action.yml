@@ -1,0 +1,32 @@
+name: Cache Git Checkout
+description: "Cache or restore git checkout to speed up CI workflows"
+runs:
+  using: "composite"
+  steps:
+    - name: Cache git checkout
+      uses: actions/cache@v4
+      id: cache-checkout
+      with:
+        path: |
+          .
+          !.git
+          !node_modules
+          !**/node_modules
+          !apps/web/public/app-store
+        key: git-checkout-${{ github.head_ref || github.ref_name }}-${{ github.event.pull_request.head.sha || github.sha }}
+    - name: Checkout PR code (on cache miss)
+      if: steps.cache-checkout.outputs.cache-hit != 'true'
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        fetch-depth: 2
+        sparse-checkout-cone-mode: false
+        sparse-checkout: |
+          /*
+          !/example-apps/
+          !**/*.mp4
+          !/docs/images/
+          !packages/app-store/*/static/*.png
+          !packages/app-store/*/static/*.jpg
+          !packages/app-store/*/static/*.jpeg
+          !packages/app-store/*/static/*.gif

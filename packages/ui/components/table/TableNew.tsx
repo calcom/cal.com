@@ -6,7 +6,7 @@ const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableE
   ({ className, ...props }, ref) => (
     <table
       ref={ref}
-      className={classNames("border-subtle w-full caption-bottom border text-sm", className)}
+      className={classNames("border-muted w-full caption-bottom border text-sm", className)}
       {...props}
     />
   )
@@ -39,7 +39,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
     <tr
       ref={ref}
       className={classNames(
-        "hover:bg-muted data-[state=selected]:bg-subtle border-subtle border-b transition",
+        "hover:bg-cal-muted data-[state=selected]:bg-subtle border-muted border-b transition",
         className
       )}
       {...props}

@@ -16,7 +16,8 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
-  unlockedManagedEventTypeProps,
+  allManagedEventTypePropsForZod,
+  unlockedManagedEventTypePropsForZod,
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
@@ -111,6 +112,7 @@ export async function getTeamWithMembers(args: {
               allowSEOIndexing: true,
               orgProfileRedirectsToVerifiedDomain: true,
               orgAutoAcceptEmail: true,
+              disableAutofillOnBookingPage: true,
             },
           },
         },
@@ -175,6 +177,7 @@ export async function getTeamWithMembers(args: {
           allowSEOIndexing: true,
           orgProfileRedirectsToVerifiedDomain: true,
           orgAutoAcceptEmail: true,
+          disableAutofillOnBookingPage: true,
         },
       },
     },
@@ -406,21 +409,21 @@ export async function isTeamMember(userId: number, teamId: number) {
   }));
 }
 
+// Type derived from the actual query result to ensure type safety at call sites
+type EventTypeForChildCreation = Awaited<ReturnType<typeof getEventTypesToAddNewMembers>>[number];
+
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,
   includeWorkflow = true,
   includeUserConnect = true,
 }: {
-  eventType: Omit<
-    Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>,
-    "locations"
-  > & { locations: Prisma.JsonValue | null };
+  eventType: EventTypeForChildCreation;
   userId: number;
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
-  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
+  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypePropsForZod).extend({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
     locations: z
       .preprocess((val: unknown) => (val === null ? undefined : val), eventTypeLocations)
@@ -428,12 +431,12 @@ export function generateNewChildEventTypeDataForDB({
   });
 
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypeProps)
+    .omit(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
 
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
-    .pick(unlockedManagedEventTypeProps)
+    .pick(unlockedManagedEventTypePropsForZod)
     .parse(eventType);
 
   // Calculate if there are new workflows for which assigned members will get too
@@ -450,7 +453,7 @@ export function generateNewChildEventTypeDataForDB({
     bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
     durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
     eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-    rrSegmentQueryValue: (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
+    rrSegmentQueryValue: undefined,
     onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
     userId,
     ...(includeUserConnect && {
@@ -485,8 +488,8 @@ async function getEventTypesToAddNewMembers(teamId: number) {
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
-  eventTypesToAdd.length > 0 &&
-    (await prisma.$transaction(
+  if (eventTypesToAdd.length > 0) {
+    await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
         if (eventType.schedulingType === "MANAGED") {
           return prisma.eventType.create({
@@ -502,7 +505,8 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
           });
         }
       })
-    ));
+    );
+  }
 }
 
 export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: number[]; teamId: number }) {

@@ -21,7 +21,7 @@ import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -202,7 +202,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="locationInput"
               placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
               required
-               
               defaultValue={
                 defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined
               }
@@ -252,22 +251,17 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 "locationAddress",
                 "locationPhoneNumber",
               ]);
-            } catch (error) {
+            } catch {
               // Let the user retry
               setIsLocationUpdating(false);
             }
           }}>
-          <div className="flex flex-row space-x-3">
-            <div className="bg-subtle mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <Icon name="map-pin" className="text-emphasis h-6 w-6" />
+          <div className="flex flex-row md:space-x-3">
+            <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
+              <Icon name="map-pin" className="m-auto h-6 w-6" />
             </div>
-            <div className="w-full">
-              <div className="mt-3 text-center sm:mt-0 sm:text-left">
-                <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-                  {t("edit_location")}
-                </h3>
-              </div>
-              <div className="mt-3 text-center sm:mt-0 sm:text-left" />
+            <div className="w-full md:pt-1">
+              <DialogHeader title={t("edit_location")} />
 
               <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
               <p className="text-emphasis mb-2 ml-1 break-all text-sm">

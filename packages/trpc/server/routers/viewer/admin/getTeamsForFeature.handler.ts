@@ -53,6 +53,7 @@ export const getTeamsForFeatureHandler = async ({ ctx, input }: GetTeamsOptions)
     prisma.teamFeatures.findMany({
       where: {
         featureId,
+        enabled: true,
       },
       select: {
         teamId: true,

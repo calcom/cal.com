@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import type { Mock } from "vitest";
-import { vi } from "vitest";
+import { vi, beforeEach, afterEach, describe, expect, it } from "vitest";
 
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 
@@ -60,7 +60,7 @@ function mockEventTypeRedirectUrlMatchingRoute() {
 /**
  * fixes the error due to Formbricks
  */
-vi.mock("@calcom/features/shell/Shell", () => ({
+vi.mock("@calcom/web/modules/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));
 
@@ -87,6 +87,10 @@ vi.mock(
 // Mock the necessary dependencies
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: vi.fn(() => ({ t: (key: string) => key })),
+}));
+
+vi.mock("@calcom/features/ee/organizations/context/provider", () => ({
+  useOrgBranding: vi.fn(() => null),
 }));
 
 let findTeamMembersMatchingAttributeLogicResponse: {
@@ -190,6 +194,15 @@ describe("TestFormDialog", () => {
   beforeEach(() => {
     resetFindTeamMembersMatchingAttributeLogicResponse();
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    // Flush any pending timers (like Radix FocusScope setTimeout) before cleanup
+    // to prevent them from firing after jsdom teardown
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    cleanup();
   });
 
   it("renders the dialog when open", () => {
@@ -452,7 +465,8 @@ describe("TestFormDialog", () => {
       fireEvent.click(screen.getByText("submit"));
 
       // Verify the URL shows the substituted value, not the variable
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("/team/sales-team/meeting");
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("/team/Sales%20Team/meeting");
+      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("/team/sales-team/meeting");
       expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("{name}");
     });
 

@@ -9,6 +9,7 @@ import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
+import { getTrackingFromCookies, type TrackingData } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { z } from "zod";
 
@@ -20,9 +21,9 @@ const Params = z.object({
 
 export const getServerSideProps = async ({ req, query }: GetServerSidePropsContext) => {
 
-  const { 
-    provider: providerParam, 
-    email: emailParam, 
+  const {
+    provider: providerParam,
+    email: emailParam,
     username: usernameParam,
   } = Params.parse(query);
 
@@ -40,11 +41,13 @@ export const getServerSideProps = async ({ req, query }: GetServerSidePropsConte
     if (usernameParam && session.user.email) {
       const availability = await checkUsername(usernameParam, currentOrgDomain);
       if (availability.available && availability.premium && IS_PREMIUM_USERNAME_ENABLED) {
+        const tracking = getTrackingFromCookies(req.cookies);
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
           userId: session.user.id.toString(),
           userEmail: session.user.email,
           username: usernameParam,
           successDestination,
+          tracking,
         });
         if (stripePremiumUrl) {
           return {
@@ -112,6 +115,7 @@ type GetStripePremiumUsernameUrl = {
   userEmail: string;
   username: string;
   successDestination: string;
+  tracking?: TrackingData;
 };
 
 const getStripePremiumUsernameUrl = async ({
@@ -119,6 +123,7 @@ const getStripePremiumUsernameUrl = async ({
   userEmail,
   username,
   successDestination,
+  tracking,
 }: GetStripePremiumUsernameUrl): Promise<string | null> => {
   // @TODO: probably want to check if stripe user email already exists? or not
   const customer = await stripe.customers.create({
@@ -143,6 +148,8 @@ const getStripePremiumUsernameUrl = async ({
     allow_promotion_codes: true,
     metadata: {
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
+      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
     },
   });
 

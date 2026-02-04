@@ -32,8 +32,8 @@ export class SchedulesAtomsService {
     const user = await this.usersRepository.findById(userId);
 
     if (!user?.defaultScheduleId) return null;
-
-    return await ScheduleRepository.findDetailedScheduleById({
+    const scheduleRepo = new ScheduleRepository(this.dbWrite.prisma as unknown as PrismaClient);
+    return await scheduleRepo.findDetailedScheduleById({
       scheduleId: scheduleId ?? user.defaultScheduleId,
       isManagedEventType,
       userId,

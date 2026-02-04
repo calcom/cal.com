@@ -1,5 +1,5 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import getApps from "@calcom/app-store/utils";
+import getApps, { sanitizeAppForViewer } from "@calcom/app-store/utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -24,10 +24,9 @@ export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });
   }
 
-   
-  const { credential: _, credentials: _1, ...app } = appFromDb;
+  const safeApp = sanitizeAppForViewer(appFromDb);
   return {
     isInstalled: appFromDb.credentials.length,
-    ...app,
+    ...safeApp,
   };
 };

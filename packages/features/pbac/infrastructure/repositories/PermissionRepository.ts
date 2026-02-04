@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -15,6 +16,7 @@ import {
 export class PermissionRepository implements IPermissionRepository {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
+  private readonly logger = logger.getSubLogger({ prefix: ["PermissionRepository"] });
 
   constructor(client: PrismaClientWithExtensions = db) {
     this.client = client;
@@ -210,22 +212,26 @@ export class PermissionRepository implements IPermissionRepository {
     userId,
     permission,
     fallbackRoles,
+    orgId,
   }: {
     userId: number;
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]> {
-    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles });
+    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles, orgId });
   }
 
   async getTeamIdsWithPermissions({
     userId,
     permissions,
     fallbackRoles,
+    orgId,
   }: {
     userId: number;
     permissions: PermissionString[];
     fallbackRoles: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]> {
     // Validate that permissions array is not empty to prevent privilege escalation
     if (permissions.length === 0) {
@@ -237,44 +243,11 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
-    const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT m."teamId"
-      FROM "Membership" m
-      INNER JOIN "Role" r ON m."customRoleId" = r.id
-      WHERE m."userId" = ${userId}
-        AND m."accepted" = true
-        AND m."customRoleId" IS NOT NULL
-        AND (
-          SELECT COUNT(*)
-          FROM jsonb_array_elements(${JSON.stringify(permissionPairs)}::jsonb) AS required_perm(perm)
-          WHERE EXISTS (
-            SELECT 1
-            FROM "RolePermission" rp
-            WHERE rp."roleId" = r.id
-              AND (
-                (rp."resource" = '*' AND rp."action" = '*') OR
-                (rp."resource" = '*' AND rp."action" = required_perm.perm->>'action') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = '*') OR
-                (rp."resource" = required_perm.perm->>'resource' AND rp."action" = required_perm.perm->>'action')
-              )
-          )
-        ) = ${permissions.length}
-    `;
-
-    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT m."teamId"
-      FROM "Membership" m
-      INNER JOIN "Team" t ON m."teamId" = t.id
-      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
-      WHERE m."userId" = ${userId}
-        AND m."accepted" = true
-        AND m."role"::text = ANY(${fallbackRoles})
-        AND f."teamId" IS NULL
-    `;
+    const permissionPairsJson = JSON.stringify(permissionPairs);
 
     const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
-      teamsWithPermissionPromise,
-      teamsWithFallbackRolesPromise,
+      this.getTeamsWithPBACPermissions(userId, permissionPairsJson, permissions.length, orgId),
+      this.getTeamsWithFallbackRoles(userId, fallbackRoles, orgId),
     ]);
 
     const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
@@ -282,5 +255,106 @@ export class PermissionRepository implements IPermissionRepository {
 
     const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
     return allTeamIds;
+  }
+
+  /**
+   * Gets teams where user has PBAC permissions (direct memberships + child teams via org membership)
+   * @param orgId Optional organization ID to scope results. When null/undefined, returns all teams.
+   */
+  private async getTeamsWithPBACPermissions(
+    userId: number,
+    permissionPairsJson: string,
+    permissionsCount: number,
+    orgId?: number | null
+  ): Promise<{ teamId: number }[]> {
+    return this.client.$queryRaw<{ teamId: number }[]>`
+      WITH required_permissions AS (
+        SELECT 
+          required_perm->>'resource' as resource,
+          required_perm->>'action' as action
+        FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
+      )
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND (${orgId}::bigint IS NULL OR t."id" = ${orgId} OR t."parentId" = ${orgId})
+        AND (
+          SELECT COUNT(*)
+          FROM required_permissions rp_req
+          WHERE EXISTS (
+            SELECT 1
+            FROM "RolePermission" rp
+            WHERE rp."roleId" = r.id
+              AND (
+                (rp."resource" = '*' AND rp."action" = '*') OR
+                (rp."resource" = '*' AND rp."action" = rp_req.action) OR
+                (rp."resource" = rp_req.resource AND rp."action" = '*') OR
+                (rp."resource" = rp_req.resource AND rp."action" = rp_req.action)
+              )
+          )
+        ) = ${permissionsCount}
+      UNION
+      SELECT DISTINCT child."id"
+      FROM "Membership" m
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      INNER JOIN "Team" org ON m."teamId" = org.id
+      INNER JOIN "Team" child ON child."parentId" = org.id
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND (${orgId}::bigint IS NULL OR org."id" = ${orgId} OR child."id" = ${orgId} OR child."parentId" = ${orgId})
+        AND (
+          SELECT COUNT(*)
+          FROM required_permissions rp_req
+          WHERE EXISTS (
+            SELECT 1
+            FROM "RolePermission" rp
+            WHERE rp."roleId" = r.id
+              AND (
+                (rp."resource" = '*' AND rp."action" = '*') OR
+                (rp."resource" = '*' AND rp."action" = rp_req.action) OR
+                (rp."resource" = rp_req.resource AND rp."action" = '*') OR
+                (rp."resource" = rp_req.resource AND rp."action" = rp_req.action)
+              )
+          )
+        ) = ${permissionsCount}
+    `;
+  }
+
+  /**
+   * Gets teams where user has fallback roles (direct memberships + child teams via org membership, PBAC disabled)
+   * @param orgId Optional organization ID to scope results. When null/undefined, returns all teams.
+   */
+  private async getTeamsWithFallbackRoles(
+    userId: number,
+    fallbackRoles: MembershipRole[],
+    orgId?: number | null
+  ): Promise<{ teamId: number }[]> {
+    return this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      LEFT JOIN "TeamFeatures" f ON f."teamId" = t.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG} AND f.enabled = true
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
+        AND (${orgId}::bigint IS NULL OR t."id" = ${orgId} OR t."parentId" = ${orgId})
+      UNION
+      SELECT DISTINCT child."id"
+      FROM "Membership" m
+      INNER JOIN "Team" org ON m."teamId" = org.id
+      INNER JOIN "Team" child ON child."parentId" = org.id
+      LEFT JOIN "TeamFeatures" f ON f."teamId" = org.id AND f."featureId" = ${this.PBAC_FEATURE_FLAG} AND f.enabled = true
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
+        AND (${orgId}::bigint IS NULL OR org."id" = ${orgId} OR child."id" = ${orgId} OR child."parentId" = ${orgId})
+    `;
   }
 }

@@ -1,19 +1,16 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import {
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
-  ORGANIZATION_SELF_SERVE_PRICE,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { ORGANIZATION_SELF_SERVE_PRICE, WEBAPP_URL, ORG_TRIAL_DAYS } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
@@ -83,7 +80,7 @@ export class OrganizationPaymentService {
   protected user: OnboardingUser;
 
   constructor(user: OnboardingUser, permissionService?: OrganizationPermissionService) {
-    this.billingService = new StripeBillingService();
+    this.billingService = getBillingProviderService();
     this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
   }
@@ -132,7 +129,7 @@ export class OrganizationPaymentService {
   }): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
-      seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
+      seats: input.seats ?? 1,
       pricePerSeat: input.pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE),
     };
   }
@@ -179,10 +176,10 @@ export class OrganizationPaymentService {
       this.permissionService.hasModifiedDefaultPayment(input) &&
       !this.permissionService.hasPermissionToModifyDefaultPayment()
     ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
-      });
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "You do not have permission to modify the default payment settings"
+      );
     }
 
     await this.permissionService.validatePermissions(input);
@@ -276,10 +273,18 @@ export class OrganizationPaymentService {
         organizationOnboardingId,
       })
     );
+
+    const subscriptionData = {
+      ...(ORG_TRIAL_DAYS && { trial_period_days: ORG_TRIAL_DAYS }),
+      metadata: {
+        source: "onboarding",
+      },
+    };
+
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
-      successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
-      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
+      successUrl: `${WEBAPP_URL}/api/organizations/payment-redirect?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
+      cancelUrl: `${WEBAPP_URL}/api/organizations/payment-redirect?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
       priceId,
       quantity: config.seats,
       metadata: {
@@ -288,6 +293,7 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
+      subscriptionData,
     });
   }
 

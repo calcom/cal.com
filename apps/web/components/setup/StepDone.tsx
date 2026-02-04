@@ -16,7 +16,7 @@ const StepDone = (props: {
     <form
       id={`wizard-step-${props.currentStep}`}
       name={`wizard-step-${props.currentStep}`}
-      className="flex justify-center space-y-4"
+      className="flex justify-center stack-y-4"
       onSubmit={(e) => {
         props.setIsPending(true);
         e.preventDefault();

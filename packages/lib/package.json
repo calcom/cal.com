@@ -5,37 +5,35 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
-    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "lint:report": "biome lint --reporter json . > ../../lint-results/lib.json"
   },
   "dependencies": {
     "@calcom/config": "workspace:*",
     "@calcom/dayjs": "workspace:*",
-    "@formbricks/api": "^1.7.0",
-    "@formbricks/js": "^2.1.0",
-    "@sendgrid/client": "^7.7.0",
-    "@unkey/ratelimit": "^2.1.3",
-    "@vercel/og": "^0.6.3",
-    "city-timezones": "^1.2.1",
-    "i18next": "^23.2.3",
-    "ical.js": "^1.4.0",
-    "ics": "^2.37.0",
-    "jimp": "^0.16.1",
-    "lingo.dev": "^0.111.1",
-    "next-collect": "^0.2.1",
-    "rrule": "^2.7.1",
+    "@formbricks/api": "1.7.0",
+    "@formbricks/js": "2.1.0",
+    "@sendgrid/client": "7.7.0",
+    "@unkey/ratelimit": "2.1.3",
+    "@vercel/og": "0.6.3",
+    "city-timezones": "1.2.1",
+    "i18next": "23.2.3",
+    "ical.js": "1.5.0",
+    "ics": "2.37.0",
+    "jimp": "0.16.1",
+    "lingo.dev": "0.117.14",
+    "rrule": "2.7.1",
     "sharp": "0.33.5",
-    "sonner": "^1.7.4",
     "tsdav": "2.0.3",
-    "tslog": "^4.9.2",
-    "uuid": "^8.3.2"
+    "tslog": "4.9.2",
+    "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
+    "@biomejs/biome": "2.3.10",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
-    "@faker-js/faker": "^7.3.0",
-    "typescript": "^5.9.0-beta"
+    "@faker-js/faker": "7.6.0",
+    "typescript": "5.9.3"
   }
 }

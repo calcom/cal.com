@@ -4,13 +4,14 @@ import z from "zod";
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
+import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-type CommonParams = { bookingFields: BookingFields; view: View };
+type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
+type CommonParams = { bookingFields: BookingFields; view: View; translateFn?: TranslationFunction };
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
@@ -23,24 +24,57 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
-export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
+
+/**
+ * Checks if a booker email matches an email/domain entry.
+ * Supports three formats:
+ * - Full email: "user@example.com" - matches exactly
+ * - Domain with @ prefix: "@example.com" - matches any email ending with "@example.com"
+ * - Domain without @ prefix: "example.com" - matches any email ending with "@example.com"
+ */
+const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
+  const bookerEmailLower = bookerEmail.toLowerCase();
+
+  if (entry.startsWith("@")) {
+    const domain = entry.slice(1).toLowerCase();
+    return bookerEmailLower.endsWith("@" + domain);
+  }
+
+  if (entry.includes("@")) {
+    return bookerEmailLower === entry.toLowerCase();
+  }
+
+  return bookerEmailLower.endsWith("@" + entry.toLowerCase());
+};
+export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: true, view, translateFn });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
+export default function getBookingResponsesSchema({ bookingFields, view, translateFn }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view, translateFn });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
-export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view }: CommonParams) {
+export function getBookingResponsesSchemaWithOptionalChecks({
+  bookingFields,
+  view,
+  translateFn,
+}: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true });
+  return preprocess({
+    schema,
+    bookingFields,
+    isPartialSchema: false,
+    view,
+    checkOptional: true,
+    translateFn,
+  });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -51,6 +85,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema,
   view: currentView,
   checkOptional = false,
+  translateFn,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -59,6 +94,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema: boolean;
   checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
+  const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
@@ -104,7 +140,9 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch (e) {
+            log.error(`Failed to parse JSON for field ${field.name}: ${value}`, e);
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -150,7 +188,10 @@ function preprocess<T extends z.ZodType>({
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
-        const m = (message: string) => `{${bookingField.name}}${message}`;
+        const m = (message: string, options?: Record<string, unknown>) => {
+          const translatedMessage = translateFn ? translateFn(message, options) : message;
+          return `{${bookingField.name}}${translatedMessage}`;
+        };
         const views = bookingField.views;
         const isFieldApplicableToCurrentView =
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
@@ -189,7 +230,7 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            const match = excludedEmails.find((excludedEntry) => doesEmailMatchEntry(bookerEmail, excludedEntry));
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -201,7 +242,9 @@ function preprocess<T extends z.ZodType>({
                 ?.split(",")
                 .map((domain) => domain.trim())
                 .filter(Boolean) || [];
-            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            const requiredEmailsMatch = requiredEmails.find((requiredEntry) =>
+              doesEmailMatchEntry(bookerEmail, requiredEntry)
+            );
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,

@@ -1,6 +1,6 @@
 // page can be a server component
 import type { GetServerSidePropsContext } from "next";
-import { URLSearchParams } from "url";
+import { URLSearchParams } from "node:url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -47,6 +47,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     select: {
       ...bookingMinimalSelect,
+      userId: true,
       responses: true,
       eventType: {
         select: {
@@ -59,6 +60,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           allowReschedulingPastBookings: true,
           disableRescheduling: true,
           allowReschedulingCancelledBookings: true,
+          minimumRescheduleNotice: true,
           team: {
             select: {
               id: true,
@@ -122,17 +124,21 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking: {
       uid,
       status: booking.status,
+      startTime: booking.startTime,
       endTime: booking.endTime,
       responses: booking.responses,
+      userId: booking.userId,
       eventType: {
         disableRescheduling: !!eventType?.disableRescheduling,
         allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
         allowBookingFromCancelledBookingReschedule: !!eventType.allowReschedulingCancelledBookings,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice,
         teamId: eventType.team?.id ?? null,
       },
     },
     eventUrl,
     forceRescheduleForCancelledBooking: allowRescheduleForCancelledBooking,
+    currentUserId: session?.user?.id ?? null,
     bookingSeat,
   });
 

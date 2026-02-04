@@ -53,6 +53,14 @@ export async function toggleDelegationCredentialEnabled(
     throw new Error("Delegation credential not found");
   }
 
+  if (!loggedInUser.organizationId) {
+    throw new Error("You must be part of an organization to toggle a delegation credential");
+  }
+
+  if (currentDelegationCredential.organizationId !== loggedInUser.organizationId) {
+    throw new Error("Delegation credential not found");
+  }
+
   const shouldBeEnabled = input.enabled;
 
   if (shouldBeEnabled === currentDelegationCredential.enabled) {
@@ -74,8 +82,8 @@ export async function toggleDelegationCredentialEnabled(
       log.error(`Delegation credential ${input.id} has no workspace platform slug`);
     }
 
-    let calendarAppName;
-    let conferencingAppName;
+    let calendarAppName: string;
+    let conferencingAppName: string;
 
     if (slug === "google") {
       calendarAppName = "Google Calendar";
