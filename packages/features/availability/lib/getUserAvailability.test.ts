@@ -1,249 +1,185 @@
 import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { subtract } from "@calcom/features/schedules/lib/date-ranges";
 
 /**
  * Tests for timezone normalization in getUserAvailability.
  *
  * These tests verify that busy times are properly normalized to UTC before
- * availability calculations, which is critical for Round Robin scheduling
- * where team members may be in different timezones.
+ * being passed to subtract(), which is the same logic path used in
+ * getUserAvailability (formattedBusyTimes → subtract → dateRanges).
+ * Critical for Round Robin where team members may be in different timezones.
  *
  * Related issue: #22150
  */
+
+/** Same normalization as in getUserAvailability: busy times → UTC Dayjs ranges for subtract() */
+function formatBusyTimesToUtc(
+  busyTimes: { start: string; end: string }[]
+): { start: dayjs.Dayjs; end: dayjs.Dayjs }[] {
+  return busyTimes.map((busy) => ({
+    start: dayjs(busy.start).utc(),
+    end: dayjs(busy.end).utc(),
+  }));
+}
+
 describe("Timezone Normalization for Busy Times", () => {
-  describe("formattedBusyTimes UTC conversion", () => {
-    it("should normalize busy times from different timezones to UTC", () => {
-      // Simulate busy times that might come from different calendar sources
-      // with different timezone formats
-      const busyTimesFromIST = {
-        start: "2024-01-15T14:30:00+05:30", // 2:30 PM IST
-        end: "2024-01-15T15:30:00+05:30", // 3:30 PM IST
-      };
-
-      const busyTimesFromEST = {
-        start: "2024-01-15T04:00:00-05:00", // 4:00 AM EST
-        end: "2024-01-15T05:00:00-05:00", // 5:00 AM EST
-      };
-
-      const busyTimesFromGMT = {
-        start: "2024-01-15T09:00:00Z", // 9:00 AM GMT/UTC
-        end: "2024-01-15T10:00:00Z", // 10:00 AM GMT/UTC
-      };
-
-      // Apply the UTC normalization (this is what the fix does)
-      const normalizedIST = {
-        start: dayjs(busyTimesFromIST.start).utc(),
-        end: dayjs(busyTimesFromIST.end).utc(),
-      };
-
-      const normalizedEST = {
-        start: dayjs(busyTimesFromEST.start).utc(),
-        end: dayjs(busyTimesFromEST.end).utc(),
-      };
-
-      const normalizedGMT = {
-        start: dayjs(busyTimesFromGMT.start).utc(),
-        end: dayjs(busyTimesFromGMT.end).utc(),
-      };
-
-      // All times should now be in UTC format
-      // IST is UTC+5:30, so 14:30 IST = 09:00 UTC
-      expect(normalizedIST.start.toISOString()).toBe("2024-01-15T09:00:00.000Z");
-      expect(normalizedIST.end.toISOString()).toBe("2024-01-15T10:00:00.000Z");
-
-      // EST is UTC-5, so 04:00 EST = 09:00 UTC
-      expect(normalizedEST.start.toISOString()).toBe("2024-01-15T09:00:00.000Z");
-      expect(normalizedEST.end.toISOString()).toBe("2024-01-15T10:00:00.000Z");
-
-      // GMT is already UTC
-      expect(normalizedGMT.start.toISOString()).toBe("2024-01-15T09:00:00.000Z");
-      expect(normalizedGMT.end.toISOString()).toBe("2024-01-15T10:00:00.000Z");
-    });
-
-    it("should correctly identify overlapping busy times when normalized to UTC", () => {
-      // This test demonstrates the bug that was fixed:
-      // Without UTC normalization, these times might appear as different times
-      // even though they represent the same moment in time
-
-      // Team member 1 in IST reports busy at 2:30 PM IST
-      const member1BusyTime = {
-        start: "2024-01-15T14:30:00+05:30",
-        end: "2024-01-15T15:30:00+05:30",
-      };
-
-      // Team member 2 in EST reports busy at 4:00 AM EST (same UTC time!)
-      const member2BusyTime = {
-        start: "2024-01-15T04:00:00-05:00",
-        end: "2024-01-15T05:00:00-05:00",
-      };
-
-      // Normalize to UTC
-      const normalized1 = {
-        start: dayjs(member1BusyTime.start).utc(),
-        end: dayjs(member1BusyTime.end).utc(),
-      };
-
-      const normalized2 = {
-        start: dayjs(member2BusyTime.start).utc(),
-        end: dayjs(member2BusyTime.end).utc(),
-      };
-
-      // Both should represent the same UTC time
-      expect(normalized1.start.valueOf()).toBe(normalized2.start.valueOf());
-      expect(normalized1.end.valueOf()).toBe(normalized2.end.valueOf());
-    });
-
-    it("should correctly identify no availability when all team members are busy at the same UTC time", () => {
-      // Simulate a Round Robin scenario where all team members are busy
-      // at the same UTC time but reported in different timezone formats
-
-      const teamMembersBusyTimes = [
-        // Member in Tokyo (UTC+9)
-        { start: "2024-01-15T18:00:00+09:00", end: "2024-01-15T19:00:00+09:00" },
-        // Member in London (UTC+0)
-        { start: "2024-01-15T09:00:00Z", end: "2024-01-15T10:00:00Z" },
-        // Member in New York (UTC-5)
-        { start: "2024-01-15T04:00:00-05:00", end: "2024-01-15T05:00:00-05:00" },
+  describe("availability after subtract (getUserAvailability logic path)", () => {
+    it("should exclude the correct slot when busy times are in different timezones (IST, EST, GMT)", () => {
+      // Availability window: 09:00–17:00 UTC on 2024-01-15
+      const dateRanges = [
+        {
+          start: dayjs("2024-01-15T09:00:00Z"),
+          end: dayjs("2024-01-15T17:00:00Z"),
+        },
       ];
 
-      // Normalize all to UTC
-      const normalizedBusyTimes = teamMembersBusyTimes.map((busy) => ({
-        start: dayjs(busy.start).utc(),
-        end: dayjs(busy.end).utc(),
-      }));
+      // Busy 09:00–10:00 UTC expressed in IST, EST, and GMT
+      const busyTimes = [
+        { start: "2024-01-15T14:30:00+05:30", end: "2024-01-15T15:30:00+05:30" }, // IST
+        { start: "2024-01-15T04:00:00-05:00", end: "2024-01-15T05:00:00-05:00" }, // EST
+        { start: "2024-01-15T09:00:00Z", end: "2024-01-15T10:00:00Z" }, // GMT
+      ];
 
-      // All should represent the same UTC time (09:00-10:00 UTC)
-      const expectedStartUTC = "2024-01-15T09:00:00.000Z";
-      const expectedEndUTC = "2024-01-15T10:00:00.000Z";
+      const formattedBusyTimes = formatBusyTimesToUtc(busyTimes);
+      const available = subtract(dateRanges, formattedBusyTimes);
 
-      normalizedBusyTimes.forEach((busy, index) => {
-        expect(busy.start.toISOString()).toBe(expectedStartUTC);
-        expect(busy.end.toISOString()).toBe(expectedEndUTC);
-      });
-
-      // This means the slot 09:00-10:00 UTC should be marked as unavailable
-      // for Round Robin since ALL team members are busy at this time
+      // 09:00–10:00 UTC should be excluded; only 10:00–17:00 UTC remains
+      expect(available).toHaveLength(1);
+      expect(available[0].start.toISOString()).toBe("2024-01-15T10:00:00.000Z");
+      expect(available[0].end.toISOString()).toBe("2024-01-15T17:00:00.000Z");
     });
 
-    it("should handle daylight saving time transitions correctly", () => {
-      // Test DST transition in US (March 10, 2024 - clocks spring forward)
-      // Before DST: EST (UTC-5), After DST: EDT (UTC-4)
+    it("should treat IST and EST busy at same UTC time as one block (Round Robin)", () => {
+      // Availability: 08:00–12:00 UTC
+      const dateRanges = [
+        { start: dayjs("2024-01-15T08:00:00Z"), end: dayjs("2024-01-15T12:00:00Z") },
+      ];
 
-      // Busy time before DST change (still EST)
-      const beforeDST = {
-        start: "2024-03-09T10:00:00-05:00", // 10 AM EST
-        end: "2024-03-09T11:00:00-05:00", // 11 AM EST
-      };
+      // Same UTC slot (09:00–10:00) from two timezones
+      const busyTimes = [
+        { start: "2024-01-15T14:30:00+05:30", end: "2024-01-15T15:30:00+05:30" }, // IST
+        { start: "2024-01-15T04:00:00-05:00", end: "2024-01-15T05:00:00-05:00" }, // EST
+      ];
 
-      // Busy time after DST change (now EDT)
-      const afterDST = {
-        start: "2024-03-11T10:00:00-04:00", // 10 AM EDT
-        end: "2024-03-11T11:00:00-04:00", // 11 AM EDT
-      };
+      const formattedBusyTimes = formatBusyTimesToUtc(busyTimes);
+      const available = subtract(dateRanges, formattedBusyTimes);
 
-      const normalizedBefore = {
-        start: dayjs(beforeDST.start).utc(),
-        end: dayjs(beforeDST.end).utc(),
-      };
-
-      const normalizedAfter = {
-        start: dayjs(afterDST.start).utc(),
-        end: dayjs(afterDST.end).utc(),
-      };
-
-      // Before DST: 10 AM EST = 15:00 UTC
-      expect(normalizedBefore.start.toISOString()).toBe("2024-03-09T15:00:00.000Z");
-      expect(normalizedBefore.end.toISOString()).toBe("2024-03-09T16:00:00.000Z");
-
-      // After DST: 10 AM EDT = 14:00 UTC (one hour earlier in UTC)
-      expect(normalizedAfter.start.toISOString()).toBe("2024-03-11T14:00:00.000Z");
-      expect(normalizedAfter.end.toISOString()).toBe("2024-03-11T15:00:00.000Z");
+      // Should yield two ranges: 08:00–09:00 and 10:00–12:00 (09:00–10:00 removed once)
+      expect(available).toHaveLength(2);
+      expect(available[0].start.toISOString()).toBe("2024-01-15T08:00:00.000Z");
+      expect(available[0].end.toISOString()).toBe("2024-01-15T09:00:00.000Z");
+      expect(available[1].start.toISOString()).toBe("2024-01-15T10:00:00.000Z");
+      expect(available[1].end.toISOString()).toBe("2024-01-15T12:00:00.000Z");
     });
 
-    it("should handle UTC+0 and UTC-0 formats consistently", () => {
-      // Different ways to express UTC time
-      const utcFormats = [
+    it("should mark slot unavailable when all team members busy at same UTC time (Tokyo, London, NY)", () => {
+      const dateRanges = [
+        { start: dayjs("2024-01-15T08:00:00Z"), end: dayjs("2024-01-15T12:00:00Z") },
+      ];
+
+      const teamMembersBusyTimes = [
+        { start: "2024-01-15T18:00:00+09:00", end: "2024-01-15T19:00:00+09:00" }, // Tokyo
+        { start: "2024-01-15T09:00:00Z", end: "2024-01-15T10:00:00Z" }, // London
+        { start: "2024-01-15T04:00:00-05:00", end: "2024-01-15T05:00:00-05:00" }, // NY
+      ];
+
+      const formattedBusyTimes = formatBusyTimesToUtc(teamMembersBusyTimes);
+      const available = subtract(dateRanges, formattedBusyTimes);
+
+      // 09:00–10:00 UTC blocked; we get 08:00–09:00 and 10:00–12:00
+      expect(available).toHaveLength(2);
+      expect(available[0].end.toISOString()).toBe("2024-01-15T09:00:00.000Z");
+      expect(available[1].start.toISOString()).toBe("2024-01-15T10:00:00.000Z");
+    });
+
+    it("should handle DST correctly (EST vs EDT) in availability subtraction", () => {
+      // Day before DST (US): 14:00–20:00 UTC
+      const dateRangesBefore = [
+        { start: dayjs("2024-03-09T14:00:00Z"), end: dayjs("2024-03-09T20:00:00Z") },
+      ];
+      const busyBefore = [
+        { start: "2024-03-09T10:00:00-05:00", end: "2024-03-09T11:00:00-05:00" }, // 15:00–16:00 UTC
+      ];
+      const availableBefore = subtract(dateRangesBefore, formatBusyTimesToUtc(busyBefore));
+      expect(availableBefore).toHaveLength(2);
+      expect(availableBefore[0].end.toISOString()).toBe("2024-03-09T15:00:00.000Z");
+      expect(availableBefore[1].start.toISOString()).toBe("2024-03-09T16:00:00.000Z");
+
+      // Day after DST: 14:00–20:00 UTC
+      const dateRangesAfter = [
+        { start: dayjs("2024-03-11T14:00:00Z"), end: dayjs("2024-03-11T20:00:00Z") },
+      ];
+      const busyAfter = [
+        { start: "2024-03-11T10:00:00-04:00", end: "2024-03-11T11:00:00-04:00" }, // 14:00–15:00 UTC
+      ];
+      const availableAfter = subtract(dateRangesAfter, formatBusyTimesToUtc(busyAfter));
+      // Busy 14:00–15:00 UTC leaves one range 15:00–20:00 UTC
+      expect(availableAfter).toHaveLength(1);
+      expect(availableAfter[0].start.toISOString()).toBe("2024-03-11T15:00:00.000Z");
+      expect(availableAfter[0].end.toISOString()).toBe("2024-03-11T20:00:00.000Z");
+    });
+
+    it("should treat Z, +00:00, -00:00 as same UTC in subtract", () => {
+      const dateRanges = [
+        { start: dayjs("2024-01-15T08:00:00Z"), end: dayjs("2024-01-15T12:00:00Z") },
+      ];
+
+      const busyTimes = [
         { start: "2024-01-15T09:00:00Z", end: "2024-01-15T10:00:00Z" },
         { start: "2024-01-15T09:00:00+00:00", end: "2024-01-15T10:00:00+00:00" },
         { start: "2024-01-15T09:00:00-00:00", end: "2024-01-15T10:00:00-00:00" },
       ];
 
-      const normalizedTimes = utcFormats.map((busy) => ({
-        start: dayjs(busy.start).utc(),
-        end: dayjs(busy.end).utc(),
-      }));
+      const formattedBusyTimes = formatBusyTimesToUtc(busyTimes);
+      const available = subtract(dateRanges, formattedBusyTimes);
 
-      // All should normalize to the same UTC time
-      const expectedStart = normalizedTimes[0].start.valueOf();
-      const expectedEnd = normalizedTimes[0].end.valueOf();
-
-      normalizedTimes.forEach((busy) => {
-        expect(busy.start.valueOf()).toBe(expectedStart);
-        expect(busy.end.valueOf()).toBe(expectedEnd);
-      });
+      // Same slot excluded once; 08:00–09:00 and 10:00–12:00 remain
+      expect(available).toHaveLength(2);
+      expect(available[0].end.toISOString()).toBe("2024-01-15T09:00:00.000Z");
+      expect(available[1].start.toISOString()).toBe("2024-01-15T10:00:00.000Z");
     });
 
-    it("should handle edge case with midnight crossing in different timezones", () => {
-      // A meeting that crosses midnight in one timezone but not in another
+    it("should correctly exclude Tokyo midnight-crossing meeting when normalized to UTC", () => {
+      // Availability: 13:00–17:00 UTC (so 14:00–16:00 UTC is the blocked part we care about)
+      const dateRanges = [
+        { start: dayjs("2024-01-15T13:00:00Z"), end: dayjs("2024-01-15T17:00:00Z") },
+      ];
 
-      // 11 PM to 1 AM in Tokyo (crosses midnight locally)
-      const tokyoMeeting = {
-        start: "2024-01-15T23:00:00+09:00",
-        end: "2024-01-16T01:00:00+09:00",
-      };
+      // 11 PM–1 AM Tokyo = 14:00–16:00 UTC
+      const busyTimes = [
+        { start: "2024-01-15T23:00:00+09:00", end: "2024-01-16T01:00:00+09:00" },
+      ];
 
-      // Same meeting in UTC (14:00 to 16:00 - doesn't cross midnight)
-      const normalized = {
-        start: dayjs(tokyoMeeting.start).utc(),
-        end: dayjs(tokyoMeeting.end).utc(),
-      };
+      const formattedBusyTimes = formatBusyTimesToUtc(busyTimes);
+      const available = subtract(dateRanges, formattedBusyTimes);
 
-      expect(normalized.start.toISOString()).toBe("2024-01-15T14:00:00.000Z");
-      expect(normalized.end.toISOString()).toBe("2024-01-15T16:00:00.000Z");
-
-      // The meeting should be correctly represented as a continuous block
-      // in UTC, not split across days
-      expect(normalized.start.date()).toBe(15);
-      expect(normalized.end.date()).toBe(15);
+      expect(available).toHaveLength(2);
+      expect(available[0].start.toISOString()).toBe("2024-01-15T13:00:00.000Z");
+      expect(available[0].end.toISOString()).toBe("2024-01-15T14:00:00.000Z");
+      expect(available[1].start.toISOString()).toBe("2024-01-15T16:00:00.000Z");
+      expect(available[1].end.toISOString()).toBe("2024-01-15T17:00:00.000Z");
     });
 
-    it("should prevent the original bug where mixed timezone formats caused incorrect availability", () => {
-      // This test reproduces the original bug scenario from issue #22150
-      // where busy times in different timezone formats were compared without normalization
+    it("should correctly block IST busy time against UTC availability window (issue #22150)", () => {
+      // Availability: 09:00–17:00 UTC
+      const dateRanges = [
+        { start: dayjs("2024-01-15T09:00:00Z"), end: dayjs("2024-01-15T17:00:00Z") },
+      ];
 
-      // Availability window: 09:00-17:00 UTC
-      const availabilityStart = dayjs("2024-01-15T09:00:00Z");
-      const availabilityEnd = dayjs("2024-01-15T17:00:00Z");
+      // Busy 14:30–15:30 IST = 09:00–10:00 UTC
+      const busyTimes = [
+        { start: "2024-01-15T14:30:00+05:30", end: "2024-01-15T15:30:00+05:30" },
+      ];
 
-      // Busy time reported in IST format (should block 09:00-10:00 UTC)
-      const busyTimeIST = {
-        start: "2024-01-15T14:30:00+05:30", // 09:00 UTC
-        end: "2024-01-15T15:30:00+05:30", // 10:00 UTC
-      };
+      const formattedBusyTimes = formatBusyTimesToUtc(busyTimes);
+      const available = subtract(dateRanges, formattedBusyTimes);
 
-      // WITHOUT the fix (simulating the bug):
-      // If we just parse without .utc(), the comparison might be incorrect
-      const busyWithoutFix = {
-        start: dayjs(busyTimeIST.start), // Keeps original timezone info
-        end: dayjs(busyTimeIST.end),
-      };
-
-      // WITH the fix:
-      const busyWithFix = {
-        start: dayjs(busyTimeIST.start).utc(),
-        end: dayjs(busyTimeIST.end).utc(),
-      };
-
-      // The fix ensures the busy time is correctly identified as 09:00-10:00 UTC
-      expect(busyWithFix.start.toISOString()).toBe("2024-01-15T09:00:00.000Z");
-      expect(busyWithFix.end.toISOString()).toBe("2024-01-15T10:00:00.000Z");
-
-      // Verify the busy time overlaps with the availability window
-      const overlapsWithAvailability =
-        busyWithFix.start.isBefore(availabilityEnd) && busyWithFix.end.isAfter(availabilityStart);
-
-      expect(overlapsWithAvailability).toBe(true);
+      // 09:00–10:00 UTC must be excluded
+      expect(available).toHaveLength(1);
+      expect(available[0].start.toISOString()).toBe("2024-01-15T10:00:00.000Z");
+      expect(available[0].end.toISOString()).toBe("2024-01-15T17:00:00.000Z");
     });
   });
 });
