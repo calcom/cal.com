@@ -235,6 +235,8 @@ function main() {
     { numAttributes: 5, optionsPerAttribute: 10, numLookups: 100 },
     // Medium scale (typical organization)
     { numAttributes: 20, optionsPerAttribute: 20, numLookups: 500 },
+    // Real-world enterprise scenario (14 attributes across ~6,530 options total)
+    { numAttributes: 14, optionsPerAttribute: 466, numLookups: 1000 },
     // Large scale (enterprise)
     { numAttributes: 50, optionsPerAttribute: 50, numLookups: 1000 },
     // Very large scale (large enterprise with many attributes)
