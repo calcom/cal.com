@@ -41,6 +41,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
+import { RoutingTraceSheet } from "./RoutingTraceSheet";
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
@@ -279,6 +280,10 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
+  );
+  const isOpenRoutingTraceSheet = useBookingActionsStoreContext((state) => state.isOpenRoutingTraceSheet);
+  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
+    (state) => state.setIsOpenRoutingTraceSheet
   );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
@@ -519,7 +524,7 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          isBookingFromRoutingForm ? () => setIsOpenWrongAssignmentDialog(true) : undefined
+          booking.assignmentReason.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
       {isBookingFromRoutingForm && (
@@ -532,6 +537,13 @@ function BookingListItem(booking: BookingItemProps) {
           hostEmail={booking.user?.email ?? ""}
           hostName={booking.user?.name ?? null}
           teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
+      {booking.assignmentReason.length > 0 && (
+        <RoutingTraceSheet
+          isOpen={isOpenRoutingTraceSheet}
+          setIsOpen={setIsOpenRoutingTraceSheet}
+          bookingUid={booking.uid}
         />
       )}
     </div>
