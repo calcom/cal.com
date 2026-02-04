@@ -1,0 +1,20 @@
+name: Validate Agents Format
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-agents-format:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+
+      - name: Validate format
+        run: npx tsx scripts/devin/validate-local-knowledge.ts

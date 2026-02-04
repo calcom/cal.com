@@ -28,6 +28,12 @@ type FeedbackState = {
   onFeedbackComplete: () => void;
 };
 
+type FeatureOptInTrackingData = {
+  enableFor: "user" | "organization" | "teams";
+  teamCount?: number;
+  autoOptIn: boolean;
+};
+
 type FeatureOptInBannerState = {
   shouldShow: boolean;
   isLoading: boolean;
@@ -42,6 +48,7 @@ type FeatureOptInBannerState = {
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
   feedback: FeedbackState;
+  trackFeatureEnabled: (data: FeatureOptInTrackingData) => void;
 };
 
 interface FeatureOptInBannerWrapperProps {
@@ -74,6 +81,7 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           featureConfig={state.featureConfig}
           userRoleContext={state.userRoleContext}
           mutations={state.mutations}
+          onTrackFeatureEnabled={state.trackFeatureEnabled}
         />
       )}
       {state.feedback.feedbackDialogProps && (

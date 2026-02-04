@@ -3,7 +3,8 @@
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { trpc } from "@calcom/trpc/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import posthog from "posthog-js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getFeatureOptInTimestamp,
   isFeatureDismissed,
@@ -30,6 +31,12 @@ type FeatureOptInMutations = {
   invalidateQueries: () => void;
 };
 
+type FeatureOptInTrackingData = {
+  enableFor: "user" | "organization" | "teams";
+  teamCount?: number;
+  autoOptIn: boolean;
+};
+
 type UseFeatureOptInBannerResult = {
   shouldShow: boolean;
   isLoading: boolean;
@@ -44,6 +51,7 @@ type UseFeatureOptInBannerResult = {
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
   feedback: OptInFeedbackState;
+  trackFeatureEnabled: (data: FeatureOptInTrackingData) => void;
 };
 
 function isFeatureOptedIn(featureId: string): boolean {
@@ -114,7 +122,12 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     ]
   );
 
+  const hasBannerShownBeenTracked = useRef(false);
+
   const dismiss = useCallback(() => {
+    posthog.capture("feature_opt_in_banner_dismissed", {
+      feature_slug: featureId,
+    });
     setFeatureDismissed(featureId);
     setIsDismissed(true);
   }, [featureId]);
@@ -125,12 +138,27 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   }, [featureId]);
 
   const openDialog = useCallback(() => {
+    posthog.capture("feature_opt_in_banner_try_it_clicked", {
+      feature_slug: featureId,
+    });
     setIsDialogOpen(true);
-  }, []);
+  }, [featureId]);
 
   const closeDialog = useCallback(() => {
     setIsDialogOpen(false);
   }, []);
+
+  const trackFeatureEnabled = useCallback(
+    (data: FeatureOptInTrackingData) => {
+      posthog.capture("feature_opt_in_enabled", {
+        feature_slug: featureId,
+        enable_for: data.enableFor,
+        team_count: data.teamCount,
+        auto_opt_in: data.autoOptIn,
+      });
+    },
+    [featureId]
+  );
 
   const shouldShow = useMemo(() => {
     if (isDismissed) return false;
@@ -142,6 +170,15 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     if (!eligibilityQuery.data) return false;
     return eligibilityQuery.data.status === "can_opt_in";
   }, [isDismissed, isOptedIn, featureConfig, eligibilityQuery.isLoading, eligibilityQuery.data]);
+
+  useEffect(() => {
+    if (shouldShow && !hasBannerShownBeenTracked.current) {
+      hasBannerShownBeenTracked.current = true;
+      posthog.capture("feature_opt_in_banner_shown", {
+        feature_slug: featureId,
+      });
+    }
+  }, [shouldShow, featureId]);
 
   return {
     shouldShow,
@@ -157,6 +194,7 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     markOptedIn,
     mutations,
     feedback,
+    trackFeatureEnabled,
   };
 }
 

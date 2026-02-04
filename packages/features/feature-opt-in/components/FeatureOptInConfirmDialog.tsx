@@ -41,6 +41,12 @@ export type FeatureOptInMutations = {
   invalidateQueries: () => void;
 };
 
+type FeatureOptInTrackingData = {
+  enableFor: "user" | "organization" | "teams";
+  teamCount?: number;
+  autoOptIn: boolean;
+};
+
 interface FeatureOptInConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,6 +55,7 @@ interface FeatureOptInConfirmDialogProps {
   featureConfig: OptInFeatureConfig;
   userRoleContext: UserRoleContext;
   mutations: FeatureOptInMutations;
+  onTrackFeatureEnabled?: (data: FeatureOptInTrackingData) => void;
 }
 
 export function FeatureOptInConfirmDialog({
@@ -59,6 +66,7 @@ export function FeatureOptInConfirmDialog({
   featureConfig,
   userRoleContext,
   mutations,
+  onTrackFeatureEnabled,
 }: FeatureOptInConfirmDialogProps): ReactElement {
   const { t } = useLocale();
   const router = useRouter();
@@ -158,6 +166,13 @@ export function FeatureOptInConfirmDialog({
       }
 
       await Promise.all(promises);
+
+      const enableFor = enableForOrg ? "organization" : hasTeamsSelected ? "teams" : "user";
+      onTrackFeatureEnabled?.({
+        enableFor,
+        teamCount: hasTeamsSelected ? selectedTeamIds.length : undefined,
+        autoOptIn,
+      });
 
       setIsSuccess(true);
       setShouldInvalidate(true);

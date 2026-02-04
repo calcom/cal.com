@@ -118,6 +118,7 @@
     "vitest-mock-extended": "3.1.0"
   },
   "resolutions": {
+    "@isaacs/brace-expansion": "5.0.1",
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
     "@types/react": "18.0.26",
@@ -154,7 +155,7 @@
     "@adobe/css-tools": "4.3.2",
     "jsondiffpatch": "0.7.2",
     "min-document": "2.19.1",
-    "tar": "7.5.4",
+    "tar": "7.5.7",
     "lodash": "4.17.23",
     "lodash-es": "4.17.23"
   },
