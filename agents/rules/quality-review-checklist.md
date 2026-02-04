@@ -1,0 +1,56 @@
+---
+title: Code Review Checklist
+impact: HIGH
+impactDescription: Ensures consistent code quality across all reviews
+tags: quality, code-review, checklist
+---
+
+## Code Review Checklist
+
+**Impact: HIGH**
+
+A comprehensive checklist for code reviewers to ensure consistent quality standards.
+
+### File Naming Conventions
+
+- **Repository Files**: Must include `Repository` suffix, prefix with technology if applicable (e.g., `PrismaAppRepository.ts`), use PascalCase matching exported class
+- **Service Files**: Must include `Service` suffix, use PascalCase matching exported class, avoid generic names (e.g., `MembershipService.ts`)
+- **New files**: Avoid dot-suffixes like `.service.ts` or `.repository.ts`; reserve `.test.ts`, `.spec.ts`, `.types.ts` for their specific purposes
+
+### Code Quality
+
+- Prefer early returns. It is recommended to throw/return early so we can ensure null-checks and prevent further nesting.
+- Prefer Composition over Prop Drilling. Instead of relying on prop drilling, let's try to take advantage of react children feature.
+- For Prisma queries:
+  - Only select data you need
+    1) Increased performance overhead: When you select all columns from a table, Prisma retrieves all the data associated with each row, which can result in a significant performance impact. This includes reading unnecessary columns and transferring a large volume of data between your application and the database.
+    2) Unnecessary data exposure: Selecting all columns exposes sensitive data that might not be required by your application. This can pose security risks, especially if the table contains sensitive user information or proprietary data. (In our case app credentials and booking information)
+  - TLDR: Never use Includes - use select
+  - Select selects only the fields you specify explicitly
+  - Include selects the relationship AND all the fields of the table the relationship belongs to
+  - Make sure the credential.key field is never returned back from tRPC endpoints or APIs
+- Always use t() for text localization in frontend code; direct text embedding should trigger a warning.
+- Check if there's any O(n^2) logic in backend code; we should aim for O(n log n) or O(n) ideally.
+- Check if there are circular references introduced. We should never allow these.
+- Flag excessive Day.js use in performance-critical code. Functions like `.add`, `.diff`, `.isBefore`, and `.isAfter` are slow, especially in timezone mode. Prefer `.utc()` for better performance. Where possible, replace with native Date and direct `.valueOf()` comparisons for faster execution. Recommend using native methods or Day.js `.utc()` consistently in hot paths like loops.
+
+### API Documentation
+
+When docs changes are made in /docs/api-reference/v2/openapi.json, ensure the following:
+- "summary" fields are short and concise
+- "summary" fields do not end with a period
+- "summary" fields are written in proper American English
+
+### API Changes
+
+When changes to API v2 or v1 are made, ensure there are no breaking changes on existing endpoints. Instead, there needs to be a newly versioned endpoint with the updated functionality but the old one must remain functional.
+
+### PR Size
+
+For large pull requests (>500 lines changed or >10 files touched), advise splitting into smaller, focused PRs:
+- Split by feature boundaries: separate different features or user stories
+- Split by layer/component: frontend changes, backend changes, database migrations, and tests in separate PRs
+- Split by dependency chain: create PRs that can be merged sequentially
+- Split by file/module: group related file changes together
+- Suggested pattern: Database migrations → Backend logic → Frontend components → Integration tests
+- Benefits: easier review, faster feedback, reduced conflicts, easier rollback, better history
