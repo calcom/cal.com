@@ -15,6 +15,23 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
+/**
+ * Converts form/booking responses to variable formats for AI phone calls.
+ * Includes both current format (with underscores preserved) and legacy format
+ * (without underscores) for backward compatibility with existing templates.
+ */
+export function convertResponsesToVariableFormats(
+  responses: Record<string, { value?: unknown }>
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(responses).flatMap(([key, value]) => {
+      const formats = getVariableFormats(key);
+      const valueStr = value.value?.toString() || "";
+      return formats.map((format) => [format, valueStr]);
+    })
+  );
+}
+
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
   agentId: string;
@@ -53,13 +70,7 @@ function getVariablesFromFormResponse({
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
     // Include custom form responses with both current and legacy variable formats for backward compatibility
-    ...Object.fromEntries(
-      Object.entries(responses || {}).flatMap(([key, value]) => {
-        const formats = getVariableFormats(key);
-        const valueStr = value.value?.toString() || "";
-        return formats.map((format) => [format, valueStr]);
-      })
-    ),
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
@@ -104,13 +115,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
     eventTypeId: booking.eventTypeId?.toString() || "",
     // Include custom form responses with both current and legacy variable formats for backward compatibility
-    ...Object.fromEntries(
-      Object.entries(responses || {}).flatMap(([key, value]) => {
-        const formats = getVariableFormats(key);
-        const valueStr = value.value?.toString() || "";
-        return formats.map((format) => [format, valueStr]);
-      })
-    ),
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
