@@ -42,10 +42,10 @@ type BookingWithRelations = NonNullable<
  * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
  */
 function convertResponsesToVariableFormats(
-  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | CalEventResponses | null | undefined
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | CalEventResponses
 ) {
   return Object.fromEntries(
-    Object.entries(responses || {}).flatMap(([key, value]) => {
+    Object.entries(responses).flatMap(([key, value]) => {
       const formats = getVariableFormats(key);
       const valueStr = value.value?.toString() || "";
       return formats.map((format) => [format, valueStr]);
