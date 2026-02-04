@@ -2,10 +2,10 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { UserProfile } from "@calcom/types/UserProfile";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -15,23 +15,7 @@ import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-export type ChildrenEventType = {
-  value: string;
-  label: string;
-  created: boolean;
-  owner: {
-    avatar: string;
-    id: number;
-    email: string;
-    name: string;
-    username: string;
-    membership: MembershipRole;
-    eventTypeSlugs: string[];
-    profile: UserProfile;
-  };
-  slug: string;
-  hidden: boolean;
-};
+export type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 
 export type ChildrenEventTypeSelectCustomClassNames = {
   assignToSelect?: SelectClassNames;

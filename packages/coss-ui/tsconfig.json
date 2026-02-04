@@ -1,0 +1,14 @@
+{
+  "extends": "@calcom/tsconfig/react-library.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@coss/ui/*": ["./*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "build", "**/node_modules/**"]
+}

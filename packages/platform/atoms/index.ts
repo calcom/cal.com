@@ -1,4 +1,4 @@
-export { CalProvider } from "./cal-provider";
+export { CalProvider, CalOAuthProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
@@ -32,6 +32,7 @@ export { EventTypePlatformWrapper as EventTypeSettings } from "./event-types/wra
 export type { EventSettingsFromRef } from "./event-types/wrappers/types";
 export type { AvailabilitySettingsFormRef } from "./availability/types";
 export { ConferencingAppsViewPlatformWrapper as ConferencingAppsSettings } from "./connect/conferencing-apps/ConferencingAppsViewPlatformWrapper";
+export type { ConferencingAppsCustomClassNames } from "./connect/conferencing-apps/ConferencingAppsViewPlatformWrapper";
 export { StripeConnect } from "./connect/stripe/StripeConnect";
 export { CreateEventTypePlatformWrapper as CreateEventType } from "./event-types/wrappers/CreateEventTypePlatformWrapper";
 export { PaymentForm } from "./event-types/payments/PaymentForm";
@@ -48,3 +49,7 @@ export { CreateSchedulePlatformWrapper as CreateSchedule } from "./create-schedu
 export { CreateScheduleForm } from "./create-schedule/CreateScheduleForm";
 
 export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/index";
+
+export { ListEventTypesPlatformWrapper as ListEventTypes } from "./event-types/index";
+
+export { useAvailableSlots } from "./hooks/useAvailableSlots";

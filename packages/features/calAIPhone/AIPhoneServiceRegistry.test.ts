@@ -16,13 +16,15 @@ import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interfac
 vi.stubEnv("RETELL_AI_KEY", "test-api-key");
 
 vi.mock("./providers/retellAI", () => ({
-  RetellAIPhoneServiceProviderFactory: vi.fn().mockImplementation(() => ({
-    create: vi.fn().mockReturnValue({
-      setupConfiguration: vi.fn(),
-      createPhoneCall: vi.fn(),
-      createPhoneNumber: vi.fn(),
-    }),
-  })),
+  RetellAIPhoneServiceProviderFactory: vi.fn().mockImplementation(function() {
+    return {
+      create: vi.fn().mockReturnValue({
+        setupConfiguration: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+      }),
+    };
+  }),
 }));
 
 describe("AIPhoneServiceRegistry", () => {

@@ -1,1 +1,7 @@
-export { default, config } from "@calcom/features/ee/payments/api/webhook";
+export { default } from "@calcom/features/ee/payments/api/webhook";
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

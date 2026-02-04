@@ -38,7 +38,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
           ))}
         </div>
 
-        <div className="bg-muted flex items-center gap-2 rounded-full px-3 py-2">
+        <div className="bg-cal-muted flex items-center gap-2 rounded-full px-3 py-2">
           <p className="text-emphasis text-sm font-medium leading-none">{userEmail}</p>
         </div>
       </div>

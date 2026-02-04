@@ -6,13 +6,15 @@ on:
 env:
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   build:
     name: Build API v2
     permissions:
       contents: read
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
     services:
       postgres:
@@ -33,31 +35,15 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
-      - name: Cache API v2 production build
-        uses: buildjet/cache@v4
-        id: cache-api-v2-build
-        env:
-          cache-name: api-v2-build
-          key-1: ${{ hashFiles('yarn.lock') }}
-          key-2: ${{ hashFiles('apps/api/v2/**.[jt]s', 'apps/api/v2/**.[jt]sx', '!**/node_modules') }}
-          key-3: ${{ github.event.pull_request.number || github.ref }}
-          # Ensures production-build.yml will always be fresh
-          key-4: ${{ github.sha }}
         with:
-          path: |
-            **/dist/**
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-      - name: Log Cache Hit
-        if: steps.cache-api-v2-build.outputs.cache-hit == 'true'
-        run: echo "Cache hit for API v2 build. Skipping build."
-      - name: Run build
-        if: steps.cache-api-v2-build.outputs.cache-hit != 'true'
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Generate Prisma schemas
+        working-directory: apps/api/v2
+        run: yarn workspace @calcom/api-v2 run generate-schemas
+      - name: Build API v2 with Turbo
         run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          yarn workspace @calcom/api-v2 run generate-schemas &&
-          rm -rf apps/api/v2/node_modules &&
-          yarn install &&
-          yarn workspace @calcom/api-v2 run build
+          yarn turbo run build --filter=@calcom/api-v2
         shell: bash

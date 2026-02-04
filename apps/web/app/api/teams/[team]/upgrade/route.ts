@@ -7,6 +7,10 @@ import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -84,6 +88,35 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       if (!metadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
+    }
+
+    if (subscription) {
+      const billingProviderService = getBillingProviderService();
+      const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+        billingProviderService.extractSubscriptionDates(subscription);
+
+      const { billingPeriod, pricePerSeat, paidSeats } =
+        extractBillingDataFromStripeSubscription(subscription);
+
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
+      const teamBillingService = teamBillingServiceFactory.init(team);
+      await teamBillingService.saveTeamBilling({
+        teamId: team.id,
+        subscriptionId: subscription.id,
+        subscriptionItemId: subscription.items.data[0].id,
+        customerId:
+          typeof checkoutSession.customer === "string"
+            ? checkoutSession.customer
+            : checkoutSession.customer?.id || "",
+        status: SubscriptionStatus.ACTIVE,
+        planName: team.isOrganization ? Plan.ORGANIZATION : Plan.TEAM,
+        subscriptionStart: subscriptionStart ?? undefined,
+        subscriptionEnd: subscriptionEnd ?? undefined,
+        subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+        billingPeriod,
+        pricePerSeat,
+        paidSeats,
+      });
     }
 
     const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });

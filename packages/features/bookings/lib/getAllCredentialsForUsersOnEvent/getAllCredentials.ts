@@ -23,9 +23,8 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   user: { id: number; username: string | null; email: string; credentials: CredentialPayload[] },
   eventType: EventType
 ) => {
-  let allCredentials = user.credentials;
-
-  // If it's a team event type query for team credentials
+  let allCredentials = Array.isArray(user.credentials) ? user.credentials : [];
+ 
   if (eventType?.team?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({
       where: {
@@ -33,10 +32,11 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       },
       select: credentialForCalendarServiceSelect,
     });
+    if (Array.isArray(teamCredentialsQuery)) {
     allCredentials.push(...teamCredentialsQuery);
+    }
   }
-
-  // If it's a managed event type, query for the parent team's credentials
+  
   if (eventType?.parentId) {
     const teamCredentialsQuery = await prisma.team.findFirst({
       where: {
@@ -52,16 +52,15 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
         },
       },
     });
-    if (teamCredentialsQuery?.credentials) {
-      allCredentials.push(...teamCredentialsQuery?.credentials);
+    if (teamCredentialsQuery?.credentials && Array.isArray(teamCredentialsQuery.credentials)) {
+      allCredentials.push(...teamCredentialsQuery.credentials);
     }
   }
 
   const { profile } = await new UserRepository(prisma).enrichUserWithItsProfile({
     user: user,
   });
-
-  // If the user is a part of an organization, query for the organization's credentials
+  
   if (profile?.organizationId) {
     const org = await prisma.team.findUnique({
       where: {
@@ -74,7 +73,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       },
     });
 
-    if (org?.credentials) {
+    if (org?.credentials && Array.isArray(org.credentials)) {
       allCredentials.push(...org.credentials);
     }
   }

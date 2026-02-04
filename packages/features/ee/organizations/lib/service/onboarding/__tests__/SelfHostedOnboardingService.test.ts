@@ -1,10 +1,10 @@
-import prismock from "../../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import * as constants from "@calcom/lib/constants";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
@@ -13,7 +13,7 @@ import { SelfHostedOrganizationOnboardingService } from "../SelfHostedOnboarding
 import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../types";
 
 vi.mock("../../OrganizationPaymentService");
-vi.mock("@calcom/lib/server/repository/organizationOnboarding");
+vi.mock("@calcom/features/organizations/repositories/OrganizationOnboardingRepository");
 vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
   LicenseKeySingleton: {
     getInstance: vi.fn(),

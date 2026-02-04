@@ -3,9 +3,9 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { setTestEmail } from "@calcom/lib/testEmails";
 import { prisma } from "@calcom/prisma";
 
@@ -77,7 +77,7 @@ export default class BaseEmail {
         payloadWithUnEscapedSubject,
         (_err, info) => {
           if (_err) {
-            const err = getErrorFromUnknown(_err);
+            const err = getServerErrorFromUnknown(_err);
             this.printNodeMailerError(err);
             reject(err);
           } else {

@@ -2,119 +2,59 @@
 
 This document details the lifecycle events and states of Cal.com embeds, showing the interaction flow between the parent page and the iframe.
 
-## Core Lifecycle Sequence
+## Embed Handshake (Core Communication)
 
-```mermaid
-sequenceDiagram
-    participant Parent as Parent (User Page)
-    participant Embed as Embed (iframe)
-    participant Store as EmbedStore(iframe)
-    participant UI as UI Components(iframe)
-    
-    Note over Parent: embed.js loads
-    
-    alt Inline Embed
-        Parent->>Parent: Create cal-element
-        Parent->>Parent: Create iframe (visibility: hidden)
-        Parent->>Parent: Show loader
-    else Modal Embed
-        Note over Parent: No action unless prerender
-    end
+The handshake is the foundational communication protocol that establishes a bi-directional channel between the parent page and the iframe. All other embed functionality depends on this handshake being completed successfully.
 
-    alt Prerender Flow
-        Note over Parent: Set prerender=true in URL
-        Parent->>Store: Set prerenderState="inProgress"
-        Note over Store: Limited events allowed
-        Parent->>Parent: Create hidden iframe
-        Parent->>Parent: load booker(no slots)
-        Note over Parent: Wait for connect() call
-    end
+See [embed-handshake.mermaid](./embed-handshake.mermaid) for the detailed handshake sequence.
+See [embed-message-protocol.mermaid](./embed-message-protocol.mermaid) for the message passing architecture.
 
-    alt Modal CTA clicked
-        Parent->>Parent: Create cal-modal-box
-        Parent->>Parent: Create iframe (visibility: hidden)
-        Parent->>Parent: Show loader
-    end
-    Note over Embed: background: transparent(stays transparent)
-    Note over Embed: body tag set to visibility: hidden waiting to be shown
-    Note over Embed: iframe webpage starts rendering
+### Handshake Summary
 
-    Note over Store: Initialize EmbedStore state
-    Store->>Store: Set NOT_INITIALIZED state
-    Store->>Store: Initialize UI config & theme
+1. **Parent creates iframe** (hidden) with embed parameters
+2. **Iframe fires `__iframeReady`** via postMessage when ready to receive commands
+3. **Parent acknowledges** by sending `parentKnowsIframeReady` back to iframe
+4. **Iframe makes body visible** and fires `linkReady` (or `linkPrerendered`)
+5. **Parent flushes queued commands** that were called before handshake completed
 
-    Note over Parent: Process URL params for prefill
-    Parent->>Store: Set prefill data from URL
-    Note over Store: Auto-populate form fields
+### Message Format
 
-    Embed->>Parent: __iframeReady event
-    Note over Parent,Embed: Embed ready to receive messages
-    Note over Store: Set state to INITIALIZED
+All messages use the `originator: "CAL"` identifier to distinguish Cal.com embed messages:
 
-    Store->>UI: Apply theme configuration
-    Note over UI: DEPRECATED: styles prop
-    Note over UI: Use cssVarsPerTheme instead
-    Store->>UI: Apply cssVarsPerTheme
+```javascript
+// Parent → Iframe (Commands)
+{ originator: "CAL", method: "ui", arg: { theme: "dark" } }
 
-    Embed->>Parent: __dimensionChanged event
-    Note over Parent: Calculate and adjust iframe dimensions
-    Note over Store: Update parentInformedAboutContentHeight
-    
-    alt isBookerPage
-        Note over Embed: Wait for booker ready state
-    end
-
-    Embed->>Parent: linkReady event
-    Note over Parent: Changes loading state to done
-    Note over Parent: Removes loader
-    Note over Parent: Sets iframe visibility to visible
-
-    Parent->>Embed: parentKnowsIframeReady event
-    Note over Embed: Makes body visible
-    Note over Store: Update UI configuration
-
-    alt Prerendering Active
-        Note over Store: Set prerenderState to completed
-        Parent->>Store: connect() with new config
-        Store->>Store: Reset parentInformedAboutContentHeight
-        Store->>Parent: Update iframe with new params
-        Note over Store: Remove prerender params
-    end
-
-    loop Dimension Monitoring
-        Embed->>Embed: Monitor content size changes
-        alt Dimensions Changed
-            Embed->>Parent: __dimensionChanged event
-            Parent->>Parent: Adjust iframe size to avoid scrollbar
-        end
-    end
-
-    alt Route Changes
-        UI->>Store: Update UI state
-        Store->>Parent: __routeChanged event
-        Parent->>Parent: Handle navigation
-        Note over Store: Preserve prefill data
-    end
+// Iframe → Parent (Events)
+{ originator: "CAL", type: "__iframeReady", data: { isPrerendering: false } }
 ```
 
-## Detailed State Management
+## Inline Embed Lifecycle
 
-### EmbedStore States
-- `NOT_INITIALIZED`: Initial state when iframe is created
-- `INITIALIZED`: After __iframeReady event is processed
-- `prerenderState`: Can be null | "inProgress" | "completed"
+Inline embeds are created immediately when `Cal.inline()` is called. They have a simpler lifecycle without prerendering support.
 
-### Visibility States
-1. Initial Creation:
-   - iframe.style.visibility = "hidden"
-   - body.style.visibility = "hidden"
-   
-2. After __iframeReady:
-   - iframe becomes visible (unless prerendering)
-   
-3. After parentKnowsIframeReady:
-   - body becomes visible
-   - Background remains transparent
+See [inline-embed-lifecycle.mermaid](./inline-embed-lifecycle.mermaid) for the complete sequence diagram.
+
+## Modal Embed Lifecycle
+
+Modal embeds are created when a CTA is clicked or `Cal.modal()` is called. They support reuse, state management, and prerendering.
+
+See [modal-embed-lifecycle.mermaid](./modal-embed-lifecycle.mermaid) for the complete sequence diagram.
+
+## Modal Prerendering Flow
+
+Prerendering allows loading the booking page in the background before the user opens the modal, enabling instant display when the CTA is clicked.
+
+See [modal-prerendering-flow.mermaid](./modal-prerendering-flow.mermaid) for the complete sequence diagram.
+
+## Visibility Flow
+
+The embed system carefully manages visibility to prevent visual glitches:
+
+1. **Initial Creation**: Both iframe and body start hidden while the page loads
+2. **After Communication Established**: iframe becomes visible once it's ready to communicate
+3. **After Content Ready**: Loader is removed and iframe is fully visible
+4. **After Parent Acknowledges**: Body content becomes visible, background stays transparent
 
 ## Event Details
 
@@ -124,75 +64,161 @@ sequenceDiagram
    - For modal embeds: Waits for CTA click (unless prerendering)
 
 2. **iframe Creation**
-   - iframe is created with `visibility: hidden`
-   - Loader is shown (default or skeleton)
-   - EmbedStore initialized
+   - iframe is created hidden
+   - Loader is shown to the user
+   - Embed system initializes
 
 3. **__iframeReady Event**
    - Fired by: Iframe
-   - Indicates: Embed is ready to receive messages
-   - Actions:
-     - Sets iframeReady flag to true
-     - Makes iframe visible (unless prerendering)
-     - Processes queued iframe commands
+   - Indicates: Embed is ready to receive messages from parent
+   - Actions: Makes iframe visible (unless prerendering) and processes any queued commands
 
 4. **__dimensionChanged Event**
    - Fired by: Iframe
-   - Purpose: Maintain proper iframe sizing
-   - Triggers:
-     - On initial load
-     - When content size changes
-     - After window load completes
+   - Purpose: Keeps iframe size matched to content
+   - Triggers: When content size changes or page finishes loading
+   - Note: Parent adjusts iframe dimensions to prevent scrollbars
 
-5. **linkReady Event**
+5. **__windowLoadComplete Event**
    - Fired by: Iframe
-   - Indicates: iframe is fully ready for use
-   - Requirements:
-     - parentInformedAboutContentHeight must be true
-     - For booker pages: booker must be in ready state
-   - Actions: 
-     - Parent removes loader
-     - Parent makes iframe visible
+   - Indicates: Page has fully loaded
+   - Purpose: Signals that dimension calculations are reliable
 
-6. **parentKnowsIframeReady Event**
+6. **linkReady Event**
+   - Fired by: Iframe
+   - Indicates: iframe content is fully ready for user interaction
+   - Requirements: Content height is known, and for booker pages, slots are loaded (if skeleton loader is used)
+   - Actions: Parent removes loader and makes iframe visible
+
+7. **parentKnowsIframeReady Event**
    - Fired by: Parent
-   - Indicates: Parent acknowledges iframe readiness
-   - Actions:
-     - Makes body visible
-     - For prerendering: marks prerenderState as "completed"
+   - Indicates: Parent acknowledges that iframe is ready
+   - Actions: Makes body content visible
+   - Note: During prerendering, this triggers linkPrerendered event instead
+
+8. **__connectInitiated Event**
+   - Fired by: Iframe
+   - Indicates: Prerendered embed is being connected with new configuration
+   - Triggers: When connect() is called to activate a prerendered embed
+
+9. **__connectCompleted Event**
+   - Fired by: Iframe
+   - Indicates: Connect flow has finished updating the embed
+   - Triggers: After URL params are updated and slots are ready (if needed)
+
+10. **linkPrerendered Event**
+    - Fired by: Iframe
+    - Indicates: Prerendered embed is ready in the background
+    - Note: Embed stays hidden until user opens it via connect()
+
+11. **bookerViewed Event**
+    - Fired by: Iframe
+    - Indicates: Booker has been viewed for the first time in current page view
+    - Triggers: On first linkReady event (viewId === 1)
+    - Note: Not fired during prerendering. Includes event information and slots loading status.
+
+12. **bookerReopened Event**
+    - Fired by: Iframe
+    - Indicates: Booker has been reopened after modal was closed
+    - Triggers: On subsequent linkReady events (viewId > 1) when modal is reopened without reload
+    - Note: Distinguishes between first view (bookerViewed) and reopen (bookerReopened). Uses viewId to determine if it's a reopen.
+    - Applicability: Only applicable for prerendered modals that are now visible.
+
+13. **bookerReloaded Event**
+    - Fired by: Iframe
+    - Indicates: Booker has been reloaded (full page reload within modal)
+    - Triggers: On linkReady after fullReload action is taken (when reloadInitiated flag is set)
+    - Note: Distinguishes between first view (bookerViewed), reopen (bookerReopened), and reload (bookerReloaded). Fires only once per reload.
+    - Applicability: Only applicable for prerendered modals that are now visible.
+
+14. **bookerReady Event**
+    - Fired by: Iframe
+    - Indicates: Booker view is loaded and slots are fully ready for user interaction
+    - Triggers: When booker view is loaded and slots are successfully loaded
+    - Note: Only fires for booker pages (not booking success view or other non-booker pages). This is different from linkReady which fires for any embed page. The bookerReady event signals that users can now select a slot.
 
 ## Prerendering Flow
 
-The prerendering flow follows a special path:
+Prerendering loads the booking page in the background before the user needs it:
 
-1. Initial State:
-   - prerenderState: null
+1. **Prerender Phase**:
+   - Embed is loaded with `prerender=true` parameter
+   - Only essential events are allowed (communication and sizing)
+   - Embed stays hidden from the user
+   - No tracking events are fired
 
-2. During Prerender:
-   - prerenderState: "inProgress"
-   - Limited events allowed (only __iframeReady, __dimensionChanged)
-   - iframe and body remain hidden
-
-3. After Connect:
-   - prerenderState: "completed"
-   - Full event flow enabled
-   - Visibility states updated
+2. **Connect Phase** (when user opens the modal):
+   - Parent calls `connect()` with user's configuration
+   - URL parameters are updated to match user's input
+   - Slots may be refreshed if needed
+   - Embed becomes visible and ready for interaction
+   - Full event tracking is enabled
 
 ## Command Queue System
 
-The embed system implements a command queue to handle instructions before the iframe is ready:
+The embed system queues commands sent before the iframe is ready. Once the iframe is ready, all queued commands are processed in order, and new commands execute immediately.
 
-1. Commands are queued if iframe isn't ready:
-   ```typescript
-   if (!this.iframeReady) {
-     this.iframeDoQueue.push(doInIframeArg);
-     return;
-   }
-   ```
+### How Command Queuing Works
 
-2. Queue is processed after __iframeReady event:
-   - All queued commands are executed in order
-   - New commands are executed immediately
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     doInIframe(cmd)                          │
+└─────────────────────────┬────────────────────────────────────┘
+                          │
+                          ▼
+                ┌─────────────────────┐
+                │   iframeReady?      │
+                └─────────┬───────────┘
+                          │
+           ┌──────────────┼──────────────┐
+           │ No           │              │ Yes
+           ▼              │              ▼
+   ┌───────────────┐      │      ┌───────────────┐
+   │ Push to queue │      │      │ postMessage   │
+   │ (iframeDoQueue)│     │      │ to iframe     │
+   └───────────────┘      │      └───────────────┘
+                          │
+                          │ On __iframeReady event:
+                          ▼
+                ┌─────────────────────┐
+                │ Flush queue:        │
+                │ forEach → postMessage│
+                │ Clear queue         │
+                └─────────────────────┘
+```
+
+### Available Commands (Parent → Iframe)
+
+| Method | Purpose | Example |
+|--------|---------|---------|
+| `ui` | Apply styles, theme, branding | `{ method: "ui", arg: { theme: "dark" } }` |
+| `parentKnowsIframeReady` | Acknowledge handshake | `{ method: "parentKnowsIframeReady" }` |
+| `connect` | Activate prerendered embed | `{ method: "connect", arg: { config, params } }` |
+
+## Popup Window Analogy
+
+Think of the embed like `window.open("url", "cal-booker")` with a hypothetical enhancement - when you close the popup, it stays in the background ready to spring back:
+
+- **`bookerViewed`** = Opening a new popup window (first time, or after previous was destroyed due to staleness)
+- **`bookerReopened`** = Clicking CTA that targets the same window name, bringing back the hidden popup
+- **`bookerReloaded`** = Popup window navigating to a new URL (full page reload within the same popup)
+- **Staleness/full reload** = When the popup was actually destroyed (not just hidden), so CTA opens a fresh one
+
+This mental model helps understand the lifecycle:
+1. User clicks CTA → Embed modal opens → `bookerViewed` event (similar to opening a new popup)
+2. User closes modal and clicks CTA again (short time) → Existing embed springs back → `bookerReopened` event (similar to focusing a hidden popup)
+3. User clicks CTA after long time → Embed was destroyed due to staleness → Fresh load → `bookerViewed` event (similar to opening a new popup after the old one was closed)
+4. Modal stays open but iframe content reloads (fullReload) → `bookerReloaded` event (similar to popup navigating to new URL)
+
+## Event Tracking System
+
+The embed system tracks user interactions and page views:
+
+- **Page View Tracking**: Distinguishes between first view and refocus events when users navigate within the embed
+- **Booker View Events**: Fires when the booker is viewed for the first time or focused
+- **Availability Events**: Tracks when slots/availability data is loaded or refreshed
+- **Event Deduplication**: Prevents duplicate events for the same page view
+- **Prerendering**: Tracking events are suppressed during prerendering phase
 
 ## Error Handling
 

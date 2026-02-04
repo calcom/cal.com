@@ -3,12 +3,15 @@ import getRawBody from "raw-body";
 import { z } from "zod";
 
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
+
+import appConfig from "../config.json";
 
 export const config = {
   api: {
@@ -62,7 +65,15 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  return await handlePaymentSuccess(payment.id, payment.bookingId);
+  const traceContext = distributedTracing.createTrace("paypal_webhook", {
+    meta: { paymentId: payment.id, bookingId: payment.bookingId },
+  });
+  return await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: appConfig.slug,
+    traceContext,
+  });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -92,11 +103,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return await handlePaypalPaymentSuccess(parsedPayload, bodyAsString, parseHeaders.data);
     }
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
     res.status(200).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
     });
     return;
   }

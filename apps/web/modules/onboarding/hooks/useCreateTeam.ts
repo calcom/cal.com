@@ -18,11 +18,13 @@ export function useCreateTeam() {
   const createTeamMutation = trpc.viewer.teams.create.useMutation();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
-  const createTeam = async (store: OnboardingState) => {
+  const createTeam = async (store?: OnboardingState) => {
     setIsSubmitting(true);
 
     try {
-      const { teamDetails, teamBrand } = store;
+      // Get the latest state from the store to ensure we have the most up-to-date values
+      const currentStore = store || useOnboardingStore.getState();
+      const { teamDetails, teamBrand } = currentStore;
 
       // Validate team details - if empty, redirect back to team details step
       if (!teamDetails.name || !teamDetails.name.trim() || !teamDetails.slug || !teamDetails.slug.trim()) {
@@ -103,9 +105,9 @@ export function useCreateTeam() {
 
       // Redirect to personal settings after successful invite
       const gettingStartedPath = flags["onboarding-v3"]
-        ? "/onboarding/personal/settings"
+        ? "/onboarding/personal/settings?fromTeamOnboarding=true"
         : "/getting-started";
-      router.push(gettingStartedPath);
+      router.replace(gettingStartedPath);
     } catch (error) {
       console.error("Failed to invite members:", error);
       // Extract error message from TRPC error

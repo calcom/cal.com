@@ -1,7 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { CalAiPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/CalAiPhoneNumberRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
-import { CalAiPhoneNumberRepository } from "@calcom/lib/server/repository/calAiPhoneNumber";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +20,8 @@ export const listCallsHandler = async ({ ctx, input }: ListCallsHandlerOptions) 
   const organizationId = ctx.user.organizationId ?? ctx.user.profiles?.[0]?.organizationId;
 
   try {
-    const userMemberships = await MembershipRepository.findAllByUserId({
+    const membershipRepository = new MembershipRepository();
+    const userMemberships = await membershipRepository.findAllByUserId({
       userId: ctx.user.id,
       filters: {
         accepted: true,

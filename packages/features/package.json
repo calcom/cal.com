@@ -7,7 +7,11 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "lint": "eslint ."
+    "lint": "biome lint .",
+    "dev:trigger": "npx trigger.dev@latest dev --analyze",
+    "deploy:trigger:prod": "npx trigger.dev@latest deploy --skip-promotion",
+    "deploy:trigger:ci": "trigger deploy --config ./trigger.config.ts --skip-promotion",
+    "deploy:trigger:staging": "npx trigger.dev@latest deploy --env staging --skip-promotion"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",
@@ -15,23 +19,39 @@
     "@calcom/lib": "workspace:*",
     "@calcom/trpc": "workspace:*",
     "@calcom/ui": "workspace:*",
-    "@lexical/react": "^0.9.0",
-    "@tanstack/react-table": "^8.20.6",
-    "@tanstack/react-virtual": "^3.10.9",
-    "@vercel/functions": "^1.4.0",
-    "akismet-api": "^6.0.0",
-    "class-variance-authority": "^0.7.1",
-    "framer-motion": "^10.12.8",
-    "lexical": "^0.9.0",
-    "react-select": "^5.7.0",
-    "react-sticky-box": "^2.0.4",
-    "recharts": "^3.0.2",
-    "stripe-event-types": "^3.1.0",
-    "web-push": "^3.6.7",
-    "zustand": "^4.3.2"
+    "@coss/ui": "workspace:*",
+    "@evyweb/ioctopus": "1.2.0",
+    "@tanstack/react-table": "8.20.6",
+    "@tanstack/react-virtual": "3.10.9",
+    "@trigger.dev/sdk": "4.3.2",
+    "@vercel/functions": "1.4.0",
+    "city-timezones": "1.2.1",
+    "class-variance-authority": "0.7.1",
+    "date-fns-tz": "3.2.0",
+    "deasync": "^0.1.31",
+    "framer-motion": "10.12.8",
+    "p-limit": "6.2.0",
+    "react-awesome-query-builder": "5.1.2",
+    "react-select": "5.8.0",
+    "react-sticky-box": "2.0.4",
+    "recharts": "3.0.2",
+    "stripe": "9.16.0",
+    "stripe-event-types": "3.1.0",
+    "web-push": "3.6.7",
+    "zustand": "4.5.2"
+  },
+  "peerDependencies": {
+    "next": ">=14.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-is": "^18.2.0",
+    "zod": "^3.0.0"
   },
   "devDependencies": {
-    "@testing-library/react-hooks": "^8.0.1",
-    "@types/web-push": "^3.6.3"
+    "@calcom/testing": "workspace:*",
+    "@testing-library/react-hooks": "8.0.1",
+    "@types/deasync": "^0",
+    "@types/web-push": "3.6.3",
+    "trigger.dev": "4.3.2"
   }
 }

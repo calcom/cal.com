@@ -1,80 +1,54 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseUrlFormData } from "app/api/parseRequestData";
-import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import prisma from "@calcom/prisma";
-import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
-import type { OAuthTokenPayload } from "@calcom/types/oauth";
+import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 async function handler(req: NextRequest) {
-  const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
+  const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
 
-  if (!client_id || !client_secret) {
-    return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
+  if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+    return NextResponse.json({ message: OAUTH_ERROR_REASONS["encryption_key_missing"] }, { status: 500 });
+  }
+
+  if (!client_id) {
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
 
   if (grant_type !== "refresh_token") {
-    return NextResponse.json({ message: "grant type invalid" }, { status: 400 });
+    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
-
-  const [hashedSecret] = generateSecret(client_secret);
-
-  const client = await prisma.oAuthClient.findFirst({
-    where: {
-      clientId: client_id,
-      clientSecret: hashedSecret,
-    },
-    select: {
-      redirectUri: true,
-    },
-  });
-
-  if (!client) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const secretKey = process.env.CALENDSO_ENCRYPTION_KEY || "";
-
-  let decodedRefreshToken: OAuthTokenPayload;
-
   try {
-    const refreshToken = req.headers.get("authorization")?.split(" ")[1] || "";
-    decodedRefreshToken = jwt.verify(refreshToken, secretKey) as OAuthTokenPayload;
-  } catch {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const oAuthService = getOAuthService();
+    const refreshTokenValue = refresh_token || req.headers.get("authorization")?.split(" ")[1] || "";
+    const tokens = await oAuthService.refreshAccessToken(client_id, refreshTokenValue, client_secret);
+
+    return NextResponse.json(
+      {
+        access_token: tokens.accessToken,
+        token_type: "bearer",
+        refresh_token: tokens.refreshToken,
+        expires_in: tokens.expiresIn,
+      },
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json;charset=UTF-8",
+          "Cache-Control": "no-store",
+          Pragma: "no-cache",
+        },
+      }
+    );
+  } catch (err) {
+    if (err instanceof ErrorWithCode) {
+      return NextResponse.json({ error: err.message }, { status: getHttpStatusCode(err) });
+    }
+    return NextResponse.json({ error: "server_error" }, { status: 500 });
   }
-
-  if (!decodedRefreshToken || decodedRefreshToken.token_type !== "Refresh Token") {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
-  const payloadAuthToken: OAuthTokenPayload = {
-    userId: decodedRefreshToken.userId,
-    teamId: decodedRefreshToken.teamId,
-    scope: decodedRefreshToken.scope,
-    token_type: "Access Token",
-    clientId: client_id,
-  };
-
-  const payloadRefreshToken: OAuthTokenPayload = {
-    userId: decodedRefreshToken.userId,
-    teamId: decodedRefreshToken.teamId,
-    scope: decodedRefreshToken.scope,
-    token_type: "Refresh Token",
-    clientId: client_id,
-  };
-
-  const access_token = jwt.sign(payloadAuthToken, secretKey, {
-    expiresIn: 1800, // 30 min
-  });
-
-  const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
-    expiresIn: 30 * 24 * 60 * 60, // 30 days
-  });
-
-  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
 
 export const POST = defaultResponderForAppDir(handler);

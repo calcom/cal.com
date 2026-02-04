@@ -9,7 +9,9 @@
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"],
-      "@calcom/repository/*": ["@calcom/lib/server/repository/*"]
+      "@calcom/testing/*": ["../../packages/testing/src/*"],
+      "@calcom/repository/*": ["@calcom/lib/server/repository/*"],
+      "@coss/ui/*": ["../../packages/coss-ui/src/*"]
     },
     "plugins": [
       {
@@ -28,10 +30,7 @@
     "../../packages/types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "../../packages/features/bookings/lib/getBookingInfo.ts",
-    "../../packages/features/bookings/lib/getUserBooking.ts",
-    "../../packages/features/Segment.tsx"
+    ".next/types/**/*.ts"
   ],
-  "exclude": ["**/node_modules/**", ".next"]
+  "exclude": ["**/node_modules/**", ".next", "playwright"]
 }

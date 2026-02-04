@@ -1,22 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import type { WatchlistEntry } from "@calcom/lib/server/repository/watchlist.interface";
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import {
-  MembershipRole,
-  WatchlistType,
-  WatchlistAction,
-  WatchlistSource,
-  BookingReportReason,
-} from "@calcom/prisma/enums";
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
+import { WatchlistType } from "@calcom/prisma/enums";
 
 import { addToWatchlistHandler } from "./addToWatchlist.handler";
 
-vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/bookingReport");
-vi.mock("@calcom/lib/server/repository/watchlist.repository");
+vi.mock("@calcom/features/di/watchlist/containers/watchlist");
 
 describe("addToWatchlistHandler (Organization)", () => {
   const mockUser = {
@@ -26,75 +15,16 @@ describe("addToWatchlistHandler (Organization)", () => {
     profile: null,
   };
 
-  const mockReports = [
-    {
-      id: "report-1",
-      bookingUid: "booking-uid-1",
-      bookerEmail: "Spammer@Example.com",
-      reportedById: 1,
-      reason: BookingReportReason.SPAM,
-      description: null,
-      cancelled: false,
-      createdAt: new Date(),
-      watchlistId: null,
-      reporter: { id: 1, name: "Admin", email: "admin@example.com" },
-      booking: {
-        id: 1,
-        uid: "booking-uid-1",
-        title: "Test Booking",
-        startTime: new Date(),
-        endTime: new Date(),
-      },
-      watchlist: null,
-    },
-    {
-      id: "report-2",
-      bookingUid: "booking-uid-2",
-      bookerEmail: " User@Spammer.com ",
-      reportedById: 1,
-      reason: BookingReportReason.SPAM,
-      description: null,
-      cancelled: false,
-      createdAt: new Date(),
-      watchlistId: null,
-      reporter: { id: 1, name: "Admin", email: "admin@example.com" },
-      booking: {
-        id: 2,
-        uid: "booking-uid-2",
-        title: "Test Booking 2",
-        startTime: new Date(),
-        endTime: new Date(),
-      },
-      watchlist: null,
-    },
-  ];
-
-  const mockPermissionCheckService = {
-    checkPermission: vi.fn(),
+  const mockService = {
+    addToWatchlistByEmail: vi.fn(),
   };
 
-  const mockReportRepo = {
-    findReportsByIds: vi.fn(),
-    linkWatchlistToReport: vi.fn(),
-    updateReportStatus: vi.fn(),
-  };
-
-  const mockWatchlistRepo = {
-    checkExists: vi.fn(),
-    createEntry: vi.fn(),
-  };
-
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as InstanceType<typeof PermissionCheckService>
+    const { getOrganizationWatchlistOperationsService } = await import(
+      "@calcom/features/di/watchlist/containers/watchlist"
     );
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(
-      () => mockReportRepo as InstanceType<typeof PrismaBookingReportRepository>
-    );
-    vi.mocked(WatchlistRepository).mockImplementation(
-      () => mockWatchlistRepo as InstanceType<typeof WatchlistRepository>
-    );
+    vi.mocked(getOrganizationWatchlistOperationsService).mockReturnValue(mockService as never);
   });
 
   describe("access control", () => {
@@ -103,7 +33,7 @@ describe("addToWatchlistHandler (Organization)", () => {
         addToWatchlistHandler({
           ctx: { user: { ...mockUser, organizationId: undefined, profile: null } },
           input: {
-            reportIds: ["report-1"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
@@ -112,269 +42,142 @@ describe("addToWatchlistHandler (Organization)", () => {
         message: "You must be part of an organization to add to watchlist",
       });
 
-      expect(mockPermissionCheckService.checkPermission).not.toHaveBeenCalled();
-    });
-
-    it("should throw UNAUTHORIZED when user lacks permission", async () => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(false);
-
-      await expect(
-        addToWatchlistHandler({
-          ctx: { user: mockUser },
-          input: {
-            reportIds: ["report-1"],
-            type: WatchlistType.EMAIL,
-          },
-        })
-      ).rejects.toMatchObject({
-        code: "UNAUTHORIZED",
-        message: "You are not authorized to add entries to the watchlist",
-      });
-
-      expect(mockReportRepo.findReportsByIds).not.toHaveBeenCalled();
-    });
-
-    it("should check permission with correct parameters", async () => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
-
-      await addToWatchlistHandler({
-        ctx: { user: mockUser },
-        input: {
-          reportIds: ["report-1"],
-          type: WatchlistType.EMAIL,
-        },
-      });
-
-      expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: 100,
-        permission: "watchlist.create",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      });
+      expect(mockService.addToWatchlistByEmail).not.toHaveBeenCalled();
     });
   });
 
-  describe("validation", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
-    it("should throw NOT_FOUND when report IDs don't exist", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([]);
+  describe("error mapping", () => {
+    it("should propagate NOT_FOUND error from service", async () => {
+      mockService.addToWatchlistByEmail.mockRejectedValue(
+        WatchlistErrors.notFound("No pending reports found for this email")
+      );
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1", "report-2"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: expect.stringContaining("Booking report(s) not found"),
+        message: "No pending reports found for this email",
       });
     });
 
-    it("should throw NOT_FOUND with specific missing IDs", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
+    it("should propagate PERMISSION_DENIED error from service", async () => {
+      mockService.addToWatchlistByEmail.mockRejectedValue(
+        WatchlistErrors.permissionDenied("You are not authorized to create watchlist entries")
+      );
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1", "report-2", "report-3"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
       ).rejects.toMatchObject({
-        code: "NOT_FOUND",
-        message: expect.stringContaining("report-2, report-3"),
+        code: "PERMISSION_DENIED",
+        message: "You are not authorized to create watchlist entries",
       });
     });
-  });
 
-  describe("duplicate prevention", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
-    it("should throw BAD_REQUEST when all reports are already in watchlist", async () => {
-      const reportsInWatchlist = mockReports.map((r) => ({ ...r, watchlistId: "watchlist-123" }));
-      mockReportRepo.findReportsByIds.mockResolvedValue(reportsInWatchlist);
+    it("should propagate ALREADY_IN_WATCHLIST error from service", async () => {
+      mockService.addToWatchlistByEmail.mockRejectedValue(
+        WatchlistErrors.alreadyInWatchlist("Email is already in the blocklist")
+      );
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1", "report-2"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
       ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "All selected bookers are already in the watchlist",
+        code: "ALREADY_IN_WATCHLIST",
+        message: "Email is already in the blocklist",
       });
+    });
+
+    it("should re-throw unknown service errors", async () => {
+      const unknownError = new Error("Database connection failed");
+      mockService.addToWatchlistByEmail.mockRejectedValue(unknownError);
+
+      await expect(
+        addToWatchlistHandler({
+          ctx: { user: mockUser },
+          input: {
+            email: "spammer@example.com",
+            type: WatchlistType.EMAIL,
+          },
+        })
+      ).rejects.toThrow("Database connection failed");
     });
   });
 
-  describe("successful addition", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
-    it("should create new organization watchlist entry for EMAIL type and link report", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
+  describe("successful delegation", () => {
+    it("should delegate to service with correct parameters for email blocking", async () => {
+      mockService.addToWatchlistByEmail.mockResolvedValue({
+        success: true,
+        addedCount: 2,
+        skippedCount: 0,
+        message: "Successfully added email to blocklist",
+        results: [
+          { reportId: "report-1", watchlistId: "watchlist-1" },
+          { reportId: "report-2", watchlistId: "watchlist-1" },
+        ],
+      });
 
       const result = await addToWatchlistHandler({
         ctx: { user: mockUser },
         input: {
-          reportIds: ["report-1"],
+          email: "spammer@example.com",
           type: WatchlistType.EMAIL,
           description: "Spam user",
         },
       });
 
-      expect(result.success).toBe(true);
-      expect(result.addedCount).toBe(1);
-      expect(mockWatchlistRepo.checkExists).toHaveBeenCalledWith({
+      expect(mockService.addToWatchlistByEmail).toHaveBeenCalledWith({
+        email: "spammer@example.com",
         type: WatchlistType.EMAIL,
-        value: "spammer@example.com",
-        organizationId: 100,
-      });
-      expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
-        type: WatchlistType.EMAIL,
-        value: "spammer@example.com",
-        organizationId: 100,
-        action: WatchlistAction.BLOCK,
         description: "Spam user",
         userId: 1,
       });
-      expect(mockReportRepo.linkWatchlistToReport).toHaveBeenCalledWith({
-        reportId: "report-1",
-        watchlistId: "watchlist-new",
-      });
-      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
-        reportId: "report-1",
-        status: "BLOCKED",
-        organizationId: 100,
-      });
+      expect(result.success).toBe(true);
+      expect(result.addedCount).toBe(2);
     });
 
-    it("should create new organization watchlist entry for DOMAIN type and link report", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-domain" });
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
+    it("should delegate to service with correct parameters for domain blocking", async () => {
+      mockService.addToWatchlistByEmail.mockResolvedValue({
+        success: true,
+        addedCount: 5,
+        skippedCount: 0,
+        message: "Successfully added domain to blocklist",
+        results: [],
+      });
 
       const result = await addToWatchlistHandler({
         ctx: { user: mockUser },
         input: {
-          reportIds: ["report-1"],
+          email: "spammer@spamdomain.com",
           type: WatchlistType.DOMAIN,
+          description: "Spam domain",
         },
       });
 
-      expect(result.success).toBe(true);
-      expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
+      expect(mockService.addToWatchlistByEmail).toHaveBeenCalledWith({
+        email: "spammer@spamdomain.com",
         type: WatchlistType.DOMAIN,
-        value: "example.com",
-        organizationId: 100,
-        action: WatchlistAction.BLOCK,
-        description: undefined,
+        description: "Spam domain",
         userId: 1,
       });
-      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
-        reportId: "report-1",
-        status: "BLOCKED",
-        organizationId: 100,
-      });
-    });
-
-    it("should reuse existing organization watchlist entry when value already exists", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      mockWatchlistRepo.checkExists.mockResolvedValue({ id: "existing-watchlist" } as WatchlistEntry);
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
-
-      const result = await addToWatchlistHandler({
-        ctx: { user: mockUser },
-        input: {
-          reportIds: ["report-1"],
-          type: WatchlistType.EMAIL,
-        },
-      });
-
       expect(result.success).toBe(true);
-      expect(mockWatchlistRepo.createEntry).not.toHaveBeenCalled();
-      expect(mockReportRepo.linkWatchlistToReport).toHaveBeenCalledWith({
-        reportId: "report-1",
-        watchlistId: "existing-watchlist",
-      });
-      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
-        reportId: "report-1",
-        status: "BLOCKED",
-        organizationId: 100,
-      });
-    });
-  });
-
-  describe("organization scoping", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
-    it("should pass organizationId to repository when finding reports", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
-
-      await addToWatchlistHandler({
-        ctx: { user: mockUser },
-        input: {
-          reportIds: ["report-1"],
-          type: WatchlistType.EMAIL,
-        },
-      });
-
-      expect(mockReportRepo.findReportsByIds).toHaveBeenCalledWith({
-        reportIds: ["report-1"],
-        organizationId: 100,
-      });
-    });
-
-    it("should pass organizationId when checking for existing watchlist entry", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
-
-      await addToWatchlistHandler({
-        ctx: { user: mockUser },
-        input: {
-          reportIds: ["report-1"],
-          type: WatchlistType.EMAIL,
-        },
-      });
-
-      expect(mockWatchlistRepo.checkExists).toHaveBeenCalledWith({
-        type: WatchlistType.EMAIL,
-        value: "spammer@example.com",
-        organizationId: 100,
-      });
+      expect(result.addedCount).toBe(5);
     });
   });
 });

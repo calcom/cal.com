@@ -1,13 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { MembershipRole, BookingReportReason } from "@calcom/prisma/enums";
+import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 
 import { dismissBookingReportHandler } from "./dismissBookingReport.handler";
 
-vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/bookingReport");
+vi.mock("@calcom/features/di/watchlist/containers/watchlist");
 
 describe("dismissBookingReportHandler", () => {
   const mockUser = {
@@ -17,44 +14,16 @@ describe("dismissBookingReportHandler", () => {
     profile: null,
   };
 
-  const mockReport = {
-    id: "report-1",
-    bookingUid: "booking-uid-1",
-    bookerEmail: "spammer@example.com",
-    reportedById: 1,
-    reason: BookingReportReason.SPAM,
-    description: null,
-    cancelled: false,
-    createdAt: new Date(),
-    watchlistId: null,
-    reporter: { id: 1, name: "Admin", email: "admin@example.com" },
-    booking: {
-      id: 1,
-      uid: "booking-uid-1",
-      title: "Test Booking",
-      startTime: new Date(),
-      endTime: new Date(),
-    },
-    watchlist: null,
+  const mockService = {
+    dismissReportByEmail: vi.fn(),
   };
 
-  const mockPermissionCheckService = {
-    checkPermission: vi.fn(),
-  };
-
-  const mockReportRepo = {
-    findReportsByIds: vi.fn(),
-    updateReportStatus: vi.fn(),
-  };
-
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    vi.mocked(PermissionCheckService).mockImplementation(
-      () => mockPermissionCheckService as InstanceType<typeof PermissionCheckService>
+    const { getOrganizationWatchlistOperationsService } = await import(
+      "@calcom/features/di/watchlist/containers/watchlist"
     );
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(
-      () => mockReportRepo as InstanceType<typeof PrismaBookingReportRepository>
-    );
+    vi.mocked(getOrganizationWatchlistOperationsService).mockReturnValue(mockService as never);
   });
 
   describe("access control", () => {
@@ -64,7 +33,7 @@ describe("dismissBookingReportHandler", () => {
       await expect(
         dismissBookingReportHandler({
           ctx: { user: userWithoutOrg },
-          input: { reportId: "report-1" },
+          input: { email: "spammer@example.com" },
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -72,112 +41,81 @@ describe("dismissBookingReportHandler", () => {
           message: "You must be part of an organization to dismiss booking reports",
         })
       );
+
+      expect(mockService.dismissReportByEmail).not.toHaveBeenCalled();
     });
 
     it("should throw UNAUTHORIZED when user lacks permission", async () => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(false);
+      mockService.dismissReportByEmail.mockRejectedValue(
+        WatchlistErrors.permissionDenied("You are not authorized to update watchlist entries")
+      );
 
       await expect(
         dismissBookingReportHandler({
           ctx: { user: mockUser },
-          input: { reportId: "report-1" },
+          input: { email: "spammer@example.com" },
         })
-      ).rejects.toThrow(
-        expect.objectContaining({
-          code: "UNAUTHORIZED",
-          message: "You are not authorized to dismiss booking reports",
-        })
-      );
-    });
-
-    it("should check for watchlist.update permission", async () => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReport]);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
-
-      await dismissBookingReportHandler({
-        ctx: { user: mockUser },
-        input: { reportId: "report-1" },
-      });
-
-      expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: 100,
-        permission: "watchlist.update",
-        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      ).rejects.toMatchObject({
+        code: "PERMISSION_DENIED",
+        message: "You are not authorized to update watchlist entries",
       });
     });
   });
 
   describe("report verification", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-    });
-
-    it("should throw NOT_FOUND when report does not exist", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([]);
+    it("should throw NOT_FOUND when no pending reports exist for email", async () => {
+      mockService.dismissReportByEmail.mockRejectedValue(
+        WatchlistErrors.notFound("No pending reports found for this email")
+      );
 
       await expect(
         dismissBookingReportHandler({
           ctx: { user: mockUser },
-          input: { reportId: "non-existent-report" },
+          input: { email: "nonexistent@example.com" },
         })
-      ).rejects.toThrow(
-        expect.objectContaining({
-          code: "NOT_FOUND",
-          message: "Booking report not found",
-        })
-      );
-
-      expect(mockReportRepo.findReportsByIds).toHaveBeenCalledWith({
-        reportIds: ["non-existent-report"],
-        organizationId: 100,
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+        message: "No pending reports found for this email",
       });
-    });
 
-    it("should throw BAD_REQUEST when report already has a watchlist entry", async () => {
-      const blockedReport = { ...mockReport, watchlistId: "watchlist-123" };
-      mockReportRepo.findReportsByIds.mockResolvedValue([blockedReport]);
-
-      await expect(
-        dismissBookingReportHandler({
-          ctx: { user: mockUser },
-          input: { reportId: "report-1" },
-        })
-      ).rejects.toThrow(
-        expect.objectContaining({
-          code: "BAD_REQUEST",
-          message: "Cannot dismiss a report that has already been added to the blocklist",
-        })
-      );
-
-      expect(mockReportRepo.updateReportStatus).not.toHaveBeenCalled();
+      expect(mockService.dismissReportByEmail).toHaveBeenCalledWith({
+        email: "nonexistent@example.com",
+        userId: 1,
+      });
     });
   });
 
   describe("successful dismissal", () => {
-    beforeEach(() => {
-      mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReport]);
-      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
-    });
+    it("should successfully dismiss all booking reports for an email", async () => {
+      mockService.dismissReportByEmail.mockResolvedValue({
+        success: true,
+        count: 3,
+      });
 
-    it("should successfully dismiss a booking report after verifying it belongs to organization", async () => {
       const result = await dismissBookingReportHandler({
         ctx: { user: mockUser },
-        input: { reportId: "report-1" },
+        input: { email: "spammer@example.com" },
       });
 
-      expect(result).toEqual({ success: true });
-      expect(mockReportRepo.findReportsByIds).toHaveBeenCalledWith({
-        reportIds: ["report-1"],
-        organizationId: 100,
+      expect(result).toEqual({ success: true, dismissed: 3 });
+      expect(mockService.dismissReportByEmail).toHaveBeenCalledWith({
+        email: "spammer@example.com",
+        userId: 1,
       });
-      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
-        reportId: "report-1",
-        status: "DISMISSED",
-        organizationId: 100,
+    });
+
+    it("should dismiss a single report when only one exists", async () => {
+      mockService.dismissReportByEmail.mockResolvedValue({
+        success: true,
+        count: 1,
       });
+
+      const result = await dismissBookingReportHandler({
+        ctx: { user: mockUser },
+        input: { email: "single-report@example.com" },
+      });
+
+      expect(result).toEqual({ success: true, dismissed: 1 });
     });
   });
 });

@@ -14,6 +14,7 @@ const parseIntSafe = (id: string | number): number => {
 // Simple utility functions for transformations
 const toAdapterUser = (user: User): AdapterUser => ({
   id: user.id.toString(),
+  uuid: user.uuid,
   name: user.name,
   email: user.email,
   emailVerified: user.emailVerified,
@@ -61,7 +62,7 @@ const getAccountWhere = (provider: string, providerAccountId: string) => ({
 
 export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
   return {
-    createUser: async (data) => {
+    createUser: async (data: Omit<AdapterUser, "id">) => {
       const user = await prismaClient.user.create({ data: createUserData(data) });
       return toAdapterUser(user);
     },
@@ -124,14 +125,14 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
 
     createVerificationToken: async (data) => {
       const token = await prismaClient.verificationToken.create({ data });
-      const { id, ...verificationToken } = token;
+      const { id: _id, ...verificationToken } = token;
       return verificationToken;
     },
 
     useVerificationToken: async (identifier_token) => {
       try {
         const token = await prismaClient.verificationToken.delete({ where: { identifier_token } });
-        const { id, ...verificationToken } = token;
+        const { id: _id, ...verificationToken } = token;
         return verificationToken;
       } catch (error) {
         // If token already used/deleted, just return null
@@ -143,12 +144,12 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
       }
     },
 
-    linkAccount: async (account) => {
+    linkAccount: async (account: AdapterAccount) => {
       const createdAccount = await prismaClient.account.create({ data: createAccountData(account) });
       return toAdapterAccount(createdAccount);
     },
 
-    unlinkAccount: async (providerAccountId) => {
+    unlinkAccount: async (providerAccountId: Pick<AdapterAccount, "provider" | "providerAccountId">) => {
       const deletedAccount = await prismaClient.account.delete({
         where: getAccountWhere(providerAccountId.provider, providerAccountId.providerAccountId),
       });

@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
@@ -186,6 +186,28 @@ export async function createUserAndEventType({
     }
   }
   return theUser;
+}
+
+type OAuthClientInput = {
+  clientId: string;
+  clientSecret: string;
+  name: string;
+  purpose: string;
+  redirectUri: string;
+  websiteUrl: string;
+  enablePkce: boolean;
+};
+
+export async function createOAuthClientForUser(userId: number, oAuthClient: OAuthClientInput) {
+  const {enablePkce, ...restOfOAuthClient} = oAuthClient;
+  await prisma.oAuthClient.create({
+    data: {
+      userId,
+      ...restOfOAuthClient,
+      clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
+    },
+  });
+  console.log(`\t👤 Created OAuth2 client '${oAuthClient.name}' for user with id '${userId}'`);
 }
 
 export async function createTeamAndAddUsers(

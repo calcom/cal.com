@@ -1,11 +1,12 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 
-import OrgSettingsAttributesPage from "@calcom/ee/organizations/pages/settings/attributes/attributes-list-view";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
+
+import OrgSettingsAttributesPage from "~/ee/organizations/attributes/attributes-list-view";
 
 import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 

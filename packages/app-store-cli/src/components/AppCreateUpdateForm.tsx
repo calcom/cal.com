@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs"
 import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
@@ -87,7 +87,7 @@ export const AppForm = ({
       options: [
         // Manually sorted alphabetically
         { label: "Analytics", value: "analytics" },
-        { label: "Automation", value: "automation" },
+        { label: "AI & Automation", value: "automation" },
         { label: "Calendar", value: "calendar" },
         { label: "Conferencing", value: "conferencing" },
         { label: "CRM", value: "crm" },

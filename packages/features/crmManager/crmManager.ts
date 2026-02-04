@@ -20,7 +20,6 @@ export default class CrmManager {
     this.crmService = crmService;
 
     if (!this.crmService) {
-      console.log("💀 Error initializing CRM service");
       log.error("CRM service initialization failed");
     }
 
@@ -41,8 +40,14 @@ export default class CrmManager {
 
     if (skipContactCreation) return;
     const contactSet = new Set(contacts.map((c: { email: string }) => c.email));
-    // Figure out which contacts to create
-    const contactsToCreate = eventAttendees.filter((attendee) => !contactSet.has(attendee.email));
+    // Figure out which contacts to create and map phoneNumber to phone
+    const contactsToCreate: ContactCreateInput[] = eventAttendees
+      .filter((attendee) => !contactSet.has(attendee.email))
+      .map((attendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+        phone: attendee.phoneNumber ?? undefined,
+      }));
     const createdContacts = await this.createContacts(
       contactsToCreate,
       event.organizer?.email,

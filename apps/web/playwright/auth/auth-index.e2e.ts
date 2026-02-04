@@ -24,6 +24,7 @@ test.describe("Can signup from a team invite", async () => {
       email: `${proUser.username}-member@example.com`,
     };
     await page.goto("/settings/teams/new");
+    await page.waitForLoadState("networkidle");
 
     // Create a new team
     await page.locator('input[name="name"]').fill(teamName);

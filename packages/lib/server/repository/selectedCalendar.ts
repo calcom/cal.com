@@ -158,6 +158,7 @@ export class SelectedCalendarRepository {
                 features: {
                   some: {
                     featureId: "calendar-cache",
+                    enabled: true,
                   },
                 },
               },
@@ -176,10 +177,7 @@ export class SelectedCalendarRepository {
                 error: { not: null },
                 watchAttempts: {
                   lt: {
-                    // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
-                    // Removing ts-expect-error fails in another case that _ref isn't defined
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
+                    // @ts-expect-error - _ref is a Prisma extension field
                     _ref: "maxAttempts",
                     _container: "SelectedCalendar",
                   },
@@ -219,10 +217,7 @@ export class SelectedCalendarRepository {
               error: { not: null },
               unwatchAttempts: {
                 lt: {
-                  // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
-                  // Removing ts-expect-error fails in another case that _ref isn't defined
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
+                  // @ts-expect-error - _ref is a Prisma extension field
                   _ref: "maxAttempts",
                   _container: "SelectedCalendar",
                 },
@@ -238,6 +233,7 @@ export class SelectedCalendarRepository {
                   features: {
                     none: {
                       featureId: "calendar-cache",
+                      enabled: true,
                     },
                   },
                 },
