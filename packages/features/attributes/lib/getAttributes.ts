@@ -7,10 +7,53 @@ import type {
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
+
+/**
+ * Extracts attribute IDs referenced in a routing rule's attributesQueryValue.
+ * This allows us to only fetch the attributes that are actually needed for evaluation.
+ */
+export function extractAttributeIdsFromQueryValue(
+  queryValue: AttributesQueryValue | null,
+  fallbackQueryValue?: AttributesQueryValue | null
+): string[] {
+  const attributeIds = new Set<string>();
+
+  function walkRules(obj: unknown) {
+    if (!obj || typeof obj !== "object") return;
+
+    const record = obj as Record<string, unknown>;
+
+    // Check if this is a rule with a field property (the attribute ID)
+    if (record.type === "rule" && record.properties) {
+      const properties = record.properties as Record<string, unknown>;
+      if (typeof properties.field === "string") {
+        attributeIds.add(properties.field);
+      }
+    }
+
+    // Recursively walk children1 (the RAQB structure for nested rules)
+    if (record.children1 && typeof record.children1 === "object") {
+      for (const child of Object.values(record.children1 as Record<string, unknown>)) {
+        walkRules(child);
+      }
+    }
+  }
+
+  if (queryValue) {
+    walkRules(queryValue);
+  }
+
+  if (fallbackQueryValue) {
+    walkRules(fallbackQueryValue);
+  }
+
+  return Array.from(attributeIds);
+}
 
 type UserId = number;
 type OrgMembershipId = number;
@@ -274,9 +317,12 @@ async function _getOrgMembershipToUserIdForTeam({
 async function _queryAllData({
   orgId,
   teamId,
+  attributeIds,
 }: {
   orgId: number;
   teamId: number;
+  /** If provided, only fetch attribute assignments for these attribute IDs */
+  attributeIds?: string[];
 }) {
   const attributeRepo = new PrismaAttributeRepository(prisma);
   const attributeToUserRepo = new PrismaAttributeToUserRepository(prisma);
@@ -284,17 +330,19 @@ async function _queryAllData({
   const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] =
     await Promise.all([
       _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
-      attributeRepo.findManyByOrgId({ orgId }),
+      attributeRepo.findManyByOrgId({ orgId, attributeIds }),
     ]);
 
   const orgMembershipIds = Array.from(
     orgMembershipToUserIdForTeamMembers.keys()
   );
 
-  // Get all the attributes assigned to the members of the team
+  // Get the attributes assigned to the members of the team
+  // If attributeIds is provided, only fetch assignments for those specific attributes
   const attributesToUsersForTeam =
     await attributeToUserRepo.findManyByOrgMembershipIds({
       orgMembershipIds,
+      attributeIds,
     });
 
   return {
@@ -418,9 +466,13 @@ function _buildAssignmentsForTeam({
 export async function getAttributesAssignmentData({
   orgId,
   teamId,
+  attributeIds,
 }: {
   orgId: number;
   teamId: number;
+  /** If provided, only fetch attribute assignments for these attribute IDs.
+   * This significantly improves performance when only a few attributes are needed. */
+  attributeIds?: string[];
 }) {
   const {
     attributesOfTheOrg,
@@ -429,6 +481,7 @@ export async function getAttributesAssignmentData({
   } = await _queryAllData({
     orgId,
     teamId,
+    attributeIds,
   });
 
   const assignmentsForTheTeam = _buildAssignmentsForTeam({

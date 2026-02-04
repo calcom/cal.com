@@ -125,37 +125,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     } as const;
   }
 
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        {
-          email: verificationToken?.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
-      },
-    };
-  }
-
-  const guessUsernameFromEmail = (email: string) => {
-    const [username] = email.split("@");
-    return username;
-  };
-
-  let username = guessUsernameFromEmail(verificationToken.identifier);
-
   if (!verificationToken?.team) {
     return {
       redirect: {
@@ -164,6 +133,43 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       },
     } as const;
   }
+
+  const isValidEmail = checkValidEmail(verificationToken.identifier);
+  if (isValidEmail) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        AND: [
+          {
+            email: verificationToken.identifier,
+          },
+          {
+            emailVerified: {
+              not: null,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUser) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        },
+      };
+    }
+  }
+
+  const guessUsernameFromEmail = (email: string) => {
+    const [username] = email.split("@");
+    return username;
+  };
+
+  let username = isValidEmail ? guessUsernameFromEmail(verificationToken.identifier) : "";
 
   const tokenTeam = {
     ...verificationToken.team,
@@ -180,14 +186,13 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     : null;
 
   // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization) {
+  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization && username) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
     username = available ? username : suggestion || username;
   }
 
-  const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
   const parentOrgSettings = tokenTeam?.parent?.organizationSettings ?? null;
 
@@ -195,7 +200,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       ...props,
       token,
-      prepopulateFormValues: !isOrgInviteByLink
+      prepopulateFormValues: !isOrgInviteByLink && isValidEmail
         ? {
             email: verificationToken.identifier,
             username: isOrganizationOrATeamInOrganization
