@@ -19,6 +19,16 @@ type SendVerificationCodeOptions = {
 export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificationCodeOptions) => {
   const { user } = ctx;
 
+  await checkRateLimitAndThrowError({
+    identifier: `sms:verification:${user.id}`,
+    rateLimitingType: "sms",
+  });
+
+  await checkRateLimitAndThrowError({
+    identifier: `sms:verification:${user.id}`,
+    rateLimitingType: "smsMonth",
+  });
+
   const isCurrentUsernamePremium =
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
@@ -34,11 +44,6 @@ export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificati
   if (!isCurrentUsernamePremium && !isTeamsPlan && hasNoAdditionalCredits) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-
-  await checkRateLimitAndThrowError({
-    identifier: `sendVerificationCode:${user.id}`,
-    rateLimitingType: "core",
-  });
 
   const { phoneNumber } = input;
   return sendVerificationCode(phoneNumber);
