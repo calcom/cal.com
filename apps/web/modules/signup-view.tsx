@@ -459,7 +459,7 @@ export default function Signup({
                   form={formMethods}
                   handleSubmit={async (values) => {
                     let updatedValues = values;
-                    if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
+                    if (!formMethods.getValues().username && isOrgInviteByLink) {
                       updatedValues = {
                         ...values,
                         username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),

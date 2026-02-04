@@ -1,6 +1,7 @@
 /// <reference types="chrome" />
 import { initGoogleCalendarIntegration } from "../lib/google-calendar";
 import { initLinkedInIntegration } from "../lib/linkedin";
+import { escapeHtml } from "../lib/utils";
 
 /**
  * Development-only logging utility for content scripts.
@@ -964,7 +965,7 @@ export default defineContentScript({
 
                   contentWrapper.innerHTML = `
                     <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
-                      <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                      <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapeHtml(title)}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
                       <span style="
@@ -983,7 +984,7 @@ export default defineContentScript({
                       </span>
                       ${
                         description
-                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${escapeHtml(description)}</span>`
                           : ""
                       }
                     </div>
@@ -1714,7 +1715,7 @@ export default defineContentScript({
 
               contentWrapper.innerHTML = `
                 <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
-                  <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                  <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapeHtml(title)}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
                   <span style="
@@ -1733,7 +1734,7 @@ export default defineContentScript({
                   </span>
                   ${
                     description
-                      ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                      ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${escapeHtml(description)}</span>`
                       : ""
                   }
                 </div>
