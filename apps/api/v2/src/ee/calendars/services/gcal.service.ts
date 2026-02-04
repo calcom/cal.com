@@ -44,7 +44,13 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     redir?: string,
     isDryRun?: boolean
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
-    const accessToken = extractBearerToken(authorization) ?? "";
+    const accessToken = extractBearerToken(authorization);
+
+    if (!accessToken) {
+      throw new UnauthorizedException(
+        "Valid Bearer token is required"
+      );
+    }
     const origin = req.get("origin") ?? req.get("host");
     const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir, isDryRun);
 
