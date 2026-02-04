@@ -304,6 +304,15 @@ class GoogleCalendarService implements Calendar {
               ...calEvent,
               additionalInformation: { hangoutLink: event.hangoutLink },
             }),
+            location: getLocation({
+              videoCallData: calEvent.videoCallData,
+              additionalInformation: {
+                ...calEvent.additionalInformation,
+                hangoutLink: event.hangoutLink,
+              },
+              location: calEvent.location,
+              uid: calEvent.uid,
+            }),
           },
         });
       }
@@ -415,6 +424,15 @@ class GoogleCalendarService implements Calendar {
             description: getRichDescription({
               ...event,
               additionalInformation: { hangoutLink: evt.data.hangoutLink },
+            }),
+            location: getLocation({
+              videoCallData: event.videoCallData,
+              additionalInformation: {
+                ...event.additionalInformation,
+                hangoutLink: evt.data.hangoutLink,
+              },
+              location: event.location,
+              uid: event.uid,
             }),
           },
         });

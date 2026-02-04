@@ -1,8 +1,8 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
-import type { IFeatureRepository } from "@calcom/features/flags/repositories/FeatureRepository";
-import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
-import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/UserFeatureRepository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
