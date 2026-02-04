@@ -1,5 +1,5 @@
+import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
-import { HostRepository } from "@calcom/lib/server/repository/host";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

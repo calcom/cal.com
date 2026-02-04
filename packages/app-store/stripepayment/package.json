@@ -17,14 +17,14 @@
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@calcom/types": "workspace:*",
-    "@stripe/react-stripe-js": "^1.10.0",
-    "@stripe/stripe-js": "^1.35.0",
-    "stripe": "^9.16.0",
-    "uuid": "^8.3.2",
-    "zod": "^3.22.4"
+    "@stripe/react-stripe-js": "1.10.0",
+    "@stripe/stripe-js": "1.35.0",
+    "stripe": "9.16.0",
+    "uuid": "8.3.2",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*",
-    "ts-node": "^10.9.1"
+    "ts-node": "10.9.2"
   }
 }

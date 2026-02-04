@@ -3,15 +3,15 @@
  * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { ServerResponse } from "http";
+import type { ServerResponse } from "node:http";
 import type { NextApiResponse } from "next";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";

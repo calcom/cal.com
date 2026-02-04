@@ -1,13 +1,12 @@
-import type { GlobalCal, EmbedEvent } from "../../src/embed";
+import type { EmbedEvent, GlobalCal } from "../../src/embed";
 
 const Cal = window.Cal as GlobalCal;
 Cal.config = Cal.config || {};
 Cal.config.forwardQueryParams = true;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const callback = function (e: any) {
+const callback = (e: any) => {
   const detail = e.detail;
-  console.log("Event: ", e.type, detail);
 };
 
 // @ts-expect-error  window.calOrigin is set in index.html
@@ -46,6 +45,59 @@ if (themeInParam && !theme) {
 
 const calLink = searchParams.get("cal-link");
 
+function fakeEvent({ namespace, eventType, data }) {
+  window.postMessage({
+    fullType: `CAL:${namespace}:${eventType}`,
+    namespace,
+    originator: "CAL",
+    type: eventType,
+    data,
+  });
+}
+
+window.heavilyCustomizeUi = ({ namespace }) => {
+  Cal.ns[namespace]("ui", {
+    theme: "light",
+    cssVarsPerTheme: {
+      light: {
+        "cal-brand": "#6F61C0",
+        "cal-text": "#6F61C0",
+        "cal-text-emphasis": "#4D408D",
+        "cal-border-emphasis": "#4D408D",
+        "cal-text-error": "pink",
+        "cal-border": "#A090E0",
+        "cal-border-default": "#A090E0",
+        "cal-border-subtle": "#A090E0",
+        "cal-border-booker": "red",
+        "cal-text-muted": "#C0B8FF",
+        "cal-bg-emphasis": "#E1DFFF",
+        "cal-border-booker-width": "3px",
+        "cal-radius": "1px",
+        "cal-radius-md": "2px",
+        "cal-radius-lg": "3px",
+        "cal-radius-xl": "4px",
+        "cal-radius-2xl": "5px",
+        "cal-radius-3xl": "6px",
+        "cal-radius-full": "7px",
+        "cal-spacing-px": "5px",
+        // More CSS variables are defined here
+        // https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js
+      },
+      dark: {
+        // Set the similar variables as in light theme but for dark mode.
+      },
+    },
+  });
+};
+
+window.fakeErrorScenario = ({ namespace }) => {
+  fakeEvent({
+    namespace,
+    eventType: "linkFailed",
+    data: { code: 500 },
+  });
+};
+
 if (only === "all" || only === "ns:default") {
   Cal("init", {
     debug: true,
@@ -81,7 +133,7 @@ if (only === "all" || only === "ns:second") {
   Cal.ns.second(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-second .place",
       calLink: "pro?case=2",
@@ -110,7 +162,7 @@ if (only === "all" || only === "ns:third") {
     [
       "inline",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       {
         elementOrSelector: "#cal-booking-place-third .place",
         calLink: "pro/30min",
@@ -161,7 +213,7 @@ if (only === "all" || only === "ns:fourth") {
     [
       "inline",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       {
         elementOrSelector: "#cal-booking-place-fourth .place",
         calLink: "team/seeded-team",
@@ -206,7 +258,7 @@ if (only === "all" || only === "ns:corpTest") {
   Cal.ns.corpTest([
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-corpTest .place",
       calLink: "pro",
@@ -227,7 +279,7 @@ if (only === "all" || only === "ns:fifth") {
   Cal.ns.fifth([
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-fifth .place",
       calLink: "team/seeded-team/collective-seeded-team-event",
@@ -274,7 +326,7 @@ if (only === "all" || only === "inline-routing-form") {
   Cal.ns["inline-routing-form"]([
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-inline-routing-form .place",
       calLink: "forms/948ae412-d995-4865-875a-48302588de03",
@@ -299,7 +351,7 @@ if (only === "all" || only === "ns:hideEventTypeDetails") {
     [
       "inline",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       {
         elementOrSelector: `#cal-booking-place-${identifier} .place`,
         calLink: "free/30min",
@@ -472,7 +524,7 @@ if (only === "all" || only == "ns:monthView") {
   Cal.ns.monthView(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-monthView .place",
       calLink: "free/30min",
@@ -497,7 +549,7 @@ if (only === "all" || only == "ns:weekView") {
   Cal.ns.weekView(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-weekView .place",
       calLink: "free/30min",
@@ -526,7 +578,7 @@ if (only === "all" || only == "ns:columnView") {
   Cal.ns.columnView(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-columnView .place",
       calLink: "free/30min",
@@ -546,6 +598,39 @@ if (only === "all" || only == "ns:columnView") {
   });
 }
 
+if (only === "all" || only == "ns:twoStepSlotSelection") {
+  Cal("init", "twoStepSlotSelection", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.twoStepSlotSelection(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
+    {
+      elementOrSelector: "#cal-booking-place-twoStepSlotSelection .place",
+      calLink: "free/30min",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-twoStepSlotSelection-iframe",
+        },
+        "flag.coep": "true",
+        name: "John",
+        email: "john@booker.com",
+        notes: ["test"],
+        guests: ["guest@example.com"],
+        useSlotsViewOnSmallScreen: "true",
+      },
+    }
+  );
+
+  Cal.ns.twoStepSlotSelection("on", {
+    action: "*",
+    callback,
+  });
+}
+
 if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "columnViewHideEventTypeDetails", {
@@ -556,7 +641,7 @@ if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   Cal.ns.columnViewHideEventTypeDetails(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-columnViewHideEventTypeDetails .place",
       calLink: "free/30min",
@@ -636,22 +721,22 @@ Cal("on", {
   callback: bookingSuccessfulV2Callback,
 });
 
-const availabilityLoadedCallback = (e: EmbedEvent<"availabilityLoaded">) => {
+const bookerReadyCallback = (e: EmbedEvent<"bookerReady">) => {
   const data = e.detail.data;
-  console.log("availabilityLoaded", {
+  console.log("bookerReady", {
     eventId: data.eventId,
     eventSlug: data.eventSlug,
   });
 
   Cal("off", {
-    action: "availabilityLoaded",
-    callback: availabilityLoadedCallback,
+    action: "bookerReady",
+    callback: bookerReadyCallback,
   });
 };
 
 Cal("on", {
-  action: "availabilityLoaded",
-  callback: availabilityLoadedCallback,
+  action: "bookerReady",
+  callback: bookerReadyCallback,
 });
 
 if (only === "all" || only === "ns:skeletonDemo") {

@@ -1,16 +1,12 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import type { Key } from "react";
-import React, { useEffect, useState } from "react";
-import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
-import { Controller, useFormContext } from "react-hook-form";
-import type { SingleValue } from "react-select";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
-import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
-import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
+import type {
+  EventTypeSetupProps,
+  FormValues,
+  InputClassNames,
+  SelectClassNames,
+  SettingsToggleClassNames,
+} from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
@@ -19,19 +15,29 @@ import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import { PeriodType } from "@calcom/prisma/enums";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
-  InputField,
   DateRangePicker,
+  InputField,
   Label,
-  TextField,
   Select,
   SettingsToggle,
+  TextField,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Badge } from "@calcom/ui/components/badge";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import type { Key } from "react";
+import React, { useEffect, useState } from "react";
+import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
+import type { SingleValue } from "react-select";
+import Link from "next/link";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
@@ -131,13 +137,13 @@ function RangeLimitRadioItem({
         "text-default mb-2 flex flex-col items-start text-sm sm:flex-row sm:items-center",
         customClassNames?.wrapper
       )}>
-      <div className="flex w-full items-center sm:w-auto">
+      <div className="flex items-center w-full sm:w-auto">
         {!isDisabled && (
           <RadioGroup.Item
             id={radioValue}
             value={radioValue}
-            className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-            <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+            className="flex items-center w-4 h-4 rounded-full border cursor-pointer bg-default border-default min-w-4 focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+            <RadioGroup.Indicator className="flex relative justify-center items-center w-4 h-4 after:bg-inverted after:block after:h-2 after:w-2 after:rounded-full" />
           </RadioGroup.Item>
         )}
         <span>{t("within_date_range")}</span>
@@ -145,7 +151,7 @@ function RangeLimitRadioItem({
       <div>
         <div
           className={classNames(
-            "me-2 ms-0 mt-2 w-full sm:ms-2 sm:mt-0 sm:w-auto",
+            "ml-0 mr-2 mt-2 w-full sm:ml-2 sm:mt-0 sm:w-auto",
             customClassNames?.datePickerWraper
           )}>
           <Controller
@@ -158,9 +164,14 @@ function RangeLimitRadioItem({
                 }}
                 disabled={isDisabled}
                 onDatesChange={({ startDate, endDate }) => {
+                  const toUTCMidnight = (date: Date | undefined): Date | undefined => {
+                    if (!date) return undefined;
+                    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                  };
+
                   onChange({
-                    startDate,
-                    endDate,
+                    startDate: toUTCMidnight(startDate),
+                    endDate: toUTCMidnight(endDate),
                   });
                 }}
                 className={customClassNames?.datePicker}
@@ -214,8 +225,8 @@ function RollingLimitRadioItem({
         <RadioGroup.Item
           id={radioValue}
           value={radioValue}
-          className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
-          <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+          className="flex items-center w-4 h-4 rounded-full border cursor-pointer bg-default border-default min-w-4 focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
+          <RadioGroup.Indicator className="flex relative justify-center items-center w-4 h-4 after:bg-inverted after:block after:h-2 after:w-2 after:rounded-full" />
         </RadioGroup.Item>
       )}
 
@@ -243,14 +254,14 @@ function RollingLimitRadioItem({
             value={getSelectedOption()}
             defaultValue={getSelectedOption()}
             className={classNames(
-              "!mt-0 ml-2 w-28 shrink sm:w-36",
+              "mt-0! ml-2 w-28 shrink sm:w-36",
               customClassNames?.periodTypeSelect?.select
             )}
             innerClassNames={customClassNames?.periodTypeSelect?.innerClassNames}
           />
           <span className="me-2 ms-2">&nbsp;{t("into_the_future")}</span>
         </div>
-        <div className="-ml-6 flex flex-col py-2">
+        <div className="flex flex-col py-2 -ml-6">
           <div className="flex items-center">
             <CheckboxField
               checked={!!rollingExcludeUnavailableDays}
@@ -280,7 +291,7 @@ function RollingLimitRadioItem({
               })}>
               <Icon
                 name="info"
-                className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+                className="inline w-4 h-4 rounded-md text-default hover:text-attention hover:bg-attention ms-1"
               />
             </Tooltip>
           </div>
@@ -341,7 +352,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <div className="flex items-end justify-end">
+    <div className="flex justify-end items-end">
       <div className="w-1/2 md:w-full">
         <InputField
           required
@@ -356,7 +367,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
-          className={classNames("mb-0 h-9 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
+          className={classNames("mb-0 h-8 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
           min={0}
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
@@ -365,7 +376,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
         className={classNames(
-          "mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
+          "mb-0 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
           customClassNames?.select
         )}
         innerClassNames={customClassNames?.innerClassNames}
@@ -390,7 +401,54 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-  const isRecurringEvent = !!formMethods.getValues("recurringEvent");
+
+  const hasTeamLimits = () => {
+    const team = eventType.team as { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } | null | undefined;
+    const parentTeam = (eventType.parent as { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } } | null | undefined)?.team;
+
+    const teamHasLimits =
+      !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
+
+    const parentTeamHasLimits =
+      !!parentTeam?.bookingLimits &&
+      Object.keys(parentTeam.bookingLimits).length > 0;
+
+    const includeManaged =
+      !!parentTeam?.includeManagedEventsInLimits ||
+      !!team?.includeManagedEventsInLimits;
+
+    if (teamHasLimits) {
+      if(eventType.schedulingType === SchedulingType.MANAGED) return includeManaged;
+      return true;
+    }
+
+    return parentTeamHasLimits && includeManaged;
+  };
+
+  const TeamLimitsBadge = ({ isManagedChild, teamId }: { isManagedChild: boolean, teamId?: number | null }) => {
+    const badge = (
+      <Badge variant="blue" className="text-xs cursor-pointer hover:opacity-80">
+        {t("team_limits_apply")}
+      </Badge>
+    );
+
+    if (isManagedChild) {
+      return <Tooltip content={t("managed_by_team_admins")}>{badge}</Tooltip>;
+    }
+
+    if (teamId) {
+      return (
+        <Link
+          href={`/settings/teams/${teamId}/settings`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {badge}
+        </Link>
+      );
+    }
+    return null;
+  };
 
   const { shouldLockIndicator, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
@@ -420,10 +478,10 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
     <div>
       <div
         className={classNames(
-          "border-subtle space-y-6 rounded-lg border p-6",
+          "border-subtle stack-y-6 rounded-lg border p-6",
           customClassNames?.bufferAndNoticeSection?.container
         )}>
-        <div className="flex flex-col space-y-4  lg:flex-row lg:space-x-4 lg:space-y-0">
+        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -517,7 +575,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
           <div
             className={classNames(
               "w-full",
@@ -594,6 +652,10 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               toggleSwitchAtTheEnd={true}
               labelClassName={classNames("text-sm", customClassNames?.bookingFrequencyLimit?.label)}
               title={t("limit_booking_frequency")}
+              Badge={
+                hasTeamLimits()
+                  ? TeamLimitsBadge({ isManagedChild: !!eventType.parent, teamId: eventType.team?.id }) : null
+              }
               {...bookingLimitsLocked}
               description={
                 <LearnMoreLink
@@ -694,7 +756,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   onChange({});
                 }
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                 <IntervalLimitsManager
                   propertyName="durationLimits"
                   defaultLimit={60}
@@ -747,7 +809,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                 }
                 return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                 <RadioGroup.Root
                   value={watchPeriodTypeUiValue}
                   onValueChange={(val) => {
@@ -812,7 +874,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               formMethods.setValue("offsetStart", 0, { shouldDirty: true });
             }
           }}>
-          <div className={classNames("border-subtle rounded-b-lg border border-t-0 p-6")}>
+          <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
             <TextField
               required
               type="number"
@@ -965,9 +1027,8 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
 
           setValue(
             propertyName,
-            // TODO: Remove @ts-ignore, type error no longer exists in later TS versions.
+            // TODO: Remove @ts-expect-error, type error no longer exists in later TS versions.
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             {
               ...watchIntervalLimits,
               [rest.value]: defaultLimit,

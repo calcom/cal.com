@@ -10,7 +10,7 @@ export const getByTableColumnText = (page: Page, columnId: string, text: string)
  * Add a filter from the filter dropdown
  */
 export async function addFilter(page: Page, columnId: string) {
-  await page.getByTestId("add-filter-button").click();
+  await page.getByTestId("add-filter-button").first().click();
   await page.getByTestId(`add-filter-item-${columnId}`).click();
 }
 
@@ -114,7 +114,7 @@ export async function createFilterSegment(
  * Select a segment from the dropdown
  */
 export async function selectSegment(page: Page, segmentName: string) {
-  await page.getByTestId("filter-segment-select").click();
+  await page.getByTestId("filter-segment-select").first().click();
 
   await page
     .locator('[data-testid="filter-segment-select-content"] [role="menuitem"]')
@@ -126,7 +126,7 @@ export async function selectSegment(page: Page, segmentName: string) {
  * Open submenu of a certain segment
  */
 export async function openSegmentSubmenu(page: Page, segmentName: string) {
-  await page.getByTestId("filter-segment-select").click();
+  await page.getByTestId("filter-segment-select").first().click();
 
   await page
     .locator('[data-testid="filter-segment-select-content"] [role="menuitem"]')
@@ -183,7 +183,7 @@ export function locateSelectedSegmentName(page: Page, expectedName: string) {
  * Check if a system segment is visible in the dropdown
  */
 export async function expectSystemSegmentVisible(page: Page, segmentName: string) {
-  await page.getByTestId("filter-segment-select").click();
+  await page.getByTestId("filter-segment-select").first().click();
   await expect(
     page.locator('[data-testid="filter-segment-select-content"]').getByText("Default")
   ).toBeVisible();
@@ -202,7 +202,7 @@ export async function expectSegmentCleared(page: Page) {
   // Check that no segment is selected (button shows default text)
   const segmentSelect = page.getByTestId("filter-segment-select");
   const buttonText = await segmentSelect.textContent();
-  expect(buttonText?.trim()).toEqual("Saved filters");
+  expect(["Saved filters", "Saved"]).toContain(buttonText?.trim());
 }
 
 /**
@@ -240,7 +240,7 @@ export async function renameSegment(page: Page, originalName: string, newName: s
  * Check if a segment group (like "Default" or "Personal") is visible
  */
 export async function expectSegmentGroupVisible(page: Page, groupName: string) {
-  await page.getByTestId("filter-segment-select").click();
+  await page.getByTestId("filter-segment-select").first().click();
   await expect(
     page.locator('[data-testid="filter-segment-select-content"]').getByText(groupName)
   ).toBeVisible();

@@ -1,5 +1,18 @@
-import { bootstrap } from "@/app";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Attribute, AttributeOption, Membership, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
 import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
@@ -8,20 +21,6 @@ import { OptionOutput } from "@/modules/organizations/attributes/options/outputs
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User, Team, Membership, Attribute, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Attributes Options Endpoints", () => {
   describe("User lacks required role", () => {

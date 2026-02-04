@@ -49,6 +49,31 @@ export class WorkflowReminderRepository {
     });
   }
 
+  static async findWorkflowRemindersByStepIds(workflowStepIds: number[]) {
+    if (workflowStepIds.length === 0) {
+      return [];
+    }
+
+    return await prisma.workflowReminder.findMany({
+      where: {
+        workflowStepId: {
+          in: workflowStepIds,
+        },
+      },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+        workflowStepId: true,
+        booking: {
+          select: {
+            eventTypeId: true,
+          },
+        },
+      },
+    });
+  }
+
   static async findWorkflowReminderForAIPhoneCallExecution(id: number) {
     const bookingSelect = {
       uid: true,

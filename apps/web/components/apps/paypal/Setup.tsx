@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -51,6 +51,7 @@ export default function PayPalSetup() {
                 value={newClientId}
                 onChange={(e) => setNewClientId(e.target.value)}
                 role="presentation"
+                className="mb-6"
               />
 
               <TextField
@@ -67,7 +68,7 @@ export default function PayPalSetup() {
               {/* Button to submit */}
               <div className="mt-5 flex flex-row justify-end">
                 <Button
-                  color="secondary"
+                  color="primary"
                   onClick={() => {
                     saveKeysMutation.mutate({
                       credentialId,
@@ -101,7 +102,7 @@ export default function PayPalSetup() {
               <a
                 className="text-orange-600 underline"
                 target="_blank"
-                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret">
+                href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret" rel="noreferrer">
                 Link to Paypal developer API REST Setup Guide:
                 https://developer.paypal.com/api/rest/#link-getclientidandclientsecret
               </a>
@@ -120,7 +121,7 @@ export default function PayPalSetup() {
                   <a
                     target="_blank"
                     href="https://developer.paypal.com/dashboard/applications/live"
-                    className="text-orange-600 underline">
+                    className="text-orange-600 underline" rel="noreferrer">
                     {t("here")}
                   </a>
                   .

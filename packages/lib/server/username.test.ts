@@ -1,4 +1,4 @@
-import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, expect, it, beforeEach } from "vitest";
 
@@ -6,13 +6,11 @@ import { usernameCheckForSignup } from "./username";
 
 describe("usernameCheckForSignup ", async () => {
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    // @ts-expect-error
     prismaMock.user.findUnique.mockImplementation(() => {
       return null;
     });
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    // @ts-expect-error
     prismaMock.user.findMany.mockImplementation(() => {
       return [];
     });
@@ -60,8 +58,7 @@ describe("usernameCheckForSignup ", async () => {
 });
 
 function mockUserInDB({ id, email, username }: { id: number; email: string; username: string }) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  // @ts-expect-error
   prismaMock.user.findUnique.mockImplementation((arg) => {
     if (arg.where.email === email) {
       return {
@@ -75,12 +72,10 @@ function mockUserInDB({ id, email, username }: { id: number; email: string; user
 }
 
 function mockMembership({ userId }: { userId: number }) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  // @ts-expect-error
   prismaMock.membership.findFirst.mockImplementation((arg) => {
     const isOrganizationWhereClause =
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      // @ts-expect-error
       arg?.where?.team?.metadata?.path[0] === "isOrganization" && arg?.where?.team?.metadata?.equals === true;
     if (arg?.where?.userId === userId && isOrganizationWhereClause) {
       return {

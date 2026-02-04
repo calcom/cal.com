@@ -1,0 +1,471 @@
+/** This file is used in webapp as well as inside shadow DOM of embed elements. **/
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-radix";
+
+@plugin 'tailwind-scrollbar' {
+  nocompatible: true;
+}
+
+@variant pwa (@media (display-mode: standalone));
+@variant todesktop (html.todesktop &);
+@variant mac (html.todesktop-platform-darwin &);
+@variant windows (html.todesktop-platform-win32 &);
+@variant linux (html.todesktop-platform-linux &);
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-cal: var(--font-cal);
+
+  /* Resets the preference from coss-ui which was to "use single --radius variable for all radius values" */
+  --radius: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+
+  /* Cal.com Border Radius */
+  --radius-cal-none: 0px;
+  --radius-cal-sm: 0.125rem;
+  --radius-cal: 0.25rem;
+  --radius-cal-md: 0.375rem;
+  --radius-cal-lg: 0.5rem;
+  --radius-cal-xl: 0.75rem;
+  --radius-cal-2xl: 1rem;
+  --radius-cal-3xl: 1.5rem;
+  --radius-cal-full: 9999px;
+
+  --color-emphasis: var(--cal-bg-emphasis);
+  --color-default: var(--cal-bg);
+  --color-subtle: var(--cal-bg-subtle);
+  --color-cal-muted: var(--cal-bg-muted);
+  --color-inverted: var(--cal-bg-inverted);
+  --color-primary-default: var(--cal-bg-primary);
+  --color-primary-emphasis: var(--cal-bg-primary-emphasis);
+  --color-primary-muted: var(--cal-bg-primary-muted);
+  --color-brand: var(--cal-brand);
+  --color-brand-default: var(--cal-brand);
+  --color-brand-emphasis: var(--cal-brand-emphasis);
+  --color-brand-muted: var(--cal-brand-muted);
+  --color-brand-subtle: var(--cal-brand-subtle, #9CA3AF);
+  --color-brand-accent: var(--cal-brand-accent, white);
+  --color-semantic-info-subtle: var(--cal-bg-semantic-info-subtle);
+  --color-semantic-info-emphasis: var(--cal-bg-semantic-info-emphasis);
+  --color-semantic-success-subtle: var(--cal-bg-semantic-success-subtle);
+  --color-semantic-success-emphasis: var(--cal-bg-semantic-success-emphasis);
+  --color-semantic-attention-subtle: var(--cal-bg-semantic-attention-subtle);
+  --color-semantic-attention-emphasis: var(--cal-bg-semantic-attention-emphasis);
+  --color-semantic-error-subtle: var(--cal-bg-semantic-error-subtle);
+  --color-semantic-error-emphasis: var(--cal-bg-semantic-error-emphasis);
+  --color-visualization-1-subtle: var(--cal-bg-visualization-1-subtle);
+  --color-visualization-1-emphasis: var(--cal-bg-visualization-1-emphasis);
+  --color-visualization-2-subtle: var(--cal-bg-visualization-2-subtle);
+  --color-visualization-2-emphasis: var(--cal-bg-visualization-2-emphasis);
+  --color-visualization-3-subtle: var(--cal-bg-visualization-3-subtle);
+  --color-visualization-3-emphasis: var(--cal-bg-visualization-3-emphasis);
+  --color-visualization-4-subtle: var(--cal-bg-visualization-4-subtle);
+  --color-visualization-4-emphasis: var(--cal-bg-visualization-4-emphasis);
+  --color-visualization-5-subtle: var(--cal-bg-visualization-5-subtle);
+  --color-visualization-5-emphasis: var(--cal-bg-visualization-5-emphasis);
+  --color-visualization-6-subtle: var(--cal-bg-visualization-6-subtle);
+  --color-visualization-6-emphasis: var(--cal-bg-visualization-6-emphasis);
+  --color-visualization-7-subtle: var(--cal-bg-visualization-7-subtle);
+  --color-visualization-7-emphasis: var(--cal-bg-visualization-7-emphasis);
+  --color-cal-info: var(--cal-bg-info);
+  --color-cal-success: var(--cal-bg-success);
+  --color-attention: var(--cal-bg-attention);
+  --color-error: var(--cal-bg-error);
+  --color-dark-error: var(--cal-bg-dark-error);
+  --color-launch-dark: var(--cal-bg-launch-dark);
+  --color-black: #111111;
+  --color-darkgray-50: var(--color-gray-50);
+  --color-darkgray-100: var(--color-gray-100);
+  --color-darkgray-200: var(--color-gray-200);
+  --color-darkgray-300: var(--color-gray-300);
+  --color-darkgray-400: var(--color-gray-400);
+  --color-darkgray-500: var(--color-gray-500);
+  --color-darkgray-600: var(--color-gray-600);
+  --color-darkgray-700: var(--color-gray-700);
+  --color-darkgray-800: var(--color-gray-800);
+  --color-darkgray-900: var(--color-gray-900);
+  --color-darkgray-950: var(--color-gray-950);
+
+  /* Cal.com Border Colors */
+  --border-color-emphasis: var(--cal-border-emphasis);
+  --border-color-default: var(--cal-border);
+  --border-color-subtle: var(--cal-border-subtle);
+  --border-color-muted: var(--cal-border-muted);
+  --border-color-error: var(--cal-border-error);
+  --border-color-semantic-error: var(--cal-border-semantic-error);
+  --border-color-semantic-attention-subtle: var(--cal-border-semantic-attention-subtle);
+  --border-color-semantic-error-subtle: var(--cal-border-semantic-error-subtle);
+  --border-color-booker: var(--cal-border-booker);
+
+  /* Cal.com Border Widths */
+  --border-width-booker-width: var(--cal-border-booker-width, 1px);
+
+  /* Cal.com Text Colors */
+  --text-color-emphasis: var(--cal-text-emphasis);
+  --text-color-default: var(--cal-text);
+  --text-color-subtle: var(--cal-text-subtle);
+  --text-color-muted: var(--cal-text-muted);
+  --text-color-inverted: var(--cal-text-inverted);
+  --text-color-semantic-info: var(--cal-text-semantic-info);
+  --text-color-semantic-success: var(--cal-text-semantic-success);
+  --text-color-semantic-attention: var(--cal-text-semantic-attention);
+  --text-color-semantic-error: var(--cal-text-semantic-error);
+  --text-color-semantic-info-emphasis: var(--cal-text-semantic-info-emphasis);
+  --text-color-semantic-success-emphasis: var(--cal-text-semantic-success-emphasis);
+  --text-color-semantic-attention-emphasis: var(--cal-text-semantic-attention-emphasis);
+  --text-color-semantic-error-emphasis: var(--cal-text-semantic-error-emphasis);
+  --text-color-visualization-1: var(--cal-text-visualization-1);
+  --text-color-visualization-2: var(--cal-text-visualization-2);
+  --text-color-visualization-3: var(--cal-text-visualization-3);
+  --text-color-visualization-4: var(--cal-text-visualization-4);
+  --text-color-visualization-5: var(--cal-text-visualization-5);
+  --text-color-visualization-6: var(--cal-text-visualization-6);
+  --text-color-visualization-7: var(--cal-text-visualization-7);
+  --text-color-info: var(--cal-text-info);
+  --text-color-success: var(--cal-text-success);
+  --text-color-attention: var(--cal-text-attention);
+  --text-color-error: var(--cal-text-error);
+  --text-color-brand: var(--cal-brand-text);
+
+  /* Default Ring Color */
+  --default-ring-color: rgb(59 130 246 / 0.5);
+
+  /* Cal.com Box Shadows */
+  --shadow-dropdown: var(--shadow-dropdown);
+  --shadow-switch-thumb: var(--shadow-switch-thumb);
+  --shadow-solid-gray-rested: var(--shadow-solid-gray-rested);
+  --shadow-solid-gray-hover: var(--shadow-solid-gray-hover);
+  --shadow-solid-gray-active: var(--shadow-solid-gray-active);
+  --shadow-outline-gray-rested: var(--shadow-outline-gray-rested);
+  --shadow-outline-gray-hover: var(--shadow-outline-gray-hover);
+  --shadow-outline-gray-active: var(--shadow-outline-gray-active);
+  --shadow-outline-gray-focused: var(--shadow-outline-gray-focused);
+  --shadow-outline-red-rested: var(--shadow-outline-red-rested);
+  --shadow-outline-red-hover: var(--shadow-outline-red-hover);
+  --shadow-outline-red-active: var(--shadow-outline-red-active);
+  --shadow-elevation-low: var(--shadow-elevation-low);
+  --shadow-button-solid-brand-default: var(--shadow-button-solid-brand-default);
+  --shadow-button-solid-brand-hover: var(--shadow-button-solid-brand-hover);
+  --shadow-button-solid-brand-active: var(--shadow-button-solid-brand-active);
+  --shadow-button-solid-brand-focused: var(--shadow-button-solid-brand-focused);
+  --shadow-button-outline-red-focused: var(--shadow-button-outline-red-focused);
+
+  /* Cal.com Fill Colors */
+  --fill-emphasis: var(--fill-emphasis);
+  --fill-default: var(--fill-default);
+  --fill-subtle: var(--fill-subtle);
+  --fill-muted: var(--fill-muted);
+  --fill-inverted: var(--fill-inverted);
+  --fill-info: var(--fill-info);
+  --fill-success: var(--fill-success);
+  --fill-attention: var(--fill-attention);
+  --fill-error: var(--fill-error);
+  --fill-brand: var(--fill-brand);
+
+  /* Cal.com Animations */
+  --animate-fade-in-up: fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21, 1.02, .73, 1) forwards;
+  --animate-fade-in-bottom: fade-in-bottom cubic-bezier(.21, 1.02, .73, 1) forwards;
+  --animate-spinning: spinning 0.75s linear infinite;
+  --animate-drawer-slide-left-and-fade: drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-drawer-slide-right-and-fade: drawerSlideRightAndFade 150ms ease-in;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes spinning {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes drawerSlideLeftAndFade {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes drawerSlideRightAndFade {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+}
+
+:root,
+:host {
+  /* 4px */
+  --radius: 0.25rem;
+
+  /* 2px */
+  --radius-sm: 0.125rem;
+  /* 6px */
+  --radius-md: 0.375rem;
+  /* 8px */
+  --radius-lg: 0.5rem;
+  /* 12px */
+  --radius-xl: 0.75rem;
+  /* 16px */
+  --radius-2xl: 1rem;
+  /* 24px */
+  --radius-3xl: 1.5rem;
+
+  --radius-none: 0px;
+
+  /* Background Standard */
+  --cal-bg-emphasis: hsla(220, 13%, 91%, 1);
+  --cal-bg: hsla(0, 0%, 100%, 1);
+  --cal-bg-subtle: hsla(220, 14%, 94%, 1);
+  --cal-bg-muted: hsla(210, 20%, 97%, 1);
+  --cal-bg-inverted: hsla(210, 30%, 4%, 1);
+
+  /* Background Primary */
+  --cal-bg-primary: hsla(214, 30%, 16%, 1);
+  --cal-bg-primary-emphasis: hsla(220, 6%, 25%, 1);
+  --cal-bg-primary-muted: hsla(220, 14%, 94%, 1);
+
+  /* Background Brand */
+  --cal-bg-brand: hsla(214, 30%, 16%, 1);
+  --cal-bg-brand-emphasis: hsla(220, 6%, 25%, 1);
+  --cal-bg-brand-muted: hsla(220, 14%, 94%, 1);
+
+  /* Background Semantic */
+  --cal-bg-semantic-info-subtle: hsla(212, 88%, 97%, 1);
+  --cal-bg-semantic-info-emphasis: hsla(236, 80%, 25%, 1);
+  --cal-bg-semantic-success-subtle: hsla(167, 54%, 93%, 1);
+  --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1);
+  --cal-bg-semantic-attention-subtle: hsla(34, 100%, 92%, 1);
+  --cal-bg-semantic-attention-emphasis: hsla(15, 79%, 34%, 1);
+  --cal-bg-semantic-error-subtle: hsla(0, 93%, 94%, 1);
+  --cal-bg-semantic-error-emphasis: hsla(0, 63%, 24%, 1);
+
+  /* Background Visualization */
+  --cal-bg-visualization-1-subtle: hsla(326, 78%, 95%, 1);
+  --cal-bg-visualization-1-emphasis: hsla(330, 81%, 60%, 1);
+  --cal-bg-visualization-2-subtle: hsla(256, 86%, 91%, 1);
+  --cal-bg-visualization-2-emphasis: hsla(256, 85%, 57%, 1);
+  --cal-bg-visualization-3-subtle: hsla(217, 87%, 91%, 1);
+  --cal-bg-visualization-3-emphasis: hsla(235, 100%, 63%, 1);
+  --cal-bg-visualization-4-subtle: hsla(167, 54%, 93%, 1);
+  --cal-bg-visualization-4-emphasis: hsla(158, 74%, 38%, 1);
+  --cal-bg-visualization-5-subtle: hsla(55, 97%, 88%, 1);
+  --cal-bg-visualization-5-emphasis: hsla(45, 93%, 47%, 1);
+  --cal-bg-visualization-6-subtle: hsla(34, 100%, 92%, 1);
+  --cal-bg-visualization-6-emphasis: hsla(25, 95%, 53%, 1);
+  --cal-bg-visualization-7-subtle: hsla(0, 96%, 89%, 1);
+  --cal-bg-visualization-7-emphasis: hsla(0, 84%, 60%, 1);
+
+  /* Legacy Background Components */
+  --cal-bg-info: hsla(221, 91%, 93%, 1);
+  --cal-bg-success: hsla(142, 76%, 94%, 1);
+  --cal-bg-attention: hsla(33, 100%, 92%, 1);
+  --cal-bg-error: hsla(3, 66%, 93%, 1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-launch-dark: hsla(242, 53%, 10%, 1);
+
+  /* Borders */
+  --cal-border-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-border: hsla(216, 12%, 84%, 1);
+  --cal-border-subtle: hsla(220, 13%, 91%, 1);
+  --cal-border-muted: hsla(220, 14%, 94%, 1);
+  --cal-border-error: hsla(0, 96%, 89%, 1);
+  --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
+  --cal-border-semantic-attention-subtle: hsla(32, 98%, 83%, 1);
+  --cal-border-semantic-error-subtle: hsla(0, 96%, 89%, 1);
+  --cal-border-booker: var(--cal-border-subtle);
+
+  /* Content/Text Standard */
+  --cal-text-emphasis: hsla(210, 30%, 4%, 1);
+  --cal-text: hsla(220, 6%, 25%, 1);
+  --cal-text-subtle: hsla(220, 9%, 46%, 1);
+  --cal-text-muted: hsla(218, 11%, 65%, 1);
+  --cal-text-inverted: hsla(0, 0%, 100%, 1);
+
+  /* Content/Text Semantic */
+  --cal-text-semantic-info: hsla(236, 80%, 25%, 1);
+  --cal-text-semantic-success: hsla(150, 84%, 22%, 1);
+  --cal-text-semantic-attention: hsla(15, 79%, 34%, 1);
+  --cal-text-semantic-error: hsla(0, 63%, 24%, 1);
+
+  /* Content/Text Visualization */
+  --cal-text-visualization-1: hsla(332, 79%, 25%, 1);
+  --cal-text-visualization-2: hsla(270, 91%, 25%, 1);
+  --cal-text-visualization-3: hsla(217, 91%, 25%, 1);
+  --cal-text-visualization-4: hsla(142, 71%, 25%, 1);
+  --cal-text-visualization-5: hsla(45, 93%, 25%, 1);
+  --cal-text-visualization-6: hsla(24, 95%, 25%, 1);
+  --cal-text-visualization-7: hsla(0, 84%, 25%, 1);
+
+  /* Legacy Content/Text Components */
+  --cal-text-info: hsla(225, 57%, 33%, 1);
+  --cal-text-success: hsla(144, 34%, 24%, 1);
+  --cal-text-attention: hsla(16, 62%, 28%, 1);
+  --cal-text-error: hsla(0, 63%, 31%, 1);
+
+  /* Brand */
+  --cal-brand: hsla(221, 39%, 11%, 1);
+  --cal-brand-emphasis: hsla(0, 0%, 6%, 1);
+  --cal-brand-text: hsla(0, 0%, 100%, 1);
+
+  /* Box Shadows */
+  --shadow-dropdown: 0px 5px 20px 0px rgba(0, 0, 0, 0.10), 0px 10px 40px 0px rgba(0, 0, 0, 0.03);
+  --shadow-switch-thumb: 0px 0.8px 0.8px 0px rgba(0, 0, 0, 0.10), 0px 0.8px 3.2px 0px rgba(0, 0, 0, 0.08);
+  --shadow-solid-gray-rested: 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -1.5px 2px 0px rgba(0, 0, 0, 0.40) inset;
+  --shadow-solid-gray-hover: 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -2px 2px 0px rgba(0, 0, 0, 0.40) inset;
+  --shadow-solid-gray-active: 0px 2px 3px 0px rgba(0, 0, 0, 0.40) inset, 0px 0px 2px 1px rgba(0, 0, 0, 0.40) inset;
+  --shadow-outline-gray-rested: 0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-outline-gray-hover: 0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-outline-gray-active: 0px 2px 1px 0px rgba(0, 0, 0, 0.05) inset;
+  --shadow-outline-gray-focused: 0px 0px 0px 1px rgba(255, 255, 255, 0.20), 0px 0px 0px 2px rgba(0, 0, 0, 0.10);
+  --shadow-outline-red-rested: 0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-outline-red-hover: 0px 1px 1px 0px rgba(0, 0, 0, 0.06), 0px 2px 3px 0px rgba(0, 0, 0, 0.08);
+  --shadow-outline-red-active: 0px 1px 1px 0px rgba(127, 29, 29, 0.06), 0px 0px 3px 0px rgba(127, 29, 29, 0.08), 0px 2px 2px 1px rgba(127, 29, 29, 0.06) inset;
+  --shadow-elevation-low: 0px 1px 1px 0px rgba(0, 0, 0, 0.07), 0px 1px 2px 0px rgba(0, 0, 0, 0.08), 0px 2px 2px 0px rgba(0, 0, 0, 0.10), 0px 0px 8px 0px rgba(0, 0, 0, 0.05);
+  --shadow-button-solid-brand-default: 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.12) inset, 0px -3px 2px 0px rgba(0, 0, 0, 0.04) inset;
+  --shadow-button-solid-brand-hover: 0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset;
+  --shadow-button-solid-brand-active: 0px 3px 1px 0px rgba(0, 0, 0, 0.10) inset, 0px 0px 2px 0px rgba(0, 0, 0, 0.10) inset;
+  --shadow-button-solid-brand-focused: 0px 0px 0px 1px rgba(255, 255, 255, 0.40), 0px 0px 0px 2px rgba(0, 0, 0, 0.20), 0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset;
+  --shadow-button-outline-red-focused: 0px 0px 0px 1px rgba(255, 255, 255, 0.32), 0px 0px 0px 2px rgba(220, 38, 38, 0.15);
+
+  /* Fill Colors */
+  --fill-emphasis: var(--cal-text-emphasis, #111827);
+  --fill-default: var(--cal-text, #374151);
+  --fill-subtle: var(--cal-text-subtle, #6B7280);
+  --fill-muted: var(--cal-text-muted, #9CA3AF);
+  --fill-inverted: var(--cal-text-inverted, white);
+  --fill-info: var(--cal-text-info, #253985);
+  --fill-success: var(--cal-text-success, #285231);
+  --fill-attention: var(--cal-text-attention, #73321B);
+  --fill-error: var(--cal-text-error, #752522);
+  --fill-brand: var(--cal-brand-text);
+}
+
+.dark {
+  /* Background Standard */
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
+  --cal-bg: hsla(0, 0%, 6%, 1);
+  --cal-bg-subtle: hsla(0, 0%, 15%, 1);
+  --cal-bg-muted: hsla(0, 0%, 9%, 1);
+  --cal-bg-inverted: hsla(0, 0%, 98%, 1);
+
+  /* Background Primary */
+  --cal-bg-primary: hsla(0, 0%, 96%, 1);
+  --cal-bg-primary-emphasis: hsla(0, 0%, 64%, 1);
+  --cal-bg-primary-muted: hsla(0, 0%, 15%, 1);
+
+  /* Background Brand */
+  --cal-bg-brand: hsla(0, 0%, 98%, 1);
+  --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1);
+  --cal-bg-brand-muted: hsla(0, 0%, 96%, 1);
+
+  /* Background Semantic */
+  --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1);
+  --cal-bg-semantic-info-emphasis: hsla(229, 90%, 74%, 1);
+  --cal-bg-semantic-success-subtle: hsla(148, 88%, 16%, 1);
+  --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1);
+  --cal-bg-semantic-attention-subtle: hsla(21, 86%, 8%, 1);
+  --cal-bg-semantic-attention-emphasis: hsla(27, 96%, 61%, 1);
+  --cal-bg-semantic-error-subtle: hsla(0, 70%, 8%, 1);
+  --cal-bg-semantic-error-emphasis: hsla(0, 91%, 71%, 1);
+
+  /* Background Visualization */
+  --cal-bg-visualization-1-subtle: hsla(336, 74%, 35%, 1);
+  --cal-bg-visualization-1-emphasis: hsla(330, 81%, 60%, 1);
+  --cal-bg-visualization-2-subtle: hsla(252, 83%, 23%, 1);
+  --cal-bg-visualization-2-emphasis: hsla(256, 85%, 57%, 1);
+  --cal-bg-visualization-3-subtle: hsla(236, 74%, 35%, 1);
+  --cal-bg-visualization-3-emphasis: hsla(235, 100%, 63%, 1);
+  --cal-bg-visualization-4-subtle: hsla(150, 84%, 22%, 1);
+  --cal-bg-visualization-4-emphasis: hsla(158, 74%, 38%, 1);
+  --cal-bg-visualization-5-subtle: hsla(28, 73%, 26%, 1);
+  --cal-bg-visualization-5-emphasis: hsla(45, 93%, 47%, 1);
+  --cal-bg-visualization-6-subtle: hsla(15, 75%, 23%, 1);
+  --cal-bg-visualization-6-emphasis: hsla(25, 95%, 53%, 1);
+  --cal-bg-visualization-7-subtle: hsla(0, 70%, 35%, 1);
+  --cal-bg-visualization-7-emphasis: hsla(0, 84%, 60%, 1);
+
+  /* Legacy Background Components */
+  --cal-bg-info: hsla(228, 56%, 33%, 1);
+  --cal-bg-success: hsla(133, 34%, 24%, 1);
+  --cal-bg-attention: hsla(16, 62%, 28%, 1);
+  --cal-bg-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-launch-dark: hsla(242, 53%, 10%, 1);
+
+  /* Border Standard */
+  --cal-border: hsla(0, 0%, 30%, 1);
+  --cal-border-muted: hsla(0, 0%, 9%, 1);
+  --cal-border-subtle: hsla(0, 0%, 15%, 1);
+  --cal-border-emphasis: hsla(0, 0%, 45%, 1);
+  --cal-border-semantic-error: hsla(0, 63%, 24%, 1);
+  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1);
+  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1);
+  --cal-border-error: hsla(0, 63%, 24%, 1);
+  --cal-border-booker: var(--cal-border-subtle);
+
+  /* Content/Text Standard */
+  --cal-text-emphasis: hsla(0, 0%, 98%, 1);
+  --cal-text: hsla(0, 0%, 83%, 1);
+  --cal-text-subtle: hsla(0, 0%, 64%, 1);
+  --cal-text-muted: hsla(0, 0%, 64%, 1);
+  --cal-text-inverted: hsla(0, 0%, 0%, 1);
+
+  /* Content/Text Semantic */
+  --cal-text-semantic-info: hsla(229, 90%, 74%, 1);
+  --cal-text-semantic-success: hsla(161, 49%, 54%, 1);
+  --cal-text-semantic-attention: hsla(27, 96%, 61%, 1);
+  --cal-text-semantic-error: hsla(0, 91%, 71%, 1);
+  --cal-text-semantic-info-emphasis: hsla(217, 91%, 25%, 1);
+  --cal-text-semantic-success-emphasis: hsla(142, 71%, 25%, 1);
+  --cal-text-semantic-attention-emphasis: hsla(24, 95%, 25%, 1);
+  --cal-text-semantic-error-emphasis: hsla(0, 84%, 25%, 1);
+
+  /* Legacy Content/Text Components */
+  --cal-text-info: hsla(218, 83%, 93%, 1);
+  --cal-text-success: hsla(134, 76%, 94%, 1);
+  --cal-text-attention: hsla(37, 86%, 92%, 1);
+  --cal-text-error: hsla(3, 66%, 93%, 1);
+
+  /* Brand */
+  --cal-brand: hsla(0, 0%, 100%, 1);
+  --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-brand-text: hsla(0, 0%, 0%, 1);
+
+  /* Fill Colors */
+  --fill-emphasis: var(--cal-text-emphasis);
+  --fill-default: var(--cal-text);
+  --fill-subtle: var(--cal-text-subtle);
+  --fill-muted: var(--cal-text-muted);
+  --fill-inverted: var(--cal-text-inverted);
+  --fill-info: var(--cal-text-info);
+  --fill-success: var(--cal-text-success);
+  --fill-attention: var(--cal-text-attention);
+  --fill-error: var(--cal-text-error);
+  --fill-brand: var(--cal-brand-text);
+}

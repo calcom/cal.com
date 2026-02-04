@@ -76,7 +76,7 @@ export function ValidatedOrganizationSlug({
 
   return (
     <div className="flex w-full flex-col gap-1.5">
-      <Label className="text-emphasis text-sm font-medium leading-4">Organization link</Label>
+      <Label className="text-emphasis mb-0 text-sm font-medium leading-4">Organization link</Label>
       <TextField
         value={value}
         onChange={(e) => onChange(e.target.value)}

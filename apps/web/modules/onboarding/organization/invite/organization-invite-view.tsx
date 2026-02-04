@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import React from "react";
 
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
@@ -48,6 +49,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   };
 
   const handleSkip = async () => {
+    posthog.capture("onboarding_organization_invite_skip_clicked");
     setInvites([]);
     await submitOnboarding(store, userEmail, []);
   };
@@ -67,7 +69,10 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
               <Button
                 color="minimal"
                 className="rounded-[10px]"
-                onClick={() => router.push("/onboarding/organization/teams")}
+                onClick={() => {
+                  posthog.capture("onboarding_organization_invite_back_clicked");
+                  router.push("/onboarding/organization/teams");
+                }}
                 disabled={isSubmitting}>
                 {t("back")}
               </Button>

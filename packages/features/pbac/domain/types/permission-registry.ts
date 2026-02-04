@@ -13,6 +13,7 @@ export enum Resource {
   Availability = "availability",
   OutOfOffice = "ooo",
   Watchlist = "watchlist",
+  FeatureOptIn = "featureOptIn",
 }
 
 export enum CrudAction {
@@ -34,6 +35,10 @@ export enum CustomAction {
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
   Impersonate = "impersonate",
+  EditUsers = "editUsers",
+  PasswordReset = "passwordReset",
+  ReadTeamAuditLogs = "readTeamAuditLogs",
+  ReadOrgAuditLogs = "readOrgAuditLogs",
 }
 
 export enum Scope {
@@ -316,18 +321,19 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_team_members",
+      dependsOn: ["team.read"],
       visibleWhen: {
-        teamPrivacy: "public", // Only show for public teams
+        teamPrivacy: "public",
       },
     },
     [CustomAction.ListMembersPrivate]: {
       description: "List private team members",
       category: "team",
-      i18nKey: "pbac_action_list_members", // Use same UI label as listMembers for consistency
-      descriptionI18nKey: "pbac_desc_list_team_members", // Use same description as listMembers
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_team_members",
       dependsOn: ["team.read"],
       visibleWhen: {
-        teamPrivacy: "private", // Only show for private teams
+        teamPrivacy: "private",
       },
     },
     [CustomAction.ChangeMemberRole]: {
@@ -349,7 +355,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_manage_billing",
       descriptionI18nKey: "pbac_desc_manage_billing",
-      scope: [], // Empty scope because this permission is only used for TEAM billing outside of an org. (We dont want to show this in the UI)
+      scope: [],
     },
   },
   [Resource.Organization]: {
@@ -378,18 +384,18 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       scope: [Scope.Organization],
       dependsOn: ["organization.read"],
       visibleWhen: {
-        teamPrivacy: "public", // Only show for public orgs
+        teamPrivacy: "public",
       },
     },
     [CustomAction.ListMembersPrivate]: {
       description: "List private organization members",
       category: "org",
-      i18nKey: "pbac_action_list_members", // Same UI label as listMembers for consistency
-      descriptionI18nKey: "pbac_desc_list_organization_members", // Same description as listMembers
+      i18nKey: "pbac_action_list_members",
+      descriptionI18nKey: "pbac_desc_list_organization_members",
       scope: [Scope.Organization],
       dependsOn: ["organization.read"],
       visibleWhen: {
-        teamPrivacy: "private", // Only show for private orgs
+        teamPrivacy: "private",
       },
     },
     [CustomAction.Invite]: {
@@ -430,6 +436,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_impersonate",
       descriptionI18nKey: "pbac_desc_impersonate_organization_members",
       scope: [Scope.Organization],
+    },
+    [CustomAction.PasswordReset]: {
+      description: "Reset passwords for organization members",
+      category: "org",
+      i18nKey: "pbac_action_password_reset",
+      descriptionI18nKey: "pbac_desc_reset_password_organization_members",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.listMembers"],
     },
     [CrudAction.Update]: {
       description: "Edit organization settings",
@@ -478,6 +492,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "booking",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_bookings",
+      dependsOn: ["booking.read"],
+    },
+    [CustomAction.ReadTeamAuditLogs]: {
+      description: "View team booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_team_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_team_booking_audit_logs",
+      scope: [Scope.Team],
+      dependsOn: ["booking.read"],
+    },
+    [CustomAction.ReadOrgAuditLogs]: {
+      description: "View organization booking audit logs",
+      category: "booking",
+      i18nKey: "pbac_action_read_org_audit_logs",
+      descriptionI18nKey: "pbac_desc_view_organization_booking_audit_logs",
+      scope: [Scope.Organization],
       dependsOn: ["booking.read"],
     },
   },
@@ -558,6 +588,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
       scope: [Scope.Organization],
       dependsOn: ["organization.attributes.read"],
+    },
+    [CustomAction.EditUsers]: {
+      description: "Edit user attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_edit_users",
+      descriptionI18nKey: "pbac_desc_edit_user_attributes",
+      scope: [Scope.Organization],
+      dependsOn: [
+        "organization.read",
+        "organization.listMembers",
+        "organization.attributes.read",
+        "organization.attributes.update",
+        "organization.attributes.delete",
+        "organization.attributes.create",
+        "organization.changeMemberRole",
+      ],
     },
   },
   [Resource.RoutingForm]: {
@@ -730,6 +776,24 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_delete_watchlist_entries",
       scope: [Scope.Organization],
       dependsOn: ["watchlist.read"],
+    },
+  },
+  [Resource.FeatureOptIn]: {
+    _resource: {
+      i18nKey: "pbac_resource_feature_opt_in",
+    },
+    [CrudAction.Read]: {
+      description: "View feature opt-in settings",
+      category: "featureOptIn",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_feature_opt_in",
+    },
+    [CrudAction.Update]: {
+      description: "Manage feature opt-in settings",
+      category: "featureOptIn",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_feature_opt_in",
+      dependsOn: ["featureOptIn.read"],
     },
   },
 };

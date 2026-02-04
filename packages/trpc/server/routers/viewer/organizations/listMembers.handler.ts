@@ -1,8 +1,7 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import type { FilterType } from "@calcom/types/data-table";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
@@ -113,19 +112,19 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const { limit, offset } = input;
 
   const roleFilter = filters.find((filter) => filter.id === "role") as
-    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | TypedColumnFilter<Extract<FilterType, "ms">>
     | undefined;
   const teamFilter = filters.find((filter) => filter.id === "teams") as
-    | TypedColumnFilter<ColumnFilterType.MULTI_SELECT>
+    | TypedColumnFilter<Extract<FilterType, "ms">>
     | undefined;
   const lastActiveAtFilter = filters.find((filter) => filter.id === "lastActiveAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+    | TypedColumnFilter<Extract<FilterType, "dr">>
     | undefined;
   const createdAtFilter = filters.find((filter) => filter.id === "createdAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+    | TypedColumnFilter<Extract<FilterType, "dr">>
     | undefined;
   const updatedAtFilter = filters.find((filter) => filter.id === "updatedAt") as
-    | TypedColumnFilter<ColumnFilterType.DATE_RANGE>
+    | TypedColumnFilter<Extract<FilterType, "dr">>
     | undefined;
 
   const roleWhereClause = roleFilter
@@ -244,6 +243,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         select: {
           id: true,
           username: true,
+          name: true,
           profiles: {
             select: {
               organizationId: true,
@@ -283,7 +283,17 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
       const user = await new UserRepository(prisma).enrichUserWithItsProfile({ user: membership.user });
-      let attributes;
+      let attributes:
+        | Array<{
+            id: string;
+            value: string;
+            slug: string;
+            attributeId: string;
+            weight: number;
+            isGroup: boolean;
+            contains: string[];
+          }>
+        | undefined;
 
       if (expand?.includes("attributes")) {
         attributes = await prisma.attributeToUser
@@ -314,6 +324,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
       return {
         id: user.id,
         username: user.profiles[0]?.username || user.username,
+        name: user.name,
         email: user.email,
         timeZone: user.timeZone,
         role: membership.role,

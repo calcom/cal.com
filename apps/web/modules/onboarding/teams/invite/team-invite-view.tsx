@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import React, { useEffect } from "react";
 
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
@@ -62,6 +63,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   };
 
   const handleSkip = async () => {
+    posthog.capture("onboarding_team_invite_skip_clicked");
     setTeamInvites([]);
     // Create the team without invites (will handle checkout redirect if needed)
     await createTeam(store);
@@ -80,7 +82,10 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                 <Button
                   color="minimal"
                   className="rounded-[10px]"
-                  onClick={() => router.push("/onboarding/teams/details")}
+                  onClick={() => {
+                    posthog.capture("onboarding_team_invite_back_clicked");
+                    router.push("/onboarding/teams/details");
+                  }}
                   disabled={isSubmitting}>
                   {t("back")}
                 </Button>

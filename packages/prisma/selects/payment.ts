@@ -1,4 +1,4 @@
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "../client";
 
 export const paymentDataSelect = {
   data: true,

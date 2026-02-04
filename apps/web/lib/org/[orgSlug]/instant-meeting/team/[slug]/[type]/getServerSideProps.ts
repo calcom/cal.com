@@ -28,6 +28,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      isPrivate: true,
       hideBranding: true,
       parent: {
         select: {
@@ -61,14 +62,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     session?.user?.id
   );
 
-  if (!eventData) {
-    return {
-      notFound: true,
-    } as const;
-  }
+    if (!eventData) {
+      return {
+        notFound: true,
+      } as const;
+    }
 
-  return {
-    props: {
+    return {
+      props: {
       eventData,
       entity: eventData.entity,
       eventTypeId: eventData.id,
@@ -86,6 +87,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         team,
       }),
       themeBasis: null,
+      teamIsPrivate: team.isPrivate,
     },
   };
 };

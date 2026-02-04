@@ -1,0 +1,24 @@
+name: API v2 Unit
+on:
+  workflow_call:
+env:
+  LINGO_DOT_DEV_API_KEY: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
+permissions:
+  contents: read
+jobs:
+  test:
+    name: API v2 Unit
+    timeout-minutes: 20
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+      - name: Run API v2 unit tests
+        working-directory: apps/api/v2
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn workspace @calcom/platform-libraries build && yarn test

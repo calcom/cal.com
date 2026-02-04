@@ -1,22 +1,21 @@
-import type { Logger } from "tslog";
-
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
-import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
+import { filterBlockedUsers } from "@calcom/features/watchlist/operations/filter-blocked-users.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { userSelect } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import prisma, { userSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { Logger } from "tslog";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
@@ -46,6 +45,7 @@ type EventType = Pick<
   | "schedulingType"
   | "maxLeadThreshold"
   | "team"
+  | "parent"
   | "assignAllTeamMembers"
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
@@ -53,6 +53,7 @@ type EventType = Pick<
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
   | "includeNoShowInRRCalculation"
+  | "rrHostSubsetEnabled"
 >;
 
 type InputProps = {
@@ -67,6 +68,7 @@ type InputProps = {
   isPlatform: boolean;
   hostname: string | undefined;
   forcedSlug: string | undefined;
+  rrHostSubsetIds?: number[];
 };
 
 const _loadAndValidateUsers = async ({
@@ -81,6 +83,7 @@ const _loadAndValidateUsers = async ({
   isPlatform,
   hostname,
   forcedSlug,
+  rrHostSubsetIds,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
@@ -130,14 +133,28 @@ const _loadAndValidateUsers = async ({
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  // Determine if users are locked
-  const containsBlockedUser = await checkIfUsersAreBlocked({
-    users,
-    organizationId: null,
-    span: sentrySpan,
-  });
+  // Get organizationId from eventType (handles org teams and managed events)
+  let organizationId: number | null = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
 
-  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+  // Fallback: For personal events, use the user's first org membership for org-specific blocking
+  // TODO: When we support multiple orgs, revisit the logic
+  if (!organizationId && eventType.userId) {
+    organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: eventType.userId });
+  }
+
+  const { eligibleUsers, blockedCount } = await filterBlockedUsers(users, organizationId, sentrySpan);
+
+  if (blockedCount > 0) {
+    logger.info(`Filtered out ${blockedCount} blocked user(s) from booking`);
+  }
+
+  // If all users are blocked, throw 404
+  // For team events with some eligible users, continue with graceful degradation
+  if (eligibleUsers.length === 0) {
+    throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+  }
+
+  users = eligibleUsers;
 
   // map fixed users
   users = users.map((user) => ({
@@ -155,6 +172,7 @@ const _loadAndValidateUsers = async ({
       rescheduleUid,
       contactOwnerEmail,
       routingFormResponse,
+      rrHostSubsetIds,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {

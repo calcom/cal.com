@@ -3,10 +3,10 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { AllApps } from "@calcom/features/apps/components/AllApps";
-import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
-import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
-import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
+import { AllApps } from "@calcom/web/modules/apps/components/AllApps";
+import { AppStoreCategories } from "@calcom/web/modules/apps/components/Categories";
+import { PopularAppsSlider } from "@calcom/web/modules/apps/components/PopularAppsSlider";
+import { RecentAppsSlider } from "@calcom/web/modules/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -41,7 +41,7 @@ function AppsSearch({
     <TextField
       addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
-      containerClassName={classNames("focus:!ring-offset-0 m-1", className)}
+      containerClassName={classNames("focus:ring-offset-0! m-1", className)}
       type="search"
       autoComplete="false"
       onChange={onChange}

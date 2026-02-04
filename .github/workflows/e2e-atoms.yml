@@ -22,14 +22,16 @@ jobs:
   e2e-atoms:
     timeout-minutes: 15
     name: E2E Atoms
-    runs-on: buildjet-4vcpu-ubuntu-2204
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - name: Run E2E Atoms Tests

@@ -43,7 +43,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={classNames(
-        "placeholder:text-muted hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default focus:border-subtle block flex h-[28px] w-full rounded-md rounded-md border bg-transparent px-3 py-1.5 text-sm text-sm leading-4 outline-none focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:cursor-not-allowed disabled:opacity-50",
+        "border-default hover:border-emphasis placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:border-emphasis focus:ring-0 focus:shadow-outline-gray-focused shadow-outline-gray-rested transition-all flex h-[28px] w-full rounded-md border bg-transparent px-3 py-1.5 text-sm leading-4 outline-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -108,7 +108,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={classNames(
-      "aria-selected:bg-muted aria-selected:text-emphasis relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "aria-selected:bg-cal-muted aria-selected:text-emphasis data-disabled:pointer-events-none data-disabled:opacity-50 data-disabled:cursor-not-allowed relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none",
       className
     )}
     {...props}

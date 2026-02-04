@@ -2,7 +2,15 @@ import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
 
-export const ZCreateInputSchema = z.object({
+export type TCreateInputSchema = {
+  name: string;
+  slug: string;
+  logo?: string | null;
+  bio?: string;
+  isOnboarding?: boolean;
+};
+
+export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
   name: z.string(),
   slug: z.string().transform((val) => slugify(val.trim())),
   logo: z
@@ -13,5 +21,3 @@ export const ZCreateInputSchema = z.object({
   bio: z.string().optional(),
   isOnboarding: z.boolean().optional(),
 });
-
-export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

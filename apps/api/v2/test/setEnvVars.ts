@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noTsIgnore: e2e file */
 import type { Environment } from "@/env";
 import "dotenv/config";
 
@@ -22,6 +23,8 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   RATE_LIMIT_DEFAULT_LIMIT: 10000,
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: 60000,
   IS_TEAM_BILLING_ENABLED: false,
+  ENABLE_SLOTS_WORKERS: "false",
+  SLOTS_WORKER_POOL_SIZE: "0",
 };
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -34,7 +37,8 @@ process.env = {
     "BIds0AQJ96xGBjTSMHTOqLBLutQE7Lu32KKdgSdy7A2cS4mKI2cgb3iGkhDJa5Siy-stezyuPm8qpbhmNxdNHMw",
   VAPID_PRIVATE_KEY: "6cJtkASCar5sZWguIAW7OjvyixpBw9p8zL8WDDwk9Jk",
   CALENDSO_ENCRYPTION_KEY: "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX",
+  CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY: "ae1ca912d1ff09f1527dae78e84f88b4",
   INTEGRATION_TEST_MODE: "true",
   e2e: "true",
-  SLOTS_CACHE_TTL: "1"
+  SLOTS_CACHE_TTL: "1",
 };
