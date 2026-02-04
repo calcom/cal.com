@@ -1,11 +1,10 @@
-import type z from "zod";
-
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeCustomInput } from "@calcom/prisma/client";
-
+import type z from "zod";
 import { bookingCreateSchemaLegacyPropsForApi } from "../bookingCreateBodySchema";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
@@ -26,7 +25,7 @@ const _getBookingData = async <T extends z.ZodType>({
   const parsedBody = await schema.parseAsync(reqBody);
   const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
-    if (!Object.prototype.hasOwnProperty.call(body, "end")) {
+    if (!Object.hasOwn(body, "end")) {
       body.end = dayjs.utc(body.start).add(eventType.length, "minutes").format();
     }
     return true;
@@ -66,13 +65,24 @@ const _getBookingData = async <T extends z.ZodType>({
       responses,
       seatsEnabled: !!eventType.seatsPerTimeSlot,
     });
+  // Extract location value, but ignore optionValue when location is organizer's default app
+  let locationValue = "";
+  if (responses.location) {
+    const locationType = responses.location.value;
+    if (locationType === OrganizerDefaultConferencingAppType) {
+      locationValue = locationType;
+    } else {
+      locationValue = responses.location.optionValue || locationType || "";
+    }
+  }
+
   return {
     ...parsedBody,
     name: responses.name,
     email: responses.email,
     attendeePhoneNumber: responses.attendeePhoneNumber,
     guests: responses.guests ? responses.guests : [],
-    location: responses.location?.optionValue || responses.location?.value || "",
+    location: locationValue,
     smsReminderNumber: responses.smsReminderNumber,
     notes: responses.notes || "",
     calEventUserFieldsResponses,
