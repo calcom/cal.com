@@ -16,6 +16,7 @@ import {
 vi.mock("@calcom/features/attributes/lib/getAttributes", () => {
   return {
     getAttributesAssignmentData: vi.fn(),
+    extractAttributeIdsFromQueryValue: vi.fn().mockReturnValue([]),
   };
 });
 
