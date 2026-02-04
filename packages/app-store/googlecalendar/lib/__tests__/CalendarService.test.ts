@@ -5,23 +5,23 @@ import oAuthManagerMock, {
 import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
 import {
-  calendarMock,
   adminMock,
-  setLastCreatedJWT,
-  setCredentialsMock,
-  setLastCreatedOAuth2Client,
-  freebusyQueryMock,
   calendarListMock,
+  calendarMock,
+  freebusyQueryMock,
+  setCredentialsMock,
+  setLastCreatedJWT,
+  setLastCreatedOAuth2Client,
 } from "../__mocks__/googleapis";
-
-import { expect, test, beforeEach, vi, describe } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import "vitest-fetch-mock";
 
+import process from "node:process";
+import { MeetLocationType } from "@calcom/app-store/constants";
 import logger from "@calcom/lib/logger";
-import { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import BuildCalendarService, { createGoogleCalendarServiceWithGoogleType } from "../CalendarService";
-import { createMockJWTInstance, createCredentialForCalendarService } from "./utils";
+import { createCredentialForCalendarService, createMockJWTInstance } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 
@@ -802,6 +802,276 @@ describe("createEvent", () => {
     });
 
     log.info("createEvent with just in time reminders test passed");
+  });
+
+  test("should patch event location with hangoutLink when event is created with hangoutLink", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockHangoutLink = "https://meet.google.com/abc-defg-hij";
+    const mockGoogleEvent = {
+      id: "mock-event-with-hangout",
+      summary: "Test Meeting with Hangout",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+      hangoutLink: mockHangoutLink,
+    };
+
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
+    });
+    const eventsPatchMock = vi.fn().mockResolvedValue({
+      data: { ...mockGoogleEvent, location: mockHangoutLink },
+    });
+
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+    calendarMock.calendar_v3.Calendar().events.patch = eventsPatchMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-hangout",
+      title: "Test Meeting with Hangout",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      location: "Test Location",
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: null,
+        },
+      ],
+    };
+
+    await calendarService.createEvent(testCalEvent, mockCredential.id);
+
+    // Verify that patch was called with hangoutLink in additionalInformation
+    expect(eventsPatchMock).toHaveBeenCalledTimes(1);
+    const patchCall = eventsPatchMock.mock.calls[0][0];
+    expect(patchCall.calendarId).toBe("primary");
+    expect(patchCall.eventId).toBe("mock-event-with-hangout");
+    expect(patchCall.requestBody.location).toBe(mockHangoutLink);
+    expect(patchCall.requestBody.description).toBeDefined();
+
+    log.info("createEvent with hangoutLink patch test passed");
+  });
+});
+
+describe("updateEvent", () => {
+  test("should patch event location with hangoutLink when event is updated with hangoutLink and MeetLocationType", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockHangoutLink = "https://meet.google.com/xyz-uvwx-rst";
+    const mockUpdatedEvent = {
+      id: "existing-event-id",
+      summary: "Updated Meeting with Hangout",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+      hangoutLink: mockHangoutLink,
+    };
+
+    const eventsUpdateMock = vi.fn().mockResolvedValue({
+      data: mockUpdatedEvent,
+    });
+    const eventsPatchMock = vi.fn().mockResolvedValue({
+      data: { ...mockUpdatedEvent, location: mockHangoutLink },
+    });
+
+    calendarMock.calendar_v3.Calendar().events.update = eventsUpdateMock;
+    calendarMock.calendar_v3.Calendar().events.patch = eventsPatchMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "existing-event-id",
+      title: "Updated Meeting with Hangout",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      location: MeetLocationType,
+      calendarDescription: "Updated meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: null,
+        },
+      ],
+    };
+
+    const result = await calendarService.updateEvent("existing-event-id", testCalEvent, "primary");
+
+    // Verify that patch was called with hangoutLink in additionalInformation
+    expect(eventsPatchMock).toHaveBeenCalledTimes(1);
+    const patchCall = eventsPatchMock.mock.calls[0][0];
+    expect(patchCall.calendarId).toBe("primary");
+    expect(patchCall.eventId).toBe("existing-event-id");
+    expect(patchCall.requestBody.location).toBe(mockHangoutLink);
+    expect(patchCall.requestBody.description).toBeDefined();
+
+    // Verify result includes hangoutLink in additionalInfo
+    expect(result.additionalInfo?.hangoutLink).toBe(mockHangoutLink);
+
+    log.info("updateEvent with hangoutLink patch test passed");
+  });
+
+  test("should not patch event when hangoutLink is present but location is not MeetLocationType", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockHangoutLink = "https://meet.google.com/xyz-uvwx-rst";
+    const mockUpdatedEvent = {
+      id: "existing-event-id",
+      summary: "Updated Meeting with Hangout",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+      hangoutLink: mockHangoutLink,
+    };
+
+    const eventsUpdateMock = vi.fn().mockResolvedValue({
+      data: mockUpdatedEvent,
+    });
+    const eventsPatchMock = vi.fn();
+
+    calendarMock.calendar_v3.Calendar().events.update = eventsUpdateMock;
+    calendarMock.calendar_v3.Calendar().events.patch = eventsPatchMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "existing-event-id",
+      title: "Updated Meeting with Hangout",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      location: "Some other location",
+      calendarDescription: "Updated meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: null,
+        },
+      ],
+    };
+
+    await calendarService.updateEvent("existing-event-id", testCalEvent, "primary");
+
+    // Verify that patch was NOT called when location is not MeetLocationType
+    expect(eventsPatchMock).not.toHaveBeenCalled();
+
+    log.info("updateEvent without MeetLocationType should not patch test passed");
+  });
+
+  test("should not patch event when hangoutLink is not present", async () => {
+    const calendarService = BuildCalendarService(mockCredential);
+    setFullMockOAuthManagerRequest();
+
+    const mockUpdatedEvent = {
+      id: "existing-event-id",
+      summary: "Updated Meeting without Hangout",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+      // No hangoutLink
+    };
+
+    const eventsUpdateMock = vi.fn().mockResolvedValue({
+      data: mockUpdatedEvent,
+    });
+    const eventsPatchMock = vi.fn();
+
+    calendarMock.calendar_v3.Calendar().events.update = eventsUpdateMock;
+    calendarMock.calendar_v3.Calendar().events.patch = eventsPatchMock;
+
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "existing-event-id",
+      title: "Updated Meeting without Hangout",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { translate: (...args: any[]) => args[0], locale: "en" },
+      },
+      attendees: [],
+      location: MeetLocationType,
+      calendarDescription: "Updated meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: mockCredential.userId,
+          eventTypeId: null,
+          credentialId: mockCredential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: null,
+        },
+      ],
+    };
+
+    await calendarService.updateEvent("existing-event-id", testCalEvent, "primary");
+
+    // Verify that patch was NOT called when hangoutLink is not present
+    expect(eventsPatchMock).not.toHaveBeenCalled();
+
+    log.info("updateEvent without hangoutLink should not patch test passed");
   });
 });
 
