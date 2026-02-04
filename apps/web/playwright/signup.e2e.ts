@@ -4,6 +4,7 @@ import { hashSync } from "bcryptjs";
 import { randomBytes } from "node:crypto";
 
 import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
@@ -429,13 +430,11 @@ test.describe("Email Signup Flow Test", async () => {
   }) => {
     const token = randomBytes(32).toString("hex");
     const userEmail = `newuser-${Date.now()}@example.com`;
-    const emailDomain = userEmail.split("@")[1].split(".")[0];
-    const usernameDerivedFromEmail = `${userEmail.split("@")[0]}-${emailDomain}`;
 
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
 
-    await prisma.verificationToken.create({
+    const verificationToken = await prisma.verificationToken.create({
       data: {
         identifier: `invite-link-for-teamId-${org.id}`,
         token,
@@ -464,6 +463,8 @@ test.describe("Email Signup Flow Test", async () => {
 
     await expect(page).toHaveURL(/\/getting-started/);
 
+    const usernameDerivedFromEmail = getOrgUsernameFromEmail(userEmail, null);
+
     await orgOwner.apiLogin();
     await expectUserToBeAMemberOfOrganization({
       page,
@@ -472,6 +473,10 @@ test.describe("Email Signup Flow Test", async () => {
       email: userEmail,
       role: "member",
       isMemberShipAccepted: true,
+    });
+
+    await prisma.verificationToken.deleteMany({
+      where: { id: verificationToken.id },
     });
   });
 
@@ -482,7 +487,6 @@ test.describe("Email Signup Flow Test", async () => {
   }) => {
     const token = randomBytes(32).toString("hex");
     const userEmail = `newuser-${Date.now()}@example.com`;
-    const usernameDerivedFromEmail = userEmail.split("@")[0];
 
     const orgOwner = await users.create(undefined, {
       hasTeam: true,
@@ -509,7 +513,7 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    await prisma.verificationToken.create({
+    const verificationToken = await prisma.verificationToken.create({
       data: {
         identifier: `invite-link-for-teamId-${subTeam.id}`,
         token,
@@ -534,6 +538,8 @@ test.describe("Email Signup Flow Test", async () => {
 
     await expect(page).toHaveURL(/\/getting-started/);
 
+    const usernameDerivedFromEmail = getOrgUsernameFromEmail(userEmail, "example.com");
+
     await orgOwner.apiLogin();
 
     await expectUserToBeAMemberOfTeam({
@@ -552,6 +558,10 @@ test.describe("Email Signup Flow Test", async () => {
       email: userEmail,
       role: "member",
       isMemberShipAccepted: true,
+    });
+
+    await prisma.verificationToken.deleteMany({
+      where: { id: verificationToken.id },
     });
   });
 
