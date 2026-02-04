@@ -15,7 +15,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
+import { filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 
 function useFilterQuery() {
   // passthrough allows additional params to not be removed
