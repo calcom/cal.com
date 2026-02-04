@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { detectDeviceDetails } from "@calcom/lib/deviceDetection";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -17,6 +18,18 @@ export default function Provider(props: SSOProviderPageProps) {
   const router = useRouter();
 
   useEffect(() => {
+    // Store device details in cookie before OAuth redirect
+    try {
+      const deviceDetails = detectDeviceDetails();
+      if (deviceDetails) {
+        document.cookie = `device_details=${encodeURIComponent(
+          JSON.stringify(deviceDetails)
+        )}; path=/; max-age=600; SameSite=Lax`;
+      }
+    } catch (error) {
+      console.warn("Failed to store device details:", error);
+    }
+
     const email = searchParams?.get("email");
     if (props.provider === "saml") {
       if (!email) {
