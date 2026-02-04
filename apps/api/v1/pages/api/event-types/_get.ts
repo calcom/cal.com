@@ -7,8 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import { eventTypeSelect } from "~/lib/selects/event-type";
 import { schemaQuerySlug } from "~/lib/validations/shared/querySlug";
-import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
-
+import { extractUserIdsFromQuery } from "~/lib/helpers/extractUserIdsFromQuery";
 import getCalLink from "./_utils/getCalLink";
 
 /**
@@ -66,15 +65,6 @@ async function getHandler(req: NextApiRequest) {
       }
     ),
   };
-}
-// TODO: Extract & reuse.
-function extractUserIdsFromQuery({ isSystemWideAdmin, query }: NextApiRequest) {
-  /** Guard: Only admins can query other users */
-  if (!isSystemWideAdmin) {
-    throw new HttpError({ statusCode: 401, message: "ADMIN required" });
-  }
-  const { userId: userIdOrUserIds } = schemaQuerySingleOrMultipleUserIds.parse(query);
-  return Array.isArray(userIdOrUserIds) ? userIdOrUserIds : [userIdOrUserIds];
 }
 
 type DefaultScheduleIdEventTypeBase = {
