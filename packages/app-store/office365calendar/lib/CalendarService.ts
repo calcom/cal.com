@@ -39,21 +39,21 @@ interface IRequest {
 interface ISettledResponse {
   id: string;
   status: number;
-  headers: {
-    "Retry-After": string;
-    "Content-Type": string;
+  headers?: {
+    "Retry-After"?: string;
+    "Content-Type"?: string;
   };
-  body: Record<string, DefaultBodyType>;
+  body: any;
 }
 
 interface IBatchResponse {
   responses: ISettledResponse[];
 }
+
 interface BodyValue {
   showAs: string;
-  end: { dateTime: string };
-  evt: { showAs: string };
-  start: { dateTime: string };
+  start: { dateTime: string; timeZone?: string };
+  end: { dateTime: string; timeZone?: string };
 }
 
 class Office365CalendarService implements Calendar {
@@ -413,38 +413,30 @@ class Office365CalendarService implements Calendar {
   private fetchResponsesWithNextLink = async (
     initialResponses: ISettledResponse[]
   ): Promise<ISettledResponse[]> => {
-    const allSuccess: ISettledResponse[] = [];
+    const allResponses: ISettledResponse[] = [];
     let currentResponses = initialResponses;
 
     while (currentResponses && currentResponses.length > 0) {
       const nextLinkRequests: IRequest[] = [];
       for (const response of currentResponses) {
-        if (response.status === 200) {
-          const nextLink = response.body["@odata.nextLink"];
-          if (nextLink) {
-            nextLinkRequests.push({
-              id: Number(response.id),
-              method: "GET",
-              url: String(nextLink).replace(this.apiGraphUrl, ""),
-            });
-          }
-          delete response.body["@odata.nextLink"];
+        allResponses.push(response);
+        if (response.status === 200 && response.body?.["@odata.nextLink"]) {
+          nextLinkRequests.push({
+            id: Number(response.id),
+            method: "GET",
+            url: String(response.body["@odata.nextLink"]).replace(this.apiGraphUrl, ""),
+          });
         }
-        allSuccess.push(response);
       }
 
       if (nextLinkRequests.length === 0) break;
 
       const newResponse = await this.apiGraphBatchCall(nextLinkRequests);
-      let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponse);
-
-      if (typeof newResponseBody === "string") {
-        newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
-      }
-      currentResponses = newResponseBody.responses;
+      const newResponseBody = await handleErrorsJson<IBatchResponse>(newResponse);
+      currentResponses = newResponseBody?.responses || [];
     }
 
-    return allSuccess;
+    return allResponses;
   };
 
   private fetchRequestWithRetryAfter = async (
@@ -464,7 +456,8 @@ class Office365CalendarService implements Calendar {
       if (item.status === 200) {
         alreadySuccessRequest.push(item);
       } else if (item.status === 429) {
-        const newTimeout = Number(item.headers["Retry-After"]) * 1000 || 0;
+        const retryAfter = item.headers?.["Retry-After"];
+        const newTimeout = Number(retryAfter) * 1000 || 0;
         retryAfterTimeout = newTimeout > retryAfterTimeout ? newTimeout : retryAfterTimeout;
         failedRequest.push(originalRequests[Number(item.id)]);
       }
@@ -478,19 +471,18 @@ class Office365CalendarService implements Calendar {
     await new Promise((r) => setTimeout(r, retryAfterTimeout + getRandomness()));
 
     const newResponses = await this.apiGraphBatchCall(failedRequest);
-    let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponses);
-    if (typeof newResponseBody === "string") {
-      newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
-    }
+    const newResponseBody = await handleErrorsJson<IBatchResponse>(newResponses);
+
     const retryAfter = !!newResponseBody?.responses && this.findRetryAfterResponse(newResponseBody.responses);
 
     if (retryAfter && newResponseBody.responses) {
-      newResponseBody = await this.fetchRequestWithRetryAfter(
+      const recursiveResult = await this.fetchRequestWithRetryAfter(
         failedRequest,
         newResponseBody.responses,
         maxRetries,
         retryCount + 1
       );
+      return { responses: [...alreadySuccessRequest, ...(recursiveResult.responses || [])] };
     }
     return { responses: [...alreadySuccessRequest, ...(newResponseBody?.responses || [])] };
   };
@@ -504,24 +496,6 @@ class Office365CalendarService implements Calendar {
     return response;
   };
 
-  private handleTextJsonResponseWithHtmlInBody = (response: string): IBatchResponse => {
-    try {
-      const parsedJson = JSON.parse(response);
-      return parsedJson;
-    } catch {
-      // Looking for html in body
-      const openTag = '"body":<';
-      const closeTag = "</html>";
-      const htmlBeginning = response.indexOf(openTag) + openTag.length - 1;
-      const htmlEnding = response.indexOf(closeTag) + closeTag.length + 2;
-      const resultString = `${response.repeat(1).substring(0, htmlBeginning)} ""${response
-        .repeat(1)
-        .substring(htmlEnding, response.length)}`;
-
-      return JSON.parse(resultString);
-    }
-  };
-
   private findRetryAfterResponse = (response: ISettledResponse[]) => {
     const foundRetry = response.find((request: ISettledResponse) => request.status === 429);
     return !!foundRetry;
@@ -533,7 +507,7 @@ class Office365CalendarService implements Calendar {
       const body = subResponse.body as { value?: BodyValue[]; error?: Error[] };
       if (body?.value && Array.isArray(body.value)) {
         for (const evt of body.value) {
-          if (evt.showAs !== "free" && evt.showAs !== "workingElsewhere") {
+          if (evt.showAs !== "free" && evt.showAs !== "workingElsewhere" && evt.start?.dateTime && evt.end?.dateTime) {
             busyTimes.push({
               start: `${evt.start.dateTime}Z`,
               end: `${evt.end.dateTime}Z`,
