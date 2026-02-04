@@ -9,7 +9,7 @@ import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, ICS_CALENDAR_TYPE, ICS_CALENDAR } from "@calcom/platform-constants";
 import { symmetricEncrypt } from "@calcom/platform-libraries";
-import { IcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
+import { BuildIcsFeedCalendarService } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
 export class IcsFeedService implements ICSFeedCalendarApp {
@@ -40,10 +40,11 @@ export class IcsFeedService implements ICSFeedCalendarApp {
       appId: ICS_CALENDAR,
       invalid: false,
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
     try {
-      const dav = new IcsFeedCalendarService({
+      const dav = BuildIcsFeedCalendarService({
         id: 0,
         ...data,
         user: { email: userEmail },

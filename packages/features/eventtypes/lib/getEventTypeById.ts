@@ -4,21 +4,22 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
 
 interface getEventTypeByIdProps {
@@ -28,6 +29,7 @@ interface getEventTypeByIdProps {
   isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
+  userLocale?: string | null;
 }
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
@@ -39,6 +41,7 @@ export const getEventTypeById = async ({
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
+  userLocale,
 }: getEventTypeByIdProps) => {
   const userSelect = {
     name: true,
@@ -135,8 +138,8 @@ export const getEventTypeById = async ({
     bookerUrl: restEventType.team
       ? await getBookerBaseUrl(restEventType.team.parentId)
       : restEventType.owner
-      ? await getBookerBaseUrl(currentOrganizationId)
-      : WEBSITE_URL,
+        ? await getBookerBaseUrl(currentOrganizationId)
+        : WEBSITE_URL,
     children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
@@ -186,7 +189,7 @@ export const getEventTypeById = async ({
 
   const currentUser = eventType.users.find((u) => u.id === userId);
 
-  const t = await getTranslation(currentUser?.locale ?? "en", "common");
+  const t = await getTranslation(userLocale ?? currentUser?.locale ?? "en", "common");
 
   if (!currentUser?.id && !eventType.teamId) {
     throw new TRPCError({
@@ -272,14 +275,21 @@ export async function getRawEventType({
   prisma,
 }: Omit<getEventTypeByIdProps, "isTrpcCall">) {
   const eventTypeRepo = new EventTypeRepository(prisma);
+  const organizationRepo = getOrganizationRepository();
+  const isUserInPlatformOrganization = currentOrganizationId
+    ? !!(await organizationRepo.findById({ id: currentOrganizationId }))?.isPlatform
+    : false;
 
-  if (isUserOrganizationAdmin && currentOrganizationId) {
+  if (isUserOrganizationAdmin && currentOrganizationId && isUserInPlatformOrganization) {
+    // Platform Organization Admin can access any event of the organization even without being a member of the sub-teams
     return await eventTypeRepo.findByIdForOrgAdmin({
       id: eventTypeId,
       organizationId: currentOrganizationId,
     });
   }
 
+  // Regular(Non Platform) Organization member(admin/non-admin) can access any event-type they are are a member of including sub-team events and Regular Team(non-subteam) events.
+  // Remember an organization member can stay a part of Regular Team still if  that team hasn't been moved to the organization yet.
   return await eventTypeRepo.findById({
     id: eventTypeId,
     userId,

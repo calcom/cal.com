@@ -6,11 +6,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
+import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
@@ -168,6 +168,19 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // Redirect if no routing form response and redirect URL is configured
+  // Don't redirect if this is a reschedule or seated booking flow
+  const hasRoutingFormResponse =
+    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+  if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && "redirectUrlOnNoRoutingFormResponse" in eventData && eventData.redirectUrlOnNoRoutingFormResponse) {
+    return {
+      redirect: {
+        destination: eventData.redirectUrlOnNoRoutingFormResponse,
+        permanent: false,
+      },
+    };
+  }
+
   const props: Props = {
     eventData: {
       ...eventData,
@@ -254,13 +267,26 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     session?.user?.id
   );
 
-  if (!eventData) {
-    return {
-      notFound: true,
-    } as const;
-  }
+    if (!eventData) {
+      return {
+        notFound: true,
+      } as const;
+    }
 
-  const allowSEOIndexing = org
+    // Redirect if no routing form response and redirect URL is configured
+    // Don't redirect if this is a reschedule or seated booking flow
+    const hasRoutingFormResponse =
+      context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+    if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && "redirectUrlOnNoRoutingFormResponse" in eventData && eventData.redirectUrlOnNoRoutingFormResponse) {
+      return {
+        redirect: {
+          destination: eventData.redirectUrlOnNoRoutingFormResponse,
+          permanent: false,
+        },
+      };
+    }
+
+    const allowSEOIndexing= org
     ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
       ? user?.allowSEOIndexing
       : false

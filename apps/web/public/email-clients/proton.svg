@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="106"
+   height="86"
+   viewBox="0 0 106 86"
+   fill="none"
+   version="1.1"
+   id="svg18"
+   sodipodi:docname="ProtonMail_logo.svg"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview18"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.56616"
+     inkscape:cx="81.409306"
+     inkscape:cy="66.723705"
+     inkscape:window-width="1366"
+     inkscape:window-height="699"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg18" />
+  <path
+     fill-rule="evenodd"
+     clip-rule="evenodd"
+     d="M 83.4613,16.1551 V 86 h 11.578 C 101.094,86 106,81.026 106,74.9015 V 2.47101 c 0,-2.09261199 -2.404,-3.23204199 -3.997,-1.89540199 z"
+     fill="url(#paint0_linear_11985_190892)"
+     id="path11"
+     style="fill:url(#paint0_linear_11985_190892)" />
+  <path
+     fill-rule="evenodd"
+     clip-rule="evenodd"
+     d="M 67.3128,29.7407 46.1604,48.6618 c -3.6066,3.2211 -8.9895,3.2978 -12.6827,0.1862 L 0,20.6691 V 2.482 C 0,0.38939001 2.40441,-0.76099599 3.99653,0.57564301 L 45.998,35.8761 c 4.0615,3.4183 9.9534,3.4183 14.0149,0 z"
+     fill="url(#paint1_linear_11985_190892)"
+     id="path12"
+     style="fill:url(#paint1_linear_11985_190892)" />
+  <path
+     d="m 83.4613,16.1661 -16.1485,13.5746 0.0108,-10e-5 -21.1632,18.9212 c -3.6066,3.2211 -8.9895,3.2978 -12.6827,0.1862 L 0,20.6691 V 74.9015 C 0,81.0259 4.9063,86 10.9607,86 h 72.5006 z"
+     fill="url(#paint2_radial_11985_190892)"
+     id="path13"
+     style="fill:url(#paint2_radial_11985_190892)" />
+  <defs
+     id="defs18">
+    <linearGradient
+       id="paint0_linear_11985_190892"
+       x1="265.97501"
+       y1="141.754"
+       x2="244.3"
+       y2="-73.404099"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0.271"
+         stop-color="#E3D9FF"
+         id="stop13" />
+      <stop
+         offset="1"
+         stop-color="#7341FF"
+         id="stop14" />
+    </linearGradient>
+    <linearGradient
+       id="paint1_linear_11985_190892"
+       x1="62.634602"
+       y1="86.798401"
+       x2="18.552999"
+       y2="-87.2799"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#E3D9FF"
+         id="stop15" />
+      <stop
+         offset="1"
+         stop-color="#7341FF"
+         id="stop16" />
+    </linearGradient>
+    <radialGradient
+       id="paint2_radial_11985_190892"
+       cx="0"
+       cy="0"
+       r="1"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(123.614,0,0,125.045,105.538,10.5272)">
+      <stop
+         offset="0.5561"
+         stop-color="#6D4AFF"
+         id="stop17" />
+      <stop
+         offset="0.9944"
+         stop-color="#AA8EFF"
+         id="stop18" />
+    </radialGradient>
+  </defs>
+</svg>

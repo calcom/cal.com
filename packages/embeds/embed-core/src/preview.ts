@@ -70,8 +70,7 @@ if (!calLink) {
 // TODO: Reuse the embed code snippet from the embed-snippet package - Not able to use it because of circular dependency
 // Install Cal Embed Code Snippet
 (function (C, A, L) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
+  // @ts-expect-error
   const p = function (a, ar) {
     a.q.push(ar);
   };
@@ -95,8 +94,7 @@ if (!calLink) {
           p(api, arguments);
         };
         const namespace = ar[1];
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        // @ts-expect-error
         api.q = api.q || [];
         if (typeof namespace === "string") {
           // Make sure that even after re-execution of the snippet, the namespace is not overridden

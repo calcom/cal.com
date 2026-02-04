@@ -9,7 +9,9 @@ type RemoveMemberOptions = {
   ctx: {
     user: {
       id: number;
+      organizationId: number | null;
       organization?: {
+        id: number | null;
         isOrgAdmin: boolean;
       };
     };
@@ -19,16 +21,17 @@ type RemoveMemberOptions = {
 
 export const removeMemberHandler = async ({
   ctx: {
-    user: { id: userId, organization },
+    user: { id: userId, organizationId, organization },
   },
   input,
-}: RemoveMemberOptions) => {
+}: RemoveMemberOptions): Promise<void> => {
   await checkRateLimitAndThrowError({
     identifier: `removeMember.${userId}`,
   });
 
   const { memberIds, teamIds, isOrg } = input;
   const isOrgAdmin = organization?.isOrgAdmin ?? false;
+  const userOrgId = organizationId ?? organization?.id ?? null;
 
   // Note: This assumes that all teams in the request have the same PBAC setting 9999% chance they do.
   const primaryTeamId = teamIds[0];
@@ -45,6 +48,7 @@ export const removeMemberHandler = async ({
   const { hasPermission } = await service.checkRemovePermissions({
     userId,
     isOrgAdmin,
+    organizationId: userOrgId,
     memberIds,
     teamIds,
     isOrg,
@@ -58,6 +62,7 @@ export const removeMemberHandler = async ({
     {
       userId,
       isOrgAdmin,
+      organizationId: userOrgId,
       memberIds,
       teamIds,
       isOrg,

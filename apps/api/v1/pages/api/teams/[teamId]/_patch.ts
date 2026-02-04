@@ -1,10 +1,10 @@
 import type { NextApiRequest } from "next";
 
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 

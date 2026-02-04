@@ -4,12 +4,12 @@
  */
 import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
+import type { TraceContext } from "@calcom/lib/tracing";
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
-import type { RegularBookingService } from "../handleNewBooking";
+import type { RegularBookingService } from "../service/RegularBookingService";
 
-export type { BookingCreateBody } from "../bookingCreateBodySchema";
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
 export type CreateRegularBookingData = ExtendedBookingCreateBody;
@@ -34,18 +34,24 @@ export type PlatformParams = {
 
 export type CreateBookingMeta = {
   userId?: number;
+  userUuid?: string;
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  traceContext?: TraceContext;
+  impersonatedByUserUuid?: string;
 } & PlatformParams;
 
 export type BookingHandlerInput = {
   bookingData: CreateRegularBookingData;
 } & CreateBookingMeta;
 
+// TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
+export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
+
 export type InstantBookingCreateResult = {
-  message: string;
+  message: "Success";
   meetingTokenId: number;
   bookingId: number;
   bookingUid: string;
@@ -53,5 +59,7 @@ export type InstantBookingCreateResult = {
   userId: number | null;
 };
 
-// TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
-export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
+// More properties to be added to this config in followup PRs
+export type BookingFlowConfig = {
+  isDryRun: boolean;
+};

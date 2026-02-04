@@ -10,15 +10,12 @@ import { lucideIconList } from "../../../../packages/ui/components/icon/icon-lis
 import { IconGrid } from "./IconGrid";
 
 export const dynamic = "force-static";
-export const metadata: Metadata = _generateMetadataForStaticPage(
-  "Icons Showcase",
-  "",
-  undefined,
-  undefined,
-  "/icons"
-);
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+export async function generateMetadata(): Promise<Metadata> {
+  return await _generateMetadataForStaticPage("Icons Showcase", "", undefined, undefined, "/icons");
+}
+
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",

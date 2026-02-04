@@ -11,11 +11,9 @@ Note for ARM Users: Use the {version}-arm suffix for pulling images. Example: `d
 
 ### Contributing
 
-The Docker configuration for Cal.com is an effort powered by people within the community. Cal.com, Inc. does not yet provide official support for Docker, but we will accept fixes and documentation at this time. Use at your own risk.
+The Docker configuration for Cal.com is officially maintained in the main Cal.com repository. The Dockerfile and docker-compose.yml are located in the root of the [calcom/cal.com repository](https://github.com/calcom/cal.com).
 
-If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
-
-The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+If you want to contribute to the Docker setup, please open an issue or pull request in the [main Cal.com repository](https://github.com/calcom/cal.com).
 
 ### Requirements
 
@@ -25,16 +23,16 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
 
 ### Getting Started
 
-1. Clone calcom-docker
+1. Clone the Cal.com repository
     
     ```
-    git clone --recursive https://github.com/calcom/docker.git calcom-docker
+    git clone https://github.com/calcom/cal.com.git
     ```
 
 2. Change into the directory
     
     ```
-    cd docker
+    cd cal.com
     ```
 
 3. Prepare your configuration: Rename .env.example to .env and then update .env
@@ -110,7 +108,7 @@ These variables must be provided at the time of the docker build, and can be pro
 
 ## Advanced Users - Building and Configuring
 
-Check out the [Cal.com Docker](https://github.com/calcom/docker) repository for more detailed instructions on how to build and configure your own Docker image. 
+For more detailed instructions on how to build and configure your own Docker image, refer to the Dockerfile and docker-compose.yml in the root of the [Cal.com repository](https://github.com/calcom/cal.com).
 
 ## Troubleshooting
 

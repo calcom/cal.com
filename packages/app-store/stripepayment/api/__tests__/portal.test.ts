@@ -2,9 +2,9 @@ import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
@@ -18,7 +18,7 @@ import { validateAuthentication, buildReturnUrl } from "../portal";
 
 // Mock dependencies
 vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/lib/server/repository/team");
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("../../lib/customer");
 vi.mock("../../lib/server");
 vi.mock("../../lib/subscriptions");
@@ -54,7 +54,7 @@ describe("Portal API - Service-Based Architecture", () => {
           user: { id: 123 },
           hasValidLicense: true,
           upId: "test-upid",
-          expires: "2024-12-31T23:59:59.999Z"
+          expires: "2024-12-31T23:59:59.999Z",
         } as Session,
       } as RequestWithSession;
 
@@ -77,7 +77,7 @@ describe("Portal API - Service-Based Architecture", () => {
           user: {} as any,
           hasValidLicense: true,
           upId: "test-upid",
-          expires: "2024-12-31T23:59:59.999Z"
+          expires: "2024-12-31T23:59:59.999Z",
         } as Session,
       } as RequestWithSession;
 
@@ -124,7 +124,9 @@ describe("Portal API - Service-Based Architecture", () => {
       mockTeamRepo = {
         findById: vi.fn(),
       };
-      mockTeamRepository.mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+      mockTeamRepository.mockImplementation(function () {
+        return mockTeamRepo as unknown as TeamRepository;
+      });
     });
 
     it("should create OrganizationBillingPortalService for organizations", async () => {
@@ -167,14 +169,16 @@ describe("Portal API - Service-Based Architecture", () => {
         checkPermission: vi.fn().mockResolvedValue(true),
       };
 
-      vi.mocked(PermissionCheckService).mockImplementation(
-        () => mockPermissionServiceInstance as unknown as PermissionCheckService
-      );
+      vi.mocked(PermissionCheckService).mockImplementation(function () {
+        return mockPermissionServiceInstance as unknown as PermissionCheckService;
+      });
 
       const mockTeamRepo: MockTeamRepository = {
         findById: vi.fn(),
       };
-      mockTeamRepository.mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
+      mockTeamRepository.mockImplementation(function () {
+        return mockTeamRepo as unknown as TeamRepository;
+      });
 
       service = new TeamBillingPortalService();
     });
@@ -201,9 +205,9 @@ describe("Portal API - Service-Based Architecture", () => {
         checkPermission: vi.fn().mockResolvedValue(true),
       };
 
-      vi.mocked(PermissionCheckService).mockImplementation(
-        () => mockPermissionServiceInstance as unknown as PermissionCheckService
-      );
+      vi.mocked(PermissionCheckService).mockImplementation(function () {
+        return mockPermissionServiceInstance as unknown as PermissionCheckService;
+      });
 
       service = new OrganizationBillingPortalService();
     });

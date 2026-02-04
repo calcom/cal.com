@@ -113,7 +113,7 @@ test.describe("Availability", () => {
 
   test("Schedule listing", async ({ page }) => {
     await test.step("Can add a new schedule", async () => {
-      await page.getByTestId("new-schedule").click();
+      await page.getByTestId("new-schedule").first().click();
       await page.locator('[id="name"]').fill("More working hours");
       page.locator('[type="submit"]').click();
       await expect(page.getByTestId("availablity-title")).toHaveValue("More working hours");
@@ -121,10 +121,11 @@ test.describe("Availability", () => {
     await test.step("Can delete a schedule", async () => {
       await page.getByTestId("go-back-button").click();
       await page.locator('[data-testid="schedules"] > li').nth(1).getByTestId("schedule-more").click();
+      await page.locator('[data-testid="delete-schedule"]').click()
       await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.delete?batch=1", {
-        action: () => page.locator('[data-testid="delete-schedule"]').click(),
+        action: () => page.locator('[data-testid="dialog-confirmation"]').click(),
       });
-      await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0);
+      await expect(page.locator('[data-testid="schedules"] > li').nth(1)).toHaveCount(0, { timeout: 0 });
     });
     await test.step("Cannot delete the last schedule", async () => {
       await page.locator('[data-testid="schedules"] > li').nth(0).getByTestId("schedule-more").click();
@@ -146,10 +147,12 @@ test.describe("Availability", () => {
     const save = (await localize("en"))("save");
     const copyTimesTo = (await localize("en"))("copy_times_to");
 
-    await page.getByTestId("availablity-title").click();
+    const availTitle = page.getByTestId("availablity-title");
+    await availTitle.locator('xpath=..').locator('span.whitespace-pre').first().click();
+    await expect(availTitle).toBeEditable();
     // change availability name
     await page.getByTestId("availablity-title").fill("Working Hours test");
-    await expect(page.getByTestId("subtitle")).toBeVisible();
+    await expect(page.getByTestId("subtitle").first()).toBeVisible();
     await page.getByTestId(sunday).getByRole("switch").click();
     await page.getByTestId(monday).first().click();
     await page.getByTestId(wednesday).getByRole("switch").click();

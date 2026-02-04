@@ -1,27 +1,34 @@
 import { NextRequest } from "next/server";
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
+import { getOGImageVersion } from "@calcom/lib/OgImages";
+
 import { GET } from "../route";
 
 vi.mock("next/og", () => ({
-  ImageResponse: vi.fn().mockImplementation(() => ({
+  ImageResponse: vi.fn().mockImplementation(function() { return {
     body: new ReadableStream({
       start(controller) {
         controller.enqueue(new Uint8Array([1, 2, 3, 4]));
         controller.close();
       },
     }),
-  })),
+  }; }),
 }));
 
-vi.mock("@calcom/lib/OgImages", () => ({
-  Meeting: vi.fn(() => null),
-  App: vi.fn(() => null),
-  Generic: vi.fn(() => null),
-}));
+vi.mock("@calcom/lib/OgImages", async (importOriginal) => {
+  return await importOriginal();
+});
 
-vi.mock("@calcom/lib/constants", () => ({
-  WEBAPP_URL: "http://localhost:3000",
+vi.mock(import("@calcom/lib/constants"), async (importOriginal) => {
+  return await importOriginal();
+});
+
+vi.mock("@calcom/web/public/app-store/svg-hashes.json", () => ({
+  default: {
+    huddle01video: "81a0653b",
+    zoomvideo: "d1c78abf",
+  },
 }));
 
 global.fetch = vi.fn();
@@ -82,7 +89,7 @@ describe("GET /api/social/og/image", () => {
       const response = await GET(request);
 
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("What you're looking for is not here..");
+      expect(await response.text()).toBe("Wrong image type");
     });
 
     test("returns 404 when invalid type parameter is provided", async () => {
@@ -90,13 +97,16 @@ describe("GET /api/social/og/image", () => {
       const response = await GET(request);
 
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("What you're looking for is not here..");
+      expect(await response.text()).toBe("Wrong image type");
     });
   });
 
   describe("Server errors (500 Internal Server Error)", () => {
-    test("returns 500 when font loading fails", async () => {
-      vi.mocked(global.fetch).mockRejectedValue(new Error("Font loading failed"));
+    test("returns 500 when ImageResponse throws", async () => {
+      const { ImageResponse } = await import("next/og");
+      vi.mocked(ImageResponse).mockImplementation(function () {
+        throw new Error("ImageResponse failed");
+      });
 
       const request = createNextRequest(
         "http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John"
@@ -105,6 +115,35 @@ describe("GET /api/social/og/image", () => {
 
       expect(response.status).toBe(500);
       expect(await response.text()).toBe("Internal server error");
+    });
+  });
+
+  describe("getOGImageVersion with SVG hash", () => {
+    test("app type: ETag changes when SVG hash is provided", async () => {
+      const etagWithoutHash = await getOGImageVersion("app");
+      const etagWithHash = await getOGImageVersion("app", {
+        slug: "huddle01video",
+        svgHash: "81a0653b",
+      });
+
+      expect(etagWithoutHash).toBeTruthy();
+      expect(etagWithHash).toBeTruthy();
+      expect(etagWithHash).not.toBe(etagWithoutHash);
+    });
+
+    test("app type: different SVG hashes produce different ETags", async () => {
+      const etagHash1 = await getOGImageVersion("app", {
+        slug: "huddle01video",
+        svgHash: "81a0653b",
+      });
+      const etagHash2 = await getOGImageVersion("app", {
+        slug: "zoomvideo",
+        svgHash: "d1c78abf",
+      });
+
+      expect(etagHash1).toBeTruthy();
+      expect(etagHash2).toBeTruthy();
+      expect(etagHash1).not.toBe(etagHash2);
     });
   });
 });

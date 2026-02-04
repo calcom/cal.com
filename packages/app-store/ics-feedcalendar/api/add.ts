@@ -6,7 +6,7 @@ import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
-import { CalendarService } from "../lib";
+import { BuildCalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -33,10 +33,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
 
     try {
-      const dav = new CalendarService({
+      const dav = BuildCalendarService({
         id: 0,
         ...data,
         user: { email: user.email },
+        encryptedKey: null,
       });
       const listedCals = await dav.listCalendars();
 

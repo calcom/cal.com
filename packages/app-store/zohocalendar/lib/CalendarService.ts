@@ -1,4 +1,4 @@
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation } from "@calcom/lib/CalEventParser";
@@ -9,6 +9,7 @@ import type {
   CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -18,7 +19,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
-export default class ZohoCalendarService implements Calendar {
+class ZohoCalendarService implements Calendar {
   private integrationName = "";
   private log: typeof logger;
   auth: { getToken: () => Promise<ZohoAuthCredentials> };
@@ -302,11 +303,8 @@ export default class ZohoCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
       .map((e) => e.externalId);
@@ -475,9 +473,25 @@ export default class ZohoCalendarService implements Calendar {
           action: "popup",
         },
       ],
-      location: event.location ? getLocation(event) : undefined,
+      location: event.location
+        ? getLocation({
+            videoCallData: event.videoCallData,
+            additionalInformation: event.additionalInformation,
+            location: event.location,
+            uid: event.uid,
+          })
+        : undefined,
     };
 
     return zohoEvent;
   };
+}
+
+/**
+ * Factory function that creates a Zoho Calendar service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
+  return new ZohoCalendarService(credential);
 }

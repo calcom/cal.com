@@ -1,22 +1,18 @@
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import logger from "@calcom/lib/logger";
+import { metrics } from "@sentry/nextjs";
 import type {
   Calendar,
   CalendarEvent,
   CalendarServiceEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
-  SelectedCalendarEventTypeIds,
 } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
 
-/**
- * A wrapper to load cache from database and cache it.
- *
- * @see Calendar
- */
 export class CalendarCacheWrapper implements Calendar {
   constructor(
     private deps: {
@@ -50,54 +46,164 @@ export class CalendarCacheWrapper implements Calendar {
   }
 
   /**
-   * Override this method to use cache
+   * Retrieves availability combining cache and live sources.
    *
-   * @param dateFrom
-   * @param dateTo
-   * @param selectedCalendars
-   * @param shouldServeCache
+   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
+   * - Calendars **without** one of them → fetched directly from the original calendar.
+   * - Results are merged into a single array.
    */
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-    // _shouldServeCache?: boolean
-    // _fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]> {
-    log.debug("getAvailability from cache", { dateFrom, dateTo, selectedCalendars });
-    const selectedCalendarIds = selectedCalendars.map((e) => e.id).filter((id): id is string => Boolean(id));
-    if (!selectedCalendarIds.length) {
-      return Promise.resolve([]);
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
+
+    log.debug("getAvailability (mixed cache + original)", {
+      dateFrom,
+      dateTo,
+      calendarIds: selectedCalendars.map((c) => c.id),
+      calendarCount: selectedCalendars.length,
+    });
+
+    if (!selectedCalendars?.length) return [];
+
+    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
+    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+
+    const results: EventBusyDate[] = [];
+
+    // ===== CACHE PATH =====
+    if (withSync.length) {
+      const cacheStartTime = performance.now();
+
+      const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
+      const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
+        ids,
+        new Date(dateFrom),
+        new Date(dateTo)
+      );
+
+      const cacheDurationMs = performance.now() - cacheStartTime;
+
+      results.push(
+        ...cached.map((event) => ({
+          ...event,
+          timeZone: event.timeZone ?? undefined,
+        }))
+      );
+
+      metrics.count("calendar.cache.hit.calls", 1);
+      metrics.distribution("calendar.cache.hit.duration_ms", cacheDurationMs);
+      metrics.distribution("calendar.cache.hit.events_count", cached.length);
+
+      log.debug("Calendar cache fetch completed", {
+        cachedCalendarCount: withSync.length,
+        cacheFetchDurationMs: cacheDurationMs,
+        cachedEventsCount: cached.length,
+      });
     }
-    return this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
-      selectedCalendarIds,
-      new Date(dateFrom),
-      new Date(dateTo)
-    );
+
+    // ===== ORIGINAL PATH =====
+    if (withoutSync.length) {
+      const originalStartTime = performance.now();
+
+      const original = await this.deps.originalCalendar.getAvailability({
+        dateFrom,
+        dateTo,
+        selectedCalendars: withoutSync,
+        mode: params.mode,
+        fallbackToPrimary: params.fallbackToPrimary,
+      });
+
+      const originalDurationMs = performance.now() - originalStartTime;
+
+      results.push(...original);
+
+      metrics.count("calendar.cache.miss.calls", 1);
+      metrics.distribution("calendar.cache.miss.duration_ms", originalDurationMs);
+      metrics.distribution("calendar.cache.miss.events_count", original.length);
+
+      log.debug("Original calendar fetch completed", {
+        originalCalendarCount: withoutSync.length,
+        originalFetchDurationMs: originalDurationMs,
+        originalEventsCount: original.length,
+      });
+    }
+
+    metrics.distribution("calendar.getAvailability.total_events_count", results.length);
+
+    return results;
   }
 
   /**
-   * Override this method to use cache
+   * Retrieves availability with time zones, combining cache and live data.
    *
-   * @param dateFrom
-   * @param dateTo
-   * @param selectedCalendars
-   * @returns
+   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
+   * - Calendars **without** one of them → fetched directly from the original calendar.
+   * - Results are merged into a single array with `{ start, end, timeZone }` format.
    */
-  async getAvailabilityWithTimeZones?(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-    // _fallbackToPrimary?: boolean
-  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
-    log.debug("getAvailabilityWithTimeZones from cache", { dateFrom, dateTo, selectedCalendars });
-    const selectedCalendarIds = selectedCalendars.map((e) => e.id).filter((id): id is string => Boolean(id));
-    const result = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
-      selectedCalendarIds,
-      new Date(dateFrom),
-      new Date(dateTo)
-    );
-    return result.map(({ start, end, timeZone }) => ({ start, end, timeZone: timeZone || "UTC" }));
+  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
+
+    log.debug("getAvailabilityWithTimeZones (mixed cache + original)", {
+      dateFrom,
+      dateTo,
+      calendarIds: selectedCalendars.map((c) => c.id),
+      calendarCount: selectedCalendars.length,
+    });
+
+    if (!selectedCalendars?.length) return [];
+
+    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
+    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+
+    const results: EventBusyDate[] = [];
+
+    if (withSync.length) {
+      const cacheStartTime = performance.now();
+
+      const ids = withSync.map((c) => c.id).filter((id): id is string => Boolean(id));
+      const cached = await this.deps.calendarCacheEventRepository.findAllBySelectedCalendarIdsBetween(
+        ids,
+        new Date(dateFrom),
+        new Date(dateTo)
+      );
+
+      const cacheDurationMs = performance.now() - cacheStartTime;
+
+      results.push(
+        ...cached.map(({ start, end, timeZone }) => ({
+          start,
+          end,
+          timeZone: timeZone || "UTC",
+        }))
+      );
+
+      metrics.count("calendar.cache.hit.timezone.calls", 1);
+      metrics.distribution("calendar.cache.hit.timezone.duration_ms", cacheDurationMs);
+      metrics.distribution("calendar.cache.hit.timezone.events_count", cached.length);
+    }
+
+    if (withoutSync.length) {
+      const originalStartTime = performance.now();
+
+      const original = await this.deps.originalCalendar.getAvailabilityWithTimeZones?.({
+        dateFrom,
+        dateTo,
+        selectedCalendars: withoutSync,
+        mode: params.mode,
+        fallbackToPrimary: params.fallbackToPrimary,
+      });
+
+      const originalDurationMs = performance.now() - originalStartTime;
+
+      if (original?.length) results.push(...original);
+
+      metrics.count("calendar.cache.miss.timezone.calls", 1);
+      metrics.distribution("calendar.cache.miss.timezone.duration_ms", originalDurationMs);
+      metrics.distribution("calendar.cache.miss.timezone.events_count", original?.length ?? 0);
+    }
+
+    metrics.distribution("calendar.getAvailabilityWithTimeZones.total_events_count", results.length);
+
+    return results;
   }
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown> {
@@ -108,21 +214,7 @@ export class CalendarCacheWrapper implements Calendar {
     return this.deps.originalCalendar.listCalendars(event);
   }
 
-  testDelegationCredentialSetup?(): Promise<boolean> {
-    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
-  }
-
-  watchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<unknown> {
-    return this.deps.originalCalendar.watchCalendar?.(options) || Promise.resolve();
-  }
-
-  unwatchCalendar?(options: {
-    calendarId: string;
-    eventTypeIds: SelectedCalendarEventTypeIds;
-  }): Promise<void> {
-    return this.deps.originalCalendar.unwatchCalendar?.(options) || Promise.resolve();
+  testDelegationCredentialSetup?(): Promise<void> {
+    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve();
   }
 }

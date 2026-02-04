@@ -116,7 +116,7 @@ export const fieldTypesSchemaMap: Partial<
         response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
-        m: (key: string) => string;
+        m: (key: string, options?: Record<string, unknown>) => string;
       }) => void;
     }
   >
@@ -203,16 +203,18 @@ export const fieldTypesSchemaMap: Partial<
       const hasExceededMaxLength = value.length > maxLength;
       const hasNotReachedMinLength = value.length < minLength;
       if (hasExceededMaxLength) {
+        const message = m(`max_characters_allowed`, { count: maxLength });
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Max. ${maxLength} characters allowed`),
+          message,
         });
         return;
       }
       if (hasNotReachedMinLength) {
+        const message = m(`min_characters_required`, { count: minLength });
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Min. ${minLength} characters required`),
+          message,
         });
         return;
       }
@@ -257,20 +259,3 @@ export const fieldTypesSchemaMap: Partial<
     },
   },
 };
-
-/**
- * DB Read schema has no field type based validation because user might change the type of a field from Type1 to Type2 after some data has been collected with Type1.
- * Parsing that type1 data with type2 schema will fail.
- * So, we just validate that the response conforms to one of the field types' schema.
- */
-export const dbReadResponseSchema = z.union([
-  z.string(),
-  z.boolean(),
-  z.string().array(),
-  z.object({
-    optionValue: z.string(),
-    value: z.string(),
-  }),
-  // For variantsConfig case
-  z.record(z.string()),
-]);

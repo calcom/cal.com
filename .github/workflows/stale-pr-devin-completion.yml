@@ -1,0 +1,291 @@
+name: Stale Community PR Devin Completion
+
+on:
+  pull_request_target:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to complete'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  complete-stale-pr:
+    name: Trigger Devin to Complete Stale Community PR
+    # For labeled events: only run if 'Stale' or 'devin-finish-pr' label was added
+    # For workflow_dispatch: always run (we'll validate the PR in the steps)
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.label.name == 'Stale' ||
+      github.event.label.name == 'devin-finish-pr'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        env:
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            let prNumber;
+            let pr;
+
+            if (context.eventName === 'workflow_dispatch') {
+              const inputPrNumber = process.env.INPUT_PR_NUMBER;
+              prNumber = parseInt(inputPrNumber, 10);
+              if (isNaN(prNumber) || prNumber <= 0) {
+                core.setFailed(`Invalid PR number provided: "${inputPrNumber}". Please enter a valid PR number.`);
+                return;
+              }
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              pr = data;
+            } else {
+              pr = context.payload.pull_request;
+              prNumber = pr.number;
+            }
+
+            if (!pr.head.repo) {
+              core.setFailed('Cannot complete this PR: the source repository (fork) has been deleted.');
+              return;
+            }
+
+            const isFork = pr.head.repo.fork || pr.head.repo.full_name !== pr.base.repo.full_name;
+            const maintainerCanModify = pr.maintainer_can_modify;
+            const needsMaintainerAccess = isFork && !maintainerCanModify;
+
+            const headRepoFullName = pr.head.repo.full_name;
+            const headRepoCloneUrl = pr.head.repo.clone_url;
+
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('pr_title', pr.title);
+            core.setOutput('pr_author', pr.user.login);
+            core.setOutput('pr_branch', pr.head.ref);
+            core.setOutput('is_fork', isFork);
+            core.setOutput('head_repo_full_name', headRepoFullName);
+            core.setOutput('head_repo_clone_url', headRepoCloneUrl);
+            core.setOutput('maintainer_can_modify', maintainerCanModify);
+            core.setOutput('needs_maintainer_access', needsMaintainerAccess);
+
+            console.log(`PR #${prNumber}: "${pr.title}"`);
+            console.log(`Author: ${pr.user.login}`);
+            console.log(`Branch: ${pr.head.ref}`);
+            console.log(`Is fork: ${isFork}`);
+            console.log(`Head repo: ${headRepoFullName}`);
+            console.log(`Maintainer can modify: ${maintainerCanModify}`);
+            console.log(`Needs maintainer access: ${needsMaintainerAccess}`);
+
+      - name: Request maintainer access for fork PR
+        if: steps.pr.outputs.needs_maintainer_access == 'true'
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER);
+            const prAuthor = process.env.PR_AUTHOR;
+            const { owner, repo } = context.repo;
+
+            const comments = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: prNumber
+            });
+
+            const alreadyRequested = comments.data.some(comment => 
+              comment.body?.includes('### Maintainer Access Needed')
+            );
+
+            if (!alreadyRequested) {
+              const commentBody = [
+                '### Maintainer Access Needed',
+                '',
+                `Hi @${prAuthor}! Thanks for your contribution to Cal.com.`,
+                '',
+                `We'd like to help complete this stale PR, but we noticed that "Allow edits from maintainers" isn't enabled. We need this setting to push updates to your PR branch.`,
+                '',
+                '**Could you please enable this setting?** Here\'s how:',
+                '1. Scroll down to the bottom of this PR page',
+                '2. In the right sidebar, check the box that says **"Allow edits and access to secrets by maintainers"**',
+                '',
+                'This allows us to push commits directly to your PR branch, which helps us:',
+                '- Complete any remaining work on your PR',
+                '- Fix merge conflicts and make small adjustments',
+                '- Get your contribution merged faster',
+                '',
+                'Once you\'ve enabled this setting, we\'ll be able to help finish up this PR. If you have any concerns about enabling this setting, feel free to let us know!'
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: commentBody
+              });
+
+              console.log(`Posted maintainer access request comment on PR #${prNumber}`);
+            } else {
+              console.log(`Maintainer access already requested on PR #${prNumber}`);
+            }
+
+            core.setFailed(`Cannot complete this fork PR: the fork owner has not enabled "Allow edits from maintainers". A comment has been posted requesting access.`);
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for existing Devin session
+        id: check-session
+        uses: ./.github/actions/devin-session
+        with:
+          devin-api-key: ${{ secrets.DEVIN_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.pr.outputs.pr_number }}
+
+      - name: Create or reuse Devin session
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_TITLE: ${{ steps.pr.outputs.pr_title }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+          PR_BRANCH: ${{ steps.pr.outputs.pr_branch }}
+          IS_FORK: ${{ steps.pr.outputs.is_fork }}
+          HEAD_REPO_FULL_NAME: ${{ steps.pr.outputs.head_repo_full_name }}
+          REPO_NAME: ${{ github.repository }}
+          HAS_EXISTING_SESSION: ${{ steps.check-session.outputs.has-existing-session }}
+          EXISTING_SESSION_ID: ${{ steps.check-session.outputs.session-id }}
+          EXISTING_SESSION_URL: ${{ steps.check-session.outputs.session-url }}
+        run: |
+          if [ "$IS_FORK" = "true" ]; then
+            CLONE_INSTRUCTIONS="This is a fork PR. Clone from the fork repository: ${HEAD_REPO_FULL_NAME}
+
+          To check out this PR:
+          1. Clone the fork: git clone https://github.com/${HEAD_REPO_FULL_NAME}.git
+          2. Check out the branch: git checkout ${PR_BRANCH}
+          3. Add the upstream remote: git remote add upstream https://github.com/${REPO_NAME}.git
+
+          IMPORTANT - Pushing to Fork PRs:
+          Since this is a fork PR, you need to use the DEVIN_ACTIONS_PAT secret for authentication when pushing. Configure git to use this PAT for authentication before pushing your changes to the fork."
+          else
+            CLONE_INSTRUCTIONS="Clone the repository ${REPO_NAME} and check out the branch: ${PR_BRANCH}"
+          fi
+
+          FULL_PROMPT="You are completing a stale community PR #${PR_NUMBER} in repository ${REPO_NAME}.
+
+          This PR was started by @${PR_AUTHOR} but has become stale. Your job is to complete it.
+
+          PR Title: ${PR_TITLE}
+          PR Branch: ${PR_BRANCH}
+
+          ${CLONE_INSTRUCTIONS}
+
+          Your tasks:
+          1. Clone the repository as described above.
+          2. Check out the PR branch: ${PR_BRANCH}
+          3. Review the current state of the PR and understand what it's trying to accomplish.
+          4. Read the PR description and any comments/review feedback on the PR.
+          5. Complete any unfinished work on the PR:
+             - Fix any issues mentioned in review comments
+             - Ensure the code follows the repository's coding standards
+             - Add any missing tests if applicable
+             - Fix any linting or type errors
+          6. Run the appropriate checks (lint, type-check, tests) to ensure the PR is ready for review.
+          7. Commit your changes with clear commit messages.
+          8. Push your changes to the PR branch.
+          9. After successfully pushing, remove the 'Stale' or 'devin-finish-pr' label from the PR (whichever was used to trigger this workflow).
+          10. Post a summary comment on the PR explaining what you completed.
+          11. Mark the PR as ready for review if applicable.
+
+          Rules and Guidelines:
+          1. Respect the original author's intent and approach - don't rewrite the PR from scratch.
+          2. Make minimal, focused changes that complete the PR's original goal.
+          3. Follow the existing code style and conventions in the repository.
+          4. If the PR's original approach seems fundamentally flawed, explain why in a comment instead of making major changes.
+          5. Never ask for user confirmation. Never wait for user messages.
+          6. Credit the original author in your commit messages where appropriate.
+          7. CRITICAL: If this is a fork PR and you encounter ANY error when pushing (permission denied, authentication failure, etc.) even after using the DEVIN_ACTIONS_PAT, you MUST fail the task immediately. Do NOT attempt to push to a new branch in the main repository as a workaround. Simply report the error and stop."
+
+          if [ "$HAS_EXISTING_SESSION" = "true" ]; then
+            echo "Sending message to existing session ${EXISTING_SESSION_ID}"
+
+            MESSAGE="This PR has been marked as stale and needs to be completed.
+
+          ${FULL_PROMPT}
+
+          Continue working on the same PR branch and push your fixes."
+
+            HTTP_CODE=$(curl -s -o /tmp/devin-response.json -w "%{http_code}" -X POST "https://api.devin.ai/v1/sessions/${EXISTING_SESSION_ID}/message" \
+              -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n --arg message "$MESSAGE" '{message: $message}')")
+
+            if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+              echo "Failed to send message to Devin session: HTTP $HTTP_CODE"
+              cat /tmp/devin-response.json
+              exit 1
+            fi
+
+            echo "Message sent to existing session successfully"
+            echo "SESSION_URL=$EXISTING_SESSION_URL" >> $GITHUB_ENV
+            echo "IS_NEW_SESSION=false" >> $GITHUB_ENV
+          else
+            echo "Creating new Devin session"
+
+            RESPONSE=$(curl -s -X POST "https://api.devin.ai/v1/sessions" \
+              -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n \
+                --arg prompt "$FULL_PROMPT" \
+                --arg title "Complete Stale PR #${PR_NUMBER}: ${PR_TITLE}" \
+                '{
+                  prompt: $prompt,
+                  title: $title,
+                  tags: ["stale-pr-completion", "pr-'${PR_NUMBER}'"]
+                }')")
+
+            SESSION_URL=$(echo "$RESPONSE" | jq -r '.url // .session_url // empty')
+            if [ -n "$SESSION_URL" ]; then
+              echo "Devin session created: $SESSION_URL"
+              echo "SESSION_URL=$SESSION_URL" >> $GITHUB_ENV
+              echo "IS_NEW_SESSION=true" >> $GITHUB_ENV
+            else
+              echo "Failed to create Devin session"
+              echo "$RESPONSE"
+              exit 1
+            fi
+          fi
+
+      - name: Post comment with Devin session link
+        if: env.SESSION_URL != ''
+        uses: actions/github-script@v7
+        env:
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sessionUrl = process.env.SESSION_URL;
+            const prAuthor = process.env.PR_AUTHOR;
+            const prNumber = process.env.PR_NUMBER;
+            const isNewSession = process.env.IS_NEW_SESSION === 'true';
+
+            const message = isNewSession
+              ? `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. A Devin session has been created to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`
+              : `### Devin AI is completing this stale PR\n\nThis PR by @${prAuthor} has been marked as stale. The existing Devin session has been notified to complete the remaining work.\n\n[View Devin Session](${sessionUrl})\n\n---\n*Devin will review the PR, address any feedback, and push updates to complete this PR.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(prNumber),
+              body: message
+            });

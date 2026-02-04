@@ -118,7 +118,7 @@ export class StripeService {
       userId
     );
 
-    const credentialIdsToDelete = existingCredentials.map((item) => item.id);
+    const credentialIdsToDelete = existingCredentials.map((item: Credential) => item.id);
     if (credentialIdsToDelete.length > 0) {
       await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }

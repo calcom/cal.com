@@ -3,5 +3,5 @@
 import { revalidateTag } from "next/cache";
 
 export async function revalidateTeamsList() {
-  revalidateTag("viewer.teams.list");
+  revalidateTag("viewer.teams.list", "max");
 }

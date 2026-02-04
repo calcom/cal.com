@@ -1,0 +1,93 @@
+---
+title: "OAuth"
+description: "Authorize apps with Cal.com accounts using OAuth"
+---
+
+As an example, you can view our OAuth flow in action on Zapier. Try to connect your Cal.com account [here](https://zapier.com/apps/calcom/integrations). To enable OAuth in one of your apps, you will need a Client ID, Client Secret, Authorization URL, Access Token Request URL, and Refresh Token Request URL.
+
+<Frame>
+  ![](/images/oauth-zapier.png)
+</Frame>
+
+### Get your OAuth "Continue with [Cal.com](http://Cal.com)" Badge
+
+- https://app.cal.com/continue-with-calcom-coss-ui.svg
+- https://app.cal.com/continue-with-calcom-dark-rounded.svg
+- https://app.cal.com/continue-with-calcom-dark-squared.svg
+- https://app.cal.com/continue-with-calcom-light-rounded.svg
+- https://app.cal.com/continue-with-calcom-light-squared.svg
+- https://app.cal.com/continue-with-calcom-neutral-rounded.svg
+- https://app.cal.com/continue-with-calcom-light-squared.svg
+
+
+### OAuth Client Credentials
+
+You can create an OAuth client via the following page https://app.cal.com/settings/developer/oauth. The OAuth client will be in a "pending" state
+and not yet ready to use.
+
+An admin from Cal.com will then review your OAuth client and you will receive an email if it was accepted or rejected. If it was accepted then your OAuth client
+is ready to be used.
+
+### Authorization URL
+
+To initiate the OAuth flow, direct users to the following authorization URL:
+
+- `https://app.cal.com/auth/oauth2/authorize`
+- URL Parameters:
+  - _client_id_
+  - _state_: A securely generated random string to mitigate CSRF attacks
+  - _redirect_uri_: This is where users will be redirected after authorization
+
+After users click _Allow_, they will be redirected to the redirect_uri with the code (authorization code) and state as URL parameters.
+
+### Access Token Request
+
+Endpoint: `POST https://app.cal.com/api/auth/oauth/token`
+
+Request Body:
+
+- _code_: The authorization code received in the redirect URI
+- _client_id_
+- _client_secret_
+- _grant_type_: "authorization_code"
+- _redirect_uri_
+
+Response:
+
+```
+{
+    access_token: “exampleAccessToken”
+    refresh_token: “exampleRefreshToken”
+}
+```
+
+### Refresh Token Request
+
+Endpoint: `POST https://app.cal.com/api/auth/oauth/refreshToken`
+
+Headers:
+
+- Authorization: Bearer _exampleRefreshToken_
+
+Request Body:
+
+- _grant_type_: "refresh_token"
+- _client_id_
+- _client_secret_
+
+Response:
+
+```
+{
+    access_token: “exampleAccessToken”,
+    refresh_token: "exampleRefreshToken"
+}
+```
+
+### Testing OAuth Credentials
+
+To verify the correct setup and functionality of OAuth credentials you can use the following endpoint: `GET https://api.cal.com/v2/me`
+
+Headers:
+
+- Authorization: Bearer _exampleAccessToken_

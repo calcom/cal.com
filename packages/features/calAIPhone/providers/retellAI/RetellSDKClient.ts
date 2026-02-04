@@ -273,7 +273,6 @@ export class RetellSDKClient implements RetellAIRepository {
   }
 
   async listVoices(): Promise<RetellVoice[]> {
-
     try {
       const response = await this.client.voice.list();
 

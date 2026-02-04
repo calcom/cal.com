@@ -23,7 +23,7 @@ const ServerTrans: FC<ServerTransProps> = ({
   children,
   parent,
 }) => {
-  const translationOptions = { ...values };
+  const translationOptions = { ...values, interpolation: { escapeValue: false } };
   // Get translated content
   const content = t(i18nKey, translationOptions);
 
@@ -245,7 +245,7 @@ const parseObjectComponents = (content: string, components: Record<string, React
 
   // Find all placeholders in order
   const placeholderRegex = /__(?:INTERP|TAG)_[^_]+_[a-z0-9]+__/g;
-  let match;
+  let match: RegExpExecArray | null;
 
   while ((match = placeholderRegex.exec(processedContent)) !== null) {
     const [placeholder] = match;
@@ -346,11 +346,11 @@ const parseHtmlTags = (content: string): ReactNode[] => {
 
   // Find all placeholders in order
   const placeholderRegex = /__HTML_[^_]+_[a-z0-9]+__/g;
-  let match;
+  let match2: RegExpExecArray | null;
 
-  while ((match = placeholderRegex.exec(processedContent)) !== null) {
-    const [placeholder] = match;
-    const index = match.index;
+  while ((match2 = placeholderRegex.exec(processedContent)) !== null) {
+    const [placeholder] = match2;
+    const index = match2.index;
 
     // Add text before placeholder
     if (index > lastIndex) {

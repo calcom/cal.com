@@ -7,3 +7,10 @@ export const getCookie = (name: string) => {
     .find((cookie) => cookie.trim().startsWith(`${name}=`))
     ?.split("=")[1];
 };
+
+export const setCookie = (name: string, value: string, options: string) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+  document.cookie = `${name}=${value}; ${options}`;
+};

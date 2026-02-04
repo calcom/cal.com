@@ -1,17 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import {
-  checkDurationLimit,
-  checkDurationLimits,
-} from "@calcom/lib/intervalLimits/server/checkDurationLimits";
+import { checkDurationLimit, checkDurationLimits } from "@calcom/features/bookings/lib/checkDurationLimits";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 
 const mockGetTotalBookingDuration = vi.fn();
-vi.mock("@calcom/lib/server/repository/booking", () => ({
-  BookingRepository: vi.fn().mockImplementation(() => ({
+vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
+  BookingRepository: vi.fn().mockImplementation(function() { return {
     getTotalBookingDuration: mockGetTotalBookingDuration,
-  })),
+  }; }),
 }));
 
 type MockData = {

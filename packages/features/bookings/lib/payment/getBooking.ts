@@ -1,7 +1,7 @@
+import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -72,6 +72,7 @@ export async function getBooking(bookingId: number) {
             },
           },
           slug: true,
+          schedulingType: true,
           workflows: {
             select: {
               workflow: {
@@ -87,6 +88,8 @@ export async function getBooking(bookingId: number) {
               parentId: true,
             },
           },
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
         },
       },
       metadata: true,
@@ -195,6 +198,8 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
   };
 
   return {

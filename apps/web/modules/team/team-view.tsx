@@ -8,17 +8,13 @@
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
+import EventTypeDescription from "@calcom/web/modules/event-types/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -35,23 +31,14 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
-  const pathname = usePathname();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
-  const telemetry = useTelemetry();
   const teamName = team.name || t("nameless_team");
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
   const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
-
-  useEffect(() => {
-    telemetry.event(
-      telemetryEventTypes.pageView,
-      collectPageParameters("/team/[slug]", { isTeamBooking: true })
-    );
-  }, [telemetry, pathname]);
 
   if (considerUnpublished) {
     const teamSlug = team.slug || metadata?.requestedSlug;
@@ -78,35 +65,31 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         <li
           key={index}
           className={classNames(
-            "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "bg-default hover:bg-cal-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
-            <Link
-              href={{
-                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                query: queryParamsToForward,
-              }}
-              onClick={async () => {
+              <Link
+                prefetch={false}
+                href={{
+                  pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                  query: queryParamsToForward,
+                }}
+                onClick={async () => {
                 sdkActionManager?.fire("eventTypeSelected", {
                   eventType: type,
                 });
               }}
               data-testid="event-type-link"
               className="flex justify-between">
-              <div className="flex-shrink">
+              <div className="shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>
               <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
+                <UserAvatarGroup truncateAfter={4} className="flex shrink-0" size="sm" users={type.users} />
               </div>
             </Link>
           </div>
@@ -117,14 +100,14 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   const SubTeams = () =>
     team.children.length ? (
-      <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
+      <ul className="divide-subtle border-subtle bg-default static! w-full divide-y rounded-md border">
         {team.children.map((ch, i) => {
           const memberCount = team.members.filter(
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full rounded-md transition">
-              <Link href={`/${ch.slug}`} className="flex items-center justify-between">
+            <li key={i} className="hover:bg-cal-muted w-full rounded-md transition">
+              <Link prefetch={false} href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
                     <span className="text-default text-sm font-bold">{ch.name}</span>
@@ -147,7 +130,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         })}
       </ul>
     ) : (
-      <div className="space-y-6" data-testid="event-types">
+      <div className="stack-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
             <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
@@ -172,9 +155,9 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           </p>
           {!isBioEmpty && (
             <>
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
               <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                // eslint-disable-next-line react/no-danger
+                className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>
