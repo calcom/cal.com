@@ -29,7 +29,9 @@ import {
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import { sanitizeDeviceString } from "@calcom/lib/deviceDetection";
 import { isENVDev } from "@calcom/lib/env";
+import getIP from "@calcom/lib/getIP";
 import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
@@ -118,6 +120,22 @@ async function fetchUTMfromCookies(idP: IdentityProvider, utmString?: string) {
 }
 
 /**
+ * Helper function to fetch device details from cookies
+ * Only supports Google identity provider
+ */
+async function fetchDeviceDetailsFromCookies(idP: IdentityProvider, deviceString?: string) {
+  try {
+    if (idP !== IdentityProvider.GOOGLE || !deviceString) {
+      return null;
+    }
+    return JSON.parse(deviceString);
+  } catch (err) {
+    log.error("Error fetching device details from cookies", err);
+    return null;
+  }
+}
+
+/**
  * Helper function to safely update user metadata with UTM parameters
  */
 async function updateUserUTMIfNeeded(
@@ -147,6 +165,50 @@ async function updateUserUTMIfNeeded(
     });
   } catch (error) {
     log.error("Failed to update user UTM metadata", { userId, error });
+  }
+}
+
+/**
+ * Helper function to safely update user metadata with device details
+ * Only for Google identity provider
+ */
+async function updateUserDeviceDetailsIfNeeded(
+  userId: number,
+  existingMetadata: Record<string, unknown>,
+  idP: IdentityProvider,
+  deviceCookie?: string,
+  request?: any
+) {
+  if (idP !== IdentityProvider.GOOGLE || existingMetadata.deviceDetails) {
+    return; // Only for Google and if user doesn't have device details
+  }
+
+  const deviceDetails = await fetchDeviceDetailsFromCookies(idP, deviceCookie);
+  if (!deviceDetails) {
+    return;
+  }
+
+  try {
+    const ip = request ? getIP(request) : "Unknown";
+    const processedDeviceDetails = {
+      ip: ip || "Unknown",
+      browser: sanitizeDeviceString(deviceDetails.browser),
+      deviceType: deviceDetails.deviceType,
+      deviceOS: sanitizeDeviceString(deviceDetails.deviceOS),
+      screenResolution: sanitizeDeviceString(deviceDetails.screenResolution),
+    };
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        metadata: {
+          ...existingMetadata,
+          deviceDetails: processedDeviceDetails,
+        },
+      },
+    });
+  } catch (error) {
+    log.error("Failed to update user device details metadata", { userId, error });
   }
 }
 
@@ -599,14 +661,17 @@ const mapIdentityProvider = (providerName: string) => {
 export const getOptions = ({
   cookies,
   res,
+  req,
 }: {
   /** so we can extract the required cookie in both pages and app routers */
   cookies: Partial<{
     dub_id?: string;
     utm_params?: string;
+    device_details?: string;
     last_active_throttle?: string;
   }>;
   res?: any;
+  req?: any;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -654,8 +719,8 @@ export const getOptions = ({
         "callbacks:jwt",
         safeStringify({ tokenEmail: token?.email, trigger, hasUser: !!user, hasAccount: !!account })
       );
-      
-       if (token.id && !cookies.last_active_throttle && res) {
+
+      if (token.id && !cookies.last_active_throttle && res) {
         waitUntil(new UsersRepository().updateLastActiveAt(token.id as number));
         const useSecureCookies = WEBAPP_URL?.startsWith("https://");
         const cookieValue = serialize("last_active_throttle", "1", {
@@ -1082,6 +1147,13 @@ export const getOptions = ({
             const existingMetadata =
               (isPrismaObjOrUndefined(existingUser.metadata) as Record<string, unknown>) ?? {};
             await updateUserUTMIfNeeded(existingUser.id, existingMetadata, idP, cookies?.utm_params);
+            await updateUserDeviceDetailsIfNeeded(
+              existingUser.id,
+              existingMetadata,
+              idP,
+              cookies?.device_details,
+              req
+            );
 
             // Check for 2FA requirement
             if (existingUser.twoFactorEnabled && existingUser.identityProvider === idP) {
@@ -1159,6 +1231,13 @@ export const getOptions = ({
             log.info("Self-hosted auto-merge", { userId: existingUserWithEmail.id, newIdP: idP });
 
             await updateUserUTMIfNeeded(existingUserWithEmail.id, existingMetadata, idP, cookies?.utm_params);
+            await updateUserDeviceDetailsIfNeeded(
+              existingUserWithEmail.id,
+              existingMetadata,
+              idP,
+              cookies?.device_details,
+              req
+            );
 
             if (existingUserWithEmail.twoFactorEnabled) {
               return await loginWithTotp(existingUserWithEmail.email);
@@ -1179,6 +1258,27 @@ export const getOptions = ({
             });
             const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
             const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+            const deviceDetailsFromCookie =
+              idP === IdentityProvider.GOOGLE
+                ? await fetchDeviceDetailsFromCookies(idP, cookies?.device_details)
+                : null;
+
+            // Process device details with IP (Google only)
+            let deviceDetails = null;
+            if (deviceDetailsFromCookie && idP === IdentityProvider.GOOGLE) {
+              try {
+                const ip = req ? getIP(req) : "Unknown";
+                deviceDetails = {
+                  ip: ip || "Unknown",
+                  browser: sanitizeDeviceString(deviceDetailsFromCookie.browser),
+                  deviceType: deviceDetailsFromCookie.deviceType,
+                  deviceOS: sanitizeDeviceString(deviceDetailsFromCookie.deviceOS),
+                  screenResolution: sanitizeDeviceString(deviceDetailsFromCookie.screenResolution),
+                };
+              } catch (error) {
+                log.error("Failed to process device details for invited user", { error });
+              }
+            }
 
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
@@ -1189,10 +1289,11 @@ export const getOptions = ({
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
-                ...(utm && {
+                ...((utm || deviceDetails) && {
                   metadata: {
                     ...((isPrismaObjOrUndefined(existingUserWithEmail.metadata) as object) ?? {}),
-                    utm,
+                    ...(utm && { utm }),
+                    ...(deviceDetails && { deviceDetails }),
                   },
                 }),
               },
@@ -1222,6 +1323,31 @@ export const getOptions = ({
             log.info("Migrating CAL user to OAuth/SAML", { userId: existingUserWithEmail.id, newIdP: idP });
 
             const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+            const deviceDetailsFromCookie =
+              idP === IdentityProvider.GOOGLE
+                ? await fetchDeviceDetailsFromCookies(idP, cookies?.device_details)
+                : null;
+
+            // Process device details with IP (Google only)
+            let deviceDetails = null;
+            if (
+              deviceDetailsFromCookie &&
+              !existingMetadata.deviceDetails &&
+              idP === IdentityProvider.GOOGLE
+            ) {
+              try {
+                const ip = req ? getIP(req) : "Unknown";
+                deviceDetails = {
+                  ip: ip || "Unknown",
+                  browser: sanitizeDeviceString(deviceDetailsFromCookie.browser),
+                  deviceType: deviceDetailsFromCookie.deviceType,
+                  deviceOS: sanitizeDeviceString(deviceDetailsFromCookie.deviceOS),
+                  screenResolution: sanitizeDeviceString(deviceDetailsFromCookie.screenResolution),
+                };
+              } catch (error) {
+                log.error("Failed to process device details for CAL migration", { error });
+              }
+            }
 
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
@@ -1229,13 +1355,15 @@ export const getOptions = ({
                 email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
-                ...(utm &&
-                  !existingMetadata.utm && {
-                    metadata: {
-                      ...existingMetadata,
-                      utm,
-                    },
-                  }),
+                ...((utm && !existingMetadata.utm) || deviceDetails
+                  ? {
+                      metadata: {
+                        ...existingMetadata,
+                        ...(utm && !existingMetadata.utm && { utm }),
+                        ...(deviceDetails && { deviceDetails }),
+                      },
+                    }
+                  : {}),
               },
             });
 
@@ -1253,6 +1381,7 @@ export const getOptions = ({
             log.info("Migrating Google user to SAML", { userId: existingUserWithEmail.id });
 
             const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+            // No device details for SAML
 
             await prisma.user.update({
               where: { email: existingUserWithEmail.email },
@@ -1299,6 +1428,27 @@ export const getOptions = ({
             ? usernameSlugRandom(user.name)
             : _username;
           const utm = await fetchUTMfromCookies(idP, cookies?.utm_params);
+          const deviceDetailsFromCookie =
+            idP === IdentityProvider.GOOGLE
+              ? await fetchDeviceDetailsFromCookies(idP, cookies?.device_details)
+              : null;
+
+          // Process device details with IP (Google only)
+          let deviceDetails = null;
+          if (deviceDetailsFromCookie && idP === IdentityProvider.GOOGLE) {
+            try {
+              const ip = req ? getIP(req) : "Unknown";
+              deviceDetails = {
+                ip: ip || "Unknown",
+                browser: sanitizeDeviceString(deviceDetailsFromCookie.browser),
+                deviceType: deviceDetailsFromCookie.deviceType,
+                deviceOS: sanitizeDeviceString(deviceDetailsFromCookie.deviceOS),
+                screenResolution: sanitizeDeviceString(deviceDetailsFromCookie.screenResolution),
+              };
+            } catch (error) {
+              log.error("Failed to process device details for new user", { error });
+            }
+          }
 
           const newUser = await prisma.user.create({
             data: {
@@ -1321,7 +1471,12 @@ export const getOptions = ({
                 },
               }),
               creationSource: CreationSource.WEBAPP,
-              ...(utm && { metadata: { utm } }),
+              ...((utm || deviceDetails) && {
+                metadata: {
+                  ...(utm && { utm }),
+                  ...(deviceDetails && { deviceDetails }),
+                },
+              }),
             },
           });
 

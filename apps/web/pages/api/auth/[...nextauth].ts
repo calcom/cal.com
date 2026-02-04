@@ -11,10 +11,12 @@ const handler = (req: NextApiRequest, res: NextApiResponse) =>
     getOptions({
       cookies: {
         utm_params: req.cookies.utm_params,
+        device_details: req.cookies.device_details,
         dub_id: req.cookies.dub_id || req.cookies.dclid,
         last_active_throttle: req.cookies.last_active_throttle,
       },
       res,
+      req,
     })
   );
 
