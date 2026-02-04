@@ -464,7 +464,8 @@ const RouteActionSelector = ({
             {showCustomEventTypeInput &&
               eventTypeOptions.length !== 0 &&
               action.value !== "" &&
-              (!eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
+              (action.value === "custom" ||
+                !eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
                 customEventTypeSlug.length) ? (
               <>
                 <TextField
@@ -558,6 +559,12 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+  });
+
+  const [customFallbackEventTypeSlug, setCustomFallbackEventTypeSlug] = useState<string>(() => {
+    if (isRouter(route) || !route.fallbackAction?.value) return "";
+    const isCustom = !eventOptions.find((eventOption) => eventOption.value === route.fallbackAction?.value);
+    return isCustom ? route.fallbackAction.value.split("/").pop() ?? "" : "";
   });
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -788,6 +795,11 @@ const Route = ({
             eventTypeOptions={fallbackActionOptions}
             selectedEventTypeOption={fallbackActionSelectedOption}
             disabled={disabled}
+            showCustomEventTypeInput
+            customEventTypeSlug={customFallbackEventTypeSlug}
+            onCustomEventTypeSlugChange={setCustomFallbackEventTypeSlug}
+            eventTypePrefix={eventTypePrefix}
+            fieldIdentifiers={fieldIdentifiers}
             t={t}
           />
         </div>
