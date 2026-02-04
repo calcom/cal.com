@@ -225,7 +225,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       bookingUid: bookingUid,
     },
     {
-      enabled: !!bookingUid,
+      enabled: !!bookingUid && isInstantMeeting,
       refetchInterval: 2000,
       refetchIntervalInBackground: true,
     }
@@ -234,7 +234,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
 
-      if (!data || !data.booking) return;
+      if (!data || !data.booking || !isInstantMeeting) return;
       try {
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
@@ -249,7 +249,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
-    [_instantBooking.data]
+    [_instantBooking.data, isInstantMeeting]
   );
 
   const createBookingMutation = useMutation({

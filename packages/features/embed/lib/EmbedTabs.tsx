@@ -2,18 +2,18 @@ import type { MutableRefObject } from "react";
 import { forwardRef } from "react";
 
 import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
-import { useEmbedBookerUrl } from "../../bookings/hooks/useBookerUrl";
+import { useEmbedBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui/components/form";
 
-import type { EmbedFramework, EmbedType, PreviewState } from "@calcom/features/embed/types";
-import { Codes } from "@calcom/features/embed/lib/EmbedCodes";
-import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
-import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "@calcom/features/embed/lib/constants";
-import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "@calcom/features/embed/lib/getApiName";
-import { getDimension } from "@calcom/features/embed/lib/getDimension";
-import { useEmbedCalOrigin } from "../hooks/useEmbedCalOrigin";
+import type { EmbedFramework, EmbedType, PreviewState } from "../types";
+import { Codes } from "./EmbedCodes";
+import { buildCssVarsPerTheme } from "./buildCssVarsPerTheme";
+import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
+import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
+import { getDimension } from "./getDimension";
+import { useEmbedCalOrigin } from "./hooks";
 
 export const enum EmbedTabName {
   HTML = "embed-code",
