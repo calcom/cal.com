@@ -87,9 +87,10 @@ export class EmailWorkflowService {
       creditCheckFn,
     });
 
-    const hideBranding = await getHideBranding({
-      userId: workflow.userId ?? undefined,
-      teamId: workflow.teamId ?? undefined,
+    const hideBranding = await this.shouldHideBranding({
+      platformClientId: evt.platformClientId,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
     });
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({
@@ -235,6 +236,27 @@ export class EmailWorkflowService {
       ...contextData,
       verifiedAt: workflowStep.verifiedAt,
     } as const;
+  }
+
+  private async shouldHideBranding({
+    platformClientId,
+    userId,
+    teamId,
+  }: {
+    platformClientId?: string | null;
+    userId?: number | null;
+    teamId?: number | null;
+  }): Promise<boolean> {
+    if (platformClientId) {
+      return true;
+    }
+
+    const hideBranding = await getHideBranding({
+      userId: userId ?? undefined,
+      teamId: teamId ?? undefined,
+    });
+
+    return hideBranding;
   }
 
   async generateEmailPayloadForEvtWorkflow({
@@ -412,6 +434,7 @@ export class EmailWorkflowService {
         meetingUrl,
         otherPerson: attendeeName,
         name,
+        isBrandingDisabled: hideBranding,
       });
     } else if (matchedTemplate === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
@@ -426,6 +449,7 @@ export class EmailWorkflowService {
         timeZone,
         organizer: evt.organizer.name,
         name,
+        isBrandingDisabled: hideBranding,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
       });
