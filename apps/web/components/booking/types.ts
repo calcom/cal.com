@@ -6,7 +6,15 @@ export type BookingListingStatus = NonNullable<
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
-export type BookingItemProps = BookingItem & {
+type EventTypeWithParent = NonNullable<BookingItem["eventType"]> & {
+  parent?: {
+    id: number | null;
+    teamId: number | null;
+  } | null;
+};
+
+export type BookingItemProps = Omit<BookingItem, "eventType"> & {
+  eventType: EventTypeWithParent;
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
   loggedInUser: {
