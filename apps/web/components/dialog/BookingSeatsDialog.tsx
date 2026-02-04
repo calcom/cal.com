@@ -11,14 +11,13 @@ import {
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
-import type { BookingSeat } from "@prisma/client";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { BookingSeatData } from "@calcom/features/bookings/lib/handleSeats/types";
+import type { BookingSeatData } from "@calcom/features/bookings/lib/handleSeats/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 // Add timezone support
@@ -282,7 +281,7 @@ export const BookingSeatsDialog = ({
     if (searchQuery && filteredSeats.length === 0) {
       return (
         <div className="text-default py-8 text-center text-sm">
-          No booking seats found matching "{searchQuery}"
+          No booking seats found matching &quot;{searchQuery}&quot;
         </div>
       );
     }

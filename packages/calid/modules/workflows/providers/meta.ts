@@ -366,7 +366,6 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 > => {
   const expandedVariables = {
     ...variableData,
-
     eventStartTimeInAttendeeTimezone: formatTimeInTimezone(
       variableData.eventStartTimeInAttendeeTimezone,
       variableData.attendeeTimezone

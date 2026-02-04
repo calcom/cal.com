@@ -642,11 +642,12 @@ export function TeamMembersList({
       {/* Individual Member Removal Confirmation Dialog */}
       <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("remove_team_member")}</DialogTitle>
             <DialogDescription>{t("remove_team_member_description")}</DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-end space-x-3">
+            <DialogClose />
             <Button
               variant="button"
               color="destructive"
@@ -661,7 +662,6 @@ export function TeamMembersList({
               disabled={isRemoving}>
               {t("remove_team_member")}
             </Button>
-            <DialogClose />
           </div>
         </DialogContent>
       </Dialog>
@@ -670,7 +670,7 @@ export function TeamMembersList({
       <Dialog open={showBulkRemoveDialog} onOpenChange={setShowBulkRemoveDialog}>
         <DialogContent size="md" type="confirmation" title={t("remove_team_members")}>
           <div className="space-y-4">
-            <DialogHeader showIcon variant="warning">
+            <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
               <DialogTitle>{t("remove_team_members")}</DialogTitle>
               <DialogDescription>{t("remove_team_members_description")}</DialogDescription>
             </DialogHeader>
@@ -686,6 +686,7 @@ export function TeamMembersList({
               This action cannot be undone. All selected members will lose access to team resources.
             </p>
             <div className="flex items-center justify-end space-x-3">
+              <DialogClose />
               <Button
                 variant="button"
                 color="destructive"
@@ -701,7 +702,6 @@ export function TeamMembersList({
                 disabled={isRemoving}>
                 {isRemoving ? t("removing") : t("remove_members")}
               </Button>
-              <DialogClose />
             </div>
           </div>
         </DialogContent>
