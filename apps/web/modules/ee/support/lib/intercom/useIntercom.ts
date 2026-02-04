@@ -33,11 +33,9 @@ export const useIntercom = () => {
   const { hasPaidPlan, plan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
-  // Fetch stats on-demand when booting Intercom, not upfront
   const fetchStatsAndBoot = async () => {
     if (!data) return;
 
-    // Fetch stats only when actually creating the Intercom session
     const statsData = await utils.viewer.me.myStats.fetch();
 
     let userHash;
@@ -87,7 +85,6 @@ export const useIntercom = () => {
   const open = async () => {
     if (!data) return;
 
-    // Fetch stats only when actually opening Intercom
     const statsData = await utils.viewer.me.myStats.fetch();
 
     let userHash;
@@ -149,7 +146,6 @@ declare global {
 export const useBootIntercom = () => {
   const { hasPaidPlan } = useHasPaidPlan();
   const flagMap = useFlagMap();
-  // Stats are now fetched on-demand inside boot() when Intercom session is created
   const { boot, open, update } = useIntercom();
 
   const { data: user } = trpc.viewer.me.get.useQuery();
