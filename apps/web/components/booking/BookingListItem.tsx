@@ -237,7 +237,7 @@ function BookingListItem(booking: BookingItemProps) {
     attendeeList,
     getSeatReferenceUid,
     t,
-  };
+  } as BookingActionContext;
 
   const RequestSentMessage = () => {
     return (
