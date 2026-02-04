@@ -23,7 +23,7 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
     throw new HttpError({ statusCode: 400, message: ErrorCode.UserMissingPassword });
   }
 
-  const password = input.password.trim();
+  const password = input.password;
 
   const strict = ctx.user.role !== "USER";
   if (!isPasswordValid(password, false, strict)) {
