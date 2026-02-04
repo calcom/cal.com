@@ -1,12 +1,11 @@
-export { CalProvider, CalOAuthProvider } from "./cal-provider";
-export { GcalConnect } from "./connect/google/GcalConnect";
+export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export type { AvailabilitySettingsScheduleType } from "./availability/AvailabilitySettings";
 export type { AvailabilitySettingsFormRef } from "./availability/types";
 export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
 export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper";
 export { BookerEmbed } from "./booker-embed";
-export { CalProvider } from "./cal-provider";
+export { CalOAuthProvider, CalProvider } from "./cal-provider";
 export { CalendarSettingsPlatformWrapper as CalendarSettings } from "./calendar-settings/index";
 export { CalendarViewPlatformWrapper as CalendarView } from "./calendar-view/index";
 export * as Connect from "./connect";
@@ -47,4 +46,3 @@ export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/
 export { Router } from "./router";
 export { SelectedCalendarsSettingsPlatformWrapper as SelectedCalendarsSettings } from "./selected-calendars/index";
 export { TroubleshooterPlatformWrapper as TroubleShooter } from "./troubleshooter/index";
-export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
