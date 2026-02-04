@@ -1,50 +1,44 @@
 import { z } from "zod";
 
-// Preprocessor to handle null/undefined values - converts them to empty string
-const nullishToEmpty = (val: unknown) => (val === null || val === undefined ? "" : val);
-
-export const safeUrlSchema = z.preprocess(
-  nullishToEmpty,
+/**
+ * Helper to create schemas that accept nullish values but always output string.
+ * Input:  string | null | undefined
+ * Output: string (empty string if nullish)
+ *
+ * This ensures TypeScript correctly infers both input and output types.
+ */
+const nullishString = () =>
   z
-    .string()
-    .transform((val) => val.trim())
-    .refine(
-      (val) => {
-        if (!val) return true;
-        try {
-          const url = new URL(val);
-          return url.protocol === "http:" || url.protocol === "https:";
-        } catch {
-          return false;
-        }
-      },
-      { message: "Invalid URL format. Must be a valid http or https URL" }
-    )
+    .union([z.string(), z.null(), z.undefined()])
+    .transform((val): string => (typeof val === "string" ? val.trim() : ""));
+
+// URL schema: accepts nullish, outputs string, validates http/https
+export const safeUrlSchema = nullishString().refine(
+  (val) => {
+    if (!val) return true;
+    try {
+      const url = new URL(val);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  },
+  { message: "Invalid URL format. Must be a valid http or https URL" }
 );
 
-// Schema for tracking IDs that should only contain letters, numbers, underscores, and hyphens
-export const alphanumericIdSchema = z.preprocess(
-  nullishToEmpty,
-  z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => !val || /^[A-Za-z0-9_-]+$/.test(val), {
-      message: "Invalid ID format. Expected alphanumeric characters, underscores, or hyphens",
-    })
+// Alphanumeric ID schema (letters, numbers, underscores, hyphens)
+export const alphanumericIdSchema = nullishString().refine(
+  (val) => !val || /^[A-Za-z0-9_-]+$/.test(val),
+  { message: "Invalid ID format. Expected alphanumeric characters, underscores, or hyphens" }
 );
 
-// Schema for tracking IDs that should only contain digits
-export const numericIdSchema = z.preprocess(
-  nullishToEmpty,
-  z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => !val || /^[0-9]+$/.test(val), {
-      message: "Invalid ID format. Expected a numeric ID",
-    })
+// Numeric ID schema (digits only)
+export const numericIdSchema = nullishString().refine(
+  (val) => !val || /^[0-9]+$/.test(val),
+  { message: "Invalid ID format. Expected a numeric ID" }
 );
 
-// Factory for creating prefixed ID schemas (GTM, GA4, Fathom, etc.)
+// Factory for prefixed ID schemas (GTM-, G-, etc.)
 export const createPrefixedIdSchema = (options: {
   prefix?: string;
   addPrefixIfMissing?: boolean;
@@ -52,26 +46,24 @@ export const createPrefixedIdSchema = (options: {
 }) => {
   const { prefix = "", addPrefixIfMissing = false, allowEmpty = true } = options;
 
-  return z.preprocess(
-    nullishToEmpty,
-    z
-      .string()
-      .transform((val) => {
-        let result = val.trim().toUpperCase();
-        if (!result) return result; // Keep empty string as-is
-        if (prefix && addPrefixIfMissing) {
-          const clean = result.replace(new RegExp(`^${prefix}`, "i"), "");
-          result = `${prefix}${clean}`;
-        }
-        return result;
-      })
-      .refine(
-        (val) => {
-          if (allowEmpty && val === "") return true;
-          const pattern = prefix ? new RegExp(`^${prefix}[A-Z0-9]{1,20}$`) : /^[A-Z0-9]{1,20}$/;
-          return pattern.test(val);
-        },
-        { message: `Invalid ID format${prefix ? `. Expected: ${prefix}XXXXXX` : ""}` }
-      )
-  );
+  return z
+    .union([z.string(), z.null(), z.undefined()])
+    .transform((val): string => {
+      if (typeof val !== "string") return "";
+      let result = val.trim().toUpperCase();
+      if (!result) return result;
+      if (prefix && addPrefixIfMissing) {
+        const clean = result.replace(new RegExp(`^${prefix}`, "i"), "");
+        result = `${prefix}${clean}`;
+      }
+      return result;
+    })
+    .refine(
+      (val) => {
+        if (allowEmpty && val === "") return true;
+        const pattern = prefix ? new RegExp(`^${prefix}[A-Z0-9]{1,20}$`) : /^[A-Z0-9]{1,20}$/;
+        return pattern.test(val);
+      },
+      { message: `Invalid ID format${prefix ? `. Expected: ${prefix}XXXXXX` : ""}` }
+    );
 };

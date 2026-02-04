@@ -2,23 +2,17 @@ import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
-// Preprocessor to handle null/undefined values
-const nullishToEmpty = (val: unknown) => (val === null || val === undefined ? "" : val);
-
 // Twipla Site IDs can be UUID or alphanumeric strings
-const twiplaSiteIdSchema = z.preprocess(
-  nullishToEmpty,
-  z
-    .string()
-    .transform((val) => val.trim())
-    .refine((val) => !val || /^[A-Za-z0-9-]+$/.test(val), {
-      message: "Invalid Twipla Site ID format. Expected alphanumeric characters or UUID",
-    })
-);
+const twiplaSiteIdSchema = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((val): string => (typeof val === "string" ? val.trim() : ""))
+  .refine((val) => !val || /^[A-Za-z0-9-]+$/.test(val), {
+    message: "Invalid Twipla Site ID format. Expected alphanumeric characters or UUID",
+  });
 
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    SITE_ID: twiplaSiteIdSchema.optional(),
+    SITE_ID: twiplaSiteIdSchema,
   })
 );
 

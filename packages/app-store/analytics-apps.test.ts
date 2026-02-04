@@ -254,7 +254,7 @@ describe("Analytics Apps - Input Validation", () => {
   });
 
   // Null/undefined handling for embed endpoint (PR 26976)
-  // Schemas convert null to empty string; .optional() schemas keep undefined as undefined
+  // Schemas accept nullish input and always output string
   describe("Null/Undefined Handling", () => {
     it("GTM converts null to empty string", () => {
       expect(gtmSchema.parse({ trackingId: null }).trackingId).toBe("");
