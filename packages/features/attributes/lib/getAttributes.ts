@@ -90,6 +90,17 @@ function _prepareAssignmentData({
   assignmentsForTheTeam: AssignmentForTheTeam[];
   attributesOfTheOrg: Attribute[];
 }) {
+  // Build lookup maps for O(1) access instead of O(n) linear scans
+  const attributeIdToOptions = new Map<string, Attribute["options"]>();
+  const optionIdToOption = new Map<string, Attribute["options"][number]>();
+
+  for (const attribute of attributesOfTheOrg) {
+    attributeIdToOptions.set(attribute.id, attribute.options);
+    for (const option of attribute.options) {
+      optionIdToOption.set(option.id, option);
+    }
+  }
+
   const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce(
     (acc, attributeToUser) => {
       const userId = attributeToUser.userId;
@@ -169,11 +180,9 @@ function _prepareAssignmentData({
   }) {
     return contains
       .map((optionId) => {
-        const allOptions = attributesOfTheOrg.find(
-          (_attribute) => _attribute.id === attribute.id
-        )?.options;
-        const option = allOptions?.find((option) => option.id === optionId);
+        const option = optionIdToOption.get(optionId);
         if (!option) {
+          const allOptions = attributeIdToOptions.get(attribute.id);
           console.error(
             `Enriching "contains" for attribute ${
               attribute.name
@@ -195,33 +204,44 @@ function _prepareAssignmentData({
   }
 }
 
+/**
+ * Builds lookup maps for O(1) attribute and option lookups by option ID.
+ * This replaces O(n×m) linear scans with O(1) Map lookups.
+ */
+function _buildAttributeLookupMaps(attributesOfTheOrg: FullAttribute[]) {
+  const optionIdToAttribute = new Map<AttributeOptionId, FullAttribute>();
+  const optionIdToOption = new Map<AttributeOptionId, FullAttribute["options"][number]>();
+
+  for (const attribute of attributesOfTheOrg) {
+    for (const option of attribute.options) {
+      optionIdToAttribute.set(option.id, attribute);
+      optionIdToOption.set(option.id, option);
+    }
+  }
+
+  return { optionIdToAttribute, optionIdToOption };
+}
+
+type AttributeLookupMaps = ReturnType<typeof _buildAttributeLookupMaps>;
+
 function _getAttributeFromAttributeOption({
-  allAttributesOfTheOrg,
+  lookupMaps,
   attributeOptionId,
 }: {
-  allAttributesOfTheOrg: Attribute[];
+  lookupMaps: AttributeLookupMaps;
   attributeOptionId: AttributeOptionId;
 }) {
-  return allAttributesOfTheOrg.find((attribute) =>
-    attribute.options.some((option) => option.id === attributeOptionId)
-  );
+  return lookupMaps.optionIdToAttribute.get(attributeOptionId);
 }
 
 function _getAttributeOptionFromAttributeOption({
-  allAttributesOfTheOrg,
+  lookupMaps,
   attributeOptionId,
 }: {
-  allAttributesOfTheOrg: FullAttribute[];
+  lookupMaps: AttributeLookupMaps;
   attributeOptionId: AttributeOptionId;
 }) {
-  const matchingOption = allAttributesOfTheOrg.reduce((found, attribute) => {
-    if (found) return found;
-    return (
-      attribute.options.find((option) => option.id === attributeOptionId) ||
-      null
-    );
-  }, null as null | (typeof allAttributesOfTheOrg)[number]["options"][number]);
-  return matchingOption;
+  return lookupMaps.optionIdToOption.get(attributeOptionId);
 }
 
 async function _getOrgMembershipToUserIdForTeam({
@@ -375,6 +395,8 @@ function _buildAssignmentsForTeam({
   orgMembershipToUserIdForTeamMembers: Map<OrgMembershipId, UserId>;
   attributesOfTheOrg: FullAttribute[];
 }) {
+  const lookupMaps = _buildAttributeLookupMaps(attributesOfTheOrg);
+
   return attributesToUsersForTeam
     .map((attributeToUser) => {
       const orgMembershipId = attributeToUser.memberId;
@@ -386,12 +408,12 @@ function _buildAssignmentsForTeam({
         return null;
       }
       const attribute = _getAttributeFromAttributeOption({
-        allAttributesOfTheOrg: attributesOfTheOrg,
+        lookupMaps,
         attributeOptionId: attributeToUser.attributeOptionId,
       });
 
       const attributeOption = _getAttributeOptionFromAttributeOption({
-        allAttributesOfTheOrg: attributesOfTheOrg,
+        lookupMaps,
         attributeOptionId: attributeToUser.attributeOptionId,
       });
 
