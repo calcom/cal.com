@@ -271,8 +271,6 @@ export class CalendarEventBuilder {
       builder.withDestinationCalendar([user.destinationCalendar]);
     }
 
-    builder.withHideBranding(!!eventType.owner?.hideBranding);
-
     return builder;
   }
 
@@ -547,14 +545,6 @@ export class CalendarEventBuilder {
       this.event = {
         ...this.event,
         assignmentReason,
-      };
-      return this;
-    }
-
-    withHideBranding(hideBranding: boolean) {
-      this.event = {
-        ...this.event,
-        hideBranding,
       };
       return this;
     }

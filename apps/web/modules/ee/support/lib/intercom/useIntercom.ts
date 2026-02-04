@@ -29,15 +29,20 @@ export const useIntercom = () => {
   const hookData = useIntercomHook();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { data } = trpc.viewer.me.get.useQuery();
-  const utils = trpc.useUtils();
+  const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+  });
   const { hasPaidPlan, plan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const fetchStatsAndBoot = async () => {
-    if (!data) return;
-
-    const statsData = await utils.viewer.me.myStats.fetch();
-
+  const boot = async () => {
+    if (!data || !statsData) return;
     let userHash;
     const req = await fetch(`/api/support/hash`);
     const res = await req.json();
@@ -83,11 +88,8 @@ export const useIntercom = () => {
   };
 
   const open = async () => {
-    if (!data) return;
-
-    const statsData = await utils.viewer.me.myStats.fetch();
-
     let userHash;
+
     const req = await fetch(`/api/support/hash`);
     const res = await req.json();
     if (res?.hash) {
@@ -131,7 +133,7 @@ export const useIntercom = () => {
     });
     hookData.show();
   };
-  return { ...hookData, open, boot: fetchStatsAndBoot };
+  return { ...hookData, open, boot };
 };
 
 declare global {
@@ -150,6 +152,15 @@ export const useBootIntercom = () => {
 
   const { data: user } = trpc.viewer.me.get.useQuery();
   const isTieredSupportEnabled = flagMap["tiered-support-chat"];
+  const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
+  });
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
@@ -157,6 +168,7 @@ export const useBootIntercom = () => {
       !isInterComEnabled ||
       showIntercom === "false" ||
       !user ||
+      !statsData ||
       (!hasPaidPlan && isTieredSupportEnabled)
     )
       return;
@@ -174,7 +186,7 @@ export const useBootIntercom = () => {
       window.dispatchEvent(new Event("support:ready"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, hasPaidPlan, isTieredSupportEnabled]);
+  }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);
 };
 
 export default useIntercom;

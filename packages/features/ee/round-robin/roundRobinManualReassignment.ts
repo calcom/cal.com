@@ -354,7 +354,6 @@ export const roundRobinManualReassignment = async ({
       booking,
     }),
     customReplyToEmail: eventType?.customReplyToEmail,
-    hideBranding: !!eventType?.owner?.hideBranding,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
     conferenceCredentialId: conferenceCredentialId ?? undefined,
