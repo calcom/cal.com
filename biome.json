@@ -1,6 +1,26 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": true,
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              ["**/__mocks__/**", "**/bookingScenario*"],
+              [":PACKAGE_WITH_PROTOCOL:", ":PACKAGE:"],
+              ["@calcom/**", "@ee/**"],
+              ["@lib/**", "@components/**", "@server/**", "@trpc/**"],
+              "~/**",
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    },
+    "enabled": true
+  },
   "css": {
     "parser": {
       "tailwindDirectives": true
@@ -45,7 +65,8 @@
       "!!packages/lib/raqb/resolveQueryValue.test.ts",
       "!!packages/ui/components/editor/plugins/ToolbarPlugin.tsx",
       "!!packages/embeds/embed-core/src/lib/domUtils.ts"
-    ]
+    ],
+    "maxSize": 2097152
   },
   "javascript": {
     "parser": {
@@ -74,11 +95,6 @@
   },
   "overrides": [
     {
-      "includes": ["docs/api-reference/v2/openapi.json"],
-      "linter": { "enabled": false },
-      "formatter": { "enabled": false }
-    },
-    {
       "includes": ["**/*.tsx"],
       "javascript": {
         "jsxRuntime": "transparent"
@@ -103,7 +119,14 @@
             "useExplicitType": "info",
             "noReactForwardRef": "warn",
             "noTernary": "info",
-            "noUnresolvedImports": "warn"
+            "noUnresolvedImports": "warn",
+            "useSortedClasses": {
+              "level": "warn",
+              "options": {
+                "attributes": ["className", "classList"],
+                "functions": ["clsx", "cva", "cn", "tw"]
+              }
+            }
           },
           "correctness": {
             "useImportExtensions": "warn",
@@ -124,7 +147,13 @@
             "noNestedTernary": "warn"
           },
           "complexity": {
-            "noExcessiveLinesPerFunction": "warn"
+            "noExcessiveLinesPerFunction": {
+              "level": "warn",
+              "options": {
+                "maxLines": 100,
+                "skipBlankLines": true
+              }
+            }
           },
           "performance": {
             "noImgElement": "warn"
@@ -164,7 +193,8 @@
     {
       "includes": [
         "apps/api/v2/src/config/app.ts",
-        "apps/api/v2/src/config/bootstrap.ts",
+        "apps/api/v2/src/main.ts",
+        "apps/api/v2/src/bootstrap.ts",
         "apps/api/v2/src/config/env.ts",
         "apps/api/v2/src/env.ts",
         "apps/api/v2/test/setEnvVars.ts"
@@ -178,7 +208,7 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.e2e-spec.ts"],
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
       "linter": {
         "rules": {
           "complexity": {
@@ -325,9 +355,34 @@
       }
     },
     {
-      "includes": [
-        "packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
-      ],
+      "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noProcessGlobal": "off"
+          },
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@calcom/trpc", "@calcom/trpc/**"],
+                    "message": "atoms package should not import from @calcom/trpc."
+                  },
+                  {
+                    "group": ["../../trpc", "../../trpc/**"],
+                    "message": "atoms package should not import from trpc."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/api/v2/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
           "style": {
@@ -337,17 +392,22 @@
                 "patterns": [
                   {
                     "group": [
-                      "@calcom/trpc/react",
-                      "@calcom/trpc/react/**"
+                      "@calcom/*",
+                      "@calcom/**",
+                      "!@calcom/platform-constants",
+                      "!@calcom/platform-constants/**",
+                      "!@calcom/platform-enums",
+                      "!@calcom/platform-enums/**",
+                      "!@calcom/platform-libraries",
+                      "!@calcom/platform-libraries/**",
+                      "!@calcom/platform-types",
+                      "!@calcom/platform-types/**",
+                      "!@calcom/platform-utils",
+                      "!@calcom/platform-utils/**",
+                      "!@calcom/prisma",
+                      "!@calcom/prisma/**"
                     ],
-                    "message": "atoms package should not import from @calcom/trpc/react."
-                  },
-                  {
-                    "group": [
-                      "../../trpc/react",
-                      "../../trpc/react/**"
-                    ],
-                    "message": "atoms package should not import from trpc/react."
+                    "message": "API v2 should only import from @calcom/platform-constants, @calcom/platform-enums, @calcom/platform-libraries, @calcom/platform-types, @calcom/platform-utils, and @calcom/prisma. Other @calcom packages are not allowed."
                   }
                 ]
               }

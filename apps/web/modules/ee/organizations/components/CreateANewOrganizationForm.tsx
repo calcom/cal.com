@@ -22,7 +22,7 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 
-import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
 
 function extractDomainFromEmail(email: string) {
   const match = email.match(/^(?:.*?:\/\/)?.*?([\w-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[/?#:]|$)/);
@@ -326,7 +326,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         {isBillingEnabled && !isAdmin && (
           <>
             <div className="bg-subtle stack-y-5  rounded-lg p-5">
-              <h3 className="font-heading text-default text-lg leading-4">
+              <h3 className="font-cal text-default text-lg font-semibold leading-4">
                 Upgrade to Organizations
               </h3>
               <RadioArea.Group className={classNames("mt-1 flex flex-col gap-4")} value="ORGANIZATION">

@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
-
+import { useTeamMembersWithSegmentPlatform } from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -10,8 +8,7 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { buttonClasses } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import {
@@ -24,11 +21,9 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-
-import {
-  useTeamMembersWithSegmentPlatform,
-} from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
 import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
@@ -102,7 +97,6 @@ interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
-  assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   teamId?: number;
   queryValue?: AttributesQueryValue | null;
@@ -112,7 +106,6 @@ export const EditWeightsForAllTeamMembers = ({
   teamMembers: initialTeamMembers,
   value,
   onChange,
-  assignAllTeamMembers,
   assignRRMembersUsingSegment,
   teamId,
   queryValue,
@@ -240,13 +233,9 @@ export const EditWeightsForAllTeamMembers = ({
           member.email.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .filter((member) => {
-        // When assignAllTeamMembers is false, only include members that exist in value array
-        return (
-          assignAllTeamMembers ||
-          value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10))
-        );
+        return value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10));
       });
-  }, [teamMembers, localWeights, searchQuery, assignAllTeamMembers, value]);
+  }, [teamMembers, localWeights, searchQuery, value]);
 
   return (
     <>

@@ -1,16 +1,9 @@
-import { bootstrap } from "@/bootstrap";
-import { AppModule } from "@/app.module";
-import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
-import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type { Booking, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -19,9 +12,15 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Booking access authorization", () => {
@@ -186,51 +185,51 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
     });
 
-    // describe("GET /v2/bookings/:bookingUid/recordings - Authorization", () => {
-    //   it("should allow booking organizer to access recordings", async () => {
-    //     const calVideoService = app.get(CalVideoService);
-    //     jest.spyOn(calVideoService, "getRecordings").mockResolvedValue([]);
+    describe("GET /v2/bookings/:bookingUid/recordings - Authorization", () => {
+      it("should allow booking organizer to access recordings", async () => {
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getRecordings").mockResolvedValue([]);
 
-    //     const response = await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/recordings`)
-    //       .set("Authorization", `Bearer ${ownerApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(200);
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/recordings`)
+          .set("Authorization", `Bearer ${ownerApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
 
-    //     expect(response.body.status).toEqual(SUCCESS_STATUS);
-    //   });
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+      });
 
-    //   it("should return 403 when unauthorized user tries to access recordings", async () => {
-    //     await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/recordings`)
-    //       .set("Authorization", `Bearer ${unauthorizedApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(403);
-    //   });
-    // });
+      it("should return 403 when unauthorized user tries to access recordings", async () => {
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/recordings`)
+          .set("Authorization", `Bearer ${unauthorizedApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+    });
 
-    // describe("GET /v2/bookings/:bookingUid/transcripts - Authorization", () => {
-    //   it("should allow booking organizer to access transcripts", async () => {
-    //     const calVideoService = app.get(CalVideoService);
-    //     jest.spyOn(calVideoService, "getTranscripts").mockResolvedValue([]);
+    describe("GET /v2/bookings/:bookingUid/transcripts - Authorization", () => {
+      it("should allow booking organizer to access transcripts", async () => {
+        const calVideoService = app.get(CalVideoService);
+        jest.spyOn(calVideoService, "getTranscripts").mockResolvedValue([]);
 
-    //     const response = await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/transcripts`)
-    //       .set("Authorization", `Bearer ${ownerApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(200);
+        const response = await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/transcripts`)
+          .set("Authorization", `Bearer ${ownerApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200);
 
-    //     expect(response.body.status).toEqual(SUCCESS_STATUS);
-    //   });
+        expect(response.body.status).toEqual(SUCCESS_STATUS);
+      });
 
-    //   it("should return 403 when unauthorized user tries to access transcripts", async () => {
-    //     await request(app.getHttpServer())
-    //       .get(`/v2/bookings/${testBooking.uid}/transcripts`)
-    //       .set("Authorization", `Bearer ${unauthorizedApiKey}`)
-    //       .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-    //       .expect(403);
-    //   });
-    // });
+      it("should return 403 when unauthorized user tries to access transcripts", async () => {
+        await request(app.getHttpServer())
+          .get(`/v2/bookings/${testBooking.uid}/transcripts`)
+          .set("Authorization", `Bearer ${unauthorizedApiKey}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+    });
 
     afterAll(async () => {
       await bookingsRepositoryFixture.deleteById(testBooking.id);

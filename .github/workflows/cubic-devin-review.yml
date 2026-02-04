@@ -1,33 +1,66 @@
-name: Cubic AI to Devin Review
+name: Cubic feedback addressed by Devin
 
 on:
-  pull_request_review:
-    types: [submitted]
+  workflow_run:
+    workflows: ["Cubic AI Review Trigger"]
+    types:
+      - completed
 
 permissions:
   contents: read
   pull-requests: write
+  actions: read
 
 jobs:
   trigger-devin:
     name: Trigger Devin to Address Cubic AI Review
-    # Only run if the review is from cubic-dev-ai bot and contains the AI prompt
-    if: github.event.review.user.login == 'cubic-dev-ai[bot]'
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Download review context artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            
+            const matchArtifact = artifacts.data.artifacts.find(
+              artifact => artifact.name === 'cubic-review-context'
+            );
+            
+            if (!matchArtifact) {
+              core.setFailed('No cubic-review-context artifact found');
+              return;
+            }
+            
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            });
+            
+            const fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/context.zip`, Buffer.from(download.data));
+
+      - name: Unzip artifact
+        run: unzip context.zip
+
       - name: Extract AI prompt from Cubic review
         id: extract-prompt
         uses: actions/github-script@v7
         with:
           script: |
-            const reviewBody = context.payload.review.body || '';
+            const fs = require('fs');
+            const contextData = JSON.parse(fs.readFileSync('review-context.json', 'utf8'));
+            const reviewBody = contextData.review_body || '';
+            const prNumber = contextData.pr_number;
             
-            // Look for the AI prompt section in Cubic's review
-            // Format: <details><summary>Prompt for AI agents (all issues)</summary>
-            //         ```text
-            //         ... prompt content ...
-            //         ```
-            //         </details>
+            core.setOutput('pr-number', prNumber);
+            
             const promptMatch = reviewBody.match(/<details>\s*<summary>Prompt for AI agents[^<]*<\/summary>\s*```(?:text)?\s*([\s\S]*?)```\s*<\/details>/i);
             
             if (!promptMatch || !promptMatch[1]) {
@@ -40,117 +73,41 @@ jobs:
             const prompt = promptMatch[1].trim();
             console.log('Extracted prompt:', prompt);
             
-            // Save prompt to file to avoid shell escaping issues
-            const fs = require('fs');
             fs.writeFileSync('/tmp/cubic-prompt.txt', prompt);
             
             core.setOutput('has-prompt', 'true');
 
+      - name: Checkout repository
+        if: steps.extract-prompt.outputs.has-prompt == 'true'
+        uses: actions/checkout@v4
+
       - name: Check for existing Devin session
         if: steps.extract-prompt.outputs.has-prompt == 'true'
         id: check-session
-        uses: actions/github-script@v7
-        env:
-          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        uses: ./.github/actions/devin-session
         with:
-          script: |
-            async function checkSessionStatus(sessionId) {
-              const response = await fetch(`https://api.devin.ai/v1/sessions/${sessionId}`, {
-                headers: {
-                  'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
-                  'Content-Type': 'application/json'
-                }
-              });
-              
-              if (!response.ok) {
-                console.log(`Failed to fetch session ${sessionId}: ${response.status}`);
-                return null;
-              }
-              
-              return await response.json();
-            }
-            
-            // If PR was created through Devin, always use that session
-            const prBody = context.payload.pull_request.body || '';
-            const prSessionMatch = prBody.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
-            
-            if (prSessionMatch) {
-              const sessionId = prSessionMatch[1];
-              console.log(`PR was created by Devin session: ${sessionId}`);
-              
-              const session = await checkSessionStatus(sessionId);
-              if (session) {
-                console.log(`PR creator session status: ${session.status_enum}`);
-                core.exportVariable('EXISTING_SESSION_ID', sessionId);
-                core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
-                core.setOutput('has-active-session', 'true');
-                return;
-              }
-            }
-            
-            // PR was not created through Devin - check for existing Devin session from PR comments
-            // Look for any Devin session comment (cubic review, conflict resolution, stale PR completion, etc.)
-            const devinSessionPatterns = [
-              'Devin AI is addressing Cubic AI',
-              'Devin AI is resolving merge conflicts',
-              'Devin AI is completing this stale PR'
-            ];
-            
-            const comments = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number
-            });
-            
-            let sessionId = null;
-            for (const comment of comments.data.reverse()) {
-              const hasDevinSession = devinSessionPatterns.some(pattern => comment.body.includes(pattern));
-              if (hasDevinSession) {
-                const match = comment.body.match(/app\.devin\.ai\/sessions\/([a-f0-9-]+)/);
-                if (match) {
-                  sessionId = match[1];
-                  console.log(`Found existing Devin session from comment: ${sessionId}`);
-                  break;
-                }
-              }
-            }
-            
-            if (!sessionId) {
-              console.log('No existing Devin session found in PR comments');
-              core.setOutput('has-active-session', 'false');
-              return;
-            }
-            
-            console.log(`Found session ID from comment: ${sessionId}`);
-            
-            const session = await checkSessionStatus(sessionId);
-            if (!session) {
-              core.setOutput('has-active-session', 'false');
-              return;
-            }
-            
-            const activeStatuses = ['working', 'blocked', 'resumed'];
-            
-            if (activeStatuses.includes(session.status_enum)) {
-              console.log(`Session ${sessionId} is active (status: ${session.status_enum})`);
-              core.exportVariable('EXISTING_SESSION_ID', sessionId);
-              core.exportVariable('SESSION_URL', `https://app.devin.ai/sessions/${sessionId}`);
-              core.setOutput('has-active-session', 'true');
-            } else {
-              console.log(`Session ${sessionId} is not active (status: ${session.status_enum})`);
-              core.setOutput('has-active-session', 'false');
-            }
+          devin-api-key: ${{ secrets.DEVIN_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ steps.extract-prompt.outputs.pr-number }}
+
+      - name: Set session environment variables
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'true'
+        run: |
+          echo "EXISTING_SESSION_ID=${{ steps.check-session.outputs.session-id }}" >> $GITHUB_ENV
+          echo "SESSION_URL=${{ steps.check-session.outputs.session-url }}" >> $GITHUB_ENV
 
       - name: Send message to existing Devin session
-        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-active-session == 'true'
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'true'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: |
           CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
           
-          MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ github.event.pull_request.number }}.
+          MESSAGE="New Cubic AI review feedback has been submitted on PR #${{ steps.extract-prompt.outputs.pr-number }}.
 
-          Please address the following additional issues:
+          IMPORTANT: Before fixing any issue, check the individual Cubic comment on the PR for that issue's confidence score. The confidence score appears as 'Fix confidence (alpha): X/10' in each comment. Note that the (alpha) may or not be there. Don't be picky about that text. But only fix issues where the confidence score is 9/10 or higher. If you cannot find a confidence score for an issue, skip it.
+
+          Here are the issues identified by Cubic AI:
 
           ${CUBIC_PROMPT}
 
@@ -170,19 +127,19 @@ jobs:
           echo "Message sent to existing session successfully"
 
       - name: Create new Devin session
-        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-active-session == 'false'
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && steps.check-session.outputs.has-existing-session == 'false'
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         run: |
           CUBIC_PROMPT=$(cat /tmp/cubic-prompt.txt)
           
-          FULL_PROMPT="You are addressing code review feedback from Cubic AI on PR #${{ github.event.pull_request.number }} in repository ${{ github.repository }}.
+          FULL_PROMPT="You are addressing code review feedback from Cubic AI on PR #${{ steps.extract-prompt.outputs.pr-number }} in repository ${{ github.repository }}.
 
           Your tasks:
           1. Clone the repository ${{ github.repository }} locally.
           2. Check out the PR branch and review the current code.
-          3. Read and understand the Cubic AI review feedback below.
-          4. Address each issue identified by Cubic AI by making the necessary code changes.
+          3. Read the Cubic AI review feedback below AND check each individual Cubic comment on the PR for the confidence score.
+          4. IMPORTANT: Only fix issues where the confidence score is 9/10 or higher. The confidence score appears as 'Fix confidence (alpha): X/10' in each Cubic comment. If you cannot find a confidence score for an issue, skip it.
           5. Commit your changes with clear commit messages referencing the issues fixed.
           6. Push your changes to the PR branch.
 
@@ -201,11 +158,11 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$(jq -n \
               --arg prompt "$FULL_PROMPT" \
-              --arg title "Cubic AI Review: PR #${{ github.event.pull_request.number }}" \
+              --arg title "Cubic AI Review: PR #${{ steps.extract-prompt.outputs.pr-number }}" \
               '{
                 prompt: $prompt,
                 title: $title,
-                tags: ["cubic-ai-review", "pr-${{ github.event.pull_request.number }}"]
+                tags: ["cubic-ai-review", "pr-${{ steps.extract-prompt.outputs.pr-number }}"]
               }')")
           
           if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
@@ -223,6 +180,7 @@ jobs:
 
       - name: Post comment with Devin session link
         if: steps.extract-prompt.outputs.has-prompt == 'true' && env.SESSION_URL != ''
+        id: post-comment
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -234,9 +192,54 @@ jobs:
               ? `### Devin AI is addressing Cubic AI's review feedback\n\nA Devin session has been created to address the issues identified by Cubic AI.\n\n[View Devin Session](${sessionUrl})`
               : `### Devin AI is addressing Cubic AI's review feedback\n\nNew feedback has been sent to the existing Devin session.\n\n[View Devin Session](${sessionUrl})`;
             
-            await github.rest.issues.createComment({
+            // Use the PR number from the extract-prompt step output instead of reading the file
+            // (the file was deleted by the checkout step)
+            const prNumber = parseInt('${{ steps.extract-prompt.outputs.pr-number }}', 10);
+            
+            const { data: comment } = await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
+              issue_number: prNumber,
               body: message
             });
+            
+            core.setOutput('comment-id', comment.id);
+
+      - name: Send completion instructions to Devin
+        if: steps.extract-prompt.outputs.has-prompt == 'true' && env.SESSION_URL != '' && steps.post-comment.outputs.comment-id != ''
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+        run: |
+          SESSION_ID="${EXISTING_SESSION_ID:-}"
+          if [ -z "$SESSION_ID" ]; then
+            SESSION_ID=$(cat /tmp/devin-response.json | jq -r '.session_id // .id // empty')
+          fi
+          
+          if [ -z "$SESSION_ID" ]; then
+            echo "No session ID found, skipping completion instructions"
+            exit 0
+          fi
+          
+          COMMENT_ID="${{ steps.post-comment.outputs.comment-id }}"
+          
+          MESSAGE="IMPORTANT: When you have finished addressing Cubic AI's feedback (whether you pushed changes or not), you MUST update the GitHub comment to show completion status.
+
+          Use the GitHub API to update comment ID ${COMMENT_ID} on PR #${{ steps.extract-prompt.outputs.pr-number }} in repository ${{ github.repository }}.
+
+          Add a completion status section at the bottom of the comment:
+          - If you pushed changes: Add '\n\n---\n:white_check_mark: Pushed commit [\`{SHORT_HASH}\`](https://github.com/${{ github.repository }}/commit/{FULL_HASH})' where {SHORT_HASH} is the first 7 characters of the commit hash and {FULL_HASH} is the full commit hash.
+          - If no changes were needed: Add '\n\n---\n:white_check_mark: No changes pushed'
+
+          To update the comment, use: gh api repos/${{ github.repository }}/issues/comments/${COMMENT_ID} -X PATCH -f body='<updated comment body>'"
+
+          HTTP_CODE=$(curl -s -o /tmp/devin-instructions-response.json -w "%{http_code}" -X POST "https://api.devin.ai/v1/sessions/${SESSION_ID}/message" \
+            -H "Authorization: Bearer ${DEVIN_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg message "$MESSAGE" '{message: $message}')")
+          
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Warning: Failed to send completion instructions to Devin session: HTTP $HTTP_CODE"
+            cat /tmp/devin-instructions-response.json
+          else
+            echo "Completion instructions sent to Devin session successfully"
+          fi

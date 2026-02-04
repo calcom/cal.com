@@ -123,12 +123,33 @@ test.describe("OAuth Provider", () => {
     expect(validTokenData.username.startsWith("test user")).toBe(true);
   });
 
+  test("should show signed-in user name instead of account selector when show_account_selector is not set", async ({
+    page,
+    users,
+  }) => {
+    const user = await users.create({ username: "test user", name: "test user" });
+    await user.apiLogin();
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
+    );
+    await expect(page).toHaveURL(/auth\/oauth2\/authorize/);
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    // Should show "Signed in as" with the user's name
+    await expect(page.getByTestId("signed-in-user")).toBeVisible();
+
+    // Account selector should not be present
+    await expect(page.locator("#account-select")).not.toBeVisible();
+  });
+
   test("should create valid access token & refresh token for team", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&show_account_selector=true`
     );
 
     await page.locator("#account-select").click();
@@ -227,7 +248,7 @@ test.describe("OAuth Provider", () => {
     await page.locator("#password").fill(user.username || "");
     await page.locator('[type="submit"]').click();
 
-    await page.waitForSelector("#account-select");
+    await page.waitForSelector('[data-testid="allow-button"]');
 
     await expect(page.getByText("test user")).toBeVisible();
   });

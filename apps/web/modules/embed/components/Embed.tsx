@@ -18,14 +18,21 @@ import {
   useBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import DatePicker from "@calcom/features/calendars/DatePicker";
+import {
+  useEvent,
+  useScheduleForEvent,
+} from "@calcom/features/bookings/Booker/utils/event";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+} from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,7 +40,11 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+} from "@calcom/ui/components/dialog";
 import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
@@ -42,21 +53,32 @@ import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 import { getDimension } from "@calcom/features/embed/lib/getDimension";
 import { useEmbedDialogCtx } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "@calcom/features/embed/lib/hooks/useEmbedParams";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "@calcom/features/embed/types";
+import type {
+  EmbedTabs,
+  EmbedType,
+  EmbedTypes,
+  PreviewState,
+  EmbedConfig,
+} from "@calcom/features/embed/types";
 
-type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EventType =
+  | RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]
+  | undefined;
 type EmbedDialogProps = {
   types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
-  defaultBrandColor: { brandColor: string | null; darkBrandColor: string | null } | null;
+  defaultBrandColor: {
+    brandColor: string | null;
+    darkBrandColor: string | null;
+  } | null;
   noQueryParamMode?: boolean;
 };
 
@@ -91,7 +113,11 @@ function chooseTimezone({
   userSettingsTimezone: string | undefined;
 }) {
   // We prefer user's timezone configured in settings at the moment - Might be a better idea to prefer timezoneFromTimePreferences over user settings as the user might be in different timezone
-  return timezoneFromBookerStore ?? userSettingsTimezone ?? timezoneFromTimePreferences;
+  return (
+    timezoneFromBookerStore ??
+    userSettingsTimezone ??
+    timezoneFromTimePreferences
+  );
 }
 
 function useRouterHelpers() {
@@ -141,7 +167,10 @@ function useEmbedGoto(noQueryParamMode = false) {
       }));
     } else {
       const validQueryParams = Object.fromEntries(
-        Object.entries(props).filter(([_, value]) => value !== null) as [string, string][]
+        Object.entries(props).filter(([_, value]) => value !== null) as [
+          string,
+          string
+        ][]
       );
       goto(validQueryParams);
     }
@@ -199,11 +228,15 @@ const ChooseEmbedTypesDialogContent = ({
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
-        <h3 className="font-heading text-emphasis mb-2 text-2xl leading-none" id="modal-title">
+        <h3
+          className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none"
+          id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
-          <p className="text-subtle text-sm">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
+          <p className="text-subtle text-sm">
+            {t("choose_ways_put_cal_site", { appName: APP_NAME })}
+          </p>
         </div>
       </div>
       <div className="items-start stack-y-2 md:flex md:stack-y-0">
@@ -214,17 +247,23 @@ const ChooseEmbedTypesDialogContent = ({
             data-testid={embed.type}
             onClick={() => {
               if (embed.type === "headless") {
-                window.open("https://cal.com/help/routing/headless-routing", "_blank");
+                window.open(
+                  "https://cal.com/help/routing/headless-routing",
+                  "_blank"
+                );
               } else {
                 gotoState({
                   embedType: embed.type as EmbedType,
                 });
               }
-            }}>
+            }}
+          >
             <div className="bg-default order-0 box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
-            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
+            <div className="text-emphasis mt-4 font-semibold">
+              {embed.title}
+            </div>
             <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
           </button>
         ))}
@@ -251,7 +290,8 @@ const EmailEmbed = ({
   userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const { timezoneFromBookerStore, timezoneFromTimePreferences } =
+    useBookerTime();
   const timezone = chooseTimezone({
     timezoneFromBookerStore,
     timezoneFromTimePreferences,
@@ -279,17 +319,22 @@ const EmailEmbed = ({
     (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
     shallow
   );
-  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimezone] =
-    useBookerStoreContext(
-      (state) => [
-        state.setSelectedDate,
-        state.setMonth,
-        state.setSelectedDatesAndTimes,
-        state.setSelectedTimeslot,
-        state.setTimezone,
-      ],
-      shallow
-    );
+  const [
+    setSelectedDate,
+    setMonth,
+    setSelectedDatesAndTimes,
+    setSelectedTimeslot,
+    setTimezone,
+  ] = useBookerStoreContext(
+    (state) => [
+      state.setSelectedDate,
+      state.setMonth,
+      state.setSelectedDatesAndTimes,
+      state.setSelectedTimeslot,
+      state.setTimezone,
+    ],
+    shallow
+  );
   const event = useEvent();
   const schedule = useScheduleForEvent({
     orgSlug,
@@ -306,8 +351,10 @@ const EmailEmbed = ({
       return null;
     }
     if (selectedDatesAndTimes && selectedDatesAndTimes[eventType.slug]) {
-      const selectedDatesAndTimesForEvent = selectedDatesAndTimes[eventType.slug];
-      const selectedSlots = selectedDatesAndTimesForEvent[selectedDate as string] ?? [];
+      const selectedDatesAndTimesForEvent =
+        selectedDatesAndTimes[eventType.slug];
+      const selectedSlots =
+        selectedDatesAndTimesForEvent[selectedDate as string] ?? [];
       if (selectedSlots?.includes(time)) {
         // Checks whether a user has removed all their timeSlots and thus removes it from the selectedDatesAndTimesForEvent state
         if (selectedSlots?.length > 1) {
@@ -315,13 +362,17 @@ const EmailEmbed = ({
             ...selectedDatesAndTimes,
             [eventType.slug]: {
               ...selectedDatesAndTimesForEvent,
-              [selectedDate as string]: selectedSlots?.filter((slot: string) => slot !== time),
+              [selectedDate as string]: selectedSlots?.filter(
+                (slot: string) => slot !== time
+              ),
             },
           };
 
           setSelectedDatesAndTimes(updatedDatesAndTimes);
         } else {
-          const updatedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
+          const updatedDatesAndTimesForEvent = {
+            ...selectedDatesAndTimesForEvent,
+          };
           delete updatedDatesAndTimesForEvent[selectedDate as string];
           setSelectedTimeslot(null);
           setSelectedDatesAndTimes({
@@ -342,7 +393,9 @@ const EmailEmbed = ({
 
       setSelectedDatesAndTimes(updatedDatesAndTimes);
     } else if (!selectedDatesAndTimes) {
-      setSelectedDatesAndTimes({ [eventType.slug]: { [selectedDate as string]: [time] } });
+      setSelectedDatesAndTimes({
+        [eventType.slug]: { [selectedDate as string]: [time] },
+      });
     } else {
       setSelectedDatesAndTimes({
         ...selectedDatesAndTimes,
@@ -377,7 +430,9 @@ const EmailEmbed = ({
             <DatePicker
               isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
-                setSelectedDate({ date: date === null ? date : date.format("YYYY-MM-DD") });
+                setSelectedDate({
+                  date: date === null ? date : date.format("YYYY-MM-DD"),
+                });
               }}
               onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
@@ -387,7 +442,9 @@ const EmailEmbed = ({
               locale={i18n.language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
+              weekStart={weekdayToWeekIndex(
+                event?.data?.subsetOfUsers?.[0]?.weekStart
+              )}
               eventSlug={eventType?.slug}
             />
           </CollapsibleContent>
@@ -405,7 +462,9 @@ const EmailEmbed = ({
                   selectedDatesAndTimes &&
                   selectedDatesAndTimes[eventType.slug] &&
                   selectedDatesAndTimes[eventType.slug][selectedDate as string]
-                    ? selectedDatesAndTimes[eventType.slug][selectedDate as string]
+                    ? selectedDatesAndTimes[eventType.slug][
+                        selectedDate as string
+                      ]
                     : undefined
                 }
                 handleSlotClick={handleSlotClick}
@@ -423,7 +482,9 @@ const EmailEmbed = ({
             <div className="text-default mb-[9px] text-sm">{t("duration")}</div>
             {durationsOptions.length > 0 ? (
               <Select<{ label: string; value: number }>
-                value={durationsOptions.find((option) => option.value === selectedDuration)}
+                value={durationsOptions.find(
+                  (option) => option.value === selectedDuration
+                )}
                 options={durationsOptions}
                 onChange={(option) => {
                   setSelectedDuration(option?.value);
@@ -445,7 +506,11 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
-            <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimezone(value)} />
+            <TimezoneSelect
+              id="timezone"
+              value={timezone}
+              onChange={({ value }) => setTimezone(value)}
+            />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -474,7 +539,8 @@ const EmailEmbedPreview = ({
   userSettingsTimezone?: string;
 }) => {
   const { t } = useLocale();
-  const { timeFormat, timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const { timeFormat, timezoneFromBookerStore, timezoneFromTimePreferences } =
+    useBookerTime();
   const timezone = chooseTimezone({
     timezoneFromBookerStore,
     timezoneFromTimePreferences,
@@ -498,7 +564,8 @@ const EmailEmbedPreview = ({
             overflowY: "auto",
             backgroundColor: "white",
           }}
-          ref={emailContentRef}>
+          ref={emailContentRef}
+        >
           <div
             style={{
               fontStyle: "normal",
@@ -507,7 +574,8 @@ const EmailEmbedPreview = ({
               lineHeight: "19px",
               marginTop: "15px",
               marginBottom: "15px",
-            }}>
+            }}
+          >
             <b style={{ color: "black" }}> {eventType.title}</b>
           </div>
           <div
@@ -517,8 +585,10 @@ const EmailEmbedPreview = ({
               fontSize: "14px",
               lineHeight: "17px",
               color: "#333333",
-            }}>
-            {t("duration")}: <b style={{ color: "black" }}>{selectedDuration} mins</b>
+            }}
+          >
+            {t("duration")}:{" "}
+            <b style={{ color: "black" }}>{selectedDuration} mins</b>
           </div>
           <div>
             <b style={{ color: "black" }}>
@@ -529,7 +599,8 @@ const EmailEmbedPreview = ({
                   fontSize: "14px",
                   lineHeight: "17px",
                   color: "#333333",
-                }}>
+                }}
+              >
                 {t("timezone")}: <b style={{ color: "black" }}>{timezone}</b>
               </span>
             </b>
@@ -553,10 +624,13 @@ const EmailEmbedPreview = ({
                           textAlign: "left",
                           borderCollapse: "collapse",
                           borderSpacing: "0px",
-                        }}>
+                        }}
+                      >
                         <tbody>
                           <tr>
-                            <td style={{ textAlign: "left", marginTop: "16px" }}>
+                            <td
+                              style={{ textAlign: "left", marginTop: "16px" }}
+                            >
                               <span
                                 style={{
                                   fontSize: "14px",
@@ -564,7 +638,8 @@ const EmailEmbedPreview = ({
                                   paddingBottom: "8px",
                                   color: "rgb(26, 26, 26)",
                                   fontWeight: "bold",
-                                }}>
+                                }}
+                              >
                                 {selectedDate}
                                 &nbsp;
                               </span>
@@ -572,15 +647,24 @@ const EmailEmbedPreview = ({
                           </tr>
                           <tr>
                             <td>
-                              <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
+                              <table
+                                style={{
+                                  borderCollapse: "separate",
+                                  borderSpacing: "0px 4px",
+                                }}
+                              >
                                 <tbody>
                                   <tr style={{ height: "25px" }}>
                                     {sortedTimes?.length > 0 &&
                                       sortedTimes.map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${eventType.bookerUrl}/${
-                                          eventType.teamId !== null ? "team/" : ""
+                                        const bookingURL = `${
+                                          eventType.bookerUrl
+                                        }/${
+                                          eventType.teamId !== null
+                                            ? "team/"
+                                            : ""
                                         }${username}/${
                                           eventType.slug
                                         }?duration=${selectedDuration}&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
@@ -596,34 +680,45 @@ const EmailEmbedPreview = ({
                                               height: "24px",
                                               border: "1px solid #111827",
                                               borderRadius: "3px",
-                                            }}>
+                                            }}
+                                          >
                                             <table style={{ height: "21px" }}>
                                               <tbody>
                                                 <tr style={{ height: "21px" }}>
-                                                  <td style={{ width: "7px" }} />
+                                                  <td
+                                                    style={{ width: "7px" }}
+                                                  />
                                                   <td
                                                     style={{
                                                       width: "50px",
                                                       textAlign: "center",
                                                       marginRight: "1px",
-                                                    }}>
+                                                    }}
+                                                  >
                                                     <a
                                                       href={bookingURL}
                                                       className="spot"
                                                       style={{
-                                                        fontFamily: '"Proxima Nova", sans-serif',
+                                                        fontFamily:
+                                                          '"Proxima Nova", sans-serif',
                                                         textDecoration: "none",
                                                         textAlign: "center",
                                                         color: "#111827",
                                                         fontSize: "12px",
                                                         lineHeight: "16px",
-                                                      }}>
+                                                      }}
+                                                    >
                                                       <b
                                                         style={{
                                                           fontWeight: "normal",
-                                                          textDecoration: "none",
-                                                        }}>
-                                                        {dayjs.utc(time).tz(timezone).format(timeFormat)}
+                                                          textDecoration:
+                                                            "none",
+                                                        }}
+                                                      >
+                                                        {dayjs
+                                                          .utc(time)
+                                                          .tz(timezone)
+                                                          .format(timeFormat)}
                                                         &nbsp;
                                                       </b>
                                                     </a>
@@ -652,7 +747,8 @@ const EmailEmbedPreview = ({
                     textDecoration: "none",
                     cursor: "pointer",
                     color: "black",
-                  }}>
+                  }}
+                >
                   {t("see_all_available_times")}
                 </a>
               </div>
@@ -664,7 +760,8 @@ const EmailEmbedPreview = ({
               borderTop: "1px solid #CCCCCC",
               marginTop: "8px",
               paddingTop: "8px",
-            }}>
+            }}
+          >
             <span>{t("powered_by")}</span>{" "}
             <b style={{ color: "black" }}>
               <span> Cal.com</span>
@@ -695,7 +792,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
-  const { resetState, gotoState, gotoEmbedTypeSelectionState } = useEmbedGoto(noQueryParamMode);
+  const { resetState, gotoState, gotoEmbedTypeSelectionState } =
+    useEmbedGoto(noQueryParamMode);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
   const emailContentRef = useRef<HTMLDivElement>(null);
@@ -712,7 +810,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parsedEventId },
-    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
+    {
+      enabled: !Number.isNaN(parsedEventId) && embedType === "email",
+      refetchOnWindowFocus: false,
+    }
   );
   const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
@@ -743,7 +844,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           }),
     };
   });
-  const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
+  const embedCodeRefs: Record<
+    (typeof tabs)[0]["name"],
+    RefObject<HTMLTextAreaElement>
+  > = {};
   tabs
     .filter((tab) => tab.type === "code")
     .forEach((codeTab) => {
@@ -752,12 +856,17 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const refOfEmbedCodesRefs = useRef(embedCodeRefs);
   const embed = types.find((embed) => embed.type === embedType);
-  const [selectedDuration, setSelectedDuration] = useState(eventTypeData?.eventType.length);
+  const [selectedDuration, setSelectedDuration] = useState(
+    eventTypeData?.eventType.length
+  );
 
-  const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
-  const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
+  const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] =
+    useState(true);
+  const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] =
+    useState(true);
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
+    useSlotsViewOnSmallScreen: "true" as const,
   };
 
   const paletteDefaultValue = (paletteName: string) => {
@@ -832,7 +941,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     );
   };
 
-  const inlineEmbedDimensionUpdate = ({ width, height }: { width: string; height: string }) => {
+  const inlineEmbedDimensionUpdate = ({
+    width,
+    height,
+  }: {
+    width: string;
+    height: string;
+  }) => {
     iframeRef.current?.contentWindow?.postMessage(
       {
         mode: "cal:preview",
@@ -924,18 +1039,22 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       enableOverflow
       ref={dialogContentRef}
       className="rounded-lg p-0.5 sm:max-w-7xl!"
-      type="creation">
+      type="creation"
+    >
       <div className="flex">
         <div className="bg-cal-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
-            id="modal-title">
+            id="modal-title"
+          >
             <button className="h-6 w-6" onClick={gotoEmbedTypeSelectionState}>
               <Icon name="arrow-left" className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
-          <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
+          <h4 className="text-subtle mb-6 text-sm font-normal">
+            {embed.subtitle}
+          </h4>
           {eventTypeData?.eventType && embedType === "email" ? (
             <EmailEmbed
               eventType={eventTypeData?.eventType}
@@ -948,68 +1067,82 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             />
           ) : (
             <div className="flex flex-col">
-              <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
+              <div
+                className={classNames(
+                  "font-medium",
+                  embedType === "element-click" ? "hidden" : ""
+                )}
+              >
                 <Collapsible
                   open={isEmbedCustomizationOpen}
-                  onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
+                  onOpenChange={() =>
+                    setIsEmbedCustomizationOpen((val) => !val)
+                  }
+                >
                   <CollapsibleContent className="text-sm">
                     {/* Conditionally render Window Sizing only if inline embed AND NOT React Atom */}
-                    {embedType === "inline" && embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
-                      <div>
-                        {/*TODO: Add Auto/Fixed toggle from Figma */}
-                        <div className="text-default mb-[9px] text-sm">Window sizing</div>
-                        <div className="justify-left mb-6 flex items-center font-normal! ">
-                          <div className="mr-[9px]">
+                    {embedType === "inline" &&
+                      embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
+                        <div>
+                          {/*TODO: Add Auto/Fixed toggle from Figma */}
+                          <div className="text-default mb-[9px] text-sm">
+                            Window sizing
+                          </div>
+                          <div className="justify-left mb-6 flex items-center font-normal! ">
+                            <div className="mr-[9px]">
+                              <TextField
+                                labelProps={{ className: "hidden" }}
+                                className="focus:ring-offset-0"
+                                required
+                                value={previewState.inline.width}
+                                onChange={(e) => {
+                                  setPreviewState((previewState) => {
+                                    const width = e.target.value || "100%";
+
+                                    return {
+                                      ...previewState,
+                                      inline: {
+                                        ...previewState.inline,
+                                        width,
+                                      },
+                                    };
+                                  });
+                                }}
+                                addOnLeading={<>W</>}
+                              />
+                            </div>
+
                             <TextField
                               labelProps={{ className: "hidden" }}
                               className="focus:ring-offset-0"
+                              value={previewState.inline.height}
                               required
-                              value={previewState.inline.width}
                               onChange={(e) => {
-                                setPreviewState((previewState) => {
-                                  const width = e.target.value || "100%";
+                                const height = e.target.value || "100%";
 
+                                setPreviewState((previewState) => {
                                   return {
                                     ...previewState,
                                     inline: {
                                       ...previewState.inline,
-                                      width,
+                                      height,
                                     },
                                   };
                                 });
                               }}
-                              addOnLeading={<>W</>}
+                              addOnLeading={<>H</>}
                             />
                           </div>
-
-                          <TextField
-                            labelProps={{ className: "hidden" }}
-                            className="focus:ring-offset-0"
-                            value={previewState.inline.height}
-                            required
-                            onChange={(e) => {
-                              const height = e.target.value || "100%";
-
-                              setPreviewState((previewState) => {
-                                return {
-                                  ...previewState,
-                                  inline: {
-                                    ...previewState.inline,
-                                    height,
-                                  },
-                                };
-                              });
-                            }}
-                            addOnLeading={<>H</>}
-                          />
                         </div>
-                      </div>
-                    )}
+                      )}
                     <div
                       className={classNames(
                         "items-center justify-between",
-                        embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                      )}>
+                        embedType === "floating-popup"
+                          ? "text-emphasis"
+                          : "hidden"
+                      )}
+                    >
                       <div className="mb-2 text-sm">Button text</div>
                       {/* Default Values should come from preview iframe */}
                       <TextField
@@ -1035,7 +1168,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         embedType === "floating-popup"
                           ? "text-emphasis space-x-2 rtl:space-x-reverse"
                           : "hidden"
-                      )}>
+                      )}
+                    >
                       <Switch
                         defaultChecked={true}
                         onCheckedChange={(checked) => {
@@ -1050,13 +1184,18 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           });
                         }}
                       />
-                      <div className="text-default my-2 text-sm">Display calendar icon</div>
+                      <div className="text-default my-2 text-sm">
+                        Display calendar icon
+                      </div>
                     </div>
                     <div
                       className={classNames(
                         "mt-4 items-center justify-between",
-                        embedType === "floating-popup" ? "text-emphasis" : "hidden"
-                      )}>
+                        embedType === "floating-popup"
+                          ? "text-emphasis"
+                          : "hidden"
+                      )}
+                    >
                       <div className="mb-2">Position of button</div>
                       <Select
                         onChange={(position) => {
@@ -1075,7 +1214,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     </div>
                     <div className="mt-3 flex flex-col xl:flex-row xl:justify-between">
-                      <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                      <div
+                        className={classNames(
+                          "mt-4",
+                          embedType === "floating-popup" ? "" : "hidden"
+                        )}
+                      >
                         <div className="whitespace-nowrap">Button color</div>
                         <div className="mt-2 w-40 xl:mt-0 xl:w-full">
                           <ColorPicker
@@ -1097,7 +1241,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           />
                         </div>
                       </div>
-                      <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                      <div
+                        className={classNames(
+                          "mt-4",
+                          embedType === "floating-popup" ? "" : "hidden"
+                        )}
+                      >
                         <div className="whitespace-nowrap">Text color</div>
                         <div className="mb-6 mt-2 w-40 xl:mt-0 xl:w-full">
                           <ColorPicker
@@ -1126,13 +1275,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div className="font-medium">
                 <Collapsible
                   open={isBookingCustomizationOpen}
-                  onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
+                  onOpenChange={() =>
+                    setIsBookingCustomizationOpen((val) => !val)
+                  }
+                >
                   <CollapsibleContent>
                     <div className="text-sm">
                       {/* Conditionally render EmbedTheme only if NOT React Atom */}
                       {embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
                         <Label className="mb-6">
-                          <div className="mb-2">EmbedTheme</div>
+                          <div className="mb-2">Embed theme</div>
                           <Select
                             className="w-full"
                             defaultValue={ThemeOptions[0]}
@@ -1146,7 +1298,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               }
                               setPreviewState((previewState) => {
                                 // Ensure theme is updated in config for all embed types
-                                const newConfig = (currentConfig?: EmbedConfig) => ({
+                                const newConfig = (
+                                  currentConfig?: EmbedConfig
+                                ) => ({
                                   ...(currentConfig ?? {}),
                                   theme: option.value,
                                 });
@@ -1154,15 +1308,21 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                                   ...previewState,
                                   inline: {
                                     ...previewState.inline,
-                                    config: newConfig(previewState.inline.config),
+                                    config: newConfig(
+                                      previewState.inline.config
+                                    ),
                                   },
                                   floatingPopup: {
                                     ...previewState.floatingPopup,
-                                    config: newConfig(previewState.floatingPopup.config),
+                                    config: newConfig(
+                                      previewState.floatingPopup.config
+                                    ),
                                   },
                                   elementClick: {
                                     ...previewState.elementClick,
-                                    config: newConfig(previewState.elementClick.config),
+                                    config: newConfig(
+                                      previewState.elementClick.config
+                                    ),
                                   },
                                   // Keep updating top-level theme for preview iframe
                                   theme: option.value,
@@ -1188,7 +1348,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               });
                             }}
                           />
-                          <div className="text-default text-sm">{t("hide_eventtype_details")}</div>
+                          <div className="text-default text-sm">
+                            {t("hide_eventtype_details")}
+                          </div>
                         </div>
                       ) : null}
                       {/* Conditionally render Brand Colors only if NOT React Atom */}
@@ -1207,11 +1369,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             <div className="w-full">
                               <ColorPicker
                                 popoverAlign="start"
-                                container={dialogContentRef?.current ?? undefined}
+                                container={
+                                  dialogContentRef?.current ?? undefined
+                                }
                                 defaultValue={paletteDefaultValue(palette.name)}
                                 onChange={(color) => {
                                   addToPalette({
-                                    [palette.name as keyof (typeof previewState)["palette"]]: color,
+                                    [palette.name as keyof (typeof previewState)["palette"]]:
+                                      color,
                                   });
                                 }}
                               />
@@ -1229,7 +1394,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             }
                             setPreviewState((previewState) => {
                               // Ensure layout is updated in config for all embed types
-                              const newConfig = (currentConfig?: EmbedConfig) => ({
+                              const newConfig = (
+                                currentConfig?: EmbedConfig
+                              ) => ({
                                 ...(currentConfig ?? {}),
                                 layout: option.value,
                               });
@@ -1241,11 +1408,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                                 },
                                 floatingPopup: {
                                   ...previewState.floatingPopup,
-                                  config: newConfig(previewState.floatingPopup.config),
+                                  config: newConfig(
+                                    previewState.floatingPopup.config
+                                  ),
                                 },
                                 elementClick: {
                                   ...previewState.elementClick,
-                                  config: newConfig(previewState.elementClick.config),
+                                  config: newConfig(
+                                    previewState.elementClick.config
+                                  ),
                                 },
                                 // Keep updating top-level layout for preview iframe
                                 layout: option.value,
@@ -1281,8 +1452,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div
                       key={tab.href}
                       className={classNames(
-                        embedParams.embedTabName === tab.href.split("=")[1] ? "flex-1" : "hidden"
-                      )}>
+                        embedParams.embedTabName === tab.href.split("=")[1]
+                          ? "flex-1"
+                          : "hidden"
+                      )}
+                    >
                       {tab.type === "code" && (
                         <tab.Component
                           namespace={namespace}
@@ -1293,16 +1467,27 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         />
                       )}
                       <div
-                        className={embedParams.embedTabName === "embed-preview" ? "mt-2 block" : "hidden"}
+                        className={
+                          embedParams.embedTabName === "embed-preview"
+                            ? "mt-2 block"
+                            : "hidden"
+                        }
                       />
                     </div>
                   );
                 }
 
-                if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
+                if (
+                  embedType === "email" &&
+                  (tab.name !== "Preview" || !eventTypeData?.eventType)
+                )
+                  return;
 
                 return (
-                  <div key={tab.href} className={classNames("flex grow flex-col")}>
+                  <div
+                    key={tab.href}
+                    className={classNames("flex grow flex-col")}
+                  >
                     <div className="flex h-[55vh] grow flex-col">
                       <EmailEmbedPreview
                         selectedDuration={selectedDuration}
@@ -1314,12 +1499,20 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         month={month as string}
                         selectedDateAndTime={
                           selectedDatesAndTimes
-                            ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
+                            ? selectedDatesAndTimes[
+                                eventTypeData?.eventType.slug as string
+                              ]
                             : {}
                         }
                       />
                     </div>
-                    <div className={embedParams.embedTabName === "embed-preview" ? "mt-2 block" : "hidden"} />
+                    <div
+                      className={
+                        embedParams.embedTabName === "embed-preview"
+                          ? "mt-2 block"
+                          : "hidden"
+                      }
+                    />
                   </div>
                 );
               })}
@@ -1336,7 +1529,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </div>
               )}
             </div>
-            <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
+            <DialogFooter
+              className="mt-10 flex-row-reverse gap-x-2"
+              showDivider
+            >
               <DialogClose />
               <Button
                 type="submit"
@@ -1349,14 +1545,16 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       (tab) => tab.href === `embedTabName=${currentTabHref}`
                     )?.name;
                     if (!currentTabName) return;
-                    const currentTabCodeEl = refOfEmbedCodesRefs.current[currentTabName].current;
+                    const currentTabCodeEl =
+                      refOfEmbedCodesRefs.current[currentTabName].current;
                     if (!currentTabCodeEl) {
                       return;
                     }
                     navigator.clipboard.writeText(currentTabCodeEl.value);
                     showToast(t("code_copied"), "success");
                   }
-                }}>
+                }}
+              >
                 {embedType === "email" ? t("copy") : t("copy_code")}
               </Button>
             </DialogFooter>
@@ -1395,9 +1593,13 @@ export const EmbedDialog = ({
               // Must not set name when noQueryParam mode as required by Dialog component
               name: "embed",
               clearQueryParamsOnClose: queryParamsForDialog,
-            })}>
+            })}
+      >
         {!embedParams.embedType ? (
-          <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
+          <ChooseEmbedTypesDialogContent
+            types={types}
+            noQueryParamMode={noQueryParamMode}
+          />
         ) : (
           <EmbedTypeCodeAndPreviewDialogContent
             embedType={embedParams.embedType as EmbedType}
@@ -1455,7 +1657,8 @@ export const EmbedButton = <T extends React.ElementType = typeof Button>({
       data-test-embed-url={embedUrl}
       data-testid="embed"
       type="button"
-      onClick={openEmbedModal}>
+      onClick={openEmbedModal}
+    >
       {children}
     </Component>
   );

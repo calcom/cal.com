@@ -78,6 +78,10 @@ vi.mock("@calcom/lib/tracing/factory", () => ({
   },
 }));
 
+vi.mock("@calcom/features/booking-audit/lib/makeActor", () => ({
+  makeUserActor: vi.fn().mockReturnValue({ type: "user", id: "test-uuid" }),
+}));
+
 // Import after mocks are set up
 import { GET } from "../route";
 import prisma from "@calcom/prisma";
@@ -171,7 +175,9 @@ describe("link route", () => {
       const { TRPCError } = await import("@trpc/server");
 
       // Mock confirmHandler to throw a TRPCError
-      mockConfirmHandler.mockRejectedValueOnce(new TRPCError({ code: "BAD_REQUEST", message: "Custom error" }));
+      mockConfirmHandler.mockRejectedValueOnce(
+        new TRPCError({ code: "BAD_REQUEST", message: "Custom error" })
+      );
 
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
@@ -204,6 +210,124 @@ describe("link route", () => {
 
       expect(redirectUrl.origin).toBe("https://self-hosted.company.org");
       expect(location).not.toContain("localhost");
+    });
+  });
+
+  describe("confirmHandler flow", () => {
+    it("should call confirmHandler with correct arguments for accept action", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: true,
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should call confirmHandler with confirmed=false for reject action", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=reject&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should call confirmHandler with reason when provided in query params", async () => {
+      const baseUrl =
+        "https://app.example.com/api/link?action=reject&token=encrypted-token&reason=test-reason";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            reason: "test-reason",
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should pass recurringEventId when booking has one", async () => {
+      // Update mock to return booking with recurringEventId
+      vi.mocked(prisma.booking.findUniqueOrThrow).mockResolvedValueOnce({
+        id: 1,
+        uid: "test-booking-uid",
+        recurringEventId: "recurring-123",
+      } as Awaited<ReturnType<typeof prisma.booking.findUniqueOrThrow>>);
+
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            recurringEventId: "recurring-123",
+            confirmed: true,
+          }),
+        })
+      );
+    });
+
+    it("should pass user context to confirmHandler", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctx: expect.objectContaining({
+            user: expect.objectContaining({
+              id: 1,
+              uuid: "user-uuid",
+              email: "test@example.com",
+              username: "testuser",
+              role: "USER",
+            }),
+          }),
+        })
+      );
+    });
+
+    it("should pass actor from makeUserActor to confirmHandler", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            actor: { type: "user", id: "test-uuid" },
+          }),
+        })
+      );
     });
   });
 });

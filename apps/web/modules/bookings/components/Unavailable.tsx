@@ -3,7 +3,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 const UnAvailableMessage = ({ children, title }: { children: React.ReactNode; title: string }) => (
   <div className="mx-auto w-full max-w-2xl">
     <div className="border-subtle bg-default dark:bg-cal-muted overflow-hidden rounded-lg border p-10">
-      <h2 className="font-heading mb-4 text-3xl">{title}</h2>
+      <h2 className="font-cal mb-4 text-3xl">{title}</h2>
       {children}
     </div>
   </div>

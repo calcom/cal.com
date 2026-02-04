@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 type OAuthTokenPayload = {
   userId?: number;
@@ -12,8 +11,6 @@ type OAuthTokenPayload = {
 
 @Injectable()
 export class TokensService {
-  private readonly logger = new Logger("TokensService");
-
   constructor(private readonly config: ConfigService) {}
 
   getDecodedThirdPartyAccessToken(token: string): OAuthTokenPayload | null {
@@ -25,7 +22,7 @@ export class TokensService {
     let decodedToken: OAuthTokenPayload;
     try {
       decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
-    } catch (e) {
+    } catch (_e) {
       return null;
     }
 

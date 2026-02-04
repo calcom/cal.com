@@ -11,8 +11,10 @@ const copyAppStoreStatic = () => {
   const SVG_HASHES = {};
 
   staticFiles.forEach((file) => {
+    // Normalize path separators for cross-platform compatibility (Windows uses backslashes)
+    const normalizedFile = file.replace(/\\/g, "/");
     // Extract app name from path
-    const appNameMatch = file.match(/app-store\/(.*?)\/static/);
+    const appNameMatch = normalizedFile.match(/app-store\/(.*?)\/static/);
     if (!appNameMatch) return;
 
     const appDirName = appNameMatch[1];

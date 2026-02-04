@@ -133,6 +133,10 @@ export class CalComOAuthService {
       code_challenge_method: "S256",
     });
 
+    if (Platform.OS === "ios") {
+      params.append("register", "false");
+    }
+
     return `${this.config.calcomBaseUrl}/auth/oauth2/authorize?${params.toString()}`;
   }
 
@@ -217,7 +221,7 @@ export class CalComOAuthService {
     authUrl: string
   ): Promise<{ type: "success"; params: Record<string, string> } | { type: "error" }> {
     const result = await WebBrowser.openAuthSessionAsync(authUrl, this.config.redirectUri, {
-      preferEphemeralSession: false,
+      preferEphemeralSession: true,
     });
 
     if (result.type === "success") {

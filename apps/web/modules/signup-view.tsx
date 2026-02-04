@@ -54,7 +54,7 @@ const signupSchema = apiSignupSchema.extend({
   cfToken: z.string().optional(),
 });
 
-const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
+const TurnstileCaptcha = dynamic(() => import("@calcom/web/modules/auth/components/Turnstile"), { ssr: false });
 
 type FormValues = z.infer<typeof signupSchema>;
 
@@ -328,6 +328,7 @@ export default function Signup({
         <>
           {process.env.NEXT_PUBLIC_GTM_ID && (
             <>
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: GTM script injection */}
               <Script
                 id="gtm-init-script"
                 // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
@@ -341,6 +342,7 @@ export default function Signup({
                     })(window, document, 'script', 'dataLayer', '${process.env.NEXT_PUBLIC_GTM_ID}');`,
                 }}
               />
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: GTM noscript fallback */}
               <noscript
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
@@ -385,7 +387,7 @@ export default function Signup({
               </div>
             )}
             <div className="flex flex-col gap-2">
-              <h1 className="font-heading text-[28px] leading-none ">
+              <h1 className="font-cal text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
               </h1>
               {IS_CALCOM ? (
@@ -457,7 +459,7 @@ export default function Signup({
                   form={formMethods}
                   handleSubmit={async (values) => {
                     let updatedValues = values;
-                    if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
+                    if (!formMethods.getValues().username && isOrgInviteByLink) {
                       updatedValues = {
                         ...values,
                         username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),

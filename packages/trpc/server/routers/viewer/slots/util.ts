@@ -90,6 +90,14 @@ export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
 
+/**
+ * Minimal capability interface for looking up a user's organization membership.
+ * Used as a fallback when org context can't be determined from request or eventType.
+ */
+export interface OrgMembershipLookup {
+  findFirstOrganizationIdForUser(args: { userId: number }): Promise<number | null>;
+}
+
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
@@ -106,6 +114,7 @@ export interface IAvailableSlotsService {
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
   noSlotsNotificationService: NoSlotsNotificationService;
+  orgMembershipLookup: OrgMembershipLookup;
 }
 
 function withSlotsCache(
@@ -372,8 +381,8 @@ export class AvailableSlotsService {
   }) {
     if (!eventTypeSlug || !slug) return null;
 
-    let teamId;
-    let userId;
+    let teamId: number | undefined;
+    let userId: number | undefined;
     if (isTeamEvent) {
       teamId = await this.getTeamIdFromSlug(
         slug,
@@ -987,6 +996,55 @@ export class AvailableSlotsService {
     return await this.dependencies.featuresRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
   }
 
+  /**
+   * Resolves the organization ID for watchlist blocking with the following priority:
+   * 1. Request context (orgSlug) - most accurate for the current request scope
+   * 2. EventType team hierarchy - for team/managed events
+   * 3. User's org membership - fallback for personal events of org members
+   *
+   * This ensures org-scoped blocking works correctly for:
+   * - Team events under an org
+   * - Managed events (child events of org team event types)
+   * - Personal events of org members accessed via org domain
+   */
+  private async resolveOrganizationIdForBlocking({
+    orgDetails,
+    eventType,
+  }: {
+    orgDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+    eventType: {
+      parent?: { team?: { parentId: number | null } | null } | null;
+      team?: { parentId: number | null } | null;
+      userId: number | null;
+    };
+  }): Promise<number | null> {
+    if (orgDetails.isValidOrgDomain && orgDetails.currentOrgDomain) {
+      const orgId = await this.dependencies.teamRepo.findOrganizationIdBySlug({
+        slug: orgDetails.currentOrgDomain,
+      });
+      if (orgId) {
+        return orgId;
+      }
+    }
+
+    // EventType team hierarchy - for team/managed events
+    const eventTypeOrgId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+    if (eventTypeOrgId) {
+      return eventTypeOrgId;
+    }
+
+    // User's org membership - fallback for personal events of org members
+    // This is a heuristic and uses the first org membership.
+    // TODO:When multi-org is supported, revisit.
+    if (eventType.userId) {
+      return await this.dependencies.orgMembershipLookup.findFirstOrganizationIdForUser({
+        userId: eventType.userId,
+      });
+    }
+
+    return null;
+  }
+
   private async _getRegularOrDynamicEventType(
     input: TGetScheduleInputSchema,
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -1098,7 +1156,11 @@ export class AvailableSlotsService {
       });
 
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
-    const organizationId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+
+    const organizationId = await this.resolveOrganizationIdForBlocking({
+      orgDetails,
+      eventType,
+    });
 
     const { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
       qualifiedRRHosts,
@@ -1245,7 +1307,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone!;
+          : restrictionSchedule.timeZone ?? "UTC";
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({

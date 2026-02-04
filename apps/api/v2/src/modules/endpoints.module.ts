@@ -12,6 +12,7 @@ import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/
 import { OrganizationsUsersBookingsModule } from "@/modules/organizations/users/bookings/organizations-users-bookings.module";
 import { RouterModule } from "@/modules/router/router.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
+import { TeamsBookingsModule } from "@/modules/teams/bookings/teams-bookings.module";
 import { TeamsSchedulesModule } from "@/modules/teams/schedules/teams-schedules.module";
 import { TimezoneModule } from "@/modules/timezones/timezones.module";
 import { VerifiedResourcesModule } from "@/modules/verified-resources/verified-resources.module";
@@ -42,6 +43,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     VerifiedResourcesModule,
     RouterModule,
     TeamsSchedulesModule,
+    TeamsBookingsModule,
   ],
 })
 export class EndpointsModule implements NestModule {
