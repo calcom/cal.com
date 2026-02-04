@@ -50,6 +50,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
     let apiKey: string;
     let delegationCredentialId: string;
     let workspacePlatformId: number;
+    let ensureDefaultCalendarsSpy: jest.SpyInstance;
 
     const userEmail = `delegation-credentials-admin-${randomString()}@api.com`;
 
@@ -145,10 +146,21 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       });
       delegationCredentialId = delegationCredential.id;
 
+      // Set up spy on prototype BEFORE app.init() - this is critical for NestJS
+      ensureDefaultCalendarsSpy = jest
+        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
+        .mockResolvedValue(undefined);
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
       await app.init();
+    });
+
+    afterEach(() => {
+      // Clear the spy call history after each test
+      ensureDefaultCalendarsSpy.mockClear();
+      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     it("should be defined", () => {
@@ -170,11 +182,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         enabled: true,
       });
 
-      // Spy on the prototype to intercept all calls to ensureDefaultCalendars
-      const ensureDefaultCalendarsSpy = jest
-        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-
       const response = await request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
         .set("Authorization", `Bearer ${apiKey}`)
@@ -188,9 +195,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.data.enabled).toEqual(true);
 
       expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "@test-domain.com");
-
-      ensureDefaultCalendarsSpy.mockRestore();
-      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     it("should not call ensureDefaultCalendars when disabling delegation credentials", async () => {
@@ -205,11 +209,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         enabled: false,
       });
 
-      // Spy on the prototype to intercept all calls to ensureDefaultCalendars
-      const ensureDefaultCalendarsSpy = jest
-        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-
       const response = await request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
         .set("Authorization", `Bearer ${apiKey}`)
@@ -223,9 +222,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.data.enabled).toEqual(false);
 
       expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
-
-      ensureDefaultCalendarsSpy.mockRestore();
-      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     it("should not call ensureDefaultCalendars when enabling already enabled delegation credentials", async () => {
@@ -240,11 +236,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         enabled: true,
       });
 
-      // Spy on the prototype to intercept all calls to ensureDefaultCalendars
-      const ensureDefaultCalendarsSpy = jest
-        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
-
       const response = await request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
         .set("Authorization", `Bearer ${apiKey}`)
@@ -258,9 +249,6 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.data.enabled).toEqual(true);
 
       expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
-
-      ensureDefaultCalendarsSpy.mockRestore();
-      mockToggleDelegationCredentialEnabled.mockClear();
     });
 
     afterAll(async () => {
