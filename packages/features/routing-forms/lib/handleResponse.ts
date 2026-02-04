@@ -4,6 +4,7 @@ import {
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { emailSchema } from "@calcom/lib/emailSchema";
@@ -135,9 +136,14 @@ const _handleResponse = async ({
             crmRecordId = contactOwnerQuery?.recordId ?? null;
           })(),
           (async () => {
-            // If fallbackAction is configured, skip fallbackAttributesQueryValue to prioritize fallbackAction
-            // This maintains backwards compatibility: only use fallbackAttributesQueryValue when fallbackAction is not set
+            // Determine when to use fallbackAttributesQueryValue:
+            // 1. If fallbackAction is EventTypeRedirectUrl → use it (attribute routing applies to event redirect)
+            // 2. If fallbackAction is not set → use it (backwards compatibility)
+            // 3. If fallbackAction is CustomPageMessage or ExternalRedirectUrl → don't use it (attribute routing doesn't apply)
             const hasFallbackAction = "fallbackAction" in chosenRoute && chosenRoute.fallbackAction;
+            const shouldUseFallbackAttributesQuery =
+              !hasFallbackAction ||
+              chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
             const teamMembersMatchingAttributeLogicWithResult =
               formTeamId && formOrgId
                 ? await findTeamMembersMatchingAttributeLogic(
@@ -147,10 +153,9 @@ const _handleResponse = async ({
                         fields: form.fields || [],
                       },
                       attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-                      // Skip fallback attribute routing if fallbackAction is configured
-                      fallbackAttributesQueryValue: hasFallbackAction
-                        ? undefined
-                        : chosenRoute.fallbackAttributesQueryValue,
+                      fallbackAttributesQueryValue: shouldUseFallbackAttributesQuery
+                        ? chosenRoute.fallbackAttributesQueryValue
+                        : undefined,
                       teamId: formTeamId,
                       orgId: formOrgId,
                       routeName: chosenRoute.name,
