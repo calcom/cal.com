@@ -3,7 +3,6 @@ import { expect, type Page } from "@playwright/test";
 import { test } from "../lib/fixtures";
 import {
   closeOAuthClientDetails,
-  createApprovedOAuthClientAsAdmin,
   createPendingOAuthClient,
   openOAuthClientDetailsFromList,
   goToAdminOAuthSettings
@@ -133,6 +132,8 @@ test.describe("OAuth clients admin", () => {
 
     await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
+    await expect(page.getByTestId("toast-success").first()).toBeVisible();
+    await page.reload();
 
     await page
       .getByTestId("oauth-client-admin-rejected-section")
@@ -153,14 +154,5 @@ test.describe("OAuth clients admin", () => {
     await expectClientInAdminSection(page, "oauth-client-admin-approved-section", toBeApproved.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-pending-section", staysPending.clientId);
-
-    // Admin can create an approved client from admin page
-    const adminCreatedName = `${testPrefix}admin-created-${Date.now()}`;
-    const adminCreated = await createApprovedOAuthClientAsAdmin(page, makeClientInput(adminCreatedName));
-
-    await expectClientStatusInDb(prisma, adminCreated.clientId, "APPROVED");
-
-    // Should now be in approved list
-    await expect(page.getByTestId(`oauth-client-list-item-${adminCreated.clientId}`)).toBeVisible();
   });
 });

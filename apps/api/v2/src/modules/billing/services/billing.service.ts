@@ -1,3 +1,4 @@
+import { getIncrementUsageIdempotencyKey, getIncrementUsageJobTag } from "@calcom/platform-libraries/tasker";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,
@@ -444,8 +445,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     if (this.configService.get("enableAsyncTasker")) {
       if (fromReschedule) {
         this.platformBillingTasker.rescheduleUsageIncrement({
-          payload: { bookingUid: uid },
-          options: { delay: startTime },
+          payload: { bookingUid: uid, rescheduledTime: startTime },
         });
         return true;
       }
@@ -453,8 +453,8 @@ export class BillingService implements IBillingService, OnModuleDestroy {
         payload: { userId },
         options: {
           delay: startTime,
-          tags: [`platform.billing.usage.${uid}`],
-          idempotencyKey: `platform.billing.usage.${uid}-${userId}`,
+          tags: [getIncrementUsageJobTag(uid)],
+          idempotencyKey: getIncrementUsageIdempotencyKey(uid, userId),
         },
       });
       return true;

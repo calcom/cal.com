@@ -70,6 +70,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     schedulingType: true,
     length: true,
     locations: true,
+    enablePerHostLocations: true,
     customInputs: true,
     disableGuests: true,
     metadata: true,
@@ -128,9 +129,10 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
         },
       },
     },
-    successRedirectUrl: true,
-    forwardParamsSuccessRedirect: true,
-    workflows: {
+        successRedirectUrl: true,
+        forwardParamsSuccessRedirect: true,
+        redirectUrlOnNoRoutingFormResponse: true,
+        workflows: {
       include: {
         workflow: {
           include: {

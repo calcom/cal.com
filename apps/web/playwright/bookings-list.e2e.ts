@@ -361,9 +361,12 @@ test.describe("Bookings", () => {
     //where ThirdUser is either organizer or attendee
     const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
     const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
-    const bookingListCount = await bookingListItems.count();
 
-    expect(bookingListCount).toBe(3);
+    await expect
+      .poll(async () => {
+        return await bookingListItems.count();
+      })
+      .toBe(3);
 
     //verify with the booking titles
     const firstUpcomingBooking = bookingListItems.nth(0);
@@ -616,10 +619,15 @@ test.describe("Bookings", () => {
 
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
-      const bookingListCount = await bookingListItems.count();
 
-      expect(bookingListCount).toBe(1);
-      await expect(bookingListItems.first().locator(`text=${teamBooking!.title}`)).toBeVisible();
+      await expect
+        .poll(async () => {
+          return await bookingListItems.count();
+        })
+        .toBe(1);
+      await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
+        teamBooking!.title
+      );
     });
 
     test("Team filter shows bookings for managed event types (child events)", async ({
@@ -668,10 +676,16 @@ test.describe("Bookings", () => {
 
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
-      const bookingListCount = await bookingListItems.count();
 
-      expect(bookingListCount).toBe(1);
-      await expect(bookingListItems.first().locator(`text=${managedEventBooking!.title}`)).toBeVisible();
+      await expect
+        .poll(async () => {
+          return await bookingListItems.count();
+        })
+        .toBe(1);
+
+      await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
+        managedEventBooking!.title
+      );
     });
 
     test("Team filter excludes bookings from other teams", async ({ page, users, bookings }) => {
@@ -741,9 +755,12 @@ test.describe("Bookings", () => {
 
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
-      const bookingListCount = await bookingListItems.count();
 
-      expect(bookingListCount).toBe(1);
+      await expect
+        .poll(async () => {
+          return await bookingListItems.count();
+        })
+        .toBe(1);
     });
   });
 });

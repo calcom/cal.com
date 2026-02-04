@@ -2199,6 +2199,7 @@
                   "organization.manageBilling",
                   "organization.changeMemberRole",
                   "organization.impersonate",
+                  "organization.passwordReset",
                   "organization.update",
                   "booking.read",
                   "booking.readOrgBookings",
@@ -10170,7 +10171,7 @@
       "post": {
         "operationId": "BookingGuestsController_2024_08_13_addGuests",
         "summary": "Add guests to an existing booking",
-        "description": "Add one or more guests to an existing booking.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "description": "Add one or more guests to an existing booking. Maximum 10 guests per request, with a limit of 30 total guests per booking.\n    \n    **Rate Limiting:**\n    This endpoint is rate limited to 5 requests per minute to prevent abuse.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -13910,7 +13911,9 @@
             "in": "query",
             "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
             "example": "abc123def456",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "start",
@@ -13918,7 +13921,9 @@
             "in": "query",
             "description": "\n      Time starting from which available slots should be checked.\n\n      Must be in UTC timezone as ISO 8601 datestring.\n\n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
             "example": "2050-09-05",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "end",
@@ -13926,7 +13931,9 @@
             "in": "query",
             "description": "\n    Time until which available slots should be checked.\n\n    Must be in UTC timezone as ISO 8601 datestring.\n\n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
             "example": "2050-09-06",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "organizationSlug",
@@ -13934,7 +13941,9 @@
             "in": "query",
             "description": "The slug of the organization to which user with username belongs or team with teamSlug belongs.",
             "example": "org-slug",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "teamSlug",
@@ -13942,7 +13951,9 @@
             "in": "query",
             "description": "The slug of the team who owns event type with eventTypeSlug - used when slots are checked for team event type.",
             "example": "team-slug",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "username",
@@ -13950,7 +13961,9 @@
             "in": "query",
             "description": "The username of the user who owns event type with eventTypeSlug - used when slots are checked for individual user event type.",
             "example": "bob",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "eventTypeSlug",
@@ -13958,7 +13971,9 @@
             "in": "query",
             "description": "The slug of the event type for which available slots should be checked. If slug is provided then username or teamSlug must be provided too and if relevant organizationSlug too.",
             "example": "event-type-slug",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "eventTypeId",
@@ -13966,7 +13981,9 @@
             "in": "query",
             "description": "The ID of the event type for which available slots should be checked.",
             "example": "100",
-            "schema": {}
+            "schema": {
+              "type": "number"
+            }
           },
           {
             "name": "usernames",
@@ -13974,7 +13991,9 @@
             "in": "query",
             "description": "The usernames for which available slots should be checked separated by a comma.\n\n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n\n    Must contain at least 2 usernames.",
             "example": "alice,bob",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "format",
@@ -13982,7 +14001,9 @@
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
             "example": "range",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "duration",
@@ -13990,7 +14011,9 @@
             "in": "query",
             "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
             "example": "60",
-            "schema": {}
+            "schema": {
+              "type": "number"
+            }
           },
           {
             "name": "timeZone",
@@ -13998,7 +14021,9 @@
             "in": "query",
             "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
             "example": "Europe/Rome",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -23908,7 +23933,8 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
-              "DELEGATION_CREDENTIAL_ERROR"
+              "DELEGATION_CREDENTIAL_ERROR",
+              "WRONG_ASSIGNMENT_REPORT"
             ]
           },
           "secret": {
@@ -23982,7 +24008,8 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
-              "DELEGATION_CREDENTIAL_ERROR"
+              "DELEGATION_CREDENTIAL_ERROR",
+              "WRONG_ASSIGNMENT_REPORT"
             ]
           },
           "secret": {
@@ -27454,6 +27481,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -27561,6 +27589,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -27696,6 +27725,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -27802,6 +27832,7 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
@@ -31156,7 +31187,7 @@
         "type": "object",
         "properties": {
           "guests": {
-            "description": "Array of guests to add to the booking",
+            "description": "Array of guests to add to the booking. Maximum 10 guests per request.",
             "example": [
               {
                 "email": "john.doe@example.com",

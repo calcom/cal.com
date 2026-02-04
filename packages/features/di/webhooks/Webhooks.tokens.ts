@@ -1,4 +1,7 @@
+import { WEBHOOK_TASKER_DI_TOKENS } from "./tasker/tokens";
+
 export const WEBHOOK_TOKENS = {
+  ...WEBHOOK_TASKER_DI_TOKENS,
   // Core interfaces
   WEBHOOK_SERVICE: Symbol("IWebhookService"),
   BOOKING_WEBHOOK_SERVICE: Symbol("IBookingWebhookService"),
@@ -13,6 +16,8 @@ export const WEBHOOK_TOKENS = {
 
   // Repositories
   WEBHOOK_REPOSITORY: Symbol("IWebhookRepository"),
+  WEBHOOK_EVENT_TYPE_REPOSITORY: Symbol("IEventTypeRepository"),
+  WEBHOOK_USER_REPOSITORY: Symbol("IUserRepository"),
 
   // Producer/Consumer
   WEBHOOK_PRODUCER_SERVICE: Symbol("IWebhookProducerService"),

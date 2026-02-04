@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";

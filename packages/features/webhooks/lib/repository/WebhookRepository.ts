@@ -1,4 +1,8 @@
+import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UsersRepository } from "@calcom/features/users/users.repository";
+import type { IUsersRepository } from "@calcom/features/users/users.repository.interface";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
@@ -30,7 +34,7 @@ interface WebhookQueryResult {
   priority: number; // This field is added by the query and removed before returning
 }
 
-const filterWebhooks = (webhook: { appId: string | null }) => {
+const filterWebhooks = (webhook: { appId: string | null }): boolean => {
   const appIds = [
     "zapier",
     "make",
@@ -41,17 +45,30 @@ const filterWebhooks = (webhook: { appId: string | null }) => {
 };
 
 export class WebhookRepository implements IWebhookRepository {
-  private static _instance: WebhookRepository;
+  private static _instance: WebhookRepository | undefined;
 
-  constructor(private readonly prisma: typeof defaultPrisma = defaultPrisma) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly eventTypeRepository: IEventTypesRepository,
+    private readonly userRepository: IUsersRepository
+  ) {}
 
   /**
-   * Singleton accessor for backward compatibility.
-   * @deprecated Use DI container (getWebhookFeature().repository) instead
+   *
+   * @deprecated Use DI container instead:
+   * ```typescript
+   * import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
+   * const { repository } = getWebhookFeature();
+   * ```
+   *
    */
   static getInstance(): WebhookRepository {
     if (!WebhookRepository._instance) {
-      WebhookRepository._instance = new WebhookRepository(defaultPrisma);
+      WebhookRepository._instance = new WebhookRepository(
+        defaultPrisma,
+        new EventTypeRepository(defaultPrisma),
+        new UsersRepository()
+      );
     }
     return WebhookRepository._instance;
   }
@@ -66,18 +83,8 @@ export class WebhookRepository implements IWebhookRepository {
 
     let managedParentEventTypeId: number | undefined;
     if (eventTypeId) {
-      const managedChildEventType = await this.prisma.eventType.findFirst({
-        where: {
-          id: eventTypeId,
-          parentId: {
-            not: null,
-          },
-        },
-        select: {
-          parentId: true,
-        },
-      });
-      managedParentEventTypeId = managedChildEventType?.parentId ?? undefined;
+      managedParentEventTypeId =
+        (await this.eventTypeRepository.findParentEventTypeId(eventTypeId)) ?? undefined;
     }
 
     const webhooks = await this.getSubscribersRaw({
@@ -277,6 +284,7 @@ export class WebhookRepository implements IWebhookRepository {
         teamId: orgId,
         platform: false,
         eventTriggers: { has: triggerEvent },
+        active: true,
       },
       select: {
         id: true,
@@ -508,26 +516,15 @@ export class WebhookRepository implements IWebhookRepository {
       { appId: appId ?? null },
     ];
 
-    // Get user's teams
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { teams: true },
-    });
+    const user = await this.userRepository.findUserTeams(userId);
 
     if (eventTypeId) {
-      // Check for managed event type parent
-      const managedParentEvt = await this.prisma.eventType.findFirst({
-        where: {
-          id: eventTypeId,
-          parentId: { not: null },
-        },
-        select: { parentId: true },
-      });
+      const managedParentId = await this.eventTypeRepository.findParentEventTypeId(eventTypeId);
 
-      if (managedParentEvt?.parentId) {
+      if (managedParentId) {
         // Include webhooks from both the event type and its parent (if active)
         whereConditions.push({
-          OR: [{ eventTypeId }, { eventTypeId: managedParentEvt.parentId, active: true }],
+          OR: [{ eventTypeId }, { eventTypeId: managedParentId, active: true }],
         });
       } else {
         whereConditions.push({ eventTypeId });
