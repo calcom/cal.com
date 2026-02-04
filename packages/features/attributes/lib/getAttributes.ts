@@ -210,7 +210,10 @@ function _prepareAssignmentData({
  */
 function _buildAttributeLookupMaps(attributesOfTheOrg: FullAttribute[]) {
   const optionIdToAttribute = new Map<AttributeOptionId, FullAttribute>();
-  const optionIdToOption = new Map<AttributeOptionId, FullAttribute["options"][number]>();
+  const optionIdToOption = new Map<
+    AttributeOptionId,
+    FullAttribute["options"][number]
+  >();
 
   for (const attribute of attributesOfTheOrg) {
     for (const option of attribute.options) {
@@ -234,7 +237,7 @@ function _getAttributeFromAttributeOption({
   return lookupMaps.optionIdToAttribute.get(attributeOptionId);
 }
 
-function _getAttributeOptionFromAttributeOption({
+function _getAttributeOptionFromId({
   lookupMaps,
   attributeOptionId,
 }: {
@@ -412,7 +415,7 @@ function _buildAssignmentsForTeam({
         attributeOptionId: attributeToUser.attributeOptionId,
       });
 
-      const attributeOption = _getAttributeOptionFromAttributeOption({
+      const attributeOption = _getAttributeOptionFromId({
         lookupMaps,
         attributeOptionId: attributeToUser.attributeOptionId,
       });
