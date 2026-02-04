@@ -6,6 +6,8 @@ import { hashPasswordWithSalt } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { IS_PREMIUM_USERNAME_ENABLED, SIGNUP_URL } from "@calcom/lib/constants";
+import { sanitizeDeviceString } from "@calcom/lib/deviceDetection";
+import getIP from "@calcom/lib/getIP";
 import { checkIfUserNameTaken, usernameSlugRandom } from "@calcom/lib/getName";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
@@ -23,8 +25,8 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "../utils/token";
 
-export default async function handler(body: Record<string, string>) {
-  const { email, password, language, token } = signupSchema.parse(body);
+export default async function handler(body: Record<string, string>, request?: Request) {
+  const { email, password, language, token, deviceDetails } = signupSchema.parse(body);
   //checks if a user with the given username already exists
   const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
     username: body.username,
@@ -74,6 +76,23 @@ export default async function handler(body: Record<string, string>) {
   // extract utm info for user tracking
   const utmParams = await extractUtmInfo();
 
+  // Safely process device details with IP
+  let processedDeviceDetails = null;
+  if (deviceDetails && request) {
+    try {
+      const ip = getIP(request);
+      processedDeviceDetails = {
+        ip: ip || "Unknown",
+        browser: sanitizeDeviceString(deviceDetails.browser),
+        deviceType: deviceDetails.deviceType,
+        deviceOS: sanitizeDeviceString(deviceDetails.deviceOS),
+        screenResolution: sanitizeDeviceString(deviceDetails.screenResolution),
+      };
+    } catch (error) {
+      console.warn("Failed to process device details:", error);
+    }
+  }
+
   // Common username validation
   const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
   if (!isUsernameAvailable) {
@@ -108,6 +127,7 @@ export default async function handler(body: Record<string, string>) {
   const mergedMetadata = {
     ...(isPrismaObjOrUndefined(existingUser?.metadata) ?? {}),
     ...(utmParams && { utm: utmParams }),
+    ...(processedDeviceDetails && { deviceDetails: processedDeviceDetails }),
   };
 
   const user = await prisma.user.upsert({
@@ -122,14 +142,14 @@ export default async function handler(body: Record<string, string>) {
       },
       emailVerified: new Date(Date.now()),
       identityProvider: IdentityProvider.CAL,
-      ...(utmParams && { metadata: mergedMetadata }),
+      ...(utmParams || processedDeviceDetails ? { metadata: mergedMetadata } : {}),
     },
     create: {
       username: correctedUsername,
       email: userEmail,
       password: { create: { hash, salt } },
       identityProvider: IdentityProvider.CAL,
-      ...(utmParams && { metadata: { utm: utmParams } }),
+      ...(utmParams || processedDeviceDetails ? { metadata: mergedMetadata } : {}),
     },
   });
 

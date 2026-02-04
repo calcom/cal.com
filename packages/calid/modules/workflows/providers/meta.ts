@@ -338,8 +338,6 @@ const getCappedVariables = (
   };
 };
 
-
-
 function formatTimeInTimezone(value: string | Dayjs | undefined | null, timezone: string, format = "h:mma") {
   if (!value) return undefined;
 

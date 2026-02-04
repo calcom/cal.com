@@ -157,9 +157,14 @@ export class BookingRepository {
     return isAdminOrUser;
   }
 
-
   /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
-  async doesUserIdHaveAccessToBookingOrItsCalIdTeam({ userId, bookingId }: { userId: number; bookingId: number }) {
+  async doesUserIdHaveAccessToBookingOrItsCalIdTeam({
+    userId,
+    bookingId,
+  }: {
+    userId: number;
+    bookingId: number;
+  }) {
     const booking = await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,

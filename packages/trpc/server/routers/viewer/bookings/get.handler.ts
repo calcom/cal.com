@@ -215,11 +215,11 @@ function resolveWorkflowStepStatus(
     const parsedScheduledDate = parseUtcTimestamp(workflowReminder.scheduledDate);
     const currentTime = Date.now();
 
-    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
-      return "DELIVERED";
-    }
     if (workflowReminder.cancelled) {
       return "CANCELLED";
+    }
+    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
+      return "DELIVERED";
     }
     if (workflowReminder.scheduled && parsedScheduledDate > currentTime) {
       return "QUEUED";
