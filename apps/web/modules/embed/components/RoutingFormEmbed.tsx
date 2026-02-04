@@ -5,8 +5,8 @@ import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import { tabs } from "./EmbedTabs";
-import { useEmbedTypes } from "../hooks/useEmbedTypes";
+import { tabs } from "@calcom/features/embed/lib/EmbedTabs";
+import { useEmbedTypes } from "@calcom/features/embed/lib/hooks";
 
 export const RoutingFormEmbedDialog = () => {
   const types = useEmbedTypes();
