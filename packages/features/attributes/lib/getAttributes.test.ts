@@ -6,7 +6,12 @@ import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 
-import { getAttributesForTeam, getAttributesAssignmentData, getUsersAttributes } from "./getAttributes";
+import {
+  getAttributesForTeam,
+  getAttributesAssignmentData,
+  getUsersAttributes,
+  extractAttributeIdsFromQueryValue,
+} from "./getAttributes";
 
 // Helper functions to create test data
 async function createMockAttribute({
@@ -476,5 +481,518 @@ describe("getAttributes", () => {
         type: attribute.type,
       });
     });
+  });
+
+  describe("getAttributesAssignmentData with attributeIds filter", () => {
+    it("should return only assignments for specified attributeIds when filter is provided", async () => {
+      const team = await createMockTeam({ orgId });
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      const attr1 = await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+          { id: "dept-sales", value: "Sales", slug: "sales", isGroup: false, contains: [] },
+        ],
+      });
+
+      const attr2 = await createMockAttribute({
+        orgId,
+        id: "attr2",
+        name: "Territory",
+        slug: "territory",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "territory-india", value: "India", slug: "india", isGroup: false, contains: [] },
+          { id: "territory-china", value: "China", slug: "china", isGroup: false, contains: [] },
+        ],
+      });
+
+      const attr3 = await createMockAttribute({
+        orgId,
+        id: "attr3",
+        name: "Level",
+        slug: "level",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "level-senior", value: "Senior", slug: "senior", isGroup: false, contains: [] },
+          { id: "level-junior", value: "Junior", slug: "junior", isGroup: false, contains: [] },
+        ],
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "territory-india",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "level-senior",
+      });
+
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+        attributeIds: ["attr1", "attr2"],
+      });
+
+      expect(attributesOfTheOrg).toHaveLength(2);
+      expect(attributesOfTheOrg.map((a) => a.id).sort()).toEqual(["attr1", "attr2"]);
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0].userId).toBe(user.id);
+      expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toEqual(["attr1", "attr2"]);
+      expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr1).toBeDefined();
+      expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr2).toBeDefined();
+      expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr3).toBeUndefined();
+    });
+
+    it("should return all assignments when attributeIds is undefined", async () => {
+      const team = await createMockTeam({ orgId });
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [{ id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] }],
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "attr2",
+        name: "Territory",
+        slug: "territory",
+        type: AttributeType.SINGLE_SELECT,
+        options: [{ id: "territory-india", value: "India", slug: "india", isGroup: false, contains: [] }],
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "territory-india",
+      });
+
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+      });
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toHaveLength(2);
+    });
+
+    it("should return all assignments when attributeIds is an empty array (backwards compatible)", async () => {
+      const team = await createMockTeam({ orgId });
+      const { orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [{ id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] }],
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+        attributeIds: [],
+      });
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toHaveLength(1);
+    });
+
+    it("should return only matching assignments when some attributeIds do not exist", async () => {
+      const team = await createMockTeam({ orgId });
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [{ id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] }],
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+        attributeIds: ["attr1", "non-existent-attr"],
+      });
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toEqual(["attr1"]);
+    });
+  });
+});
+
+describe("extractAttributeIdsFromQueryValue", () => {
+  it("should return empty array for null queryValue", () => {
+    const result = extractAttributeIdsFromQueryValue(null);
+    expect(result).toEqual([]);
+  });
+
+  it("should return empty array for queryValue with no rules", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {},
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual([]);
+  });
+
+  it("should extract single attribute ID from a single rule", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-123",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual(["attr-123"]);
+  });
+
+  it("should extract multiple attribute IDs from multiple rules", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-123",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+        "rule-2": {
+          type: "rule",
+          properties: {
+            field: "attr-456",
+            operator: "select_equals",
+            value: ["option-2"],
+          },
+        },
+        "rule-3": {
+          type: "rule",
+          properties: {
+            field: "attr-789",
+            operator: "multiselect_some_in",
+            value: [["option-3", "option-4"]],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toHaveLength(3);
+    expect(result).toContain("attr-123");
+    expect(result).toContain("attr-456");
+    expect(result).toContain("attr-789");
+  });
+
+  it("should deduplicate attribute IDs when same attribute is used in multiple rules", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-123",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+        "rule-2": {
+          type: "rule",
+          properties: {
+            field: "attr-123",
+            operator: "select_not_equals",
+            value: ["option-2"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual(["attr-123"]);
+  });
+
+  it("should extract attribute IDs from nested children1 structures", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "group-1": {
+          type: "group",
+          children1: {
+            "rule-1": {
+              type: "rule",
+              properties: {
+                field: "attr-nested-1",
+                operator: "select_equals",
+                value: ["option-1"],
+              },
+            },
+          },
+        },
+        "rule-2": {
+          type: "rule",
+          properties: {
+            field: "attr-top-level",
+            operator: "select_equals",
+            value: ["option-2"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toHaveLength(2);
+    expect(result).toContain("attr-nested-1");
+    expect(result).toContain("attr-top-level");
+  });
+
+  it("should extract attribute IDs from both queryValue and fallbackQueryValue", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-main",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+      },
+    };
+    const fallbackQueryValue = {
+      id: "query-2",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-fallback",
+            operator: "select_equals",
+            value: ["option-2"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue, fallbackQueryValue);
+    expect(result).toHaveLength(2);
+    expect(result).toContain("attr-main");
+    expect(result).toContain("attr-fallback");
+  });
+
+  it("should deduplicate attribute IDs across queryValue and fallbackQueryValue", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-shared",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+      },
+    };
+    const fallbackQueryValue = {
+      id: "query-2",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-shared",
+            operator: "select_equals",
+            value: ["option-2"],
+          },
+        },
+        "rule-2": {
+          type: "rule",
+          properties: {
+            field: "attr-unique",
+            operator: "select_equals",
+            value: ["option-3"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue, fallbackQueryValue);
+    expect(result).toHaveLength(2);
+    expect(result).toContain("attr-shared");
+    expect(result).toContain("attr-unique");
+  });
+
+  it("should handle queryValue with undefined children1", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual([]);
+  });
+
+  it("should handle rules without properties", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual([]);
+  });
+
+  it("should handle rules with non-string field values", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: 123,
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+        "rule-2": {
+          type: "rule",
+          properties: {
+            field: "valid-attr",
+            operator: "select_equals",
+            value: ["option-2"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual(["valid-attr"]);
+  });
+
+  it("should handle switch_group type queryValue", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "switch_group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-switch",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual(["attr-switch"]);
+  });
+
+  it("should handle deeply nested group structures", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "group-1": {
+          type: "group",
+          children1: {
+            "group-2": {
+              type: "group",
+              children1: {
+                "rule-1": {
+                  type: "rule",
+                  properties: {
+                    field: "attr-deep",
+                    operator: "select_equals",
+                    value: ["option-1"],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue);
+    expect(result).toEqual(["attr-deep"]);
+  });
+
+  it("should handle null fallbackQueryValue", () => {
+    const queryValue = {
+      id: "query-1",
+      type: "group" as const,
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-main",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+      },
+    };
+    const result = extractAttributeIdsFromQueryValue(queryValue, null);
+    expect(result).toEqual(["attr-main"]);
   });
 });
