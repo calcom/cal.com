@@ -445,8 +445,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     if (this.configService.get("enableAsyncTasker")) {
       if (fromReschedule) {
         this.platformBillingTasker.rescheduleUsageIncrement({
-          payload: { bookingUid: uid },
-          options: { delay: startTime },
+          payload: { bookingUid: uid, rescheduledTime: startTime },
         });
         return true;
       }

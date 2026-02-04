@@ -1,12 +1,17 @@
-import type { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import {
+  buildActorEmail,
+  getUniqueIdentifier,
+  makeGuestActor,
+  makeUserActor,
+} from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -23,8 +28,8 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
@@ -36,22 +41,21 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
-import type { WorkflowMethods } from "@calcom/prisma/enums";
-import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import { v4 as uuidv4 } from "uuid";
+import type { z } from "zod";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
 import type {
-  CancelRegularBookingData,
   CancelBookingMeta,
+  CancelRegularBookingData,
   HandleCancelBookingResponse,
 } from "./dto/BookingCancel";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -59,13 +63,6 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import {
-  buildActorEmail,
-  getUniqueIdentifier,
-  makeGuestActor,
-  makeUserActor,
-} from "@calcom/features/booking-audit/lib/makeActor";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -218,7 +215,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   }
 
   const isCancellationUserHost =
-    bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
+    bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
 
   if (
     !platformClientId &&
@@ -385,12 +382,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-      team: {
-        name: bookingToDelete?.eventType?.team?.name || "Nameless",
-        members: teamMembers,
-        id: teamId,
-      },
-    }),
+        team: {
+          name: bookingToDelete?.eventType?.team?.name || "Nameless",
+          members: teamMembers,
+          id: teamId,
+        },
+      }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -399,6 +396,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
+    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
     organizationId: ownerProfile?.organizationId ?? null,
@@ -423,6 +421,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
       message: "Attendee successfully removed.",
+      isPlatformManagedUserBooking: bookingToDelete.user.isPlatformManaged,
     } satisfies HandleCancelBookingResponse;
 
   const promises = webhooks.map((webhook) =>
@@ -698,6 +697,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     onlyRemovedAttendee: false,
     bookingId: bookingToDelete.id,
     bookingUid: bookingToDelete.uid,
+    isPlatformManagedUserBooking: bookingToDelete.user.isPlatformManaged,
   } satisfies HandleCancelBookingResponse;
 }
 

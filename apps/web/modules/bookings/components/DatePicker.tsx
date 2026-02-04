@@ -10,7 +10,7 @@ import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
-import { useSlotsViewOnSmallScreen } from "@calcom/features/bookings/Booker/components/hooks/useSlotsViewOnSmallScreen";
+import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
 
 import type { Slots } from "@calcom/features/bookings/types";
 

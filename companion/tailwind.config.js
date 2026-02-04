@@ -2,7 +2,7 @@
 module.exports = {
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
-  darkMode: "class",
+  darkMode: "media",
   theme: {
     extend: {
       colors: {
@@ -42,18 +42,29 @@ module.exports = {
         cal: {
           text: {
             DEFAULT: "#333333",
+            dark: "#FFFFFF",
             secondary: "#666666",
+            secondaryDark: "#A3A3A3",
             muted: "#8E8E93",
+            mutedDark: "#A3A3A3",
             emphasis: "#3C3F44",
           },
           bg: {
             DEFAULT: "#FFFFFF",
+            dark: "#000000",
             secondary: "#F8F9FA",
+            secondaryDark: "#171717",
             muted: "#F2F2F7",
+            mutedDark: "#262626",
+            emphasis: "#E5E5EA",
+            emphasisDark: "#404040",
           },
           border: {
             DEFAULT: "#E5E5EA",
+            dark: "#4D4D4D",
             light: "#C6C6C8",
+            subtle: "#D1D5DB",
+            subtleDark: "#262626",
           },
           accent: {
             DEFAULT: "#007AFF",
@@ -61,6 +72,7 @@ module.exports = {
             warning: "#FF9500",
             error: "#FF3B30",
             destructive: "#800020",
+            destructiveDark: "#FF453A",
           },
           brand: {
             DEFAULT: "#292929",
