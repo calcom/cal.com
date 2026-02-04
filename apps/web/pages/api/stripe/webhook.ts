@@ -7,7 +7,6 @@ import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calc
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import stripe from "./server";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
@@ -21,6 +20,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+
+import stripe from "./server";
 
 const webhookLogger = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -75,7 +76,7 @@ class StripeWebhookProcessor {
     }
 
     const bookingContext = await getBooking(record.bookingId);
-    
+
     if (!bookingContext.user) {
       throw new UserNotFoundError();
     }
@@ -90,7 +91,7 @@ class StripeWebhookProcessor {
   ) {
     const { booking, user, evt, eventType } = context;
     const parsedMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
-    
+
     const credentials = await getAllCredentialsIncludeServiceAccountKey(user, {
       ...booking.eventType,
       metadata: parsedMetadata,
@@ -130,7 +131,7 @@ class StripeWebhookProcessor {
 
     const repo = new PlatformOAuthClientRepository();
     const client = await repo.getByUserId(userId);
-    
+
     return {
       client,
       calendarEventsEnabled: client?.areCalendarEventsEnabled ?? true,
@@ -191,7 +192,7 @@ class StripeWebhookProcessor {
       await this.sendApprovalNotifications(platformConfig.emailsEnabled, evt, eventMetadata);
       return;
     }
-    
+
     await this.confirmBooking(userWithCredentials, evt, booking, platformConfig.client);
   }
 
@@ -245,7 +246,7 @@ class StripeWebhookValidator {
 
 async function parseStripeWebhookEvent(req: NextApiRequest): Promise<Stripe.Event> {
   const validator = new StripeWebhookValidator();
-  
+
   validator.validateHttpMethod(req.method);
   const sig = validator.validateSignature(req.headers["stripe-signature"]);
   const secret = validator.validateWebhookSecret(process.env.STRIPE_WEBHOOK_SECRET);
@@ -293,7 +294,7 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const parsedEvent = await parseStripeWebhookEvent(req);
-    
+
     const validator = new StripeWebhookValidator();
     validator.validateEventAccount(!!parsedEvent.account, !!process.env.NEXT_PUBLIC_IS_E2E);
 
@@ -303,7 +304,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err) {
     const error = getErrorFromUnknown(err);
     console.error(`Webhook Error: ${error.message}`);
-    
+
     res.status(error.statusCode ?? 500).send({
       message: error.message,
       stack: IS_PRODUCTION ? undefined : error.stack,

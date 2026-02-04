@@ -23,6 +23,7 @@ export interface TriggerBookingEmailsOptions {
   curAttendee?: Person;
   emailType: "scheduled" | "request" | "rescheduled" | "cancelled";
   firstAttendee?: Person;
+  hasConfirmationSmsWorkflow: boolean;
 }
 
 /**

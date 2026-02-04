@@ -148,7 +148,8 @@ export async function handlePaymentSuccess(
         undefined,
         undefined,
         eventType.metadata,
-        existingPayment.bookingSeat?.attendee
+        existingPayment.bookingSeat?.attendee,
+        false
       );
     } catch (e) {
       log.error(`Error sending scheduled emails/SMS for bookingId ${booking.id}: ${e}`);

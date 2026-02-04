@@ -27,6 +27,7 @@ export interface SendBookingEmailsPayload {
   };
   emailType: "scheduled" | "request" | "rescheduled" | "cancelled";
   firstAttendee?: Omit<Person, "language"> & { language: { locale: string } };
+  hasRelevantSmsWorkflow?: boolean;
 }
 
 /**
@@ -51,6 +52,7 @@ export default async function sendBookingEmailsHandler({
     curAttendee,
     emailType,
     firstAttendee,
+    hasRelevantSmsWorkflow = false,
   } = event.data;
 
   return await step.run("send-booking-emails", async () => {
@@ -119,17 +121,19 @@ export default async function sendBookingEmailsHandler({
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
           eventTypeMetadata,
-          curAttendee as Person | undefined
+          curAttendee as Person | undefined,
+          hasRelevantSmsWorkflow
         );
       } else if (emailType === "rescheduled") {
         // Send rescheduled emails for rescheduled bookings
-        await sendRescheduledEmailsAndSMS(calEvent, eventTypeMetadata);
+        await sendRescheduledEmailsAndSMS(calEvent, eventTypeMetadata, hasRelevantSmsWorkflow);
       } else if (emailType === "cancelled") {
         // Send cancelled emails for cancelled bookings
         await sendCancelledEmailsAndSMS(
           calEvent,
           eventNameObject ? { eventName: eventNameObject.eventName } : { eventName: undefined },
-          eventTypeMetadata
+          eventTypeMetadata,
+          hasRelevantSmsWorkflow
         );
       } else {
         // Send request emails for pending bookings
@@ -145,7 +149,12 @@ export default async function sendBookingEmailsHandler({
           };
 
           await sendOrganizerRequestEmail(calEvent, eventTypeMetadata);
-          await sendAttendeeRequestEmailAndSMS(calEvent, attendeeWithTranslate, eventTypeMetadata);
+          await sendAttendeeRequestEmailAndSMS(
+            calEvent,
+            attendeeWithTranslate,
+            eventTypeMetadata,
+            hasRelevantSmsWorkflow
+          );
         } else {
           throw new NonRetriableError("firstAttendee is required for request emails");
         }
