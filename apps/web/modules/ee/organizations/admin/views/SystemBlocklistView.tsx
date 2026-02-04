@@ -26,8 +26,8 @@ import {
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { BulkDeleteBlocklistEntries } from "./blocklist/BulkDeleteBlocklistEntries";
-import { BulkDismissReports } from "./blocklist/BulkDismissReports";
+import { BulkDeleteBlocklistEntries } from "../components/BulkDeleteBlocklistEntries";
+import { BulkDismissReports } from "../components/BulkDismissReports";
 
 type ViewType = "blocked" | "pending";
 
