@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="76" failures="7" errors="0" time="25.523">
+  <testsuite name="Bookings Endpoints 2024-08-13" errors="0" failures="7" skipped="1" timestamp="2026-02-04T14:15:31" time="25.161" tests="76">
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings should be defined" name="Bookings Endpoints 2024-08-13 User bookings should be defined" time="0.004">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create bookings invalid metadata should not be able to create a booking with metadata with more than 50 keys" name="Bookings Endpoints 2024-08-13 User bookings create bookings invalid metadata should not be able to create a booking with metadata with more than 50 keys" time="0.056">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create bookings invalid metadata should not be able to create a booking with metadata with a key longer than 40 characters" name="Bookings Endpoints 2024-08-13 User bookings create bookings invalid metadata should not be able to create a booking with metadata with a key longer than 40 characters" time="0.013">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create bookings invalid metadata should not be able to create a booking with metadata with a value longer than 500 characters" name="Bookings Endpoints 2024-08-13 User bookings create bookings invalid metadata should not be able to create a booking with metadata with a value longer than 500 characters" time="0.01">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create bookings should create a booking" name="Bookings Endpoints 2024-08-13 User bookings create bookings should create a booking" time="0.193">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create bookings should create a recurring booking" name="Bookings Endpoints 2024-08-13 User bookings create bookings should create a recurring booking" time="0.278">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get individual booking should get a booking" name="Bookings Endpoints 2024-08-13 User bookings get individual booking should get a booking" time="0.017">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get individual booking should get a booking with rating" name="Bookings Endpoints 2024-08-13 User bookings get individual booking should get a booking with rating" time="0.011">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get individual booking should get a booking with icsUid" name="Bookings Endpoints 2024-08-13 User bookings get individual booking should get a booking with icsUid" time="0.021">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get individual booking should get 1 recurrence of a recurring booking" name="Bookings Endpoints 2024-08-13 User bookings get individual booking should get 1 recurrence of a recurring booking" time="0.011">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get individual booking should get all recurrences of the recurring bookings" name="Bookings Endpoints 2024-08-13 User bookings get individual booking should get all recurrences of the recurring bookings" time="0.024">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get all bookings" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get all bookings" time="0.04">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should take bookings" name="Bookings Endpoints 2024-08-13 User bookings get bookings should take bookings" time="0.028">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should skip bookings" name="Bookings Endpoints 2024-08-13 User bookings get bookings should skip bookings" time="0.022">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get upcoming bookings" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get upcoming bookings" time="0.023">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get past bookings" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get past bookings" time="0.02">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get upcoming and past bookings" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get upcoming and past bookings" time="0.028">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get recurring booking recurrences" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get recurring booking recurrences" time="0.024">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by attendee email" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by attendee email" time="0.028">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by attendee name" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by attendee name" time="0.023">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by eventTypeId" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by eventTypeId" time="0.026">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by eventTypeIds" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by eventTypeIds" time="0.027">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by after specified start time" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by after specified start time" time="0.021">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 2
+Received: 1
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1071:33
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by before specified end time" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings by before specified end time" time="0.02">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings after specified update time" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings after specified update time" time="0.021">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 2
+Received: 0
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1107:33
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings before specified update time" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings before specified update time" time="0.02">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 3
+Received: 5
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1125:33
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings in update range" name="Bookings Endpoints 2024-08-13 User bookings get bookings should get bookings in update range" time="0.015">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 3
+Received: 0
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1145:33
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings createdAt filter should get bookings after specified createdAt time" name="Bookings Endpoints 2024-08-13 User bookings get bookings createdAt filter should get bookings after specified createdAt time" time="0.015">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 2
+Received: 0
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1164:35
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings createdAt filter should get bookings before specified createdAt time" name="Bookings Endpoints 2024-08-13 User bookings get bookings createdAt filter should get bookings before specified createdAt time" time="0.025">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 3
+Received: 5
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1182:35
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings createdAt filter should get bookings in createdAt range" name="Bookings Endpoints 2024-08-13 User bookings get bookings createdAt filter should get bookings in createdAt range" time="0.017">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+Expected: 2
+Received: 0
+    at /Users/lauris/src/cal.com/apps/api/v2/src/ee/bookings/2024-08-13/controllers/e2e/user-bookings.e2e-spec.ts:1202:35
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by start in descending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by start in descending order" time="0.021">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by start in ascending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by start in ascending order" time="0.023">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by end in descending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by end in descending order" time="0.02">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by end in ascending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by end in ascending order" time="0.028">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by created in descending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by created in descending order" time="0.022">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by created in ascending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by created in ascending order" time="0.024">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by updated in descending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by updated in descending order" time="0.026">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by updated in ascending order" name="Bookings Endpoints 2024-08-13 User bookings get bookings should sort bookings by updated in ascending order" time="0.024">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings cant&apos;t reschedule cancelled or rescheduled booking booking should not be able to reschedule cancelled booking" name="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings cant&apos;t reschedule cancelled or rescheduled booking booking should not be able to reschedule cancelled booking" time="0.038">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings cant&apos;t reschedule cancelled or rescheduled booking booking should not be able to reschedule rescheduled booking" name="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings cant&apos;t reschedule cancelled or rescheduled booking booking should not be able to reschedule rescheduled booking" time="0.052">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings recurring booking should reschedule recurrence of a recurring booking" name="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings recurring booking should reschedule recurrence of a recurring booking" time="0.116">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings recurring booking should get recurring booking recurrences after rescheduling one" name="Bookings Endpoints 2024-08-13 User bookings rescheduling bookings recurring booking should get recurring booking recurrences after rescheduling one" time="0.021">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings mark absent should mark host absent" name="Bookings Endpoints 2024-08-13 User bookings mark absent should mark host absent" time="0.021">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings mark absent should mark attendee absent" name="Bookings Endpoints 2024-08-13 User bookings mark absent should mark attendee absent" time="0.048">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings cancel bookings should cancel booking" name="Bookings Endpoints 2024-08-13 User bookings cancel bookings should cancel booking" time="0.154">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings cancel bookings should cancel recurring booking" name="Bookings Endpoints 2024-08-13 User bookings cancel bookings should cancel recurring booking" time="0.41">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings who cancelled and rescheduled a booking should return who cancelled a booking" name="Bookings Endpoints 2024-08-13 User bookings who cancelled and rescheduled a booking should return who cancelled a booking" time="0.026">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings who cancelled and rescheduled a booking should return who rescheduled a booking" name="Bookings Endpoints 2024-08-13 User bookings who cancelled and rescheduled a booking should return who rescheduled a booking" time="0.018">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings who cancelled and rescheduled a booking should return who rescheduled the booking, in the new booking" name="Bookings Endpoints 2024-08-13 User bookings who cancelled and rescheduled a booking should return who rescheduled the booking, in the new booking" time="0.026">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings book by username and event type slug should not create a booking by if neither event type id nor username and event type slug provided" name="Bookings Endpoints 2024-08-13 User bookings book by username and event type slug should not create a booking by if neither event type id nor username and event type slug provided" time="0.007">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings book by username and event type slug should create a booking by username and event type slug" name="Bookings Endpoints 2024-08-13 User bookings book by username and event type slug should create a booking by username and event type slug" time="0.115">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can create event type with all locations except google meet" name="Bookings Endpoints 2024-08-13 User bookings booking location can create event type with all locations except google meet" time="0.118">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with cal video location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with cal video location" time="1.234">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with address location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with address location" time="0.162">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with link location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with link location" time="0.115">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with link location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with link location" time="0.1">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with attendeeAddress location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with attendeeAddress location" time="0.098">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with attendeeAddress location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with attendeeAddress location" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can book with attendeeDefined location" name="Bookings Endpoints 2024-08-13 User bookings booking location can book with attendeeDefined location" time="0.083">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can&apos;t book with not location that is not in event type" name="Bookings Endpoints 2024-08-13 User bookings booking location can&apos;t book with not location that is not in event type" time="0.014">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings booking location can&apos;t book with invalid location type" name="Bookings Endpoints 2024-08-13 User bookings booking location can&apos;t book with invalid location type" time="0.013">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create booking with attendee sms reminder should not be able create a booking if attendee sms reminder is missing" name="Bookings Endpoints 2024-08-13 User bookings create booking with attendee sms reminder should not be able create a booking if attendee sms reminder is missing" time="0.014">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings create booking with attendee sms reminder should be able create a booking if attendee sms reminder is provided" name="Bookings Endpoints 2024-08-13 User bookings create booking with attendee sms reminder should be able create a booking if attendee sms reminder is provided" time="0.675">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings cant&apos;t cancel already cancelled booking should not be able to cancel alraedy cancelled booking" name="Bookings Endpoints 2024-08-13 User bookings cant&apos;t cancel already cancelled booking should not be able to cancel alraedy cancelled booking" time="0.05">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings cancellation reason and cancelled by returned if null in database should return cancellation reason and cancelled by if null in database" name="Bookings Endpoints 2024-08-13 User bookings cancellation reason and cancelled by returned if null in database should return cancellation reason and cancelled by if null in database" time="0.059">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled should create calendar event when booking normal event" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled should create calendar event when booking normal event" time="0.16">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled should create calendar events when booking recurring event" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled should create calendar events when booking recurring event" time="0.301">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled event type requires confirmation should not create calendar event when booking event that requires confirmation" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled event type requires confirmation should not create calendar event when booking event that requires confirmation" time="0.137">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled event type requires confirmation should create calendar event when confirming event that requires confirmation" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events enabled event type requires confirmation should create calendar event when confirming event that requires confirmation" time="0.07">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled should not create calendar event when booking" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled should not create calendar event when booking" time="0.089">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled should not create calendar events when booking recurring event" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled should not create calendar events when booking recurring event" time="0.28">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type requires confirmation should not create calendar event when booking event that requires confirmation" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type requires confirmation should not create calendar event when booking event that requires confirmation" time="0.118">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type requires confirmation should not create calendar event when confirming event that requires confirmation" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type requires confirmation should not create calendar event when confirming event that requires confirmation" time="0.126">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type with max bookings count per booker should not allow booking more than maximumActiveBookings per attendee" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type with max bookings count per booker should not allow booking more than maximumActiveBookings per attendee" time="0.251">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type with max bookings count per booker should not allow booking more than maximumActiveBookings per attendee and offer rescheduling" name="Bookings Endpoints 2024-08-13 User bookings calendar events platform oAuth client has calendar events disabled event type with max bookings count per booker should not allow booking more than maximumActiveBookings per attendee and offer rescheduling" time="0.142">
+    </testcase>
+    <testcase classname="Bookings Endpoints 2024-08-13 User bookings Meeting sessions should get cal video sessions for a booking" name="Bookings Endpoints 2024-08-13 User bookings Meeting sessions should get cal video sessions for a booking" time="0.02">
+    </testcase>
+  </testsuite>
+</testsuites>
