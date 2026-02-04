@@ -772,7 +772,7 @@ const Route = ({
     route.action?.type === RouteActionType.EventTypeRedirectUrl &&
     (route.action?.eventTypeId || route.action?.value);
 
-  const fallbackAttributesQueryBuilder =
+  const matchingMembersFallbackRoute =
     hasValidEventTypeSelected && isTeamForm ? (
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
@@ -937,7 +937,7 @@ const Route = ({
               eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
               setRoute={setRoute}
             />
-            {fallbackAttributesQueryBuilder ? <>{fallbackAttributesQueryBuilder}</> : null}
+            {matchingMembersFallbackRoute ? <>{matchingMembersFallbackRoute}</> : null}
           </div>
         </div>
       </div>
