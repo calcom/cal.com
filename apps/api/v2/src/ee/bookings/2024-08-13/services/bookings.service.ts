@@ -473,7 +473,8 @@ export class BookingsService_2024_08_13 {
     });
     const ids = bookings.map((booking) => booking.id || 0);
     const outputBookings = await this.outputService.getOutputRecurringBookings(ids);
-    const isPlatformManagedUserBooking = bookings[0]?.user?.isPlatformManaged ?? false;
+    const isPlatformManagedUserBooking =
+      (bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged) ?? false;
     return outputBookings.map((outputBooking) =>
       Object.assign(outputBooking, { isPlatformManagedUserBooking })
     );
@@ -504,7 +505,8 @@ export class BookingsService_2024_08_13 {
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
       userIsEventTypeAdminOrOwner
     );
-    const isPlatformManagedUserBooking = bookings[0]?.user?.isPlatformManaged ?? false;
+    const isPlatformManagedUserBooking =
+      (bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged) ?? false;
     return outputBookings.map((outputBooking) =>
       Object.assign(outputBooking, { isPlatformManagedUserBooking })
     );
@@ -540,9 +542,14 @@ export class BookingsService_2024_08_13 {
     }
 
     const outputBooking = await this.outputService.getOutputBooking(databaseBooking);
-    return Object.assign(outputBooking, {
-      isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-    });
+    return Object.assign(
+      outputBooking,
+      booking.userId
+        ? {
+            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+          }
+        : {}
+    );
   }
 
   async createSeatedBooking(
@@ -582,9 +589,14 @@ export class BookingsService_2024_08_13 {
         booking.seatReferenceUid || "",
         userIsEventTypeAdminOrOwner
       );
-      return Object.assign(outputBooking, {
-        isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-      });
+      return Object.assign(
+        outputBooking,
+        booking.userId
+          ? {
+              isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+            }
+          : {}
+      );
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "booking_seats_full_error") {
@@ -836,7 +848,7 @@ export class BookingsService_2024_08_13 {
           : false;
       const isRecurring = !!databaseBooking.recurringEventId;
       const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
-      const isPlatformManagedUserBooking = booking.user?.isPlatformManaged ?? false;
+      const isPlatformManagedUserBooking = (booking.userId && booking.user?.isPlatformManaged) ?? false;
 
       if (isRecurring && !isSeated) {
         const outputBooking = await this.outputService.getOutputRecurringBooking(databaseBooking);
