@@ -2,37 +2,37 @@ import { z } from "zod";
 
 /**
  * Helper to create schemas that accept nullish values but always output string.
- * Input:  string | null | undefined
- * Output: string (empty string if nullish)
- *
- * This ensures TypeScript correctly infers both input and output types.
+ * Used for tracking IDs that may be null/undefined in the database.
  */
 const nullishString = () =>
   z
     .union([z.string(), z.null(), z.undefined()])
     .transform((val): string => (typeof val === "string" ? val.trim() : ""));
 
-// URL schema: accepts nullish, outputs string, validates http/https
-export const safeUrlSchema = nullishString().refine(
-  (val) => {
-    if (!val) return true;
-    try {
-      const url = new URL(val);
-      return url.protocol === "http:" || url.protocol === "https:";
-    } catch {
-      return false;
-    }
-  },
-  { message: "Invalid URL format. Must be a valid http or https URL" }
-);
+// URL schema: string input, validates http/https (kept as original to maintain type compatibility)
+export const safeUrlSchema = z
+  .string()
+  .transform((val) => val.trim())
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const url = new URL(val);
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Invalid URL format. Must be a valid http or https URL" }
+  );
 
-// Alphanumeric ID schema (letters, numbers, underscores, hyphens)
+// Alphanumeric ID schema - accepts nullish for tracking IDs
 export const alphanumericIdSchema = nullishString().refine(
   (val) => !val || /^[A-Za-z0-9_-]+$/.test(val),
   { message: "Invalid ID format. Expected alphanumeric characters, underscores, or hyphens" }
 );
 
-// Numeric ID schema (digits only)
+// Numeric ID schema - accepts nullish for tracking IDs
 export const numericIdSchema = nullishString().refine(
   (val) => !val || /^[0-9]+$/.test(val),
   { message: "Invalid ID format. Expected a numeric ID" }
