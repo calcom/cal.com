@@ -271,9 +271,9 @@ const WeightedAttributesSelector = ({
 
       attributesWithWeightsEnabled = attributes
         ? attributes.filter(
-            (attribute) =>
-              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
-          )
+          (attribute) =>
+            attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+        )
         : [];
     }
   }
@@ -348,9 +348,9 @@ type RouteActionSelectorProps = {
   onEventTypeChange?: (action: LocalRoute["action"]) => void;
   eventTypeOptions: { label: string; value: string; eventTypeId: number }[];
   selectedEventTypeOption:
-    | { label: string; value: string; eventTypeId: number }
-    | { label: string; value: "custom"; eventTypeId: 0 }
-    | undefined;
+  | { label: string; value: string; eventTypeId: number }
+  | { label: string; value: "custom"; eventTypeId: 0 }
+  | undefined;
   disabled?: boolean;
   className?: string;
   showCustomEventTypeInput?: boolean;
@@ -462,10 +462,10 @@ const RouteActionSelector = ({
               value={selectedEventTypeOption}
             />
             {showCustomEventTypeInput &&
-            eventTypeOptions.length !== 0 &&
-            action.value !== "" &&
-            (!eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
-              customEventTypeSlug.length) ? (
+              eventTypeOptions.length !== 0 &&
+              action.value !== "" &&
+              (!eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
+                customEventTypeSlug.length) ? (
               <>
                 <TextField
                   disabled={disabled}
@@ -487,8 +487,8 @@ const RouteActionSelector = ({
                   <p className="text-subtle text-xs">
                     {fieldIdentifiers.length
                       ? t("field_identifiers_as_variables_with_example", {
-                          variable: `{${fieldIdentifiers[0]}}`,
-                        })
+                        variable: `{${fieldIdentifiers[0]}}`,
+                      })
                       : t("field_identifiers_as_variables")}
                   </p>
                 </div>
@@ -665,20 +665,20 @@ const Route = ({
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
       ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
-          eventOptions
-        )
+        eventOptions
+      )
       : [];
 
   const eventTypeRedirectUrlSelectedOption =
     eventOptions.length !== 0 && route.action.value !== ""
       ? eventOptions.find(
-          (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
-        ) || {
-          label: t("custom"),
-          value: "custom",
-          eventTypeId: 0,
-          isRRWeightsEnabled: false,
-        }
+        (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
+      ) || {
+        label: t("custom"),
+        value: "custom",
+        eventTypeId: 0,
+        isRRWeightsEnabled: false,
+      }
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
@@ -709,18 +709,18 @@ const Route = ({
 
   const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
     ? withRaqbSettingsAndWidgets({
-        config: attributesQueryBuilderConfig,
-        configFor: ConfigFor.Attributes,
-      })
+      config: attributesQueryBuilderConfig,
+      configFor: ConfigFor.Attributes,
+    })
     : null;
 
   const attributesQueryBuilder =
     // team member attributes are only available for organization teams
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
-      <div className="mt-4">
+      <div>
         {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
-        "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+          "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
           <div className="mt-4 px-2.5">
             <DynamicAppComponent
               componentMap={routingFormAppComponents}
@@ -733,7 +733,7 @@ const Route = ({
         ) : null}
 
         <div
-          className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2"
+          className="cal-query-builder-container mt-4"
           data-testid="attributes-query-builder">
           <div className="ml-2 flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
@@ -782,12 +782,6 @@ const Route = ({
           <span className="text-emphasis ml-2 text-sm font-medium">{t("fallback_action")}</span>
         </div>
         <div className="bg-cal-muted mt-2 rounded-xl p-2">
-          <div className="mb-2 ml-2 flex items-center gap-0.5">
-            <div className="border-subtle rounded-lg border p-1">
-              <Icon name="arrow-right" className="text-subtle h-4 w-4" />
-            </div>
-            <span className="text-emphasis ml-2 text-sm font-medium">{t("send_booker_to")}</span>
-          </div>
           <RouteActionSelector
             action={route.fallbackAction}
             onActionChange={(newAction) => setRoute(route.id, { fallbackAction: newAction })}
@@ -797,32 +791,34 @@ const Route = ({
             t={t}
           />
         </div>
-        {route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl &&
-          route.fallbackAttributesQueryBuilderState &&
-          attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
-            <div className="mt-2">
-              <div className="ml-2 flex items-center gap-0.5">
-                <div className="border-subtle rounded-lg border p-1">
-                  <Icon name="user-check" className="text-subtle h-4 w-4" />
+        <div className="mt-4">
+          {route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl &&
+            route.fallbackAttributesQueryBuilderState &&
+            attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+              <div>
+                <div className="ml-2 flex items-center gap-0.5">
+                  <div className="border-subtle rounded-lg border p-1">
+                    <Icon name="user-check" className="text-subtle h-4 w-4" />
+                  </div>
+                  <span className="text-emphasis ml-2 text-sm font-medium">
+                    And connect with specific team members
+                  </span>
                 </div>
-                <span className="text-emphasis ml-2 text-sm font-medium">
-                  And connect with specific team members
-                </span>
+                <Query
+                  {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+                  value={route.fallbackAttributesQueryBuilderState.tree}
+                  onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                    onChangeFallbackTeamMembersQuery(
+                      route,
+                      immutableTree,
+                      attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                    );
+                  }}
+                  renderBuilder={renderBuilder}
+                />
               </div>
-              <Query
-                {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
-                value={route.fallbackAttributesQueryBuilderState.tree}
-                onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                  onChangeFallbackTeamMembersQuery(
-                    route,
-                    immutableTree,
-                    attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                  );
-                }}
-                renderBuilder={renderBuilder}
-              />
-            </div>
-          )}
+            )}
+        </div>
       </div>
     ) : null;
 
@@ -842,12 +838,12 @@ const Route = ({
         route.isFallback
           ? null
           : {
-              check: () => routes.length !== 1,
-              fn: () => {
-                const newRoutes = routes.filter((r) => r.id !== route.id);
-                setRoutes(newRoutes);
-              },
-            }
+            check: () => routes.length !== 1,
+            fn: () => {
+              const newRoutes = routes.filter((r) => r.id !== route.id);
+              setRoutes(newRoutes);
+            },
+          }
       }>
       <div
         className={classNames(
@@ -871,10 +867,10 @@ const Route = ({
                       ? route.fallbackAction
                       : newAction.type === RouteActionType.EventTypeRedirectUrl
                         ? {
-                            type: newAction.type,
-                            value: newAction.value,
-                            eventTypeId: newAction.eventTypeId,
-                          }
+                          type: newAction.type,
+                          value: newAction.value,
+                          eventTypeId: newAction.eventTypeId,
+                        }
                         : undefined;
                   setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                   setCustomEventTypeSlug("");
@@ -911,10 +907,10 @@ const Route = ({
                           ? route.fallbackAction
                           : newAction.type === RouteActionType.EventTypeRedirectUrl
                             ? {
-                                type: newAction.type,
-                                value: newAction.value,
-                                eventTypeId: newAction.eventTypeId,
-                              }
+                              type: newAction.type,
+                              value: newAction.value,
+                              eventTypeId: newAction.eventTypeId,
+                            }
                             : undefined;
                       setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                       setCustomEventTypeSlug("");
@@ -930,10 +926,11 @@ const Route = ({
                     t={t}
                   />
                 </div>
+                {attributesQueryBuilder}
               </div>
             )}
 
-            {attributesQueryBuilder}
+
             <WeightedAttributesSelector
               attributes={attributes}
               route={route}
@@ -950,14 +947,14 @@ const Route = ({
 
 const buildState = <
   T extends
-    | {
-        queryValue: FormFieldsQueryValue;
-        config: FormFieldsQueryBuilderConfigWithRaqbFields;
-      }
-    | {
-        queryValue: AttributesQueryValue;
-        config: AttributesQueryBuilderConfigWithRaqbFields;
-      }
+  | {
+    queryValue: FormFieldsQueryValue;
+    config: FormFieldsQueryBuilderConfigWithRaqbFields;
+  }
+  | {
+    queryValue: AttributesQueryValue;
+    config: AttributesQueryBuilderConfigWithRaqbFields;
+  }
 >({
   queryValue,
   config,
@@ -978,17 +975,17 @@ const deserializeRoute = ({
   const attributesQueryBuilderState =
     route.attributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
-          queryValue: route.attributesQueryValue,
-          config: attributesQueryBuilderConfig,
-        })
+        queryValue: route.attributesQueryValue,
+        config: attributesQueryBuilderConfig,
+      })
       : null;
 
   const fallbackAttributesQueryBuilderState =
     route.fallbackAttributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
-          queryValue: route.fallbackAttributesQueryValue,
-          config: attributesQueryBuilderConfig,
-        })
+        queryValue: route.fallbackAttributesQueryValue,
+        config: attributesQueryBuilderConfig,
+      })
       : null;
 
   return {
@@ -1077,10 +1074,10 @@ function useRoutes({
           route.fallbackAction ??
           (route.action?.type === RouteActionType.EventTypeRedirectUrl
             ? {
-                type: route.action.type,
-                value: route.action.value,
-                eventTypeId: route.action.eventTypeId,
-              }
+              type: route.action.type,
+              value: route.action.value,
+              eventTypeId: route.action.eventTypeId,
+            }
             : undefined);
         return {
           id: route.id,
@@ -1119,10 +1116,10 @@ const useCreateRoute = ({
     const fallbackAction =
       newEmptyRoute.action?.type === RouteActionType.EventTypeRedirectUrl
         ? {
-            type: newEmptyRoute.action.type,
-            value: newEmptyRoute.action.value,
-            eventTypeId: newEmptyRoute.action.eventTypeId,
-          }
+          type: newEmptyRoute.action.type,
+          value: newEmptyRoute.action.value,
+          eventTypeId: newEmptyRoute.action.eventTypeId,
+        }
         : undefined;
     const newRoutes = [
       ...routes,
@@ -1136,16 +1133,16 @@ const useCreateRoute = ({
         attributesQueryBuilderState:
           attributesQueryBuilderConfig && newEmptyRoute.attributesQueryValue
             ? buildState({
-                queryValue: newEmptyRoute.attributesQueryValue,
-                config: attributesQueryBuilderConfig,
-              })
+              queryValue: newEmptyRoute.attributesQueryValue,
+              config: attributesQueryBuilderConfig,
+            })
             : null,
         fallbackAttributesQueryBuilderState:
           attributesQueryBuilderConfig && newEmptyRoute.fallbackAttributesQueryValue
             ? buildState({
-                queryValue: newEmptyRoute.fallbackAttributesQueryValue,
-                config: attributesQueryBuilderConfig,
-              })
+              queryValue: newEmptyRoute.fallbackAttributesQueryValue,
+              config: attributesQueryBuilderConfig,
+            })
             : null,
       },
     ];
@@ -1174,9 +1171,9 @@ const Routes = ({
   const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
-        attributes: attributes,
-        dynamicOperandFields: hookForm.getValues().fields,
-      })
+      attributes: attributes,
+      dynamicOperandFields: hookForm.getValues().fields,
+    })
     : null;
 
   const { routes, setRoutes } = useRoutes({
