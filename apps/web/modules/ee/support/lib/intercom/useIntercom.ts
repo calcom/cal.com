@@ -35,6 +35,8 @@ export const useIntercom = () => {
         skipBatch: true,
       },
     },
+    // Only fetch stats when Intercom is enabled to avoid unnecessary API calls
+    enabled: isInterComEnabled,
   });
   const { hasPaidPlan, plan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
@@ -131,7 +133,7 @@ export const useIntercom = () => {
     });
     hookData.show();
   };
-  return { ...hookData, open, boot };
+  return { ...hookData, open, boot, statsData };
 };
 
 declare global {
@@ -146,17 +148,11 @@ declare global {
 export const useBootIntercom = () => {
   const { hasPaidPlan } = useHasPaidPlan();
   const flagMap = useFlagMap();
-  const { boot, open, update } = useIntercom();
+  // statsData is now returned from useIntercom to avoid duplicate API calls
+  const { boot, open, update, statsData } = useIntercom();
 
   const { data: user } = trpc.viewer.me.get.useQuery();
   const isTieredSupportEnabled = flagMap["tiered-support-chat"];
-  const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
-    trpc: {
-      context: {
-        skipBatch: true,
-      },
-    },
-  });
   useEffect(() => {
     // not using useMediaQuery as it toggles between true and false
     const showIntercom = localStorage.getItem("showIntercom");
