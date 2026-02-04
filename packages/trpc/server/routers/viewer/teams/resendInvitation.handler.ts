@@ -27,7 +27,7 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     isOrg: input.isOrg,
   });
 
-  let verificationToken;
+  let verificationToken: Awaited<ReturnType<typeof VerificationTokenRepository.updateTeamInviteTokenExpirationDate>> | undefined;
 
   try {
     verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({

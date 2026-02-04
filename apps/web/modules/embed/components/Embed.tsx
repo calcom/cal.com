@@ -22,9 +22,9 @@ import {
   useEvent,
   useScheduleForEvent,
 } from "@calcom/features/bookings/Booker/utils/event";
-import DatePicker from "@calcom/features/calendars/DatePicker";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
@@ -53,7 +53,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
@@ -228,7 +228,9 @@ const ChooseEmbedTypesDialogContent = ({
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
-        <h3 className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none" id="modal-title">
+        <h3
+          className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none"
+          id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
@@ -864,6 +866,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     useState(true);
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
+    useSlotsViewOnSmallScreen: "true" as const,
   };
 
   const paletteDefaultValue = (paletteName: string) => {

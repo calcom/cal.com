@@ -177,3 +177,7 @@
     @apply border-border outline-ring/50;
   }
 }
+
+.backdrop-blur-sm {
+  @apply backdrop-blur-none bg-neutral-800/70;
+}

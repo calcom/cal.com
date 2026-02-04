@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export type TInstantBookingInputSchema = {
-  bookingId: number;
+  bookingUid: string;
 };
 
 export const ZInstantBookingInputSchema: z.ZodType<TInstantBookingInputSchema> = z.object({
-  bookingId: z.number(),
+  bookingUid: z.string(),
 });

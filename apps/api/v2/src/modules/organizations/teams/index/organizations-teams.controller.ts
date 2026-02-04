@@ -1,9 +1,29 @@
+import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { OrgTeamOutputDto, SkipTakePagination } from "@calcom/platform-types";
+import type { Team } from "@calcom/prisma/client";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -25,26 +45,6 @@ import {
 } from "@/modules/organizations/teams/index/outputs/organization-team.output";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  Req,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-
-import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { OrgTeamOutputDto, SkipTakePagination } from "@calcom/platform-types";
-import type { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams",
@@ -121,6 +121,7 @@ export class OrganizationsTeamsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/:teamId")
+  @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "org_teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
   async deleteTeam(
     @Param("orgId", ParseIntPipe) orgId: number,

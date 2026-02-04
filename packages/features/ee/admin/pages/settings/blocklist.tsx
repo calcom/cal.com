@@ -9,12 +9,20 @@ import {
   CreateBlocklistEntryModal,
   PendingReportsBadge,
   PendingReportsTable,
+  type SortByOption,
 } from "@calcom/features/blocklist";
 import { DataTableProvider, useDataTable } from "@calcom/features/data-table";
 import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -29,6 +37,7 @@ function SystemBlocklistContent() {
   const [activeView, setActiveView] = useState<ViewType>("blocked");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortByOption>("createdAt");
 
   const utils = trpc.useUtils();
 
@@ -44,6 +53,7 @@ function SystemBlocklistContent() {
         limit,
         offset,
         searchTerm,
+        sortBy,
         systemFilters: { systemStatus: ["PENDING"] },
       },
       { placeholderData: keepPreviousData, enabled: activeView === "pending" }
@@ -128,6 +138,33 @@ function SystemBlocklistContent() {
             ]}
           />
           <DataTableToolbar.SearchBar />
+          {activeView === "pending" && (
+            <Dropdown modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" color="secondary" EndIcon="chevron-down">
+                  {sortBy === "reportCount" ? t("most_reports") : t("most_recent")}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    onClick={() => setSortBy("createdAt")}
+                    className={sortBy === "createdAt" ? "font-medium" : ""}>
+                    {t("most_recent")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    onClick={() => setSortBy("reportCount")}
+                    className={sortBy === "reportCount" ? "font-medium" : ""}>
+                    {t("most_reports")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </Dropdown>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {activeView === "blocked" && (
@@ -171,11 +208,11 @@ function SystemBlocklistContent() {
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
           limit={limit}
-          onAddToBlocklist={(reportIds, type, onSuccess) =>
-            addToWatchlist.mutate({ reportIds, type }, { onSuccess })
+          onAddToBlocklist={(email, type, onSuccess) =>
+            addToWatchlist.mutate({ email, type }, { onSuccess })
           }
-          onDismiss={(reportId, onSuccess) =>
-            dismissReport.mutate({ reportId }, { onSuccess })
+          onDismiss={(email, onSuccess) =>
+            dismissReport.mutate({ email }, { onSuccess })
           }
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}

@@ -17,11 +17,14 @@ export function ShellMainAppDir(props: LayoutProps) {
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
           {props.heading && (
             <header
-              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              className={classNames(
+                props.large && "py-8",
+                "flex w-full max-w-full items-center flex-wrap md:flex-nowrap gap-2 md:gap-0"
+              )}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
                 className={classNames(
-                  "hidden w-full truncate ltr:mr-4 rtl:ml-4 md:block",
+                  "hidden min-w-0 flex-1 ltr:mr-4 rtl:ml-4 md:block",
                   props.headerClassName
                 )}>
                 {props.heading && (
