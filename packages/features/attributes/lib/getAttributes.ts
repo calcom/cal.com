@@ -85,21 +85,12 @@ async function _findMembershipsForBothOrgAndTeam({
 
 function _prepareAssignmentData({
   assignmentsForTheTeam,
-  attributesOfTheOrg,
+  lookupMaps,
 }: {
   assignmentsForTheTeam: AssignmentForTheTeam[];
-  attributesOfTheOrg: Attribute[];
+  lookupMaps: AttributeLookupMaps;
 }) {
-  // Build lookup maps for O(1) access instead of O(n) linear scans
-  const attributeIdToOptions = new Map<string, Attribute["options"]>();
-  const optionIdToOption = new Map<string, Attribute["options"][number]>();
-
-  for (const attribute of attributesOfTheOrg) {
-    attributeIdToOptions.set(attribute.id, attribute.options);
-    for (const option of attribute.options) {
-      optionIdToOption.set(option.id, option);
-    }
-  }
+  const { optionIdToOption, attributeIdToOptions } = lookupMaps;
 
   const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce(
     (acc, attributeToUser) => {
@@ -214,15 +205,17 @@ function _buildAttributeLookupMaps(attributesOfTheOrg: FullAttribute[]) {
     AttributeOptionId,
     FullAttribute["options"][number]
   >();
+  const attributeIdToOptions = new Map<string, FullAttribute["options"]>();
 
   for (const attribute of attributesOfTheOrg) {
+    attributeIdToOptions.set(attribute.id, attribute.options);
     for (const option of attribute.options) {
       optionIdToAttribute.set(option.id, attribute);
       optionIdToOption.set(option.id, option);
     }
   }
 
-  return { optionIdToAttribute, optionIdToOption };
+  return { optionIdToAttribute, optionIdToOption, attributeIdToOptions };
 }
 
 type AttributeLookupMaps = ReturnType<typeof _buildAttributeLookupMaps>;
@@ -392,14 +385,12 @@ async function getAttributesAssignedToMembersOfTeam({
 function _buildAssignmentsForTeam({
   attributesToUsersForTeam,
   orgMembershipToUserIdForTeamMembers,
-  attributesOfTheOrg,
+  lookupMaps,
 }: {
   attributesToUsersForTeam: AttributeToUser[];
   orgMembershipToUserIdForTeamMembers: Map<OrgMembershipId, UserId>;
-  attributesOfTheOrg: FullAttribute[];
+  lookupMaps: AttributeLookupMaps;
 }) {
-  const lookupMaps = _buildAttributeLookupMaps(attributesOfTheOrg);
-
   return attributesToUsersForTeam
     .map((attributeToUser) => {
       const orgMembershipId = attributeToUser.memberId;
@@ -456,15 +447,17 @@ export async function getAttributesAssignmentData({
     teamId,
   });
 
+  const lookupMaps = _buildAttributeLookupMaps(attributesOfTheOrg);
+
   const assignmentsForTheTeam = _buildAssignmentsForTeam({
     attributesToUsersForTeam,
     orgMembershipToUserIdForTeamMembers,
-    attributesOfTheOrg,
+    lookupMaps,
   });
 
   const attributesAssignedToTeamMembersWithOptions = _prepareAssignmentData({
-    attributesOfTheOrg,
     assignmentsForTheTeam,
+    lookupMaps,
   });
 
   return {
