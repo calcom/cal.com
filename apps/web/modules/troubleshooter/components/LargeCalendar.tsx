@@ -1,15 +1,13 @@
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
-import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
-
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
+import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { timezone } = useTimePreferences();
@@ -38,7 +36,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
 
   const isTeamEvent = !!event?.teamId;
   const { data: schedule } = useSchedule({
-    username: session?.user.username || "",
+    username: session?.user.orgAwareUsername || "",
     // For team events, don't pass eventSlug to avoid slug lookup issues - use eventId instead
     eventSlug: isTeamEvent ? null : event?.slug,
     eventId: event?.id,

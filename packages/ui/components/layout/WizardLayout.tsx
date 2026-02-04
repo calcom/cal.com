@@ -46,7 +46,7 @@ export function WizardLayout({
               <header>
                 {isLocaleReady ? (
                   <>
-                    <p className="font-heading mb-3 text-[28px] leading-7">
+                    <p className="font-cal mb-3 text-[28px] font-medium leading-7">
                       {title.replace(` | ${APP_NAME}`, "")}&nbsp;
                     </p>
                     <p className="text-subtle font-sans text-sm font-normal">{subtitle}&nbsp;</p>

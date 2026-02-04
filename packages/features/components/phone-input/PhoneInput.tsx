@@ -14,6 +14,7 @@ import classNames from "@calcom/ui/classNames";
 const CUSTOM_PHONE_MASKS = {
   ci: ".. .. .. .. ..",
   bj: ".. .. .. .. ..",
+  at: "... ..........",
 };
 
 export type PhoneInputProps = {
@@ -80,7 +81,7 @@ function BasePhoneInput({
         autoComplete: "tel",
       }}
       onChange={(val: string) => {
-        onChange(`+${val}`);
+        onChange(val.startsWith("+") ? val : `+${val}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -132,7 +133,7 @@ function BasePhoneInputWeb({
         autoComplete: "tel",
       }}
       onChange={(val: string) => {
-        onChange(`+${val}`);
+        onChange(val.startsWith("+") ? val : `+${val}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis focus-within:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-0 focus-within:ring-brand-default disabled:cursor-not-allowed",

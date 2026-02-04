@@ -331,13 +331,15 @@ const createMissingOptionsAndReturnAlongWithExisting = async <
     ),
   });
 
-  await PrismaAttributeOptionRepository.createMany({
+  const attributeOptionRepository = new PrismaAttributeOptionRepository(prisma);
+
+  await attributeOptionRepository.createMany({
     createManyInput: attributeOptionCreateManyInput,
   });
 
   // We need fetch all the attribute options to ensure that we have the newly created options as well.
   const allAttributeOptions = (
-    await PrismaAttributeOptionRepository.findMany({
+    await attributeOptionRepository.findMany({
       orgId,
     })
   ).map((attributeOption) => ({

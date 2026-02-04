@@ -9,6 +9,7 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
+import appConfig from "../config.json";
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";
 
 export const config = {
@@ -113,7 +114,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const traceContext = distributedTracing.createTrace("hitpay_webhook", {
       meta: { paymentId: payment.id, bookingId: payment.bookingId },
     });
-    return await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+    return await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: appConfig.slug,
+      traceContext,
+    });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);

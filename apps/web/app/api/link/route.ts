@@ -8,6 +8,7 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import { TRPCError } from "@trpc/server";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -90,6 +91,8 @@ async function handler(request: NextRequest) {
               platformBookingUrl,
             }
           : undefined,
+        actionSource: "MAGIC_LINK",
+        actor: makeUserActor(user.uuid),
       },
     });
   } catch (e) {

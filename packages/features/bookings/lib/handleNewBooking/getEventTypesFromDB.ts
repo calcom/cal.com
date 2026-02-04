@@ -127,6 +127,7 @@ const getEventTypesFromDBSelect = {
       timeZone: true,
     },
   },
+  enablePerHostLocations: true,
   hosts: {
     select: {
       isFixed: true,
@@ -134,6 +135,16 @@ const getEventTypesFromDBSelect = {
       weight: true,
       createdAt: true,
       groupId: true,
+      location: {
+        select: {
+          id: true,
+          type: true,
+          credentialId: true,
+          link: true,
+          address: true,
+          phoneNumber: true,
+        },
+      },
       user: {
         select: {
           credentials: {

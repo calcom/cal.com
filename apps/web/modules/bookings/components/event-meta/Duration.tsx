@@ -93,6 +93,13 @@ export const EventDuration = ({
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
+  const hideDurationSelector = event?.metadata?.hideDurationSelectorInBookingPage;
+
+  // When duration selector is hidden, show only the selected/default duration as text
+  // URL params can still set the duration, but the user cannot change it via UI
+  if (hideDurationSelector) {
+    return <>{getDurationFormatted(selectedDuration || event.length, t)}</>;
+  }
 
   return selectedDuration ? (
     <div className="border-default relative mr-5 flex flex-row items-center justify-between rounded-md border">

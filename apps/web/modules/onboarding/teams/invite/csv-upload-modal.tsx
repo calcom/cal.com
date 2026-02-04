@@ -179,7 +179,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
           </div>
 
           <div className="mb-2 flex flex-col gap-2 text-center">
-            <h2 className="font-heading text-emphasis text-2xl leading-none">{t("upload_csv_file")}</h2>
+            <h2 className="font-cal text-emphasis text-2xl leading-none">{t("upload_csv_file")}</h2>
             <p className="text-default text-sm leading-normal">{t("upload_csv_description")}</p>
           </div>
 

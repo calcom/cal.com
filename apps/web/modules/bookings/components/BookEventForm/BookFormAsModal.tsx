@@ -12,7 +12,7 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { getDurationFormatted } from "../event-meta/Duration";
 import { FromTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { useEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
   const { data } = useEvent();
@@ -53,7 +53,7 @@ export const BookEventFormWrapperComponent = ({
   }
   return (
     <>
-      <h1 className="font-heading text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
+      <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
       <div className="my-4 flex flex-wrap gap-2 rounded-md leading-none">
         <Badge variant="grayWithoutHover" startIcon="calendar" size="lg">
           <FromTime

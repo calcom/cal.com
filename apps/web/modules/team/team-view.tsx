@@ -69,12 +69,13 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
-            <Link
-              href={{
-                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                query: queryParamsToForward,
-              }}
-              onClick={async () => {
+              <Link
+                prefetch={false}
+                href={{
+                  pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                  query: queryParamsToForward,
+                }}
+                onClick={async () => {
                 sdkActionManager?.fire("eventTypeSelected", {
                   eventType: type,
                 });
@@ -106,7 +107,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           ).length;
           return (
             <li key={i} className="hover:bg-cal-muted w-full rounded-md transition">
-              <Link href={`/${ch.slug}`} className="flex items-center justify-between">
+              <Link prefetch={false} href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
                     <span className="text-default text-sm font-bold">{ch.name}</span>
@@ -132,7 +133,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
       <div className="stack-y-6" data-testid="event-types">
         <div className="overflow-hidden rounded-sm border dark:border-gray-900">
           <div className="text-muted p-8 text-center">
-            <h2 className="font-heading text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
+            <h2 className="font-cal text-emphasis mb-2 text-3xl">{` ${t("org_no_teams_yet")}`}</h2>
             <p className="text-emphasis mx-auto max-w-md">{t("org_no_teams_yet_description")}</p>
           </div>
         </div>
@@ -148,12 +149,13 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           <div className="relative">
             <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
           </div>
-          <p className="font-heading text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
+          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
             {teamName}
           </p>
           {!isBioEmpty && (
             <>
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
               <div
                 className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}

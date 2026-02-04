@@ -40,6 +40,8 @@ const mockSelectedCalendar: SelectedCalendar = {
   channelResourceUri: "test-resource-uri",
   channelExpiration: new Date(Date.now() + 86400000),
   syncSubscribedAt: new Date(),
+  syncSubscribedErrorAt: null,
+  syncSubscribedErrorCount: 0,
   syncToken: "test-sync-token",
   syncedAt: new Date(),
   syncErrorAt: null,
@@ -115,22 +117,46 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        teamIds: [1, 2, 3],
+        featureIds: ["calendar-subscription-cache"],
         integrations: ["google_calendar", "office365_calendar"],
       });
 
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: ["google_calendar", "office365_calendar"] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
-                teamId: { in: [1, 2, 3] },
                 accepted: true,
+                team: {
+                  features: {
+                    some: {
+                      featureId: { in: ["calendar-subscription-cache"] },
+                      enabled: true,
+                    },
+                  },
+                },
               },
             },
           },
+          AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
+          ],
         },
         take: 10,
       });
@@ -144,22 +170,46 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 5,
-        teamIds: [10, 20],
+        featureIds: ["calendar-subscription-cache"],
         integrations: [],
       });
 
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: [] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
-                teamId: { in: [10, 20] },
                 accepted: true,
+                team: {
+                  features: {
+                    some: {
+                      featureId: { in: ["calendar-subscription-cache"] },
+                      enabled: true,
+                    },
+                  },
+                },
               },
             },
           },
+          AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
+          ],
         },
         take: 5,
       });
@@ -167,28 +217,57 @@ describe("SelectedCalendarRepository", () => {
       expect(result).toEqual(mockCalendars);
     });
 
-    test("should handle empty teamIds array", async () => {
-      const mockCalendars: SelectedCalendar[] = [];
+    test("should filter out generic calendars when genericCalendarSuffixes is provided", async () => {
+      const mockCalendars = [mockSelectedCalendar];
       vi.mocked(mockPrismaClient.selectedCalendar.findMany).mockResolvedValue(mockCalendars);
+
+      const genericSuffixes = ["@group.v.calendar.google.com", "@group.calendar.google.com"];
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        teamIds: [],
+        featureIds: ["calendar-subscription-cache"],
         integrations: ["google_calendar"],
+        genericCalendarSuffixes: genericSuffixes,
       });
 
       expect(mockPrismaClient.selectedCalendar.findMany).toHaveBeenCalledWith({
         where: {
           integration: { in: ["google_calendar"] },
-          OR: [{ syncSubscribedAt: null }, { channelExpiration: { lte: expect.any(Date) } }],
           user: {
             teams: {
               some: {
-                teamId: { in: [] },
                 accepted: true,
+                team: {
+                  features: {
+                    some: {
+                      featureId: { in: ["calendar-subscription-cache"] },
+                      enabled: true,
+                    },
+                  },
+                },
               },
             },
           },
+          AND: [
+            {
+              OR: [
+                { syncSubscribedAt: null },
+                { channelExpiration: null },
+                { channelExpiration: { lte: expect.any(Date) } },
+              ],
+            },
+            {
+              OR: [
+                { syncSubscribedErrorAt: null },
+                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
+              ],
+            },
+            {
+              syncSubscribedErrorCount: { lt: 3 },
+            },
+            { NOT: { externalId: { endsWith: "@group.v.calendar.google.com" } } },
+            { NOT: { externalId: { endsWith: "@group.calendar.google.com" } } },
+          ],
         },
         take: 10,
       });

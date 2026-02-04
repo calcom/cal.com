@@ -13,6 +13,7 @@ type CredentialCreateInput = {
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
+  encryptedKey?: string | null;
 };
 
 type CredentialUpdateInput = {
@@ -25,27 +26,38 @@ type CredentialUpdateInput = {
 };
 
 export class CredentialRepository {
-  constructor(private primaClient: PrismaClient) { }
+  constructor(private prismaClient: PrismaClient) {}
 
   async findByCredentialId(id: number) {
-    return this.primaClient.credential.findUnique({
+    return this.prismaClient.credential.findUnique({
       where: { id },
       select: safeCredentialSelect,
     });
   }
 
   async findByIdWithDelegationCredential(id: number) {
-    return this.primaClient.credential.findUnique({
+    return this.prismaClient.credential.findUnique({
       where: { id },
-      select: { ...credentialForCalendarServiceSelect, delegationCredential: true },
+      select: {
+        ...credentialForCalendarServiceSelect,
+        delegationCredential: true,
+      },
     });
   }
 
   static async create(data: CredentialCreateInput) {
-    const credential = await prisma.credential.create({ data: { ...data } });
+    const credential = await prisma.credential.create({
+      data,
+    });
     return buildNonDelegationCredential(credential);
   }
-  static async findByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
+  static async findByAppIdAndUserId({
+    appId,
+    userId,
+  }: {
+    appId: string;
+    userId: number;
+  }) {
     const credential = await prisma.credential.findFirst({
       where: {
         appId,
@@ -59,7 +71,10 @@ export class CredentialRepository {
    * Doesn't retrieve key field as that has credentials
    */
   static async findFirstByIdWithUser({ id }: { id: number }) {
-    const credential = await prisma.credential.findUnique({ where: { id }, select: safeCredentialSelect });
+    const credential = await prisma.credential.findUnique({
+      where: { id },
+      select: safeCredentialSelect,
+    });
     return buildNonDelegationCredential(credential);
   }
 
@@ -69,12 +84,18 @@ export class CredentialRepository {
   static async findFirstByIdWithKeyAndUser({ id }: { id: number }) {
     const credential = await prisma.credential.findUnique({
       where: { id },
-      select: { ...safeCredentialSelect, key: true },
+      select: { ...safeCredentialSelect, key: true, encryptedKey: true },
     });
     return buildNonDelegationCredential(credential);
   }
 
-  static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
+  static async findFirstByAppIdAndUserId({
+    appId,
+    userId,
+  }: {
+    appId: string;
+    userId: number;
+  }) {
     return await prisma.credential.findFirst({
       where: {
         appId,
@@ -83,8 +104,16 @@ export class CredentialRepository {
     });
   }
 
-  static async findFirstByUserIdAndType({ userId, type }: { userId: number; type: string }) {
-    const credential = await prisma.credential.findFirst({ where: { userId, type } });
+  static async findFirstByUserIdAndType({
+    userId,
+    type,
+  }: {
+    userId: number;
+    type: string;
+  }) {
+    const credential = await prisma.credential.findFirst({
+      where: { userId, type },
+    });
     return buildNonDelegationCredential(credential);
   }
 
@@ -92,7 +121,13 @@ export class CredentialRepository {
     await prisma.credential.delete({ where: { id } });
   }
 
-  static async updateCredentialById({ id, data }: { id: number; data: CredentialUpdateInput }) {
+  static async updateCredentialById({
+    id,
+    data,
+  }: {
+    id: number;
+    data: CredentialUpdateInput;
+  }) {
     await prisma.credential.update({
       where: { id },
       data,
@@ -123,7 +158,10 @@ export class CredentialRepository {
   static async findByIdIncludeDelegationCredential({ id }: { id: number }) {
     const dbCredential = await prisma.credential.findUnique({
       where: { id },
-      select: { ...credentialForCalendarServiceSelect, delegationCredential: true },
+      select: {
+        ...credentialForCalendarServiceSelect,
+        delegationCredential: true,
+      },
     });
 
     return dbCredential;
@@ -152,7 +190,13 @@ export class CredentialRepository {
     });
   }
 
-  static async findAllDelegationByTypeIncludeUserAndTake({ type, take }: { type: string; take: number }) {
+  static async findAllDelegationByTypeIncludeUserAndTake({
+    type,
+    take,
+  }: {
+    type: string;
+    take: number;
+  }) {
     const delegationUserCredentials = await prisma.credential.findMany({
       where: {
         delegationCredentialId: { not: null },
@@ -168,14 +212,16 @@ export class CredentialRepository {
       },
       take,
     });
-    return delegationUserCredentials.map(({ delegationCredentialId, ...rest }) => {
-      return {
-        ...rest,
-        // We queried only those where delegationCredentialId is not null
+    return delegationUserCredentials.map(
+      ({ delegationCredentialId, ...rest }) => {
+        return {
+          ...rest,
+          // We queried only those where delegationCredentialId is not null
 
-        delegationCredentialId: delegationCredentialId!,
-      };
-    });
+          delegationCredentialId: delegationCredentialId!,
+        };
+      }
+    );
   }
 
   static async findUniqueByUserIdAndDelegationCredentialId({
@@ -195,10 +241,13 @@ export class CredentialRepository {
     if (delegationUserCredentials.length > 1) {
       // Instead of crashing use the first one and log for observability
       // TODO: Plan to add a unique constraint on userId and delegationCredentialId
-      log.error(`DelegationCredential: Multiple delegation user credentials found - this should not happen`, {
-        userId,
-        delegationCredentialId,
-      });
+      log.error(
+        `DelegationCredential: Multiple delegation user credentials found - this should not happen`,
+        {
+          userId,
+          delegationCredentialId,
+        }
+      );
     }
 
     return delegationUserCredentials[0];
@@ -230,17 +279,27 @@ export class CredentialRepository {
     type,
     key,
     appId,
+    encryptedKey,
   }: {
     userId: number;
     delegationCredentialId: string;
     type: string;
     key: Prisma.InputJsonValue;
     appId: string;
+    encryptedKey?: string | null;
   }) {
-    return prisma.credential.create({ data: { userId, delegationCredentialId, type, key, appId } });
+    return prisma.credential.create({
+      data: { userId, delegationCredentialId, type, key, appId, ...(encryptedKey && { encryptedKey }) },
+    });
   }
 
-  static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
+  static async updateWhereId({
+    id,
+    data,
+  }: {
+    id: number;
+    data: { key: Prisma.InputJsonValue };
+  }) {
     return prisma.credential.update({ where: { id }, data });
   }
 
@@ -299,5 +358,93 @@ export class CredentialRepository {
         app: true,
       },
     });
+  }
+
+  findByTeamIdAndSlugs({ teamId, slugs }: { teamId: number; slugs: string[] }) {
+    return this.prismaClient.credential.findMany({
+      where: {
+        teamId,
+        appId: {
+          in: slugs,
+        },
+      },
+      select: { ...safeCredentialSelect, team: { select: { name: true } } },
+    });
+  }
+
+  findByIdAndTeamId({ id, teamId }: { id: number; teamId: number }) {
+    return this.prismaClient.credential.findFirst({
+      where: {
+        id,
+        teamId,
+      },
+      select: {
+        ...safeCredentialSelect,
+        app: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findByAppIdAndKeyValue({
+    appId,
+    keyPath,
+    value,
+    keyFields,
+  }: {
+    appId: string;
+    keyPath: string[];
+    value: Prisma.InputJsonValue;
+    keyFields?: string[];
+  }) {
+    const credential = await this.prismaClient.credential.findFirst({
+      where: {
+        appId,
+        key: {
+          path: keyPath,
+          equals: value,
+        },
+      },
+      select: {
+        ...safeCredentialSelect,
+        integrationAttributeSyncs: {
+          select: {
+            id: true,
+            attributeSyncRule: {
+              select: {
+                id: true,
+                rule: true,
+              },
+            },
+            syncFieldMappings: {
+              select: {
+                id: true,
+                integrationFieldName: true,
+                attributeId: true,
+                enabled: true,
+              },
+            },
+          },
+        },
+        key: keyFields ? true : false,
+      },
+    });
+
+    if (!credential || !keyFields) {
+      return credential;
+    }
+
+    const key = credential.key as Record<string, unknown>;
+    const filteredKey = keyFields.reduce((acc, field) => {
+      if (field in key) {
+        acc[field] = key[field];
+      }
+      return acc;
+    }, {} as Record<string, unknown>);
+
+    return { ...credential, key: filteredKey };
   }
 }

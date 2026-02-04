@@ -4,12 +4,13 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { DatePickerClassNames } from "@calcom/features/bookings/Booker/types";
-import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
+import { DatePicker as DatePickerComponent } from "@calcom/features/calendars/components/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
+import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
 
 import type { Slots } from "@calcom/features/bookings/types";
 
@@ -32,8 +33,8 @@ const useMoveToNextMonthOnNoAvailability = ({
     };
   }
 
-  const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
-    dayjs(date).isSame(browsingDate, "month")
+  const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter(
+    (date) => dayjs(date).isSame(browsingDate, "month")
   );
 
   const moveToNextMonthOnNoAvailability = () => {
@@ -41,7 +42,10 @@ const useMoveToNextMonthOnNoAvailability = ({
     const browsingMonth = browsingDate.format("YYYY-MM");
     // Not meeting the criteria to move to next month
     // Has to be currentMonth and it must have all days unbookable
-    if (currentMonth != browsingMonth || nonEmptyScheduleDaysInBrowsingMonth.length) {
+    if (
+      currentMonth != browsingMonth ||
+      nonEmptyScheduleDaysInBrowsingMonth.length
+    ) {
       return;
     }
     onMonthChange(browsingDate.add(1, "month"));
@@ -58,6 +62,7 @@ export const DatePicker = ({
   classNames,
   scrollToTimeSlots,
   showNoAvailabilityDialog,
+  onDateChange,
 }: {
   event: {
     data?: {
@@ -74,6 +79,7 @@ export const DatePicker = ({
   classNames?: DatePickerClassNames;
   scrollToTimeSlots?: () => void;
   showNoAvailabilityDialog?: boolean;
+  onDateChange?: () => void;
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate, layout] = useBookerStoreContext(
@@ -86,21 +92,26 @@ export const DatePicker = ({
     shallow
   );
 
+  const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
+
   const onMonthChange = (date: Dayjs) => {
     setMonth(date.format("YYYY-MM"));
-    setSelectedDate({ date: date.format("YYYY-MM-DD") });
+    if (!slotsViewOnSmallScreen) {
+      setSelectedDate({ date: date.format("YYYY-MM-DD") });
+    }
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
-  const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
-    browsingDate,
-    nonEmptyScheduleDays,
-    onMonthChange,
-    isLoading: isLoading ?? true,
-  });
+  const { moveToNextMonthOnNoAvailability } =
+    useMoveToNextMonthOnNoAvailability({
+      browsingDate,
+      nonEmptyScheduleDays,
+      onMonthChange,
+      isLoading: isLoading ?? true,
+    });
   moveToNextMonthOnNoAvailability();
 
   // Determine if this is a compact sidebar view based on layout
@@ -134,11 +145,19 @@ export const DatePicker = ({
       className={classNames?.datePickerContainer}
       isLoading={isLoading}
       onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
+        const newDate = date === null ? null : date.format("YYYY-MM-DD");
+        const previousDate = selectedDate;
+        const dateChanged = newDate !== previousDate;
+
         setSelectedDate({
-          date: date === null ? date : date.format("YYYY-MM-DD"),
+          date: date === null ? null : date.format("YYYY-MM-DD"),
           omitUpdatingParams,
           preventMonthSwitching: !isCompact, // Prevent month switching when in monthly view
         });
+
+        if (dateChanged) {
+          onDateChange?.();
+        }
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}

@@ -746,7 +746,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
       );
     });
 
-    // if booking is rescheduled by booker, old organizer should recieve reassigned emails
+    // if booking is rescheduled by booker, old organizer should receive reassigned emails
     if (bookerReschedule) {
       vi.waitFor(() => {
         expect(emails).toHaveEmail(

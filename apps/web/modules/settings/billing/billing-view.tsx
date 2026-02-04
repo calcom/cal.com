@@ -1,14 +1,17 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 import BillingCredits from "~/settings/billing/components/BillingCredits";
+import { InvoicesTable } from "~/settings/billing/components/InvoicesTable";
 
 interface CtaRowProps {
   title: string;
@@ -45,6 +48,8 @@ const BillingView = () => {
   const session = useSession();
   const { t } = useLocale();
   const returnTo = pathname;
+  const [showSkipTrialDialog, setShowSkipTrialDialog] = useState(false);
+  const utils = trpc.useUtils();
 
   // Determine the billing context and extract appropriate team/org ID
   const getTeamIdFromContext = () => {
@@ -64,6 +69,27 @@ const BillingView = () => {
   };
 
   const teamId = getTeamIdFromContext();
+  const teamIdNumber = teamId ? parseInt(teamId, 10) : null;
+
+  const { data: subscriptionStatus, isLoading: isLoadingStatus } =
+    trpc.viewer.teams.getSubscriptionStatus.useQuery(
+      { teamId: teamIdNumber ?? 0 },
+      { enabled: !!teamIdNumber }
+    );
+
+  const skipTrialMutation = trpc.viewer.teams.skipTrialForTeam.useMutation({
+    onSuccess: () => {
+      showToast(t("trial_skipped_successfully"), "success");
+      setShowSkipTrialDialog(false);
+      // Invalidate the subscription status cache to hide the skip trial button
+      if (teamIdNumber) {
+        utils.viewer.teams.getSubscriptionStatus.invalidate({ teamId: teamIdNumber });
+      }
+    },
+    onError: (error) => {
+      showToast(error.message || t("error_skipping_trial"), "error");
+    },
+  });
 
   const billingHref = teamId
     ? `/api/integrations/stripepayment/portal?teamId=${teamId}&returnTo=${WEBAPP_URL}${returnTo}`
@@ -74,6 +100,14 @@ const BillingView = () => {
       window.Support.open();
     }
   };
+
+  const handleSkipTrial = () => {
+    if (teamIdNumber) {
+      skipTrialMutation.mutate({ teamId: teamIdNumber });
+    }
+  };
+
+  const isTrialing = subscriptionStatus?.isTrialing && teamIdNumber;
 
   return (
     <>
@@ -89,6 +123,21 @@ const BillingView = () => {
             {t("billing_portal")}
           </Button>
         </div>
+        {isTrialing && (
+          <div className="bg-default border-muted mt-1 flex rounded-[10px] border px-5 py-4">
+            <div className="flex w-full flex-col gap-1">
+              <h3 className="text-emphasis text-sm font-semibold leading-none">{t("skip_trial")}</h3>
+              <p className="text-subtle text-sm font-medium leading-tight">{t("skip_trial_description")}</p>
+            </div>
+            <Button
+              color="secondary"
+              size="sm"
+              onClick={() => setShowSkipTrialDialog(true)}
+              loading={isLoadingStatus}>
+              {t("skip_trial")}
+            </Button>
+          </div>
+        )}
         <div className="flex items-center justify-between px-4 py-5">
           <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
           <Button color="secondary" size="sm" onClick={onContactSupportClick}>
@@ -97,6 +146,22 @@ const BillingView = () => {
         </div>
       </div>
       <BillingCredits />
+      <InvoicesTable />
+
+      <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
+        <DialogContent>
+          <DialogHeader title={t("skip_trial_confirmation_title")} />
+          <p className="text-subtle text-sm">{t("skip_trial_confirmation_description")}</p>
+          <DialogFooter>
+            <Button color="minimal" onClick={() => setShowSkipTrialDialog(false)}>
+              {t("cancel")}
+            </Button>
+            <Button color="primary" onClick={handleSkipTrial} loading={skipTrialMutation.isPending}>
+              {t("skip_trial")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

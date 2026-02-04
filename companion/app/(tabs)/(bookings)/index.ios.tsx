@@ -2,6 +2,7 @@ import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-s
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { useState } from "react";
+import { useColorScheme } from "react-native";
 
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { useEventTypes } from "@/hooks";
@@ -21,6 +22,10 @@ export default function Bookings() {
       setSelectedEventTypeId(null);
     }
   );
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const textColor = isDark ? "#FFFFFF" : "#000000";
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -62,7 +67,7 @@ export default function Bookings() {
       label: currentFilterOption?.label || "Filter",
       labelStyle: {
         fontWeight: "600",
-        color: "#007AFF",
+        color: textColor,
       },
       menu: {
         title: "Filter by Status",
@@ -123,7 +128,7 @@ export default function Bookings() {
       },
       labelStyle: {
         fontWeight: "600",
-        color: "#007AFF",
+        color: textColor,
       },
       menu: {
         title: menuItems.length > 0 ? "Filter by Event Type" : "No Event Types",
@@ -149,7 +154,7 @@ export default function Bookings() {
       <Stack.Screen
         options={{
           title: "Bookings",
-          headerBlurEffect: isLiquidGlassAvailable() ? undefined : "light",
+          headerBlurEffect: isLiquidGlassAvailable() ? undefined : isDark ? "dark" : "light",
           headerStyle: {
             backgroundColor: "transparent",
           },
@@ -158,7 +163,7 @@ export default function Bookings() {
             placeholder: "Search bookings",
             onChangeText: (e) => handleSearch(e.nativeEvent.text),
             obscureBackground: false,
-            barTintColor: "#fff",
+            barTintColor: isDark ? "#171717" : "#fff",
           },
           unstable_headerRightItems: () => {
             const eventTypeFilterMenu = buildEventTypeFilterMenu();

@@ -9,6 +9,7 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { EmailWorkflowService } from "./EmailWorkflowService";
@@ -32,6 +33,20 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("@calcom/emails/lib/generateIcsString", () => ({
   default: vi.fn().mockReturnValue("mock-ics-content"),
+}));
+
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
+  return {
+    ...actual,
+    WEBAPP_URL: "https://cal.com",
+    APP_NAME: "Cal.com",
+  };
+});
+
+vi.mock("short-uuid", () => ({
+  __esModule: true,
+  default: () => ({ fromUUID: (uid: string) => uid }),
 }));
 
 const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findByIdIncludeStepAndWorkflow"> = {
@@ -580,6 +595,111 @@ describe("EmailWorkflowService", () => {
       });
 
       expect(result.attachments).toBeUndefined();
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Cal Video meeting URL", () => {
+    const mockBookingInfoWithCalVideo = {
+      uid: "booking-cal-video-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting with Cal Video",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: TimeFormat.TWELVE_HOUR,
+      },
+      attendees: [
+        {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      videoCallData: {
+        type: "daily_video",
+        url: "https://test-org.daily.co/test-room-name",
+        id: "test-room-name",
+        password: "test-password",
+      },
+      location: "Cal Video",
+    };
+
+    test("should use Cal.com video URL instead of daily.co URL for REMINDER template when using Cal video", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithCalVideo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "", // Empty body with REMINDER template triggers REMINDER template
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // The meetingUrl should NOT contain daily.co
+      expect(result.html).not.toContain("daily.co");
+      // The meetingUrl should contain the Cal.com video URL format
+      expect(result.html).toContain("/video/booking-cal-video-123");
+    });
+
+    test("should use Cal.com video URL instead of daily.co URL for custom template when using Cal video", async () => {
+      const customEmailBody = "Join the meeting at {MEETING_URL}";
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithCalVideo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: customEmailBody,
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // The meetingUrl should NOT contain daily.co
+      expect(result.html).not.toContain("daily.co");
+      // The meetingUrl should contain the Cal.com video URL format
+      expect(result.html).toContain("/video/booking-cal-video-123");
+    });
+
+    test("should use Cal.com video URL format when videoCallData.url contains daily.co domain", async () => {
+      const mockBookingInfoWithDailyCoUrl = {
+        ...mockBookingInfoWithCalVideo,
+        videoCallData: {
+          type: "daily_video",
+          url: "https://some-org.daily.co/another-room-name",
+          id: "another-room-name",
+          password: "test-password",
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithDailyCoUrl,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "", // Empty body with REMINDER template triggers REMINDER template
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // Even though videoCallData.url contains daily.co, the meetingUrl should NOT contain it
+      expect(result.html).not.toContain("daily.co");
+      expect(result.html).not.toContain("some-org.daily.co");
+      expect(result.html).not.toContain("another-room-name");
+      // Should use Cal.com video URL instead
+      expect(result.html).toContain("/video/booking-cal-video-123");
     });
   });
 });

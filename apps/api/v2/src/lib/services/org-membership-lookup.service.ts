@@ -1,6 +1,9 @@
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Injectable } from "@nestjs/common";
+
+import {
+  type OrgMembershipLookup,
+  ProfileRepository,
+} from "@calcom/platform-libraries";
 
 /**
  * NestJS service that implements OrgMembershipLookup interface.
@@ -8,7 +11,11 @@ import { Injectable } from "@nestjs/common";
  */
 @Injectable()
 export class OrgMembershipLookupService implements OrgMembershipLookup {
-  async findFirstOrganizationIdForUser({ userId }: { userId: number }): Promise<number | null> {
+  async findFirstOrganizationIdForUser({
+    userId,
+  }: {
+    userId: number;
+  }): Promise<number | null> {
     return ProfileRepository.findFirstOrganizationIdForUser({ userId });
   }
 }

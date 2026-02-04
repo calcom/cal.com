@@ -226,6 +226,10 @@ export interface CalendarEvent {
   rescheduledBy?: string;
   organizationId?: number | null;
   hasOrganizerChanged?: boolean;
+  assignmentReason?: {
+    category: string; // Translated label like "Routed", "Reassigned", etc.
+    details?: string | null; // The detailed reason string
+  } | null;
 }
 
 export interface EntryPoint {
@@ -245,15 +249,17 @@ export interface AdditionalInformation {
   hangoutLink?: string;
 }
 
-export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId"> {
+export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId" | "integration"> {
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
-  primaryEmail?: string;
+  primaryEmail?: string | null;
   credentialId?: number | null;
   integrationTitle?: string;
+  integration: string;
+  customCalendarReminder?: DestinationCalendar["customCalendarReminder"];
 }
 
 /**
