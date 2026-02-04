@@ -170,10 +170,9 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         enabled: true,
       });
 
-      // Get the service from app after initialization and set up spy for ensureDefaultCalendars
-      const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
+      // Spy on the prototype to intercept all calls to ensureDefaultCalendars
       const ensureDefaultCalendarsSpy = jest
-        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
         .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
@@ -206,10 +205,9 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         enabled: false,
       });
 
-      // Get the service from app after initialization and set up spy for ensureDefaultCalendars
-      const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
+      // Spy on the prototype to intercept all calls to ensureDefaultCalendars
       const ensureDefaultCalendarsSpy = jest
-        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
         .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
@@ -242,10 +240,9 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         enabled: true,
       });
 
-      // Get the service from app after initialization and set up spy for ensureDefaultCalendars
-      const delegationCredentialService = app.get(OrganizationsDelegationCredentialService);
+      // Spy on the prototype to intercept all calls to ensureDefaultCalendars
       const ensureDefaultCalendarsSpy = jest
-        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
         .mockResolvedValue(undefined);
 
       const response = await request(app.getHttpServer())
