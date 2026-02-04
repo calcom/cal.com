@@ -7,13 +7,19 @@ import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
+interface OAuthClientData {
+  clientId: string;
+  organizationId: number | null;
+}
+
 export interface useOAuthClientProps {
   isEmbed?: boolean;
   clientId: string;
   apiUrl?: string;
   refreshUrl?: string;
   onError: (error: string) => void;
-  onSuccess: (data: { client: string; organizationId: number; name: string }) => void;
+  onSuccess: (data: OAuthClientData) => void;
+  isOAuth2?: boolean;
 }
 export const useOAuthClient = ({
   isEmbed,
@@ -22,9 +28,11 @@ export const useOAuthClient = ({
   refreshUrl,
   onError,
   onSuccess,
+  isOAuth2 = false,
 }: useOAuthClientProps) => {
   const prevClientId = usePrevious(clientId);
   const [isInit, setIsInit] = useState<boolean>(false);
+
   useEffect(() => {
     if (apiUrl) {
       http.setUrl(apiUrl);
@@ -38,13 +46,16 @@ export const useOAuthClient = ({
   useEffect(() => {
     if (!isEmbed && clientId && http.getUrl() && prevClientId !== clientId) {
       try {
+        const fetchUrl = isOAuth2 ? `/atoms/auth/oauth2/clients/${clientId}` : `/provider/${clientId}`;
         http
-          .get<ApiResponse<{ client: string; organizationId: number; name: string }>>(`/provider/${clientId}`)
+          .get<ApiResponse<OAuthClientData>>(fetchUrl)
           .then((response) => {
             if (response.data.status === SUCCESS_STATUS) {
               onSuccess(response.data.data);
             }
-            http.setClientIdHeader(clientId);
+            if (!isOAuth2) {
+              http.setClientIdHeader(clientId);
+            }
           })
           .catch((err: AxiosError) => {
             if (err.response?.status === 401) {

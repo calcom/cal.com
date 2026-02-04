@@ -1,4 +1,5 @@
-export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
+export { CalProvider, CalOAuthProvider } from "./cal-provider";
+export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export type { AvailabilitySettingsScheduleType } from "./availability/AvailabilitySettings";
 export type { AvailabilitySettingsFormRef } from "./availability/types";
@@ -46,3 +47,4 @@ export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/
 export { Router } from "./router";
 export { SelectedCalendarsSettingsPlatformWrapper as SelectedCalendarsSettings } from "./selected-calendars/index";
 export { TroubleshooterPlatformWrapper as TroubleShooter } from "./troubleshooter/index";
+export type { UpdateScheduleInput_2024_06_11 as UpdateScheduleBody } from "@calcom/platform-types";
