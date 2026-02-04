@@ -41,6 +41,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
     let delegationCredentialId: string;
     let workspacePlatformId: number;
     let ensureDefaultCalendarsSpy: jest.SpyInstance;
+    let updateDelegationCredentialEnabledSpy: jest.SpyInstance;
 
     const userEmail = `delegation-credentials-admin-${randomString()}@api.com`;
 
@@ -141,6 +142,12 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         .spyOn(delegationCredentialService, "ensureDefaultCalendars")
         .mockResolvedValue(undefined);
 
+      // Mock updateDelegationCredentialEnabled to bypass the workspace configuration check
+      // which tries to connect to Google's API
+      updateDelegationCredentialEnabledSpy = jest
+        .spyOn(delegationCredentialService, "updateDelegationCredentialEnabled")
+        .mockResolvedValue(undefined);
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -223,6 +230,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
 
     afterAll(async () => {
       ensureDefaultCalendarsSpy.mockRestore();
+      updateDelegationCredentialEnabledSpy.mockRestore();
       if (org?.id) {
         await prismaWriteService.prisma.delegationCredential.deleteMany({
           where: { organizationId: org.id },
