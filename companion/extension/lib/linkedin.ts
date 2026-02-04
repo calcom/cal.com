@@ -1,4 +1,5 @@
 /// <reference types="chrome" />
+import { escapeHtml } from "./utils";
 
 // LinkedIn integration: inject a Cal.com scheduling button in LinkedIn messaging
 
@@ -951,15 +952,6 @@ export function initLinkedInIntegration() {
   }
 
   // ============================================================================
-  // Utility Functions
-  // ============================================================================
-
-  function escapeHtml(text: string): string {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
   // ============================================================================
   // Initialization
   // ============================================================================

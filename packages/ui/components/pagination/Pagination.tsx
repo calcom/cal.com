@@ -71,6 +71,7 @@ export const Pagination = ({
     <div className="flex items-center justify-between space-x-2">
       <div className="flex items-center space-x-2">
         <Select
+          className="min-w-15 sm:min-w-14"
           options={pageSizeSelectOptions}
           value={pageSizeSelectOptions.find((option) => option.value === internalPageSize)}
           onChange={handlePageSizeChange}
