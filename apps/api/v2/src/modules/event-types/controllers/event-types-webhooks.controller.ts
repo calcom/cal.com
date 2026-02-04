@@ -26,7 +26,7 @@ import {
   Patch,
   ParseIntPipe,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -84,6 +84,7 @@ export class EventTypeWebhooksController {
 
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook" })
+  @ApiParam({ name: "webhookId", type: String, required: true })
   async getEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -116,6 +117,7 @@ export class EventTypeWebhooksController {
 
   @Delete("/:webhookId")
   @ApiOperation({ summary: "Delete a webhook" })
+  @ApiParam({ name: "webhookId", type: String, required: true })
   async deleteEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     await this.webhooksService.deleteWebhook(webhook.id);
     return {
