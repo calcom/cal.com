@@ -141,7 +141,7 @@ export class BookingsController_2024_04_15 {
     @Query() queryParams: GetBookingsInput_2024_04_15
   ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
-    const bookingListingByStatus = filters?.status ?? Status_2024_04_15["upcoming"];
+    const bookingListingByStatus = filters?.status ?? Status_2024_04_15.upcoming;
     const profile = this.usersService.getUserMainProfile(user);
     const bookings = await getAllUserBookings({
       bookingListingByStatus: [bookingListingByStatus],
@@ -225,7 +225,7 @@ export class BookingsController_2024_04_15 {
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
         },
       });
-      if (booking.userId && booking.uid && booking.startTime) {
+      if (booking.userId && booking.uid && booking.startTime && booking.user?.isPlatformManaged) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
           uid: booking.uid,
           startTime: booking.startTime,
@@ -246,12 +246,12 @@ export class BookingsController_2024_04_15 {
   async cancelBooking(
     @Req() req: BookingRequest,
     @Param("bookingUid") bookingUid: string,
-    @Body() body: CancelBookingInput_2024_04_15,
+    @Body() _body: CancelBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string,
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
-    const isUidNumber = !isNaN(Number(bookingUid));
+    const isUidNumber = !Number.isNaN(Number(bookingUid));
 
     if (isUidNumber) {
       throw new BadRequestException("Please provide booking uid instead of booking id.");
@@ -280,7 +280,7 @@ export class BookingsController_2024_04_15 {
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
           platformBookingUrl: bookingRequest.platformBookingUrl,
         });
-        if (!res.onlyRemovedAttendee) {
+        if (!res.onlyRemovedAttendee && res.isPlatformManagedUserBooking) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
         return {
@@ -358,7 +358,7 @@ export class BookingsController_2024_04_15 {
       });
 
       createdBookings.forEach(async (booking) => {
-        if (booking.userId && booking.uid && booking.startTime) {
+        if (booking.userId && booking.uid && booking.startTime && booking.user.isPlatformManaged) {
           void (await this.billingService.increaseUsageByUserId(booking.userId, {
             uid: booking.uid,
             startTime: booking.startTime,
@@ -628,48 +628,12 @@ export class BookingsController_2024_04_15 {
         oAuthClientId
       );
     }
-    if (requestBody?.responses?.guests && requestBody?.responses?.guests.length) {
+    if (requestBody?.responses?.guests?.length) {
       requestBody.responses.guests = await this.platformBookingsService.getPlatformAttendeesEmails(
         requestBody.responses.guests,
         oAuthClientId
       );
     }
-  }
-
-  private async createNextApiRecurringBookingRequest(
-    req: BookingRequest,
-    oAuthClientId?: string,
-    platformBookingLocation?: string,
-    isEmbed?: string
-  ): Promise<NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams> {
-    const clone = { ...req };
-    const owner = await this.getOwner(req);
-    const userId = owner?.id ?? -1;
-    const userUuid = owner?.uuid;
-
-    const oAuthParams = oAuthClientId
-      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
-      : DEFAULT_PLATFORM_PARAMS;
-    const requestId = req.get("X-Request-Id");
-    this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
-      requestId,
-      ownerId: userId,
-      platformBookingLocation,
-      oAuthClientId,
-      ...oAuthParams,
-    });
-    Object.assign(clone, {
-      userId,
-      userUuid,
-      ...oAuthParams,
-      platformBookingLocation,
-      noEmail: !oAuthParams.arePlatformEmailsEnabled,
-      creationSource: CreationSource.API_V2,
-    });
-    if (oAuthClientId) {
-      await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);
-    }
-    return clone as unknown as NextApiRequest & { userId?: number; userUuid?: string } & OAuthRequestParams;
   }
 
   private handleBookingErrors(
@@ -679,7 +643,7 @@ export class BookingsController_2024_04_15 {
     const errMsg =
       type === "no-show"
         ? `Error while marking no-show.`
-        : `Error while creating ${type ? type + " " : ""}booking.`;
+        : `Error while creating ${type ? `${type} ` : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
