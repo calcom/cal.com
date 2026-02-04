@@ -1,16 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { getWebhookVersionDocsUrl, getWebhookVersionLabel } from "@calcom/features/webhooks/lib/constants";
 import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -25,7 +24,8 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
-import Link from "next/link";
+
+import { DeleteWebhookDialog } from "./dialogs/DeleteWebhookDialog";
 
 const MAX_BADGES_TWO_ROWS = 8; // Approximately 2 rows of badges
 
@@ -202,25 +202,18 @@ export default function WebhookListItem(props: {
         </div>
       )}
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("delete_webhook")}
-          confirmBtnText={t("confirm_delete_webhook")}
-          loadingText={t("confirm_delete_webhook")}
-          isPending={deleteWebhook.isPending}
-          onConfirm={() => {
-            deleteWebhook.mutate({
-              id: webhook.id,
-              eventTypeId: webhook.eventTypeId || undefined,
-              teamId: webhook.teamId || undefined,
-            });
-          }}>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{t("delete_webhook_confirmation_message", { appName: APP_NAME })}</p>
-          </div>
-        </ConfirmationDialogContent>
-      </Dialog>
+      <DeleteWebhookDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        isPending={deleteWebhook.isPending}
+        onConfirm={() => {
+          deleteWebhook.mutate({
+            id: webhook.id,
+            eventTypeId: webhook.eventTypeId || undefined,
+            teamId: webhook.teamId || undefined,
+          });
+        }}
+      />
     </div>
   );
 }
