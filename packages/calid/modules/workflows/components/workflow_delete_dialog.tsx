@@ -77,6 +77,7 @@ export const WorkflowDeleteDialog = ({
           <DialogDescription>{t("delete_workflow_description")}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4 gap-2">
+          <DialogClose />
           <Button
             color="destructive"
             onClick={handleConfirm}
@@ -85,7 +86,6 @@ export const WorkflowDeleteDialog = ({
             {deleteMutation.isPending && <Icon name="loader-circle" className="h-4 w-4 animate-spin" />}
             {t("confirm_delete_workflow")}
           </Button>
-          <DialogClose />
         </DialogFooter>
       </DialogContent>
     </Dialog>

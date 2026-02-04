@@ -36,7 +36,7 @@ export default function BottomNav() {
           onClick={() => {
             window.open(`${window.location.origin}/${user?.username}`, "_blank");
           }}>
-          <Tooltip content={t("view")}>
+          <Tooltip content={t("preview")}>
             <button
               type="button"
               onClick={(e) => {

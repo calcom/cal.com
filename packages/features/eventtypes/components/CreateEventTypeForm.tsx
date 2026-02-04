@@ -44,7 +44,7 @@ export default function CreateEventTypeForm({
       onSubmit={(values) => {
         handleSubmit(values);
       }}>
-      <div className="mt-3 space-y-6 pb-11">
+      <div className="space-y-6">
         <FormField
           name="title"
           control={form.control}

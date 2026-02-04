@@ -6,6 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogDescription,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -42,31 +43,28 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader showIcon iconName="clock" iconVariant="info">
           <DialogTitle>{t("send_reschedule_request")}</DialogTitle>
           <DialogDescription>{t("reschedule_modal_description")}</DialogDescription>
         </DialogHeader>
-        <div className="flex flex-row space-x-3">
-          <div className="w-full pt-1">
-            <p className="text-default text-sm font-semibold">
-              {t("reason_for_reschedule_request")}
-              <span className="text-subtle font-normal"> (Optional)</span>
-            </p>
-            <TextArea
-              data-testid="reschedule_reason"
-              name={t("reason_for_reschedule")}
-              value={rescheduleReason}
-              onChange={(e) => setRescheduleReason(e.target.value)}
-              className="border-default rounded-md rounded-md border"
-            />
-          </div>
+        <div className="mt-4">
+          <label htmlFor="rejectionReason" className="text-default mb-2 block text-sm font-medium">
+            {t("reason_for_reschedule_request")}
+            <span className="text-subtle ml-1 font-normal">({t("optional")})</span>
+          </label>
+          <TextArea
+            data-testid="reschedule_reason"
+            name={t("reason_for_reschedule")}
+            value={rescheduleReason}
+            onChange={(e) => setRescheduleReason(e.target.value)}
+            className="border-default rounded-md rounded-md border"
+          />
         </div>
         <DialogFooter>
-          <Button color="secondary" onClick={() => setIsOpenDialog(false)}>
-            {t("cancel")}
-          </Button>
+          <DialogClose />
           <Button
             data-testid="send_request"
+            StartIcon="send"
             disabled={isPending}
             onClick={() => {
               rescheduleApi({
