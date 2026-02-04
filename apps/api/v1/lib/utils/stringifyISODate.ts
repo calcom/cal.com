@@ -2,13 +2,13 @@ export const stringifyISODate = (date: Date | undefined): string => {
   return `${date?.toISOString()}`;
 };
 
-export const stringifyDatesDeep = <T>(value: T): T => {
+export const stringifyDatesDeep = (value: unknown): unknown => {
   if (value instanceof Date) {
-    return value.toISOString() as T;
+    return value.toISOString();
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => stringifyDatesDeep(item)) as T;
+    return value.map((item) => stringifyDatesDeep(item));
   }
 
   if (value !== null && typeof value === "object") {
@@ -17,7 +17,7 @@ export const stringifyDatesDeep = <T>(value: T): T => {
         key,
         stringifyDatesDeep(val),
       ])
-    ) as T;
+    );
   }
 
   return value;
