@@ -747,7 +747,7 @@ const Route = ({
               <Icon name="user-check" className="text-subtle h-4 w-4" />
             </div>
             <span className="text-emphasis ml-2 text-sm font-medium">
-              And connect with specific team members
+              {t("connect_with_specific_team_members")}
             </span>
           </div>
           {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
@@ -813,7 +813,7 @@ const Route = ({
                     <Icon name="user-check" className="text-subtle h-4 w-4" />
                   </div>
                   <span className="text-emphasis ml-2 text-sm font-medium">
-                    And connect with specific team members
+                    {t("connect_with_specific_team_members")}
                   </span>
                 </div>
                 <Query

@@ -3584,6 +3584,7 @@
   "if_enabled_ignore_event_type_weights": "If enabled, all weights set within the event type will be ignored",
   "attribute_for_weights": "Attribute for weights",
   "fallback_action": "Else Send Booker to",
+  "connect_with_specific_team_members": "And connect with specific team members",
   "default_custom_page_message": "We are not ready for you yet :(",
   "managed_users": "Managed users",
   "managed_users_description": "See all the managed users created by your OAuth client",

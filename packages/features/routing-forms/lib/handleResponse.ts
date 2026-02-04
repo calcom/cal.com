@@ -233,30 +233,9 @@ const _handleResponse = async ({
         return null;
       }
 
-      // Check if attribute routing is configured on this route (has rules in attributesQueryValue)
-      const attributesQueryValue =
-        "attributesQueryValue" in chosenRoute ? chosenRoute.attributesQueryValue : null;
-      const hasAttributeRoutingConfigured =
-        attributesQueryValue &&
-        typeof attributesQueryValue === "object" &&
-        "children1" in attributesQueryValue &&
-        attributesQueryValue.children1 &&
-        Object.keys(attributesQueryValue.children1 as Record<string, unknown>).length > 0;
-
-      if (!hasAttributeRoutingConfigured) {
-        // Attribute routing wasn't configured on this route, fallbackAction doesn't apply
-        return null;
-      }
-
-      // Attribute routing was configured. Check if we got any team members.
-      // - null means routing couldn't run (e.g., missing orgId) or query was intentionally empty
-      // - [] means routing ran but found no matching members
-      const noTeamMembersFound =
-        teamMemberIdsMatchingAttributeLogic === null || teamMemberIdsMatchingAttributeLogic.length === 0;
-
       const hasCrmContactOwner = crmContactOwnerEmail !== null;
 
-      if (noTeamMembersFound && !hasCrmContactOwner) {
+      if (checkedFallback && !hasCrmContactOwner) {
         return chosenRoute.fallbackAction;
       }
 
