@@ -455,23 +455,23 @@ export function BookingActionsDropdown({
         status={getBookingStatus()}
       />
       {isBookingFromRoutingForm && (
-        <>
-          <WrongAssignmentDialog
-            isOpenDialog={isOpenWrongAssignmentDialog}
-            setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-            bookingUid={booking.uid}
-            routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-            guestEmail={booking.attendees[0]?.email ?? ""}
-            hostEmail={booking.user?.email ?? ""}
-            hostName={booking.user?.name ?? null}
-            teamId={booking.eventType?.team?.id ?? null}
-          />
-          <RoutingTraceSheet
-            isOpen={isOpenRoutingTraceSheet}
-            setIsOpen={setIsOpenRoutingTraceSheet}
-            bookingUid={booking.uid}
-          />
-        </>
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
+      {booking.assignmentReason.length > 0 && (
+        <RoutingTraceSheet
+          isOpen={isOpenRoutingTraceSheet}
+          setIsOpen={setIsOpenRoutingTraceSheet}
+          bookingUid={booking.uid}
+        />
       )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
