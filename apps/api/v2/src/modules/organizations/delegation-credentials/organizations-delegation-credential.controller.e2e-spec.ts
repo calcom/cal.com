@@ -21,6 +21,9 @@ import { UsersModule } from "@/modules/users/users.module";
 import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
 import { UpdateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/update-delegation-credential.output";
 
+// Set the encryption key for tests
+process.env.CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY = "LDBFYLEVICRZBYQZUZCSTZRJFZUKZMEI";
+
 describe("Organizations Delegation Credentials Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
     let app: INestApplication;
