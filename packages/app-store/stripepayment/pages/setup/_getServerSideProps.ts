@@ -7,8 +7,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import type { IntegrationOAuthCallbackState } from "../../types";
-import { getStripeAppKeys } from "../lib/getStripeAppKeys";
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
+import { getStripeAppKeys } from "../../lib/getStripeAppKeys";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const notFound = { notFound: true } as const;
