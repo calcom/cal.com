@@ -163,7 +163,7 @@ const OnboardingPage = (props: PageProps) => {
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
             <div className="mx-auto px-4 sm:max-w-[520px]">
               <header>
-                <p className="font-heading mb-3 text-[28px] leading-7">
+                <p className="font-cal mb-3 text-[28px] font-medium leading-7">
                   {headers[currentStepIndex]?.title || "Undefined title"}
                 </p>
 

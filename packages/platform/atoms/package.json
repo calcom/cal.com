@@ -4,13 +4,13 @@
   "type": "module",
   "description": "Customizable UI components to integrate scheduling into your product.",
   "authors": "Cal.com, Inc.",
-  "version": "2.2.0",
+  "version": "2.3.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/calcom/cal.com"
   },
   "scripts": {
-    "dev": "yarn vite build --watch & npx postcss ./globals.css -o ./globals.min.css",
+    "dev": "yarn vite build --watch & npx postcss ./globals.css -o ./globals.min.css --watch",
     "build-npm": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx postcss ./globals.css -o ./globals.min.css",
     "publish-npm": "yarn build-npm && npm publish --access public",
     "test": "jest",
@@ -34,7 +34,7 @@
     "postcss-cli": "11.0.1",
     "postcss-import": "16.1.0",
     "postcss-prefixer": "3.0.0",
-    "postcss-prefixwrap": "1.46.0",
+    "postcss-prefixwrap": "1.57.0",
     "ts-jest": "29.1.4",
     "typescript": "5.9.3",
     "vite": "6.4.1",
@@ -78,6 +78,7 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@1.0.4",
+    "@radix-ui/react-popover-atoms": "npm:@radix-ui/react-popover@1.0.6",
     "@radix-ui/react-slot": "1.1.2",
     "@radix-ui/react-switch": "1.1.0",
     "@radix-ui/react-toast": "1.1.5",

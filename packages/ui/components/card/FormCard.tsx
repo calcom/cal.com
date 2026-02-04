@@ -103,6 +103,7 @@ export default function FormCard({
   badge,
   collapsible = true,
   leftIcon,
+  customActions,
   ...restProps
 }: {
   children: React.ReactNode;
@@ -117,6 +118,7 @@ export default function FormCard({
   badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
   leftIcon?: IconName;
   collapsible?: boolean;
+  customActions?: React.ReactNode;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
     "flex items-center group relative w-full rounded-2xl p-1 border border-subtle bg-cal-muted mb-2",
@@ -192,7 +194,8 @@ export default function FormCard({
               </Badge>
             )}
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            {customActions}
             <FormCardActions deleteField={deleteField} duplicateField={duplicateField} />
           </div>
         </div>

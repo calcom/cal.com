@@ -172,7 +172,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
           ) : (
             <MailOpenIcon />
           )}
-          <h3 className="font-heading text-emphasis my-6 text-2xl leading-none">
+          <h3 className="font-cal text-emphasis my-6 text-2xl font-normal leading-none">
             {hasPaymentFailed
               ? t("your_payment_failed")
               : isPremiumUsername

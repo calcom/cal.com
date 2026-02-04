@@ -1,7 +1,3 @@
-import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -9,10 +5,20 @@ import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/cr
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import type { Membership, Team, User, VerificationToken, Profile } from "@calcom/prisma/client";
+import type { Membership, Profile, Team, User, VerificationToken } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TeamService } from "./teamService";
+
+const { MockSeatChangeTrackingService } = vi.hoisted(() => {
+  class MockSeatChangeTrackingService {
+    logSeatAddition = vi.fn().mockResolvedValue(undefined);
+    logSeatRemoval = vi.fn().mockResolvedValue(undefined);
+  }
+  return { MockSeatChangeTrackingService };
+});
 
 vi.mock("@calcom/ee/billing/di/containers/Billing");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
@@ -21,6 +27,9 @@ vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");
 vi.mock("@calcom/features/ee/teams/lib/queries");
+vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
+  SeatChangeTrackingService: MockSeatChangeTrackingService,
+}));
 
 const mockTeamBilling = {
   cancel: vi.fn(),
@@ -39,7 +48,7 @@ describe("TeamService", () => {
     vi.resetAllMocks();
     mockTeamBillingFactory.findAndInit.mockResolvedValue(mockTeamBilling);
     mockTeamBillingFactory.findAndInitMany.mockResolvedValue([mockTeamBilling]);
-    
+
     const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
     vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockTeamBillingFactory);
   });
@@ -57,11 +66,13 @@ describe("TeamService", () => {
         slug: "deleted-team",
       };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
       } as Pick<TeamRepository, "deleteById">;
-      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
+      vi.mocked(TeamRepository).mockImplementation(function () {
+        return mockTeamRepo;
+      });
 
       const result = await TeamService.delete({ id: 1 });
 

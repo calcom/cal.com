@@ -1,4 +1,4 @@
-import * as path from "node:path";
+import path from "node:path";
 import { Worker } from "node:worker_threads";
 
 import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";

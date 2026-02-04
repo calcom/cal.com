@@ -60,8 +60,7 @@ const createBooking = (overrides = {}) => ({
 describe("buildCalEventFromBooking", () => {
   beforeEach(() => {
     // vi.resetAllMocks();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     getTranslation.mockImplementation((locale: string, namespace: string) => {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       const translate = () => {};

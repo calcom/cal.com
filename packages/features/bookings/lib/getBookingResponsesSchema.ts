@@ -24,6 +24,28 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
+
+/**
+ * Checks if a booker email matches an email/domain entry.
+ * Supports three formats:
+ * - Full email: "user@example.com" - matches exactly
+ * - Domain with @ prefix: "@example.com" - matches any email ending with "@example.com"
+ * - Domain without @ prefix: "example.com" - matches any email ending with "@example.com"
+ */
+const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
+  const bookerEmailLower = bookerEmail.toLowerCase();
+
+  if (entry.startsWith("@")) {
+    const domain = entry.slice(1).toLowerCase();
+    return bookerEmailLower.endsWith("@" + domain);
+  }
+
+  if (entry.includes("@")) {
+    return bookerEmailLower === entry.toLowerCase();
+  }
+
+  return bookerEmailLower.endsWith("@" + entry.toLowerCase());
+};
 export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
@@ -208,7 +230,7 @@ function preprocess<T extends z.ZodType>({
             const excludedEmails =
               bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((email) => bookerEmail.endsWith("@" + email));
+            const match = excludedEmails.find((excludedEntry) => doesEmailMatchEntry(bookerEmail, excludedEntry));
             if (match) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -220,7 +242,9 @@ function preprocess<T extends z.ZodType>({
                 ?.split(",")
                 .map((domain) => domain.trim())
                 .filter(Boolean) || [];
-            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.endsWith("@" + email));
+            const requiredEmailsMatch = requiredEmails.find((requiredEntry) =>
+              doesEmailMatchEntry(bookerEmail, requiredEntry)
+            );
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,

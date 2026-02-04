@@ -27,11 +27,17 @@ export class PrismaAttributeRepository {
     });
   }
 
-  async findManyByOrgId({ orgId }: { orgId: number }) {
+  async findManyByOrgId({ orgId, attributeIds }: { orgId: number; attributeIds?: string[] }) {
     // It should be a faster query because of lesser number of attributes record and index on teamId
     const result = await this.prismaClient.attribute.findMany({
       where: {
         teamId: orgId,
+        // Only filter by attribute IDs if provided
+        ...(attributeIds?.length && {
+          id: {
+            in: attributeIds,
+          },
+        }),
       },
       select: {
         id: true,
@@ -91,6 +97,32 @@ export class PrismaAttributeRepository {
                 weight: true,
               },
             },
+          },
+        },
+      },
+    });
+  }
+
+  findManyByIdsAndOrgIdWithOptions({
+    attributeIds,
+    orgId,
+  }: {
+    attributeIds: string[];
+    orgId: number;
+  }) {
+    return this.prismaClient.attribute.findMany({
+      where: {
+        teamId: orgId,
+        id: {
+          in: attributeIds,
+        },
+      },
+      include: {
+        options: {
+          select: {
+            id: true,
+            value: true,
+            slug: true,
           },
         },
       },

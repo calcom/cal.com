@@ -1,14 +1,4 @@
-import { AppConfig } from "@/config/type";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
-import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
-import { BillingRepository } from "@/modules/billing/billing.repository";
-import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
-import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
-import { PlatformPlan } from "@/modules/billing/types";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { getIncrementUsageIdempotencyKey, getIncrementUsageJobTag } from "@calcom/platform-libraries/tasker";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,
@@ -22,6 +12,16 @@ import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
+import { AppConfig } from "@/config/type";
+import { PlatformBillingTasker } from "@/lib/services/tasker/platform-billing-tasker.service";
+import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
+import { BillingRepository } from "@/modules/billing/billing.repository";
+import { BillingData, IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
+import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
+import { PlatformPlan } from "@/modules/billing/types";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { StripeService } from "@/modules/stripe/stripe.service";
+import { UsersRepository } from "@/modules/users/users.repository";
 
 @Injectable()
 export class BillingService implements IBillingService, OnModuleDestroy {
@@ -35,14 +35,13 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     private readonly configService: ConfigService<AppConfig>,
     private readonly billingConfigService: BillingConfigService,
     private readonly usersRepository: UsersRepository,
-    private readonly oAuthClientRepository: OAuthClientRepository,
-    private readonly bookingsRepository: BookingsRepository_2024_08_13,
+    private readonly platformBillingTasker: PlatformBillingTasker,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
   }
 
-  async getBillingData(teamId: number) {
+  async getBillingData(teamId: number): Promise<BillingData> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
 
     if (teamWithBilling?.platformBilling) {
@@ -52,7 +51,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
         return {
           team: teamWithBilling,
           status: "valid" as const,
-          plan: teamWithBilling.platformBilling.plan,
+          plan: teamWithBilling.platformBilling.plan as PlatformPlan,
         };
       }
     } else {
@@ -62,7 +61,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
 
   async createTeamBilling(teamId: number): Promise<string> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
-    let customerId = teamWithBilling?.platformBilling?.customerId;
+    let customerId = teamWithBilling?.platformBilling?.customerId ?? "";
 
     if (!teamWithBilling?.platformBilling) {
       customerId = await this.teamsRepository.createNewBillingRelation(teamId);
@@ -73,10 +72,14 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       });
     }
 
-    return customerId!;
+    return customerId;
   }
 
-  async redirectToSubscribeCheckout(teamId: number, plan: PlatformPlan, customerId?: string) {
+  async redirectToSubscribeCheckout(
+    teamId: number,
+    plan: PlatformPlan,
+    customerId?: string
+  ): Promise<string> {
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -109,7 +112,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     return url;
   }
 
-  async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
+  async updateSubscriptionForTeam(teamId: number, plan: PlatformPlan): Promise<string> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -134,7 +137,11 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     return url;
   }
 
-  async setPerBookingSubscriptionForTeam(teamId: number, subscriptionId: string, plan: PlatformPlan) {
+  async setPerBookingSubscriptionForTeam(
+    teamId: number,
+    subscriptionId: string,
+    plan: PlatformPlan
+  ): Promise<ReturnType<typeof BillingRepository.prototype.updateTeamBilling>> {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -152,7 +159,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     subscriptionId: string,
     plan: PlatformPlan,
     priceId: string
-  ) {
+  ): Promise<ReturnType<typeof BillingRepository.prototype.updateTeamBilling>> {
     const billingCycleStart = DateTime.now().get("day");
     const billingCycleEnd = DateTime.now().plus({ month: 1 }).get("day");
 
@@ -166,12 +173,12 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     );
   }
 
-  async handleStripeSubscriptionDeleted(event: Stripe.Event) {
+  async handleStripeSubscriptionDeleted(event: Stripe.Event): Promise<void> {
     const subscription = event.data.object as Stripe.Subscription;
     const teamId = subscription?.metadata?.teamId;
     const plan = PlatformPlan[subscription?.metadata?.plan?.toUpperCase() as keyof typeof PlatformPlan];
     if (teamId && plan) {
-      const currentBilling = await this.billingRepository.getBillingForTeam(Number.parseInt(teamId));
+      const currentBilling = await this.billingRepository.getBillingForTeam(Number.parseInt(teamId, 10));
       if (currentBilling?.subscriptionId === subscription.id) {
         await this.billingRepository.deleteBilling(currentBilling.id);
         this.logger.log(`Stripe Subscription deleted`, {
@@ -207,7 +214,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
   }
 
-  async handleStripePaymentSuccess(event: Stripe.Event) {
+  async handleStripePaymentSuccess(event: Stripe.Event): Promise<void> {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
     const customerId = this.getCustomerIdFromInvoice(invoice);
@@ -216,7 +223,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
   }
 
-  async handleStripePaymentFailed(event: Stripe.Event) {
+  async handleStripePaymentFailed(event: Stripe.Event): Promise<void> {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
     const customerId = this.getCustomerIdFromInvoice(invoice);
@@ -225,7 +232,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
   }
 
-  async handleStripePaymentPastDue(event: Stripe.Event) {
+  async handleStripePaymentPastDue(event: Stripe.Event): Promise<void> {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
     const customerId = this.getCustomerIdFromInvoice(invoice);
@@ -249,14 +256,14 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
   }
 
-  async handleStripeCheckoutEvents(event: Stripe.Event) {
+  async handleStripeCheckoutEvents(event: Stripe.Event): Promise<void> {
     const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
     if (!checkoutSession.metadata?.teamId) {
       return;
     }
 
-    const teamId = Number.parseInt(checkoutSession.metadata.teamId);
+    const teamId = Number.parseInt(checkoutSession.metadata.teamId, 10);
     const plan = checkoutSession.metadata.plan;
     if (!plan || !teamId) {
       this.logger.log("Webhook received but not pertaining to Platform, discarding.");
@@ -288,7 +295,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     return;
   }
 
-  async handleStripeSubscriptionForActiveManagedUsers(event: Stripe.Event) {
+  async handleStripeSubscriptionForActiveManagedUsers(event: Stripe.Event): Promise<void> {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
 
@@ -299,11 +306,15 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     const teamWithBilling = await this.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
 
     if (teamWithBilling?.plan === "PER_ACTIVE_USER") {
-      const activeManagedUsersCount = await this.getActiveManagedUsersCount(
+      let activeManagedUsersCount = await this.getActiveManagedUsersCount(
         subscriptionId,
         new Date(invoice.period_start * 1000),
         new Date(invoice.period_end * 1000)
       );
+
+      if (activeManagedUsersCount < 0) {
+        activeManagedUsersCount = 1;
+      }
 
       const existingSubscription = await this.stripeService
         .getStripe()
@@ -321,17 +332,18 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       }
 
       await this.stripeService.getStripe().subscriptions.update(subscriptionId, {
-        items: [
-          { id: subscriptionItem.id, quantity: activeManagedUsersCount > 0 ? activeManagedUsersCount : 1 },
-        ],
+        items: [{ id: subscriptionItem.id, quantity: activeManagedUsersCount }],
       });
     }
   }
 
-  async getActiveManagedUsersCount(subscriptionId: string, invoiceStart: Date, invoiceEnd: Date) {
-    const managedUsersEmails = await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(
-      subscriptionId
-    );
+  async getActiveManagedUsersCount(
+    subscriptionId: string,
+    invoiceStart: Date,
+    invoiceEnd: Date
+  ): Promise<number> {
+    const managedUsersEmails =
+      await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(subscriptionId);
 
     if (!managedUsersEmails) return 0;
 
@@ -362,7 +374,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     return activeManagedUserEmailsAsAttendee.length + activeManagedUserEmailsAsHost.length;
   }
 
-  async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan) {
+  async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan): Promise<void> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
 
     if (!teamWithBilling?.platformBilling || !teamWithBilling?.platformBilling.subscriptionId) {
@@ -424,13 +436,36 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       startTime: Date;
       fromReschedule?: string | null;
     }
-  ) {
+  ): Promise<boolean | undefined> {
     if (this.configService.get("e2e")) {
       return true;
     }
     const { uid, startTime, fromReschedule } = booking;
 
-    const delay = startTime.getTime() - Date.now();
+    if (this.configService.get("enableAsyncTasker")) {
+      if (fromReschedule) {
+        this.platformBillingTasker.rescheduleUsageIncrement({
+          payload: { bookingUid: uid, rescheduledTime: startTime },
+        });
+        return true;
+      }
+      this.platformBillingTasker.incrementUsage({
+        payload: { userId },
+        options: {
+          delay: startTime,
+          tags: [getIncrementUsageJobTag(uid)],
+          idempotencyKey: getIncrementUsageIdempotencyKey(uid, userId),
+        },
+      });
+      return true;
+    }
+
+    let delay = startTime.getTime() - Date.now();
+
+    if (delay < 0) {
+      delay = 0;
+    }
+
     if (fromReschedule) {
       // cancel the usage increment job for the booking that is being rescheduled
       await this.cancelUsageByBookingUid(fromReschedule);
@@ -441,7 +476,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       {
         userId,
       } satisfies IncrementJobDataType,
-      { delay: delay > 0 ? delay : 0, jobId: `increment-${uid}`, removeOnComplete: true }
+      { delay: delay, jobId: `increment-${uid}`, removeOnComplete: true }
     );
     this.logger.log(`Added stripe usage increment job for booking ${uid} and user ${userId}`);
   }
@@ -451,10 +486,16 @@ export class BillingService implements IBillingService, OnModuleDestroy {
    * Cancels the usage increment job for a booking when it is cancelled.
    * Removing an attendee from a booking does not cancel the usage increment job.
    */
-  async cancelUsageByBookingUid(bookingUid: string) {
+  async cancelUsageByBookingUid(bookingUid: string): Promise<boolean | undefined> {
     if (this.configService.get("e2e")) {
       return true;
     }
+
+    if (this.configService.get("enableAsyncTasker")) {
+      await this.platformBillingTasker.cancelUsageIncrement({ payload: { bookingUid } });
+      return true;
+    }
+
     const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
     if (job) {
       await job.remove();
@@ -462,7 +503,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
   }
 
-  async cancelTeamSubscription(teamId: number) {
+  async cancelTeamSubscription(teamId: number): Promise<void> {
     const teamWithBilling = await this.teamsRepository.findByIdIncludeBilling(teamId);
     const customerId = teamWithBilling?.platformBilling?.customerId;
 
@@ -484,7 +525,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     try {
       await this.billingQueue.close();
     } catch (err) {

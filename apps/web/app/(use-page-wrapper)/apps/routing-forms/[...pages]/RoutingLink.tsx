@@ -183,7 +183,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-heading text-emphasis mb-1 text-xl tracking-wide">
+                      <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (
@@ -209,6 +209,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
               <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
+                {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient */}
                 <div
                   className="text-emphasis prose prose-sm dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(customPageMessage) }}

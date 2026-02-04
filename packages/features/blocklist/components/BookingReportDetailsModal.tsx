@@ -10,24 +10,24 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { BookingReport, BlocklistScope } from "../types";
+import type { GroupedBookingReport, BlocklistScope } from "../types";
 
 interface FormData {
   blockType: WatchlistType;
 }
 
-export interface BookingReportDetailsModalProps<T extends BookingReport> {
+export interface BookingReportDetailsModalProps<T extends GroupedBookingReport> {
   scope: BlocklistScope;
   entry: T | null;
   isOpen: boolean;
   onClose: () => void;
-  onAddToBlocklist: (reportIds: string[], type: WatchlistType) => void;
-  onDismiss: (reportId: string) => void;
+  onAddToBlocklist: (email: string, type: WatchlistType) => void;
+  onDismiss: (email: string) => void;
   isAddingToBlocklist?: boolean;
   isDismissing?: boolean;
 }
 
-export function BookingReportDetailsModal<T extends BookingReport>({
+export function BookingReportDetailsModal<T extends GroupedBookingReport>({
   scope,
   entry,
   isOpen,
@@ -53,12 +53,12 @@ export function BookingReportDetailsModal<T extends BookingReport>({
 
   const onSubmit = (data: FormData) => {
     if (!entry) return;
-    onAddToBlocklist([entry.id], data.blockType);
+    onAddToBlocklist(entry.bookerEmail, data.blockType);
   };
 
   const handleDismiss = () => {
     if (!entry) return;
-    onDismiss(entry.id);
+    onDismiss(entry.bookerEmail);
   };
 
   const handleGoBack = () => {
@@ -123,14 +123,18 @@ export function BookingReportDetailsModal<T extends BookingReport>({
 
                 <div>
                   <label className="text-emphasis mb-1 block text-sm font-semibold">
-                    {t("related_booking")}
+                    {t("related_bookings")} ({entry.reports.length})
                   </label>
-                  <Link href={`/booking/${entry.booking.uid}`}>
-                    <div className="text-subtle flex items-center gap-1 text-sm">
-                      {entry.booking.title}
-                      <Icon name="external-link" className="h-4 w-4" />
-                    </div>
-                  </Link>
+                  <div className="max-h-32 space-y-1 overflow-y-auto">
+                    {entry.reports.map((report) => (
+                      <Link key={report.id} href={`/booking/${report.booking.uid}`}>
+                        <div className="text-subtle hover:text-emphasis flex items-center gap-1 text-sm">
+                          {report.booking.title || t("untitled")}
+                          <Icon name="external-link" className="h-3 w-3" />
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

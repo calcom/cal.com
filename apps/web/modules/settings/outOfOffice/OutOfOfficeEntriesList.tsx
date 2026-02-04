@@ -350,6 +350,7 @@ function OutOfOfficeEntriesListContent({
         dateRange: false,
       },
     },
+    enableHiding: false,
     enableRowSelection: false,
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),

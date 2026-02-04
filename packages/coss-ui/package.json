@@ -6,8 +6,7 @@
     "./styles.css": "./src/styles/globals.css",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts",
-    "./fonts": "./src/fonts/index.ts"
+    "./hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
     "lint": "biome lint src",

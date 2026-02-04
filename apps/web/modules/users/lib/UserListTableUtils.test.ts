@@ -61,6 +61,7 @@ describe("generate Csv for Org Users Table", () => {
   const mockUser: UserTableUser = {
     id: 1,
     username: "testuser",
+    name: "Test User",
     email: "test@example.com",
     timeZone: "UTC",
     role: MembershipRole.MEMBER,

@@ -1,44 +1,38 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback, useEffect } from "react";
-import React from "react";
-import { shallow } from "zustand/shallow";
-
-import {
-  sdkActionManager,
-  useIsEmbed,
-} from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerEmbedEvents } from "@calcom/embed-core/src/embed-iframe/react-hooks";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import {
   BookerStoreProvider,
-  useInitializeBookerStoreContext,
   useBookerStoreContext,
+  useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
-import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
-import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
-import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
-import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { useBookingForm } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { useBookings } from "../hooks/useBookings";
+import { useCalendars } from "../hooks/useCalendars";
+import { useSlots } from "../hooks/useSlots";
+import { useVerifyCode } from "../hooks/useVerifyCode";
+import { useVerifyEmail } from "../hooks/useVerifyEmail";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { localStorage } from "@calcom/lib/webstorage";
-
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { Booker as BookerComponent } from "./Booker";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
-const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
+const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Element => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,11 +42,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
   });
   const event = props.eventData
     ? {
-      data: props.eventData,
-      isSuccess: true,
-      isError: false,
-      isPending: false,
-    }
+        data: props.eventData,
+        isSuccess: true,
+        isError: false,
+        isPending: false,
+      }
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
@@ -203,10 +197,10 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const areInstantMeetingParametersSet = Boolean(
     event.data?.instantMeetingParameters &&
-    searchParams &&
-    event.data.instantMeetingParameters?.every?.((param) =>
-      Array.from(searchParams.values()).includes(param)
-    )
+      searchParams &&
+      event.data.instantMeetingParameters?.every?.((param) =>
+        Array.from(searchParams.values()).includes(param)
+      )
   );
 
   useEffect(() => {
