@@ -1,3 +1,4 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -92,19 +93,9 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
         organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
-  const teamsWhereUserIsAdminOrOwner = await prisma.membership.findMany({
-    where: {
-      userId: user.id,
-      accepted: true,
-      role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-      team: {
-        isOrganization: false,
-      },
-    },
-    select: {
-      id: true,
-      teamId: true,
-    },
+  const membershipRepository = new MembershipRepository(prisma);
+  const teamsWhereUserIsAdminOrOwner = await membershipRepository.findTeamIdsWhereUserIsAdminOrOwner({
+    userId: user.id,
   });
 
   const permissionCheckService = new PermissionCheckService();

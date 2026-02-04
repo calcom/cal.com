@@ -538,6 +538,23 @@ export class MembershipRepository {
     });
   }
 
+  async findTeamIdsWhereUserIsAdminOrOwner({ userId }: { userId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        team: {
+          isOrganization: false,
+        },
+      },
+      select: {
+        id: true,
+        teamId: true,
+      },
+    });
+  }
+
   async findTeamAdminsByTeamId({ teamId }: { teamId: number }) {
     return await this.prismaClient.membership.findMany({
       where: {
