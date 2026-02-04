@@ -128,11 +128,13 @@ async function _findMembershipsForBothOrgAndTeam({
 
 function _prepareAssignmentData({
   assignmentsForTheTeam,
-  attributesOfTheOrg,
+  lookupMaps,
 }: {
   assignmentsForTheTeam: AssignmentForTheTeam[];
-  attributesOfTheOrg: Attribute[];
+  lookupMaps: AttributeLookupMaps;
 }) {
+  const { optionIdToOption, attributeIdToOptions } = lookupMaps;
+
   const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce(
     (acc, attributeToUser) => {
       const userId = attributeToUser.userId;
@@ -212,11 +214,9 @@ function _prepareAssignmentData({
   }) {
     return contains
       .map((optionId) => {
-        const allOptions = attributesOfTheOrg.find(
-          (_attribute) => _attribute.id === attribute.id
-        )?.options;
-        const option = allOptions?.find((option) => option.id === optionId);
+        const option = optionIdToOption.get(optionId);
         if (!option) {
+          const allOptions = attributeIdToOptions.get(attribute.id);
           console.error(
             `Enriching "contains" for attribute ${
               attribute.name
@@ -238,33 +238,49 @@ function _prepareAssignmentData({
   }
 }
 
-function _getAttributeFromAttributeOption({
-  allAttributesOfTheOrg,
-  attributeOptionId,
-}: {
-  allAttributesOfTheOrg: Attribute[];
-  attributeOptionId: AttributeOptionId;
-}) {
-  return allAttributesOfTheOrg.find((attribute) =>
-    attribute.options.some((option) => option.id === attributeOptionId)
-  );
+/**
+ * Builds lookup maps for O(1) attribute and option lookups by option ID.
+ * This replaces O(n×m) linear scans with O(1) Map lookups.
+ */
+function _buildAttributeLookupMaps(attributesOfTheOrg: FullAttribute[]) {
+  const optionIdToAttribute = new Map<AttributeOptionId, FullAttribute>();
+  const optionIdToOption = new Map<
+    AttributeOptionId,
+    FullAttribute["options"][number]
+  >();
+  const attributeIdToOptions = new Map<string, FullAttribute["options"]>();
+
+  for (const attribute of attributesOfTheOrg) {
+    attributeIdToOptions.set(attribute.id, attribute.options);
+    for (const option of attribute.options) {
+      optionIdToAttribute.set(option.id, attribute);
+      optionIdToOption.set(option.id, option);
+    }
+  }
+
+  return { optionIdToAttribute, optionIdToOption, attributeIdToOptions };
 }
 
-function _getAttributeOptionFromAttributeOption({
-  allAttributesOfTheOrg,
+type AttributeLookupMaps = ReturnType<typeof _buildAttributeLookupMaps>;
+
+function _getAttributeFromAttributeOption({
+  lookupMaps,
   attributeOptionId,
 }: {
-  allAttributesOfTheOrg: FullAttribute[];
+  lookupMaps: AttributeLookupMaps;
   attributeOptionId: AttributeOptionId;
 }) {
-  const matchingOption = allAttributesOfTheOrg.reduce((found, attribute) => {
-    if (found) return found;
-    return (
-      attribute.options.find((option) => option.id === attributeOptionId) ||
-      null
-    );
-  }, null as null | (typeof allAttributesOfTheOrg)[number]["options"][number]);
-  return matchingOption;
+  return lookupMaps.optionIdToAttribute.get(attributeOptionId);
+}
+
+function _getAttributeOptionFromId({
+  lookupMaps,
+  attributeOptionId,
+}: {
+  lookupMaps: AttributeLookupMaps;
+  attributeOptionId: AttributeOptionId;
+}) {
+  return lookupMaps.optionIdToOption.get(attributeOptionId);
 }
 
 async function _getOrgMembershipToUserIdForTeam({
@@ -417,11 +433,11 @@ async function getAttributesAssignedToMembersOfTeam({
 function _buildAssignmentsForTeam({
   attributesToUsersForTeam,
   orgMembershipToUserIdForTeamMembers,
-  attributesOfTheOrg,
+  lookupMaps,
 }: {
   attributesToUsersForTeam: AttributeToUser[];
   orgMembershipToUserIdForTeamMembers: Map<OrgMembershipId, UserId>;
-  attributesOfTheOrg: FullAttribute[];
+  lookupMaps: AttributeLookupMaps;
 }) {
   return attributesToUsersForTeam
     .map((attributeToUser) => {
@@ -434,12 +450,12 @@ function _buildAssignmentsForTeam({
         return null;
       }
       const attribute = _getAttributeFromAttributeOption({
-        allAttributesOfTheOrg: attributesOfTheOrg,
+        lookupMaps,
         attributeOptionId: attributeToUser.attributeOptionId,
       });
 
-      const attributeOption = _getAttributeOptionFromAttributeOption({
-        allAttributesOfTheOrg: attributesOfTheOrg,
+      const attributeOption = _getAttributeOptionFromId({
+        lookupMaps,
         attributeOptionId: attributeToUser.attributeOptionId,
       });
 
@@ -484,15 +500,17 @@ export async function getAttributesAssignmentData({
     attributeIds,
   });
 
+  const lookupMaps = _buildAttributeLookupMaps(attributesOfTheOrg);
+
   const assignmentsForTheTeam = _buildAssignmentsForTeam({
     attributesToUsersForTeam,
     orgMembershipToUserIdForTeamMembers,
-    attributesOfTheOrg,
+    lookupMaps,
   });
 
   const attributesAssignedToTeamMembersWithOptions = _prepareAssignmentData({
-    attributesOfTheOrg,
     assignmentsForTheTeam,
+    lookupMaps,
   });
 
   return {

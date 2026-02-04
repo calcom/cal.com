@@ -1,10 +1,8 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach } from "vitest";
-
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   getAttributesForTeam,
@@ -479,6 +477,329 @@ describe("getAttributes", () => {
         id: attribute.id,
         name: attribute.name,
         type: attribute.type,
+      });
+    });
+  });
+
+  describe("Map-based lookup optimization", () => {
+    it("should correctly resolve attribute options when multiple attributes have many options", async () => {
+      const team = await createMockTeam({ orgId });
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      // Create multiple attributes with multiple options to test the Map lookup
+      const attr1 = await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+          { id: "dept-sales", value: "Sales", slug: "sales", isGroup: false, contains: [] },
+          { id: "dept-marketing", value: "Marketing", slug: "marketing", isGroup: false, contains: [] },
+        ],
+      });
+
+      const attr2 = await createMockAttribute({
+        orgId,
+        id: "attr2",
+        name: "Location",
+        slug: "location",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "loc-us", value: "United States", slug: "us", isGroup: false, contains: [] },
+          { id: "loc-uk", value: "United Kingdom", slug: "uk", isGroup: false, contains: [] },
+          { id: "loc-de", value: "Germany", slug: "de", isGroup: false, contains: [] },
+        ],
+      });
+
+      const attr3 = await createMockAttribute({
+        orgId,
+        id: "attr3",
+        name: "Skills",
+        slug: "skills",
+        type: AttributeType.MULTI_SELECT,
+        options: [
+          { id: "skill-js", value: "JavaScript", slug: "javascript", isGroup: false, contains: [] },
+          { id: "skill-py", value: "Python", slug: "python", isGroup: false, contains: [] },
+          { id: "skill-go", value: "Go", slug: "go", isGroup: false, contains: [] },
+        ],
+      });
+
+      // Assign options from different attributes
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "loc-uk",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "skill-js",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "skill-py",
+      });
+
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({ teamId: team.id, orgId });
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      const userAssignment = attributesAssignedToTeamMembersWithOptions[0];
+      expect(userAssignment.userId).toBe(user.id);
+
+      // Verify each attribute was correctly resolved via Map lookup
+      expect(userAssignment.attributes.attr1).toEqual({
+        type: AttributeType.SINGLE_SELECT,
+        attributeOption: { isGroup: false, value: "Engineering", contains: [] },
+      });
+
+      expect(userAssignment.attributes.attr2).toEqual({
+        type: AttributeType.SINGLE_SELECT,
+        attributeOption: { isGroup: false, value: "United Kingdom", contains: [] },
+      });
+
+      expect(userAssignment.attributes.attr3).toEqual({
+        type: AttributeType.MULTI_SELECT,
+        attributeOption: [
+          { isGroup: false, value: "JavaScript", contains: [] },
+          { isGroup: false, value: "Python", contains: [] },
+        ],
+      });
+
+      expectAttributesToMatch(attributesOfTheOrg, [attr1, attr2, attr3]);
+    });
+
+    it("should handle group options with nested contains correctly via Map lookup", async () => {
+      const team = await createMockTeam({ orgId });
+      const { orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      // Create attribute with group option that contains other options
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Region",
+        slug: "region",
+        type: AttributeType.MULTI_SELECT,
+        options: [
+          { id: "region-na", value: "North America", slug: "na", isGroup: false, contains: [] },
+          { id: "region-eu", value: "Europe", slug: "eu", isGroup: false, contains: [] },
+          { id: "region-apac", value: "APAC", slug: "apac", isGroup: false, contains: [] },
+          {
+            id: "region-global",
+            value: "Global",
+            slug: "global",
+            isGroup: true,
+            contains: ["region-na", "region-eu", "region-apac"],
+          },
+        ],
+      });
+
+      // Assign the group option
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "region-global",
+      });
+
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+      });
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      const userAssignment = attributesAssignedToTeamMembersWithOptions[0];
+
+      // Verify the group option's contains array was correctly enriched via Map lookup
+      expect(userAssignment.attributes.attr1).toEqual({
+        type: AttributeType.MULTI_SELECT,
+        attributeOption: {
+          isGroup: true,
+          value: "Global",
+          contains: [
+            { id: "region-na", value: "North America", slug: "na" },
+            { id: "region-eu", value: "Europe", slug: "eu" },
+            { id: "region-apac", value: "APAC", slug: "apac" },
+          ],
+        },
+      });
+    });
+
+    it("should handle multiple users with different attribute assignments efficiently", async () => {
+      const team = await createMockTeam({ orgId });
+
+      // Create first user
+      const user1 = await prismock.user.create({
+        data: { name: "User 1", email: "user1@test.com" },
+      });
+      const orgMembership1 = await prismock.membership.create({
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: orgId,
+          userId: user1.id,
+        },
+      });
+      await prismock.membership.create({
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: team.id,
+          userId: user1.id,
+        },
+      });
+
+      // Create second user
+      const user2 = await prismock.user.create({
+        data: { name: "User 2", email: "user2@test.com" },
+      });
+      const orgMembership2 = await prismock.membership.create({
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: orgId,
+          userId: user2.id,
+        },
+      });
+      await prismock.membership.create({
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: team.id,
+          userId: user2.id,
+        },
+      });
+
+      // Create attribute with options
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Level",
+        slug: "level",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "level-junior", value: "Junior", slug: "junior", isGroup: false, contains: [] },
+          { id: "level-senior", value: "Senior", slug: "senior", isGroup: false, contains: [] },
+          { id: "level-lead", value: "Lead", slug: "lead", isGroup: false, contains: [] },
+        ],
+      });
+
+      // Assign different options to different users
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership1.id,
+        attributeOptionId: "level-junior",
+      });
+
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership2.id,
+        attributeOptionId: "level-senior",
+      });
+
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+      });
+
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(2);
+
+      // Find each user's assignment
+      const user1Assignment = attributesAssignedToTeamMembersWithOptions.find((a) => a.userId === user1.id);
+      const user2Assignment = attributesAssignedToTeamMembersWithOptions.find((a) => a.userId === user2.id);
+
+      expect(user1Assignment?.attributes.attr1).toEqual({
+        type: AttributeType.SINGLE_SELECT,
+        attributeOption: { isGroup: false, value: "Junior", contains: [] },
+      });
+
+      expect(user2Assignment?.attributes.attr1).toEqual({
+        type: AttributeType.SINGLE_SELECT,
+        attributeOption: { isGroup: false, value: "Senior", contains: [] },
+      });
+    });
+
+    it("should handle empty attributes gracefully", async () => {
+      const team = await createMockTeam({ orgId });
+      await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      // Create attribute with no options
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Empty Attribute",
+        slug: "empty-attribute",
+        type: AttributeType.SINGLE_SELECT,
+        options: [],
+      });
+
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({ teamId: team.id, orgId });
+
+      // No assignments since there are no options to assign
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(0);
+      expect(attributesOfTheOrg).toHaveLength(1);
+    });
+
+    it("should handle option IDs that don't exist in the org's attributes", async () => {
+      const team = await createMockTeam({ orgId });
+      const { orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+        orgId,
+        teamId: team.id,
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "attr1",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+        ],
+      });
+
+      // Create an assignment with a valid option
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      // Create an assignment with an invalid option ID (simulating data inconsistency)
+      await prismock.attributeToUser.create({
+        data: {
+          memberId: orgMembership.id,
+          attributeOptionId: "non-existent-option",
+        },
+      });
+
+      // The function should handle this gracefully and only return valid assignments
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+      });
+
+      // Should only have the valid assignment
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr1).toEqual({
+        type: AttributeType.SINGLE_SELECT,
+        attributeOption: { isGroup: false, value: "Engineering", contains: [] },
       });
     });
   });
