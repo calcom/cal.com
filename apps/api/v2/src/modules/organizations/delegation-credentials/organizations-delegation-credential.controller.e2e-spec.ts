@@ -13,7 +13,6 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -32,14 +31,15 @@ describe("Organizations Delegation Credentials Endpoints", () => {
     let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
-    let prismaReadService: PrismaReadService;
     let prismaWriteService: PrismaWriteService;
+    let delegationCredentialService: OrganizationsDelegationCredentialService;
 
     let org: Team;
     let user: User;
     let apiKey: string;
     let delegationCredentialId: string;
     let workspacePlatformId: number;
+    let ensureDefaultCalendarsSpy: jest.SpyInstance;
 
     const userEmail = `delegation-credentials-admin-${randomString()}@api.com`;
 
@@ -54,8 +54,8 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-      prismaReadService = moduleRef.get(PrismaReadService);
       prismaWriteService = moduleRef.get(PrismaWriteService);
+      delegationCredentialService = moduleRef.get(OrganizationsDelegationCredentialService);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -90,7 +90,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
 
       const workspacePlatform = await prismaWriteService.prisma.workspacePlatform.create({
         data: {
-          slug: `google-workspace-${randomString()}`,
+          slug: "google",
           name: "Google Workspace",
           description: "Google Workspace for testing",
           defaultServiceAccountKey: {
@@ -132,10 +132,18 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       });
       delegationCredentialId = delegationCredential.id;
 
+      ensureDefaultCalendarsSpy = jest
+        .spyOn(delegationCredentialService, "ensureDefaultCalendars")
+        .mockResolvedValue(undefined);
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
       await app.init();
+    });
+
+    beforeEach(() => {
+      ensureDefaultCalendarsSpy.mockClear();
     });
 
     it("should be defined", () => {
@@ -146,27 +154,24 @@ describe("Organizations Delegation Credentials Endpoints", () => {
     });
 
     it("should call ensureDefaultCalendars when enabling delegation credentials", async () => {
-      const ensureDefaultCalendarsSpy = jest
-        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
+      await prismaWriteService.prisma.delegationCredential.update({
+        where: { id: delegationCredentialId },
+        data: { enabled: false },
+      });
 
-      try {
-        const response = await request(app.getHttpServer())
-          .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send({
-            enabled: true,
-          } satisfies UpdateDelegationCredentialInput)
-          .expect(200);
+      const response = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
+        .set("Authorization", `Bearer ${apiKey}`)
+        .send({
+          enabled: true,
+        } satisfies UpdateDelegationCredentialInput)
+        .expect(200);
 
-        const responseBody: UpdateDelegationCredentialOutput = response.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(responseBody.data.enabled).toEqual(true);
+      const responseBody: UpdateDelegationCredentialOutput = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data.enabled).toEqual(true);
 
-        expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "@test-domain.com");
-      } finally {
-        ensureDefaultCalendarsSpy.mockRestore();
-      }
+      expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "@test-domain.com");
     });
 
     it("should not call ensureDefaultCalendars when disabling delegation credentials", async () => {
@@ -175,27 +180,19 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: { enabled: true },
       });
 
-      const ensureDefaultCalendarsSpy = jest
-        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
+      const response = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
+        .set("Authorization", `Bearer ${apiKey}`)
+        .send({
+          enabled: false,
+        } satisfies UpdateDelegationCredentialInput)
+        .expect(200);
 
-      try {
-        const response = await request(app.getHttpServer())
-          .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send({
-            enabled: false,
-          } satisfies UpdateDelegationCredentialInput)
-          .expect(200);
+      const responseBody: UpdateDelegationCredentialOutput = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data.enabled).toEqual(false);
 
-        const responseBody: UpdateDelegationCredentialOutput = response.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(responseBody.data.enabled).toEqual(false);
-
-        expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
-      } finally {
-        ensureDefaultCalendarsSpy.mockRestore();
-      }
+      expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
     });
 
     it("should not call ensureDefaultCalendars when enabling already enabled delegation credentials", async () => {
@@ -204,30 +201,23 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: { enabled: true },
       });
 
-      const ensureDefaultCalendarsSpy = jest
-        .spyOn(OrganizationsDelegationCredentialService.prototype, "ensureDefaultCalendars")
-        .mockResolvedValue(undefined);
+      const response = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
+        .set("Authorization", `Bearer ${apiKey}`)
+        .send({
+          enabled: true,
+        } satisfies UpdateDelegationCredentialInput)
+        .expect(200);
 
-      try {
-        const response = await request(app.getHttpServer())
-          .patch(`/v2/organizations/${org.id}/delegation-credentials/${delegationCredentialId}`)
-          .set("Authorization", `Bearer ${apiKey}`)
-          .send({
-            enabled: true,
-          } satisfies UpdateDelegationCredentialInput)
-          .expect(200);
+      const responseBody: UpdateDelegationCredentialOutput = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data.enabled).toEqual(true);
 
-        const responseBody: UpdateDelegationCredentialOutput = response.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(responseBody.data.enabled).toEqual(true);
-
-        expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
-      } finally {
-        ensureDefaultCalendarsSpy.mockRestore();
-      }
+      expect(ensureDefaultCalendarsSpy).not.toHaveBeenCalled();
     });
 
     afterAll(async () => {
+      ensureDefaultCalendarsSpy.mockRestore();
       if (org?.id) {
         await prismaWriteService.prisma.delegationCredential.deleteMany({
           where: { organizationId: org.id },
