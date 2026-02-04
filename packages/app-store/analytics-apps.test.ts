@@ -252,4 +252,99 @@ describe("Analytics Apps - Input Validation", () => {
       }
     });
   });
+
+  // Null/undefined handling for embed endpoint (PR 26976)
+  // Schemas accept nullish input and always output string
+  describe("Null/Undefined Handling", () => {
+    it("GTM converts null to empty string", () => {
+      expect(gtmSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("GA4 converts null to empty string", () => {
+      expect(ga4Schema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("Meta Pixel converts null to empty string", () => {
+      expect(metapixelSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("PostHog converts null to empty string", () => {
+      expect(posthogSchema.parse({ TRACKING_ID: null }).TRACKING_ID).toBe("");
+    });
+
+    it("Fathom converts null to empty string", () => {
+      expect(fathomSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("Plausible converts null to empty string", () => {
+      expect(plausibleSchema.parse({ trackingId: null }).trackingId).toBe("");
+    });
+
+    it("Matomo converts null to empty string", () => {
+      expect(matomoSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Umami converts null to empty string", () => {
+      expect(umamiSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Twipla converts null to empty string", () => {
+      expect(twiplaSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Insihts converts null to empty string", () => {
+      expect(insihtsSchema.parse({ SITE_ID: null }).SITE_ID).toBe("");
+    });
+
+    it("Databuddy converts null to empty string", () => {
+      expect(databuddySchema.parse({ CLIENT_ID: null }).CLIENT_ID).toBe("");
+    });
+  });
+
+  // Missing key handling - fields should be optional
+  describe("Missing Key Handling", () => {
+    it("GA4 accepts missing trackingId", () => {
+      expect(() => ga4Schema.parse({})).not.toThrow();
+    });
+
+    it("GTM accepts missing trackingId", () => {
+      expect(() => gtmSchema.parse({})).not.toThrow();
+    });
+
+    it("Meta Pixel accepts missing trackingId", () => {
+      expect(() => metapixelSchema.parse({})).not.toThrow();
+    });
+
+    it("Fathom accepts missing trackingId", () => {
+      expect(() => fathomSchema.parse({})).not.toThrow();
+    });
+
+    it("Plausible accepts missing trackingId", () => {
+      expect(() => plausibleSchema.parse({})).not.toThrow();
+    });
+
+    it("PostHog accepts missing TRACKING_ID", () => {
+      expect(() => posthogSchema.parse({})).not.toThrow();
+    });
+
+    it("Matomo accepts missing fields", () => {
+      expect(() => matomoSchema.parse({})).not.toThrow();
+    });
+
+    it("Umami accepts missing SITE_ID", () => {
+      expect(() => umamiSchema.parse({})).not.toThrow();
+    });
+
+    it("Twipla accepts missing SITE_ID", () => {
+      expect(() => twiplaSchema.parse({})).not.toThrow();
+    });
+
+    it("Insihts accepts missing fields", () => {
+      expect(() => insihtsSchema.parse({})).not.toThrow();
+    });
+
+    it("Databuddy accepts missing CLIENT_ID", () => {
+      expect(() => databuddySchema.parse({})).not.toThrow();
+    });
+  });
 });

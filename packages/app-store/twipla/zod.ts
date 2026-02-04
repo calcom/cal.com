@@ -4,8 +4,8 @@ import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
 // Twipla Site IDs can be UUID or alphanumeric strings
 const twiplaSiteIdSchema = z
-  .string()
-  .transform((val) => val.trim())
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((val): string => (typeof val === "string" ? val.trim() : ""))
   .refine((val) => !val || /^[A-Za-z0-9-]+$/.test(val), {
     message: "Invalid Twipla Site ID format. Expected alphanumeric characters or UUID",
   })
