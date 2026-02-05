@@ -126,7 +126,7 @@ export const EventDuration = ({
               ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
-                "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
+                "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition flex items-center justify-center"
               )}>
               <div className="w-max">{getDurationFormatted(duration, t)}</div>
             </li>
