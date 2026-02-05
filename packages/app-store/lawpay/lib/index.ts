@@ -1,2 +1,2 @@
-export { LawPayAPI } from "./LawPayAPI";
 export type { LawPayResponse } from "./LawPayAPI";
+export { LawPayAPI } from "./LawPayAPI";

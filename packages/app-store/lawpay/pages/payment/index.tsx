@@ -1,9 +1,8 @@
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LawPayPaymentPage() {
   const router = useRouter();
@@ -94,8 +93,8 @@ export default function LawPayPaymentPage() {
               className={`h-8 w-8 ${statusContent.color} ${statusContent.animate}`}
             />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">{statusContent.title}</h2>
-          <p className="mt-2 text-sm text-gray-600">{statusContent.message}</p>
+          <h2 className="mt-6 font-extrabold text-3xl text-gray-900">{statusContent.title}</h2>
+          <p className="mt-2 text-gray-600 text-sm">{statusContent.message}</p>
         </div>
 
         {status === "cancelled" || status === "error" ? (
@@ -116,7 +115,7 @@ export default function LawPayPaymentPage() {
         ) : null}
 
         <div className="text-center">
-          <p className="text-xs text-gray-500">
+          <p className="text-gray-500 text-xs">
             Powered by{" "}
             <a href="https://lawpay.com" target="_blank" rel="noopener noreferrer" className="font-medium">
               LawPay

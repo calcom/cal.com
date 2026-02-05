@@ -1,14 +1,58 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
+import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
+import config from "../config.json";
 import { lawPayCredentialSchema } from "../types";
 
 const log = logger.getSubLogger({ prefix: ["lawpay", "add"] });
+
+async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.session?.user?.id) {
+    return res.status(401).json({ message: "You must be logged in to do this" });
+  }
+
+  const { teamId } = req.query;
+  const teamIdNumber = teamId ? Number(teamId) : null;
+
+  await throwIfNotHaveAdminAccessToTeam({ teamId: teamIdNumber, userId: req.session.user.id });
+  const installForObject = teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id };
+
+  const appType = config.type as string;
+  try {
+    const alreadyInstalled = await prisma.credential.findFirst({
+      where: {
+        type: appType,
+        ...installForObject,
+      },
+    });
+    if (alreadyInstalled) {
+      return res.status(200).json({
+        url: `/apps/lawpay/setup${teamIdNumber ? `?teamId=${teamIdNumber}` : ""}`,
+      });
+    }
+    await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        appId: "lawpay",
+        ...(teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id }),
+      },
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
+    log.error("Error installing LawPay", getErrorFromUnknown(error));
+    return res.status(500).json({ message });
+  }
+
+  return res.status(200).json({
+    url: `/apps/lawpay/setup${teamIdNumber ? `?teamId=${teamIdNumber}` : ""}`,
+  });
+}
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -17,42 +61,46 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const { body } = req;
+
+    // No body or empty body: treat as install (same as GET)
+    if (!body || Object.keys(body).length === 0) {
+      return getHandler(req, res);
+    }
+
     const credentialData = lawPayCredentialSchema.parse(body);
 
-    // Check if user already has LawPay credentials
+    const { teamId } = req.query;
+    const teamIdNumber = teamId ? Number(teamId) : null;
+    await throwIfNotHaveAdminAccessToTeam({ teamId: teamIdNumber, userId: req.session.user.id });
+    const installForObject = teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id };
+
     const existingCredential = await prisma.credential.findFirst({
       where: {
-        userId: req.session.user.id,
         type: "lawpay_payment",
+        ...installForObject,
       },
     });
 
     if (existingCredential) {
-      // Update existing credential
       await prisma.credential.update({
-        where: {
-          id: existingCredential.id,
-        },
-        data: {
-          key: credentialData,
-        },
+        where: { id: existingCredential.id },
+        data: { key: credentialData as object },
       });
     } else {
-      // Create new credential
       await prisma.credential.create({
         data: {
           type: "lawpay_payment",
-          key: credentialData,
-          userId: req.session.user.id,
+          key: credentialData as object,
           appId: "lawpay",
+          ...(teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id }),
         },
       });
     }
 
-    log.info("LawPay credentials added successfully", { userId: req.session.user.id });
+    log.info("LawPay credentials saved successfully", { userId: req.session.user.id });
 
     return res.status(200).json({
-      url: "/apps/lawpay/setup?success=true",
+      url: `/apps/lawpay/setup?success=true${teamIdNumber ? `&teamId=${teamIdNumber}` : ""}`,
     });
   } catch (error) {
     log.error("Error adding LawPay credentials", getErrorFromUnknown(error));
@@ -61,5 +109,6 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
   POST: Promise.resolve({ default: defaultResponder(postHandler) }),
 });

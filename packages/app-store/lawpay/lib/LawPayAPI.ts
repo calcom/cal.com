@@ -1,6 +1,5 @@
-import * as crypto from "crypto";
-
-import type { LawPayCredential, LawPayToken, LawPayCharge } from "../types";
+import * as crypto from "node:crypto";
+import type { LawPayCharge, LawPayCredential, LawPayToken } from "../types";
 
 export interface LawPayResponse {
   id: string;
@@ -134,7 +133,7 @@ export class LawPayAPI {
       }
 
       return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

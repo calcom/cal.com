@@ -1,6 +1,5 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { LawPayAPI } from "./lib";
 import type * as LawPayTypes from "./types";
 import { lawPayCredentialSchema } from "./types";
@@ -12,8 +11,8 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 // Mock console methods
-const mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-const mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => undefined);
+const _mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+const _mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
 describe("LawPay Integration", () => {
   const mockCredentials: LawPayCredential = {
@@ -40,12 +39,12 @@ describe("LawPay Integration", () => {
     describe("constructor", () => {
       it("should set sandbox URL for sandbox environment", () => {
         const sandboxApi = new LawPayAPI({ ...mockCredentials, environment: "sandbox" });
-        expect(sandboxApi["baseUrl"]).toBe("https://api.sandbox.lawpay.com");
+        expect(sandboxApi.baseUrl).toBe("https://api.sandbox.lawpay.com");
       });
 
       it("should set production URL for production environment", () => {
         const productionApi = new LawPayAPI({ ...mockCredentials, environment: "production" });
-        expect(productionApi["baseUrl"]).toBe("https://api.lawpay.com");
+        expect(productionApi.baseUrl).toBe("https://api.lawpay.com");
       });
     });
 

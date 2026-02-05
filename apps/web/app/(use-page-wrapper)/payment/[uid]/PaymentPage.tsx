@@ -56,6 +56,16 @@ const BtcpayPaymentComponent = dynamic(
   }
 );
 
+const LawPayPaymentComponent = dynamic(
+  () =>
+    import("@calcom/web/components/apps/lawpay/LawPayPaymentComponent").then(
+      (m) => m.LawPayPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -173,6 +183,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "btcpayserver" && !props.payment.success && (
                     <BtcpayPaymentComponent payment={props.payment} paymentPageProps={props} />
+                  )}
+                  {props.payment.appId === "lawpay" && !props.payment.success && (
+                    <LawPayPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

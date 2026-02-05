@@ -1,14 +1,11 @@
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-
+import { Select, TextField } from "@calcom/ui/components/form";
+import { useEffect, useState } from "react";
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
 } from "../../_utils/payments/currencyConversions";
 
 type Option = { value: string; label: string };
@@ -46,8 +43,8 @@ const LawPaySetup: EventTypeAppSettingsComponent = ({ getAppData, setAppData, di
 
   return (
     <div className="mt-2 block items-center sm:flex">
-      <div className="min-w-48 mb-4 sm:mb-0">
-        <label htmlFor="require-payment" className="flex text-sm font-medium text-gray-700">
+      <div className="mb-4 min-w-48 sm:mb-0">
+        <label htmlFor="require-payment" className="flex font-medium text-gray-700 text-sm">
           {t("require_payment")}
         </label>
       </div>
@@ -73,7 +70,7 @@ const LawPaySetup: EventTypeAppSettingsComponent = ({ getAppData, setAppData, di
                 step="0.01"
                 type="number"
                 required
-                className="block w-full rounded-md border-gray-300 pl-16 pr-12 text-sm"
+                className="block w-full rounded-md border-gray-300 pr-12 pl-16 text-sm"
                 placeholder="0.00"
                 disabled={disabled}
                 value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined}

@@ -9,8 +9,8 @@ export default function LawPaySupportPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
             <Icon name="mail" className="h-8 w-8 text-blue-600" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">Contact Support</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="mt-6 font-extrabold text-3xl text-gray-900">Contact Support</h2>
+          <p className="mt-2 text-gray-600 text-sm">
             If you need help, please reach out to our support team.
           </p>
         </div>

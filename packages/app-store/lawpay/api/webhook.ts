@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { Prisma } from "@calcom/prisma/client";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { LawPayAPI } from "../lib/LawPayAPI";
 import { lawPayCredentialSchema } from "../types";
 
@@ -110,7 +109,7 @@ async function handleChargeSucceeded(event: { data: { object: Record<string, unk
     },
     data: {
       success: true,
-      data: charge,
+      data: charge as unknown as Prisma.InputJsonValue,
     },
   });
 }
@@ -130,7 +129,7 @@ async function handleChargeFailed(event: { data: { object: Record<string, unknow
     },
     data: {
       success: false,
-      data: charge,
+      data: charge as unknown as Prisma.InputJsonValue,
     },
   });
 }
@@ -150,7 +149,7 @@ async function handleChargeRefunded(event: { data: { object: Record<string, unkn
     },
     data: {
       refunded: true,
-      data: charge,
+      data: charge as unknown as Prisma.InputJsonValue,
     },
   });
 }

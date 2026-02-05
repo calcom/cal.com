@@ -20,12 +20,6 @@
   "rating": 4.8,
   "reviews": 234,
   "trending": true,
-  "paid": false,
-  "commission": 0,
-  "fee": 0,
-  "credentials": [],
-  "pricing": [],
-  "feeType": "usage-based",
   "docs": "https://developers.affinipay.com",
   "website": "https://lawpay.com"
 }

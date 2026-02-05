@@ -41,7 +41,7 @@ export const LawPayPaymentComponent = (props: ILawPayPaymentComponentProps) => {
     <div className="mt-4 flex h-full w-full flex-col items-center justify-center">
       <Link
         href={paymentUrl}
-        className="inline-flex items-center justify-center rounded-2xl border border-transparent bg-[#003d82] px-12 py-3 text-base font-medium text-white shadow-sm hover:bg-[#002a5a] focus:outline-none focus:ring-2 focus:ring-[#003d82] focus:ring-offset-2">
+        className="inline-flex items-center justify-center rounded-2xl border border-transparent bg-[#003d82] px-12 py-3 font-medium text-base text-white shadow-sm hover:bg-[#002a5a] focus:outline-none focus:ring-2 focus:ring-[#003d82] focus:ring-offset-2">
         <span className="flex items-center">
           <svg
             className="mr-2 h-5 w-5"
@@ -53,7 +53,7 @@ export const LawPayPaymentComponent = (props: ILawPayPaymentComponentProps) => {
           Pay Securely with LawPay
         </span>
       </Link>
-      <p className="mt-2 text-center text-xs text-gray-500">Trusted by 50,000+ legal professionals</p>
+      <p className="mt-2 text-center text-gray-500 text-xs">Trusted by 50,000+ legal professionals</p>
     </div>
   );
 };
