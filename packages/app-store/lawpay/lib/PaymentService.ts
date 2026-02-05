@@ -1,3 +1,4 @@
+import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/lib/currencyConversions";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -51,7 +52,10 @@ class LawPayPaymentService implements IAbstractPaymentService {
       }
 
       const api = new LawPayAPI(this.credentials);
-      const amountInDollars = payment.amount / 100;
+      const amountForApi = convertFromSmallestToPresentableCurrencyUnit(
+        payment.amount,
+        payment.currency ?? "USD"
+      );
       const metadata: Record<string, string> = {
         bookingId: String(bookingId),
         bookingUid: booking.uid,
@@ -59,7 +63,11 @@ class LawPayPaymentService implements IAbstractPaymentService {
       if (eventTitle) metadata.eventTitle = eventTitle;
       if (bookingTitle) metadata.bookingTitle = bookingTitle;
 
-      const intentResponse = (await api.createPaymentIntent(amountInDollars, payment.currency, metadata)) as {
+      const intentResponse = (await api.createPaymentIntent(
+        amountForApi,
+        payment.currency ?? "USD",
+        metadata
+      )) as {
         id?: string;
         status?: string;
         amount?: number;

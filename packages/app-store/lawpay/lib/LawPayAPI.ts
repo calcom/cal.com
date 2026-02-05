@@ -1,4 +1,5 @@
 import * as crypto from "node:crypto";
+import { convertToSmallestCurrencyUnit } from "@calcom/lib/currencyConversions";
 import type { LawPayCharge, LawPayCredential, LawPayToken } from "../types";
 
 export interface LawPayResponse {
@@ -153,7 +154,7 @@ export class LawPayAPI {
         "X-LawPay-Account": this.credential.merchant_id,
       },
       body: JSON.stringify({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: convertToSmallestCurrencyUnit(amount, currency),
         currency,
         metadata,
       }),
