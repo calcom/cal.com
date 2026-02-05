@@ -7,7 +7,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { SelectedCalendarRepository } from "./selectedCalendar";
+import { SelectedCalendarRepository } from "./SelectedCalendarRepository";
 
 describe("SelectedCalendarRepository", () => {
   beforeEach(() => {
