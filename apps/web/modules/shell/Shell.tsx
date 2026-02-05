@@ -137,15 +137,15 @@ export function ShellMain(props: LayoutProps) {
   return (
     <>
       {(props.heading || !!props.backPath) && (
-<div
-  className={classNames(
-    "bg-default mb-0 flex items-center md:mb-6 md:mt-0 md:pt-3 md:pb-2 md:pl-5",
-    props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-    !props.disableSticky 
-      ? "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] lg:left-56 lg:w-[calc(100%-14rem)] pr-5 "
-      : "md:w-[100%] pr-5"
-  )}
->
+          <div
+            className={classNames(
+              "bg-default mb-0 flex items-center md:mb-6 md:mt-0 md:pt-3 md:pb-2 md:pl-5",
+              props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+              !props.disableSticky 
+                ? "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] lg:left-56 lg:w-[calc(100%-14rem)] pr-5 "
+                : "md:w-[100%] pr-5"
+            )}
+          >
           {!!props.backPath && (
             <Button
               variant="icon"
