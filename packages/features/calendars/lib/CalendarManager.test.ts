@@ -14,6 +14,7 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("@calcom/lib/constants", () => ({
   ORGANIZER_EMAIL_EXEMPT_DOMAINS: "",
+  IS_PRODUCTION: false,
 }));
 
 vi.mock("@calcom/app-store/locations", () => ({

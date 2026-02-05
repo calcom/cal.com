@@ -31,7 +31,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 /**
  * Process the calendar event by generating description and removing attendees if needed
  */
-const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
+export const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
   if (calEvent.seatsPerTimeSlot) {
     calEvent.responses = null;
     calEvent.userFieldsResponses = null;
