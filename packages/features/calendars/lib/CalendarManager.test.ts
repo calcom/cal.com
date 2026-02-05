@@ -1,12 +1,20 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { getCalendarCredentials, deduplicateCredentialsBasedOnSelectedCalendars } from "./CalendarManager";
+import { getCalendarCredentials, deduplicateCredentialsBasedOnSelectedCalendars, deleteEvent } from "./CalendarManager";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
+
+vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
+  getCalendar: vi.fn(),
+}));
+
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+
+const mockedGetCalendar = vi.mocked(getCalendar);
 
 function buildCredential(data: {
   type: string;
@@ -29,6 +37,39 @@ function buildCredential(data: {
         private_key: "DONT_MATTER",
       },
     },
+  };
+}
+
+function buildCalendarCredentialForDelete() {
+  return {
+    id: 1,
+    type: "google_calendar",
+    key: { access_token: "test_token" },
+    userId: 1,
+    user: { email: "test@example.com" },
+    teamId: null,
+    appId: "google-calendar",
+    invalid: false,
+    appName: "Google Calendar",
+  };
+}
+
+function buildCalendarEvent() {
+  return {
+    type: "test_event",
+    title: "Test Event",
+    description: "Test Description",
+    startTime: new Date().toISOString(),
+    endTime: new Date().toISOString(),
+    organizer: {
+      email: "organizer@example.com",
+      name: "Organizer",
+      timeZone: "UTC",
+      language: { locale: "en" },
+    },
+    attendees: [],
+    location: "Test Location",
+    uid: "test-uid",
   };
 }
 
@@ -370,6 +411,119 @@ describe("CalendarManager tests", () => {
         selectedCalendars,
       });
       expect(uniqueCredentials).toEqual(credentials);
+    });
+  });
+
+  describe("fn: deleteEvent", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should return early and not call calendar.deleteEvent when bookingRefUid is empty string", async () => {
+      const mockCalendarDeleteEvent = vi.fn();
+      const mockCalendar = {
+        deleteEvent: mockCalendarDeleteEvent,
+      };
+      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
+
+      const credential = buildCalendarCredentialForDelete();
+      const event = buildCalendarEvent();
+
+      const result = await deleteEvent({
+        credential: credential as any,
+        bookingRefUid: "",
+        event: event as any,
+        externalCalendarId: "calendar-id",
+      });
+
+      expect(result).toEqual({});
+      expect(mockedGetCalendar).not.toHaveBeenCalled();
+      expect(mockCalendarDeleteEvent).not.toHaveBeenCalled();
+    });
+
+    it("should return early and not call calendar.deleteEvent when bookingRefUid is undefined", async () => {
+      const mockCalendarDeleteEvent = vi.fn();
+      const mockCalendar = {
+        deleteEvent: mockCalendarDeleteEvent,
+      };
+      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
+
+      const credential = buildCalendarCredentialForDelete();
+      const event = buildCalendarEvent();
+
+      const result = await deleteEvent({
+        credential: credential as any,
+        bookingRefUid: undefined as any,
+        event: event as any,
+        externalCalendarId: "calendar-id",
+      });
+
+      expect(result).toEqual({});
+      expect(mockedGetCalendar).not.toHaveBeenCalled();
+      expect(mockCalendarDeleteEvent).not.toHaveBeenCalled();
+    });
+
+    it("should return early and not call calendar.deleteEvent when bookingRefUid is null", async () => {
+      const mockCalendarDeleteEvent = vi.fn();
+      const mockCalendar = {
+        deleteEvent: mockCalendarDeleteEvent,
+      };
+      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
+
+      const credential = buildCalendarCredentialForDelete();
+      const event = buildCalendarEvent();
+
+      const result = await deleteEvent({
+        credential: credential as any,
+        bookingRefUid: null as any,
+        event: event as any,
+        externalCalendarId: "calendar-id",
+      });
+
+      expect(result).toEqual({});
+      expect(mockedGetCalendar).not.toHaveBeenCalled();
+      expect(mockCalendarDeleteEvent).not.toHaveBeenCalled();
+    });
+
+    it("should call calendar.deleteEvent when bookingRefUid is valid", async () => {
+      const mockCalendarDeleteEvent = vi.fn().mockResolvedValue({ success: true });
+      const mockCalendar = {
+        deleteEvent: mockCalendarDeleteEvent,
+      };
+      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
+
+      const credential = buildCalendarCredentialForDelete();
+      const event = buildCalendarEvent();
+      const bookingRefUid = "valid-booking-ref-uid";
+      const externalCalendarId = "calendar-id";
+
+      const result = await deleteEvent({
+        credential: credential as any,
+        bookingRefUid,
+        event: event as any,
+        externalCalendarId,
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(mockedGetCalendar).toHaveBeenCalledWith(credential, "booking");
+      expect(mockCalendarDeleteEvent).toHaveBeenCalledWith(bookingRefUid, event, externalCalendarId);
+    });
+
+    it("should return empty object when calendar is not available", async () => {
+      mockedGetCalendar.mockResolvedValue(null);
+
+      const credential = buildCalendarCredentialForDelete();
+      const event = buildCalendarEvent();
+
+      const result = await deleteEvent({
+        credential: credential as any,
+        bookingRefUid: "valid-uid",
+        event: event as any,
+        externalCalendarId: "calendar-id",
+      });
+
+      expect(result).toEqual({});
+      expect(mockedGetCalendar).toHaveBeenCalledWith(credential, "booking");
     });
   });
 });
