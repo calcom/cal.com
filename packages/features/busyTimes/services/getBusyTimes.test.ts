@@ -170,7 +170,7 @@ describe("getBusyTimesForLimitChecks", () => {
     });
 
     expect(busyTimes).toEqual([]);
-    expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    expect(prisma.booking.findMany).not.toHaveBeenCalled();
   });
 
   it("should return empty array when userIds is empty", async () => {
@@ -188,7 +188,7 @@ describe("getBusyTimesForLimitChecks", () => {
 
   it("should fetch bookings for a single user with booking limits", async () => {
     const mockBooking = createMockBookingResult();
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([mockBooking]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([mockBooking]);
 
     const busyTimesService = getBusyTimesService();
     const busyTimes = await busyTimesService.getBusyTimesForLimitChecks({
@@ -209,7 +209,7 @@ describe("getBusyTimesForLimitChecks", () => {
         userId: mockBooking.userId,
       })
     );
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prisma.booking.findMany).toHaveBeenCalledTimes(1);
   });
 
   it("should fetch bookings for multiple users with duration limits", async () => {
@@ -222,7 +222,7 @@ describe("getBusyTimesForLimitChecks", () => {
         endTime: startOfTomorrow.set("hour", 15).toDate(),
       }),
     ];
-    vi.mocked(prisma.$queryRaw).mockResolvedValue(mockBookings);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue(mockBookings);
 
     const busyTimesService = getBusyTimesService();
     const busyTimes = await busyTimesService.getBusyTimesForLimitChecks({
@@ -241,7 +241,7 @@ describe("getBusyTimesForLimitChecks", () => {
   it("should batch queries when userIds exceeds batch size (50)", async () => {
     const userIds = Array.from({ length: 75 }, (_, i) => i + 1);
     const mockBookings = [createMockBookingResult()];
-    vi.mocked(prisma.$queryRaw).mockResolvedValue(mockBookings);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue(mockBookings);
 
     const busyTimesService = getBusyTimesService();
     await busyTimesService.getBusyTimesForLimitChecks({
@@ -253,12 +253,12 @@ describe("getBusyTimesForLimitChecks", () => {
     });
 
     // Should be called twice: once for first 50 users, once for remaining 25
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
+    expect(prisma.booking.findMany).toHaveBeenCalledTimes(2);
   });
 
   it("should batch queries correctly for exactly 100 users (2 full batches)", async () => {
     const userIds = Array.from({ length: 100 }, (_, i) => i + 1);
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([]);
 
     const busyTimesService = getBusyTimesService();
     await busyTimesService.getBusyTimesForLimitChecks({
@@ -269,12 +269,12 @@ describe("getBusyTimesForLimitChecks", () => {
       bookingLimits: { PER_WEEK: 10 },
     });
 
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
+    expect(prisma.booking.findMany).toHaveBeenCalledTimes(2);
   });
 
   it("should batch queries correctly for 150 users (3 batches)", async () => {
     const userIds = Array.from({ length: 150 }, (_, i) => i + 1);
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([]);
 
     const busyTimesService = getBusyTimesService();
     await busyTimesService.getBusyTimesForLimitChecks({
@@ -285,14 +285,14 @@ describe("getBusyTimesForLimitChecks", () => {
       bookingLimits: { PER_MONTH: 20 },
     });
 
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(3);
+    expect(prisma.booking.findMany).toHaveBeenCalledTimes(3);
   });
 
   it("should merge results from multiple batches correctly", async () => {
     const userIds = Array.from({ length: 75 }, (_, i) => i + 1);
 
     // First batch returns 2 bookings, second batch returns 1 booking
-    vi.mocked(prisma.$queryRaw)
+    vi.mocked(prisma.booking.findMany)
       .mockResolvedValueOnce([
         createMockBookingResult({ id: 1, userId: 1 }),
         createMockBookingResult({ id: 2, userId: 25 }),
@@ -314,7 +314,7 @@ describe("getBusyTimesForLimitChecks", () => {
 
   it("should exclude rescheduleUid from results", async () => {
     const mockBooking = createMockBookingResult();
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([mockBooking]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([mockBooking]);
 
     const busyTimesService = getBusyTimesService();
     await busyTimesService.getBusyTimesForLimitChecks({
@@ -327,12 +327,12 @@ describe("getBusyTimesForLimitChecks", () => {
     });
 
     // Verify the query was called (the actual exclusion happens in the Prisma query)
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prisma.booking.findMany).toHaveBeenCalledTimes(1);
   });
 
   it("should handle both booking and duration limits together", async () => {
     const mockBooking = createMockBookingResult();
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([mockBooking]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([mockBooking]);
 
     const busyTimesService = getBusyTimesService();
     const busyTimes = await busyTimesService.getBusyTimesForLimitChecks({
@@ -345,12 +345,12 @@ describe("getBusyTimesForLimitChecks", () => {
     });
 
     expect(busyTimes).toHaveLength(1);
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prisma.booking.findMany).toHaveBeenCalledTimes(1);
   });
 
   it("should handle null eventTypeId in booking results", async () => {
     const mockBooking = createMockBookingResult({ eventTypeId: null });
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([mockBooking]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([mockBooking]);
 
     const busyTimesService = getBusyTimesService();
     const busyTimes = await busyTimesService.getBusyTimesForLimitChecks({
@@ -367,7 +367,7 @@ describe("getBusyTimesForLimitChecks", () => {
 
   it("should handle null userId in booking results", async () => {
     const mockBooking = createMockBookingResult({ userId: null });
-    vi.mocked(prisma.$queryRaw).mockResolvedValue([mockBooking]);
+    vi.mocked(prisma.booking.findMany).mockResolvedValue([mockBooking]);
 
     const busyTimesService = getBusyTimesService();
     const busyTimes = await busyTimesService.getBusyTimesForLimitChecks({

@@ -11,8 +11,7 @@ import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Booking, EventType, SelectedCalendar } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Booking, EventType, Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -377,11 +376,10 @@ export class BusyTimesService {
   }
 
   /**
-   * Fetches bookings for limit checks using batched parallel queries with raw SQL.
+   * Fetches bookings for limit checks using batched parallel queries.
    * This optimization improves performance for teams/orgs with many members by:
    * 1. Splitting large userIds arrays into smaller batches
    * 2. Running a capped number of batch queries in parallel
-   * 3. Using PostgreSQL's ANY() operator for large user lists
    */
   private async fetchBookingsForLimitChecksBatched(params: {
     userIds: number[];
@@ -439,7 +437,7 @@ export class BusyTimesService {
   }
 
   /**
-   * Fetches bookings for a single batch of userIds using raw SQL with ANY().
+   * Fetches bookings for a single batch of userIds using Prisma's findMany.
    * Uses batching to improve query planner efficiency for large userIds arrays.
    */
   private async fetchBookingsForLimitChecksBatch(params: {
@@ -460,36 +458,38 @@ export class BusyTimesService {
   > {
     const { userIds, eventTypeId, startTimeDate, endTimeDate, rescheduleUid } = params;
 
-    // FIXME: bookings that overlap on one side will never be counted
-    const bookingStatusAccepted = BookingStatus.ACCEPTED.toLowerCase();
-    const query = Prisma.sql`
-      SELECT
-        id,
-        "startTime",
-        "endTime",
-        "eventTypeId",
-        title,
-        "userId"
-      FROM "Booking"
-      WHERE "userId" = ANY(${userIds}::int[])
-        AND "eventTypeId" = ${eventTypeId}
-        AND "status" = ${bookingStatusAccepted}::"BookingStatus"
-        AND "startTime" >= ${startTimeDate}
-        AND "endTime" <= ${endTimeDate}
-        ${rescheduleUid ? Prisma.sql`AND "uid" <> ${rescheduleUid}` : Prisma.empty}
-    `;
+    const where: Prisma.BookingWhereInput = {
+      userId: {
+        in: userIds,
+      },
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+      // FIXME: bookings that overlap on one side will never be counted
+      startTime: {
+        gte: startTimeDate,
+      },
+      endTime: {
+        lte: endTimeDate,
+      },
+    };
 
-    const bookings =
-      await prisma.$queryRaw<
-        Array<{
-          id: number;
-          startTime: Date;
-          endTime: Date;
-          eventTypeId: number | null;
-          title: string;
-          userId: number | null;
-        }>
-      >(query);
+    if (rescheduleUid) {
+      where.NOT = {
+        uid: rescheduleUid,
+      };
+    }
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        title: true,
+        userId: true,
+      },
+    });
 
     return bookings;
   }
