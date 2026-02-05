@@ -137,15 +137,13 @@ export function ShellMain(props: LayoutProps) {
   return (
     <>
       {(props.heading || !!props.backPath) && (
-          <div
-            className={classNames(
-              "bg-default mb-0 flex items-center md:mb-6 md:mt-0 md:pt-3 md:pb-2 md:pl-5",
-              props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-              !props.disableSticky 
-                ? "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] lg:left-56 lg:w-[calc(100%-14rem)] pr-5 "
-                : "md:w-[100%] pr-5"
-            )}
-          >
+        <div
+          style={headerStyle}
+          className={classNames(
+            "bg-default mb-0 flex items-center md:mb-6 md:mt-0 md:w-[calc(100%-3.5rem)] md:pt-3 md:pb-2 md:pl-5 md:left-14 lg:left-56 lg:w-[calc(100%-14rem)]",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            !props.disableSticky && "sticky top-0 z-10 md:fixed"
+          )}>
           {!!props.backPath && (
             <Button
               variant="icon"
@@ -198,8 +196,9 @@ export function ShellMain(props: LayoutProps) {
           )}
         </div>
       )}
-
-       {!props.disableSticky && <div className="hidden md:block md:h-20" aria-hidden="true" />}
+      {(props.heading || !!props.backPath) && !props.disableSticky && (
+        <div className="hidden md:block md:h-14" aria-hidden="true" />
+      )}
       {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
