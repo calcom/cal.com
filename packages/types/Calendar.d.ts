@@ -207,7 +207,6 @@ export interface CalendarEvent {
   iCalUID?: string | null;
   iCalSequence?: number | null;
   hideOrganizerEmail?: boolean;
-  hideBranding?: boolean;
   disableCancelling?: boolean;
   disableRescheduling?: boolean;
 
@@ -317,7 +316,7 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDelegationCredentialSetup?(): Promise<boolean>;
+  testDelegationCredentialSetup?(): Promise<void>;
 }
 
 /**
