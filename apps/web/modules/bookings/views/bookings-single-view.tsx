@@ -428,6 +428,7 @@ export default function Success(props: PageProps) {
             )
           )
           .map((member) => member.user.email),
+        ...(bookingInfo.user.email ? [bookingInfo.user.email] : []),
       ],
 
       attendee_participants: bookingInfo.responses

@@ -494,11 +494,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   }
 
   return (
-    <Shell
-      heading={t("edit_event_title")}
-      subtitle={t("edit_event_subtitle")}
-      backPath="/event-types"
-      CTA={cta}>
+    <Shell heading={t("edit_event")} subtitle={t("edit_event_subtitle")} backPath="/event-types" CTA={cta}>
       <div className="bg-background min-h-screen px-2 lg:px-0">
         {/* Horizontal tabs */}
         <HorizontalTabs

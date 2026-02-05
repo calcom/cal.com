@@ -526,6 +526,15 @@ export async function scheduleCalIdBookingReminders(
   // For CalId workflows, we don't use organization concept
   const bookerUrl = await getBookerBaseUrl(null);
 
+  console.log("Scheduling CalId booking reminders for bookings:", {
+    bookingIds: bookings.map((b) => b.uid),
+    workflowId: workflow?.id,
+    trigger,
+    time,
+    timeUnit,
+    workflowSteps: workflowSteps.map((step) => JSON.stringify(step)),
+  });
+
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     const promiseScheduleReminders = bookings.map(async (booking) => {

@@ -9,13 +9,10 @@ import { createPortal } from "react-dom";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-
-import { MeetingNotesDialog } from "@components/dialog/MeetingNotesDialog";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
@@ -27,7 +24,6 @@ export type BookingItemProps = BookingItem & {
 export function BookingExpandedCard(props: BookingItemProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
 
   const defaultFields = ["name", "email", "location", "title", "guests"];
@@ -67,7 +63,10 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const meetingNote =
     parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
   const [displayNotes, setDisplayNotes] = useState<string>(meetingNote || "");
-  const [editingNotes, setEditingNotes] = useState<string>(meetingNote || "");
+
+  useEffect(() => {
+    setDisplayNotes(meetingNote || "");
+  }, [meetingNote]);
 
   const hasMeetingNotesContent = (html: string | null | undefined): boolean => {
     if (!html) return false;
@@ -82,48 +81,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const spanRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const saveNotesMutation = trpc.viewer.bookings.saveNote.useMutation({
-    onSuccess: async () => {
-      setDisplayNotes(editingNotes);
-      triggerToast(t("meeting_notes_saved"), "success");
-      await utils.viewer.bookings.invalidate();
-    },
-  });
-
-  const handleMeetingNoteSave = async (): Promise<void> => {
-    await saveNotesMutation.mutate({ bookingId: props.id, meetingNote: editingNotes });
-  };
-
-  useEffect(() => {
-    if (showRTE) {
-      setEditingNotes(displayNotes);
-    }
-  }, [showRTE, displayNotes]);
-
-  const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      triggerToast(t(data.message), "success");
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      triggerToast(err.message, "error");
-    },
-  });
-
   const { copyToClipboard } = useCopy();
-
-  const handleMarkNoShow = () => {
-    if (attendeeList.length === 1) {
-      const attendee = attendeeList[0];
-      noShowMutation.mutate({
-        bookingUid: props.uid,
-        attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-      });
-      return;
-    }
-    setIsNoShowDialogOpen(true);
-  };
 
   const firstAttendee = props.attendees[0];
 
@@ -139,27 +97,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   });
 
   const popupRef = useRef<HTMLDivElement>(null);
-
-  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.attendeePhoneNumber as string | undefined;
-  const openWhatsAppChat = (phoneNumber: string) => {
-    const width = 800;
-    const height = 600;
-    const left = (window.innerWidth - width) / 2;
-    const top = (window.innerHeight - height) / 2;
-    const options = `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes,status=1`;
-
-    const generateWhatsAppLink = (phoneNumber: string): string => {
-      const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
-      const urlEndcodedTextMessage = encodeURIComponent(
-        `Hi, I'm running late by 5 minutes. I'll be there soon.`
-      );
-
-      const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
-      return whatsappLink;
-    };
-    const url = generateWhatsAppLink(phoneNumber);
-    window.open(url, "_blank", options);
-  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -180,16 +117,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   return (
     <>
-      {isNoShowDialogOpen && (
-        <NoShowAttendeesDialog
-          bookingUid={props.uid}
-          closeNoShowDialog={() => setIsNoShowDialogOpen(false)}
-          attendees={attendeeList}
-        />
-      )}
-
       <div
-        className="animate-fade-in border-muted bg-muted rounded-b-lg border-t"
+        className="animate-fade-in border-muted rounded-b-lg border-t bg-gray-50"
         onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 lg:gap-8">
           <div className="space-y-4">
@@ -338,40 +267,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
               </div>
             )}
           </div>
-
-          {props.showExpandedActions && (
-            <div className="flex flex-col items-start space-y-2 lg:items-end">
-              <MeetingNotesDialog
-                notes={editingNotes}
-                setNotes={setEditingNotes}
-                isOpenDialog={showRTE}
-                setIsOpenDialog={setShowRTE}
-                handleMeetingNoteSave={handleMeetingNoteSave}
-              />
-
-              {isBookingInPast && (
-                <Button
-                  color="secondary"
-                  className="min-w-40 justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMarkNoShow();
-                  }}>
-                  {attendeeList.length === 1 && attendeeList[0].noShow
-                    ? t("unmark_as_no_show")
-                    : t("mark_as_no_show")}
-                </Button>
-              )}
-              {attendeePhoneNo && (
-                <Button
-                  color="secondary"
-                  className="min-w-40 justify-center"
-                  onClick={() => openWhatsAppChat(attendeePhoneNo)}>
-                  {t("whatsapp_chat")}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
       </div>
 

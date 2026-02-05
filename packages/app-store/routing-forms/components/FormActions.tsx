@@ -16,8 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-import { Input } from "@calid/features/ui/components/input/input";
-import { TextArea } from "@calid/features/ui/components/input/text-area";
+import { InputField } from "@calid/features/ui/components/input/input";
+import { TextAreaField } from "@calid/features/ui/components/input/text-area";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import Link from "next/link";
@@ -104,7 +104,7 @@ function NewFormDialog({
   return (
     <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader showIcon={true} iconName="file-text" iconVariant="info">
           <DialogTitle>{teamId ? t("add_new_team_form") : t("add_new_form")}</DialogTitle>
           <DialogDescription>{t("form_description")}</DialogDescription>
         </DialogHeader>
@@ -123,17 +123,18 @@ function NewFormDialog({
           }}>
           <div className="mt-3 space-y-5">
             <div>
-              <div className="text-emphasis mb-1 text-sm font-semibold" data-testid="description-label">
-                {t("title")}
-              </div>
-              <Input required placeholder={t("a_routing_form")} {...register("name")} />
+              <InputField
+                name="name"
+                label={t("title")}
+                required
+                placeholder={t("a_routing_form")}
+                {...register("name")}
+              />
             </div>
             <div className="mb-5">
-              <div className="text-emphasis mb-1 text-sm font-semibold" data-testid="description-label">
-                {t("description")}
-              </div>
-              <TextArea
-                id="description"
+              <TextAreaField
+                name="description"
+                label={t("description")}
                 {...register("description")}
                 data-testid="description"
                 placeholder={t("form_description_placeholder")}
@@ -141,10 +142,15 @@ function NewFormDialog({
               />
             </div>
           </div>
-          <DialogFooter className="mt-12">
+          <DialogFooter>
             <DialogClose />
-            <Button loading={mutation.isPending} data-testid="add-form" type="submit" color="primary">
-              {t("continue")}
+            <Button
+              StartIcon="plus"
+              loading={mutation.isPending}
+              data-testid="add-form"
+              type="submit"
+              color="primary">
+              {t("create")}
             </Button>
           </DialogFooter>
         </Form>
@@ -249,13 +255,14 @@ function Dialogs({
       />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("delete_form")}</DialogTitle>
             <DialogDescription>
               {t("delete_form_confirmation")} {t("delete_form_confirmation_2")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
+            <DialogClose />
             <Button
               color="destructive"
               StartIcon="trash"
@@ -267,7 +274,6 @@ function Dialogs({
               }}>
               {t("delete")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -632,11 +638,11 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           variant="minimal"
           className={classNames(
             props.className,
-            "w-full justify-start transition-none",
+            "w-full justify-start p-0 transition-none",
             props.color === "destructive" && "border-0"
           )}
           color="minimal">
-          <Icon name={iconName} className="h-4 w-4" />
+          <Icon name={iconName} className="mr-1 h-4 w-4" />
           {children}
         </Component>
       </Wrapper>

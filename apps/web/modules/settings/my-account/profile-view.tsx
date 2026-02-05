@@ -2,7 +2,6 @@
 
 import { resetCrispSession } from "@calid/features/modules/support/hooks/crispLogout";
 import { Avatar } from "@calid/features/ui/components/avatar";
-import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
@@ -347,7 +346,7 @@ const ProfileView = ({ user }: Props) => {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
+            <DialogHeader showIcon={true} iconName="triangle-alert" iconVariant="warning">
               <DialogTitle>{t("delete_account_modal_title")}</DialogTitle>
               <DialogDescription>
                 {t("confirm_delete_account_modal", { appName: APP_NAME })}
@@ -377,6 +376,7 @@ const ProfileView = ({ user }: Props) => {
                 {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
               </div>
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   StartIcon="trash"
@@ -385,14 +385,11 @@ const ProfileView = ({ user }: Props) => {
                   loading={deleteMeMutation.isPending}>
                   {t("delete_my_account")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </>
           </DialogContent>
         </Dialog>
       </div>
-      {/* Delete account Dialog */}
-
       {/* If changing email, confirm password */}
       <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
         <DialogContent
@@ -428,6 +425,7 @@ const ProfileView = ({ user }: Props) => {
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
           </div>
           <DialogFooter>
+            <DialogClose />
             <Button
               data-testid="profile-update-email-submit-button"
               color="primary"
@@ -435,30 +433,27 @@ const ProfileView = ({ user }: Props) => {
               onClick={(e) => onConfirmPassword(e)}>
               {t("confirm")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
-        <DialogContent>
-          <DialogHeader showIcon variant="success">
+        <DialogContent showCloseButton={true}>
+          <DialogHeader showIcon iconName="check" iconVariant="success">
             <DialogTitle>{t("create_account_password")}</DialogTitle>
             <DialogDescription>{t("create_account_password_hint")}</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <DialogClose />
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showAccountDisconnectWarning} onOpenChange={setShowAccountDisconnectWarning}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("disconnect_account")}</DialogTitle>
             <DialogDescription>{t("disconnect_account_hint")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
+            <DialogClose />
             <Button
               color="primary"
               onClick={() => {
@@ -467,7 +462,6 @@ const ProfileView = ({ user }: Props) => {
               }}>
               {t("confirm")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -692,14 +686,6 @@ const ProfileForm = ({
         <div className="border-default rounded-md border px-4 py-6 sm:px-6">
           <div className="flex flex-row items-baseline gap-2">
             <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
-            <Badge variant="secondary">
-              (
-              {t("image_limits_only_size", {
-                size: 5,
-              })}
-              )
-            </Badge>
-            {/* <span className="text-subtle mb-2 text-sm"> </span> */}
           </div>
           <div className="flex items-center">
             <FormField
@@ -727,7 +713,7 @@ const ProfileForm = ({
                             onChange(newAvatar);
                           }}
                           imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                          triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
+                          fileSize={5}
                         />
 
                         {showRemoveAvatarButton && (

@@ -54,7 +54,7 @@ async function handler(req: NextRequest) {
     //   return await calcomSignupHandler(body);
     // }
 
-    return await selfHostedSignupHandler(body);
+    return await selfHostedSignupHandler(body, req);
   } catch (e) {
     if (e instanceof HttpError) {
       return NextResponse.json({ message: e.message }, { status: e.statusCode });

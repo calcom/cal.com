@@ -8,7 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@calid/features/ui/components/dialog";
+import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -22,6 +25,7 @@ import { z } from "zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CalIdMembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 
 const inviteMemberSchema = z
   .object({
@@ -74,7 +78,7 @@ interface AddTeamMemberModalProps {
 
 export const AddTeamMemberModal = ({
   teamId,
-  teamName,
+  teamName: _teamName,
   onSuccess,
   isOpen: externalIsOpen,
   onOpenChange,
@@ -88,13 +92,7 @@ export const AddTeamMemberModal = ({
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const setIsOpen = onOpenChange || setInternalIsOpen;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid, isSubmitting: formIsSubmitting },
-    reset,
-    watch,
-  } = useForm<InviteMemberFormData>({
+  const form = useForm<InviteMemberFormData>({
     resolver: zodResolver(inviteMemberSchema),
     defaultValues: {
       importType: "individual",
@@ -104,16 +102,14 @@ export const AddTeamMemberModal = ({
     },
   });
 
-  const selectedRole = watch("role");
-  const selectedImportType = watch("importType");
-  const emailsText = watch("emails");
+  const selectedImportType = form.watch("importType");
+  const emailsText = form.watch("emails");
 
   const emailCount =
     selectedImportType === "bulk" && emailsText
       ? emailsText.split(/[,;\n]/).filter((email) => email.trim().length > 0).length
       : 0;
 
-  // Get current user's role to determine what roles they can assign
   const { data: teamData } = trpc.viewer.calidTeams.get.useQuery({ teamId }, { enabled: !!teamId });
 
   const currentUserRole = teamData?.membership?.role;
@@ -121,8 +117,6 @@ export const AddTeamMemberModal = ({
   const canAssignAdminRole =
     currentUserRole === CalIdMembershipRole.OWNER || currentUserRole === CalIdMembershipRole.ADMIN;
 
-  // Role options based on current user's permissions
-  // Since only admins/owners can access this modal, we can simplify the logic
   const roleOptions = [
     {
       value: CalIdMembershipRole.MEMBER,
@@ -141,12 +135,11 @@ export const AddTeamMemberModal = ({
     },
   ];
 
-  // Invite member mutation
   const inviteMemberMutation = trpc.viewer.calidTeams.inviteMember.useMutation({
     onSuccess: () => {
       setIsSubmitting(false);
       setIsOpen(false);
-      reset();
+      form.reset();
 
       triggerToast(t("team_invite_sent_successfully"), "success");
 
@@ -171,11 +164,6 @@ export const AddTeamMemberModal = ({
       return;
     }
 
-    if (!isValid) {
-      triggerToast("Please fix the form errors before submitting", "error");
-      return;
-    }
-
     setIsSubmitting(true);
 
     let usernameOrEmail: string | string[];
@@ -197,12 +185,14 @@ export const AddTeamMemberModal = ({
     });
   };
 
-  const handleClose = () => {
+  const _handleClose = () => {
     if (!isSubmitting) {
       setIsOpen(false);
-      reset();
+      form.reset();
     }
   };
+
+  const isFormSubmitting = isSubmitting || form.formState.isSubmitting;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -214,154 +204,122 @@ export const AddTeamMemberModal = ({
         </DialogTrigger>
       )}
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader showIcon={true} iconName="users" iconVariant="info">
           <DialogTitle>{t("invite_team_member")}</DialogTitle>
           <DialogDescription>{t("invite_team_member_description")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Import Type Selection */}
-          <div className="">
-            <label className="text-sm font-medium">{t("import_type")}</label>
-            <div className="grid grid-cols-2 gap-3">
-              <label
-                className={`
-                flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
-                  selectedImportType === "individual"
-                    ? "border-blue-500 bg-blue-50 "
-                    : "border-gray-200 hover:border-gray-300"
-                }
-              `}>
-                <input
-                  type="radio"
-                  value="individual"
-                  {...register("importType")}
-                  className="h-4 w-4 border-gray-300"
-                />
-                <div className="flex-1">
-                  <span
-                    className={`text-sm font-medium ${
-                      selectedImportType === "individual" ? "text-gray-900" : "bg-default"
-                    }`}>
-                    Individual Import
-                  </span>
-                </div>
-              </label>
-
-              <label
-                className={`flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
-                  selectedImportType === "bulk"
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}>
-                <input
-                  type="radio"
-                  value="bulk"
-                  {...register("importType")}
-                  className="h-4 w-4 border-gray-300 text-blue-600"
-                />
-                <div className="flex-1">
-                  <span
-                    className={`text-sm font-medium ${
-                      selectedImportType === "bulk" ? "text-gray-900" : "bg-default"
-                    }`}>
-                    Bulk Import
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Email Input - Individual */}
-          {selectedImportType === "individual" && (
-            <div className="space-y-2">
-              <TextField
-                {...register("email")}
-                name="email"
-                label="Email Address"
-                placeholder="Enter email address"
-                type="email"
-                error={errors.email?.message}
-                required
-              />
-            </div>
-          )}
-
-          {/* Email Input - Bulk */}
-          {selectedImportType === "bulk" && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email Addresses</label>
-              <TextArea
-                {...register("emails")}
-                name="emails"
-                placeholder={t("enter_email_addresses_separated_by_commas_semicolons_or_new_lines")}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                rows={6}
-                required
-              />
-              {errors.emails && <p className="text-sm text-red-600">{errors.emails.message}</p>}
-              <div className="flex items-center justify-between">
-                {emailCount > 0 && (
-                  <p className="text-subtle text-xs font-medium">
-                    {emailCount} email{emailCount !== 1 ? "s" : ""} will be invited
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Role Selection */}
-          <div className="">
-            <label className="text-sm font-medium">{t("team_role")}</label>
-            <div className="space-y-2">
-              {roleOptions.map((role) => (
-                <label
-                  key={role.value}
-                  className={`
-                    flex cursor-pointer items-center space-x-3 rounded-md border p-3 transition-colors ${
-                      selectedRole === role.value
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    } ${role.disabled ? "cursor-not-allowed opacity-50" : ""}
-                  `}>
-                  <input
-                    type="radio"
-                    value={role.value}
-                    {...register("role")}
-                    disabled={role.disabled}
-                    className="h-4 w-4 border-gray-300 text-blue-600"
+        <Form form={form} onSubmit={onSubmit} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="importType"
+            render={({ field: { value, onChange } }) => (
+              <div className="">
+                <label className="text-default text-sm font-medium">{t("import_type")}</label>
+                <RadioGroup value={value} onValueChange={onChange} className="grid grid-cols-2 gap-3 pt-2">
+                  <RadioField
+                    label={t("individual")}
+                    value="individual"
+                    disabled={false}
+                    id="importType-individual"
+                    className="border-default hover:border-emphasis rounded-md border px-2 py-2"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`text-sm font-medium ${
-                          selectedRole === role.value ? "text-gray-900" : "bg-default"
-                        }`}>
-                        {role.label}
-                      </span>
-                      {role.disabled && <span className="text-xs">Requires higher permissions</span>}
-                    </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-            {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
-          </div>
+                  <RadioField
+                    label={t("bulk")}
+                    value="bulk"
+                    disabled={false}
+                    id="importType-bulk"
+                    className="border-default hover:border-emphasis rounded-md border px-2 py-2"
+                  />
+                </RadioGroup>
+              </div>
+            )}
+          />
 
-          {/* Form Actions */}
-          <div className="flex items-center justify-end space-x-3 pt-4">
+          {selectedImportType === "individual" && (
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div className="space-y-2">
+                  <TextField
+                    name="email"
+                    label="Email Address"
+                    placeholder="Enter email address"
+                    type="email"
+                    value={value ?? ""}
+                    onChange={onChange}
+                    error={error?.message}
+                    required
+                  />
+                </div>
+              )}
+            />
+          )}
+
+          {selectedImportType === "bulk" && (
+            <FormField
+              control={form.control}
+              name="emails"
+              render={({ field: { value, onChange }, fieldState: { error } }) => (
+                <div className="space-y-2">
+                  <label className="text-default text-sm font-medium">{t("email_address")}</label>
+                  <TextArea
+                    name="emails"
+                    placeholder={t("enter_email_addresses_separated_by_commas_semicolons_or_new_lines")}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                    rows={6}
+                    value={value ?? ""}
+                    onChange={onChange}
+                    required
+                  />
+                  {error?.message && <p className="text-sm text-red-600">{error.message}</p>}
+                  <div className="flex items-center justify-between">
+                    {emailCount > 0 && (
+                      <p className="text-subtle text-xs font-medium">
+                        {emailCount} email{emailCount !== 1 ? "s" : ""} will be invited
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            />
+          )}
+
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field: { value, onChange }, fieldState: { error } }) => (
+              <div className="">
+                <label className="text-default text-sm font-medium">{t("team_role")}</label>
+                <RadioGroup value={value} onValueChange={onChange} className="space-y-2 pt-2">
+                  {roleOptions.map((role) => (
+                    <RadioField
+                      key={role.value}
+                      label={role.label}
+                      value={role.value}
+                      disabled={role.disabled}
+                      id={`role-${role.value}`}
+                      className="border-default hover:border-emphasis rounded-md border px-2 py-2"
+                    />
+                  ))}
+                </RadioGroup>
+                {error?.message && <p className="text-sm text-red-600">{error.message}</p>}
+              </div>
+            )}
+          />
+
+          <DialogFooter>
+            <DialogClose />
             <Button
-              type="button"
+              StartIcon="send"
+              type="submit"
               variant="button"
-              color="minimal"
-              onClick={handleClose}
-              disabled={isSubmitting}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" variant="button" color="primary" disabled={isSubmitting}>
+              color="primary"
+              disabled={isFormSubmitting}>
               {t("send_invitation")}
             </Button>
-          </div>
-        </form>
+          </DialogFooter>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -688,13 +688,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const activeOnValue = form.watch("activeOn");
 
   useEffect(() => {
+    if (!isAllDataLoaded) return;
+    const activeOnValues = Array.isArray(activeOnValue) ? activeOnValue : [];
     const current = {
       workflowName: workflowName.trim(),
       trigger: trigger || "",
       triggerTiming,
       customTime: customTime.trim(),
       timeUnit,
-      selectedOptions: selectedOptions.map((opt) => opt.value).sort(),
+      selectedOptions: activeOnValues.map((opt) => opt.value).sort(),
     };
     const initial = initialMetaRef.current;
     const metaChanged =
@@ -705,9 +707,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       current.timeUnit !== initial.timeUnit ||
       current.selectedOptions.join(",") !== initial.selectedOptions.join(",");
     setIsMetaDirty(metaChanged);
-  }, [workflowName, trigger, triggerTiming, customTime, timeUnit, selectedOptions]);
+  }, [workflowName, trigger, triggerTiming, customTime, timeUnit, activeOnValue, isAllDataLoaded]);
 
   useEffect(() => {
+    if (!isNewWorkflow) return;
     const shouldBlockNavigation = !hasSaved || isDirty;
     if (!shouldBlockNavigation) return;
 
@@ -747,7 +750,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("click", handleClick, true);
     };
-  }, [hasSaved, isDirty, pathname]);
+  }, [hasSaved, isDirty, isNewWorkflow, pathname]);
 
   // Load initial data only once
   useEffect(() => {
@@ -1359,8 +1362,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const hasAnyStep = (steps ?? []).length > 0;
   const isPristineCustom =
     !workflowName.trim() && !hasAnyStep && selectedOptions.length === 0 && !trigger && !customTime.trim();
-  const saveDisabled =
-    readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty && isPristineCustom);
+  const saveDisabled = readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty);
   const deleteDisabled =
     readOnly || (isNewWorkflow ? !isFromTemplate && !isDirty : !isDirty && isPristineCustom);
 
@@ -1376,7 +1378,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               {workflowId && (
                 <Button
                   data-testid="delete-workflow"
-                  color="destructive"
+                  color="secondary"
+                  className="text-error enabled:hover:text-error"
                   variant="icon"
                   StartIcon="trash"
                   onClick={() => setIsDeleteDialogOpen(true)}
@@ -2345,11 +2348,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             <DialogDescription>{t("leave_without_saving_description")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 gap-2">
-            <Button onClick={handleSaveWorkflow} disabled={saveDisabled} loading={updateMutation.isPending}>
-              {t("save_changes")}
+            <Button
+              StartIcon="x"
+              color="secondary"
+              onClick={handleDiscardChanges}
+              disabled={deleteMutation.isPending}>
+              {t("leave")}
             </Button>
-            <Button color="destructive" onClick={handleDiscardChanges} disabled={deleteMutation.isPending}>
-              {t("leave_without_saving")}
+            <Button
+              StartIcon="check"
+              onClick={handleSaveWorkflow}
+              disabled={saveDisabled}
+              loading={updateMutation.isPending}>
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

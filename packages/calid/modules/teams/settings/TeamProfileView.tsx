@@ -16,6 +16,7 @@ import {
 import { Form, FormField } from "@calid/features/ui/components/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
+import { CustomImageUploader } from "@calid/features/ui/components/uploader";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -28,7 +29,6 @@ import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
 import { Editor } from "@calcom/ui/components/editor";
 import { Label } from "@calcom/ui/components/form";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import SkeletonLoader from "../components/SkeletonLoader";
 
@@ -194,14 +194,15 @@ function TeamProfileForm({
                       </div>
                       <div className="flex-1">
                         <div className="flex gap-2">
-                          <ImageUploader
+                          <CustomImageUploader
                             target="logo"
+                            fieldName="Logo"
                             startIcon="upload"
                             id="avatar-upload"
                             buttonMsg={t("upload_logo")}
                             handleAvatarChange={onChange}
-                            triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                             imageSrc={getDefaultAvatar(value, form.getValues("name"))}
+                            fileSize={5}
                           />
                           {showRemoveLogoButton && (
                             <Button color="destructive" StartIcon="trash" onClick={() => onChange(null)}>
@@ -296,12 +297,13 @@ function TeamProfileForm({
             </DialogTrigger>
 
             <DialogContent>
-              <DialogHeader showIcon variant="warning">
+              <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
                 <DialogTitle>{t("team_profile_disband_team")}</DialogTitle>
                 <DialogDescription>{t("team_profile_disband_team_confirmation_message")}</DialogDescription>
               </DialogHeader>
 
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
@@ -311,7 +313,6 @@ function TeamProfileForm({
                   }}>
                   {t("team_profile_confirm_disband_team")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -328,12 +329,13 @@ function TeamProfileForm({
             </DialogTrigger>
 
             <DialogContent>
-              <DialogHeader>
+              <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
                 <DialogTitle>{t("team_profile_leave_team")}</DialogTitle>
                 <DialogDescription>{t("team_profile_leave_team_confirmation_message")}</DialogDescription>
               </DialogHeader>
 
               <DialogFooter>
+                <DialogClose />
                 <Button
                   color="destructive"
                   variant="button"
@@ -342,7 +344,6 @@ function TeamProfileForm({
                   }}>
                   {t("leave_team")}
                 </Button>
-                <DialogClose />
               </DialogFooter>
             </DialogContent>
           </Dialog>

@@ -1421,6 +1421,22 @@ export const EventAdvancedTab = ({
           />
         </>
       )}
+
+      <Controller
+        name="metadata.showBusy"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm")}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
+            title={t("show_busy_title")}
+            description={t("show_busy_description")}
+            checked={!!value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+
       {showEventNameTip && (
         <CustomEventTypeModal
           close={closeEventNameTip}

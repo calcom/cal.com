@@ -282,18 +282,19 @@ export function TeamsList({
                                   e.preventDefault(); // optional — if you don't want dropdown to close
                                   setIsDisbandDialogOpen(true);
                                 }}>
-                                {t("disband_team")}
+                                {t("team_profile_disband_team")}
                               </DropdownMenuItem>
 
                               <Dialog open={isDisbandDialogOpen} onOpenChange={setIsDisbandDialogOpen}>
                                 <DialogContent>
-                                  <DialogHeader showIcon variant="warning">
-                                    <DialogTitle>{t("disband_team")}</DialogTitle>
+                                  <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
+                                    <DialogTitle>{t("team_profile_disband_team")}</DialogTitle>
                                     <DialogDescription>
                                       {t("disband_team_confirmation_message")}
                                     </DialogDescription>
                                   </DialogHeader>
                                   <DialogFooter>
+                                    <DialogClose />
                                     <Button
                                       type="button"
                                       StartIcon="trash"
@@ -303,7 +304,6 @@ export function TeamsList({
                                       }}>
                                       {t("confirm_disband_team")}
                                     </Button>
-                                    <DialogClose />
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>
@@ -322,7 +322,7 @@ export function TeamsList({
                               </DropdownMenuItem>
                               <Dialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
                                 <DialogContent>
-                                  <DialogHeader>
+                                  <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
                                     <DialogTitle>{t("leave_team")}</DialogTitle>
                                     <DialogDescription>
                                       {t("leave_team_confirmation_message")}

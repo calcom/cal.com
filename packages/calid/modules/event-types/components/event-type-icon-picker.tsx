@@ -306,7 +306,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
         }
       `}</style>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="bg-default flex max-h-[80vh] max-w-4xl flex-col">
+        <DialogContent className="bg-default flex max-h-[80vh] flex-col" size="lg">
           <DialogHeader>
             <DialogTitle className="text-default">{t("choose_icon")}</DialogTitle>
             <TextField
@@ -355,7 +355,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                     description={t("try_different_search_term")}
                   />
                 ) : (
-                  <div className="lg:grid-cols-14 grid grid-cols-8 gap-2 py-2 sm:grid-cols-10 md:grid-cols-12">
+                  <div className="lg:grid-cols-14 grid grid-cols-6 gap-2 py-2 sm:grid-cols-10 md:grid-cols-12">
                     {filteredIcons.map((iconName, index) => {
                       const isSelected = selectedIcon === iconName;
 

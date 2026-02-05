@@ -74,27 +74,20 @@ export function TeamMembersList({
   const utils = trpc.useUtils();
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
-  // Use the team member operations hook for member management
   const { removeMember, isRemoving, updateMemberRole, isUpdating, resendInviteMutation } =
     useTeamMemberOperations(team.id);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [selectedMembers, setSelectedMembers] = useState<Record<string, boolean>>({});
-
-  // State for removal confirmation dialogs
   const [memberToRemove, setMemberToRemove] = useState<TeamMemberData | null>(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [showBulkRemoveDialog, setShowBulkRemoveDialog] = useState(false);
   const [membersToRemove, setMembersToRemove] = useState<TeamMemberData[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [allLoadedMembers, setAllLoadedMembers] = useState<TeamMemberData[]>([]);
-
-  // State for edit role modal
   const [memberToEdit, setMemberToEdit] = useState<TeamMemberData | null>(null);
   const [showEditRoleModal, setShowEditRoleModal] = useState(false);
-
-  // State for impersonation modal
   const [memberToImpersonate, setMemberToImpersonate] = useState<TeamMemberData | null>(null);
   const [showImpersonationDialog, setShowImpersonationDialog] = useState(false);
 
@@ -125,7 +118,6 @@ export function TeamMembersList({
     if (membersData?.nextPaging != null) setCurrentPage((prev) => prev + 1);
   }, [membersData?.nextPaging]);
 
-  // Fetch team round-robin event types for bulk-adding hosts
   const { data: eventTypesData } = trpc.viewer.eventTypes.getByViewer.useQuery({
     filters: { teamIds: [team.id], schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
@@ -339,7 +331,7 @@ export function TeamMembersList({
                   <DropdownMenuContent align="end">
                     {member.acceptedInvitation && username && (
                       <DropdownMenuItem StartIcon="eye" onClick={() => window.open(`/${username}`, "_blank")}>
-                        {t("view_member_public_page")}
+                        {t("view_public_page")}
                       </DropdownMenuItem>
                     )}
                     {canEditMember && (
@@ -500,7 +492,6 @@ export function TeamMembersList({
         )}
       </div>
 
-      {/* Table container */}
       <div
         ref={tableContainerRef}
         className="border-default bg-primary overflow-auto rounded-lg border"
@@ -577,7 +568,6 @@ export function TeamMembersList({
         </div>
       </div>
 
-      {/* Bulk actions bar */}
       {enableBulkActions && selectedCount > 0 && (
         <div className="border-subtle bg-primary fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-md border px-4 py-2 shadow-md">
           <span className="text-brand-subtle text-sm font-medium">
@@ -639,14 +629,14 @@ export function TeamMembersList({
         </div>
       )}
 
-      {/* Individual Member Removal Confirmation Dialog */}
       <Dialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("remove_team_member")}</DialogTitle>
             <DialogDescription>{t("remove_team_member_description")}</DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-end space-x-3">
+            <DialogClose />
             <Button
               variant="button"
               color="destructive"
@@ -661,16 +651,14 @@ export function TeamMembersList({
               disabled={isRemoving}>
               {t("remove_team_member")}
             </Button>
-            <DialogClose />
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Member Removal Confirmation Dialog */}
       <Dialog open={showBulkRemoveDialog} onOpenChange={setShowBulkRemoveDialog}>
         <DialogContent size="md" type="confirmation" title={t("remove_team_members")}>
           <div className="space-y-4">
-            <DialogHeader showIcon variant="warning">
+            <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
               <DialogTitle>{t("remove_team_members")}</DialogTitle>
               <DialogDescription>{t("remove_team_members_description")}</DialogDescription>
             </DialogHeader>
@@ -686,6 +674,7 @@ export function TeamMembersList({
               This action cannot be undone. All selected members will lose access to team resources.
             </p>
             <div className="flex items-center justify-end space-x-3">
+              <DialogClose />
               <Button
                 variant="button"
                 color="destructive"
@@ -701,13 +690,11 @@ export function TeamMembersList({
                 disabled={isRemoving}>
                 {isRemoving ? t("removing") : t("remove_members")}
               </Button>
-              <DialogClose />
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Team Member Role Modal */}
       <EditTeamMemberRoleModal
         isOpen={showEditRoleModal}
         onClose={() => {
@@ -720,10 +707,9 @@ export function TeamMembersList({
         isUpdating={isUpdating}
       />
 
-      {/* Impersonation Confirmation Dialog */}
       <Dialog open={showImpersonationDialog} onOpenChange={setShowImpersonationDialog}>
         <DialogContent>
-          <DialogHeader>
+          <DialogHeader showIcon iconName="shield" iconVariant="info">
             <DialogTitle>{t("impersonate")}</DialogTitle>
             <DialogDescription>{t("impersonation_user_tip")}</DialogDescription>
           </DialogHeader>
@@ -731,6 +717,7 @@ export function TeamMembersList({
             <DialogClose />
             <Button
               variant="button"
+              StartIcon="shield"
               onClick={async () => {
                 if (memberToImpersonate) {
                   await signIn("impersonation-auth", {
@@ -750,7 +737,6 @@ export function TeamMembersList({
   );
 }
 
-// Hook for managing member operations
 export function useTeamMemberOperations(teamId: number) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -790,7 +776,7 @@ export function useTeamMemberOperations(teamId: number) {
     (memberId: number) => {
       removeMemberMutation.mutate({
         teamIds: [teamId],
-        memberIds: [memberId], // assumes `member.id` is the membership id
+        memberIds: [memberId],
       });
     },
     [teamId, removeMemberMutation]
