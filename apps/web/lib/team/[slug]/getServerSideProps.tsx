@@ -1,5 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
@@ -15,11 +13,11 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import type { Team, OrganizationSettings } from "@calcom/prisma/client";
+import type { OrganizationSettings, Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { GetServerSidePropsContext } from "next";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 
@@ -164,17 +162,37 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
 
-  team.eventTypes =
-    team.eventTypes?.map((type) => ({
-      ...type,
-      users: !isTeamOrParentOrgPrivate
-        ? type.users.map((user) => ({
-            ...user,
-            avatar: getUserAvatarUrl(user),
-          }))
-        : [],
-      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
-    })) ?? null;
+  // Only send the minimal data needed for the team page to reduce data transfer
+  // The frontend only needs: title, slug, description, length, schedulingType, recurringEvent
+  // and users with: name, username, avatarUrl, profile (for avatar links)
+  const minimalEventTypes = team.eventTypes?.map((type) => ({
+    id: type.id,
+    title: type.title,
+    slug: type.slug,
+    description: type.description,
+    length: type.length,
+    schedulingType: type.schedulingType,
+    recurringEvent: type.recurringEvent,
+    descriptionAsSafeHTML: markdownToSafeHTML(type.description),
+    users: !isTeamOrParentOrgPrivate
+      ? type.users.map((user) => ({
+          name: user.name,
+          username: user.username,
+          avatarUrl: user.avatarUrl,
+          avatar: getUserAvatarUrl(user),
+          profile: user.profile
+            ? {
+                username: user.profile.username,
+                organization: user.profile.organization
+                  ? {
+                      slug: user.profile.organization.slug,
+                    }
+                  : null,
+              }
+            : null,
+        }))
+      : [],
+  }));
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
@@ -220,6 +238,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       team: {
         ...serializableTeam,
+        // Override eventTypes with minimal data to reduce data transfer
+        eventTypes: minimalEventTypes,
         safeBio,
         members,
         metadata,
