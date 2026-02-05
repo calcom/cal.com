@@ -2,8 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import logger from "@calcom/lib/logger";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -29,9 +29,8 @@ function hasApiV2RouteInEnv() {
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
-  const session = await getServerSession({ req });
-    const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-    const { rescheduleUid, bookingUid, isInstantMeeting: queryIsInstantMeeting } = query;
+  const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
+  const { rescheduleUid, bookingUid, isInstantMeeting: queryIsInstantMeeting } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
 
@@ -55,52 +54,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventData = team.eventTypes[0];
 
-    if (eventData.schedulingType === SchedulingType.MANAGED) {
-      return { notFound: true } as const;
-    }
+  if (eventData.schedulingType === SchedulingType.MANAGED) {
+    return { notFound: true } as const;
+  }
 
-    // Redirect if no routing form response and redirect URL is configured
-    // Don't redirect if this is a reschedule flow or seated booking flow
-    const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
-    if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && eventData.redirectUrlOnNoRoutingFormResponse) {
-      return {
-        redirect: {
-          destination: eventData.redirectUrlOnNoRoutingFormResponse,
-          permanent: false,
-        },
-      };
-    }
+  // Redirect if no routing form response and redirect URL is configured
+  // Don't redirect if this is a reschedule flow or seated booking flow
+  const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
+  if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && eventData.redirectUrlOnNoRoutingFormResponse) {
+    return {
+      redirect: {
+        destination: eventData.redirectUrlOnNoRoutingFormResponse,
+        permanent: false,
+      },
+    };
+  }
 
-    if (rescheduleUid && eventData.disableRescheduling) {
+  if (rescheduleUid && eventData.disableRescheduling) {
     return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
   }
 
   const eventTypeId = eventData.id;
-  const eventHostsUserData = await getUsersData(
-    team.isPrivate,
-    eventTypeId,
-    eventData.hosts.map((h) => h.user)
-  );
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
-
-  let booking: GetBookingType | null = null;
-  if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (
-      booking?.status === BookingStatus.CANCELLED &&
-      !allowRescheduleForCancelledBooking &&
-      !eventData.allowReschedulingCancelledBookings
-    ) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/team/${teamSlug}/${meetingSlug}`,
-        },
-      };
-    }
-  }
-
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
@@ -110,45 +86,75 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmRecordIdParam = query["cal.crmRecordId"];
   const crmLookupDoneParam = query["cal.crmLookupDone"];
 
-  // Handle string[] type from query params
-  let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
-
-  let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
+  const crmContactOwnerEmailStr = Array.isArray(crmContactOwnerEmail)
+    ? crmContactOwnerEmail[0]
+    : crmContactOwnerEmail;
+  const crmOwnerRecordTypeStr = Array.isArray(crmContactOwnerRecordType)
     ? crmContactOwnerRecordType[0]
     : crmContactOwnerRecordType;
-
-  let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
-  let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
+  const crmAppSlugStr = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+  const crmRecordIdStr = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
   // If crmLookupDone is true, the router already performed the CRM lookup, so skip it here
   const crmLookupDone =
     (Array.isArray(crmLookupDoneParam) ? crmLookupDoneParam[0] : crmLookupDoneParam) === "true";
 
-  if (!crmLookupDone && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
-    const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-      "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
-    );
-    const {
-      email,
-      recordType,
-      crmAppSlug: crmAppSlugQuery,
-      recordId,
-    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-      query,
-      eventData,
-    });
+  const needsCrmLookup =
+    !crmLookupDone && (!crmContactOwnerEmailStr || !crmOwnerRecordTypeStr || !crmAppSlugStr);
 
-    teamMemberEmail = email ?? undefined;
-    crmOwnerRecordType = recordType ?? undefined;
-    crmAppSlug = crmAppSlugQuery ?? undefined;
-    crmRecordId = recordId ?? undefined;
+  // Run independent queries in parallel — these all depend on team/eventData but not on each other
+  const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
+  const featureRepo = new FeaturesRepository(prisma);
+  const [eventHostsUserData, crmResult, teamHasApiV2Route, booking] = await Promise.all([
+    getUsersData(team.isPrivate, eventTypeId, eventData.hosts.map((h) => h.user)).catch((err) => {
+      log.error("Failed to get users data", err);
+      throw err;
+    }),
+    needsCrmLookup
+      ? import("@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm")
+          .then(({ getTeamMemberEmailForResponseOrContactUsingUrlQuery }) =>
+            getTeamMemberEmailForResponseOrContactUsingUrlQuery({ query, eventData })
+          )
+          .catch((err) => {
+            log.error("Failed CRM lookup", err);
+            throw err;
+          })
+      : Promise.resolve(null),
+    featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots").catch((err) => {
+      log.error("Failed to check API V2 feature flag", err);
+      throw err;
+    }),
+    rescheduleUid
+      ? getServerSession({ req })
+          .then((session) => getBookingForReschedule(`${rescheduleUid}`, session?.user?.id))
+          .catch((err) => {
+            log.error("Failed to get booking for reschedule", err);
+            throw err;
+          })
+      : Promise.resolve(null),
+  ]);
+
+  if (
+    booking?.status === BookingStatus.CANCELLED &&
+    !allowRescheduleForCancelledBooking &&
+    !eventData.allowReschedulingCancelledBookings
+  ) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/team/${teamSlug}/${meetingSlug}`,
+      },
+    };
   }
+
+  const teamMemberEmail = crmResult?.email ?? crmContactOwnerEmailStr;
+  const crmOwnerRecordType = crmResult?.recordType ?? crmOwnerRecordTypeStr;
+  const crmAppSlug = crmResult?.crmAppSlug ?? crmAppSlugStr;
+  const crmRecordId = crmResult?.recordId ?? crmRecordIdStr;
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
-  const featureRepo = new FeaturesRepository(prisma);
-  const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
   const branding = getBrandingForEventType({
@@ -251,20 +257,20 @@ const getTeamWithEventsData = async (
         where: {
           slug: meetingSlug,
         },
-                select: {
-                  id: true,
-                  title: true,
-                  isInstantEvent: true,
-                  schedulingType: true,
-                  metadata: true,
-                  length: true,
-                  hidden: true,
-                  disableCancelling: true,
-                  disableRescheduling: true,
-                  allowReschedulingCancelledBookings: true,
-                  redirectUrlOnNoRoutingFormResponse: true,
-                  interfaceLanguage: true,
-                  hosts: {
+        select: {
+          id: true,
+          title: true,
+          isInstantEvent: true,
+          schedulingType: true,
+          metadata: true,
+          length: true,
+          hidden: true,
+          disableCancelling: true,
+          disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
+          redirectUrlOnNoRoutingFormResponse: true,
+          interfaceLanguage: true,
+          hosts: {
             take: 3,
             select: {
               user: {

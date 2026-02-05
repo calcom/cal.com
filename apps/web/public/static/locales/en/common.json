@@ -254,7 +254,7 @@
   "hey_there": "Hey there",
   "there": "there",
   "forgot_your_password_calcom": "Forgot your password? - {{appName}}",
-  "delete_webhook_confirmation_message": "Are you sure you want to delete this webhook? You will no longer receive {{appName}} meeting data at a specified URL, in real-time, when an event is scheduled or canceled.",
+  "delete_webhook_confirmation_message": "Are you sure you want to delete this webhook? You will no longer receive {{appName}} data at the specified URL for your configured event triggers.",
   "confirm_delete_webhook": "Delete webhook",
   "edit_webhook": "Edit webhook",
   "delete_webhook": "Delete webhook",
