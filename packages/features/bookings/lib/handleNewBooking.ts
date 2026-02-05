@@ -1413,8 +1413,6 @@ async function handler(
     organizerUser.id
   );
 
-  const hasConfirmationSmsWorkflow = doesHaveSmsAttendeeWorkflow(workflows, WorkflowTriggerEvents.NEW_EVENT);
-
   // Main mutable logic starts here
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -1578,6 +1576,7 @@ async function handler(
           },
           availabilityData
         );
+        // throw new Error("Test error in RRULE generation");
 
         // === STEP 5: Attach to event and metadata ===
         evt.recurringEvent = recurringEventWithExDates;

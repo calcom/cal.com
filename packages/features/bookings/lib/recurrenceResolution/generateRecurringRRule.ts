@@ -153,13 +153,15 @@ function computeExclusionsAndCompensations(params: {
     maxOccurrences,
   } = params;
 
+  const dtstart = new Date(`${bookingStart.utc().format("YYYY-MM-DDTHH:mm:ss")}Z`);
+
   // Step 1: Generate all occurrences from the original RRULE
   const originalRRule = new RRule({
     freq: mapFrequencyToRRule(recurringEvent.freq),
     interval: recurringEvent.interval || 1,
     count: targetCount,
-    dtstart: bookingStart.toDate(),
-    tzid: timeZone,
+    dtstart: dtstart,
+    // tzid: timeZone,
   });
 
   const originalOccurrences = originalRRule.all();
@@ -240,6 +242,7 @@ function generateCompensationDates(params: {
 
   // Start generating from beyond the last original occurrence
   let searchCount = originalOccurrences.length + excludedCount;
+  const dtstart = new Date(`${bookingStart.utc().format("YYYY-MM-DDTHH:mm:ss")}Z`);
 
   while (compensatedDates.length < targetCompensationCount && iteration < maxIterations) {
     iteration++;
@@ -249,8 +252,9 @@ function generateCompensationDates(params: {
       freq: mapFrequencyToRRule(recurringEvent.freq),
       interval: recurringEvent.interval || 1,
       count: Math.min(searchCount, maxOccurrences),
-      dtstart: bookingStart.toDate(),
-      tzid: timeZone,
+      // dtstart: bookingStart.toDate(),
+      dtstart,
+      // tzid: timeZone,
     });
 
     const extendedOccurrences = extendedRRule.all();
