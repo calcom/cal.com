@@ -1,5 +1,6 @@
 import { toDate } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
+import { doesHaveSmsAttendeeWorkflow } from "@calid/features/modules/workflows/config/utils";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -82,7 +83,12 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
@@ -1407,6 +1413,8 @@ async function handler(
     organizerUser.id
   );
 
+  const hasConfirmationSmsWorkflow = doesHaveSmsAttendeeWorkflow(workflows, WorkflowTriggerEvents.NEW_EVENT);
+
   // Main mutable logic starts here
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2099,6 +2107,11 @@ async function handler(
       } else {
         if (!isDryRun) {
           // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
+            workflows,
+            WorkflowTriggerEvents.RESCHEDULE_EVENT
+          );
+
           await triggerBookingEmailsInngest({
             calEvent: {
               ...copyEvent,
@@ -2110,6 +2123,7 @@ async function handler(
             isAttendeeConfirmationEmailDisabled: false,
             eventTypeMetadata: eventType?.metadata,
             emailType: "rescheduled",
+            hasRelevantSmsWorkflow,
           });
         }
       }
@@ -2242,6 +2256,10 @@ async function handler(
         );
 
         if (!isDryRun) {
+          const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
+            workflows,
+            WorkflowTriggerEvents.NEW_EVENT
+          );
           // Send emails asynchronously via Inngest to improve booking response time
           await triggerBookingEmailsInngest({
             calEvent: {
@@ -2255,6 +2273,7 @@ async function handler(
             isAttendeeConfirmationEmailDisabled,
             eventTypeMetadata: eventType.metadata,
             emailType: "scheduled",
+            hasRelevantSmsWorkflow,
           });
         }
       }
@@ -2293,6 +2312,7 @@ async function handler(
         eventTypeMetadata: eventType.metadata,
         emailType: "request",
         firstAttendee: attendeesList[0],
+        hasRelevantSmsWorkflow: false,
       });
     }
   }

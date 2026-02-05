@@ -424,3 +424,14 @@ export const filterTeamsFromProfiles = (profiles: any[]): any[] => {
 export function shouldScheduleEmailReminder(action: WorkflowActions) {
   return action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST;
 }
+
+export function doesHaveSmsAttendeeWorkflow(workflows, trigger: WorkflowTriggerEvents) {
+  if (!Array.isArray(workflows)) return false;
+
+  return workflows.some(
+    (workflow) =>
+      workflow.trigger === trigger &&
+      Array.isArray(workflow.steps) &&
+      workflow.steps.some((step) => step.action === "SMS_ATTENDEE")
+  );
+}

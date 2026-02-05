@@ -23,6 +23,7 @@ export interface TriggerBookingEmailsOptions {
   curAttendee?: Person;
   emailType: "scheduled" | "request" | "rescheduled" | "cancelled";
   firstAttendee?: Person;
+  hasRelevantSmsWorkflow: boolean;
 }
 
 /**
@@ -63,6 +64,7 @@ export async function triggerBookingEmailsInngest(options: TriggerBookingEmailsO
           : undefined,
         emailType: options.emailType,
         firstAttendee: serializedFirstAttendee,
+        hasRelevantSmsWorkflow: options.hasRelevantSmsWorkflow,
       },
     });
 
@@ -78,6 +80,7 @@ export async function triggerBookingEmailsInngest(options: TriggerBookingEmailsO
       bookingUid: options.calEvent.uid,
       bookingId: options.calEvent.bookingId,
       emailType: options.emailType,
+      hasRelevantSmsWorkflow: options.hasRelevantSmsWorkflow,
     });
 
     try {
@@ -89,17 +92,23 @@ export async function triggerBookingEmailsInngest(options: TriggerBookingEmailsO
           options.isHostConfirmationEmailsDisabled,
           options.isAttendeeConfirmationEmailDisabled,
           options.eventTypeMetadata,
-          options.curAttendee
+          options.curAttendee,
+          options.hasRelevantSmsWorkflow
         );
       } else if (options.emailType === "rescheduled") {
-        await sendRescheduledEmailsAndSMS(options.calEvent, options.eventTypeMetadata);
+        await sendRescheduledEmailsAndSMS(
+          options.calEvent,
+          options.eventTypeMetadata,
+          options.hasRelevantSmsWorkflow
+        );
       } else if (options.emailType === "cancelled") {
         await sendCancelledEmailsAndSMS(
           options.calEvent,
           options.eventNameObject
             ? { eventName: options.eventNameObject.eventName }
             : { eventName: undefined },
-          options.eventTypeMetadata
+          options.eventTypeMetadata,
+          options.hasRelevantSmsWorkflow
         );
       } else if (options.emailType === "request") {
         if (options.firstAttendee) {
@@ -107,7 +116,8 @@ export async function triggerBookingEmailsInngest(options: TriggerBookingEmailsO
           await sendAttendeeRequestEmailAndSMS(
             options.calEvent,
             options.firstAttendee,
-            options.eventTypeMetadata
+            options.eventTypeMetadata,
+            options.hasRelevantSmsWorkflow
           );
         } else {
           logger.error("Cannot send request emails: firstAttendee is required", {

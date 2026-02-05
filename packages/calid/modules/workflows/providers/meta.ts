@@ -481,7 +481,6 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     // Handle BODY component
     if (component.type === "BODY" && component.text) {
       const bodyParams = extractTemplateVariables(component, expandedVariables, isNamedParams);
-      console.log("body params: ", bodyParams);
       if (bodyParams.length > 0) {
         components.push({
           type: "body",
@@ -846,10 +845,6 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
 
   // Schedule with Inngest
   try {
-    console.log(
-      "Sending Inngest scheduling event for WhatsApp reminder: ",
-      delay > 0 ? now.getTime() + delay : undefined
-    );
     const { ids } = await inngestClient.send({
       name: `whatsapp/reminder.scheduled-${key}`,
       data: {

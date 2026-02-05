@@ -1,4 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
@@ -9,6 +10,8 @@ export default class EventCancelledSMS extends SMSManager {
   }
 
   getMessage(attendee: Person) {
+    return this.getTemplateMessage(attendee, WorkflowTemplates.CANCELLED);
+
     const t = attendee.language.translate;
     const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`;
 
