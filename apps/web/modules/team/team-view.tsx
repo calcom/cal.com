@@ -10,8 +10,8 @@ import classNames from "classnames";
 import Link from "next/link";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import EventTypeDescription from "@calcom/web/modules/event-types/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
-import type { TeamPageServerSideProps } from "@calcom/lib/dto/TeamPage.types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -20,13 +20,14 @@ import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-import EventTypeDescription from "@calcom/web/modules/event-types/components/EventTypeDescription";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
-export type PageProps = TeamPageServerSideProps;
+export type PageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
