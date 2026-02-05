@@ -1,4 +1,5 @@
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
@@ -15,15 +16,15 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const { reference, status, code, error: queryError } = req.query;
     const state = decodeOAuthState(req);
 
-    // OAuth-style return (e.g. from setup): redirect to setup page
+    // OAuth-style return (e.g. from setup): redirect to setup page (validate to prevent open redirect)
     if (queryError) {
       log.error("OAuth callback error", { error: queryError });
-      const redirectUrl = state?.onErrorReturnTo ?? "/apps/lawpay/setup";
+      const redirectUrl = getSafeRedirectUrl(state?.onErrorReturnTo) ?? "/apps/lawpay/setup";
       return res.redirect(`${redirectUrl}?error=${encodeURIComponent(queryError as string)}`);
     }
     if (code) {
       log.info("OAuth callback received, redirecting to setup");
-      const redirectUrl = state?.returnTo ?? "/apps/lawpay/setup";
+      const redirectUrl = getSafeRedirectUrl(state?.returnTo) ?? "/apps/lawpay/setup";
       return res.redirect(`${redirectUrl}?success=true`);
     }
 
