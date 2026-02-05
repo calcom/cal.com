@@ -145,9 +145,11 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
 
   if (!isSegmentEnabled) {
 
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
+     return(
+       <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
         {t("segment")}
       </Button>
+     )
   }
 
   return (
