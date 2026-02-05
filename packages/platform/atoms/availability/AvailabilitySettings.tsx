@@ -597,10 +597,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                 }}
                                 id="hiddenSwitch"
                                 disabled={
-                                  isSaving ||
-                                  value ||
-                                  schedule.isDefault ||
-                                  schedule.lockedDefaultAvailability
+                                  isSaving || schedule.isDefault || schedule.lockedDefaultAvailability
                                 }
                                 checked={value}
                                 onCheckedChange={onChange}

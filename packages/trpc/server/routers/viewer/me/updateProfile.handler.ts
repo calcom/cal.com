@@ -278,7 +278,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     throw e; // make sure other errors are rethrown
   }
 
-  if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
+  if (input.timeZone && user.timeZone !== input.timeZone && updatedUser.schedules.length > 0) {
     // Check if user has locked default availability before updating default schedule timezone
     const hasLockedAvailability = await hasLockedDefaultAvailabilityRestriction(user.id);
 
@@ -312,7 +312,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           },
         },
         data: {
-          timeZone: data.timeZone,
+          timeZone: input.timeZone,
         },
       });
     }

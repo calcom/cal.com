@@ -99,7 +99,8 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   if (data.lockDefaultAvailability) {
-    if (!team.parentId) {
+    const effectiveParentId = data.parentId ?? team.parentId;
+    if (!effectiveParentId) {
       throw new HttpError({
         statusCode: 400,
         message: "Lock default availability feature is only available for teams within organizations.",
