@@ -560,12 +560,18 @@ class HubspotCalendarService implements CRM {
 
     const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      const properties: Record<string, string> = {
+        firstname,
+        lastname,
+        email: attendee.email,
+      };
+      
+      if (attendee.phone) {
+        properties.phone = attendee.phone;
+      }
+      
       return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
+        properties,
       };
     });
     const createdContacts = await Promise.all(

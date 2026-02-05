@@ -1,12 +1,12 @@
-import chokidar from "chokidar";
-import fs from "node:fs"
-// eslint-disable-next-line no-restricted-imports
-import { debounce } from "lodash";
 import { spawnSync } from "node:child_process";
-import path from "node:path"
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 import type { AppMeta } from "@calcom/types/App";
 import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
-
+import chokidar from "chokidar";
+// eslint-disable-next-line no-restricted-imports
+import { debounce } from "lodash";
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
@@ -37,8 +37,7 @@ const formatOutput = (source: string) => source;
 const getVariableName = (appName: string) => appName.replace(/[-./]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
-const getAppId = (app: { name: string }) =>
-  app.name === "stripepayment" ? "stripe" : app.name;
+const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
 
 type App = Partial<AppMeta> & {
   name: string;
@@ -79,21 +78,10 @@ function generateFiles() {
     }
   });
 
-  function forEachAppDir(
-    callback: (arg: App) => void,
-    filter: (arg: App) => boolean = () => true
-  ) {
+  function forEachAppDir(callback: (arg: App) => void, filter: (arg: App) => boolean = () => true) {
     for (let i = 0; i < appDirs.length; i++) {
-      const configPath = path.join(
-        APP_STORE_PATH,
-        appDirs[i].path,
-        "config.json"
-      );
-      const metadataPath = path.join(
-        APP_STORE_PATH,
-        appDirs[i].path,
-        "_metadata.ts"
-      );
+      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+      const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
       let app: AppMetaSchema;
 
       if (fs.existsSync(configPath)) {
@@ -102,16 +90,8 @@ function generateFiles() {
           const parsedConfig = JSON.parse(rawConfig);
           app = AppMetaSchema.parse(parsedConfig);
         } catch (error) {
-          const prefix = `Config error in ${path.join(
-            APP_STORE_PATH,
-            appDirs[i].path,
-            "config.json"
-          )}`;
-          throw new Error(
-            `${prefix}: ${
-              error instanceof Error ? error.message : String(error)
-            }`
-          );
+          const prefix = `Config error in ${path.join(APP_STORE_PATH, appDirs[i].path, "config.json")}`;
+          throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -156,7 +136,7 @@ function generateFiles() {
         {
           fileToBeImported: string;
           importName: string;
-        }
+        },
       ];
 
   /**
@@ -180,18 +160,12 @@ function generateFiles() {
     const getLocalImportName = (
       app: { name: string },
       chosenConfig: ReturnType<typeof getChosenImportConfig>
-    ) =>
-      `${getVariableName(app.name)}_${getVariableName(
-        chosenConfig.fileToBeImported
-      )}`;
+    ) => `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
 
     const fileToBeImportedExists = (
       app: { path: string },
       chosenConfig: ReturnType<typeof getChosenImportConfig>
-    ) =>
-      fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported)
-      );
+    ) => fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported));
 
     addImportStatements();
     createExportObject();
@@ -201,19 +175,13 @@ function generateFiles() {
     function addImportStatements() {
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
-        if (
-          fileToBeImportedExists(app, chosenConfig) &&
-          chosenConfig.importName
-        ) {
+        if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
           const importName = chosenConfig.importName;
           if (!lazyImport) {
             if (importName !== "default") {
               // Import with local alias that will be used by createExportObject
               output.push(
-                `import { ${importName} as ${getLocalImportName(
-                  app,
-                  chosenConfig
-                )} } from "${getModulePath(
+                `import { ${importName} as ${getLocalImportName(app, chosenConfig)} } from "${getModulePath(
                   app.path,
                   chosenConfig.fileToBeImported
                 )}"`
@@ -221,10 +189,7 @@ function generateFiles() {
             } else {
               // Default Import
               output.push(
-                `import ${getLocalImportName(
-                  app,
-                  chosenConfig
-                )} from "${getModulePath(
+                `import ${getLocalImportName(app, chosenConfig)} from "${getModulePath(
                   app.path,
                   chosenConfig.fileToBeImported
                 )}"`
@@ -255,12 +220,7 @@ function generateFiles() {
                 )}")),`
               );
             } else {
-              output.push(
-                `"${key}": import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}"),`
-              );
+              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
             }
           }
         }
@@ -269,24 +229,13 @@ function generateFiles() {
       output.push(`};`);
     }
 
-    function getChosenImportConfig(
-      importConfig: ImportConfig,
-      app: { path: string }
-    ) {
+    function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
       let chosenConfig: ImportConfig;
 
       if (!Array.isArray(importConfig)) {
         chosenConfig = importConfig;
       } else {
-        if (
-          fs.existsSync(
-            path.join(
-              APP_STORE_PATH,
-              app.path,
-              importConfig[0].fileToBeImported
-            )
-          )
-        ) {
+        if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
           chosenConfig = importConfig[0];
         } else {
           chosenConfig = importConfig[1];
@@ -472,10 +421,7 @@ function generateFiles() {
   );
   if (analyticsExportLineIndex !== -1) {
     const exportLine = analyticsServices[analyticsExportLineIndex];
-    const objectContent = analyticsServices.slice(
-      analyticsExportLineIndex + 1,
-      -1
-    );
+    const objectContent = analyticsServices.slice(analyticsExportLineIndex + 1, -1);
 
     analyticsOutput.push(
       exportLine.replace(
@@ -500,9 +446,7 @@ function generateFiles() {
       lazyImport: true,
     },
     (app: App) => {
-      const hasPaymentService = fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts")
-      );
+      const hasPaymentService = fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/PaymentService.ts"));
       return hasPaymentService;
     }
   );
@@ -520,9 +464,7 @@ function generateFiles() {
       lazyImport: true,
     },
     (app: App) => {
-      return fs.existsSync(
-        path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts")
-      );
+      return fs.existsSync(path.join(APP_STORE_PATH, app.path, "lib/VideoApiAdapter.ts"));
     }
   );
 
@@ -568,9 +510,7 @@ function generateFiles() {
     fs.writeFileSync(filePath, formatOutput(`${banner}${output.join("\n")}`));
     formatFileWithBiome(filePath);
   });
-  console.log(
-    `Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`
-  );
+  console.log(`Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`);
 }
 
 const debouncedGenerateFiles = debounce(generateFiles);
