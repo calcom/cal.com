@@ -490,6 +490,20 @@ describe("CalendarSubscriptionService", () => {
       expect(subscribeSpy).toHaveBeenCalledWith("calendar-with-cache-2");
     });
 
+    test("should skip when cache feature is globally disabled", async () => {
+      mockFeatureRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(false);
+      const subscribeSpy = vi.spyOn(service, "subscribe").mockResolvedValue(undefined);
+
+      await service.checkForNewSubscriptions();
+
+      expect(mockFeatureRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
+        "calendar-subscription-cache"
+      );
+      expect(mockTeamFeatureRepository.getTeamsWithFeatureEnabled).not.toHaveBeenCalled();
+      expect(mockSelectedCalendarRepository.findNextSubscriptionBatch).not.toHaveBeenCalled();
+      expect(subscribeSpy).not.toHaveBeenCalled();
+    });
+
     test("should not process any calendars when no calendars are returned", async () => {
       mockSelectedCalendarRepository.findNextSubscriptionBatch.mockResolvedValue([]);
 

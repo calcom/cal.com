@@ -70,7 +70,10 @@ export class PrismaFeatureRepository implements IFeatureRepository {
   }
 
   async checkIfFeatureIsEnabledGlobally(slug: string): Promise<boolean> {
-    const feature = await this.findBySlug(slug);
+    const feature = await this.prisma.feature.findUnique({
+      where: { slug },
+      select: { enabled: true },
+    });
     return Boolean(feature?.enabled);
   }
 }

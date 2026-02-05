@@ -393,6 +393,9 @@ export class CalendarSubscriptionService {
    */
   // biome-ignore lint/nursery/useExplicitType: return type is void
   async checkForNewSubscriptions() {
+    if (!(await this.isCacheEnabled())) {
+      return;
+    }
     const teamIds = await this.deps.teamFeatureRepository.getTeamsWithFeatureEnabled(
       CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
     );
