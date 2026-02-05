@@ -72,7 +72,7 @@ export const BaseAppFork = {
     isTemplate: boolean;
     oldSlug?: string;
     externalLinkUrl?: string;
-  }) {
+  }) => {
     const appDirPath = getAppDirPath(slug, isTemplate);
     if (!editMode) {
       await execSync(IS_WINDOWS_PLATFORM ? `mkdir ${appDirPath}` : `mkdir -p ${appDirPath}`);
