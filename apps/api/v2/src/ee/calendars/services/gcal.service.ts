@@ -5,7 +5,7 @@ import { extractBearerToken } from "@/lib/api-key";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensService } from "@/modules/tokens/tokens.service";
 import { calendar_v3 } from "@googleapis/calendar";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
@@ -34,7 +34,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     private readonly appsRepository: AppsRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly calendarsService: CalendarsService,
-    private readonly tokensRepository: TokensRepository,
+    private readonly tokensService: TokensService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
@@ -152,7 +152,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     const parsedCode = z.string().parse(code);
 
-    const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+    const ownerId = await this.tokensService.getAccessTokenOwnerId(accessToken);
 
     if (!ownerId) {
       throw new UnauthorizedException("Invalid Access token.");

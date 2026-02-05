@@ -172,7 +172,7 @@ describe("OrganizationsDelegationCredentialService", () => {
 
       await service.ensureDefaultCalendarsForUser(orgId, userId, userEmail);
 
-      expect(mockRepository.findEnabledByOrgIdAndDomain).toHaveBeenCalledWith(orgId, "@example.com");
+      expect(mockRepository.findEnabledByOrgIdAndDomain).toHaveBeenCalledWith(orgId, "example.com");
       expect(mockQueue.add).toHaveBeenCalledWith(
         DEFAULT_CALENDARS_JOB,
         { userId },
@@ -198,7 +198,7 @@ describe("OrganizationsDelegationCredentialService", () => {
 
       await service.ensureDefaultCalendarsForUser(orgId, userId, userEmail);
 
-      expect(mockRepository.findEnabledByOrgIdAndDomain).toHaveBeenCalledWith(orgId, "@example.com");
+      expect(mockRepository.findEnabledByOrgIdAndDomain).toHaveBeenCalledWith(orgId, "example.com");
       expect(mockQueue.add).not.toHaveBeenCalled();
     });
 
