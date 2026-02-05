@@ -121,6 +121,7 @@ async function handleChargeSucceeded(event: { data: { object: Record<string, unk
   await prisma.payment.updateMany({
     where: {
       externalId: charge.id,
+      appId: "lawpay",
     },
     data: {
       success: true,
