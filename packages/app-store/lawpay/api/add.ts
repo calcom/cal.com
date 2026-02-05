@@ -107,7 +107,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   } catch (error) {
     // Handle Zod validation errors as client errors (400)
     if (error instanceof z.ZodError) {
-      log.warn("LawPay credentials validation failed", { errors: error.issues });
+      log.warn("LawPay credentials validation failed", { issueCount: error.issues.length });
       return res.status(400).json({ 
         message: "Invalid credentials format",
         errors: error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
