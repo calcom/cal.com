@@ -74,7 +74,7 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
       height: 348,
     },
     policy: "permissive",
-    displayLocations: ["settings"],
+    displayLocations: ["banner", "settings"],
     scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
     formbricks: {
       waitAfterDays: 3,
