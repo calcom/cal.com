@@ -136,18 +136,38 @@ async function setupTest({
   return { formId, user, attribute };
 }
 
-async function previewAndSubmit(page: Page, formId: string) {
+async function openPreview(page: Page, formId: string) {
   await page.goto(`apps/routing-forms/route-builder/${formId}`);
   await page.click('[data-testid="preview-button"]');
+}
+
+function getMutationResponsePromise(page: Page) {
+  return page.waitForResponse(
+    (resp) =>
+      resp.url().includes("findTeamMembersMatchingAttributeLogicOfRoute") && resp.status() === 200
+  );
+}
+
+async function getRoutedTeamMemberIds(page: Page) {
+  const responsePromise = getMutationResponsePromise(page);
   await page.click('[data-testid="submit-button"]');
+  const response = await responsePromise;
+  const json = await response.json();
+  const data = json[0]?.result?.data;
+  const eventTypeRedirectUrl: string = data?.json?.eventTypeRedirectUrl ?? data?.eventTypeRedirectUrl;
+  expect(eventTypeRedirectUrl).toBeTruthy();
+  const url = new URL(eventTypeRedirectUrl);
+  return url.searchParams.get("cal.routedTeamMemberIds") ?? "";
 }
 
-async function expectMatch(page: Page) {
-  await page.waitForSelector("text=@example.com");
+async function expectRoutedToUser(page: Page, userId: number) {
+  const routedIds = await getRoutedTeamMemberIds(page);
+  expect(routedIds).toContain(String(userId));
 }
 
-async function expectNoMatch(page: Page) {
-  await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
+async function expectNotRoutedToUser(page: Page) {
+  const routedIds = await getRoutedTeamMemberIds(page);
+  expect(routedIds).toBe("");
 }
 
 async function closeResults(page: Page) {
@@ -161,15 +181,15 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
 
   test.describe("SINGLE_SELECT conditions", () => {
     test("select_equals - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.SINGLE_SELECT,
         options: ["large", "medium", "small"],
         assigned: ["large"],
         condition: { operator: "select_equals", value: ["large"], valueType: ["select"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -181,21 +201,21 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: ["large"],
         condition: { operator: "select_equals", value: ["small"], valueType: ["select"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
 
     test("select_not_equals - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.SINGLE_SELECT,
         options: ["large", "medium", "small"],
         assigned: ["large"],
         condition: { operator: "select_not_equals", value: ["small"], valueType: ["select"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -207,15 +227,15 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: ["large"],
         condition: { operator: "select_not_equals", value: ["large"], valueType: ["select"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
   });
 
   test.describe("MULTI_SELECT conditions", () => {
     test("multiselect_some_in - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.MULTI_SELECT,
         options: ["JavaScript", "React", "Python"],
@@ -226,8 +246,8 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
           valueType: ["multiselect"],
         },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -239,26 +259,26 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: ["JavaScript", "React"],
         condition: { operator: "multiselect_some_in", value: [["Python"]], valueType: ["multiselect"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
 
     test("multiselect_not_some_in - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.MULTI_SELECT,
         options: ["JavaScript", "React", "Python"],
         assigned: ["JavaScript", "React"],
         condition: { operator: "multiselect_not_some_in", value: [["Python"]], valueType: ["multiselect"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("multiselect_equals - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.MULTI_SELECT,
         options: ["JavaScript", "React", "Python"],
@@ -269,13 +289,13 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
           valueType: ["multiselect"],
         },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("multiselect_not_equals - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.MULTI_SELECT,
         options: ["JavaScript", "React", "Python"],
@@ -286,23 +306,23 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
           valueType: ["multiselect"],
         },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
   });
 
   test.describe("NUMBER conditions", () => {
     test("equal - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["10"],
         assigned: ["10"],
         condition: { operator: "equal", value: [10], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -314,78 +334,78 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: ["10"],
         condition: { operator: "equal", value: [5], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
 
     test("not_equal - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["10"],
         assigned: ["10"],
         condition: { operator: "not_equal", value: [5], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("less - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["3"],
         assigned: ["3"],
         condition: { operator: "less", value: [5], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("less_or_equal - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["5"],
         assigned: ["5"],
         condition: { operator: "less_or_equal", value: [5], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("greater - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["10"],
         assigned: ["10"],
         condition: { operator: "greater", value: [5], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("greater_or_equal - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["5"],
         assigned: ["5"],
         condition: { operator: "greater_or_equal", value: [5], valueType: ["number"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("between - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["3"],
@@ -398,8 +418,8 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
           valueError: [null, null],
         },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -417,13 +437,13 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
           valueError: [null, null],
         },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
 
     test("not_between - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.NUMBER,
         options: ["10"],
@@ -436,23 +456,23 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
           valueError: [null, null],
         },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
   });
 
   test.describe("TEXT conditions", () => {
     test("equal - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["hello world"],
         assigned: ["hello world"],
         condition: { operator: "equal", value: ["hello world"], valueType: ["text"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -464,60 +484,60 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: ["hello world"],
         condition: { operator: "equal", value: ["goodbye"], valueType: ["text"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
 
     test("not_equal - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["hello world"],
         assigned: ["hello world"],
         condition: { operator: "not_equal", value: ["goodbye"], valueType: ["text"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("like (contains) - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["hello world"],
         assigned: ["hello world"],
         condition: { operator: "like", value: ["hello"], valueType: ["text"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("not_like (not contains) - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["hello world"],
         assigned: ["hello world"],
         condition: { operator: "not_like", value: ["goodbye"], valueType: ["text"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
     test("starts_with - match", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["hello world"],
         assigned: ["hello world"],
         condition: { operator: "starts_with", value: ["hello"], valueType: ["text"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 
@@ -529,22 +549,21 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: [],
         condition: { operator: "is_empty", value: [], valueSrc: [], valueType: [], valueError: [] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
-      await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
 
     test("is_not_empty - match when value assigned", async ({ page, users }) => {
-      const { formId } = await setupTest({
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["hello world"],
         assigned: ["hello world"],
         condition: { operator: "is_not_empty", value: [], valueSrc: [], valueType: [], valueError: [] },
       });
-      await previewAndSubmit(page, formId);
-      await expectMatch(page);
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
   });
@@ -558,9 +577,8 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         assigned: ["large"],
         condition: { operator: "select_equals", value: ["small"], valueType: ["select"] },
       });
-      await previewAndSubmit(page, formId);
-      await expectNoMatch(page);
-      await expect(page.locator('[data-testid="attribute-logic-fallback-matched"]')).toHaveText("Yes");
+      await openPreview(page, formId);
+      await expectNotRoutedToUser(page);
       await closeResults(page);
     });
   });
