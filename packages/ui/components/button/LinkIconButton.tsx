@@ -38,6 +38,7 @@ export default function LinkIconButton(props: LinkIconButtonProps) {
           target={target}
           rel={rel}
           onClick={onClick}
+          {...(linkProps as any)}
         >
           <Icon name={IconName} className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
           {children}
