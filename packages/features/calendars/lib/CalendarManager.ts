@@ -51,7 +51,7 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     .filter((domain) => domain.trim() !== "")
     .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
-  // Zoho Calendar requires at least one attendee, so don't empty attendees array for Zoho Calendar
+  // Zoho Calendar requires at least one attendee
   const hasZohoCalendar = calEvent.destinationCalendar?.some((cal) => cal.integration === "zoho_calendar") ?? false;
 
   if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType && !hasZohoCalendar) {
