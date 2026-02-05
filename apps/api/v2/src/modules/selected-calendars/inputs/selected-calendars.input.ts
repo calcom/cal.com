@@ -1,3 +1,4 @@
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsInt, IsOptional, IsString } from "class-validator";
 
 export class SelectedCalendarsInputDto {
@@ -10,6 +11,7 @@ export class SelectedCalendarsInputDto {
   @IsInt()
   readonly credentialId!: number;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   readonly delegationCredentialId?: string;
@@ -25,6 +27,7 @@ export class SelectedCalendarsQueryParamsInputDto {
   @IsString()
   readonly credentialId!: string;
 
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   readonly delegationCredentialId?: string;

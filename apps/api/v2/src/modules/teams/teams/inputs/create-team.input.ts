@@ -100,7 +100,6 @@ export class CreateTeamInput {
     type: String,
     example: "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
     description: `URL of the teams banner image which is shown on booker`,
-    required: false,
   })
   readonly bannerUrl?: string;
 
@@ -115,7 +114,6 @@ export class CreateTeamInput {
     type: String,
     example: "America/New_York",
     description: `Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed.`,
-    required: false,
     default: "Europe/London",
   })
   readonly timeZone?: string = "Europe/London";

@@ -5,7 +5,7 @@ import { IsNumber, IsOptional, Max, Min, Validate } from "class-validator";
 import { IsEmailStringOrArray } from "../validators/isEmailStringOrArray";
 
 export class GetUsersInput {
-  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
+  @ApiPropertyOptional({ description: "The number of items to return", example: 10, default: 250 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
@@ -13,7 +13,7 @@ export class GetUsersInput {
   @IsOptional()
   take?: number;
 
-  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
+  @ApiPropertyOptional({ description: "The number of items to skip", example: 0, default: 0 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(0)

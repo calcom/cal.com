@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
   ArrayMinSize,
@@ -43,8 +43,7 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
     each: true,
     message: "Invalid status. Allowed are upcoming, recurring, past, cancelled, unconfirmed",
   })
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description:
       "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
     example: "?status=upcoming,past",
@@ -55,9 +54,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
 
   @IsString()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter bookings by the attendee's email address.",
     example: "example@domain.com",
   })
@@ -65,9 +63,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
 
   @IsString()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter bookings by the attendee's name.",
     example: "John Doe",
   })
@@ -75,9 +72,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
 
   @IsString()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter bookings by the booking Uid.",
     example: "2NtaeaVcKfpmSZ4CthFdfk",
   })
@@ -93,9 +89,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @IsArray()
   @IsNumber({}, { each: true })
   @ArrayMinSize(1, { message: "eventTypeIds must contain at least 1 event type id" })
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description:
       "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
     example: "?eventTypeIds=100,200",
@@ -105,9 +100,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @IsInt()
   @IsOptional()
   @Type(() => Number)
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter bookings by event type id belonging to the team.",
     example: "?eventTypeId=100",
   })
@@ -115,9 +109,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
 
   @IsOptional()
   @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter bookings with start after this date string.",
     example: "?afterStart=2025-03-07T10:00:00.000Z",
   })
@@ -125,9 +118,8 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
 
   @IsOptional()
   @IsISO8601({ strict: true }, { message: "toDate must be a valid ISO 8601 date." })
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter bookings with end before this date string.",
     example: "?beforeEnd=2025-03-07T11:00:00.000Z",
   })
@@ -138,8 +130,7 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @IsEnum(SortOrder, {
     message: 'SortStart must be either "asc" or "desc".',
   })
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: "Sort results by their start time in ascending or descending order.",
     example: "?sortStart=asc OR ?sortStart=desc",
     enum: SortOrder,
@@ -150,8 +141,7 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @IsEnum(SortOrder, {
     message: 'SortEnd must be either "asc" or "desc".',
   })
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: "Sort results by their end time in ascending or descending order.",
     example: "?sortEnd=asc OR ?sortEnd=desc",
     enum: SortOrder,
@@ -162,8 +152,7 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @IsEnum(SortOrder, {
     message: 'SortCreated must be either "asc" or "desc".',
   })
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description:
       "Sort results by their creation time (when booking was made) in ascending or descending order.",
     example: "?sortCreated=asc OR ?sortCreated=desc",
@@ -172,7 +161,7 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   sortCreated?: SortOrderType;
 
   // note(Lauris): pagination
-  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
+  @ApiPropertyOptional({ description: "The number of items to return", example: 10 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
@@ -180,7 +169,7 @@ export class GetOrganizationsTeamsBookingsInput_2024_08_13 {
   @IsOptional()
   take?: number;
 
-  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
+  @ApiPropertyOptional({ description: "The number of items to skip", example: 0 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(0)

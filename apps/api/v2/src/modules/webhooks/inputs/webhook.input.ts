@@ -6,7 +6,7 @@ import { WebhookTriggerEvents, WebhookVersion } from "@calcom/platform-libraries
 export class CreateWebhookInputDto {
   @IsString()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     description:
       "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
     example: JSON.stringify({
@@ -59,4 +59,4 @@ export class CreateWebhookInputDto {
   version?: WebhookVersion;
 }
 
-export class UpdateWebhookInputDto extends PartialType(CreateWebhookInputDto) {}
+export class UpdateWebhookInputDto extends PartialType(CreateWebhookInputDto) { }
