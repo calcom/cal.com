@@ -151,6 +151,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           hideCalendarEventDetails: true,
           disableGuests: true,
           customReplyToEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           metadata: true,
           locations: true,
           team: {
@@ -322,6 +324,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,

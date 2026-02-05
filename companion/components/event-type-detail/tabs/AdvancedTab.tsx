@@ -21,6 +21,8 @@ import {
 import { showInfoAlert, showNotAvailableAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
+import { getColors } from "@/constants/colors";
+import { useColorScheme } from "react-native";
 
 // Interface language options matching API V2 enum
 const interfaceLanguageOptions = [
@@ -122,6 +124,8 @@ interface AdvancedTabProps {
 
 export function AdvancedTab(props: AdvancedTabProps) {
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
 
   const getLanguageLabel = (value: string) => {
     const option = interfaceLanguageOptions.find((opt) => opt.value === value);
@@ -277,15 +281,21 @@ export function AdvancedTab(props: AdvancedTabProps) {
       {/* Seats Configuration - shown when enabled */}
       {props.seatsEnabled ? (
         <SettingsGroup header="Seats">
-          <View className="bg-white pl-4">
-            <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-              <Text className="mb-2 text-[13px] text-[#6D6D72]">Seats per booking</Text>
+          <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+            <View
+              className="pt-4 pb-3 pr-4"
+              style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+            >
+              <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+                Seats per booking
+              </Text>
               <TextInput
-                className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="rounded-lg px-3 py-2 text-[17px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                 value={props.seatsPerTimeSlot}
                 onChangeText={props.setSeatsPerTimeSlot}
                 placeholder="2"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={theme.textMuted}
                 keyboardType="numeric"
               />
             </View>
@@ -336,12 +346,7 @@ export function AdvancedTab(props: AdvancedTabProps) {
         presentationStyle={Platform.OS === "ios" ? "formSheet" : undefined}
         onRequestClose={() => setShowLanguagePicker(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Platform.OS === "ios" ? "#F2F2F7" : "rgba(0,0,0,0.5)",
-          }}
-        >
+        <View className="flex-1 bg-[#F2F2F7] dark:bg-black">
           {Platform.OS !== "ios" ? (
             <TouchableOpacity
               style={{ flex: 1 }}
@@ -350,27 +355,31 @@ export function AdvancedTab(props: AdvancedTabProps) {
             />
           ) : null}
           <View
-            style={
+            className={
               Platform.OS === "ios"
-                ? { flex: 1 }
-                : {
-                    backgroundColor: "#F2F2F7",
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
-                    height: "70%",
-                    width: "100%",
-                  }
+                ? "flex-1"
+                : "h-[70%] w-full rounded-t-[20px] bg-[#F2F2F7] dark:bg-black"
             }
           >
             {/* Header */}
-            <View className="h-[60px] flex-row items-center justify-between border-b border-[#E5E5E5] bg-white px-4">
+            <View
+              className="h-[60px] flex-row items-center justify-between px-4"
+              style={{
+                backgroundColor: theme.backgroundSecondary,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.borderSubtle,
+              }}
+            >
               <TouchableOpacity
                 onPress={() => setShowLanguagePicker(false)}
-                className="h-8 w-8 items-center justify-center rounded-full bg-[#E5E5EA]"
+                className="h-8 w-8 items-center justify-center rounded-full"
+                style={{ backgroundColor: theme.backgroundEmphasis }}
               >
-                <Ionicons name="close" size={20} color="#8E8E93" />
+                <Ionicons name="close" size={20} color={theme.textMuted} />
               </TouchableOpacity>
-              <Text className="text-[17px] font-semibold text-black">Select Language</Text>
+              <Text className="text-[17px] font-semibold" style={{ color: theme.text }}>
+                Select Language
+              </Text>
               <View className="h-8 w-8" />
             </View>
 
@@ -378,23 +387,32 @@ export function AdvancedTab(props: AdvancedTabProps) {
               className="flex-1"
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
             >
-              <View className="overflow-hidden rounded-[10px] bg-white">
+              <View
+                className="overflow-hidden rounded-[10px]"
+                style={{ backgroundColor: theme.backgroundSecondary }}
+              >
                 {interfaceLanguageOptions.map((option, index) => (
-                  <View key={option.value} className="bg-white pl-4">
+                  <View
+                    key={option.value}
+                    className="pl-4"
+                    style={{ backgroundColor: theme.backgroundSecondary }}
+                  >
                     <TouchableOpacity
-                      className={`flex-row items-center justify-between py-3 pr-4 ${
-                        index !== interfaceLanguageOptions.length - 1
-                          ? "border-b border-[#E5E5E5]"
-                          : ""
-                      }`}
+                      className={`flex-row items-center justify-between py-3 pr-4`}
+                      style={{
+                        borderBottomWidth: index !== interfaceLanguageOptions.length - 1 ? 1 : 0,
+                        borderBottomColor: theme.borderSubtle,
+                      }}
                       onPress={() => {
                         props.setInterfaceLanguage(option.value);
                         setShowLanguagePicker(false);
                       }}
                     >
-                      <Text className="text-[17px] text-black">{option.label}</Text>
+                      <Text className="text-[17px]" style={{ color: theme.text }}>
+                        {option.label}
+                      </Text>
                       {props.interfaceLanguage === option.value ? (
-                        <Ionicons name="checkmark" size={20} color="#000000" />
+                        <Ionicons name="checkmark" size={20} color={theme.accent} />
                       ) : null}
                     </TouchableOpacity>
                   </View>
@@ -417,19 +435,25 @@ export function AdvancedTab(props: AdvancedTabProps) {
         />
         {props.redirectEnabled ? (
           <>
-            <View className="bg-white pl-4">
-              <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-                <Text className="mb-2 text-[13px] text-[#6D6D72]">Redirect URL</Text>
+            <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+              <View
+                className="pt-4 pb-3 pr-4"
+                style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+              >
+                <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+                  Redirect URL
+                </Text>
                 <TextInput
-                  className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                  className="rounded-lg px-3 py-2 text-[17px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                   value={props.successRedirectUrl}
                   onChangeText={props.setSuccessRedirectUrl}
                   placeholder="https://example.com/thank-you"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor={theme.textMuted}
                   keyboardType="url"
                   autoCapitalize="none"
                 />
-                <Text className="mt-2 text-[13px] text-[#FF9500]">
+                <Text className="mt-2 text-[13px]" style={{ color: theme.warning }}>
                   Adding a redirect will disable the success page.
                 </Text>
               </View>
@@ -472,48 +496,60 @@ export function AdvancedTab(props: AdvancedTabProps) {
       </SettingsGroup>
 
       {/* Event type colors */}
+      {/* Event type colors */}
       <SettingsGroup header="Event Type Colors">
-        <View className="bg-white pl-4">
-          <View className="border-b border-[#E5E5E5] pt-4 pb-3 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">Light Theme</Text>
+        <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+          <View
+            className="pt-4 pb-3 pr-4"
+            style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+          >
+            <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+              Light Theme
+            </Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
+                className="h-8 w-8 rounded-lg border"
                 style={{
+                  borderColor: theme.borderLight,
                   backgroundColor: props.eventTypeColorLight.startsWith("#")
                     ? props.eventTypeColorLight
                     : `#${props.eventTypeColorLight}`,
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="flex-1 rounded-lg px-3 py-2 text-[17px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                 value={props.eventTypeColorLight}
                 onChangeText={props.setEventTypeColorLight}
                 placeholder="292929"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="none"
               />
             </View>
           </View>
         </View>
-        <View className="bg-white pl-4">
+        <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
           <View className="pt-3 pb-4 pr-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">Dark Theme</Text>
+            <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+              Dark Theme
+            </Text>
             <View className="flex-row items-center gap-3">
               <View
-                className="h-8 w-8 rounded-lg border border-[#C6C6C8]"
+                className="h-8 w-8 rounded-lg border"
                 style={{
+                  borderColor: theme.borderLight,
                   backgroundColor: props.eventTypeColorDark.startsWith("#")
                     ? props.eventTypeColorDark
                     : `#${props.eventTypeColorDark}`,
                 }}
               />
               <TextInput
-                className="flex-1 rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
+                className="flex-1 rounded-lg px-3 py-2 text-[17px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                 value={props.eventTypeColorDark}
                 onChangeText={props.setEventTypeColorDark}
                 placeholder="fafafa"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={theme.textMuted}
                 autoCapitalize="none"
               />
             </View>

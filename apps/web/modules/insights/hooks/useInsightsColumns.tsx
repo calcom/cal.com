@@ -16,13 +16,13 @@ import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
 import { BookingStatusBadge } from "../components/BookingStatusBadge";
 import { ResponseValueCell } from "../components/ResponseValueCell";
-import type { HeaderRow, RoutingFormTableRow } from "@calcom/features/insights/lib/types";
+import type { HeaderRow, RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
 import {
   ZResponseMultipleValues,
   ZResponseSingleValue,
   ZResponseTextValue,
   ZResponseNumericValue,
-} from "@calcom/features/insights/lib/types";
+} from "@calcom/web/modules/insights/lib/types";
 
 export const useInsightsColumns = ({
   headers,

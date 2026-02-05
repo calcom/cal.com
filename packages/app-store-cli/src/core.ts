@@ -1,7 +1,6 @@
-import fs from "node:fs"
-import path from "node:path"
-
-import { APP_STORE_PATH, TEMPLATES_PATH, IS_WINDOWS_PLATFORM } from "./constants";
+import fs from "node:fs";
+import path from "node:path";
+import { APP_STORE_PATH, IS_WINDOWS_PLATFORM, TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
 
 const slugify = (str: string) => {
@@ -46,10 +45,10 @@ const updatePackageJson = ({
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJsonConfig, null, 2));
 };
 
-const workspaceDir = path.resolve(__dirname, "..", "..", "..");
+const _workspaceDir = path.resolve(__dirname, "..", "..", "..");
 
 export const BaseAppFork = {
-  create: async function ({
+  create: async ({
     category,
     editMode = false,
     description,
@@ -147,7 +146,7 @@ export const BaseAppFork = {
     await execSync("yarn");
   },
 
-  delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {
+  delete: async ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) => {
     const appDirPath = getAppDirPath(slug, isTemplate);
     await execSync(IS_WINDOWS_PLATFORM ? `rd /s /q ${appDirPath}` : `rm -rf ${appDirPath}`);
   },

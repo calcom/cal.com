@@ -235,6 +235,8 @@ model EventType {
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                       String?
   forwardParamsSuccessRedirect             Boolean?                  @default(true)
+  /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
+  redirectUrlOnNoRoutingFormResponse       String?
   workflows                                WorkflowsOnEventTypes[]
   /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   bookingLimits                            Json?
@@ -300,17 +302,18 @@ model EventType {
 }
 
 model Credential {
-  id     Int     @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   // @@type is deprecated
-  type   String
-  key    Json
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId Int?
-  app    App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  type         String
+  key          Json
+  encryptedKey String?
+  user         User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int?
+  team         Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId       Int?
+  app          App?    @relation(fields: [appId], references: [slug], onDelete: Cascade)
   // How to make it a required column?
-  appId  String?
+  appId        String?
 
   // paid apps
   subscriptionId    String?
@@ -842,6 +845,7 @@ model Attendee {
 
   @@index([email])
   @@index([bookingId])
+  @@index([email, bookingId])
 }
 
 enum BookingStatus {
@@ -919,6 +923,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
 
@@ -930,6 +935,10 @@ model Booking {
   @@index([status])
   @@index([startTime, endTime, status])
   @@index([fromReschedule])
+  @@index([userId, endTime])
+  @@index([userId, status, startTime])
+  @@index([eventTypeId, status])
+  @@index([userId, createdAt])
 }
 
 model Tracking {
@@ -1046,6 +1055,7 @@ model SelectedCalendar {
   @@index([externalId])
   @@index([eventTypeId])
   @@index([credentialId])
+  @@index([channelId])
   // Composite indices to optimize calendar-cache queries
   @@index([integration, googleChannelExpiration, error, watchAttempts, maxAttempts], name: "SelectedCalendar_watch_idx")
   @@index([integration, googleChannelExpiration, error, unwatchAttempts, maxAttempts], name: "SelectedCalendar_unwatch_idx")
@@ -1344,6 +1354,8 @@ model App_RoutingForms_FormResponse {
   routingFormResponseFields RoutingFormResponseField[]
   routingFormResponses      RoutingFormResponseDenormalized[]
   queuedFormResponse        App_RoutingForms_QueuedFormResponse?
+  pendingRoutingTrace       PendingRoutingTrace?
+  routingTrace              RoutingTrace?
 
   @@unique([formFillerId, formId])
   @@index([formFillerId])
@@ -1352,15 +1364,17 @@ model App_RoutingForms_FormResponse {
 }
 
 model App_RoutingForms_QueuedFormResponse {
-  id               String                         @id @default(cuid())
-  form             App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId           String
-  response         Json
-  chosenRouteId    String?
-  createdAt        DateTime                       @default(now())
-  updatedAt        DateTime?                      @updatedAt
-  actualResponseId Int?                           @unique
-  actualResponse   App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  id                  String                         @id @default(cuid())
+  form                App_RoutingForms_Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId              String
+  response            Json
+  chosenRouteId       String?
+  createdAt           DateTime                       @default(now())
+  updatedAt           DateTime?                      @updatedAt
+  actualResponseId    Int?                           @unique
+  actualResponse      App_RoutingForms_FormResponse? @relation(fields: [actualResponseId], references: [id], onDelete: Cascade)
+  pendingRoutingTrace PendingRoutingTrace?
+  routingTrace        RoutingTrace?
 }
 
 model RoutingFormResponseField {
@@ -2162,6 +2176,7 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+  @@index([email, emailVerified])
 }
 
 // Needed to store tasks that need to be processed by a background worker or Tasker
@@ -2329,6 +2344,7 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+  routingTrace RoutingTrace?
 
   @@index([bookingId])
 }
@@ -2777,8 +2793,7 @@ enum BookingAuditAction {
   LOCATION_CHANGED @map("location_changed")
 
   // No-show tracking
-  HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")
-  ATTENDEE_NO_SHOW_UPDATED @map("attendee_no_show_updated")
+  NO_SHOW_UPDATED @map("no_show_updated")
 
   // Rescheduling
   RESCHEDULE_REQUESTED @map("reschedule_requested")
@@ -2793,6 +2808,7 @@ enum BookingAuditSource {
   API_V2     @map("api_v2")
   WEBAPP     @map("webapp")
   WEBHOOK    @map("webhook")
+  SYSTEM     @map("system")
   MAGIC_LINK @map("magic_link")
   UNKNOWN    @map("unknown")
 }
@@ -2987,6 +3003,10 @@ model TeamBilling {
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
 
+  // High water mark tracking for monthly billing
+  highWaterMark            Int?
+  highWaterMarkPeriodStart DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -3010,6 +3030,10 @@ model OrganizationBilling {
   paidSeats         Int?
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
+
+  // High water mark tracking for monthly billing
+  highWaterMark            Int?
+  highWaterMarkPeriodStart DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3080,6 +3104,7 @@ model MonthlyProration {
 
   invoiceItemId String?
   invoiceId     String?
+  invoiceUrl    String?
 
   status ProrationStatus @default(PENDING)
 
@@ -3200,4 +3225,34 @@ model AttributeSyncFieldMapping {
 
   @@unique([integrationAttributeSyncId, attributeId])
   @@index([integrationAttributeSyncId])
+}
+
+model PendingRoutingTrace {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  trace     Json
+
+  formResponseId Int?                           @unique
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  queuedFormResponseId String?                              @unique
+  queuedFormResponse   App_RoutingForms_QueuedFormResponse? @relation(fields: [queuedFormResponseId], references: [id], onDelete: Cascade)
+}
+
+model RoutingTrace {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  trace     Json
+
+  formResponseId Int?                           @unique
+  formResponse   App_RoutingForms_FormResponse? @relation(fields: [formResponseId], references: [id], onDelete: Cascade)
+
+  queuedFormResponseId String?                              @unique
+  queuedFormResponse   App_RoutingForms_QueuedFormResponse? @relation(fields: [queuedFormResponseId], references: [id], onDelete: Cascade)
+
+  bookingUid String?  @unique
+  booking    Booking? @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+
+  assignmentReasonId Int?              @unique
+  assignmentReason   AssignmentReason? @relation(fields: [assignmentReasonId], references: [id], onDelete: Cascade)
 }

@@ -279,7 +279,7 @@ describe("ReassignmentAuditActionService", () => {
 
       mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-old", name: "Previous Host" });
 
-      const result = await service.getDisplayFields(storedData);
+      const result = await service.getDisplayFields({ storedData });
 
       expect(result).toEqual([
         {
@@ -305,7 +305,7 @@ describe("ReassignmentAuditActionService", () => {
 
       mockUserRepository.findByUuid.mockResolvedValue({ uuid: "organizer-old", name: "Previous Host" });
 
-      const result = await service.getDisplayFields(storedData);
+      const result = await service.getDisplayFields({ storedData });
 
       expect(result).toEqual([
         {

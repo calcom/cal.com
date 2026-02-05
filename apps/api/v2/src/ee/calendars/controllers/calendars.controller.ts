@@ -161,7 +161,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
-  @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN"])
+  @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN", "THIRD_PARTY_ACCESS_TOKEN"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
