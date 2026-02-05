@@ -58,7 +58,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       throw new HttpCode({ statusCode: 404, message: "Payment not found" });
     }
 
-    const paymentStatus = (status as string)?.toLowerCase();
+    if (!status || typeof status !== "string") {
+      throw new HttpCode({ statusCode: 400, message: "Missing payment status" });
+    }
+
+    const paymentStatus = (status as string).toLowerCase();
     const success =
       paymentStatus === "succeeded" || paymentStatus === "completed" || paymentStatus === "success";
 

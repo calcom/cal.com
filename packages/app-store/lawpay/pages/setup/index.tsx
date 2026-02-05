@@ -1,39 +1,40 @@
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { lawPayCredentialSchema } from "../../types";
+import type { LawPayCredential } from "../../types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "sonner";
 
-export default function LawPaySetup() {
+export type LawPaySetupFormProps = {
+  showContent: boolean;
+  isPending: boolean;
+  onSave: (key: LawPayCredential) => void;
+  isSaving?: boolean;
+};
+
+/**
+ * Presentational LawPay setup form. Data fetching and tRPC must be done by the parent
+ * (e.g. apps/web) to avoid @calcom/trpc/react type collisions in this package.
+ */
+export function LawPaySetupForm({
+  showContent,
+  isPending,
+  onSave,
+  isSaving = false,
+}: LawPaySetupFormProps) {
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
   const [merchantId, setMerchantId] = useState("");
   const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
-  const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "lawpay" });
-  const [lawpayPaymentAppCredentials] = integrations.data?.items ?? [];
-  const [credentialId] = lawpayPaymentAppCredentials?.userCredentialIds ?? [-1];
-  const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
-  const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
-    onSuccess: () => {
-      showToast(t("keys_have_been_saved"), "success");
-      router.push("/event-types");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
 
-  if (integrations.isPending) {
+  if (isPending) {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
@@ -50,7 +51,7 @@ export default function LawPaySetup() {
       showToast(t("all_fields_are_required"), "error");
       return;
     }
-    saveKeysMutation.mutate({ credentialId, key: parsed.data });
+    onSave(parsed.data);
   };
 
   const canSave =
@@ -137,7 +138,11 @@ export default function LawPaySetup() {
               />
 
               <div className="mt-5 flex flex-row justify-end">
-                <Button color="secondary" type="button" onClick={handleSave} disabled={!canSave}>
+                <Button
+                  color="secondary"
+                  type="button"
+                  onClick={handleSave}
+                  disabled={!canSave || isSaving}>
                   {t("save")}
                 </Button>
               </div>
