@@ -74,11 +74,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const success =
       paymentStatus === "succeeded" || paymentStatus === "completed" || paymentStatus === "success";
 
+    // On non-success, only redirect; do not update booking here. State changes (cancellation,
+    // payment failure) must come from the signature-verified webhook to avoid abuse via crafted URLs.
     if (!success) {
-      await prisma.booking.update({
-        where: { id: payment.bookingId },
-        data: { status: "CANCELLED" },
-      });
       const username = payment.booking.user?.username;
       const slug = payment.booking.eventType?.slug;
       const url = username && slug ? `/${username}/${slug}` : "/";

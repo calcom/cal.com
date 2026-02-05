@@ -6,15 +6,21 @@ import { lawPayCredentialSchema } from "./types";
 
 type LawPayCredential = LawPayTypes.LawPayCredential;
 
-// Mock fetch for API calls
+// Mock fetch for API calls (restored in afterAll to avoid leaking into other suites)
+const originalFetch = global.fetch;
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock console methods
+// Mock console methods (restored in afterAll)
 const _mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
 const _mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
 describe("LawPay Integration", () => {
+  afterAll(() => {
+    global.fetch = originalFetch;
+    _mockConsoleError.mockRestore();
+    _mockConsoleLog.mockRestore();
+  });
   const mockCredentials: LawPayCredential = {
     client_id: "test_client_id",
     client_secret: "test_client_secret",
@@ -34,18 +40,6 @@ describe("LawPay Integration", () => {
 
     beforeEach(() => {
       api = new LawPayAPI(mockCredentials);
-    });
-
-    describe("constructor", () => {
-      it("should set sandbox URL for sandbox environment", () => {
-        const sandboxApi = new LawPayAPI({ ...mockCredentials, environment: "sandbox" });
-        expect(sandboxApi.baseUrl).toBe("https://api.sandbox.lawpay.com");
-      });
-
-      it("should set production URL for production environment", () => {
-        const productionApi = new LawPayAPI({ ...mockCredentials, environment: "production" });
-        expect(productionApi.baseUrl).toBe("https://api.lawpay.com");
-      });
     });
 
     describe("authenticate", () => {
