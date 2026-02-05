@@ -503,11 +503,10 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
         const incrementMonth = page.getByTestId("incrementMonth");
         await incrementMonth.waitFor();
         await incrementMonth.click();
-        await page.waitForTimeout(2000);
 
-        const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-        const count = await availableDays.count();
-        expect(count).toBe(0);
+        await expect(page.locator('[data-testid="day"][data-disabled="false"]')).toHaveCount(0, {
+          timeout: 15000,
+        });
       });
     });
 
