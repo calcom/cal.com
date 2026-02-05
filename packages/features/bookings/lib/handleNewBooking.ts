@@ -1578,6 +1578,7 @@ async function handler(
           },
           availabilityData
         );
+        // throw new Error("Test error in RRULE generation");
 
         // === STEP 5: Attach to event and metadata ===
         evt.recurringEvent = recurringEventWithExDates;

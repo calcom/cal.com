@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  generateRecurringInstances,
-  getActualRecurringStartTime,
-} from "@calid/features/modules/teams/lib/recurrenceUtil";
+import { generateRecurringInstances } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
@@ -1431,14 +1428,10 @@ function RecurringBookings({
 
   // Show summary format for more than 10 instances
   if (recurringBookingsSorted && recurringBookingsSorted.length > 10 && allRemainingBookings) {
-    const firstDate = (() => {
-      // If we have a recurring event, compute the actual first occurrence
-      if (recurringEvent) {
-        const actualStart = getActualRecurringStartTime(recurringEvent, new Date(recurringBookingsSorted[0]));
-        return actualStart;
-      }
-      return recurringBookingsSorted[0];
-    })();
+    const firstThreeDates = recurringBookingsSorted.slice(0, 3);
+    const lastTwoDates = recurringBookingsSorted.slice(-2);
+    const hiddenCount = recurringBookingsSorted.length - 5;
+
     return (
       <div className={classNames(isCancelled ? "line-through" : "")}>
         {recurringEvent?.count && (
@@ -1453,21 +1446,44 @@ function RecurringBookings({
           </div>
         )}
 
-        <div>
-          <span className="font-medium">{t("starting")} </span>
-          {formatToLocalizedDate(dayjs.tz(firstDate, tz), language, "full", tz)}
-          <br />
-          {formatToLocalizedTime(dayjs(firstDate), language, undefined, !is24h, tz)} -{" "}
-          {formatToLocalizedTime(dayjs(firstDate).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
-          <span className="text-bookinglight">
-            ({formatToLocalizedTimezone(dayjs(firstDate), language, tz)})
-          </span>
-          {recurringEvent?.rDates && recurringEvent.rDates.length > 0 && (
-            <span className="text-subtle ml-1">
-              <br />+ {t("additional_dates", { count: recurringEvent.rDates.length })}
+        {/* First 3 dates */}
+        {firstThreeDates.map((dateStr: string, idx: number) => (
+          <div key={`first-${idx}`} className="mb-2">
+            {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+            <br />
+            {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+            {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+            <span className="text-bookinglight">
+              ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
             </span>
-          )}
+          </div>
+        ))}
+
+        {/* Vertical ellipsis */}
+        <div className="mb-2 text-start">
+          <span className="text-subtle">⋮</span>
+
+          <span className="text-subtle ml-2 text-sm">({t("plus_more", { count: hiddenCount })})</span>
         </div>
+
+        {/* Last 2 dates */}
+        {lastTwoDates.map((dateStr: string, idx: number) => (
+          <div key={`last-${idx}`} className="mb-2">
+            {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+            <br />
+            {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+            {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+            <span className="text-bookinglight">
+              ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+            </span>
+          </div>
+        ))}
+
+        {/* {recurringEvent?.rDates && recurringEvent.rDates.length > 0 && (
+          <span className="text-subtle ml-1">
+            <br />+ {t("additional_dates", { count: recurringEvent.rDates.length })}
+          </span>
+        )} */}
       </div>
     );
   }
