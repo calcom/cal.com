@@ -163,8 +163,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
 
   // Only send the minimal data needed for the team page to reduce data transfer
-  // The frontend only needs: title, slug, description, length, schedulingType, recurringEvent
-  // and users with: name, username, avatarUrl, profile (for avatar links)
+  // EventTypeDescription needs: length, schedulingType, recurringEvent, metadata, seatsPerTimeSlot, requiresConfirmation
+  // UserAvatarGroup needs: name, username, avatarUrl, profile (for avatar links)
   const minimalEventTypes = team.eventTypes?.map((type) => ({
     id: type.id,
     title: type.title,
@@ -173,9 +173,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     length: type.length,
     schedulingType: type.schedulingType,
     recurringEvent: type.recurringEvent,
+    metadata: type.metadata,
+    seatsPerTimeSlot: type.seatsPerTimeSlot,
+    requiresConfirmation: type.requiresConfirmation,
     descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     users: !isTeamOrParentOrgPrivate
       ? type.users.map((user) => ({
+          id: user.id,
           name: user.name,
           username: user.username,
           avatarUrl: user.avatarUrl,
