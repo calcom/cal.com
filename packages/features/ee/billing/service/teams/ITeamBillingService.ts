@@ -25,4 +25,9 @@ export interface ITeamBillingService {
   getSubscriptionStatus(): Promise<SubscriptionStatus | null>;
   endTrial(): Promise<boolean>;
   saveTeamBilling(args: IBillingRepositoryCreateArgs): Promise<void>;
+  createTeamCheckoutSession(input: {
+    teamId: number;
+    seats: number;
+    userId: number;
+  }): Promise<{ url: string | null }>;
 }

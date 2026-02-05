@@ -1,6 +1,6 @@
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
@@ -100,12 +100,10 @@ export class TeamBillingService implements ITeamBillingService {
     });
 
     try {
-      // TODO: extract this to new billing service
-      const checkoutSession = await purchaseTeamOrOrgSubscription({
+      const checkoutSession = await this.createTeamCheckoutSession({
         teamId,
-        seatsUsed: membershipCount,
+        seats: membershipCount,
         userId: owner.userId,
-        pricePerSeat: null,
       });
 
       if (checkoutSession.url) {
@@ -194,6 +192,43 @@ export class TeamBillingService implements ITeamBillingService {
       this.logErrorFromUnknown(error);
     }
   }
+  /**
+   * Creates a Stripe checkout session for a team subscription.
+   * Handles only team (non-org) subscriptions using the fixed team price.
+   */
+  async createTeamCheckoutSession({
+    teamId,
+    seats,
+    userId,
+  }: {
+    teamId: number;
+    seats: number;
+    userId: number;
+  }): Promise<{ url: string | null }> {
+    const customerId = await getStripeCustomerIdFromUserId(userId);
+    const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+    if (!priceId) {
+      throw new Error("STRIPE_TEAM_MONTHLY_PRICE_ID env variable is not set");
+    }
+
+    const { checkoutUrl } = await this.billingProviderService.createSubscriptionCheckout({
+      customerId,
+      successUrl: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${WEBAPP_URL}/settings/my-account/profile`,
+      priceId,
+      quantity: seats,
+      allowPromotionCodes: true,
+      customerUpdate: { address: "auto" },
+      automaticTax: { enabled: IS_PRODUCTION },
+      metadata: { teamId },
+      subscriptionData: {
+        metadata: { teamId, dubCustomerId: userId },
+      },
+    });
+
+    return { url: checkoutUrl };
+  }
+
   /** Used to prevent double charges for the same team */
   async checkIfTeamPaymentRequired() {
     const { paymentId } = this.team.metadata || {};

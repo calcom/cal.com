@@ -3,17 +3,10 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { BillingPeriod } from "@calcom/prisma/zod-utils";
 
-import {
-  getTeamWithPaymentMetadata,
-  purchaseTeamOrOrgSubscription,
-  updateQuantitySubscriptionFromStripe,
-} from "./payments";
+import { getTeamWithPaymentMetadata, updateQuantitySubscriptionFromStripe } from "./payments";
 
 beforeEach(async () => {
-  vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
-  vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "STRIPE_TEAM_MONTHLY_PRICE_ID");
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -41,291 +34,15 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => {
     default: {
       checkout: {
         sessions: {
-          create: vi.fn(),
           retrieve: vi.fn(),
         },
-      },
-      prices: {
-        retrieve: vi.fn(),
-        create: vi.fn(),
       },
       subscriptions: {
         retrieve: vi.fn(),
         update: vi.fn(),
-        create: vi.fn(),
       },
     },
   };
-});
-
-describe("purchaseTeamOrOrgSubscription", () => {
-  it("should use `seatsToChargeFor` to create price", async () => {
-    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-    const user = await prismock.user.create({
-      data: {
-        name: "test",
-        email: "test@email.com",
-      },
-    });
-
-    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
-      url: "SESSION_URL",
-    });
-
-    mockStripeCheckoutSessionRetrieve(
-      {
-        currency: "USD",
-        product: {
-          id: "PRODUCT_ID",
-        },
-      },
-      [FAKE_PAYMENT_ID]
-    );
-
-    mockStripeCheckoutPricesRetrieve({
-      id: "PRICE_ID",
-      product: {
-        id: "PRODUCT_ID",
-      },
-    });
-
-    mockStripePricesCreate({
-      id: "PRICE_ID",
-    });
-
-    const team = await prismock.team.create({
-      data: {
-        name: "test",
-        metadata: {
-          paymentId: FAKE_PAYMENT_ID,
-        },
-      },
-    });
-
-    const seatsToChargeFor = 1000;
-    expect(
-      await purchaseTeamOrOrgSubscription({
-        teamId: team.id,
-        seatsUsed: 10,
-        seatsToChargeFor,
-        userId: user.id,
-        isOrg: true,
-        pricePerSeat: 100,
-      })
-    ).toEqual({ url: "SESSION_URL" });
-
-    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        line_items: [
-          {
-            price: "PRICE_ID",
-            quantity: seatsToChargeFor,
-          },
-        ],
-      })
-    );
-  });
-  it("Should create a monthly subscription if billing period is set to monthly", async () => {
-    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-    const user = await prismock.user.create({
-      data: {
-        name: "test",
-        email: "test@email.com",
-      },
-    });
-
-    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
-      url: "SESSION_URL",
-    });
-
-    mockStripeCheckoutSessionRetrieve(
-      {
-        currency: "USD",
-        product: {
-          id: "PRODUCT_ID",
-        },
-      },
-      [FAKE_PAYMENT_ID]
-    );
-
-    mockStripeCheckoutPricesRetrieve({
-      id: "PRICE_ID",
-      product: {
-        id: "PRODUCT_ID",
-      },
-    });
-
-    const checkoutPricesCreate = mockStripePricesCreate({
-      id: "PRICE_ID",
-    });
-
-    const team = await prismock.team.create({
-      data: {
-        name: "test",
-        metadata: {
-          paymentId: FAKE_PAYMENT_ID,
-        },
-      },
-    });
-
-    const seatsToChargeFor = 1000;
-    expect(
-      await purchaseTeamOrOrgSubscription({
-        teamId: team.id,
-        seatsUsed: 10,
-        seatsToChargeFor,
-        userId: user.id,
-        isOrg: true,
-        pricePerSeat: 100,
-        billingPeriod: BillingPeriod.MONTHLY,
-      })
-    ).toEqual({ url: "SESSION_URL" });
-
-    expect(checkoutPricesCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ recurring: { interval: "month" } })
-    );
-
-    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        line_items: [
-          {
-            price: "PRICE_ID",
-            quantity: seatsToChargeFor,
-          },
-        ],
-      })
-    );
-  });
-  it("Should create a annual subscription if billing period is set to annual", async () => {
-    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-    const user = await prismock.user.create({
-      data: {
-        name: "test",
-        email: "test@email.com",
-      },
-    });
-
-    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
-      url: "SESSION_URL",
-    });
-
-    mockStripeCheckoutSessionRetrieve(
-      {
-        currency: "USD",
-        product: {
-          id: "PRODUCT_ID",
-        },
-      },
-      [FAKE_PAYMENT_ID]
-    );
-
-    mockStripeCheckoutPricesRetrieve({
-      id: "PRICE_ID",
-      product: {
-        id: "PRODUCT_ID",
-      },
-    });
-
-    const checkoutPricesCreate = mockStripePricesCreate({
-      id: "PRICE_ID",
-    });
-
-    const team = await prismock.team.create({
-      data: {
-        name: "test",
-        metadata: {
-          paymentId: FAKE_PAYMENT_ID,
-        },
-      },
-    });
-
-    const seatsToChargeFor = 1000;
-    expect(
-      await purchaseTeamOrOrgSubscription({
-        teamId: team.id,
-        seatsUsed: 10,
-        seatsToChargeFor,
-        userId: user.id,
-        isOrg: true,
-        pricePerSeat: 100,
-        billingPeriod: BillingPeriod.ANNUALLY,
-      })
-    ).toEqual({ url: "SESSION_URL" });
-
-    expect(checkoutPricesCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ recurring: { interval: "year" } })
-    );
-
-    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        line_items: [
-          {
-            price: "PRICE_ID",
-            quantity: seatsToChargeFor,
-          },
-        ],
-      })
-    );
-  });
-
-  it("It should not create a custom price if price_per_seat is not set", async () => {
-    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-    const user = await prismock.user.create({
-      data: {
-        name: "test",
-        email: "test@email.com",
-      },
-    });
-
-    mockStripeCheckoutSessionsCreate({
-      url: "SESSION_URL",
-    });
-
-    mockStripeCheckoutSessionRetrieve(
-      {
-        currency: "USD",
-        product: {
-          id: "PRODUCT_ID",
-        },
-      },
-      [FAKE_PAYMENT_ID]
-    );
-
-    mockStripeCheckoutPricesRetrieve({
-      id: "PRICE_ID",
-      product: {
-        id: "PRODUCT_ID",
-      },
-    });
-
-    const checkoutPricesCreate = mockStripePricesCreate({
-      id: "PRICE_ID",
-    });
-
-    const team = await prismock.team.create({
-      data: {
-        name: "test",
-        metadata: {
-          paymentId: FAKE_PAYMENT_ID,
-        },
-      },
-    });
-
-    const seatsToChargeFor = 1000;
-    expect(
-      await purchaseTeamOrOrgSubscription({
-        teamId: team.id,
-        seatsUsed: 10,
-        seatsToChargeFor,
-        userId: user.id,
-        isOrg: true,
-        billingPeriod: BillingPeriod.ANNUALLY,
-        pricePerSeat: null,
-      })
-    ).toEqual({ url: "SESSION_URL" });
-
-    expect(checkoutPricesCreate).not.toHaveBeenCalled();
-  });
 });
 
 describe("updateQuantitySubscriptionFromStripe", () => {
@@ -658,23 +375,6 @@ async function createOrgWithMembersAndPaymentData({
   return organization;
 }
 
-function mockStripePricesCreate(data) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  return vi.mocked(stripe.prices.create).mockImplementation(() => new Promise((resolve) => resolve(data)));
-}
-
-function mockStripeCheckoutPricesRetrieve(data) {
-  return vi.mocked(stripe.prices.retrieve).mockImplementation(
-    async () =>
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      new Promise((resolve) => {
-        resolve(data);
-      })
-  );
-}
-
 function mockStripeCheckoutSessionRetrieve(data, expectedArgs) {
   return vi.mocked(stripe.checkout.sessions.retrieve).mockImplementation(async (sessionId) =>
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -683,14 +383,6 @@ function mockStripeCheckoutSessionRetrieve(data, expectedArgs) {
       const conditionMatched = expectedArgs[0] === sessionId;
       return new Promise((resolve) => resolve(conditionMatched ? data : null));
     }
-  );
-}
-
-function mockStripeCheckoutSessionsCreate(data) {
-  return vi.mocked(stripe.checkout.sessions.create).mockImplementation(
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    async () => new Promise((resolve) => resolve(data))
   );
 }
 

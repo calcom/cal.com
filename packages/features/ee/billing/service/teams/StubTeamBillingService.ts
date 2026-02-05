@@ -36,4 +36,8 @@ export class StubTeamBillingService implements ITeamBillingService {
   }
 
   async saveTeamBilling() {}
+
+  async createTeamCheckoutSession() {
+    return { url: null };
+  }
 }

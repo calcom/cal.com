@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { getTeamBillingServiceFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -107,11 +107,11 @@ export async function patchHandler(req: NextApiRequest) {
     };
     delete data.slug;
     if (IS_TEAM_BILLING_ENABLED) {
-      const checkoutSession = await purchaseTeamOrOrgSubscription({
+      const teamBilling = getTeamBillingServiceFactory().init(team);
+      const checkoutSession = await teamBilling.createTeamCheckoutSession({
         teamId: team.id,
-        seatsUsed: team.members.length,
+        seats: team.members.length,
         userId,
-        pricePerSeat: null,
       });
       if (!checkoutSession.url)
         throw new TRPCError({

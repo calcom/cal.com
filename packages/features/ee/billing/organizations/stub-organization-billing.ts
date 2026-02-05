@@ -29,4 +29,8 @@ export class StubOrganizationBilling extends OrganizationBilling {
       status: "requires_payment_method",
     };
   }
+
+  async createCheckoutSession() {
+    return { url: "https://stub-checkout.example.com/session" };
+  }
 }

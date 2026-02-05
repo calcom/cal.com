@@ -1,4 +1,4 @@
-import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,11 +14,12 @@ vi.mock("@calcom/lib/constants", async () => {
   return {
     ...actual,
     WEBAPP_URL: "http://localhost:3000",
+    IS_PRODUCTION: false,
   };
 });
 
-vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
-  purchaseTeamOrOrgSubscription: vi.fn(),
+vi.mock("@calcom/app-store/stripepayment/lib/customer", () => ({
+  getStripeCustomerIdFromUserId: vi.fn(),
 }));
 
 const shouldApplyMonthlyProration = vi.fn().mockResolvedValue(false);
@@ -113,9 +114,13 @@ describe("TeamBillingService", () => {
 
   describe("publish", () => {
     it("should create a checkout session and update the team", async () => {
+      process.env.STRIPE_TEAM_MONTHLY_PRICE_ID = "price_team_123";
+
       vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(false);
-      vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
-        url: "http://checkout.url",
+      vi.mocked(getStripeCustomerIdFromUserId).mockResolvedValue("cus_stripe_123");
+      vi.mocked(mockBillingProviderService.createSubscriptionCheckout).mockResolvedValue({
+        checkoutUrl: "http://checkout.url",
+        sessionId: "cs_session_123",
       });
       prismaMock.membership.count.mockResolvedValue(5);
       prismaMock.membership.findFirstOrThrow.mockResolvedValue({ userId: 123 });
@@ -130,6 +135,21 @@ describe("TeamBillingService", () => {
       expect(prismaMock.membership.findFirstOrThrow).toHaveBeenCalledWith({
         where: { teamId: 1, role: "OWNER" },
         select: { userId: true },
+      });
+      expect(getStripeCustomerIdFromUserId).toHaveBeenCalledWith(123);
+      expect(mockBillingProviderService.createSubscriptionCheckout).toHaveBeenCalledWith({
+        customerId: "cus_stripe_123",
+        successUrl: `${WEBAPP_URL}/api/teams/1/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${WEBAPP_URL}/settings/my-account/profile`,
+        priceId: "price_team_123",
+        quantity: 5,
+        allowPromotionCodes: true,
+        customerUpdate: { address: "auto" },
+        automaticTax: { enabled: false },
+        metadata: { teamId: 1 },
+        subscriptionData: {
+          metadata: { teamId: 1, dubCustomerId: 123 },
+        },
       });
     });
     it("should return upgrade url if upgrade is required", async () => {
