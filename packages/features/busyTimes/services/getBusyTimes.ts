@@ -365,7 +365,7 @@ export class BusyTimesService {
       });
     }
 
-    logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} count=${busyTimes.length}`);
+    logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
     performance.mark("getBusyTimesForLimitChecksEnd");
     performance.measure(
       `prisma booking get for limits took $1'`,
