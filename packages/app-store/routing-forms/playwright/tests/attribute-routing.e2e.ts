@@ -163,11 +163,14 @@ async function getRoutedTeamMemberIds(page: Page) {
 async function expectRoutedToUser(page: Page, userId: number) {
   const routedIds = await getRoutedTeamMemberIds(page);
   expect(routedIds).toContain(String(userId));
+  await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("Yes");
+  await page.waitForSelector("text=@example.com");
 }
 
 async function expectNotRoutedToUser(page: Page) {
   const routedIds = await getRoutedTeamMemberIds(page);
   expect(routedIds).toBe("");
+  await expect(page.locator('[data-testid="attribute-logic-matched"]')).toHaveText("No");
 }
 
 async function closeResults(page: Page) {
