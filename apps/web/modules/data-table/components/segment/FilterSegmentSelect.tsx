@@ -46,6 +46,9 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
   const [segmentToDuplicate, setSegmentToDuplicate] = useState<CombinedFilterSegment | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
 
+  const [open, setOpen] = useState(false);
+
+
   const submenuItems: SubmenuItem[] = [
     {
       iconName: "square-pen",
@@ -141,21 +144,22 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
   }, [segments, t]);
 
   if (!isSegmentEnabled) {
-    return (
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
+
+     return(
+       <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
         {t("segment")}
       </Button>
-    );
+     )
   }
 
   return (
     <>
-      <Dropdown>
+      <Dropdown open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             color="secondary"
             StartIcon="list-filter"
-            EndIcon="chevron-down"
+            EndIcon={open ? "chevron-up" : "chevron-down"}
             data-testid="filter-segment-select">
             {selectedSegment?.name || (shortLabel ? t("saved") : t("saved_filters"))}
           </Button>

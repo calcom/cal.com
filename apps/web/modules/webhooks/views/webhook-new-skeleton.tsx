@@ -1,6 +1,6 @@
 "use client";
 
-import SettingsHeaderWithBackButton from "@calcom/web/modules/settings/components/SettingsHeaderWithBackButton";
+import SettingsHeaderWithBackButton from "@calcom/features/settings/appDir/SettingsHeaderWithBackButton";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
