@@ -88,6 +88,7 @@ export function LawPaySetupForm({
                 name="client_id"
                 id="client_id"
                 value={clientId}
+                className="mb-3"
                 onChange={(e) => setClientId(e.target.value)}
                 role="presentation"
                 autoComplete="off"
@@ -99,6 +100,7 @@ export function LawPaySetupForm({
                 name="client_secret"
                 id="client_secret"
                 value={clientSecret}
+                className="mb-3"
                 onChange={(e) => setClientSecret(e.target.value)}
                 role="presentation"
                 autoComplete="new-password"
@@ -110,6 +112,7 @@ export function LawPaySetupForm({
                 name="public_key"
                 id="public_key"
                 value={publicKey}
+                className="mb-3"
                 onChange={(e) => setPublicKey(e.target.value)}
                 role="presentation"
                 autoComplete="off"
@@ -121,6 +124,7 @@ export function LawPaySetupForm({
                 name="secret_key"
                 id="secret_key"
                 value={secretKey}
+                className="mb-3"
                 onChange={(e) => setSecretKey(e.target.value)}
                 role="presentation"
                 autoComplete="off"

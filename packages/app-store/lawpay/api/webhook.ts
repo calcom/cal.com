@@ -1,9 +1,12 @@
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getRawBody from "raw-body";
+import appConfig from "../config.json";
 import { LawPayAPI } from "../lib/LawPayAPI";
 import { lawPayCredentialSchema } from "../types";
 
@@ -117,16 +120,30 @@ async function handleChargeSucceeded(event: { data: { object: Record<string, unk
   }
   log.info("Charge succeeded", { chargeId: charge.id, amount: charge.amount });
 
-  // Update payment status in database
-  await prisma.payment.updateMany({
+  const payment = await prisma.payment.findFirst({
     where: {
       externalId: charge.id,
       appId: "lawpay",
     },
-    data: {
-      success: true,
-      data: charge as unknown as Prisma.InputJsonValue,
+    select: {
+      id: true,
+      bookingId: true,
     },
+  });
+
+  if (!payment?.bookingId) {
+    log.error("Payment not found or missing bookingId", { externalId: charge.id });
+    return;
+  }
+
+  const traceContext = distributedTracing.createTrace("lawpay_webhook", {
+    meta: { paymentId: payment.id, bookingId: payment.bookingId },
+  });
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: appConfig.slug,
+    traceContext,
   });
 }
 
@@ -142,6 +159,7 @@ async function handleChargeFailed(event: { data: { object: Record<string, unknow
   await prisma.payment.updateMany({
     where: {
       externalId: charge.id,
+      appId: "lawpay",
     },
     data: {
       success: false,
@@ -162,6 +180,7 @@ async function handleChargeRefunded(event: { data: { object: Record<string, unkn
   await prisma.payment.updateMany({
     where: {
       externalId: charge.id,
+      appId: "lawpay",
     },
     data: {
       refunded: true,
