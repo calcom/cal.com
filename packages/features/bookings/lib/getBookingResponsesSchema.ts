@@ -185,8 +185,8 @@ function preprocess<T extends z.ZodType>({
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine(async (val) => {
-              return isValidPhoneNumber(val);
-            });
+            return isValidPhoneNumber(val);
+          });
         // Tag the message with the input name so that the message can be shown at appropriate place
         const m = (message: string, options?: Record<string, unknown>) => {
           const translatedMessage = translateFn ? translateFn(message, options) : message;
@@ -216,7 +216,8 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden && (checkOptional || bookingField.required)) {
+          const needsValidation = isRequired || (typeof value === "string" && value.trim() !== "");
+          if (!bookingField.hidden && needsValidation) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
