@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useEffect } from "react";
 import http from "../lib/http";
-import type { CalProviderProps } from "./BaseCalProvider";
+import type { BaseCalProviderProps } from "./BaseCalProvider";
 import { BaseCalProvider } from "./BaseCalProvider";
 import type { translationKeys } from "./languages";
 
@@ -37,6 +37,8 @@ const queryClient: QueryClient = new QueryClient({
     },
   },
 });
+
+type CalProviderProps = Omit<BaseCalProviderProps, "isOAuth2">;
 
 /**
  * Renders a CalProvider component.
@@ -89,6 +91,7 @@ export function CalProvider({
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
         isEmbed={isEmbed}
+        isOAuth2={false}
         autoUpdateTimezone={autoUpdateTimezone}
         onTimezoneChange={onTimezoneChange}
         onTokenRefreshStart={onTokenRefreshStart}
