@@ -10,11 +10,14 @@ export default function LawPayPaymentPage() {
   const [status, setStatus] = useState<"loading" | "success" | "error" | "cancelled">("loading");
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
+
     const handlePaymentStatus = () => {
       const paymentStatus = searchParams?.get("payment_status");
       const bookingUid = searchParams?.get("booking_uid");
 
       if (!paymentStatus || !bookingUid) {
+        setStatus("error");
         return;
       }
 
@@ -22,7 +25,7 @@ export default function LawPayPaymentPage() {
         case "success":
           setStatus("success");
           // Redirect to booking confirmation page after a short delay
-          setTimeout(() => {
+          timeoutId = setTimeout(() => {
             router.push(`/booking/${bookingUid}?paymentStatus=success`);
           }, 2000);
           break;
@@ -37,6 +40,12 @@ export default function LawPayPaymentPage() {
     if (searchParams) {
       handlePaymentStatus();
     }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [searchParams, router]);
 
   const getStatusContent = () => {

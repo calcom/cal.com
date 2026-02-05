@@ -4,6 +4,7 @@ import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 import { throwIfNotHaveAdminAccessToTeam } from "../../_utils/throwIfNotHaveAdminAccessToTeam";
 import config from "../config.json";
 import { lawPayCredentialSchema } from "../types";
@@ -79,6 +80,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
         type: "lawpay_payment",
         ...installForObject,
       },
+      select: { id: true },
     });
 
     if (existingCredential) {
@@ -103,6 +105,14 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       url: `/apps/lawpay/setup?success=true${teamIdNumber ? `&teamId=${teamIdNumber}` : ""}`,
     });
   } catch (error) {
+    // Handle Zod validation errors as client errors (400)
+    if (error instanceof z.ZodError) {
+      log.warn("LawPay credentials validation failed", { errors: error.issues });
+      return res.status(400).json({ 
+        message: "Invalid credentials format",
+        errors: error.issues.map(i => ({ path: i.path.join('.'), message: i.message }))
+      });
+    }
     log.error("Error adding LawPay credentials", getErrorFromUnknown(error));
     return res.status(500).json({ message: "Failed to add LawPay credentials" });
   }

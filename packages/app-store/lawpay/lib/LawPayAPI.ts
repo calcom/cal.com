@@ -101,7 +101,7 @@ export class LawPayAPI {
     await this.ensureAuthenticated();
 
     const body: Record<string, unknown> = {};
-    if (amount) {
+    if (amount !== undefined) {
       body.amount = amount;
     }
 

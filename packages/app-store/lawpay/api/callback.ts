@@ -14,17 +14,25 @@ const log = logger.getSubLogger({ prefix: ["lawpay", "callback"] });
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { reference, status, code, error: queryError } = req.query;
-    const state = decodeOAuthState(req);
+    let state: Record<string, unknown> | undefined;
+    try {
+      state = decodeOAuthState(req);
+    } catch (stateError) {
+      log.error("Failed to decode OAuth state", getErrorFromUnknown(stateError));
+      return res.redirect("/apps/lawpay/setup?error=invalid_state");
+    }
 
     // OAuth-style return (e.g. from setup): redirect to setup page (validate to prevent open redirect)
     if (queryError) {
       log.error("OAuth callback error", { error: queryError });
-      const redirectUrl = getSafeRedirectUrl(state?.onErrorReturnTo) ?? "/apps/lawpay/setup";
+      const onErrorReturnTo = state && typeof state.onErrorReturnTo === "string" ? state.onErrorReturnTo : undefined;
+      const redirectUrl = getSafeRedirectUrl(onErrorReturnTo) ?? "/apps/lawpay/setup";
       return res.redirect(`${redirectUrl}?error=${encodeURIComponent(queryError as string)}`);
     }
     if (code) {
       log.info("OAuth callback received, redirecting to setup");
-      const redirectUrl = getSafeRedirectUrl(state?.returnTo) ?? "/apps/lawpay/setup";
+      const returnTo = state && typeof state.returnTo === "string" ? state.returnTo : undefined;
+      const redirectUrl = getSafeRedirectUrl(returnTo) ?? "/apps/lawpay/setup";
       return res.redirect(`${redirectUrl}?success=true`);
     }
 

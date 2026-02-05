@@ -173,7 +173,7 @@ export function LawPaySetupForm({
                 className="text-orange-600 underline"
                 target="_blank"
                 href="https://developers.affinipay.com"
-                rel="noopener">
+                rel="noopener noreferrer">
                 LawPay Developer Documentation: https://developers.affinipay.com
               </a>
 
@@ -190,7 +190,7 @@ export function LawPaySetupForm({
                     target="_blank"
                     href="https://secure.lawpay.com"
                     className="text-orange-600 underline"
-                    rel="noopener">
+                    rel="noopener noreferrer">
                     secure.lawpay.com
                   </a>
                 </li>
