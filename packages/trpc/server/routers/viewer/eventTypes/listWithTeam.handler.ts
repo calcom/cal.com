@@ -15,7 +15,7 @@ export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
     FROM "public"."EventType"
     LEFT JOIN "public"."Team" AS "j1" ON ("j1"."id") = ("public"."EventType"."teamId")
     LEFT JOIN "public"."users" AS "u" ON ("u"."id") = ("public"."EventType"."userId")
-    WHERE "public"."EventType"."userId" = ${userId}
+    WHERE "public"."EventType"."userId" = ${userId} AND "public"."EventType"."teamId" IS NULL
     UNION
     SELECT "public"."EventType"."id", "public"."EventType"."teamId", "public"."EventType"."title", "public"."EventType"."slug", "public"."EventType"."length", "j1"."name" as "teamName", NULL as "username"
     FROM "public"."EventType"
