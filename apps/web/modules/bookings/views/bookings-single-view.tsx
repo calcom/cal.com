@@ -466,6 +466,7 @@ export default function Success(props: PageProps) {
   }, [searchParams]);
 
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
+  const [lastVerifiedEmail, setLastVerifiedEmail] = useState<string | null>(null);
 
   const { data: emailVerificationResult, isLoading: isVerifyingEmailParam } =
     trpc.viewer.public.verifyBookingEmail.useQuery(
@@ -474,10 +475,17 @@ export default function Success(props: PageProps) {
     );
 
   useEffect(() => {
-    if (emailVerificationResult?.isValid) {
+    if (emailVerificationResult?.isValid && emailParam) {
       setIsEmailVerified(true);
+      setLastVerifiedEmail(emailParam);
     }
-  }, [emailVerificationResult]);
+  }, [emailVerificationResult, emailParam]);
+
+  useEffect(() => {
+    if (emailParam !== lastVerifiedEmail) {
+      setIsEmailVerified(false);
+    }
+  }, [emailParam, lastVerifiedEmail]);
 
   useEffect(() => {
     if (sessionStatus === "loading" || isVerifyingEmailParam) return;
@@ -1227,6 +1235,7 @@ export default function Success(props: PageProps) {
                 <Button
                   onClick={handleVerification}
                   disabled={isVerifying}
+                  loading={isVerifying}
                   data-testid="verify-email-trigger">
                   {t("verify")}
                 </Button>

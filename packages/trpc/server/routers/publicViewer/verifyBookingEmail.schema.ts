@@ -7,7 +7,7 @@ export type TVerifyBookingEmailInputSchema = {
 
 export const ZVerifyBookingEmailInputSchema: z.ZodType<TVerifyBookingEmailInputSchema> = z.object({
   bookingUid: z.string(),
-  email: z.string().email(),
+  email: z.string().trim().email(),
 });
 
 export type TVerifyBookingEmailOutputSchema = {
