@@ -100,6 +100,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case "charge.refunded":
         await handleChargeRefunded(event);
         break;
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(event);
+        break;
+      case "payment_intent.payment_failed":
+        await handlePaymentIntentFailed(event);
+        break;
+      case "payment_intent.cancelled":
+        await handlePaymentIntentCancelled(event);
+        break;
       default:
         log.warn("Unhandled webhook event type", { type: event.type });
         break;
@@ -187,4 +196,89 @@ async function handleChargeRefunded(event: { data: { object: Record<string, unkn
       data: charge as unknown as Prisma.InputJsonValue,
     },
   });
+}
+
+/** Extract external ID from charge or payment_intent object (both have id). */
+function getExternalIdFromEvent(event: { data: { object: Record<string, unknown> } }): string | null {
+  const obj = event.data.object;
+  return typeof obj?.id === "string" ? obj.id : null;
+}
+
+async function handlePaymentIntentSucceeded(event: { data: { object: Record<string, unknown> } }) {
+  const externalId = getExternalIdFromEvent(event);
+  if (!externalId) {
+    log.error("Invalid payment_intent ID in webhook payload");
+    return;
+  }
+  log.info("Payment intent succeeded", { paymentIntentId: externalId });
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      externalId,
+      appId: "lawpay",
+    },
+    select: {
+      id: true,
+      bookingId: true,
+    },
+  });
+
+  if (!payment?.bookingId) {
+    log.error("Payment not found or missing bookingId", { externalId });
+    return;
+  }
+
+  const traceContext = distributedTracing.createTrace("lawpay_webhook", {
+    meta: { paymentId: payment.id, bookingId: payment.bookingId },
+  });
+  await handlePaymentSuccess({
+    paymentId: payment.id,
+    bookingId: payment.bookingId,
+    appSlug: appConfig.slug,
+    traceContext,
+  });
+}
+
+async function handlePaymentIntentFailed(event: { data: { object: Record<string, unknown> } }) {
+  const externalId = getExternalIdFromEvent(event);
+  if (!externalId) {
+    log.error("Invalid payment_intent ID in webhook payload");
+    return;
+  }
+  log.info("Payment intent failed", { paymentIntentId: externalId });
+
+  await prisma.payment.updateMany({
+    where: {
+      externalId,
+      appId: "lawpay",
+    },
+    data: {
+      success: false,
+      data: event.data.object as unknown as Prisma.InputJsonValue,
+    },
+  });
+}
+
+async function handlePaymentIntentCancelled(event: { data: { object: Record<string, unknown> } }) {
+  const externalId = getExternalIdFromEvent(event);
+  if (!externalId) {
+    log.error("Invalid payment_intent ID in webhook payload");
+    return;
+  }
+  log.info("Payment intent cancelled", { paymentIntentId: externalId });
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      externalId,
+      appId: "lawpay",
+    },
+    select: { id: true, bookingId: true },
+  });
+
+  if (payment?.bookingId) {
+    await prisma.booking.update({
+      where: { id: payment.bookingId },
+      data: { status: "CANCELLED" },
+    });
+  }
 }

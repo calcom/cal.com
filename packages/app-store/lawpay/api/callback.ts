@@ -1,13 +1,16 @@
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import qs from "qs";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import appConfig from "../config.json";
 
 const log = logger.getSubLogger({ prefix: ["lawpay", "callback"] });
 
@@ -77,9 +80,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       return res.redirect(url);
     }
 
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: { success: true },
+    const traceContext = distributedTracing.createTrace("lawpay_callback", {
+      meta: { paymentId: payment.id, bookingId: payment.bookingId },
+    });
+    await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: appConfig.slug,
+      traceContext,
     });
 
     const queryParams = {

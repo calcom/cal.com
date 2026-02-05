@@ -165,6 +165,10 @@ class LawPayPaymentService implements IAbstractPaymentService {
       }
       const teamId = payment.booking?.eventType?.teamId ?? null;
       const userId = payment.booking?.userId ?? null;
+      if (teamId == null && userId == null) {
+        log.error("LawPay refund failed: no teamId or userId found", paymentId);
+        return null;
+      }
       const credential = await prisma.credential.findFirst({
         where: {
           type: "lawpay_payment",
