@@ -1,8 +1,10 @@
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -37,9 +39,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               some: {
                 userId: ctx.user.id,
                 accepted: true,
-                NOT: {
-                  role: MembershipRole.MEMBER,
-                },
               },
             },
           },
@@ -96,6 +95,21 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   if (!eventType)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
+
+  if (eventType.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+
+    const hasPermissionToActivate = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: eventType.teamId,
+      permission: "eventType.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermissionToActivate) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
+    }
+  }
 
   // at this point we know that the event type belongs to the user or team
   // so we don't use OR, we use logic.
@@ -301,6 +315,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       const bookerUrl = await getBookerBaseUrl(ctx.user.organizationId ?? null);
 
+      const creditService = new CreditService();
+
       for (const booking of bookingsForReminders) {
         // eventTypeId is technically nullable but we know it will be there
         const bookingEventType = activeOnEventTypes.get(booking.eventTypeId!);
@@ -388,8 +404,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               sender: step.sender,
               workflowStepId: step.id,
               verifiedAt: step.verifiedAt,
-              userId: eventTypeWorkflow.userId,
-              teamId: eventTypeWorkflow.teamId,
             });
           } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
             await scheduleSMSReminder({
@@ -408,6 +422,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
             await scheduleWhatsappReminder({
@@ -425,6 +440,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               userId: booking.userId,
               teamId: eventTypeWorkflow.teamId,
               verifiedAt: step.verifiedAt,
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             });
           } else if (booking.smsReminderNumber) {
             if (step.action === WorkflowActions.SMS_ATTENDEE) {
@@ -444,6 +460,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
+                creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
               });
             } else if (step.action === WorkflowActions.WHATSAPP_ATTENDEE) {
               await scheduleWhatsappReminder({
@@ -462,6 +479,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 userId: booking.userId,
                 teamId: eventTypeWorkflow.teamId,
                 verifiedAt: step.verifiedAt,
+                creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
               });
             }
           }

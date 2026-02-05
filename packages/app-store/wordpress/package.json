@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "description": "Embedded booking pages right into your wordpress page",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

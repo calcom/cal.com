@@ -8,7 +8,11 @@
     "types": ["jest"],
     "outDir": "./dist",
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@calcom/lib/server/i18n": ["./i18n.ts"]
+    }
   },
   "include": [".", "../../types/*.d.ts"],
   "exclude": [

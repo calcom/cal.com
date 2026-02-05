@@ -79,13 +79,19 @@ export const formatToLocalizedDate = (
  * given Date object and locale. Undefined values mean the defaults
  * associated with the browser's current locale will be used.
  */
-export const formatToLocalizedTime = (
-  date: Date | Dayjs,
-  locale: string | undefined = undefined,
-  timeStyle: Intl.DateTimeFormatOptions["timeStyle"] = "short",
-  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined,
-  timeZone?: string
-) => formatLocalizedDateTime(date, { timeStyle, hour12, timeZone }, locale);
+export const formatToLocalizedTime = ({
+  date,
+  locale = undefined,
+  timeStyle = "short",
+  hour12 = undefined,
+  timeZone,
+}: {
+  date: Date | Dayjs;
+  locale?: string | undefined;
+  timeStyle?: Intl.DateTimeFormatOptions["timeStyle"];
+  hour12?: Intl.DateTimeFormatOptions["hour12"];
+  timeZone?: string;
+}) => formatLocalizedDateTime(date, { timeStyle, hour12, timeZone }, locale);
 
 /**
  * Returns a translated timezone based on the given Date object and
@@ -171,7 +177,7 @@ export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefin
  * @returns Time Zone name
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezone"];
+export const getTimeZone = (date: Dayjs): string => (date as any).$x.$timezone;
 
 /**
  * Verify if timeZone has Daylight Saving Time (DST).

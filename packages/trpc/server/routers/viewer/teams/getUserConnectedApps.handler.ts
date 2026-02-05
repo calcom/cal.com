@@ -1,7 +1,6 @@
-import type { Prisma } from "@prisma/client";
-
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -29,7 +28,12 @@ const credentialSelect = {
   },
 } satisfies Prisma.CredentialSelect;
 
-type Credential = Prisma.CredentialGetPayload<{ select: typeof credentialSelect }>;
+// Explicit type to avoid Prisma.CredentialGetPayload conditional types leaking into .d.ts files
+type Credential = {
+  userId: number | null;
+  app: { slug: string; categories: AppCategories[] } | null;
+  destinationCalendars: { externalId: string }[];
+};
 
 type Apps = {
   name: string | null;

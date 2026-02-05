@@ -6,9 +6,9 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
-import { Icon } from "@calcom/ui/components/icon";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { hasPermission } from "../../../../../packages/platform/utils/permissions";
 
@@ -31,8 +31,6 @@ export default function Authorize() {
     redirect_uris: ["", ""],
     permissions: 7,
   };
-
-  console.log("These are the search params:", queryString);
 
   const permissions = Object.values(PERMISSIONS_GROUPED_MAP).map((value) => {
     let permissionsMessage = "";
@@ -97,7 +95,7 @@ export default function Authorize() {
         <div className="mb-4 mt-5 font-medium text-black">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        <ul className="space-y-4 text-sm text-black">{permissions}</ul>
+        <ul className="stack-y-4 text-sm text-black">{permissions}</ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
             <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
@@ -112,7 +110,7 @@ export default function Authorize() {
         <div className="border-subtle border- -mx-9 mb-4 border-b" />
         <div className="flex justify-end">
           <Button
-            className="bg-primary mr-2 text-black"
+            className="bg-primary-default mr-2 text-black"
             onClick={() => {
               router.back();
             }}>

@@ -11,20 +11,22 @@ import {
   getDate,
   Timezones,
   createOrganization,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, beforeEach, vi } from "vitest";
 
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
@@ -49,7 +51,7 @@ describe("handleNewBooking", () => {
     test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -160,7 +162,7 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the organizer is locked for sms sending",
       async ({ sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -253,7 +255,7 @@ describe("handleNewBooking", () => {
     test(
       "should send workflow email and sms when booking is created",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -401,7 +403,7 @@ describe("handleNewBooking", () => {
     test(
       "should not send workflow sms when booking is created if the team is locked for sms sending",
       async ({ emails, sms }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -539,7 +541,7 @@ describe("handleNewBooking", () => {
     test("should trigger workflow when a new team event is booked and this team is active on org workflow", async ({
       emails,
     }) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",
@@ -653,7 +655,7 @@ describe("handleNewBooking", () => {
     test("should trigger workflow when a new user event is booked and the user is part of an org team that is active on a org workflow", async ({
       sms,
     }) => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",

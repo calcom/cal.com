@@ -1,12 +1,20 @@
-import matchers from "@testing-library/jest-dom/matchers";
-import ResizeObserver from "resize-observer-polyfill";
-import { vi, expect } from "vitest";
-import createFetchMock from "vitest-fetch-mock";
+import { vi } from "vitest";
 
-global.ResizeObserver = ResizeObserver;
-const fetchMocker = createFetchMock(vi);
+// Mock window.matchMedia for jsdom environment
+// This needs to be set up before any React components are rendered
+const matchMediaMock = vi.fn().mockImplementation((query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+}));
 
-// sets globalThis.fetch and globalThis.fetchMock to our mocked version
-fetchMocker.enableMocks();
-
-expect.extend(matchers);
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  configurable: true,
+  value: matchMediaMock,
+});

@@ -15,6 +15,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
   eventType,
   eventTypeFormMetadata,
+  onAppInstallSuccess,
 }) {
   const searchParams = useSearchParams();
   const { t } = useLocale();
@@ -32,6 +33,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
 
   return (
     <AppCard
+      onAppInstallSuccess={onAppInstallSuccess}
       returnTo={WEBAPP_URL + asPath}
       app={app}
       switchChecked={requirePayment}

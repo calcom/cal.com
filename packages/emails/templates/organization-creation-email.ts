@@ -1,21 +1,10 @@
-import type { TFunction } from "i18next";
-
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
-import { renderEmail } from "../";
+import type { OrganizationCreation } from "../lib/types/email-types";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
-export type OrganizationCreation = {
-  language: TFunction;
-  from: string;
-  to: string;
-  ownerNewUsername: string;
-  ownerOldUsername: string | null;
-  orgDomain: string;
-  orgName: string;
-  prevLink: string | null;
-  newLink: string;
-};
+export type { OrganizationCreation } from "../lib/types/email-types";
 
 export default class OrganizationCreationEmail extends BaseEmail {
   organizationCreationEvent: OrganizationCreation;

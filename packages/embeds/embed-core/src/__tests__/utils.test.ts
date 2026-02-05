@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { generateDataAttributes, isSameBookingLink } from "../utils";
+import { generateDataAttributes, isSameBookingLink } from "../lib/utils";
 
 describe("generateDataAttributes", () => {
   it("should handle PascalCase property names correctly", () => {

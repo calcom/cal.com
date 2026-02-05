@@ -1,10 +1,15 @@
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import type { EventType, User, WorkflowReminder, WorkflowStep, Prisma } from "@calcom/prisma/client";
+import type { EventType, Prisma, User, WorkflowReminder, WorkflowStep } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
-  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+  | (Partial<WorkflowStep> & {
+      workflow: {
+        userId?: number;
+        teamId?: number;
+      };
+    })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -43,7 +48,7 @@ type PartialBooking =
 
 export type PartialWorkflowReminder = Pick<
   WorkflowReminder,
-  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid"
+  "id" | "isMandatoryReminder" | "scheduledDate" | "uuid" | "seatReferenceId"
 > & {
   booking: PartialBooking | null;
 } & { workflowStep: PartialWorkflowStep };
@@ -69,7 +74,8 @@ async function getWorkflowReminders<T extends Prisma.WorkflowReminderSelect>(
     }
 
     filteredWorkflowReminders.push(
-      ...(newFilteredWorkflowReminders as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
+      // FIXME: This is a workaround to avoid type errors
+      ...(newFilteredWorkflowReminders as unknown as Array<Prisma.WorkflowReminderGetPayload<{ select: T }>>)
     );
     pageNumber++;
   }
@@ -127,6 +133,7 @@ export const select = {
   scheduledDate: true,
   isMandatoryReminder: true,
   uuid: true,
+  seatReferenceId: true,
   workflowStep: {
     select: {
       action: true,
@@ -218,4 +225,36 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   const unscheduledReminders = (await getWorkflowReminders(whereFilter, select)) as PartialWorkflowReminder[];
 
   return unscheduledReminders;
+}
+
+export function getWorkflowRecipientEmail({
+  action,
+  organizerEmail,
+  attendeeEmail,
+  sendToEmail,
+}: {
+  action: string;
+  organizerEmail?: string;
+  attendeeEmail?: string;
+  sendToEmail?: string | null;
+}): string | null {
+  // const action = reminder.workflowStep.action;
+
+  switch (action) {
+    case "EMAIL_ADDRESS":
+      return sendToEmail || null;
+    case "EMAIL_HOST":
+      return organizerEmail || null;
+    case "EMAIL_ATTENDEE":
+      return attendeeEmail || null;
+    case "SMS_ATTENDEE":
+      return attendeeEmail || null;
+    case "WHATSAPP_ATTENDEE":
+      return attendeeEmail || null;
+    case "SMS_NUMBER":
+    case "WHATSAPP_NUMBER":
+      return null;
+    default:
+      return null;
+  }
 }

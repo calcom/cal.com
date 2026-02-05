@@ -1,5 +1,4 @@
-import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
-
+import type { Payment, Prisma, Booking, PaymentOption } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export interface PaymentApp {
@@ -40,7 +39,10 @@ export interface IAbstractPaymentService {
   ): Promise<Payment>;
 
   update(paymentId: Payment["id"], data: Partial<Prisma.PaymentUncheckedCreateInput>): Promise<Payment>;
-  refund(paymentId: Payment["id"]): Promise<Payment>;
+  /**
+   * @returns Payment if successful, null if payment to refund does not exist (anymore)
+   */
+  refund(paymentId: Payment["id"]): Promise<Payment | null>;
   getPaymentPaidStatus(): Promise<string>;
   getPaymentDetails(): Promise<Payment>;
   afterPayment(

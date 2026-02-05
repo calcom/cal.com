@@ -1,8 +1,8 @@
 import dynamic from "next/dynamic";
 
-import { formatPrice } from "@calcom/lib/price";
+import { formatPrice } from "@calcom/lib/currencyConversions";
 
-import type { EventPrice } from "../../types";
+import type { EventPrice } from "@calcom/features/bookings/types";
 
 const AlbyPriceComponent = dynamic(
   () => import("@calcom/app-store/alby/components/AlbyPriceComponent").then((m) => m.AlbyPriceComponent),

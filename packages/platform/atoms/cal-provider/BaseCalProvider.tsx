@@ -9,6 +9,7 @@ import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import esTranslations from "@calcom/web/public/static/locales/es/common.json";
 import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
+import itTranslations from "@calcom/web/public/static/locales/it/common.json";
 import nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
 import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
@@ -28,21 +29,26 @@ import type {
   ptBrTranslationKeys,
   deTranslationKeys,
   esTranslationKeys,
+  itTranslationKeys,
   nlTranslationKeys,
   i18nProps,
 } from "./languages";
 import { EN } from "./languages";
 
-export type CalProviderProps = {
+export type BaseCalProviderProps = {
   children?: ReactNode;
   clientId: string;
   accessToken?: string;
   options: { refreshUrl?: string; apiUrl: string; readingDirection?: "ltr" | "rtl" };
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
+  onTokenRefreshStart?: () => void;
+  onTokenRefreshSuccess?: () => void;
+  onTokenRefreshError?: (error: string) => void;
   version?: API_VERSIONS_ENUM;
   organizationId?: number;
   isEmbed?: boolean;
+  isOAuth2?: boolean;
 } & i18nProps;
 
 export function BaseCalProvider({
@@ -55,12 +61,16 @@ export function BaseCalProvider({
   language = EN,
   organizationId,
   onTimezoneChange,
+  onTokenRefreshStart,
+  onTokenRefreshSuccess,
+  onTokenRefreshError,
   isEmbed,
-}: CalProviderProps) {
+  isOAuth2
+}: BaseCalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
 
-  const { data: me } = useMe();
+  const { data: me } = useMe(isEmbed);
 
   const { mutateAsync } = useUpdateUserTimezone();
 
@@ -81,6 +91,7 @@ export function BaseCalProvider({
 
   const { isInit } = useOAuthClient({
     isEmbed,
+    isOAuth2,
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
@@ -98,6 +109,9 @@ export function BaseCalProvider({
     onSuccess: () => {
       setError("");
     },
+    onTokenRefreshStart,
+    onTokenRefreshSuccess,
+    onTokenRefreshError,
     clientId,
   });
 
@@ -155,6 +169,7 @@ export function BaseCalProvider({
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
+
 
   return isInit ? (
     <AtomsContext.Provider
@@ -224,6 +239,8 @@ function getTranslation(key: string, language: CalProviderLanguagesType) {
       return deTranslations[key as deTranslationKeys];
     case "es":
       return esTranslations[key as esTranslationKeys];
+    case "it":
+      return itTranslations[key as itTranslationKeys];
     case "nl":
       return nlTranslations[key as nlTranslationKeys];
     default:

@@ -1,7 +1,7 @@
 import { Dub } from "dub-package";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { AnalyticsService, SendEventProps } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -9,7 +9,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { DubOAuthToken } from "./type";
 
-export default class DubService implements AnalyticsService {
+class DubService implements AnalyticsService {
   private dubClient?: Dub;
   private client_id = "";
   private client_secret = "";
@@ -119,4 +119,13 @@ export default class DubService implements AnalyticsService {
       eventName: eventName ?? "Cal.com lead",
     });
   }
+}
+
+/**
+ * Factory function that creates a Dub Analytics service instance.
+ * This is exported instead of the class to prevent SDK types (Dub)
+ * from leaking into the emitted .d.ts file.
+ */
+export default function BuildAnalyticsService(credential: CredentialPayload): AnalyticsService {
+  return new DubService(credential);
 }

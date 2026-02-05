@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 
-import Schedule from "@calcom/features/schedules/components/Schedule";
+import Schedule from "@calcom/web/modules/schedules/components/Schedule";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -69,7 +69,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           }
         }
       }}>
-      <div className="bg-default dark:text-inverted text-emphasis border-subtle w-full rounded-md border dark:bg-opacity-5">
+      <div className="bg-default dark:text-inverted text-emphasis border-subtle w-full rounded-md border">
         <Schedule control={availabilityForm.control} name="schedule" weekStart={1} />
       </div>
 
@@ -81,7 +81,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           className="mt-2 w-full justify-center p-2 text-sm sm:mt-8"
           loading={availabilityForm.formState.isSubmitting}
           disabled={availabilityForm.formState.isSubmitting}>
-          {t("next_step_text")}
+          {t("complete_profile")}
         </Button>
       </div>
     </Form>

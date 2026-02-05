@@ -1,7 +1,7 @@
 import { ExecutionContext } from "@nestjs/common";
 import { createParamDecorator } from "@nestjs/common";
 
-import { Membership } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 
 export type GetMembershipReturnType = Membership;
 

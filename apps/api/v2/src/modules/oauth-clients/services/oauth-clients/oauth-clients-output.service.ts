@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { PlatformOAuthClient } from "@prisma/client";
 
 import { PERMISSIONS, PERMISSION_MAP } from "@calcom/platform-constants";
-import { PlatformOAuthClientDto } from "@calcom/platform-types";
+import type { PlatformOAuthClientDto } from "@calcom/platform-types";
+import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class OAuthClientsOutputService {
@@ -37,6 +37,7 @@ export class OAuthClientsOutputService {
 
   transformOAuthClientPermission(permission: (typeof PERMISSIONS)[number]): keyof typeof PERMISSION_MAP {
     return Object.entries(PERMISSION_MAP).find(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ([_, value]) => value === permission
     )?.[0] as keyof typeof PERMISSION_MAP;
   }

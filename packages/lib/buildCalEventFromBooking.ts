@@ -1,6 +1,5 @@
-import type { Prisma } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { parseRecurringEvent } from "./isRecurringEvent";
 import { getTranslation } from "./server/i18n";
@@ -17,6 +16,7 @@ type DestinationCalendar = {
   domainWideDelegationCredentialId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
+  customCalendarReminder: number | null;
 } | null;
 
 type Attendee = {
@@ -55,6 +55,8 @@ type Booking = {
   } | null;
   attendees: Attendee[];
   eventType: EventType | null;
+  iCalUID: string | null;
+  iCalSequence: number;
 };
 
 export const buildCalEventFromBooking = async ({
@@ -62,11 +64,13 @@ export const buildCalEventFromBooking = async ({
   organizer,
   location,
   conferenceCredentialId,
+  organizationId,
 }: {
   booking: Booking;
   organizer: Organizer;
   location: string;
   conferenceCredentialId: number | null;
+  organizationId: number | null;
 }) => {
   const attendeesList = await Promise.all(
     booking.attendees.map(async (attendee) => {
@@ -110,5 +114,8 @@ export const buildCalEventFromBooking = async ({
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    iCalUID: booking.iCalUID ?? booking.uid,
+    iCalSequence: booking.iCalSequence ?? 0,
+    organizationId,
   };
 };

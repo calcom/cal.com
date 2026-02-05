@@ -1,10 +1,11 @@
-import type { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
 
 import { IS_PRODUCTION, WEBSITE_URL, SINGLE_ORG_SLUG } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import { getTldPlus1 } from "@calcom/lib/getTldPlus1";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
+import type { Prisma } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({
   prefix: ["orgDomains.ts"],
@@ -15,8 +16,8 @@ const log = logger.getSubLogger({
  */
 export function getOrgSlug(hostname: string, forcedSlug?: string) {
   if (forcedSlug) {
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      log.debug("Using provided forcedSlug in E2E", {
+    if (process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE) {
+      log.debug("Using provided forcedSlug in E2E/Integration Test mode", {
         forcedSlug,
       });
       return forcedSlug;
@@ -45,7 +46,7 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
   });
 
   if (!currentHostname) {
-    log.warn("Match of WEBAPP_URL with ALLOWED_HOSTNAME failed", { WEBAPP_URL, ALLOWED_HOSTNAMES });
+    log.warn("Match of WEBAPP_URL with ALLOWED_HOSTNAMES failed", { WEBAPP_URL, ALLOWED_HOSTNAMES });
     return null;
   }
   // Define which is the current domain/subdomain
@@ -145,8 +146,13 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug)
-    return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
+  if (!slug) {
+    // Use WEBAPP_URL if domains differ (e.g., EU: app.cal.eu vs cal.com)
+    const useWebappUrl =
+      getTldPlus1(new URL(WEBSITE_URL).hostname) !== getTldPlus1(new URL(WEBAPP_URL).hostname);
+    const baseUrl = useWebappUrl ? WEBAPP_URL : WEBSITE_URL;
+    return options.protocol ? baseUrl : baseUrl.replace("https://", "").replace("http://", "");
+  }
 
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""

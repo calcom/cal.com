@@ -7,12 +7,16 @@ import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -50,7 +54,7 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     if (!team) {
       const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
 
-      metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+      metadata = teamMetadataStrictSchema.safeParse(prevTeam.metadata);
       if (!metadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
@@ -80,10 +84,39 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
     }
 
     if (!metadata) {
-      metadata = teamMetadataSchema.safeParse(team.metadata);
+      metadata = teamMetadataStrictSchema.safeParse(team.metadata);
       if (!metadata.success) {
         throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
+    }
+
+    if (subscription) {
+      const billingProviderService = getBillingProviderService();
+      const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+        billingProviderService.extractSubscriptionDates(subscription);
+
+      const { billingPeriod, pricePerSeat, paidSeats } =
+        extractBillingDataFromStripeSubscription(subscription);
+
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
+      const teamBillingService = teamBillingServiceFactory.init(team);
+      await teamBillingService.saveTeamBilling({
+        teamId: team.id,
+        subscriptionId: subscription.id,
+        subscriptionItemId: subscription.items.data[0].id,
+        customerId:
+          typeof checkoutSession.customer === "string"
+            ? checkoutSession.customer
+            : checkoutSession.customer?.id || "",
+        status: SubscriptionStatus.ACTIVE,
+        planName: team.isOrganization ? Plan.ORGANIZATION : Plan.TEAM,
+        subscriptionStart: subscriptionStart ?? undefined,
+        subscriptionEnd: subscriptionEnd ?? undefined,
+        subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+        billingPeriod,
+        pricePerSeat,
+        paidSeats,
+      });
     }
 
     const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });

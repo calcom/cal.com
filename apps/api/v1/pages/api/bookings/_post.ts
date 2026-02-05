@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
+import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -239,18 +239,28 @@ async function handler(req: NextApiRequest) {
   }
 
   try {
-    return await handleNewBooking(
-      {
-        bookingData: req.body,
+    const regularBookingService = getRegularBookingService();
+
+    return await regularBookingService.createBookingForApiV1({
+      bookingData: req.body,
+      bookingMeta: {
         userId,
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       },
-      getBookingDataSchemaForApi
-    );
+      bookingDataSchemaGetter: getBookingDataSchemaForApi,
+    });
   } catch (error: unknown) {
     const knownError = error as Error;
     if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    if (knownError?.message === ErrorCode.RequestBodyInvalid) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    if (knownError?.message === ErrorCode.EventTypeNotFound) {
       throw new HttpError({ statusCode: 400, message: knownError.message });
     }
 

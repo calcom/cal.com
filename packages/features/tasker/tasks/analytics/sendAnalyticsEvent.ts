@@ -1,8 +1,8 @@
-import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 
+import AnalyticsManager from "./analyticsManager";
 import { sendAnalyticsEventSchema } from "./schema";
 
 const log = logger.getSubLogger({ prefix: [`[[tasker] sendAnalyticsEvent]`] });

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
@@ -31,9 +32,6 @@ vi.mock("@calcom/prisma", () => ({
     user: {
       update: vi.fn().mockResolvedValue({}),
     },
-    team: {
-      findMany: vi.fn(),
-    },
   },
 }));
 
@@ -46,13 +44,19 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
+  MembershipRepository: {
+    findAllAcceptedTeamMemberships: vi.fn(),
+  },
+}));
+
 const mockGetSubscriptionStatus = vi.fn();
 const mockEndTrial = vi.fn().mockResolvedValue(true);
+const mockInit = vi.fn();
 
-vi.mock("@calcom/ee/billing/teams/internal-team-billing", () => ({
-  InternalTeamBilling: vi.fn().mockImplementation(() => ({
-    getSubscriptionStatus: mockGetSubscriptionStatus,
-    endTrial: mockEndTrial,
+vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
+  getTeamBillingServiceFactory: vi.fn(() => ({
+    init: mockInit,
   })),
 }));
 
@@ -66,10 +70,14 @@ describe("skipTeamTrialsHandler", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockInit.mockReturnValue({
+      getSubscriptionStatus: mockGetSubscriptionStatus,
+      endTrial: mockEndTrial,
+    });
   });
 
   it("should set user's trialEndsAt to null", async () => {
-    vi.mocked(prisma.team.findMany).mockResolvedValueOnce([]);
+    vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce([]);
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
@@ -87,39 +95,30 @@ describe("skipTeamTrialsHandler", () => {
   it("should end trials for all teams where user is OWNER", async () => {
     // Mock teams where user is owner
     const mockTeams = [
-      { id: 101, name: "Team 1" },
-      { id: 102, name: "Team 2" },
+      { id: 101, name: "Team 1", isOrganization: false, parentId: null, metadata: null },
+      { id: 102, name: "Team 2", isOrganization: false, parentId: null, metadata: null },
     ];
 
-    vi.mocked(prisma.team.findMany).mockResolvedValueOnce(mockTeams);
+    vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
 
     mockGetSubscriptionStatus
-      .mockResolvedValueOnce("trialing") // First team is in trial
-      .mockResolvedValueOnce("active"); // Second team is active
+      .mockResolvedValueOnce(SubscriptionStatus.TRIALING) // First team is in trial
+      .mockResolvedValueOnce(SubscriptionStatus.ACTIVE); // Second team is active
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
 
     expect(prisma.user.update).toHaveBeenCalled();
 
-    expect(prisma.team.findMany).toHaveBeenCalledWith({
-      where: {
-        members: {
-          some: {
-            userId: mockCtx.user.id,
-            accepted: true,
-            role: "OWNER",
-          },
-        },
-      },
+    expect(MembershipRepository.findAllAcceptedTeamMemberships).toHaveBeenCalledWith(mockCtx.user.id, {
+      role: "OWNER",
     });
 
-    expect(InternalTeamBilling).toHaveBeenCalledTimes(2);
-    expect(InternalTeamBilling).toHaveBeenNthCalledWith(1, mockTeams[0]);
-    expect(InternalTeamBilling).toHaveBeenNthCalledWith(2, mockTeams[1]);
+    expect(mockInit).toHaveBeenCalledTimes(2);
+    expect(mockInit).toHaveBeenNthCalledWith(1, mockTeams[0]);
+    expect(mockInit).toHaveBeenNthCalledWith(2, mockTeams[1]);
 
     expect(mockGetSubscriptionStatus).toHaveBeenCalledTimes(2);
-
     expect(mockEndTrial).toHaveBeenCalledTimes(1);
   });
 

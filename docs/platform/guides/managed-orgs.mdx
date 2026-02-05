@@ -1,0 +1,114 @@
+---
+title: Managed organizations
+description: Find out how to create managed organizations and their OAuth clients via the api.
+---
+
+## **1. How to create a managed organization**
+
+First, manually create an OAuth client in [https://app.cal.com/settings/platform](https://app.cal.com/settings/platform).
+
+Second, make a POST request to `https://api.cal.com/v2/organizations/:organizationId/organizations` to create a managed organization and receive its api key:
+
+1. Replace `:organizationId` in the URL with your organization Id that you can copy from OAuth client settings.
+2. Add authentication headers `x-cal-client-id` equal to OAuth client id and `x-cal-secret-key` equal to the OAuth client secret.
+3. Add request body
+
+```json
+{
+    "name": "some organization",
+    "metadata": {
+        "some": "metadata"
+    },
+    "apiKeyDaysValid": 60
+}
+```
+
+Required fields: "name" - name of the managed organization.
+
+Optional fields: "metadata", "apiKeyDaysValid", "apiKeyNeverExpires". By default the api key of a managed organization is valid for 30 days which means that you have to rotate them (will explain how below). If you want that api key is valid, for example, 60 days then specify that using "apiKeyDaysValid: 60" or if you want that api key never expires, set "apiKeyNeverExpires: true" in the request body.
+
+Here is response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "id": 148,
+        "name": "some organization",
+        "metadata": {
+            "some": "metadata"
+        },
+        "apiKey": "cal_xxx168ceb89117cc3a1b1f1777511506"
+    }
+}
+```
+
+Notably, you will only have access to the `apiKey` now, so make sure to create a table in your database where you store managed organization's `id` and `apiKey` . The `apiKey` will be used to create an OAuth client that is used to create platform users.
+
+Using same `x-cal-client-id` and `x-cal-secret-key` headers you can make requests to:
+
+1. Fetch managed organization by making GET request to `https://api.cal.com/v2/organizations/:organizationId/organizations/:managedOrganizationId`
+2. Fetch all managed organizations by making GET request to `https://api.cal.com/v2/organizations/:organizationId/organizations`
+3. Update managed organization by making PATCH request to `https://api.cal.com/v2/organizations/:organizationId/organizations/:managedOrganizationId` with body where you can specify either "name" or "metadata"
+4. Delete managed organization by making DELETE request to `https://api.cal.com/v2/organizations/:organizationId/organizations/:managedOrganizationId`
+
+Shortly, the flow is that using OAuth credentials of manager organization you create a managed organization and using its api key you can create and managed OAuth clients of the managed organization, and for the rest of the things like creating "managed users" of managed organization you will use OAuth client credentials.
+
+## **2. How to create OAuth client for a managed organization**
+
+Now that you have created a managed organization and have its `apiKey` you can create OAuth clients for the managed organization.
+
+Make POST request to `https://api.cal.com/v2/oauth-clients` by:
+
+1. Setting `Authorization: Bearer <apiKey>` header where `<apiKey>` is api key returned when creating a managed organization.
+2. Setting request body:
+   1. name is name of the OAuth client
+   2. permissions - an array that can receive following permissions: `"EVENT_TYPE_READ", "EVENT_TYPE_WRITE", "BOOKING_READ", "BOOKING_WRITE", "SCHEDULE_READ", "SCHEDULE_WRITE", "APPS_READ", "APPS_WRITE", "PROFILE_READ", "PROFILE_WRITE"` or if you want all of them enabled set `*` . You most probably want to use `*` . See docs here [https://cal.com/docs/platform/quickstart#2-setting-up-an-oauth-client](https://cal.com/docs/platform/quickstart#2-setting-up-an-oauth-client)
+   3. redirectUris - point to (as example) `your-domain.com*` where users end up when connecting google calendar etc and what is the origin of the requests aka what origins are allowed to make requests to our endpoints. Having `your-domain.com*` would mean that we will accept requests from cal UI components that make requests from `your-domain.com, your-domain.com/page` etc.
+
+```json
+{
+    "name": "OAuth client for managed organization",
+    "redirectUris": ["https://your-domain.com*"],
+    "permissions": ["*"]
+}
+```
+
+Response:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "clientId": "xxxepq3bg0000khghtq4bxxx",
+        "clientSecret": "xxxhbGciOiJIUzI1NiIsInR5cCI6IlpXVCJ9.eyJuYW1lIjoiT0F1dGggY2xpZW50IGZvciBtYW5hZ2VkIG9yZ2FuaXphdGlvbiIsInJlZGlyZWN0VXJpcyI6wyJodHRwOi8vbG9jYWxob3N0OjQzMjEiXSwicGVybWlzc2lvbnMiOjY0LCJpYXQiOjE3NDAxMzg4MjB9.3nzplyvqf-ZlMUuhX9mYfpxtneH62iJPB6WpsYBWxxx"
+    }
+}
+```
+
+Using the same `Authorization: Bearer <apiKey>` header, you can also:
+
+- Fetch all OAuth clients: GET `https://api.cal.com/v2/oauth-clients`
+- Fetch a specific OAuth client: GET `https://api.cal.com/v2/oauth-clients/:oAuthClientId`
+
+## **3. How to refresh api key of a managed organization**
+
+If you did not specify `apiKeyNeverExpires` when creating a managed organization then you will have to refresh the api key after `apiKeyDaysValid` (if you specified it) or by default after 30 days.
+
+Make a POST request to `https://api.cal.com/v2/api-keys/refresh` by:
+
+1. Setting `Authorization: Bearer <apiKey>` header where `<apiKey>` is api key returned when creating a managed organization.
+2. Add a request body `{"apiKeyDaysValid": 30}` or whatever number of days you want the new api key to be valid or `{"apiKeyNeverExpires": true}` if you want that it never expires.
+
+The response will contain the new api key for the managed organization:
+
+```json
+{
+    "status": "success",
+    "data": {
+        "apiKey": "cal_xxx467709fffebe8c6559211cb5f178f"
+    }
+}
+```
+
+and now you have to update in your database api key of the managed organization.

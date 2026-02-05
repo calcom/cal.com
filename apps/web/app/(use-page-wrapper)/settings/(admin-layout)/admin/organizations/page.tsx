@@ -1,8 +1,8 @@
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import AdminOrgTable from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgPage";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import AdminOrgTable from "~/ee/organizations/admin/views/AdminOrgPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -17,7 +17,10 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("organizations")} description={t("orgs_page_description")}>
+    <SettingsHeader
+      title={t("organizations")}
+      description={t("orgs_page_description")}
+    >
       <LicenseRequired>
         <AdminOrgTable />
       </LicenseRequired>

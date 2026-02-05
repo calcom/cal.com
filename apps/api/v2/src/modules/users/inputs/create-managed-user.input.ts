@@ -1,7 +1,8 @@
 import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl, IsObject } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl, IsObject, IsNumber } from "class-validator";
 
 import { ValidateMetadata } from "@calcom/platform-types";
 
@@ -16,6 +17,8 @@ export class CreateManagedUserInput {
   @ApiProperty({ example: "Alice Smith", description: "Managed user's name is used in emails" })
   name!: string;
 
+  @Type(() => Number)
+  @IsNumber()
   @IsOptional()
   @IsIn([12, 24], { message: "timeFormat must be a number either 12 or 24" })
   @ApiPropertyOptional({ example: 12, enum: [12, 24], description: "Must be a number 12 or 24" })
@@ -29,6 +32,7 @@ export class CreateManagedUserInput {
   })
   weekStart?: WeekDay;
 
+  @Transform(({ value }) => (value === null ? undefined : value))
   @IsTimeZone()
   @IsOptional()
   @CapitalizeTimeZone()

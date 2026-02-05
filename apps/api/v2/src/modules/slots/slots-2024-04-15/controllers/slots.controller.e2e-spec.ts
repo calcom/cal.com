@@ -1,5 +1,19 @@
-import { bootstrap } from "@/app";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
+import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -7,21 +21,6 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
-import * as request from "supertest";
-import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
-import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 const expectedSlotsUTC = {
   slots: {
@@ -250,7 +249,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let bookingSeatsRepositoryFixture: BookingSeatRepositoryFixture;
     let attendeesRepositoryFixture: AttendeeRepositoryFixture;
@@ -262,7 +261,6 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let eventTypeSlug: string;
     let reservedSlotUid: string;
 
-    const seatedEventTypeSlug = "peer-coding-seated";
     let seatedEventTypeId: number;
 
     beforeAll(async () => {
@@ -288,7 +286,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
@@ -773,7 +771,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlotUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
 
       await app.close();

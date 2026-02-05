@@ -1,10 +1,10 @@
-import type { IncomingMessage } from "http";
+import type { IncomingMessage } from "node:http";
+import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";
-import type { AppContextType } from "next/dist/shared/lib/utils";
 import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
-import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
+import { WebPushProvider } from "@calcom/web/modules/notifications/components/WebPushContext";
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
@@ -32,8 +32,8 @@ declare global {
   }
 }
 
-MyApp.getInitialProps = async (ctx: AppContextType) => {
-  const { req } = ctx.ctx;
+MyApp.getInitialProps = async ({ ctx }: { ctx: NextPageContext }) => {
+  const { req } = ctx;
 
   let newLocale = "en";
 

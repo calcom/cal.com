@@ -1,4 +1,6 @@
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+
+import type { SortOrderType } from "@calcom/platform-types";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
 import {
   TransformedCreateTeamEventTypeInput,
@@ -47,6 +49,10 @@ export class OrganizationsEventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
+    this.logger.debug(
+      "nl debug - create org team event type - eventTypeCreated",
+      JSON.stringify(eventTypeCreated, null, 2)
+    );
 
     return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user, true);
   }
@@ -79,16 +85,22 @@ export class OrganizationsEventTypesService {
     return this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventTypeSlug, hostsLimit);
   }
 
-  async getTeamEventTypes(teamId: number): Promise<DatabaseTeamEventType[]> {
-    return await this.teamsEventTypesService.getTeamEventTypes(teamId);
+  async getTeamEventTypes(teamId: number, sortCreatedAt?: SortOrderType): Promise<DatabaseTeamEventType[]> {
+    return await this.teamsEventTypesService.getTeamEventTypes(teamId, sortCreatedAt);
   }
 
   async getOrganizationsTeamsEventTypes(
     orgId: number,
     skip = 0,
-    take = 250
+    take = 250,
+    sortCreatedAt?: SortOrderType
   ): Promise<DatabaseTeamEventType[]> {
-    return await this.organizationEventTypesRepository.getOrganizationTeamsEventTypes(orgId, skip, take);
+    return await this.organizationEventTypesRepository.getOrganizationTeamsEventTypes(
+      orgId,
+      skip,
+      take,
+      sortCreatedAt
+    );
   }
 
   async updateOrganizationTeamEventType(

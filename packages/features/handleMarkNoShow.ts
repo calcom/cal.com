@@ -1,14 +1,22 @@
 import { type TFunction } from "i18next";
 
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
+import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
@@ -38,7 +46,7 @@ const buildResultPayload = async (
   };
 };
 
-const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
@@ -82,10 +90,12 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
+  userUuid: _userUuid,
   locale,
   platformClientParams,
 }: TNoShowInputSchema & {
   userId?: number;
+  userUuid?: string;
   locale?: string;
   platformClientParams?: PlatformClientParams;
 }) => {
@@ -112,6 +122,196 @@ const handleMarkNoShow = async ({
         bookingId,
         ...(platformClientParams ? platformClientParams : {}),
       });
+
+      const booking = await prisma.booking.findUnique({
+        where: { uid: bookingUid },
+        select: {
+          startTime: true,
+          endTime: true,
+          title: true,
+          metadata: true,
+          uid: true,
+          location: true,
+          destinationCalendar: true,
+          smsReminderNumber: true,
+          userPrimaryEmail: true,
+          eventType: {
+            select: {
+              id: true,
+              hideOrganizerEmail: true,
+              customReplyToEmail: true,
+              schedulingType: true,
+              slug: true,
+              title: true,
+              metadata: true,
+              parentId: true,
+              teamId: true,
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              parent: {
+                select: {
+                  teamId: true,
+                },
+              },
+              workflows: {
+                select: {
+                  workflow: {
+                    select: workflowSelect,
+                  },
+                },
+              },
+              owner: {
+                select: {
+                  hideBranding: true,
+                  email: true,
+                  name: true,
+                  timeZone: true,
+                  locale: true,
+                },
+              },
+              team: {
+                select: {
+                  parentId: true,
+                  name: true,
+                  id: true,
+                },
+              },
+            },
+          },
+          attendees: {
+            select: {
+              email: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+              phoneNumber: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              destinationCalendar: true,
+              timeZone: true,
+              locale: true,
+              username: true,
+              timeFormat: true,
+            },
+          },
+        },
+      });
+
+      if (booking?.eventType) {
+        const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
+
+        if (workflows.length > 0) {
+          const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
+          // Cache translations to avoid requesting multiple times.
+          const translations = new Map();
+          const attendeesListPromises = booking.attendees.map(async (attendee) => {
+            const locale = attendee.locale ?? "en";
+            let translate = translations.get(locale);
+            if (!translate) {
+              translate = await getTranslation(locale, "common");
+              translations.set(locale, translate);
+            }
+            return {
+              name: attendee.name,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              phoneNumber: attendee.phoneNumber,
+              language: {
+                translate,
+                locale,
+              },
+            };
+          });
+          const attendeesList = await Promise.all(attendeesListPromises);
+          try {
+            const organizer = booking.user || booking.eventType.owner;
+            const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
+            const metadata =
+              parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+                ? { videoCallUrl: parsedMetadata.data.videoCallUrl }
+                : undefined;
+            const bookerUrl = await getBookerBaseUrl(booking.eventType?.team?.parentId ?? null);
+            const destinationCalendar = booking.destinationCalendar
+              ? [booking.destinationCalendar]
+              : booking.user?.destinationCalendar
+              ? [booking.user?.destinationCalendar]
+              : [];
+            const team = booking.eventType?.team
+              ? {
+                  name: booking.eventType.team.name,
+                  id: booking.eventType.team.id,
+                  members: [],
+                }
+              : undefined;
+
+            const calendarEvent: ExtendedCalendarEvent = {
+              type: booking.eventType.slug,
+              title: booking.title,
+              startTime: booking.startTime.toISOString(),
+              endTime: booking.endTime.toISOString(),
+              organizer: {
+                id: booking.user?.id,
+                email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+                name: booking.user?.name || "Nameless",
+                username: booking.user?.username || undefined,
+                timeZone: organizer?.timeZone || "UTC",
+                timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
+                language: {
+                  translate: tOrganizer,
+                  locale: booking.user?.locale ?? "en",
+                },
+              },
+              attendees: attendeesList,
+              uid: booking.uid,
+              location: booking.location || "",
+              eventType: {
+                slug: booking.eventType.slug,
+                schedulingType: booking.eventType.schedulingType,
+                hosts: booking.eventType.hosts,
+              },
+              destinationCalendar,
+              bookerUrl,
+              metadata,
+              rescheduleReason: null,
+              cancellationReason: null,
+              hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+              eventTypeId: booking.eventType?.id,
+              customReplyToEmail: booking.eventType?.customReplyToEmail,
+              team,
+            };
+
+            const creditService = new CreditService();
+
+            await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+              workflows,
+              smsReminderNumber: booking.smsReminderNumber,
+              hideBranding: booking.eventType.owner?.hideBranding,
+              calendarEvent,
+              triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
+              creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+            });
+          } catch (error) {
+            logger.error("Error while scheduling workflow reminders for booking no-show updated", error);
+          }
+        }
+      }
 
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);
@@ -224,9 +424,14 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const bookingRepo = new BookingRepository(prisma);
-  const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
+  const booking = await bookingRepo.findByUidIncludeEventTypeAndReferences({ bookingUid });
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAuthorized = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId,
+    bookingUid,
+  });
 
-  if (!booking)
+  if (!isAuthorized)
     throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();

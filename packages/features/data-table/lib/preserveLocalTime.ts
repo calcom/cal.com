@@ -10,6 +10,12 @@ import dayjs from "@calcom/dayjs";
  * This ensures that times like midnight (00:00) or end of day (23:59)
  * remain at those exact local times when converting between timezones.
  * The output timestamp is based on the timezone in the user's profile settings.
+ *
+ * For example, the profile timezone is Asia/Seoul,
+ * but the current user is in Europe/Paris.
+ * `Date` pickers will normally emit timestamps in the user's local timezone. (00:00:00 ~ 23:59:59 in Paris time)
+ * but what we really want is to fetch the data based on the user's profile timezone. (00:00:00 ~ 23:59:59 in Seoul time)
+ * That's why we need to convert the timestamp to the user's profile timezone.
  */
 export const preserveLocalTime = (isoString: string, originalTimeZone: string, targetTimeZone: string) => {
   // Parse the input time

@@ -4,8 +4,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";

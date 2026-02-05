@@ -1,121 +1,11 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
-import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
-import { DEFAULT_ROLE_IDS } from "../lib/constants";
+import { LegacyRoleManager } from "./legacy-role-manager.service";
+import { PBACRoleManager } from "./pbac-role-manager.service";
 import { PermissionCheckService } from "./permission-check.service";
+import { IRoleManager } from "./role-manager.interface";
 import { RoleService } from "./role.service";
-
-interface IRoleManager {
-  isPBACEnabled: boolean;
-  checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void>;
-  assignRole(
-    userId: number,
-    organizationId: number,
-    role: MembershipRole | string,
-    membershipId: number
-  ): Promise<void>;
-  getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]>;
-}
-
-class PBACRoleManager implements IRoleManager {
-  public isPBACEnabled = true;
-
-  constructor(
-    private readonly roleService: RoleService,
-    private readonly permissionCheckService: PermissionCheckService
-  ) {}
-
-  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const hasPermission = await this.permissionCheckService.checkPermission({
-      userId,
-      teamId: organizationId,
-      permission: "organization.changeMemberRole",
-      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
-    });
-
-    if (!hasPermission) {
-      throw new RoleManagementError(
-        "You do not have permission to change roles",
-        RoleManagementErrorCode.UNAUTHORIZED
-      );
-    }
-  }
-
-  async assignRole(
-    userId: number,
-    organizationId: number,
-    role: MembershipRole,
-    membershipId: number
-  ): Promise<void> {
-    const isDefaultRole = role in DEFAULT_ROLE_IDS;
-
-    if (isDefaultRole) {
-      await this.roleService.assignRoleToMember(DEFAULT_ROLE_IDS[role], membershipId);
-    } else {
-      const roleExists = await this.roleService.roleBelongsToTeam(role, organizationId);
-      if (!roleExists) {
-        throw new RoleManagementError(
-          "You do not have access to this role",
-          RoleManagementErrorCode.INVALID_ROLE
-        );
-      }
-      await this.roleService.assignRoleToMember(role, membershipId);
-    }
-  }
-
-  async getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]> {
-    const roles = await this.roleService.getTeamRoles(organizationId);
-    return roles.map((role) => ({
-      id: role.id,
-      name: role.name,
-    }));
-  }
-}
-
-class LegacyRoleManager implements IRoleManager {
-  public isPBACEnabled = false;
-  async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const membership = await isOrganisationAdmin(userId, organizationId);
-
-    // Only OWNER/ADMIN can update role
-    if (!membership) {
-      throw new RoleManagementError(
-        "Only owners or admin can update roles",
-        RoleManagementErrorCode.UNAUTHORIZED
-      );
-    }
-  }
-
-  async assignRole(
-    userId: number,
-    organizationId: number,
-    role: MembershipRole | string,
-    _membershipId: number
-  ): Promise<void> {
-    await prisma.membership.update({
-      where: {
-        userId_teamId: {
-          userId,
-          teamId: organizationId,
-        },
-      },
-      data: {
-        role: role as MembershipRole,
-      },
-    });
-  }
-
-  async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
-    return [
-      { id: MembershipRole.OWNER, name: "Owner" },
-      { id: MembershipRole.ADMIN, name: "Admin" },
-      { id: MembershipRole.MEMBER, name: "Member" },
-    ];
-  }
-}
 
 export class RoleManagementFactory {
   private static instance: RoleManagementFactory;
@@ -124,8 +14,9 @@ export class RoleManagementFactory {
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    this.featuresRepository = new FeaturesRepository();
-    this.roleService = new RoleService();
+    // Not used but needed for DI
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
     this.permissionCheckService = new PermissionCheckService();
   }
 

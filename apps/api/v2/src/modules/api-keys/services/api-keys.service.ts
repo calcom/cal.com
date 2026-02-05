@@ -1,4 +1,4 @@
-import { hashAPIKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, stripApiKey } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { CreateApiKeyInput } from "@/modules/api-keys/inputs/create-api-key.input";
@@ -61,7 +61,7 @@ export class ApiKeysService {
 
   async refreshApiKey(authUserId: number, apiKey: string, refreshApiKeyInput: RefreshApiKeyInput) {
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
-    const apiKeyHash = hashAPIKey(strippedApiKey);
+    const apiKeyHash = sha256Hash(strippedApiKey);
     const apiKeyInDb = await this.apiKeysRepository.getApiKeyFromHash(apiKeyHash);
     if (!apiKeyInDb) {
       throw new UnauthorizedException("ApiKeysService - provided api key is not valid.");

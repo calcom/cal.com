@@ -22,6 +22,13 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           timeFormat: true,
           name: true,
           destinationCalendar: true,
+          locale: true,
+          isPlatformManaged: true,
+          profiles: {
+            select: {
+              organizationId: true,
+            },
+          },
         },
       },
       location: true,
@@ -33,8 +40,12 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           credentialId: true,
           thirdPartyRecurringEventId: true,
           delegationCredentialId: true,
+          meetingUrl: true,
+          meetingId: true,
+          meetingPassword: true,
         },
       },
+      metadata: true,
       payment: true,
       paid: true,
       eventType: {
@@ -46,6 +57,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               hideBranding: true,
             },
           },
+          teamId: true,
           team: {
             select: {
               id: true,

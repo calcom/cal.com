@@ -4,6 +4,12 @@ import { checkRateLimitAndThrowError } from "./checkRateLimitAndThrowError";
 import { rateLimiter } from "./rateLimit";
 import type { RatelimitResponse } from "./rateLimit";
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
+
 vi.mock("./rateLimit", () => {
   return {
     rateLimiter: vi.fn(),

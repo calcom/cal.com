@@ -13,7 +13,7 @@ import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-mee
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const { isBrandingHidden, eventData } = await getData(context);
+  const { isBrandingHidden, eventData, teamIsPrivate } = await getData(context);
 
   const profileName = eventData?.profile.name ?? "";
   const profileImage = eventData?.profile.image;
@@ -22,12 +22,15 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
-    users: [
-      ...(eventData?.users || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
+    // Hide team member names in preview if team is private
+    users: teamIsPrivate
+      ? []
+      : [
+          ...(eventData?.users || []).map((user) => ({
+            name: `${user.name}`,
+            username: `${user.username}`,
+          })),
+        ],
   };
   const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(

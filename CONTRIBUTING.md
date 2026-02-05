@@ -95,6 +95,57 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
   </tr>
 </table>
 
+## File Naming Conventions
+
+To ensure consistency and make files easy to fuzzy-find, we follow the naming conventions below for **services**, **repositories**, and other class-based files.
+
+### Repository Files
+
+- Repository class files must include the `Repository` suffix.
+- If the repository is backed by a specific technology (e.g. Prisma), prefix the filename and class name with it.
+- File name must match the exported class exactly (PascalCase).
+
+**Pattern:**
+
+`Prisma<Entity>Repository.ts`
+
+**Examples:**
+
+```ts
+// File: PrismaAppRepository.ts
+export class PrismaAppRepository { ... }
+
+// File: PrismaMembershipRepository.ts
+export class PrismaMembershipRepository { ... }
+```
+
+This avoids ambiguous filenames like app.ts and improves discoverability in editors.
+
+### Service Files
+
+- Service class files must include the Service suffix.
+- File name should be in PascalCase, matching the exported class.
+- Keep naming specific — avoid generic names like AppService.ts.
+
+**Pattern:**
+
+`<Entity>Service.ts`
+
+**Examples:**
+
+```ts
+// File: MembershipService.ts
+export class MembershipService { ... }
+
+// File: HashedLinkService.ts
+export class HashedLinkService { ... }
+```
+
+**Note:**
+
+- New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.
+- We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
+
 ## Developing
 
 [See README](https://github.com/calcom/cal.com#development)
@@ -138,6 +189,22 @@ yarn lint
 If you get errors, be sure to fix them before committing.
 
 ## Making a Pull Request
+
+### Keep PRs Small and Focused
+
+Large PRs are difficult to review and more prone to errors. We strongly encourage smaller, self-contained PRs:
+
+- **Size limits**: Keep PRs under 500 lines of code changed and under 10 code files modified (excludes documentation, lock files, and auto-generated files)
+- **Single responsibility**: Each PR should address one concern (one feature, one bug fix, or one refactor)
+- **Split large changes**: If your task requires extensive changes, break it into multiple PRs that can be reviewed and merged independently
+
+**How to split large changes:**
+- Separate database/schema changes from application logic
+- Split frontend and backend changes when possible
+- Do preparatory refactoring in a separate PR before adding new features
+- Create PRs in dependency order (infrastructure first, then features)
+
+### PR Checklist
 
 - Be sure to [check the "Allow edits from maintainers" option](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when creating your PR. (This option isn't available if you're [contributing from a fork belonging to an organization](https://github.com/orgs/community/discussions/5634))
 - If your PR refers to or fixes an issue, add `refs #XXX` or `fixes #XXX` to the PR description. Replace `XXX` with the respective issue number. See more about [linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).

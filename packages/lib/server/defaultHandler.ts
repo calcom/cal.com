@@ -13,12 +13,5 @@ export const defaultHandler = (handlers: Handlers) => async (req: NextApiRequest
       .status(405)
       .json({ message: `Method Not Allowed (Allow: ${Object.keys(handlers).join(",")})` });
   }
-
-  try {
-    await handler(req, res);
-    return;
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
-  }
+  return await handler(req, res);
 };

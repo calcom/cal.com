@@ -19,7 +19,7 @@ export default function getLocationsOptionsForSelect(
         return null;
       }
       const type = eventLocation.type;
-      const translatedLocation = getTranslatedLocation(location, eventLocation, t);
+      const translatedLocation = location.customLabel || getTranslatedLocation(location, eventLocation, t);
 
       return {
         // XYZ: is considered a namespace in i18next https://www.i18next.com/principles/namespaces and thus it gets cleaned up.

@@ -4,7 +4,7 @@ import type { NextApiResponse, NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect, vi } from "vitest";
 
-import { handleAutoLock } from "@calcom/lib/autoLock";
+import { handleAutoLock } from "@calcom/features/ee/api-keys/lib/autoLock";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
 
@@ -19,7 +19,7 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/autoLock", () => ({
+vi.mock("@calcom/features/ee/api-keys/lib/autoLock", () => ({
   handleAutoLock: vi.fn(),
 }));
 
@@ -30,7 +30,7 @@ describe("rateLimitApiKey middleware", () => {
       query: {},
       userId: testUserId,
     });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(res._getStatusCode()).toBe(401);
@@ -43,7 +43,7 @@ describe("rateLimitApiKey middleware", () => {
       query: { apiKey: "test-key" },
       userId: testUserId,
     });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (checkRateLimitAndThrowError as any).mockResolvedValueOnce({
       limit: 100,
       remaining: 99,
@@ -51,6 +51,7 @@ describe("rateLimitApiKey middleware", () => {
     });
 
     // @ts-expect-error weird typing between middleware and createMocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
@@ -74,15 +75,14 @@ describe("rateLimitApiKey middleware", () => {
       success: true,
     };
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (checkRateLimitAndThrowError as any).mockImplementationOnce(
       ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
         onRateLimiterResponse(rateLimiterResponse);
       }
     );
-
     // @ts-expect-error weird typing between middleware and createMocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(res.getHeader("X-RateLimit-Limit")).toBe(rateLimiterResponse.limit);
@@ -96,10 +96,11 @@ describe("rateLimitApiKey middleware", () => {
       query: { apiKey: "test-key" },
       userId: testUserId,
     });
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (checkRateLimitAndThrowError as any).mockRejectedValue(new Error("Rate limit exceeded"));
 
     // @ts-expect-error weird typing between middleware and createMocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(res._getStatusCode()).toBe(429);
@@ -121,6 +122,7 @@ describe("rateLimitApiKey middleware", () => {
     };
 
     // Mock rate limiter to trigger the onRateLimiterResponse callback
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (checkRateLimitAndThrowError as any).mockImplementationOnce(
       ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
         onRateLimiterResponse(rateLimiterResponse);
@@ -131,6 +133,7 @@ describe("rateLimitApiKey middleware", () => {
     vi.mocked(handleAutoLock).mockResolvedValueOnce(true);
 
     // @ts-expect-error weird typing between middleware and createMocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(handleAutoLock).toHaveBeenCalledWith({
@@ -158,6 +161,7 @@ describe("rateLimitApiKey middleware", () => {
     };
 
     // Mock rate limiter to trigger the onRateLimiterResponse callback
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (checkRateLimitAndThrowError as any).mockImplementationOnce(
       ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
         onRateLimiterResponse(rateLimiterResponse);
@@ -168,6 +172,7 @@ describe("rateLimitApiKey middleware", () => {
     vi.mocked(handleAutoLock).mockRejectedValueOnce(new Error("No user found for this API key."));
 
     // @ts-expect-error weird typing between middleware and createMocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(handleAutoLock).toHaveBeenCalledWith({
@@ -195,6 +200,7 @@ describe("rateLimitApiKey middleware", () => {
     };
 
     // Mock rate limiter to trigger the onRateLimiterResponse callback
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (checkRateLimitAndThrowError as any).mockImplementationOnce(
       ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
         onRateLimiterResponse(rateLimiterResponse);
@@ -235,6 +241,7 @@ describe("rateLimitApiKey middleware", () => {
     );
 
     // @ts-expect-error weird typing between middleware and createMocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(res._getStatusCode()).toBe(429);

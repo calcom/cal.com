@@ -11,7 +11,7 @@ import { getToken } from "next-auth/jwt";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { hasPermissions } from "@calcom/platform-utils";
-import { PlatformOAuthClient } from "@calcom/prisma/client";
+import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {

@@ -17,10 +17,10 @@ title: "Google"
         Go to the [OAuth consent screen](https://console.cloud.google.com/apis/credentials/consent) from the side pane. Select the app type (Internal or External) and enter the basic app details on the first page.
     </Step>
     <Step title="Add Calendar Scopes">
-        On the Scopes page, select "Add or Remove Scopes". Search for Calendar.event and select the scopes with values `.../auth/calendar.events`, `.../auth/calendar.readonly`, and then click "Update".
+        On the Data Access page, select "Add or Remove Scopes". Search for Calendar.event and select the scopes with values `.../auth/calendar.events`, `.../auth/calendar.readonly`, and then click "Update".
     </Step>
     <Step title="Add Test Users">
-        On the Test Users page, add the Google account(s) you'll be using. Verify details on the last page to complete the consent screen configuration.
+        If User type is external on the Audience page, add the Google account(s) you'll be using. Verify details on the last page to complete the consent screen configuration.
     </Step>
     <Step title="Create OAuth Credentials">
         From the side pane, select [Credentials](https://console.cloud.google.com/apis/credentials) and then "Create Credentials". Choose "OAuth Client ID".
@@ -46,6 +46,13 @@ title: "Google"
         ```
         This will configure the Google integration as an Internal app, restricting login access.
     </Step>
+    <Step title="Set the CAL_COM environment variable">
+        In the `.env` file, set the following environment variable:
+        ```
+        CALCOM_ENV="local"
+        ```
+        This will allow you to test the Google integration locally. Do it only when you are testing Cal.com locally.
+    </Step>
 </Steps>
 
 ### **Adding Google Calendar to Cal.com App Store**
@@ -53,5 +60,5 @@ title: "Google"
 After adding Google credentials, you can now add the Google Calendar App to the app store. Repopulate the App store by running:
 
 <Step title="Repopulate App Store">
-    Run `pnpm db-seed` to update the app store and include the newly added Google Calendar integration.
+    Run `yarn workspace @calcom/prisma seed-app-store` to update the app store and include the newly added Google Calendar integration.
 </Step>

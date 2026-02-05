@@ -1,14 +1,14 @@
 import {
-  TestData,
-  Timezones,
   createBookingScenario,
   replaceDates,
-} from "../../utils/bookingScenario/bookingScenario";
-import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
+  TestData,
+  Timezones,
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import type { ScenarioData } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, expect, vi, test } from "vitest";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { PeriodType } from "@calcom/prisma/enums";
 
 import { expectedSlotsForSchedule } from "./expects";
@@ -673,26 +673,26 @@ describe("getSchedule", () => {
           });
 
           const allTimeSlotsForToday = [
-            "2024-05-31T11:30:00.000Z",
-            "2024-06-01T04:30:00.000Z",
-            "2024-06-01T05:30:00.000Z",
-            "2024-06-01T06:30:00.000Z",
-            "2024-06-01T07:30:00.000Z",
-            "2024-06-01T08:30:00.000Z",
-            "2024-06-01T09:30:00.000Z",
-            "2024-06-01T10:30:00.000Z",
+            "2024-05-31T11:00:00.000Z",
+            "2024-06-01T04:00:00.000Z",
+            "2024-06-01T05:00:00.000Z",
+            "2024-06-01T06:00:00.000Z",
+            "2024-06-01T07:00:00.000Z",
+            "2024-06-01T08:00:00.000Z",
+            "2024-06-01T09:00:00.000Z",
+            "2024-06-01T10:00:00.000Z",
           ];
 
           expect(scheduleForEvent).toHaveTimeSlots(
             [
-              // "2024-05-30T04:30:00.000Z", // Not available as before the start of the range
-              "2024-05-31T04:30:00.000Z",
-              "2024-05-31T05:30:00.000Z",
-              "2024-05-31T06:30:00.000Z",
-              "2024-05-31T07:30:00.000Z",
-              "2024-05-31T08:30:00.000Z",
-              "2024-05-31T09:30:00.000Z",
-              "2024-05-31T10:30:00.000Z",
+              // "2024-05-30T04:00:00.000Z", // Not available as before the start of the range
+              "2024-05-31T04:00:00.000Z",
+              "2024-05-31T05:00:00.000Z",
+              "2024-05-31T06:00:00.000Z",
+              "2024-05-31T07:00:00.000Z",
+              "2024-05-31T08:00:00.000Z",
+              "2024-05-31T09:00:00.000Z",
+              "2024-05-31T10:00:00.000Z",
             ],
             {
               dateString: yesterdayDateString,
@@ -1489,13 +1489,12 @@ describe("getSchedule", () => {
             {
               id: 1,
               length: 60,
-              // Makes today and tomorrow only available
+              // Makes plus1 and plus2 dates only available (June 1-2 in event timezone)
+              // Period dates are now stored as UTC midnight for the selected date
               ...getPeriodTypeData({
                 type: "RANGE",
-                // dayPlus1InIst
-                periodStartDate: new Date(`${todayDateString}T18:30:00.000Z`),
-                // datePlus2InIst
-                periodEndDate: new Date(`${plus1DateString}T18:30:00.000Z`),
+                periodStartDate: new Date(`${plus1DateString}T00:00:00.000Z`), // June 1 UTC midnight
+                periodEndDate: new Date(`${plus2DateString}T00:00:00.000Z`), // June 2 UTC midnight
                 periodCountCalendarDays: true,
               }),
               users: [
@@ -1574,14 +1573,12 @@ describe("getSchedule", () => {
               {
                 id: 1,
                 length: 60,
-                // Makes today and tomorrow only available
+                // Makes 25th and 26th July (in event timezone) available
+                // Period dates are now stored as UTC midnight for the selected date
                 ...getPeriodTypeData({
                   type: "RANGE",
-
-                  // Only 25th and 26th(as per the event timezone(IST)) should be available
-                  periodStartDate: new Date(`2024-07-24T18:30:00.000Z`), // 25th July in IST
-                  periodEndDate: new Date(`2024-07-25T18:30:00.000Z`), // 26th July in IST
-
+                  periodStartDate: new Date(`2024-07-25T00:00:00.000Z`), // July 25 UTC midnight
+                  periodEndDate: new Date(`2024-07-26T00:00:00.000Z`), // July 26 UTC midnight
                   periodCountCalendarDays: true,
                 }),
                 users: [
@@ -1614,33 +1611,27 @@ describe("getSchedule", () => {
               orgSlug: null,
             },
           });
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-21",
+          });
 
-          /**
-           * Current day in test is 5th July, so verify that earlier timeslots than 24th July are disabled
-           */
-          {
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-21",
-            });
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-22",
+          });
 
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-22",
-            });
-
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-23",
-            });
-          }
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-23",
+          });
 
           expect(scheduleForEventForPagoTz).toHaveTimeSlots(
             [
-              "2024-07-25T04:30:00.000Z",
-              "2024-07-25T05:30:00.000Z",
-              "2024-07-25T06:30:00.000Z",
-              "2024-07-25T07:30:00.000Z",
-              "2024-07-25T08:30:00.000Z",
-              "2024-07-25T09:30:00.000Z",
-              "2024-07-25T10:30:00.000Z",
+              "2024-07-25T04:00:00.000Z",
+              "2024-07-25T05:00:00.000Z",
+              "2024-07-25T06:00:00.000Z",
+              "2024-07-25T07:00:00.000Z",
+              "2024-07-25T08:00:00.000Z",
+              "2024-07-25T09:00:00.000Z",
+              "2024-07-25T10:00:00.000Z",
             ],
             {
               // 25th timeslots are shown mostly on 24th of Pago Pago
@@ -1651,14 +1642,14 @@ describe("getSchedule", () => {
 
           expect(scheduleForEventForPagoTz).toHaveTimeSlots(
             [
-              "2024-07-25T11:30:00.000Z",
-              "2024-07-26T04:30:00.000Z",
-              "2024-07-26T05:30:00.000Z",
-              "2024-07-26T06:30:00.000Z",
-              "2024-07-26T07:30:00.000Z",
-              "2024-07-26T08:30:00.000Z",
-              "2024-07-26T09:30:00.000Z",
-              "2024-07-26T10:30:00.000Z",
+              "2024-07-25T11:00:00.000Z",
+              "2024-07-26T04:00:00.000Z",
+              "2024-07-26T05:00:00.000Z",
+              "2024-07-26T06:00:00.000Z",
+              "2024-07-26T07:00:00.000Z",
+              "2024-07-26T08:00:00.000Z",
+              "2024-07-26T09:00:00.000Z",
+              "2024-07-26T10:00:00.000Z",
             ],
             {
               dateString: "2024-07-25",
@@ -1666,23 +1657,17 @@ describe("getSchedule", () => {
             }
           );
 
-          expect(scheduleForEventForPagoTz).toHaveTimeSlots(["2024-07-26T11:30:00.000Z"], {
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(["2024-07-26T11:00:00.000Z"], {
             dateString: "2024-07-26",
             doExactMatch: true,
           });
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-27",
+          });
 
-          /**
-           * Verify that timeslots beyond 26th July are disabled
-           */
-          {
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-27",
-            });
-
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-28",
-            });
-          }
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-28",
+          });
         });
       });
     });

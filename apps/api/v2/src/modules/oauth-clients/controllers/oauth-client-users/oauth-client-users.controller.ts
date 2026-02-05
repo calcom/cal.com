@@ -1,5 +1,25 @@
+import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { MembershipRole } from "@calcom/platform-libraries";
+import type { User } from "@calcom/prisma/client";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { Locales } from "@/lib/enums/locales";
+import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
@@ -7,44 +27,23 @@ import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
-import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  Body,
-  Controller,
-  Post,
-  Logger,
-  UseGuards,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Delete,
-  Query,
-  NotFoundException,
-} from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
-import { User, MembershipRole } from "@prisma/client";
-import { plainToInstance } from "class-transformer";
-
-import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, OAuthClientGuard, OrganizationRolesGuard)
-@DocsTags("Platform / Managed Users")
+@DocsTags("Deprecated: Platform / Managed Users")
 @ApiHeader({
   name: X_CAL_SECRET_KEY,
   description: "OAuth client secret key",
@@ -62,7 +61,10 @@ export class OAuthClientUsersController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get all managed users" })
+  @ApiOperation({
+    summary: "Get all managed users",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getManagedUsers(
     @Param("clientId") oAuthClientId: string,
@@ -78,15 +80,16 @@ export class OAuthClientUsersController {
   }
 
   @Post("/")
-  @ApiOperation({ summary: "Create a managed user" })
+  @ApiOperation({
+    summary: "Create a managed user",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async createUser(
     @Param("clientId") oAuthClientId: string,
     @Body() body: CreateManagedUserInput
   ): Promise<CreateManagedUserOutput> {
-    this.logger.log(
-      `Creating user with data: ${JSON.stringify(body, null, 2)} for OAuth Client with ID ${oAuthClientId}`
-    );
+    this.logger.log(`Creating user for OAuth Client ${oAuthClientId}`);
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
     if (!client) {
       throw new NotFoundException(`OAuth Client with ID ${oAuthClientId} not found`);
@@ -108,11 +111,14 @@ export class OAuthClientUsersController {
 
   @Get("/:userId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get a managed user" })
+  @ApiOperation({
+    summary: "Get a managed user",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async getUserById(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number
+    @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetManagedUserOutput> {
     const user = await this.validateManagedUserOwnership(clientId, userId);
 
@@ -124,17 +130,26 @@ export class OAuthClientUsersController {
 
   @Patch("/:userId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update a managed user" })
+  @ApiOperation({
+    summary: "Update a managed user",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async updateUser(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number,
-    @Body() body: UpdateManagedUserInput
+    @Param("userId", ParseIntPipe) userId: number,
+    @Body() body: UpdateManagedUserInput,
+    @GetOrgId() organizationId: number
   ): Promise<GetManagedUserOutput> {
     await this.validateManagedUserOwnership(clientId, userId);
-    this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
+    this.logger.log(`Updating user ${userId} for OAuth Client ${clientId}`);
 
-    const user = await this.oAuthClientUsersService.updateOAuthClientUser(clientId, userId, body);
+    const user = await this.oAuthClientUsersService.updateOAuthClientUser(
+      clientId,
+      userId,
+      body,
+      organizationId
+    );
 
     return {
       status: SUCCESS_STATUS,
@@ -144,11 +159,14 @@ export class OAuthClientUsersController {
 
   @Delete("/:userId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete a managed user" })
+  @ApiOperation({
+    summary: "Delete a managed user",
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
+  })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async deleteUser(
     @Param("clientId") clientId: string,
-    @Param("userId") userId: number
+    @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetManagedUserOutput> {
     const user = await this.validateManagedUserOwnership(clientId, userId);
     await this.userRepository.delete(userId);
@@ -165,11 +183,11 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Force refresh tokens",
-    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
   })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
-    @Param("userId") userId: number,
+    @Param("userId", ParseIntPipe) userId: number,
     @Param("clientId") oAuthClientId: string
   ): Promise<KeysResponseDto> {
     this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);

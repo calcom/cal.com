@@ -1,3 +1,5 @@
+import type { MembershipRole } from "@calcom/prisma/enums";
+
 import type { TeamPermissions } from "../models/Permission";
 import type { PermissionString, Resource, CrudAction, CustomAction } from "../types/permission-registry";
 
@@ -9,7 +11,9 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
-    team_parentId?: number;
+    team: {
+      parentId: number | null;
+    };
   } | null>;
 
   getMembershipByUserAndTeam(
@@ -20,7 +24,9 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
-    team_parentId?: number;
+    team: {
+      parentId: number | null;
+    };
   } | null>;
 
   getOrgMembership(
@@ -31,6 +37,11 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
+  } | null>;
+
+  getTeamById(teamId: number): Promise<{
+    id: number;
+    parentId: number | null;
   } | null>;
 
   checkRolePermission(roleId: string, permission: PermissionString): Promise<boolean>;
@@ -46,12 +57,29 @@ export interface IPermissionRepository {
   ): Promise<(CrudAction | CustomAction)[]>;
 
   /**
-   * Gets all team IDs where the user has a specific permission
+   * Gets all permissions for a specific resource by role ID
    */
-  getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]>;
+  getResourcePermissionsByRoleId(roleId: string, resource: Resource): Promise<(CrudAction | CustomAction)[]>;
+
+  /**
+   * Gets all team IDs where the user has a specific permission
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
+   */
+  getTeamIdsWithPermission(params: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+    orgId?: number;
+  }): Promise<number[]>;
 
   /**
    * Gets all team IDs where the user has all of the specified permissions
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
-  getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]>;
+  getTeamIdsWithPermissions(params: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+    orgId?: number;
+  }): Promise<number[]>;
 }

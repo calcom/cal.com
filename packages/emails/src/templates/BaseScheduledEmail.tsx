@@ -1,7 +1,7 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import { formatPrice } from "@calcom/lib/price";
+import { formatPrice } from "@calcom/lib/currencyConversions";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -48,6 +48,7 @@ export const BaseScheduledEmail = (
     date: `${getRecipientStart("h:mma")} - ${getRecipientEnd("h:mma")}, ${t(
       getRecipientStart("dddd").toLowerCase()
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
+    interpolation: { escapeValue: false },
   });
 
   let rescheduledBy = props.calEvent.rescheduledBy;
@@ -107,6 +108,9 @@ export const BaseScheduledEmail = (
             }
             withSpacer
           />
+          {props.reassigned?.reason && (
+            <Info label={t("reason")} description={props.reassigned.reason} withSpacer />
+          )}
         </>
       )}
       {props.reassigned && props.reassigned.byUser && (
@@ -125,6 +129,13 @@ export const BaseScheduledEmail = (
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
+      {props.isOrganizer && props.calEvent.assignmentReason && (
+        <Info
+          label={t("assignment_reason")}
+          description={`${t(props.calEvent.assignmentReason.category)}${props.calEvent.assignmentReason.details ? `: ${props.calEvent.assignmentReason.details}` : ""}`}
+          withSpacer
+        />
+      )}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
         <Info

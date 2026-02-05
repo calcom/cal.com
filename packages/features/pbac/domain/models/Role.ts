@@ -39,7 +39,7 @@ export interface CreateRoleData {
 
 export interface UpdateRolePermissionsData {
   roleId: string;
-  permissions: PermissionString[];
+  permissions?: PermissionString[];
   updates?: {
     color?: string;
     name?: string;

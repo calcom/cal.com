@@ -1,0 +1,40 @@
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+
+@Module({
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: PrismaReadService,
+      useFactory: (config: ConfigService) => {
+        const service = new PrismaReadService();
+        service.setOptions({
+          readUrl: config.get<string>("db.readUrl", { infer: true }),
+          maxReadConnections: parseInt(config.get<number>("db.workerReadPoolMax", { infer: true }), 10),
+          e2e: config.get<boolean>("e2e", { infer: true }) ?? false,
+          type: "worker",
+        });
+        return service;
+      },
+      inject: [ConfigService],
+    },
+    {
+      provide: PrismaWriteService,
+      useFactory: (config: ConfigService) => {
+        const service = new PrismaWriteService();
+        service.setOptions({
+          writeUrl: config.get<string>("db.writeUrl", { infer: true }),
+          maxWriteConnections: parseInt(config.get<number>("db.workerWritePoolMax", { infer: true }), 10),
+          e2e: config.get<boolean>("e2e", { infer: true }) ?? false,
+          type: "worker",
+        });
+        return service;
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: [PrismaReadService, PrismaWriteService],
+})
+export class PrismaWorkerModule {}

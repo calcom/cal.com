@@ -1,7 +1,25 @@
+import matchers from "@testing-library/jest-dom/matchers";
 import React from "react";
-import { vi, afterEach } from "vitest";
+import ResizeObserver from "resize-observer-polyfill";
+import { vi, afterEach, expect } from "vitest";
 
 global.React = React;
+global.ResizeObserver = ResizeObserver;
+expect.extend(matchers);
+
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 
 afterEach(() => {
   vi.resetAllMocks();
@@ -18,7 +36,7 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn().mockReturnValue({
     replace: vi.fn(),
   }),
-  usePathname: vi.fn(),
+  usePathname: vi.fn().mockReturnValue("/settings/billing"),
 }));
 
 vi.mock("@calcom/app-store/BookingPageTagManager", () => ({
@@ -35,7 +53,7 @@ vi.mock("@calcom/app-store/utils", () => ({
   getEventTypeAppData: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/event", () => ({
+vi.mock("@calcom/features/eventtypes/lib/eventNaming", () => ({
   getEventName: vi.fn(),
 }));
 
@@ -43,7 +61,7 @@ vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn(),
 }));
 
-vi.mock("@calcom/features/eventtypes/components", () => ({
+vi.mock("@calcom/web/modules/event-types/components", () => ({
   EventTypeDescriptionLazy: vi.fn(),
 }));
 
@@ -56,11 +74,11 @@ vi.mock("@calcom/embed-core/embed-iframe", () => {
   };
 });
 
-vi.mock("@calcom/features/bookings/components/event-meta/Price", () => {
+vi.mock("@calcom/web/modules/bookings/components/event-meta/Price", () => {
   return {};
 });
 
-vi.mock("@calcom/features/bookings/lib/SystemField", () => {
+vi.mock("@calcom/lib/bookings/SystemField", () => {
   return {};
 });
 
@@ -90,10 +108,8 @@ vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => {
 
 vi.mock("@calcom/lib/hooks/useLocale", () => {
   return {
-    useLocale: vi.fn().mockReturnValue({
-      t: vi.fn().mockImplementation((text: string) => {
-        return text;
-      }),
+    useLocale: () => ({
+      t: (text: string) => text,
       i18n: {
         language: "en",
       },
@@ -128,10 +144,13 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   EventTypeMetaDataSchema: {
     parse: vi.fn(),
   },
-  eventTypeMetaDataSchemaWithTypedApps: {
+  bookingMetadataSchema: {
     parse: vi.fn(),
   },
-  bookingMetadataSchema: {
+}));
+
+vi.mock("@calcom/app-store/zod-utils", () => ({
+  eventTypeMetaDataSchemaWithTypedApps: {
     parse: vi.fn(),
   },
 }));
@@ -165,6 +184,7 @@ vi.mock("@calcom/ui/components/unpublished-entity", () => ({
 
 vi.mock("@calcom/ui/components/avatar", () => ({
   UserAvatar: vi.fn(),
+  Avatar: () => null,
 }));
 
 vi.mock("@calcom/web/components/PageWrapper", () => ({

@@ -11,6 +11,7 @@ import {
   getBooking,
   deleteAllBookingsByEmail,
   rescheduleEvent,
+  cancelBookingThroughEmbed,
 } from "../lib/testUtils";
 
 // in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
@@ -103,6 +104,34 @@ test.describe("Popup Tests", () => {
   });
 
   todo("Add snapshot test for embed iframe");
+
+  test("should be able to cancel booking through embed iframe", async ({
+    page,
+    embeds: { addEmbedListeners, getActionFiredDetails },
+  }) => {
+    const booking = await test.step("Create a booking", async () => {
+      return await bookFirstFreeUserEventThroughEmbed({
+        page,
+        addEmbedListeners,
+        getActionFiredDetails,
+      });
+    });
+
+    await test.step("Cancel the booking through embed", async () => {
+      const calNamespace = "popupCancelBooking";
+      await addEmbedListeners(calNamespace);
+      await page.goto(`/?popupCancelUid=${booking.uid}`);
+      await page.click(`[data-cal-namespace="${calNamespace}"]`);
+      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: `/booking/${booking.uid}` });
+      if (!embedIframe) {
+        throw new Error("Embed iframe not found");
+      }
+      await cancelBookingThroughEmbed(booking.uid, embedIframe, page);
+    });
+
+    const cancelledBooking = await getBooking(booking.uid);
+    expect(cancelledBooking.status).toBe("CANCELLED");
+  });
 
   test("should open Routing Forms embed on click", async ({
     page,
@@ -285,12 +314,44 @@ test.describe("Popup Tests", () => {
 
     await embeds.gotoPlayground({ calNamespace, url: "/" });
 
-    await page.click(`[data-cal-namespace="${calNamespace}"]`);
+    await test.step("First modal open - verify UI config is applied", async () => {
+      await page.click(`[data-cal-namespace="${calNamespace}"]`);
 
-    const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free/30min" });
+      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free/30min" });
 
-    await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
-      pathname: "/free/30min",
+      await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+        pathname: "/free/30min",
+      });
+
+      if (!embedIframe) {
+        throw new Error("Embed iframe not found");
+      }
+
+      // Verify that event type details are hidden (hideEventTypeDetails: true was set via ui() call)
+      await expect(embedIframe.locator('[data-testid="event-meta"]')).toBeHidden();
+    });
+
+    await test.step("Close the modal", async () => {
+      await page.locator("cal-modal-box .close").click();
+      await expect(page.locator("cal-modal-box")).toBeHidden();
+    });
+
+    await test.step("Second modal open - verify UI config persists", async () => {
+      await page.click(`[data-cal-namespace="${calNamespace}"]`);
+
+      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/free/30min" });
+
+      await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+        pathname: "/free/30min",
+      });
+
+      if (!embedIframe) {
+        throw new Error("Embed iframe not found");
+      }
+
+      // Verify that event type details are STILL hidden on second open
+      // This tests that UI config persists across modal reopens (the bug was that iframeDoQueue was being cleared completely)
+      await expect(embedIframe.locator('[data-testid="event-meta"]')).toBeHidden();
     });
   });
 });

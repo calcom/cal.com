@@ -15,7 +15,7 @@ import App from "@components/apps/App";
 function SingleAppPage(props: AppDataProps) {
   const { error, setQuery: setError } = useRouterQuery("error");
   const { t } = useLocale();
-  if (error === "account_already_linked") {
+  if (error === "account_already_linked" || error === "no_default_calendar") {
     showToast(t(error), "error", { id: error });
     setError(undefined);
   }
@@ -66,7 +66,8 @@ function SingleAppPage(props: AppDataProps) {
       //   privacy="https://zoom.us/privacy"
       body={
         <>
-          {/* eslint-disable-next-line react/no-danger */}
+          { }
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
           <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(source.content) }} />
         </>
       }

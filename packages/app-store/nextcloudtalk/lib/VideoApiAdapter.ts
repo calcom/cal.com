@@ -1,10 +1,11 @@
-import { stringify } from "querystring";
+import { stringify } from "node:querystring";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -102,7 +103,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
             id: credential.id,
           },
           data: {
-            key: newTokenObject,
+            key: newTokenObject as unknown as Prisma.InputJsonValue,
           },
         });
       },

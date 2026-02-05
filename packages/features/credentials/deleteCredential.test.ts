@@ -1,16 +1,16 @@
 import {
   addEventTypesToDb,
   mockNoTranslations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { AppRepository } from "@calcom/lib/server/repository/app";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { PrismaAppRepository } from "@calcom/features/apps/repository/PrismaAppRepository";
+import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { prisma } from "@calcom/prisma";
 
 const testUser = {
   email: "test@test.com",
@@ -56,7 +56,7 @@ describe("deleteCredential", () => {
         },
       ]);
 
-      await AppRepository.seedApp("zoomvideo");
+      await PrismaAppRepository.seedApp("zoomvideo");
 
       await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
@@ -87,7 +87,7 @@ describe("deleteCredential", () => {
         },
       ]);
 
-      await AppRepository.seedApp("googlecalendar");
+      await PrismaAppRepository.seedApp("googlecalendar");
 
       const credential = await setupCredential({
         userId: user.id,

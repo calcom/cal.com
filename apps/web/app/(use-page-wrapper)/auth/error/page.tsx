@@ -3,7 +3,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import Link from "next/link";
 import { z } from "zod";
 
-import { IdentityProvider } from "@calcom/prisma/client";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -47,6 +47,10 @@ const ServerPage = async ({ searchParams }: PageProps) => {
           ? "SAML (like Okta)"
           : "your original login method";
       return t("account_managed_by_identity_provider_error", { provider: providerName });
+    } else if (error === "saml-idp-not-authoritative") {
+      return t("saml_idp_not_authoritative_error");
+    } else if (error === "unverified-email") {
+      return t("unverified_email_oauth_error");
     }
     return t("error_during_login") + (error ? ` Error code: ${error}` : "");
   };

@@ -1,12 +1,12 @@
 import React, { Suspense } from "react";
 
+import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
@@ -69,7 +69,7 @@ export const PaymentForm = ({
                     aria-modal="true"
                     aria-labelledby="modal-headline">
                     <div>
-                      <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+                      <div className="bg-cal-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
                         <PayIcon currency={paymentAppData.currency} className="h-8 w-8 text-green-600" />
                       </div>
                       <div className="mt-3 text-center sm:mt-5">

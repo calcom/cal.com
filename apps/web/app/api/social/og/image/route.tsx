@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z, ZodError } from "zod";
 
-import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { Meeting, App, Generic, getOGImageVersion } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 export const runtime = "edge";
@@ -22,6 +22,7 @@ const appSchema = z.object({
   name: z.string(),
   description: z.string(),
   slug: z.string(),
+  logoUrl: z.string(),
 });
 
 const genericSchema = z.object({
@@ -35,20 +36,31 @@ async function handler(req: NextRequest) {
   const imageType = searchParams.get("type");
 
   try {
-    const [calFontData, interFontData, interFontMediumData] = await Promise.all([
+    const fontResults = await Promise.allSettled([
       fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
       fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
       fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
     ]);
+
+    const fonts: SatoriOptions["fonts"] = [];
+
+    if (fontResults[1].status === "fulfilled") {
+      fonts.push({ name: "inter", data: fontResults[1].value, weight: 400 });
+    }
+
+    if (fontResults[2].status === "fulfilled") {
+      fonts.push({ name: "inter", data: fontResults[2].value, weight: 500 });
+    }
+
+    if (fontResults[0].status === "fulfilled") {
+      fonts.push({ name: "cal", data: fontResults[0].value, weight: 400 });
+      fonts.push({ name: "cal", data: fontResults[0].value, weight: 600 });
+    }
+
     const ogConfig = {
       width: 1200,
       height: 630,
-      fonts: [
-        { name: "inter", data: interFontData, weight: 400 },
-        { name: "inter", data: interFontMediumData, weight: 500 },
-        { name: "cal", data: calFontData, weight: 400 },
-        { name: "cal", data: calFontData, weight: 600 },
-      ] as SatoriOptions["fonts"],
+      fonts,
     };
 
     switch (imageType) {
@@ -63,6 +75,7 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          const etag = await getOGImageVersion("meeting");
           const img = new ImageResponse(
             (
               <Meeting
@@ -76,7 +89,12 @@ async function handler(req: NextRequest) {
 
           return new Response(img.body, {
             status: 200,
-            headers: { "Content-Type": "image/png", "cache-control": "max-age=0" },
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+              ETag: `"${etag}"`,
+            },
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -97,15 +115,34 @@ async function handler(req: NextRequest) {
       }
       case "app": {
         try {
-          const { name, description, slug } = appSchema.parse({
+          const { name, description, slug, logoUrl } = appSchema.parse({
             name: searchParams.get("name"),
             description: searchParams.get("description"),
             slug: searchParams.get("slug"),
+            logoUrl: searchParams.get("logoUrl"),
             imageType,
           });
-          const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
 
-          return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
+          // Get SVG hash for the app
+          const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
+          const SVG_HASHES = svgHashesModule.default ?? {};
+          const svgHash = SVG_HASHES[slug] ?? undefined;
+
+          const etag = await getOGImageVersion("app", { svgHash });
+          const img = new ImageResponse(
+            <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
+            ogConfig
+          );
+
+          return new Response(img.body, {
+            status: 200,
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+              ETag: `"${etag}"`,
+            },
+          });
         } catch (error) {
           if (error instanceof ZodError) {
             return new Response(
@@ -131,9 +168,18 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          const etag = await getOGImageVersion("generic");
           const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
-          return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
+          return new Response(img.body, {
+            status: 200,
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+              ETag: `"${etag}"`,
+            },
+          });
         } catch (error) {
           if (error instanceof ZodError) {
             return new Response(
@@ -152,9 +198,9 @@ async function handler(req: NextRequest) {
       }
 
       default:
-        return new Response("What you're looking for is not here..", { status: 404 });
+        return new Response("Wrong image type", { status: 404 });
     }
-  } catch (error) {
+  } catch {
     return new Response("Internal server error", { status: 500 });
   }
 }

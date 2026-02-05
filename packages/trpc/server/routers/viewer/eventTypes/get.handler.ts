@@ -1,4 +1,5 @@
-import getEventTypeById from "@calcom/lib/event-types/getEventTypeById";
+// Cache bust: added redirectUrlOnNoRoutingFormResponse to eventType
+import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -20,5 +21,6 @@ export const getHandler = ({ ctx, input }: GetOptions) => {
     prisma: ctx.prisma,
     isTrpcCall: true,
     isUserOrganizationAdmin: !!ctx.user?.organization?.isOrgAdmin,
+    userLocale: ctx.user.locale,
   });
 };

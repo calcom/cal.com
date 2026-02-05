@@ -1,9 +1,13 @@
 import { z } from "zod";
 
-export const ZUpdateMembershipInputSchema = z.object({
+export type TUpdateMembershipInputSchema = {
+  teamId: number;
+  memberId: number;
+  disableImpersonation: boolean;
+};
+
+export const ZUpdateMembershipInputSchema: z.ZodType<TUpdateMembershipInputSchema> = z.object({
   teamId: z.number(),
   memberId: z.number(),
   disableImpersonation: z.boolean(),
 });
-
-export type TUpdateMembershipInputSchema = z.infer<typeof ZUpdateMembershipInputSchema>;

@@ -80,8 +80,8 @@ vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/event-types/getEventTypesByViewer", () => ({}));
-vi.mock("@calcom/lib/event-types/getEventTypesPublic", () => ({}));
+vi.mock("@calcom/features/eventtypes/lib/getEventTypesByViewer", () => ({}));
+vi.mock("@calcom/features/eventtypes/lib/getEventTypesPublic", () => ({}));
 vi.mock("@calcom/ui/classNames", () => ({
   default: (...args: string[]) => {
     return args.filter(Boolean).join(" ");
@@ -103,6 +103,20 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
+
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
 
 expect.extend(matchers);
 

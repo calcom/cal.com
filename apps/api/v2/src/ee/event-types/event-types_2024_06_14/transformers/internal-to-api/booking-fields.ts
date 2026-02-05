@@ -318,7 +318,7 @@ const CustomFieldsSchema = z.object({
       id: z.literal("user"),
       type: z.literal("user"),
       label: z.literal("User"),
-      fieldRequired: z.literal(true),
+      fieldRequired: z.boolean().optional(),
     })
   ),
   editable: z.enum(["user", "user-readonly"]),
@@ -520,6 +520,7 @@ export const systemBeforeFieldName: NameSystemField = {
             name: "fullName",
             type: "text",
             required: true,
+            label: "your_name",
           },
         ],
       },
@@ -555,7 +556,7 @@ export const systemBeforeFieldEmail: EmailSystemField = {
   type: "email",
   name: "email",
   required: true,
-  editable: "system",
+  editable: "system-but-optional",
   sources: [
     {
       label: "Default",

@@ -1,13 +1,14 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma, Team } from "@prisma/client";
+
+import type { Prisma, Team } from "@calcom/prisma/client";
 
 export class TeamRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
-  constructor(private readonly module: TestingModule) {
+  constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
@@ -30,6 +31,32 @@ export class TeamRepositoryFixture {
         parentId: organizationId,
         createdByOAuthClientId: oAuthClientId,
       },
+    });
+  }
+
+  async createOrgSettings(
+    organizationId: number,
+    settings: {
+      orgAutoAcceptEmail: string;
+      isOrganizationVerified?: boolean;
+      isOrganizationConfigured?: boolean;
+      isAdminAPIEnabled?: boolean;
+    }
+  ) {
+    return this.prismaWriteClient.organizationSettings.create({
+      data: {
+        organizationId,
+        orgAutoAcceptEmail: settings.orgAutoAcceptEmail,
+        isOrganizationVerified: settings.isOrganizationVerified,
+        isOrganizationConfigured: settings.isOrganizationConfigured,
+        isAdminAPIEnabled: settings.isAdminAPIEnabled,
+      },
+    });
+  }
+
+  async deleteOrgSettings(organizationId: number) {
+    return this.prismaWriteClient.organizationSettings.deleteMany({
+      where: { organizationId },
     });
   }
 }

@@ -1,5 +1,8 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
-import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -7,6 +10,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { checkIfOrgNeedsUpgradeHandler } from "../organizations/checkIfOrgNeedsUpgrade.handler";
 import { getUpgradeableHandler } from "../teams/getUpgradeable.handler";
 import { checkInvalidAppCredentials } from "./checkForInvalidAppCredentials";
+import { getDueInvoiceBannerDataHandler } from "./getDueInvoiceBannerData.handler";
 import { shouldVerifyEmailHandler } from "./shouldVerifyEmail.handler";
 
 type Props = {
@@ -42,6 +46,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   const shouldEmailVerify = shouldVerifyEmailHandler({ ctx });
   // const isInvalidCalendarCredential = checkInvalidGoogleCalendarCredentials({ ctx });
   const appsWithInavlidCredentials = checkInvalidAppCredentials({ ctx });
+  const dueInvoiceBannerData = getDueInvoiceBannerDataHandler({ ctx });
 
   const [
     teamUpgradeBanner,
@@ -49,12 +54,14 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     verifyEmailBanner,
     // calendarCredentialBanner,
     invalidAppCredentialBanners,
+    dueInvoiceBanner,
   ] = await Promise.allSettled([
     upgradeableTeamMememberships,
     upgradeableOrgMememberships,
     shouldEmailVerify,
     // isInvalidCalendarCredential,
     appsWithInavlidCredentials,
+    dueInvoiceBannerData,
   ]);
 
   return {
@@ -64,5 +71,6 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
     calendarCredentialBanner: false,
     invalidAppCredentialBanners:
       invalidAppCredentialBanners.status === "fulfilled" ? invalidAppCredentialBanners.value : [],
+    dueInvoiceBanner: dueInvoiceBanner.status === "fulfilled" ? dueInvoiceBanner.value : [],
   };
 };

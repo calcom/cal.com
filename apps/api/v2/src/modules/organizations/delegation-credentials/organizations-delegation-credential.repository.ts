@@ -41,4 +41,15 @@ export class OrganizationsDelegationCredentialRepository {
       },
     });
   }
+
+  async findEnabledByOrgIdAndDomain(orgId: number, domain: string) {
+    return this.dbRead.prisma.delegationCredential.findFirst({
+      where: {
+        organizationId: orgId,
+        domain,
+        enabled: true,
+      },
+      select: { id: true },
+    });
+  }
 }

@@ -42,3 +42,8 @@ lerna-debug.log*
 .env.*
 !.env.example
 !.env.appStore.example
+/client/*
+/generated/prisma/*
+
+# Generated secrets file
+.generated-secrets

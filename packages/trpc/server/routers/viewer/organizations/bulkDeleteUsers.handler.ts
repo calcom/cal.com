@@ -1,7 +1,10 @@
-import { TeamBilling } from "@calcom/ee/billing/teams";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -21,23 +24,55 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
 
   if (!currentUserOrgId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUserOrgId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  // Get user's membership role in the organization
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: currentUser.id,
+      teamId: currentUserOrgId,
+    },
+    select: {
+      role: true,
+    },
+  });
 
-  // Loop over all users in input.userIds and remove all memberships for the organization including child teams
-  const deleteMany = prisma.membership.deleteMany({
+  if (!membership) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not a member of this organization." });
+  }
+
+  // Check PBAC permissions for removing organization members
+  const permissions = await getSpecificPermissions({
+    userId: currentUser.id,
+    teamId: currentUserOrgId,
+    resource: Resource.Organization,
+    userRole: membership.role,
+    actions: [CustomAction.Remove],
+    fallbackRoles: {
+      [CustomAction.Remove]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!permissions[CustomAction.Remove]) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  const deleteOrganizationMemberships = prisma.membership.deleteMany({
+    where: {
+      teamId: currentUserOrgId,
+      userId: {
+        in: input.userIds,
+      },
+    },
+  });
+
+  const deleteSubteamMemberships = prisma.membership.deleteMany({
     where: {
       userId: {
         in: input.userIds,
       },
       team: {
-        OR: [
-          {
-            parentId: currentUserOrgId,
-          },
-          { id: currentUserOrgId },
-        ],
+        parentId: currentUserOrgId,
       },
     },
   });
@@ -99,16 +134,27 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
 
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
-  await prisma.$transaction([
+  const [, { count: orgMembershipRemovalCount }] = await prisma.$transaction([
     removeProfiles,
-    deleteMany,
+    deleteOrganizationMemberships,
+    deleteSubteamMemberships,
     removeOrgrelation,
     removeManagedEventTypes,
     removeHostAssignment,
   ]);
 
-  const teamBilling = await TeamBilling.findAndInit(currentUserOrgId);
-  await teamBilling.updateQuantity();
+  if (orgMembershipRemovalCount > 0) {
+    const seatTracker = new SeatChangeTrackingService();
+    await seatTracker.logSeatRemoval({
+      teamId: currentUserOrgId,
+      seatCount: orgMembershipRemovalCount,
+      triggeredBy: currentUser.id,
+    });
+  }
+
+  const teamBillingServiceFactory = getTeamBillingServiceFactory();
+  const teamBillingService = await teamBillingServiceFactory.findAndInit(currentUserOrgId);
+  await teamBillingService.updateQuantity();
 
   return {
     success: true,

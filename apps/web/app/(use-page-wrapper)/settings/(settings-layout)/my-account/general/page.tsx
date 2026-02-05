@@ -1,10 +1,15 @@
+import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-import { revalidatePath } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+import { getTravelSchedule } from "@calcom/web/app/cache/travelSchedule";
 
-import GeneralQueryView from "~/settings/my-account/general-view";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+import GeneralView from "~/settings/my-account/general-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -16,17 +21,20 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-  const revalidatePage = async () => {
-    "use server";
-    revalidatePath("settings/my-account/general");
-  };
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const userId = session?.user?.id;
+  const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/general";
 
-  return (
-    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <GeneralQueryView revalidatePage={revalidatePage} />
-    </SettingsHeader>
-  );
+  if (!userId) {
+    return redirect(redirectUrl);
+  }
+
+  const meCaller = await createRouterCaller(meRouter);
+  const [user, travelSchedules] = await Promise.all([meCaller.get(), getTravelSchedule(userId)]);
+  if (!user) {
+    redirect(redirectUrl);
+  }
+  return <GeneralView user={user} travelSchedules={travelSchedules ?? []} />;
 };
 
 export default Page;

@@ -5,8 +5,9 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["*"],
-      "@prisma/client/*": ["@calcom/prisma/client/*"]
+      "~/*": ["./*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/testing/*": ["../../../packages/testing/src/*"]
     },
     "experimentalDecorators": true
   },
@@ -16,7 +17,8 @@
     "**/*.ts",
     "**/*.tsx",
     "../../../packages/types/*.d.ts",
-    "../../../packages/types/next-auth.d.ts"
+    "../../../packages/types/next-auth.d.ts",
+    "trigger.version.js"
   ],
   "exclude": ["**/node_modules/**", "templates", "auth"]
 }

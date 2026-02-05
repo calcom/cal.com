@@ -1,22 +1,21 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useTranslation } from "react-i18next";
+import posthog from "posthog-js";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
-import type { CredentialOwner } from "../types";
+import type { AppCardApp } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
   app,
-  description,
   switchOnClick,
   switchChecked,
   children,
@@ -26,10 +25,10 @@ export default function AppCard({
   switchTooltip,
   hideSettingsIcon = false,
   hideAppCardOptions = false,
+  onAppInstallSuccess,
 }: {
-  app: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
-    credentialOwner?: CredentialOwner;
-  };
+  app: AppCardApp;
+  onAppInstallSuccess: () => void;
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
@@ -42,7 +41,7 @@ export default function AppCard({
   hideSettingsIcon?: boolean;
   hideAppCardOptions?: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
   const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
   const isPlatform = useIsPlatform();
@@ -98,6 +97,10 @@ export default function AppCard({
                   size="sm"
                   disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
+                    posthog.capture("event_type_app_switch_toggled", {
+                      app_slug: app.slug,
+                      enabled: enabled,
+                    });
                     if (switchOnClick) {
                       switchOnClick(enabled);
                     }
@@ -113,8 +116,10 @@ export default function AppCard({
               <OmniInstallAppButton
                 className="ml-auto flex items-center"
                 appId={app.slug}
+                app={app}
                 returnTo={returnTo}
                 teamId={teamId}
+                onAppInstallSuccess={onAppInstallSuccess}
               />
             )}
           </div>
@@ -123,27 +128,27 @@ export default function AppCard({
       {hideAppCardOptions
         ? null
         : app?.isInstalled &&
-          switchChecked && (
-            <div ref={animationRef}>
-              {app.isSetupAlready === undefined || app.isSetupAlready ? (
-                <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
-                  {!hideSettingsIcon && !isPlatform && (
-                    <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                    </Link>
-                  )}
-                  {children}
-                </div>
-              ) : (
-                <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
-                  <p>{t("this_app_is_not_setup_already")}</p>
-                  <Link href={`/apps/${app.slug}/setup`}>
-                    <Button StartIcon="settings">{t("setup")}</Button>
+        switchChecked && (
+          <div ref={animationRef}>
+            {app.isSetupAlready === undefined || app.isSetupAlready ? (
+              <div className="relative text-sm [&_input]:mb-0 [&_input]:leading-4">
+                {!hideSettingsIcon && !isPlatform && (
+                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-0 top-0 ">
+                    <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
                   </Link>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+                {children}
+              </div>
+            ) : (
+              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
+                <p>{t("this_app_is_not_setup_already")}</p>
+                <Link href={`/apps/${app.slug}/setup`}>
+                  <Button StartIcon="settings">{t("setup")}</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
     </Section>
   );
 }

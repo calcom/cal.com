@@ -1,12 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
 
-import { buildDryRunBooking } from "../../handleNewBooking";
+import { buildDryRunBooking } from "../../service/RegularBookingService";
+
+vi.mock("@calcom/prisma", () => ({
+  default: {}, // empty object as default export
+  prisma: {},
+}));
 
 describe("buildDryRunBooking", () => {
   const baseOrganizerUser = {
     id: 1,
+    uuid: "test-uuid-123",
     name: "Test User",
     username: "testuser",
     email: "testuser@example.com",
@@ -36,10 +42,12 @@ describe("buildDryRunBooking", () => {
     const { user, ...bookingExceptUser } = booking;
     expect(user).toEqual({
       id: baseOrganizerUser.id,
+      uuid: baseOrganizerUser.uuid,
       name: baseOrganizerUser.name,
       username: baseOrganizerUser.username,
       email: baseOrganizerUser.email,
       timeZone: baseOrganizerUser.timeZone,
+      isPlatformManaged: false,
     });
 
     expect(bookingExceptUser).toEqual({
@@ -49,6 +57,7 @@ describe("buildDryRunBooking", () => {
       status: BookingStatus.ACCEPTED,
       eventTypeId: baseInputs.eventTypeId,
       userId: baseOrganizerUser.id,
+      userUuid: baseOrganizerUser.uuid,
       title: baseInputs.eventName,
       startTime: new Date(baseInputs.startTime),
       endTime: new Date(baseInputs.endTime),
