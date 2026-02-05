@@ -264,7 +264,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
         isWithinMinimumNotice
       );
     case "cancel":
-      if (isHost && !isBookingInPast) return false;
+      if (isHost && !isBookingInPast && !isCancelled && !isRejected) return false;
       return isDisabledCancelling || isBookingInPast || isCancelled || isRejected;
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);

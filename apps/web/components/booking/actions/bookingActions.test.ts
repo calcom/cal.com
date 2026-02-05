@@ -602,6 +602,28 @@ describe("Booking Actions", () => {
       expect(isActionDisabled("cancel", context)).toBe(false);
     });
 
+    it("should not allow hosts to cancel already cancelled bookings", () => {
+      const context = createMockContext({
+        isHost: true,
+        isDisabledCancelling: true,
+        isBookingInPast: false,
+        isCancelled: true,
+      });
+
+      expect(isActionDisabled("cancel", context)).toBe(true);
+    });
+
+    it("should not allow hosts to cancel rejected bookings", () => {
+      const context = createMockContext({
+        isHost: true,
+        isDisabledCancelling: true,
+        isBookingInPast: false,
+        isRejected: true,
+      });
+
+      expect(isActionDisabled("cancel", context)).toBe(true);
+    });
+
     it("should disable video actions for non-past bookings", () => {
       const context = createMockContext({ isBookingInPast: false });
 
