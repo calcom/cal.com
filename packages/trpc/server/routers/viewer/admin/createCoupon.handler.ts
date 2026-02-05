@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateCouponSchema } from "./createCoupon.schema";
 
@@ -53,12 +55,11 @@ const createCoupon = async ({ input, ctx }: CreateCouponOptions) => {
   const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!privateApiUrl || !signatureToken) {
-    throw new Error("Private Api route does not exist in .env");
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Private API route is not configured" });
   }
 
   if (ctx.user.role !== "ADMIN") {
-    console.warn(`${ctx.user.username} just tried to create a coupon without permission`);
-    throw new Error("You do not have permission to do this.");
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have permission to do this" });
   }
 
   const request = await fetchWithSignature(`${privateApiUrl}/v1/license/coupon`, input, signatureToken, {
@@ -68,7 +69,7 @@ const createCoupon = async ({ input, ctx }: CreateCouponOptions) => {
   const data = await request.json();
 
   if (!request.ok) {
-    throw new Error(data.message ?? "Failed to create coupon");
+    throw new TRPCError({ code: "BAD_REQUEST", message: data.message ?? "Failed to create coupon" });
   }
 
   const schema = z.object({
