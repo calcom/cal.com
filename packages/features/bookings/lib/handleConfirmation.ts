@@ -153,7 +153,8 @@ export async function handleConfirmation(args: {
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
           eventTypeMetadata,
-          args.curAttendee
+          args.curAttendee,
+          true
         );
       }
     } catch (error) {
