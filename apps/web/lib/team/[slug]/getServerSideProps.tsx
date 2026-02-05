@@ -166,20 +166,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const minimalEventTypes =
     team.eventTypes?.map((type) => ({
+      // Fields from baseEventTypeSelect (except description which becomes descriptionAsSafeHTML)
       id: type.id,
       title: type.title,
       slug: type.slug,
       length: type.length,
       schedulingType: type.schedulingType,
       recurringEvent: type.recurringEvent,
-      metadata: type.metadata,
-      requiresConfirmation: type.requiresConfirmation,
-      seatsPerTimeSlot: type.seatsPerTimeSlot,
+      hidden: type.hidden,
       price: type.price,
       currency: type.currency,
-      hidden: type.hidden,
       lockTimeZoneToggleOnBookingPage: type.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: type.lockedTimeZone,
+      requiresConfirmation: type.requiresConfirmation,
       requiresBookerEmailVerification: type.requiresBookerEmailVerification,
+      canSendCalVideoTranscriptionEmails: type.canSendCalVideoTranscriptionEmails,
+      seatsPerTimeSlot: type.seatsPerTimeSlot,
+      // Additional fields needed by EventTypeDescription
+      metadata: type.metadata,
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
       users: !isTeamOrParentOrgPrivate
         ? type.users.map((user) => ({
@@ -196,8 +200,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                 ? {
                     id: user.profile.organization.id,
                     slug: user.profile.organization.slug,
+                    name: user.profile.organization.name,
                     requestedSlug: user.profile.organization.requestedSlug,
-                    logoUrl: user.profile.organization.logoUrl,
+                    calVideoLogo: user.profile.organization.calVideoLogo,
+                    bannerUrl: user.profile.organization.bannerUrl,
                   }
                 : null,
             },
@@ -214,6 +220,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         username: member.username,
         avatarUrl: member.avatarUrl,
         bio: member.bio,
+        organizationId: member.organizationId,
         subteams: member.subteams,
         accepted: member.accepted,
         profile: {
@@ -224,8 +231,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             ? {
                 id: member.profile.organization.id,
                 slug: member.profile.organization.slug,
+                name: member.profile.organization.name,
                 requestedSlug: member.profile.organization.requestedSlug,
-                logoUrl: member.profile.organization.logoUrl,
+                calVideoLogo: member.profile.organization.calVideoLogo,
+                bannerUrl: member.profile.organization.bannerUrl,
               }
             : null,
         },
