@@ -6,8 +6,6 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
-  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-
   const session = await getServerSession({ req });
   req.userId = session?.user?.id || -1;
   req.body.creationSource = CreationSource.WEBAPP;

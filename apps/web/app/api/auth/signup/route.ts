@@ -38,8 +38,6 @@ async function handler(req: NextRequest) {
   const remoteIp = getIP(req);
   // Use a try catch instead of returning res every time
   try {
-    // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-
     const body = await parseRequestData(req);
     const query = Object.fromEntries(req.nextUrl.searchParams.entries());
     await checkCfTurnstileToken({

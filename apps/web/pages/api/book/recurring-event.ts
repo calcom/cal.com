@@ -33,7 +33,6 @@ async function handler(req: NextApiRequest & RequestMeta) {
     });
   }
 
-  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 

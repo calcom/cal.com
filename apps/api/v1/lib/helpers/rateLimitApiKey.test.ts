@@ -10,10 +10,6 @@ type CustomNextApiResponse = NextApiResponse & Response;
 
 const testUserId = 123;
 
-// Rate limiting for API v1 has been removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-// These tests verify the middleware still performs basic validation (userId and apiKey presence)
-// but no longer performs rate limiting
-
 describe("rateLimitApiKey middleware", () => {
   it("should return 401 if no userId is provided", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({

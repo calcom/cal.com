@@ -32,8 +32,6 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
     headers: req.headers,
   });
 
-  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
   req.body = {

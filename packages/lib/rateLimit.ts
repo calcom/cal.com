@@ -7,14 +7,8 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
 export { type RatelimitResponse };
 
-// Rate limiting types that are now handled by Cloudflare Enterprise Advanced Rate Limiting:
-// - "instantMeeting" (IP-based): instant meeting creation
-// - "api" (userId-based): API v1 requests
-// - "common" (IP-based): global proxy rate limiting
-// These have been removed from Unkey and should be configured in Cloudflare instead.
-
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "forcedSlowMode" | "ai" | "sms" | "smsMonth";
+  rateLimitingType?: "core" | "forcedSlowMode" | "common" | "ai" | "sms" | "smsMonth";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -65,6 +59,14 @@ export function rateLimiter() {
       namespace: "forcedSlowMode",
       limit: 1,
       duration: "30s",
+      timeout,
+      onError,
+    }),
+    common: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "common",
+      limit: 200,
+      duration: "60s",
       timeout,
       onError,
     }),

@@ -15,8 +15,6 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "email is required" }, { status: 400 });
   }
 
-  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-
   try {
     const user = await prisma.user.findUnique({
       where: { email: email.data },

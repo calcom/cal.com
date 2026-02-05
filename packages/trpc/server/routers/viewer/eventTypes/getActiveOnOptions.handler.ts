@@ -205,7 +205,7 @@ const fetchRoutingFormOptions = async ({
 export const getActiveOnOptions = async ({ ctx, input }: GetActiveOnOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getActiveOnOptions.handler:${ctx.user.id}`,
-    rateLimitingType: "core",
+    rateLimitingType: "common",
   });
 
   const user = ctx.user;

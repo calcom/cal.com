@@ -16,7 +16,7 @@ type GetByViewerOptions = {
 export const getByViewerHandler = async ({ ctx, input }: GetByViewerOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getByViewer:${ctx.user.id}`,
-    rateLimitingType: "core",
+    rateLimitingType: "common",
   });
   const user = ctx.user;
   const filters = input?.filters;

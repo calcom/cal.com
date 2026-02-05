@@ -132,8 +132,6 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  // Global IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-
   // const postCheckResult = checkPostMethod(req);
   // if (postCheckResult) return postCheckResult;
 

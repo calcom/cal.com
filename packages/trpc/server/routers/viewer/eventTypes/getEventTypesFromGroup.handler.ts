@@ -32,7 +32,7 @@ export const getEventTypesFromGroup = async ({
 }> => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getEventTypesFromGroup:${ctx.user.id}`,
-    rateLimitingType: "core",
+    rateLimitingType: "common",
   });
 
   const userProfile = ctx.user.profile;

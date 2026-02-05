@@ -27,8 +27,6 @@ async function handler(req: NextRequest) {
 
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-  // Rate limit: 10 booking cancellations per 60 seconds per authenticated user
-  // IP-based rate limiting for unauthenticated users is now handled by Cloudflare Enterprise Advanced Rate Limiting
   if (session?.user?.id) {
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",

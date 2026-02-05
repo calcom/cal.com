@@ -36,8 +36,6 @@ async function handler(req: NextRequest) {
   // token verified, delete the cookie / a resubmit on failure requires a new csrf token.
   cookieStore.delete("calcom.csrf_token");
 
-  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
-
   // Note: There is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options, but rate limiting provides additional protection.
   const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
