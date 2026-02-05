@@ -2,11 +2,6 @@ import { get } from "@vercel/edge-config";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
-import { HttpError } from "@calcom/lib/http-error";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
-
 import { getCspHeader, getCspNonce } from "@lib/csp";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -137,18 +132,7 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  const requestorIp = getIP(req);
-  try {
-    await checkRateLimitAndThrowError({
-      rateLimitingType: "common",
-      identifier: piiHasher.hash(`${req.nextUrl.pathname}-${requestorIp}`),
-    });
-  } catch (error) {
-    if (error instanceof HttpError) {
-      return new NextResponse(error.message, { status: error.statusCode });
-    }
-    throw error;
-  }
+  // Global IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
 
   // const postCheckResult = checkPostMethod(req);
   // if (postCheckResult) return postCheckResult;

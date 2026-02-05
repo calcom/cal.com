@@ -5,9 +5,7 @@ import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBo
 import { BotDetectionService } from "@calcom/features/bot-detection";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import type { TraceContext } from "@calcom/lib/tracing";
@@ -34,10 +32,7 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
     headers: req.headers,
   });
 
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: `createBooking:${piiHasher.hash(userIp)}`,
-  });
+  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
 
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */

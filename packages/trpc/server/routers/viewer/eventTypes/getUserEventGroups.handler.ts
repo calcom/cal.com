@@ -25,7 +25,7 @@ type GetByViewerOptions = {
 export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getUserProfiles:${ctx.user.id}`,
-    rateLimitingType: "common",
+    rateLimitingType: "core",
   });
 
   const user = ctx.user;

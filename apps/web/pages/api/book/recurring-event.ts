@@ -2,9 +2,7 @@ import type { NextApiRequest } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import type { BookingResponse } from "@calcom/features/bookings/types";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
@@ -35,10 +33,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
     });
   }
 
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: `createRecurringBooking:${piiHasher.hash(userIp)}`,
-  });
+  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 

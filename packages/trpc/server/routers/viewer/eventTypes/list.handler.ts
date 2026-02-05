@@ -12,7 +12,7 @@ type ListOptions = {
 export const listHandler = async ({ ctx }: ListOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:list:${ctx.user.id}`,
-    rateLimitingType: "common",
+    rateLimitingType: "core",
   });
   return await prisma.eventType.findMany({
     where: {

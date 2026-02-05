@@ -6,8 +6,6 @@ import type { NextRequest } from "next/server";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { bookingCancelWithCsrfSchema } from "@calcom/prisma/zod-utils";
 import { validateCsrfToken } from "@calcom/web/lib/validateCsrfToken";
 
@@ -29,14 +27,14 @@ async function handler(req: NextRequest) {
 
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
-  // Rate limit: 10 booking cancellations per 60 seconds per user (or IP if not authenticated)
-  const identifier = session?.user?.id
-    ? `api:cancel-user:${session.user.id}`
-    : `api:cancel-ip:${piiHasher.hash(getIP(req))}`;
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier,
-  });
+  // Rate limit: 10 booking cancellations per 60 seconds per authenticated user
+  // IP-based rate limiting for unauthenticated users is now handled by Cloudflare Enterprise Advanced Rate Limiting
+  if (session?.user?.id) {
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: `api:cancel-user:${session.user.id}`,
+    });
+  }
 
   const result = await handleCancelBooking({
     bookingData,

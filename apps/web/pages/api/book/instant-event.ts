@@ -2,19 +2,11 @@ import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getInstantBookingCreateService } from "@calcom/features/bookings/di/InstantBookingCreateService.container";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
-  const userIp = getIP(req);
-
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "instantMeeting",
-    identifier: `instant.event-${piiHasher.hash(userIp)}`,
-  });
+  // IP-based rate limiting removed - now handled by Cloudflare Enterprise Advanced Rate Limiting
 
   const session = await getServerSession({ req });
   req.userId = session?.user?.id || -1;

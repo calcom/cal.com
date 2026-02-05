@@ -7,16 +7,14 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 
 export { type RatelimitResponse };
 
+// Rate limiting types that are now handled by Cloudflare Enterprise Advanced Rate Limiting:
+// - "instantMeeting" (IP-based): instant meeting creation
+// - "api" (userId-based): API v1 requests
+// - "common" (IP-based): global proxy rate limiting
+// These have been removed from Unkey and should be configured in Cloudflare instead.
+
 export type RateLimitHelper = {
-  rateLimitingType?:
-    | "core"
-    | "forcedSlowMode"
-    | "common"
-    | "api"
-    | "ai"
-    | "sms"
-    | "smsMonth"
-    | "instantMeeting";
+  rateLimitingType?: "core" | "forcedSlowMode" | "ai" | "sms" | "smsMonth";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -25,8 +23,6 @@ export type RateLimitHelper = {
    **/
   onRateLimiterResponse?: (response: RatelimitResponse) => void;
 };
-
-export const API_KEY_RATE_LIMIT = 30;
 
 let warned = false;
 
@@ -64,35 +60,11 @@ export function rateLimiter() {
       timeout,
       onError,
     }),
-    instantMeeting: new Ratelimit({
-      rootKey: UNKEY_ROOT_KEY,
-      namespace: "instantMeeting",
-      limit: 1,
-      duration: "10m",
-      timeout,
-      onError,
-    }),
-    common: new Ratelimit({
-      rootKey: UNKEY_ROOT_KEY,
-      namespace: "common",
-      limit: 200,
-      duration: "60s",
-      timeout,
-      onError,
-    }),
     forcedSlowMode: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
       namespace: "forcedSlowMode",
       limit: 1,
       duration: "30s",
-      timeout,
-      onError,
-    }),
-    api: new Ratelimit({
-      rootKey: UNKEY_ROOT_KEY,
-      namespace: "api",
-      limit: API_KEY_RATE_LIMIT,
-      duration: "60s",
       timeout,
       onError,
     }),
