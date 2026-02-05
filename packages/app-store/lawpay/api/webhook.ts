@@ -3,16 +3,21 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import getRawBody from "raw-body";
 import { LawPayAPI } from "../lib/LawPayAPI";
 import { lawPayCredentialSchema } from "../types";
 
 const log = logger.getSubLogger({ prefix: ["lawpay", "webhook"] });
 
+type LawPayWebhookEvent = {
+  type?: string;
+  id?: string;
+  data: { object: Record<string, unknown> };
+};
+
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: "1mb",
-    },
+    bodyParser: false,
   },
 };
 
@@ -24,16 +29,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const signature = req.headers["x-lawpay-signature"] as string;
-    const body = JSON.stringify(req.body);
+    const rawBody = await getRawBody(req);
+    const bodyAsString = rawBody.toString();
 
+    const signature = req.headers["x-lawpay-signature"] as string;
     if (!signature) {
       log.error("Missing webhook signature");
       return res.status(400).json({ message: "Missing webhook signature" });
     }
 
-    const merchantId = req.body?.data?.object?.account_id as string;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(bodyAsString);
+    } catch {
+      log.error("Invalid webhook body: not JSON");
+      return res.status(400).json({ message: "Invalid webhook body" });
+    }
 
+    const event = parsed as LawPayWebhookEvent;
+    const merchantId =
+      event.data?.object && typeof event.data.object.account_id === "string"
+        ? event.data.object.account_id
+        : undefined;
     if (!merchantId) {
       log.error("Missing merchant ID in webhook payload");
       return res.status(400).json({ message: "Missing merchant ID" });
@@ -61,14 +78,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const credentialData = lawPayCredentialSchema.parse(credential.key);
     const api = new LawPayAPI(credentialData);
 
-    // Verify webhook signature
-    const isValid = api.verifyWebhookSignature(body, signature);
+    // Verify webhook signature using raw body (must match exactly what LawPay signed)
+    const isValid = api.verifyWebhookSignature(bodyAsString, signature);
     if (!isValid) {
       log.error("Invalid webhook signature");
       return res.status(400).json({ message: "Invalid webhook signature" });
     }
-
-    const event = req.body;
     log.info("Received webhook event", { type: event.type, id: event.id });
 
     // Process the webhook event

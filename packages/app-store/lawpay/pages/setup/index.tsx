@@ -1,4 +1,5 @@
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
+import { lawPayCredentialSchema } from "../../types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -10,14 +11,17 @@ import { useState } from "react";
 import { Toaster } from "sonner";
 
 export default function LawPaySetup() {
-  const [newApiKey, setNewApiKey] = useState("");
-  const [newMerchantId, setNewMerchantId] = useState("");
-  const [environment, setEnvironment] = useState("sandbox");
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
+  const [merchantId, setMerchantId] = useState("");
+  const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
   const router = useRouter();
   const { t } = useLocale();
   const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "lawpay" });
-  const [lawpayPaymentAppCredentials] = integrations.data?.items || [];
-  const [credentialId] = lawpayPaymentAppCredentials?.userCredentialIds || [-1];
+  const [lawpayPaymentAppCredentials] = integrations.data?.items ?? [];
+  const [credentialId] = lawpayPaymentAppCredentials?.userCredentialIds ?? [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
   const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
@@ -33,6 +37,29 @@ export default function LawPaySetup() {
     return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
+  const handleSave = () => {
+    const parsed = lawPayCredentialSchema.safeParse({
+      client_id: clientId.trim(),
+      client_secret: clientSecret.trim(),
+      public_key: publicKey.trim(),
+      secret_key: secretKey.trim(),
+      merchant_id: merchantId.trim(),
+      environment,
+    });
+    if (!parsed.success) {
+      showToast(t("all_fields_are_required"), "error");
+      return;
+    }
+    saveKeysMutation.mutate({ credentialId, key: parsed.data });
+  };
+
+  const canSave =
+    clientId.trim() &&
+    clientSecret.trim() &&
+    publicKey.trim() &&
+    secretKey.trim() &&
+    merchantId.trim();
+
   return (
     <div className="flex h-screen bg-default">
       {showContent ? (
@@ -47,7 +74,7 @@ export default function LawPaySetup() {
                 <label className="mb-2 block font-medium text-default text-sm">Environment</label>
                 <select
                   value={environment}
-                  onChange={(e) => setEnvironment(e.target.value)}
+                  onChange={(e) => setEnvironment(e.target.value as "sandbox" | "production")}
                   className="block w-full rounded-md border border-default bg-default px-3 py-2 text-default shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm">
                   <option value="sandbox">Sandbox (Testing)</option>
                   <option value="production">Production (Live)</option>
@@ -55,14 +82,47 @@ export default function LawPaySetup() {
               </div>
 
               <TextField
-                label="API Key"
+                label="Client ID"
+                type="text"
+                name="client_id"
+                id="client_id"
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                role="presentation"
+                autoComplete="off"
+              />
+
+              <TextField
+                label="Client Secret"
                 type="password"
-                name="api_key"
-                id="api_key"
-                value={newApiKey}
-                onChange={(e) => setNewApiKey(e.target.value)}
+                name="client_secret"
+                id="client_secret"
+                value={clientSecret}
+                onChange={(e) => setClientSecret(e.target.value)}
                 role="presentation"
                 autoComplete="new-password"
+              />
+
+              <TextField
+                label="Public Key"
+                type="password"
+                name="public_key"
+                id="public_key"
+                value={publicKey}
+                onChange={(e) => setPublicKey(e.target.value)}
+                role="presentation"
+                autoComplete="off"
+              />
+
+              <TextField
+                label="Secret Key (Webhook Signing)"
+                type="password"
+                name="secret_key"
+                id="secret_key"
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+                role="presentation"
+                autoComplete="off"
               />
 
               <TextField
@@ -70,29 +130,14 @@ export default function LawPaySetup() {
                 type="text"
                 name="merchant_id"
                 id="merchant_id"
-                value={newMerchantId}
-                onChange={(e) => setNewMerchantId(e.target.value)}
+                value={merchantId}
+                onChange={(e) => setMerchantId(e.target.value)}
                 role="presentation"
+                autoComplete="off"
               />
 
-              {/* Button to submit */}
               <div className="mt-5 flex flex-row justify-end">
-                <Button
-                  color="secondary"
-                  onClick={() => {
-                    if (!newApiKey || !newMerchantId) {
-                      showToast(t("all_fields_are_required"), "error");
-                      return;
-                    }
-                    saveKeysMutation.mutate({
-                      credentialId,
-                      key: {
-                        api_key: newApiKey,
-                        merchant_id: newMerchantId,
-                        environment: environment,
-                      },
-                    });
-                  }}>
+                <Button color="secondary" type="button" onClick={handleSave} disabled={!canSave}>
                   {t("save")}
                 </Button>
               </div>
@@ -140,12 +185,12 @@ export default function LawPaySetup() {
                     secure.lawpay.com
                   </a>
                 </li>
-                <li>Navigate to Settings → API Access</li>
-                <li>Generate a new API key or use an existing one</li>
-                <li>Copy your Merchant ID from the account settings</li>
+                <li>Navigate to Settings → API Access (or Developer / OAuth)</li>
+                <li>Create or use an OAuth application and copy Client ID and Client Secret</li>
+                <li>Copy your Merchant ID (account ID) from the account settings</li>
+                <li>Obtain your Public Key and Secret Key (webhook signing secret) from the dashboard</li>
                 <li>Choose your environment (Sandbox for testing, Production for live transactions)</li>
-                <li>Paste the API key and Merchant ID in the fields above</li>
-                <li>Click Save to complete the setup</li>
+                <li>Paste all values in the fields above and click Save</li>
               </ol>
 
               <p className="mt-5 inline-flex font-bold text-default">

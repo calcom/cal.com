@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import {
   convertFromSmallestToPresentableCurrencyUnit,
   convertToSmallestCurrencyUnit,
-} from "../../_utils/payments/currencyConversions";
+} from "@calcom/lib/currencyConversions";
 
 type Option = { value: string; label: string };
 
