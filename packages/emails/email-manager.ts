@@ -177,8 +177,14 @@ const _sendScheduledEmailsAndSMS = async (
   }
 
   await Promise.all(emailsToSend);
-  //return early if similar sms workflow is already set
-  if (hasRelevantSmsWorkflow) return;
+  /// return early if SMS workflow already exists OR email field is enabled
+  if (
+    hasRelevantSmsWorkflow ||
+    (Array.isArray(calEvent.bookingFields) &&
+      calEvent.bookingFields.some((field) => field.type === "email" && !field.hidden))
+  ) {
+    return;
+  }
 
   const successfullyScheduledSms = new EventSuccessfullyScheduledSMS(calEvent);
   await successfullyScheduledSms.sendSMSToAttendees();
@@ -335,8 +341,14 @@ const _sendRescheduledEmailsAndSMS = async (
     );
   }
 
-  //return early if similar sms workflow is already set
-  if (hasRelevantSmsWorkflow) return;
+  /// return early if SMS workflow already exists OR email field is enabled
+  if (
+    hasRelevantSmsWorkflow ||
+    (Array.isArray(calEvent.bookingFields) &&
+      calEvent.bookingFields.some((field) => field.type === "email" && !field.hidden))
+  ) {
+    return;
+  }
   await Promise.all(emailsToSend);
   const successfullyReScheduledSms = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSms.sendSMSToAttendees();
@@ -581,8 +593,14 @@ export const sendCancelledEmailsAndSMS = async (
       })
     );
   }
-  //return early if similar sms workflow is already set
-  if (hasRelevantSmsWorkflow) return;
+  /// return early if SMS workflow already exists OR email field is enabled
+  if (
+    hasRelevantSmsWorkflow ||
+    (Array.isArray(calEvent.bookingFields) &&
+      calEvent.bookingFields.some((field) => field.type === "email" && !field.hidden))
+  ) {
+    return;
+  }
   await Promise.all(emailsToSend);
 
   const eventCancelledSms = new EventCancelledSMS(calEvent);
