@@ -1,8 +1,9 @@
 "use client";
 
 import type { SessionContextValue } from "next-auth/react";
+import { CheckIcon, CopyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,6 +46,22 @@ import {
   SelectValue,
 } from "@coss/ui/components/select";
 import { ToggleGroup, Toggle } from "@coss/ui/components/toggle-group";
+
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [value]);
+
+  return (
+    <Button type="button" variant="ghost" size="icon-sm" onClick={handleCopy}>
+      {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
+    </Button>
+  );
+}
 
 export const CreateANewLicenseKeyForm = () => {
   const session = useSession();
@@ -306,12 +323,18 @@ const CreateANewLicenseKeyFormChild = ({
               <div className="flex flex-col gap-4">
                 <Field>
                   <FieldLabel>Checkout URL</FieldLabel>
-                  <Input disabled value={stripeCheckoutUrl} />
+                  <div className="flex w-full items-center gap-1">
+                    <Input disabled value={stripeCheckoutUrl} className="min-w-0 flex-1" />
+                    <CopyButton value={stripeCheckoutUrl} />
+                  </div>
                 </Field>
                 {couponCode && (
                   <Field>
                     <FieldLabel>Coupon Code</FieldLabel>
-                    <Input disabled value={couponCode} />
+                    <div className="flex w-full items-center gap-1">
+                      <Input disabled value={couponCode} className="min-w-0 flex-1" />
+                      <CopyButton value={couponCode} />
+                    </div>
                   </Field>
                 )}
                 <Button
@@ -539,8 +562,11 @@ function CreateCouponDialog({
                   <Input
                     type="number"
                     min={1}
-                    value={value}
-                    onChange={(event) => onChange(+event.target.value)}
+                    defaultValue={value}
+                    onChange={(event) => {
+                      const raw = event.target.value;
+                      onChange(raw === "" ? "" : +raw);
+                    }}
                     required
                   />
                 </Field>
