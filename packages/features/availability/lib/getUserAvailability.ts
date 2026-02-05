@@ -629,9 +629,7 @@ export class UserAvailabilityService {
       })) || [];
 
     if (guestBusyTimesFormatted.length > 0) {
-      log.debug(
-        `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Adding guest busy times: ${guestBusyTimesFormatted.length}`
-      );
+      log.debug(`EventType: ${eventTypeId} - Adding guest busy times: ${guestBusyTimesFormatted.length}`);
     }
 
     const detailedBusyTimesWithSource: EventBusyDetails[] = [
