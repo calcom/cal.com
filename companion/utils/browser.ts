@@ -11,6 +11,27 @@ import { Linking, Platform } from "react-native";
 import { showErrorAlert } from "./alerts";
 
 /**
+ * Handle errors from browser functions in a consistent way.
+ *
+ * @param error - The error that occurred
+ * @param functionName - Name of the function for debug logging
+ * @param fallbackMessage - Optional message to show in error alert (defaults to "link")
+ */
+const handleBrowserError = (
+  error: unknown,
+  functionName: string,
+  fallbackMessage?: string
+): void => {
+  console.error(`Failed to open link in ${functionName}`);
+  if (__DEV__) {
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.debug(`[${functionName}] failed`, { message, stack, fallbackMessage });
+  }
+  showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+};
+
+/**
  * Configuration options for in-app browser
  */
 export interface BrowserOptions {
@@ -100,13 +121,7 @@ export const openInAppBrowser = async (
 
     await WebBrowser.openBrowserAsync(processedUrl, browserOptions);
   } catch (error) {
-    console.error("Failed to open link");
-    if (__DEV__) {
-      const message = error instanceof Error ? error.message : String(error);
-      const stack = error instanceof Error ? error.stack : undefined;
-      console.debug("[openInAppBrowser] failed", { message, stack, fallbackMessage });
-    }
-    showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+    handleBrowserError(error, "openInAppBrowser", fallbackMessage);
   }
 };
 
@@ -131,19 +146,8 @@ export const openInDefaultBrowser = async (
   fallbackMessage?: string
 ): Promise<void> => {
   try {
-    const canOpen = await Linking.canOpenURL(url);
-    if (canOpen) {
-      await Linking.openURL(url);
-    } else {
-      showErrorAlert("Error", `Cannot open ${fallbackMessage || "link"}. Please try again.`);
-    }
+    await Linking.openURL(url);
   } catch (error) {
-    console.error("Failed to open link in default browser");
-    if (__DEV__) {
-      const message = error instanceof Error ? error.message : String(error);
-      const stack = error instanceof Error ? error.stack : undefined;
-      console.debug("[openInDefaultBrowser] failed", { message, stack, fallbackMessage });
-    }
-    showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+    handleBrowserError(error, "openInDefaultBrowser", fallbackMessage);
   }
 };

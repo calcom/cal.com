@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
-import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
+import { getMeetingUrl } from "@/utils/booking";
 import { openInDefaultBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
@@ -31,22 +31,6 @@ const EMPTY_ACTIONS: BookingActionsResult = {
   viewRecordings: { visible: false, enabled: false },
   meetingSessionDetails: { visible: false, enabled: false },
   markNoShow: { visible: false, enabled: false },
-};
-
-const getMeetingUrl = (booking: Booking | null): string | null => {
-  if (!booking) return null;
-
-  const videoCallUrl = booking.responses?.videoCallUrl;
-  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
-    return videoCallUrl;
-  }
-
-  const location = booking.location;
-  if (typeof location === "string" && location.startsWith("http")) {
-    return location;
-  }
-
-  return null;
 };
 
 // Type for action handlers exposed by BookingDetailScreen
