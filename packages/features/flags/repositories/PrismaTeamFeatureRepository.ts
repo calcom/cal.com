@@ -250,9 +250,6 @@ export class PrismaTeamFeatureRepository implements ITeamFeatureRepository {
     return features;
   }
 
-  /**
-   * Gets all team IDs that have a specific feature enabled.
-   */
   async getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]> {
     const result = await this.prisma.teamFeatures.findMany({
       where: {
