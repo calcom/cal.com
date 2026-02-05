@@ -12,8 +12,8 @@
   "dependencies": {
     "@calcom/config": "workspace:*",
     "@calcom/dayjs": "workspace:*",
-    "@formbricks/api": "1.7.0",
-    "@formbricks/js": "2.1.0",
+    "@formbricks/api": "3.0.0",
+    "@formbricks/js": "4.3.0",
     "@sendgrid/client": "7.7.0",
     "@unkey/ratelimit": "2.1.3",
     "@vercel/og": "0.6.3",

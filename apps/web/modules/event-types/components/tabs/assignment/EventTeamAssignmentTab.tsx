@@ -20,12 +20,12 @@ import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/e
 import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import AssignAllTeamMembers from "@calcom/web/modules/event-types/components/AssignAllTeamMembers";
-import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
-import ChildrenEventTypeSelect from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
-import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
-import WeightDescription from "@calcom/web/modules/event-types/components/WeightDescription";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";

@@ -86,6 +86,7 @@ const createMockCredential = (options?: { tokenLifetime?: number; issuedAt?: str
     appId: "test_app_id",
     invalid: false,
     delegationCredentialId: null,
+    encryptedKey: null,
   };
 };
 

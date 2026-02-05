@@ -73,6 +73,7 @@ type CreatedBooking = {
   hosts: { id: number }[];
   uid: string;
   start: string;
+  isPlatformManagedUserBooking?: boolean;
 };
 
 const eventTypeBookingFieldSchema = z
@@ -441,7 +442,12 @@ export class BookingsService_2024_08_13 {
       throw new Error(`Booking with id=${booking.bookingId} was not found in the database`);
     }
 
-    return this.outputService.getOutputBooking(databaseBooking);
+    const outputBooking = await this.outputService.getOutputBooking(databaseBooking);
+    // Instant bookings don't have a host assigned yet (AWAITING_HOST status),
+    // so we can't determine isPlatformManaged. Default to false to skip billing.
+    return Object.assign(outputBooking, {
+      isPlatformManagedUserBooking: false,
+    });
   }
 
   async createRecurringBooking(
@@ -466,7 +472,11 @@ export class BookingsService_2024_08_13 {
       creationSource: "API_V2",
     });
     const ids = bookings.map((booking) => booking.id || 0);
-    return this.outputService.getOutputRecurringBookings(ids);
+    const outputBookings = await this.outputService.getOutputRecurringBookings(ids);
+    const isPlatformManagedUserBooking = !!(bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged);
+    return outputBookings.map((outputBooking) =>
+      Object.assign(outputBooking, { isPlatformManagedUserBooking })
+    );
   }
 
   async createRecurringSeatedBooking(
@@ -490,9 +500,13 @@ export class BookingsService_2024_08_13 {
       },
       creationSource: "API_V2",
     });
-    return this.outputService.getOutputCreateRecurringSeatedBookings(
+    const outputBookings = await this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
       userIsEventTypeAdminOrOwner
+    );
+    const isPlatformManagedUserBooking = !!(bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged);
+    return outputBookings.map((outputBooking) =>
+      Object.assign(outputBooking, { isPlatformManagedUserBooking })
     );
   }
 
@@ -525,7 +539,15 @@ export class BookingsService_2024_08_13 {
       throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
     }
 
-    return this.outputService.getOutputBooking(databaseBooking);
+    const outputBooking = await this.outputService.getOutputBooking(databaseBooking);
+    return Object.assign(
+      outputBooking,
+      booking.userId
+        ? {
+            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+          }
+        : {}
+    );
   }
 
   async createSeatedBooking(
@@ -560,10 +582,18 @@ export class BookingsService_2024_08_13 {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
 
-      return this.outputService.getOutputCreateSeatedBooking(
+      const outputBooking = await this.outputService.getOutputCreateSeatedBooking(
         databaseBooking,
         booking.seatReferenceUid || "",
         userIsEventTypeAdminOrOwner
+      );
+      return Object.assign(
+        outputBooking,
+        booking.userId
+          ? {
+              isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+            }
+          : {}
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -613,6 +643,50 @@ export class BookingsService_2024_08_13 {
     }
 
     return this.outputService.getOutputRecurringBookings(ids);
+  }
+
+  async getBookingBySeatUid(seatUid: string, authUser: AuthOptionalUser) {
+    const bookingSeat =
+      await this.bookingSeatRepository.getByReferenceUidIncludeBookingWithAttendeesAndUserAndEvent(seatUid);
+
+    if (!bookingSeat || !bookingSeat.booking) {
+      throw new NotFoundException(`Booking with seatUid=${seatUid} was not found in the database`);
+    }
+
+    const booking = bookingSeat.booking;
+    const userIsEventTypeAdminOrOwner =
+      authUser && booking.eventType
+        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+            authUser,
+            booking.eventType as EventType
+          )
+        : false;
+
+    const isRecurring = !!booking.recurringEventId;
+    const seatsShowAttendees = !!booking.eventType?.seatsShowAttendees;
+    const showAllAttendees = userIsEventTypeAdminOrOwner || seatsShowAttendees;
+
+    // When user is not admin and seatsShowAttendees is false, show only the attendee for this seatUid
+    if (!showAllAttendees) {
+      const seatAttendee = booking.attendees.find(
+        (attendee) => attendee.bookingSeat?.referenceUid === seatUid
+      );
+      const bookingWithFilteredAttendees = {
+        ...booking,
+        attendees: seatAttendee ? [seatAttendee] : [],
+      };
+
+      if (isRecurring) {
+        return this.outputService.getOutputRecurringSeatedBooking(bookingWithFilteredAttendees, true);
+      }
+      return this.outputService.getOutputSeatedBooking(bookingWithFilteredAttendees, true);
+    }
+
+    if (isRecurring) {
+      return this.outputService.getOutputRecurringSeatedBooking(booking, true);
+    }
+
+    return this.outputService.getOutputSeatedBooking(booking, true);
   }
 
   async getBookings(
@@ -772,25 +846,30 @@ export class BookingsService_2024_08_13 {
           : false;
       const isRecurring = !!databaseBooking.recurringEventId;
       const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
+      const isPlatformManagedUserBooking = !!(booking.userId && booking.user?.isPlatformManaged);
 
       if (isRecurring && !isSeated) {
-        return this.outputService.getOutputRecurringBooking(databaseBooking);
+        const outputBooking = await this.outputService.getOutputRecurringBooking(databaseBooking);
+        return Object.assign(outputBooking, { isPlatformManagedUserBooking });
       }
       if (isRecurring && isSeated) {
-        return this.outputService.getOutputCreateRecurringSeatedBooking(
+        const outputBooking = await this.outputService.getOutputCreateRecurringSeatedBooking(
           databaseBooking,
           booking?.seatReferenceUid || "",
           userIsEventTypeAdminOrOwner
         );
+        return Object.assign(outputBooking, { isPlatformManagedUserBooking });
       }
       if (isSeated) {
-        return this.outputService.getOutputCreateSeatedBooking(
+        const outputBooking = await this.outputService.getOutputCreateSeatedBooking(
           databaseBooking,
           booking.seatReferenceUid || "",
           userIsEventTypeAdminOrOwner
         );
+        return Object.assign(outputBooking, { isPlatformManagedUserBooking });
       }
-      return this.outputService.getOutputBooking(databaseBooking);
+      const outputBooking = await this.outputService.getOutputBooking(databaseBooking);
+      return Object.assign(outputBooking, { isPlatformManagedUserBooking });
     } catch (error) {
       this.errorsBookingsService.handleBookingError(error, false);
     }
@@ -899,7 +978,7 @@ export class BookingsService_2024_08_13 {
       platformBookingUrl: bookingRequest.platformBookingUrl,
     });
 
-    if (!res.onlyRemovedAttendee) {
+    if (!res.onlyRemovedAttendee && res.isPlatformManagedUserBooking) {
       await this.billingService.cancelUsageByBookingUid(res.bookingUid);
     }
 
@@ -977,6 +1056,10 @@ export class BookingsService_2024_08_13 {
   }
 
   async billBooking(booking: CreatedBooking) {
+    if (!booking.isPlatformManagedUserBooking) {
+      return;
+    }
+
     const hostId = booking.hosts?.[0]?.id;
     if (!hostId) {
       this.logger.error(`Booking with uid=${booking.uid} has no host`);
@@ -990,7 +1073,11 @@ export class BookingsService_2024_08_13 {
   }
 
   async billRescheduledBooking(newBooking: CreatedBooking, oldBookingUid: string) {
-    const hostId = newBooking.hosts[0].id;
+    if (!newBooking.isPlatformManagedUserBooking) {
+      return;
+    }
+
+    const hostId = newBooking.hosts[0]?.id;
     if (!hostId) {
       this.logger.error(`Booking with uid=${newBooking.uid} has no host`);
       return;
