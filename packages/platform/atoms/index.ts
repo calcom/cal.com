@@ -1,4 +1,4 @@
-export { CalProvider } from "./cal-provider";
+export { CalProvider, CalOAuthProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
