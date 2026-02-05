@@ -127,11 +127,18 @@ export default function Shell(props: LayoutProps) {
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+  const { bannersHeight } = useBanners();
+
+  const headerStyle =
+    !props.disableSticky && bannersHeight
+      ? { top: `${bannersHeight}px` as const }
+      : undefined;
 
   return (
     <>
       {(props.heading || !!props.backPath) && (
         <div
+          style={headerStyle}
           className={classNames(
   "bg-default mb-0 flex items-center md:mb-6 md:mt-0 md:w-[calc(100%-3.5rem)] md:pt-3 md:pb-2 md:pl-5 md:left-14 lg:left-56 lg:w-[calc(100%-14rem)]",
   props.smallHeading ? "lg:mb-7" : "lg:mb-8",
