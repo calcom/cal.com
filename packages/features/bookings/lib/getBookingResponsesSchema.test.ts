@@ -16,7 +16,7 @@ const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_mes
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
 
 describe("getBookingResponsesSchema", () => {
-  test(`should parse booking responses`, async ({}) => {
+  test(`should parse booking responses`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -51,7 +51,7 @@ describe("getBookingResponsesSchema", () => {
     );
   });
 
-  test(`should error if required fields are missing`, async ({}) => {
+  test(`should error if required fields are missing`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -89,7 +89,7 @@ describe("getBookingResponsesSchema", () => {
 
   describe("System Fields", () => {
     describe(`'name' and 'email' must be considered as required fields`, () => {
-      test(`'name' and 'email' must be considered as required fields `, async ({}) => {
+      test(`'name' and 'email' must be considered as required fields `, async ({ }) => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
             {
@@ -174,6 +174,60 @@ describe("getBookingResponsesSchema", () => {
             code: "custom",
           })
         );
+      });
+
+      test(`optional email field should be validated if a value is provided`, async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+            {
+              name: "optionalEmail",
+              type: "email",
+              required: false,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+
+        // Should pass if empty string is provided
+        const parsedEmptyString = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          optionalEmail: "",
+        });
+        expect(parsedEmptyString.success).toBe(true);
+
+        // Should pass if undefined is provided
+        const parsedUndefined = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+        });
+        expect(parsedUndefined.success).toBe(true);
+
+        // Should fail if invalid email is provided
+        const parsedInvalid = await schema.safeParseAsync({
+          name: "John",
+          email: "john@example.com",
+          optionalEmail: "invalid-email",
+        });
+        expect(parsedInvalid.success).toBe(false);
+        if (!parsedInvalid.success) {
+          expect(parsedInvalid.error.issues[0]).toEqual(
+            expect.objectContaining({
+              message: `{optionalEmail}${CUSTOM_EMAIL_VALIDATION_ERROR_MSG}`,
+              code: "custom",
+            })
+          );
+        }
       });
 
       test(`hidden required email field should not be validated`, async () => {
@@ -277,7 +331,7 @@ describe("getBookingResponsesSchema", () => {
         });
       });
 
-      test(`should reject empty fullname`, async ({}) => {
+      test(`should reject empty fullname`, async ({ }) => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
             {
@@ -317,7 +371,7 @@ describe("getBookingResponsesSchema", () => {
         );
       });
 
-      test(`should reject empty firstName`, async ({}) => {
+      test(`should reject empty firstName`, async ({ }) => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
             {
@@ -359,7 +413,7 @@ describe("getBookingResponsesSchema", () => {
         );
       });
 
-      test(`should accept empty lastname`, async ({}) => {
+      test(`should accept empty lastname`, async ({ }) => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
             {
@@ -532,7 +586,7 @@ describe("getBookingResponsesSchema", () => {
   });
 
   describe("validate phone type field", () => {
-    test(`should fail parsing if invalid phone provided`, async ({}) => {
+    test(`should fail parsing if invalid phone provided`, async ({ }) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -569,7 +623,7 @@ describe("getBookingResponsesSchema", () => {
         })
       );
     });
-    test(`should successfully give responses if phone type field value is valid`, async ({}) => {
+    test(`should successfully give responses if phone type field value is valid`, async ({ }) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -606,7 +660,7 @@ describe("getBookingResponsesSchema", () => {
       });
     });
 
-    test(`should give parsed response if phone type field value starts with a space`, async ({}) => {
+    test(`should give parsed response if phone type field value starts with a space`, async ({ }) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -660,7 +714,7 @@ describe("getBookingResponsesSchema", () => {
       });
     });
 
-    test("should fail parsing if phone field value is empty", async ({}) => {
+    test("should fail parsing if phone field value is empty", async ({ }) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -699,7 +753,7 @@ describe("getBookingResponsesSchema", () => {
       );
     });
 
-    test("should fail parsing if phone field value isn't provided", async ({}) => {
+    test("should fail parsing if phone field value isn't provided", async ({ }) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -1058,7 +1112,7 @@ describe("getBookingResponsesSchema", () => {
 });
 
 describe("validate radioInput type field", () => {
-  test(`should fail parsing if invalid phone number is provided`, async ({}) => {
+  test(`should fail parsing if invalid phone number is provided`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1104,7 +1158,7 @@ describe("validate radioInput type field", () => {
     );
   });
 
-  test(`should correctly handle space in the beginning of phone number which could come from a + in prefill URL`, async ({}) => {
+  test(`should correctly handle space in the beginning of phone number which could come from a + in prefill URL`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1155,7 +1209,7 @@ describe("validate radioInput type field", () => {
 });
 
 describe("validate url type field", () => {
-  test(`should pass parsing if protocol is missing`, async ({}) => {
+  test(`should pass parsing if protocol is missing`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1193,7 +1247,7 @@ describe("validate url type field", () => {
     });
   });
 
-  test(`should fail parsing if url is truly invalid`, async ({}) => {
+  test(`should fail parsing if url is truly invalid`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1231,7 +1285,7 @@ describe("validate url type field", () => {
     );
   });
 
-  test(`should successfully give responses if url type field value is valid`, async ({}) => {
+  test(`should successfully give responses if url type field value is valid`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1268,7 +1322,7 @@ describe("validate url type field", () => {
     });
   });
 
-  test("should fail parsing if url field value is empty", async ({}) => {
+  test("should fail parsing if url field value is empty", async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -1309,7 +1363,7 @@ describe("validate url type field", () => {
 });
 
 describe("getBookingResponsesPartialSchema - Prefill validation", () => {
-  test(`should be able to get fields prefilled even when name is empty string`, async ({}) => {
+  test(`should be able to get fields prefilled even when name is empty string`, async ({ }) => {
     const schema = getBookingResponsesPartialSchema({
       bookingFields: [
         {

@@ -30,7 +30,7 @@ export function DecoyBookingSuccessCard({
   const { t } = useLocale();
 
   return (
-    <div className="h-screen">
+    <div className="min-h-screen">
       <main className="mx-auto max-w-3xl">
         <div className="overflow-y-auto">
           <div className="flex items-end justify-center px-4 pb-20 pt-4 text-center sm:flex sm:p-0">
@@ -54,14 +54,14 @@ export function DecoyBookingSuccessCard({
                     <p className="text-default">{t("emailed_you_and_any_other_attendees")}</p>
                   </div>
 
-                  <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                  <div className="border-subtle text-default mt-8 flex flex-col gap-y-6 border-t pt-8 text-left rtl:text-right sm:grid sm:grid-cols-3 sm:gap-x-0 sm:gap-y-0">
                     <div className="font-medium">{t("what")}</div>
-                    <div className="col-span-2 mb-6 last:mb-0">{title}</div>
+                    <div className="col-span-2 mb-6 last:mb-0 sm:col-span-2 sm:mb-6">{title}</div>
 
                     {formattedDate && (
                       <>
                         <div className="font-medium">{t("when")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0">
+                        <div className="col-span-2 mb-6 last:mb-0 sm:col-span-2 sm:mb-6">
                           {formattedDate}
                           {formattedTime && (
                             <>
@@ -99,7 +99,7 @@ export function DecoyBookingSuccessCard({
                     {location && (
                       <>
                         <div className="mt-3 font-medium">{t("where")}</div>
-                        <div className="col-span-2 mt-3">{t("web_conferencing_details_to_follow")}</div>
+                        <div className="col-span-2 mt-3 sm:col-span-2">{t("web_conferencing_details_to_follow")}</div>
                       </>
                     )}
                   </div>
