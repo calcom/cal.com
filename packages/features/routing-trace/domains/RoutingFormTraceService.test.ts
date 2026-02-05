@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ROUTING_TRACE_DOMAINS } from "../constants";
 import type { RoutingTraceService } from "../services/RoutingTraceService";
-import { ROUTING_TRACE_DOMAINS } from "../services/RoutingTraceService";
 import { ROUTING_FORM_STEPS, RoutingFormTraceService } from "./RoutingFormTraceService";
 
 describe("RoutingFormTraceService", () => {

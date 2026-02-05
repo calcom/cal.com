@@ -1,6 +1,5 @@
 import logger from "@calcom/lib/logger";
 import type Stripe from "stripe";
-
 import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { IBillingProviderService } from "./IBillingProviderService";
 
@@ -402,6 +401,69 @@ export class StripeBillingService implements IBillingProviderService {
       current_period_start: subscription.current_period_start,
       current_period_end: subscription.current_period_end,
       trial_end: subscription.trial_end,
+    };
+  }
+
+  async listInvoices(args: {
+    customerId: string;
+    subscriptionId?: string;
+    limit: number;
+    startingAfter?: string;
+    createdGte?: number;
+    createdLte?: number;
+  }) {
+    const { customerId, subscriptionId, limit, startingAfter, createdGte, createdLte } = args;
+
+    const invoicesResponse = await this.stripe.invoices.list({
+      customer: customerId,
+      subscription: subscriptionId,
+      limit,
+      starting_after: startingAfter,
+      expand: ["data.default_payment_method"],
+      ...(createdGte || createdLte
+        ? {
+            created: {
+              ...(createdGte ? { gte: createdGte } : {}),
+              ...(createdLte ? { lte: createdLte } : {}),
+            },
+          }
+        : {}),
+    });
+
+    return {
+      invoices: invoicesResponse.data.map((invoice) => ({
+        id: invoice.id,
+        number: invoice.number,
+        created: invoice.created,
+        amountDue: invoice.amount_due,
+        amountPaid: invoice.amount_paid,
+        currency: invoice.currency,
+        status: invoice.status,
+        hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+        invoicePdf: invoice.invoice_pdf ?? null,
+        lineItems: invoice.lines.data.map((line) => ({
+          id: line.id,
+          description: line.description,
+          amount: line.amount,
+          quantity: line.quantity,
+        })),
+        description: invoice.description,
+        paymentMethod: this.extractPaymentMethod(
+          invoice.default_payment_method as Stripe.PaymentMethod | null
+        ),
+      })),
+      hasMore: invoicesResponse.has_more,
+    };
+  }
+
+  private extractPaymentMethod(pm: Stripe.PaymentMethod | string | null): {
+    type: string;
+    card?: { last4: string; brand: string };
+  } | null {
+    if (!pm || typeof pm === "string") return null;
+    return {
+      type: pm.type,
+      card: pm.card ? { last4: pm.card.last4, brand: pm.card.brand } : undefined,
     };
   }
 }

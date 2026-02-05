@@ -5,7 +5,7 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["*"],
+      "~/*": ["./*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"],
       "@calcom/testing/*": ["../../../packages/testing/src/*"]
     },
