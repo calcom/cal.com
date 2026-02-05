@@ -400,7 +400,6 @@ export class BusyTimesService {
     }>
   > {
     const { userIds, eventTypeId, startTimeDate, endTimeDate, rescheduleUid } = params;
-    console.log("userIds", userIds, startTimeDate, endTimeDate);
 
     if (userIds.length === 0) {
       return [];
