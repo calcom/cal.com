@@ -876,3 +876,35 @@ test.describe("OOO_CREATED", async () => {
     webhookReceiver.close();
   });
 });
+
+test.describe("Webhook deletion", async () => {
+  test("shows confirmation dialog and deletes webhook on confirm", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+
+    await page.goto("/settings/developer/webhooks");
+    await page.click('[data-testid="new_webhook"]');
+    await page.fill('[name="subscriberUrl"]', "https://example.com/test-webhook");
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    const webhookListItem = page.getByTestId("webhook-list-item");
+    await expect(webhookListItem).toBeVisible();
+
+    const deleteButton = page.getByTestId("delete-webhook");
+    await expect(deleteButton).toBeVisible();
+    await deleteButton.click();
+
+    await expect(page.getByTestId("dialog-confirmation")).toBeVisible();
+
+    const deleteResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/webhook/delete"));
+    await page.getByTestId("dialog-confirmation").click();
+    const deleteResponse = await deleteResponsePromise;
+    expect(deleteResponse.ok()).toBe(true);
+
+    await expect(webhookListItem).not.toBeVisible();
+  });
+});
