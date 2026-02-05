@@ -189,6 +189,9 @@ export function ShellMain(props: LayoutProps) {
           )}
         </div>
       )}
+      {(props.heading || !!props.backPath) && !props.disableSticky && (
+        <div className="hidden md:block md:h-14" aria-hidden="true" />
+      )}
       {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
