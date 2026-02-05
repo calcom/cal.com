@@ -423,6 +423,342 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
     });
   });
 
+  test.describe("Members without attribute assigned are excluded", () => {
+    test("SINGLE_SELECT - members without attribute are excluded from booking", async ({
+      page,
+      users,
+      orgs,
+    }) => {
+      const org = await orgs.create({ name: "TestOrg" });
+      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
+
+      const owner = await users.create(
+        {
+          username: "owner-user",
+          name: "owner-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+          assignAllTeamMembers: true,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+
+      const allUsers = users.get();
+      await ensureOrgMemberships(
+        org.id,
+        allUsers.map((u) => u.id)
+      );
+
+      const ownerIdx = await getOrgMemberIndex(org.id, owner.id);
+
+      const attributes = await createAttributes({
+        orgId: org.id,
+        attributes: [
+          {
+            name: "Department",
+            type: "SINGLE_SELECT",
+            options: ["Engineering", "Sales"],
+          },
+        ],
+        assignments: [{ memberIndex: ownerIdx, attributeValues: { Department: ["Engineering"] } }],
+      });
+
+      const departmentAttr = attributes!.find((a) => a.name === "Department")!;
+      const engineeringOpt = departmentAttr.options.find((o) => o.value === "Engineering")!;
+
+      await prisma.eventType.update({
+        where: { id: teamEvent.id },
+        data: {
+          assignAllTeamMembers: true,
+          assignRRMembersUsingSegment: true,
+          rrSegmentQueryValue: {
+            id: "query-1",
+            type: "group",
+            children1: {
+              "rule-1": {
+                type: "rule",
+                properties: {
+                  field: departmentAttr.id,
+                  value: [engineeringOpt.id],
+                  operator: "select_equals",
+                  valueSrc: ["value"],
+                  valueType: ["select"],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await doOnOrgDomain({ orgSlug: org.slug, page }, async () => {
+        await page.goto(`/team/${team.slug}/${teamEvent.slug}`);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page);
+        await expect(page.getByTestId("success-page")).toBeVisible();
+
+        const chosenUser = await page.getByTestId("booking-host-name").textContent();
+        expect(chosenUser).toBe("owner-user");
+      });
+    });
+
+    test("MULTI_SELECT - members without attribute are excluded from booking", async ({
+      page,
+      users,
+      orgs,
+    }) => {
+      const org = await orgs.create({ name: "TestOrg" });
+      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
+
+      const owner = await users.create(
+        {
+          username: "owner-user",
+          name: "owner-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+          assignAllTeamMembers: true,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+
+      const allUsers = users.get();
+      await ensureOrgMemberships(
+        org.id,
+        allUsers.map((u) => u.id)
+      );
+
+      const ownerIdx = await getOrgMemberIndex(org.id, owner.id);
+
+      const attributes = await createAttributes({
+        orgId: org.id,
+        attributes: [
+          {
+            name: "Skills",
+            type: "MULTI_SELECT",
+            options: ["JavaScript", "React", "Python"],
+          },
+        ],
+        assignments: [{ memberIndex: ownerIdx, attributeValues: { Skills: ["JavaScript", "React"] } }],
+      });
+
+      const skillsAttr = attributes!.find((a) => a.name === "Skills")!;
+      const jsOpt = skillsAttr.options.find((o) => o.value === "JavaScript")!;
+
+      await prisma.eventType.update({
+        where: { id: teamEvent.id },
+        data: {
+          assignAllTeamMembers: true,
+          assignRRMembersUsingSegment: true,
+          rrSegmentQueryValue: {
+            id: "query-1",
+            type: "group",
+            children1: {
+              "rule-1": {
+                type: "rule",
+                properties: {
+                  field: skillsAttr.id,
+                  value: [[jsOpt.id]],
+                  operator: "multiselect_some_in",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await doOnOrgDomain({ orgSlug: org.slug, page }, async () => {
+        await page.goto(`/team/${team.slug}/${teamEvent.slug}`);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page);
+        await expect(page.getByTestId("success-page")).toBeVisible();
+
+        const chosenUser = await page.getByTestId("booking-host-name").textContent();
+        expect(chosenUser).toBe("owner-user");
+      });
+    });
+
+    test("TEXT - members without attribute are excluded from booking", async ({
+      page,
+      users,
+      orgs,
+    }) => {
+      const org = await orgs.create({ name: "TestOrg" });
+      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
+
+      const owner = await users.create(
+        {
+          username: "owner-user",
+          name: "owner-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+          assignAllTeamMembers: true,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+
+      const allUsers = users.get();
+      await ensureOrgMemberships(
+        org.id,
+        allUsers.map((u) => u.id)
+      );
+
+      const ownerIdx = await getOrgMemberIndex(org.id, owner.id);
+
+      const attributes = await createAttributes({
+        orgId: org.id,
+        attributes: [
+          {
+            name: "Region",
+            type: "TEXT",
+            options: ["US", "EU"],
+          },
+        ],
+        assignments: [{ memberIndex: ownerIdx, attributeValues: { Region: ["US"] } }],
+      });
+
+      const regionAttr = attributes!.find((a) => a.name === "Region")!;
+
+      await prisma.eventType.update({
+        where: { id: teamEvent.id },
+        data: {
+          assignAllTeamMembers: true,
+          assignRRMembersUsingSegment: true,
+          rrSegmentQueryValue: {
+            id: "query-1",
+            type: "group",
+            children1: {
+              "rule-1": {
+                type: "rule",
+                properties: {
+                  field: regionAttr.id,
+                  value: ["US"],
+                  operator: "equal",
+                  valueSrc: ["value"],
+                  valueType: ["text"],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await doOnOrgDomain({ orgSlug: org.slug, page }, async () => {
+        await page.goto(`/team/${team.slug}/${teamEvent.slug}`);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page);
+        await expect(page.getByTestId("success-page")).toBeVisible();
+
+        const chosenUser = await page.getByTestId("booking-host-name").textContent();
+        expect(chosenUser).toBe("owner-user");
+      });
+    });
+
+    test("NUMBER - members without attribute are excluded from booking", async ({
+      page,
+      users,
+      orgs,
+    }) => {
+      const org = await orgs.create({ name: "TestOrg" });
+      const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
+
+      const owner = await users.create(
+        {
+          username: "owner-user",
+          name: "owner-user",
+          organizationId: org.id,
+          roleInOrganization: MembershipRole.MEMBER,
+        },
+        {
+          hasTeam: true,
+          teammates: teamMatesObj,
+          schedulingType: SchedulingType.ROUND_ROBIN,
+          assignAllTeamMembers: true,
+        }
+      );
+
+      const { team } = await owner.getFirstTeamMembership();
+      const teamEvent = await owner.getFirstTeamEvent(team.id);
+
+      const allUsers = users.get();
+      await ensureOrgMemberships(
+        org.id,
+        allUsers.map((u) => u.id)
+      );
+
+      const ownerIdx = await getOrgMemberIndex(org.id, owner.id);
+
+      const attributes = await createAttributes({
+        orgId: org.id,
+        attributes: [
+          {
+            name: "Experience",
+            type: "NUMBER",
+            options: ["5", "2"],
+          },
+        ],
+        assignments: [{ memberIndex: ownerIdx, attributeValues: { Experience: ["5"] } }],
+      });
+
+      const expAttr = attributes!.find((a) => a.name === "Experience")!;
+
+      await prisma.eventType.update({
+        where: { id: teamEvent.id },
+        data: {
+          assignAllTeamMembers: true,
+          assignRRMembersUsingSegment: true,
+          rrSegmentQueryValue: {
+            id: "query-1",
+            type: "group",
+            children1: {
+              "rule-1": {
+                type: "rule",
+                properties: {
+                  field: expAttr.id,
+                  value: [5],
+                  operator: "equal",
+                  valueSrc: ["value"],
+                  valueType: ["number"],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await doOnOrgDomain({ orgSlug: org.slug, page }, async () => {
+        await page.goto(`/team/${team.slug}/${teamEvent.slug}`);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page);
+        await expect(page.getByTestId("success-page")).toBeVisible();
+
+        const chosenUser = await page.getByTestId("booking-host-name").textContent();
+        expect(chosenUser).toBe("owner-user");
+      });
+    });
+  });
+
   test.describe("Edge cases", () => {
     test("No members match attribute filter - no available time slots", async ({ page, users, orgs }) => {
       const org = await orgs.create({ name: "TestOrg" });
