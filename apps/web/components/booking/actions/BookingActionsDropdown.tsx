@@ -254,6 +254,7 @@ export function BookingActionsDropdown({
     showPendingPayment,
     isAttendee,
     cardCharged,
+    isHost,
     attendeeList,
     getSeatReferenceUid,
     t,
