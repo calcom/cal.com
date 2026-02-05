@@ -7,27 +7,22 @@ import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/Pr
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { Prisma } from "@calcom/prisma/client";
+import type { baseEventTypeSelect } from "@calcom/prisma";
+import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 
-/**
- * Minimal event type data needed for EventTypeDescription component.
- * This type is intentionally minimal to reduce client payload size.
- */
-export type EventTypeDescriptionEventType = {
-  length: number;
-  schedulingType: "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED" | null;
-  recurringEvent: Prisma.JsonValue;
-  metadata: Prisma.JsonValue;
-  requiresConfirmation: boolean;
-  seatsPerTimeSlot: number | null;
-  descriptionAsSafeHTML?: string | null;
-};
-
 export type EventTypeDescriptionProps = {
-  eventType: EventTypeDescriptionEventType;
+  eventType: Pick<
+    EventType,
+    | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent" | "description">
+    | "metadata"
+    | "seatsPerTimeSlot"
+  > & {
+    descriptionAsSafeHTML?: string | null;
+    recurringEvent: Prisma.JsonValue;
+  };
   className?: string;
   shortenDescription?: boolean;
   isPublic?: boolean;

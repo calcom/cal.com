@@ -1,5 +1,7 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import type { User } from "@calcom/prisma/client";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import classNames from "@calcom/ui/classNames";
 
 import { Avatar } from "./Avatar";
@@ -7,34 +9,14 @@ import { Avatar } from "./Avatar";
 type Organization = {
   id: number;
   slug: string | null;
-  requestedSlug?: string | null;
+  requestedSlug: string | null;
   logoUrl?: string;
 };
 
-/**
- * Minimal user profile data needed for UserAvatar component.
- * This type is intentionally minimal to reduce client payload size.
- */
-export type UserAvatarProfile = {
-  id?: number | null;
-  username?: string | null;
-  organizationId?: number | null;
-  organization?: Organization | null;
-};
-
-/**
- * Minimal user data needed for UserAvatar component.
- * This type is intentionally minimal to reduce client payload size.
- */
-export type UserAvatarUser = {
-  name: string | null;
-  username: string | null;
-  avatarUrl: string | null;
-  profile: UserAvatarProfile;
-};
-
 type UserAvatarProps = Omit<React.ComponentProps<typeof Avatar>, "alt" | "imageSrc"> & {
-  user: UserAvatarUser;
+  user: Pick<User, "name" | "username" | "avatarUrl"> & {
+    profile: Omit<UserProfile, "upId">;
+  };
   noOrganizationIndicator?: boolean;
   /**
    * Useful when allowing the user to upload their own avatar and showing the avatar before it's uploaded

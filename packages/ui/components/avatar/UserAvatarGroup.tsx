@@ -2,28 +2,15 @@ import { useEffect, useState } from "react";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import type { User } from "@calcom/prisma/client";
+import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { AvatarGroup } from "./AvatarGroup";
 
-/**
- * Minimal user data needed for UserAvatarGroup component.
- * This type is intentionally minimal to reduce client payload size.
- */
-export type UserAvatarGroupUser = {
-  name: string | null;
-  username: string | null;
-  avatarUrl: string | null;
-  avatar?: string;
-  profile: {
-    username: string | null;
-    organization: {
-      slug: string | null;
-    } | null;
-  } | null;
-};
-
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
-  users: UserAvatarGroupUser[];
+  users: (Pick<User, "name" | "username" | "avatarUrl"> & {
+    profile: Omit<UserProfile, "upId">;
+  })[];
 };
 
 type AvatarItem = {

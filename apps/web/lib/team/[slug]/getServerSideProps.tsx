@@ -175,6 +175,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       metadata: type.metadata,
       requiresConfirmation: type.requiresConfirmation,
       seatsPerTimeSlot: type.seatsPerTimeSlot,
+      price: type.price,
+      currency: type.currency,
+      hidden: type.hidden,
+      lockTimeZoneToggleOnBookingPage: type.lockTimeZoneToggleOnBookingPage,
+      requiresBookerEmailVerification: type.requiresBookerEmailVerification,
       descriptionAsSafeHTML: markdownToSafeHTML(type.description),
       users: !isTeamOrParentOrgPrivate
         ? type.users.map((user) => ({
@@ -182,14 +187,20 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             username: user.username,
             avatarUrl: user.avatarUrl,
             avatar: getUserAvatarUrl(user),
-            profile: user.profile
-              ? {
-                  username: user.profile.username,
-                  organization: user.profile.organization
-                    ? { slug: user.profile.organization.slug }
-                    : null,
-                }
-              : null,
+            profile: {
+              id: user.profile.id,
+              upId: user.profile.upId,
+              username: user.profile.username,
+              organizationId: user.profile.organizationId,
+              organization: user.profile.organization
+                ? {
+                    id: user.profile.organization.id,
+                    slug: user.profile.organization.slug,
+                    requestedSlug: user.profile.organization.requestedSlug,
+                    logoUrl: user.profile.organization.logoUrl,
+                  }
+                : null,
+            },
           }))
         : [],
     })) ?? null;

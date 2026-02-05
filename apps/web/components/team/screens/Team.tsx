@@ -3,25 +3,22 @@ import Link from "next/link";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import type { TeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import type { UserAvatarProfile } from "@calcom/ui/components/avatar/UserAvatar";
 
-/**
- * Minimal member data needed for Team component.
- * This type is intentionally minimal to reduce client payload size.
- */
-export type TeamMemberType = {
-  id: number;
-  name: string | null;
-  bio: string | null;
-  username: string | null;
-  avatarUrl: string | null;
-  profile: UserAvatarProfile;
+type TeamType = Omit<NonNullable<TeamWithMembers>, "inviteToken">;
+type MembersType = TeamType["members"];
+type MemberType = Pick<
+  MembersType[number],
+  "id" | "name" | "bio" | "username" | "organizationId" | "avatarUrl"
+> & {
+  profile: Omit<UserProfile, "upId">;
   safeBio: string | null;
   bookerUrl: string;
 };
 
-const Member = ({ member, teamName }: { member: TeamMemberType; teamName: string | null }) => {
+const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const routerQuery = useRouterQuery();
   const { t } = useLocale();
   const isBioEmpty = !member.bio || !member.bio.replace("<p><br></p>", "").length;
@@ -57,7 +54,7 @@ const Member = ({ member, teamName }: { member: TeamMemberType; teamName: string
   );
 };
 
-const Members = ({ members, teamName }: { members: TeamMemberType[]; teamName: string | null }) => {
+const Members = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   if (!members || members.length === 0) {
     return null;
   }
@@ -73,7 +70,7 @@ const Members = ({ members, teamName }: { members: TeamMemberType[]; teamName: s
   );
 };
 
-const Team = ({ members, teamName }: { members: TeamMemberType[]; teamName: string | null }) => {
+const Team = ({ members, teamName }: { members: MemberType[]; teamName: string | null }) => {
   return (
     <div>
       <Members members={members} teamName={teamName} />
