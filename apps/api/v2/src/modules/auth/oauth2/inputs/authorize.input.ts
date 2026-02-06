@@ -1,5 +1,5 @@
 import { AccessScope } from "@calcom/prisma/enums";
-import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Equals, IsArray, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class OAuth2AuthorizeInput {
@@ -11,9 +11,8 @@ export class OAuth2AuthorizeInput {
   @IsString()
   redirect_uri!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "OAuth state parameter for CSRF protection. Will be included in the redirect.",
-    required: false,
   })
   @IsOptional()
   @IsString()
@@ -29,17 +28,15 @@ export class OAuth2AuthorizeInput {
   @IsEnum(AccessScope, { each: true })
   scopes: AccessScope[] = [];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The team slug to authorize for (optional)",
-    required: false,
   })
   @IsOptional()
   @IsString()
   team_slug?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "PKCE code challenge (required for public clients)",
-    required: false,
   })
   @IsOptional()
   @IsString()

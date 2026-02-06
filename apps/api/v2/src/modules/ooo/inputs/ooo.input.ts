@@ -81,7 +81,7 @@ export class CreateOutOfOfficeEntryDto {
   reason?: OutOfOfficeReasonType;
 }
 
-export class UpdateOutOfOfficeEntryDto extends PartialType(CreateOutOfOfficeEntryDto) {}
+export class UpdateOutOfOfficeEntryDto extends PartialType(CreateOutOfOfficeEntryDto) { }
 
 export enum SortOrder {
   asc = "asc",
@@ -94,8 +94,7 @@ export class GetOutOfOfficeEntryFiltersDTO extends SkipTakePagination {
   @IsEnum(SortOrder, {
     message: 'SortStart must be either "asc" or "desc".',
   })
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: "Sort results by their start time in ascending or descending order.",
     example: "?sortStart=asc OR ?sortStart=desc",
     enum: SortOrder,
@@ -106,8 +105,7 @@ export class GetOutOfOfficeEntryFiltersDTO extends SkipTakePagination {
   @IsEnum(SortOrder, {
     message: 'SortEnd must be either "asc" or "desc".',
   })
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: "Sort results by their end time in ascending or descending order.",
     example: "?sortEnd=asc OR ?sortEnd=desc",
     enum: SortOrder,
@@ -118,9 +116,8 @@ export class GetOutOfOfficeEntryFiltersDTO extends SkipTakePagination {
 export class GetOrgUsersOutOfOfficeEntryFiltersDTO extends GetOutOfOfficeEntryFiltersDTO {
   @IsString()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
-    required: false,
     description: "Filter ooo entries by the user email address. user must be within your organization.",
     example: "example@domain.com",
   })
