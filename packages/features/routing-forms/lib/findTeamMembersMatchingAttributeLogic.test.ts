@@ -1506,280 +1506,329 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     });
   });
 
-  describe("exclusion operators with no attribute assigned", () => {
-    it("select_not_equals should match a member with no attribute assigned", async () => {
-      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
-        slug: "attribute-1",
-        options: [Option1OfAttribute1],
-      };
+  describe("negation operators with users who have no attribute assignment", () => {
+    // These tests verify that users without an attribute assignment are correctly
+    // included in the evaluation when using negation operators. This is important
+    // because users without the attribute should match "not" conditions.
 
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
-      });
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [
+        { id: "dept-sales", value: "Sales", slug: "sales" },
+        { id: "dept-eng", value: "Engineering", slug: "engineering" },
+        { id: "dept-marketing", value: "Marketing", slug: "marketing" },
+      ],
+    };
 
-      const attributesQueryValue = buildSelectTypeFieldQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: [Option1OfAttribute1.id],
-            operator: "select_not_equals",
-          },
-        ],
-      }) as AttributesQueryValue;
+    const LocationsAttribute = {
+      id: "locs-attr",
+      name: "Locations",
+      type: "MULTI_SELECT" as const,
+      slug: "locations",
+      options: [
+        { id: "loc-nyc", value: "NYC", slug: "nyc" },
+        { id: "loc-la", value: "LA", slug: "la" },
+        { id: "loc-chicago", value: "Chicago", slug: "chicago" },
+      ],
+    };
 
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+    describe("select_not_equals", () => {
+      it("should match users without the attribute (undefined != 'Sales' is true)", async () => {
+        mockAttributesScenario({
+          attributes: [DepartmentAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { userId: 2, attributes: { [DepartmentAttribute.id]: "Engineering" } },
+            { userId: 3, attributes: {} }, // No department assigned
+          ],
+        });
+
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: DepartmentAttribute.id,
+              value: ["dept-sales"],
+              operator: "select_not_equals",
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        // User 1 (Sales) should NOT match
+        // User 2 (Engineering) should match
+        // User 3 (no dept) should match (undefined != "Sales" is true)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            { userId: 2, result: RaqbLogicResult.MATCH },
+            { userId: 3, result: RaqbLogicResult.MATCH },
+          ])
+        );
+        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+      });
     });
 
-    it("multiselect_not_some_in should match a member with no attribute assigned", async () => {
-      const Option1 = { id: "opt1", value: "Option 1", slug: "option-1" };
-      const Option2 = { id: "opt2", value: "Option 2", slug: "option-2" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "MULTI_SELECT" as const,
-        slug: "attribute-1",
-        options: [Option1, Option2],
-      };
+    describe("select_not_any_in", () => {
+      it("should match users without the attribute (undefined not in ['Sales', 'Marketing'] is true)", async () => {
+        mockAttributesScenario({
+          attributes: [DepartmentAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { userId: 2, attributes: { [DepartmentAttribute.id]: "Engineering" } },
+            { userId: 3, attributes: {} }, // No department assigned
+          ],
+        });
 
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
-      });
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: DepartmentAttribute.id,
+              value: [["dept-sales", "dept-marketing"]],
+              operator: "select_not_any_in",
+              valueType: ["multiselect"],
+            },
+          ],
+        }) as AttributesQueryValue;
 
-      const attributesQueryValue = buildSelectTypeFieldQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: [[Option1.id]],
-            operator: "multiselect_not_some_in",
-            valueType: ["multiselect"],
-          },
-        ],
-      }) as AttributesQueryValue;
-
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        // User 1 (Sales) should NOT match (Sales is in the excluded list)
+        // User 2 (Engineering) should match (Engineering is not in excluded list)
+        // User 3 (no dept) should match (undefined is not in excluded list)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            { userId: 2, result: RaqbLogicResult.MATCH },
+            { userId: 3, result: RaqbLogicResult.MATCH },
+          ])
+        );
+        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+      });
     });
 
-    it("multiselect_not_equals should match a member with no attribute assigned", async () => {
-      const Option1 = { id: "opt1", value: "Option 1", slug: "option-1" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "MULTI_SELECT" as const,
-        slug: "attribute-1",
-        options: [Option1],
-      };
+    describe("multiselect_not_equals (!all)", () => {
+      it("should match users without the attribute (not all of undefined in values is true)", async () => {
+        mockAttributesScenario({
+          attributes: [LocationsAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC", "LA"] } },
+            { userId: 2, attributes: { [LocationsAttribute.id]: ["Chicago"] } },
+            { userId: 3, attributes: {} }, // No locations assigned
+          ],
+        });
 
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
-      });
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: LocationsAttribute.id,
+              value: [["loc-nyc", "loc-la"]],
+              operator: "multiselect_not_equals",
+              valueType: ["multiselect"],
+            },
+          ],
+        }) as AttributesQueryValue;
 
-      const attributesQueryValue = buildSelectTypeFieldQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: [[Option1.id]],
-            operator: "multiselect_not_equals",
-            valueType: ["multiselect"],
-          },
-        ],
-      }) as AttributesQueryValue;
-
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        // User 1 (NYC, LA) should NOT match (all their values are in the list)
+        // User 2 (Chicago) should match (Chicago is not in the list)
+        // User 3 (no locations) should match (undefined means not all values match)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            { userId: 2, result: RaqbLogicResult.MATCH },
+            { userId: 3, result: RaqbLogicResult.MATCH },
+          ])
+        );
+        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+      });
     });
 
-    it("not_equal (number) should match a member with no attribute assigned", async () => {
-      const Option1 = { id: "opt1", value: "5", slug: "5" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "NUMBER" as const,
-        slug: "attribute-1",
-        options: [Option1],
-      };
+    describe("multiselect_not_some_in (!some)", () => {
+      it("should match users without the attribute (not some of undefined in values is true)", async () => {
+        mockAttributesScenario({
+          attributes: [LocationsAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC"] } },
+            { userId: 2, attributes: { [LocationsAttribute.id]: ["Chicago"] } },
+            { userId: 3, attributes: {} }, // No locations assigned
+          ],
+        });
 
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
-      });
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: LocationsAttribute.id,
+              value: [["loc-nyc", "loc-la"]],
+              operator: "multiselect_not_some_in",
+              valueType: ["multiselect"],
+            },
+          ],
+        }) as AttributesQueryValue;
 
-      const attributesQueryValue = buildQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: [5],
-            operator: "not_equal",
-            valueSrc: ["value"],
-            valueType: ["number"],
-          },
-        ],
-      }) as AttributesQueryValue;
-
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        // User 1 (NYC) should NOT match (NYC is in the list)
+        // User 2 (Chicago) should match (Chicago is not in the list)
+        // User 3 (no locations) should match (undefined means none of their values are in the list)
+        expect(result).toEqual(
+          expect.arrayContaining([
+            { userId: 2, result: RaqbLogicResult.MATCH },
+            { userId: 3, result: RaqbLogicResult.MATCH },
+          ])
+        );
+        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+      });
     });
 
-    it("not_equal (text) should match a member with no attribute assigned", async () => {
-      const Option1 = { id: "opt1", value: "hello", slug: "hello" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "TEXT" as const,
-        slug: "attribute-1",
-        options: [Option1],
-      };
+    describe("positive operators should NOT match users without the attribute", () => {
+      it("select_equals should not match users without the attribute", async () => {
+        mockAttributesScenario({
+          attributes: [DepartmentAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { userId: 2, attributes: {} }, // No department assigned
+          ],
+        });
 
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
-      });
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: DepartmentAttribute.id,
+              value: ["dept-sales"],
+              operator: "select_equals",
+            },
+          ],
+        }) as AttributesQueryValue;
 
-      const attributesQueryValue = buildQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: ["goodbye"],
-            operator: "not_equal",
-            valueSrc: ["value"],
-            valueType: ["text"],
-          },
-        ],
-      }) as AttributesQueryValue;
-
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
-    });
-
-    it("not_like (text) should match a member with no attribute assigned", async () => {
-      const Option1 = { id: "opt1", value: "hello world", slug: "hello-world" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "TEXT" as const,
-        slug: "attribute-1",
-        options: [Option1],
-      };
-
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
+        // Only User 1 should match
+        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
       });
 
-      const attributesQueryValue = buildQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: ["goodbye"],
-            operator: "not_like",
-            valueSrc: ["value"],
-            valueType: ["text"],
-          },
-        ],
-      }) as AttributesQueryValue;
+      it("select_any_in should not match users without the attribute", async () => {
+        mockAttributesScenario({
+          attributes: [DepartmentAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { userId: 2, attributes: {} }, // No department assigned
+          ],
+        });
 
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: DepartmentAttribute.id,
+              value: [["dept-sales", "dept-marketing"]],
+              operator: "select_any_in",
+              valueType: ["multiselect"],
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
-    });
-
-    it("select_equals should NOT match a member with no attribute assigned", async () => {
-      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
-      const Attribute1 = {
-        id: "attr1",
-        name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
-        slug: "attribute-1",
-        options: [Option1OfAttribute1],
-      };
-
-      mockAttributesScenario({
-        attributes: [Attribute1],
-        teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: {} },
-        ],
+        // Only User 1 should match
+        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
       });
 
-      const attributesQueryValue = buildSelectTypeFieldQueryValue({
-        rules: [
-          {
-            raqbFieldId: Attribute1.id,
-            value: [Option1OfAttribute1.id],
-            operator: "select_equals",
-          },
-        ],
-      }) as AttributesQueryValue;
+      it("multiselect_some_in should not match users without the attribute", async () => {
+        mockAttributesScenario({
+          attributes: [LocationsAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC"] } },
+            { userId: 2, attributes: {} }, // No locations assigned
+          ],
+        });
 
-      const { teamMembersMatchingAttributeLogic: result } =
-        await findTeamMembersMatchingAttributeLogic({
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: LocationsAttribute.id,
+              value: [["loc-nyc", "loc-la"]],
+              operator: "multiselect_some_in",
+              valueType: ["multiselect"],
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
           teamId: 1,
           orgId,
         });
 
-      expect(result).toEqual([]);
+        // Only User 1 should match
+        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+      });
+
+      it("multiselect_equals (all) should not match users without the attribute", async () => {
+        mockAttributesScenario({
+          attributes: [LocationsAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC", "LA"] } },
+            { userId: 2, attributes: {} }, // No locations assigned
+          ],
+        });
+
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: LocationsAttribute.id,
+              value: [["loc-nyc", "loc-la"]],
+              operator: "multiselect_equals",
+              valueType: ["multiselect"],
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+        // Only User 1 should match
+        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+      });
     });
+
+    // Note: is_null and is_not_null operators are listed in the multiselect operators array
+    // but their definitions are commented out in BasicConfig.ts (lines 158-171).
+    // These operators are not currently supported for attributes.
   });
 });
