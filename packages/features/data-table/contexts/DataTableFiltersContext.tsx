@@ -1,7 +1,7 @@
 "use client";
 
 import debounce from "lodash/debounce";
-import { createContext, useContext, useCallback, useMemo } from "react";
+import { createContext, useContext, useCallback, useMemo, useEffect } from "react";
 
 import type { FilterValue, ActiveFilters } from "../lib/types";
 import { useDataTableSegment } from "./DataTableSegmentContext";
@@ -58,6 +58,12 @@ export function DataTableFiltersProvider({ children }: DataTableFiltersProviderP
     () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
     [setSearchTerm]
   );
+
+  useEffect(() => {
+    return () => {
+      setDebouncedSearchTerm.cancel();
+    };
+  }, [setDebouncedSearchTerm]);
 
   const addFilter = useCallback(
     (columnId: string) => {
