@@ -59,10 +59,13 @@ function VoiceSelectionContent({
 
   const { data: voices, isLoading } = trpc.viewer.aiVoiceAgent.listVoices.useQuery();
 
-  const handleUseVoice = useCallback((voiceId: string) => {
-    onVoiceSelect(voiceId);
-    showToast("Voice selected successfully", "success");
-  }, [onVoiceSelect]);
+  const handleUseVoice = useCallback(
+    (voiceId: string) => {
+      onVoiceSelect(voiceId);
+      showToast("Voice selected successfully", "success");
+    },
+    [onVoiceSelect]
+  );
 
   const voiceData: Voice[] = useMemo(() => {
     if (!voices) return [];
