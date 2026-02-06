@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
+
 import { getWebhookVersionDocsUrl, getWebhookVersionLabel } from "@calcom/features/webhooks/lib/constants";
 import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,7 +24,8 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
-import Link from "next/link";
+
+import { DeleteWebhookDialog } from "./dialogs/DeleteWebhookDialog";
 
 const MAX_BADGES_TWO_ROWS = 8; // Approximately 2 rows of badges
 
@@ -38,6 +42,7 @@ export default function WebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { webhook } = props;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
@@ -47,13 +52,17 @@ export default function WebhookListItem(props: {
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
+      setDeleteDialogOpen(false);
+    },
+    onError() {
+      showToast(t("something_went_wrong"), "error");
+      setDeleteDialogOpen(false);
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
       revalidateWebhooksList();
-      // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
@@ -61,17 +70,9 @@ export default function WebhookListItem(props: {
     },
   });
 
-  const onDeleteWebhook = () => {
-    // TODO: Confimation dialog before deleting
-    deleteWebhook.mutate({
-      id: webhook.id,
-      eventTypeId: webhook.eventTypeId || undefined,
-      teamId: webhook.teamId || undefined,
-    });
-  };
-
   return (
     <div
+      data-testid="webhook-list-item"
       className={classNames(
         "flex w-full justify-between p-4",
         props.lastItem ? "" : "border-subtle border-b"
@@ -166,7 +167,9 @@ export default function WebhookListItem(props: {
               color="destructive"
               StartIcon="trash"
               variant="icon"
-              onClick={onDeleteWebhook}
+              data-testid="delete-webhook"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={deleteWebhook.isPending}
             />
           )}
 
@@ -187,7 +190,11 @@ export default function WebhookListItem(props: {
 
               {props.permissions.canDeleteWebhook && (
                 <DropdownMenuItem>
-                  <DropdownItem StartIcon="trash" color="destructive" onClick={onDeleteWebhook}>
+                  <DropdownItem
+                    StartIcon="trash"
+                    color="destructive"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    disabled={deleteWebhook.isPending}>
                     {t("delete")}
                   </DropdownItem>
                 </DropdownMenuItem>
@@ -196,6 +203,19 @@ export default function WebhookListItem(props: {
           </Dropdown>
         </div>
       )}
+
+      <DeleteWebhookDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        isPending={deleteWebhook.isPending}
+        onConfirm={() => {
+          deleteWebhook.mutate({
+            id: webhook.id,
+            eventTypeId: webhook.eventTypeId || undefined,
+            teamId: webhook.teamId || undefined,
+          });
+        }}
+      />
     </div>
   );
 }

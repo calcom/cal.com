@@ -1,6 +1,5 @@
-import fs from "node:fs"
-import path from "node:path"
-
+import fs from "node:fs";
+import path from "node:path";
 import { TEMPLATES_PATH } from "../constants";
 import { getAppName } from "./getAppName";
 
@@ -20,7 +19,7 @@ const Templates = fs
         value: dir,
         category: config.categories[0],
       };
-    } catch (e) {
+    } catch (_e) {
       // config.json might not exist
       return null;
     }
