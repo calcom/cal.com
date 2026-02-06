@@ -768,13 +768,15 @@ export class AvailableSlotsService {
    * This ensures that when a host reschedules a booking, we check if the attendees are available
    * at the new time slot.
    *
-   * Improvements over base implementation:
-   * - Excludes host emails from guest list
-   * - Excludes the booking being rescheduled (avoids self-blocking)
-   * - Supports secondary verified emails
-   * - Graceful error handling with fallback
+   * Flow:
+   * 1. Looks up attendee emails from the original booking, excluding host emails
+   * 2. Identifies which attendees are Cal.com users (via primary + verified secondary emails)
+   * 3. Fetches all their bookings in the date range (using userId + all verified emails)
+   * 4. Excludes the booking being rescheduled to prevent self-blocking
+   * 5. Returns busy time ranges to merge into availability calculation
    *
-   * Only applies to non-collective event types, as collective events already check all hosts.
+   * Skips COLLECTIVE events since all hosts are already checked in that flow.
+   * Gracefully falls back to empty (host-only availability) on errors.
    */
   private async _getGuestBusyTimesForReschedule({
     rescheduleUid,
@@ -844,16 +846,18 @@ export class AvailableSlotsService {
 
       // Get their bookings in the date range
       const guestUserIds = calComUsers.map((u) => u.id);
-      // Include both primary emails AND original attendee emails that matched Cal.com users
-      // This catches bookings where guests used secondary/verified emails
-      const calComUserPrimaryEmails = calComUsers.map((u) => u.email.toLowerCase());
-      const matchedAttendeeEmails = guestEmails.filter((email) =>
-        // Keep original attendee email if it belongs to a Cal.com user
-        // (findUsersByEmails already validated these via primary + secondary lookup)
-        calComUsers.some((u) => u.email.toLowerCase() === email.toLowerCase())
-      );
-      // Combine primary emails + matched attendee emails (which may include secondary emails)
-      const guestUserEmails = Array.from(new Set([...calComUserPrimaryEmails, ...matchedAttendeeEmails.map((e) => e.toLowerCase())]));
+      // Build comprehensive email list: primary + all verified secondary emails
+      // This ensures we find bookings where the guest is an attendee regardless
+      // of which verified email they used to book (primary or secondary).
+      // The userIds check already covers bookings where the guest is the host.
+      const allGuestEmails = new Set<string>();
+      for (const user of calComUsers) {
+        allGuestEmails.add(user.email.toLowerCase());
+        for (const secondary of user.secondaryEmails) {
+          allGuestEmails.add(secondary.email.toLowerCase());
+        }
+      }
+      const guestUserEmails = Array.from(allGuestEmails);
 
       const guestBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
         userIds: guestUserIds,
@@ -1444,7 +1448,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone ?? "UTC";
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({

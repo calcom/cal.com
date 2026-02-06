@@ -1,10 +1,7 @@
- 
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, test, vi, expect, beforeEach } from "vitest";
-
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CreationSource } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
@@ -128,9 +125,10 @@ describe("UserRepository", () => {
 
       expect(users).toHaveLength(1);
       expect(users[0].email).toBe("test@example.com");
+      expect(users[0]).toHaveProperty("secondaryEmails");
     });
 
-    test("Should find user by verified secondary email", async () => {
+    test("Should find user by verified secondary email and include secondary emails in result", async () => {
       // Create a test user with secondary email
       const user = await prismock.user.create({
         data: {
@@ -154,6 +152,7 @@ describe("UserRepository", () => {
 
       expect(users).toHaveLength(1);
       expect(users[0].id).toBe(user.id);
+      expect(users[0]).toHaveProperty("secondaryEmails");
     });
 
     test("Should return empty array for non-existent email", async () => {

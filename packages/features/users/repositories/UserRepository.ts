@@ -1415,6 +1415,7 @@ export class UserRepository {
    * Finds Cal.com users by their email addresses.
    * Used to identify which booking attendees are Cal.com users for guest availability checking.
    * Checks both primary email and verified secondary emails using case-insensitive matching.
+   * Returns user id, primary email, and all verified secondary emails for comprehensive booking lookup.
    */
   async findUsersByEmails({ emails }: { emails: string[] }) {
     if (!emails || emails.length === 0) {
@@ -1422,6 +1423,15 @@ export class UserRepository {
     }
 
     const normalizedEmails = emails.map((e) => e.toLowerCase());
+
+    const secondaryEmailSelect = {
+      select: {
+        email: true,
+      },
+      where: {
+        emailVerified: { not: null },
+      },
+    } as const;
 
     // Find users by primary email
     // Using OR conditions instead of 'in' for better test compatibility
@@ -1432,6 +1442,7 @@ export class UserRepository {
       select: {
         id: true,
         email: true,
+        secondaryEmails: secondaryEmailSelect,
       },
     });
 
@@ -1447,11 +1458,12 @@ export class UserRepository {
       select: {
         id: true,
         email: true,
+        secondaryEmails: secondaryEmailSelect,
       },
     });
 
     // Merge and dedupe results by user id
-    const userMap = new Map<number, { id: number; email: string }>();
+    const userMap = new Map<number, { id: number; email: string; secondaryEmails: { email: string }[] }>();
     for (const user of [...usersByPrimaryEmail, ...usersBySecondaryEmail]) {
       if (!userMap.has(user.id)) {
         userMap.set(user.id, user);
