@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { LOGO } from "./constants";
 import { getOGImageVersion, constructMeetingImage, constructAppImage, constructGenericImage } from "./OgImages";
 
 describe("OgImages", () => {
