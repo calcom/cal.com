@@ -1,25 +1,23 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 import { EmailInviteForm } from "~/onboarding/components/EmailInviteForm";
 import { OnboardingCard } from "~/onboarding/components/OnboardingCard";
 import { OnboardingLayout } from "~/onboarding/components/OnboardingLayout";
-import { RoleSelector } from "~/onboarding/components/RoleSelector";
 import { OnboardingInviteBrowserView } from "~/onboarding/components/onboarding-invite-browser-view";
+import { RoleSelector } from "~/onboarding/components/RoleSelector";
 import { useCreateTeam } from "~/onboarding/hooks/useCreateTeam";
-import { useOnboardingStore, type InviteRole } from "~/onboarding/store/onboarding-store";
+import { type InviteRole, useOnboardingStore } from "~/onboarding/store/onboarding-store";
 
 type TeamInviteEmailViewProps = {
   userEmail: string;
@@ -39,9 +37,13 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const utils = trpc.useUtils();
 
   const store = useOnboardingStore();
-  const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId, resetOnboardingPreservingPlan } = store;
+  const { teamInvites, setTeamInvites, teamDetails, setTeamId, teamId, resetOnboardingPreservingPlan } =
+    store;
   const [inviteRole, setInviteRole] = React.useState<InviteRole>("MEMBER");
-  const { inviteMembers, isSubmitting } = useCreateTeam({ redirectBasePath: "/settings/teams/new" });
+  const { inviteMembers, isSubmitting } = useCreateTeam({
+    redirectBasePath: "/settings/teams/new",
+    skipRedirectAfterInvite: true,
+  });
 
   // Read teamId from query params and store it (from payment callback or redirect)
   useEffect(() => {
