@@ -35,4 +35,5 @@ export interface IRoutingTraceRepositoryCreateArgs {
 
 export interface IRoutingTraceRepository {
   create(args: IRoutingTraceRepositoryCreateArgs): Promise<RoutingTraceRecord>;
+  findByBookingUid(bookingUid: string): Promise<RoutingTraceRecord | null>;
 }

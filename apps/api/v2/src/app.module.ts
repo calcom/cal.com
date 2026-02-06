@@ -13,6 +13,7 @@ import { RedirectsMiddleware } from "@/middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
 import { JsonBodyMiddleware } from "@/middleware/body/json.body.middleware";
 import { RawBodyMiddleware } from "@/middleware/body/raw.body.middleware";
+import { UrlencodedBodyMiddleware } from "@/middleware/body/urlencoded.body.middleware";
 import { ResponseInterceptor } from "@/middleware/request-ids/request-id.interceptor";
 import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middleware";
 import { AuthModule } from "@/modules/auth/auth.module";
@@ -21,6 +22,7 @@ import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
+import { VercelWebhookController } from "@/vercel-webhook.controller";
 
 @Module({
   imports: [
@@ -58,7 +60,7 @@ import { RedisService } from "@/modules/redis/redis.service";
     AuthModule,
     JwtModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, VercelWebhookController],
   providers: [
     {
       provide: APP_FILTER,
@@ -92,6 +94,21 @@ export class AppModule implements NestModule {
         },
         {
           path: "/v2/billing/webhook",
+          method: RequestMethod.POST,
+        },
+        {
+          path: "/v2/webhooks/vercel/deployment-promoted",
+          method: RequestMethod.POST,
+        }
+      )
+      .apply(UrlencodedBodyMiddleware)
+      .forRoutes(
+        {
+          path: "/v2/auth/oauth2/token",
+          method: RequestMethod.POST,
+        },
+        {
+          path: "/api/v2/auth/oauth2/token",
           method: RequestMethod.POST,
         }
       )

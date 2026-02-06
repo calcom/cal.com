@@ -188,6 +188,7 @@ export const buildDryRunBooking = ({
     username: string | null;
     email: string;
     timeZone: string;
+    isPlatformManaged?: boolean;
   };
   eventName: string;
   startTime: string;
@@ -204,6 +205,7 @@ export const buildDryRunBooking = ({
     username: organizerUser.username,
     email: organizerUser.email,
     timeZone: organizerUser.timeZone,
+    isPlatformManaged: organizerUser.isPlatformManaged ?? false,
   };
   const booking = {
     id: -101,
@@ -1348,22 +1350,28 @@ async function handler(
   });
 
   // use host default
-  if (locationBodyString == OrganizerDefaultConferencingAppType) {
+  if (locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
-    if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+    const defaultApp = organizerMetadata?.defaultConferencingApp;
+  
+    if (defaultApp?.appSlug) {
+      const app = getAppFromSlug(defaultApp.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      if (isManagedEventType || isTeamEventType) {
-        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-          organizerMetadata?.defaultConferencingApp?.appLink;
+  
+      const mainHostCalendar = eventType.destinationCalendar || organizerUser.destinationCalendar;
+  
+      if (locationBodyString === MeetLocationType && mainHostCalendar?.integration !== "google_calendar") {
+        locationBodyString = "integrations:daily";
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl = undefined;
+      } else if (isManagedEventType || isTeamEventType) {
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl = defaultApp?.appLink;
       }
-    } else if (organizationDefaultLocation) {
-      locationBodyString = organizationDefaultLocation;
     } else {
-      locationBodyString = "integrations:daily";
+      locationBodyString = organizationDefaultLocation || "integrations:daily";
     }
   }
+  
 
   const invitee: Invitee = [
     {
@@ -2290,11 +2298,8 @@ async function handler(
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
   } else if (isConfirmedByDefault) {
-    // Use EventManager to conditionally use all needed integrations.
-    const createManager =
-      areCalendarEventsEnabled && !skipCalendarSyncTaskCreation
-        ? await eventManager.create(evt)
-        : placeholderCreatedEvent;
+    const shouldSkipCalendarEvents = !areCalendarEventsEnabled || skipCalendarSyncTaskCreation;
+    const createManager = await eventManager.create(evt, { skipCalendarEvent: shouldSkipCalendarEvents });
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -2479,6 +2484,8 @@ async function handler(
     tracingLogger,
   });
 
+  const webhookLocation = metadata?.videoCallUrl || evt.location;
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2496,6 +2503,7 @@ async function handler(
     status: "ACCEPTED",
     smsReminderNumber: booking?.smsReminderNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
+    location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
 

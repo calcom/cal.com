@@ -6,7 +6,6 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
@@ -375,10 +374,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
             className="mb-16"
             buttonRaw={
               !searchTerm && (
-                <Button>
-                  <Link href="/workflow/new?action=calAi&templateWorkflowId=wf-11">
-                    {t("create_first_workflow")}
-                  </Link>
+                <Button href="/workflow/new?action=calAi&templateWorkflowId=wf-11">
+                  {t("create_first_workflow")}
                 </Button>
               )
             }

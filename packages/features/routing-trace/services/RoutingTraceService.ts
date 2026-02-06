@@ -4,22 +4,13 @@ import type { AssignmentReasonRepository } from "@calcom/features/assignment-rea
 import logger from "@calcom/lib/logger";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
+import { ROUTING_TRACE_DOMAINS, ROUTING_TRACE_STEPS } from "../constants";
 import type { IPendingRoutingTraceRepository } from "../repositories/PendingRoutingTraceRepository.interface";
 import type {
   IRoutingTraceRepository,
   RoutingStep,
   RoutingTrace,
 } from "../repositories/RoutingTraceRepository.interface";
-
-export const ROUTING_TRACE_DOMAINS = {
-  SALESFORCE: "salesforce",
-  ROUTING_FORM: "routing_form",
-} as const;
-
-export const ROUTING_TRACE_STEPS = {
-  SALESFORCE_ASSIGNMENT: "salesforce_assignment",
-  ATTRIBUTE_LOGIC_EVALUATED: "attribute-logic-evaluated",
-} as const;
 
 interface IRoutingTraceServiceDeps {
   pendingRoutingTraceRepository: IPendingRoutingTraceRepository;

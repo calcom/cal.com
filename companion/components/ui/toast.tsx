@@ -41,7 +41,7 @@ export function Toast({ visible, message, type }: ToastProps) {
     >
       <View
         className={`flex-row items-center rounded-lg px-4 py-3 shadow-lg ${
-          type === "error" ? "bg-red-600" : "bg-gray-800"
+          type === "error" ? "bg-red-600" : "bg-gray-800 dark:bg-[#262626]"
         }`}
       >
         <Ionicons

@@ -31,7 +31,7 @@ import bcrypt from "bcryptjs";
 import Stripe from "stripe";
 
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { BillingPeriod, MembershipRole } from "@calcom/prisma/enums";
 
 async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);
@@ -42,11 +42,39 @@ const TEST_PASSWORD = "password123";
 const SKIP_STRIPE = process.argv.includes("--skip-stripe");
 const CLEANUP_FIRST = process.argv.includes("--cleanup");
 
+const TRIGGER_ORG_SLUG = "trigger-test-org";
+const TRIGGER_TEAM_SLUG = "trigger-test-team";
+const TRIGGER_ADMIN_EMAIL = "trigger-admin@example.com";
+const TRIGGER_MEMBER_EMAILS = Array.from({ length: 4 }, (_, i) => `trigger-user-${i + 1}@example.com`);
+
+/**
+ * Compute the monthKey the scheduleMonthlyProration trigger will use.
+ * The trigger processes the previous month in YYYY-MM format (UTC).
+ */
+function computeTriggerMonthKey(): string {
+  const now = new Date();
+  const startOfCurrentMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  // Previous month
+  const prevMonth = new Date(startOfCurrentMonthUtc);
+  prevMonth.setUTCMonth(prevMonth.getUTCMonth() - 1);
+  const year = prevMonth.getUTCFullYear();
+  const month = String(prevMonth.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
 interface StripeResources {
   customer: Stripe.Customer | null;
   subscription: Stripe.Subscription | null;
   product: Stripe.Product | null;
   price: Stripe.Price | null;
+}
+
+interface TriggerOrgResult {
+  organization: { id: number; name: string; slug: string };
+  team: { id: number; name: string; slug: string };
+  monthKey: string;
+  unprocessedSeatChanges: number;
+  stripe: StripeResources;
 }
 
 interface SeedResult {
@@ -55,6 +83,7 @@ interface SeedResult {
   users: Array<{ email: string; name: string; role: string }>;
   prorations: Array<{ id: string; status: string; isBlocking: boolean }>;
   stripe: StripeResources;
+  triggerOrg: TriggerOrgResult | null;
 }
 
 function getStripeClient(): Stripe | null {
@@ -118,30 +147,33 @@ async function createTestUser(email: string, name: string, username: string, org
 async function cleanupStripeResources(stripe: Stripe) {
   console.log("Cleaning up existing Stripe test resources...");
 
-  // Find and delete test customers
-  const customers = await stripe.customers.list({
-    limit: 100,
-    email: "proration-admin@example.com",
-  });
+  // Find and delete test customers for both orgs
+  const emailsToCleanup = ["proration-admin@example.com", TRIGGER_ADMIN_EMAIL];
+  for (const email of emailsToCleanup) {
+    const customers = await stripe.customers.list({
+      limit: 100,
+      email,
+    });
 
-  for (const customer of customers.data) {
-    try {
-      // Cancel subscriptions first
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customer.id,
-        status: "all",
-      });
-      for (const sub of subscriptions.data) {
-        if (sub.status !== "canceled") {
-          await stripe.subscriptions.cancel(sub.id);
-          console.log(`  Cancelled subscription: ${sub.id}`);
+    for (const customer of customers.data) {
+      try {
+        // Cancel subscriptions first
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customer.id,
+          status: "all",
+        });
+        for (const sub of subscriptions.data) {
+          if (sub.status !== "canceled") {
+            await stripe.subscriptions.cancel(sub.id);
+            console.log(`  Cancelled subscription: ${sub.id}`);
+          }
         }
+        // Delete customer
+        await stripe.customers.del(customer.id);
+        console.log(`  Deleted customer: ${customer.id}`);
+      } catch (error) {
+        console.log(`  Could not delete customer ${customer.id}:`, error);
       }
-      // Delete customer
-      await stripe.customers.del(customer.id);
-      console.log(`  Deleted customer: ${customer.id}`);
-    } catch (error) {
-      console.log(`  Could not delete customer ${customer.id}:`, error);
     }
   }
 
@@ -151,7 +183,7 @@ async function cleanupStripeResources(stripe: Stripe) {
   });
 
   for (const product of products.data) {
-    if (product.name.startsWith("Proration Test") && product.active) {
+    if ((product.name.startsWith("Proration Test") || product.name.startsWith("Trigger Test")) && product.active) {
       await stripe.products.update(product.id, { active: false });
       console.log(`  Archived product: ${product.id}`);
     }
@@ -269,9 +301,109 @@ async function createFailedInvoice(
   return finalizedInvoice;
 }
 
+async function createStripeResourcesForTriggerOrg(stripe: Stripe, orgId: number): Promise<StripeResources> {
+  console.log("Creating Stripe resources for trigger org (annual)...");
+
+  const product = await stripe.products.create({
+    name: `Trigger Test Product - ${Date.now()}`,
+    description: "Test product for trigger-ready org (annual billing)",
+    metadata: {
+      testData: "true",
+      orgId: orgId.toString(),
+    },
+  });
+  console.log(`  Created product: ${product.id}`);
+
+  // Annual pricing at $150/seat/year ($12.50/month equivalent)
+  const price = await stripe.prices.create({
+    product: product.id,
+    unit_amount: 15000, // $150.00/year
+    currency: "usd",
+    recurring: {
+      interval: "year",
+      usage_type: "licensed",
+    },
+    metadata: { testData: "true" },
+  });
+  console.log(`  Created price: ${price.id}`);
+
+  const customer = await stripe.customers.create({
+    email: TRIGGER_ADMIN_EMAIL,
+    name: "Trigger Test Org",
+    metadata: {
+      testData: "true",
+      orgId: orgId.toString(),
+      calOrgId: orgId.toString(),
+    },
+  });
+  console.log(`  Created customer: ${customer.id}`);
+
+  const paymentMethod = await stripe.paymentMethods.create({
+    type: "card",
+    card: { token: "tok_visa" },
+  });
+
+  await stripe.paymentMethods.attach(paymentMethod.id, { customer: customer.id });
+  await stripe.customers.update(customer.id, {
+    invoice_settings: { default_payment_method: paymentMethod.id },
+  });
+  console.log(`  Attached payment method: ${paymentMethod.id}`);
+
+  // Create annual subscription with 3 seats
+  const subscription = await stripe.subscriptions.create({
+    customer: customer.id,
+    items: [{ price: price.id, quantity: 3 }],
+    metadata: {
+      testData: "true",
+      orgId: orgId.toString(),
+    },
+  });
+  console.log(`  Created subscription: ${subscription.id}`);
+
+  return { customer, subscription, product, price };
+}
+
 async function cleanupDatabaseResources() {
   console.log("Cleaning up database test resources...");
 
+  // Clean up trigger-test-org
+  const triggerOrg = await prisma.team.findFirst({
+    where: { slug: TRIGGER_ORG_SLUG },
+  });
+
+  if (triggerOrg) {
+    await prisma.monthlyProration.deleteMany({ where: { teamId: triggerOrg.id } });
+    await prisma.seatChangeLog.deleteMany({ where: { teamId: triggerOrg.id } });
+    await prisma.organizationBilling.deleteMany({ where: { teamId: triggerOrg.id } });
+
+    const triggerChildTeams = await prisma.team.findMany({ where: { parentId: triggerOrg.id } });
+    for (const t of triggerChildTeams) {
+      await prisma.membership.deleteMany({ where: { teamId: t.id } });
+      await prisma.team.delete({ where: { id: t.id } });
+    }
+
+    await prisma.membership.deleteMany({ where: { teamId: triggerOrg.id } });
+    await prisma.team.delete({ where: { id: triggerOrg.id } });
+
+    const triggerEmails = [TRIGGER_ADMIN_EMAIL, ...TRIGGER_MEMBER_EMAILS];
+    for (const email of triggerEmails) {
+      try {
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (user) {
+          await prisma.password.deleteMany({ where: { userId: user.id } });
+          await prisma.membership.deleteMany({ where: { userId: user.id } });
+          await prisma.profile.deleteMany({ where: { userId: user.id } });
+          await prisma.user.delete({ where: { id: user.id } });
+        }
+      } catch {
+        // Ignore errors
+      }
+    }
+
+    console.log("  Trigger org cleanup complete");
+  }
+
+  // Clean up proration-test-org
   const org = await prisma.team.findFirst({
     where: { slug: "proration-test-org" },
   });
@@ -304,13 +436,18 @@ async function cleanupDatabaseResources() {
   await prisma.team.delete({ where: { id: org.id } });
 
   // Delete test users
-  const testEmails = ["proration-admin@example.com", "proration-member@example.com"];
+  const testEmails = [
+    "proration-admin@example.com",
+    "proration-member@example.com",
+    ...Array.from({ length: 6 }, (_, i) => `proration-user-${i + 1}@example.com`),
+  ];
   for (const email of testEmails) {
     try {
       const user = await prisma.user.findUnique({ where: { email } });
       if (user) {
         await prisma.password.deleteMany({ where: { userId: user.id } });
         await prisma.membership.deleteMany({ where: { userId: user.id } });
+        await prisma.profile.deleteMany({ where: { userId: user.id } });
         await prisma.user.delete({ where: { id: user.id } });
       }
     } catch {
@@ -319,6 +456,206 @@ async function cleanupDatabaseResources() {
   }
 
   console.log("  Database cleanup complete");
+}
+
+async function seedTriggerReadyOrg(stripe: Stripe | null): Promise<TriggerOrgResult> {
+  const monthKey = computeTriggerMonthKey();
+  console.log(`\nCreating trigger-ready organization (monthKey: ${monthKey})...`);
+
+  // Create organization
+  let org = await prisma.team.findFirst({
+    where: { slug: TRIGGER_ORG_SLUG, isOrganization: true },
+  });
+
+  if (!org) {
+    org = await prisma.team.create({
+      data: {
+        name: "Trigger Test Org",
+        slug: TRIGGER_ORG_SLUG,
+        isOrganization: true,
+      },
+    });
+  }
+  console.log(`  Organization created: ${org.name} (ID: ${org.id})`);
+
+  // Create OrganizationSettings
+  await prisma.organizationSettings.upsert({
+    where: { organizationId: org.id },
+    update: {},
+    create: {
+      organizationId: org.id,
+      orgAutoAcceptEmail: "example.com",
+      isOrganizationConfigured: true,
+      isOrganizationVerified: true,
+    },
+  });
+
+  // Create child team
+  let team = await prisma.team.findFirst({
+    where: { slug: TRIGGER_TEAM_SLUG, parentId: org.id },
+  });
+
+  if (!team) {
+    team = await prisma.team.create({
+      data: {
+        name: "Trigger Test Team",
+        slug: TRIGGER_TEAM_SLUG,
+        parentId: org.id,
+      },
+    });
+  }
+  console.log(`  Team created: ${team.name} (ID: ${team.id})`);
+
+  // Create users: 1 admin + 4 members = 5 total org members
+  const adminUser = await createTestUser(TRIGGER_ADMIN_EMAIL, "Trigger Admin", "trigger-admin", org.id);
+  const members = [];
+  for (let i = 0; i < TRIGGER_MEMBER_EMAILS.length; i++) {
+    const user = await createTestUser(
+      TRIGGER_MEMBER_EMAILS[i],
+      `Trigger User ${i + 1}`,
+      `trigger-user-${i + 1}`,
+      org.id
+    );
+    members.push(user);
+  }
+
+  // Add all 5 users to org
+  await prisma.membership.upsert({
+    where: { userId_teamId: { userId: adminUser.id, teamId: org.id } },
+    update: { role: MembershipRole.OWNER },
+    create: { userId: adminUser.id, teamId: org.id, role: MembershipRole.OWNER, accepted: true },
+  });
+
+  for (const user of members) {
+    await prisma.membership.upsert({
+      where: { userId_teamId: { userId: user.id, teamId: org.id } },
+      update: { role: MembershipRole.MEMBER },
+      create: { userId: user.id, teamId: org.id, role: MembershipRole.MEMBER, accepted: true },
+    });
+  }
+
+  // Add admin + 2 members to the sub-team (3 team memberships)
+  await prisma.membership.upsert({
+    where: { userId_teamId: { userId: adminUser.id, teamId: team.id } },
+    update: { role: MembershipRole.OWNER },
+    create: { userId: adminUser.id, teamId: team.id, role: MembershipRole.OWNER, accepted: true },
+  });
+  for (let i = 0; i < 2; i++) {
+    await prisma.membership.upsert({
+      where: { userId_teamId: { userId: members[i].id, teamId: team.id } },
+      update: { role: MembershipRole.MEMBER },
+      create: { userId: members[i].id, teamId: team.id, role: MembershipRole.MEMBER, accepted: true },
+    });
+  }
+
+  console.log("  Users and memberships created (5 org members, 3 team members)");
+
+  // Stripe resources or fake IDs
+  let stripeResources: StripeResources = { customer: null, subscription: null, product: null, price: null };
+  let stripeCustomerId = `cus_fake_trigger_${Date.now()}`;
+  let stripeSubscriptionId = `sub_fake_trigger_${Date.now()}`;
+  let stripeSubscriptionItemId = `si_fake_trigger_${Date.now()}`;
+
+  if (stripe) {
+    stripeResources = await createStripeResourcesForTriggerOrg(stripe, org.id);
+    stripeCustomerId = stripeResources.customer!.id;
+    stripeSubscriptionId = stripeResources.subscription!.id;
+    stripeSubscriptionItemId = stripeResources.subscription!.items.data[0].id;
+  }
+
+  // Annual subscription dates: started ~6 months ago, ends ~6 months from now
+  const now = new Date();
+  const subscriptionStart = new Date(now);
+  subscriptionStart.setUTCMonth(subscriptionStart.getUTCMonth() - 6);
+  const subscriptionEnd = new Date(now);
+  subscriptionEnd.setUTCMonth(subscriptionEnd.getUTCMonth() + 6);
+
+  // Create OrganizationBilling with ANNUALLY period and no trial
+  await prisma.organizationBilling.upsert({
+    where: { teamId: org.id },
+    update: {
+      customerId: stripeCustomerId,
+      subscriptionId: stripeSubscriptionId,
+      subscriptionItemId: stripeSubscriptionItemId,
+      billingPeriod: BillingPeriod.ANNUALLY,
+      pricePerSeat: 15000,
+      paidSeats: 3,
+      subscriptionStart,
+      subscriptionEnd,
+      subscriptionTrialEnd: null,
+    },
+    create: {
+      teamId: org.id,
+      customerId: stripeCustomerId,
+      subscriptionId: stripeSubscriptionId,
+      subscriptionItemId: stripeSubscriptionItemId,
+      status: "ACTIVE",
+      planName: "ORGANIZATION",
+      billingPeriod: BillingPeriod.ANNUALLY,
+      pricePerSeat: 15000,
+      paidSeats: 3,
+      subscriptionStart,
+      subscriptionEnd,
+      subscriptionTrialEnd: null,
+    },
+  });
+  console.log("  OrganizationBilling created (ANNUALLY, $150/seat, 3 paid seats, no trial)");
+
+  // Set team metadata so org upgrade banner check is satisfied
+  await prisma.team.update({
+    where: { id: org.id },
+    data: {
+      metadata: {
+        subscriptionId: stripeSubscriptionId,
+        subscriptionItemId: stripeSubscriptionItemId,
+      },
+    },
+  });
+
+  // Get billing record for linking seat changes
+  const orgBilling = await prisma.organizationBilling.findUnique({
+    where: { teamId: org.id },
+  });
+
+  // Clear any existing seat changes / prorations (idempotent re-runs)
+  await prisma.seatChangeLog.deleteMany({ where: { teamId: org.id } });
+  await prisma.monthlyProration.deleteMany({ where: { teamId: org.id } });
+
+  // Create 2 unprocessed ADDITION seat change logs with the trigger's monthKey
+  const changeDate = new Date();
+  changeDate.setUTCDate(15); // Mid-month change
+  // Set to the month matching monthKey
+  const [mkYear, mkMonth] = monthKey.split("-").map(Number);
+  changeDate.setUTCFullYear(mkYear);
+  changeDate.setUTCMonth(mkMonth - 1);
+
+  for (let i = 0; i < 2; i++) {
+    await prisma.seatChangeLog.create({
+      data: {
+        teamId: org.id,
+        changeType: "ADDITION",
+        seatCount: 1,
+        userId: members[2 + i].id, // Members 3 and 4 (the ones beyond paidSeats of 3)
+        triggeredBy: adminUser.id,
+        changeDate,
+        monthKey,
+        processedInProrationId: null, // Unprocessed - key for trigger pickup
+        organizationBillingId: orgBilling?.id,
+        metadata: { source: "seed-script", note: "Unprocessed seat addition for trigger test" },
+      },
+    });
+  }
+
+  console.log(`  Created 2 unprocessed SeatChangeLog entries (monthKey: ${monthKey})`);
+  console.log("  NO MonthlyProration records created (trigger-ready state)");
+
+  return {
+    organization: { id: org.id, name: org.name, slug: org.slug! },
+    team: { id: team.id, name: team.name, slug: team.slug! },
+    monthKey,
+    unprocessedSeatChanges: 2,
+    stripe: stripeResources,
+  };
 }
 
 async function seedProrationTest(): Promise<SeedResult> {
@@ -527,6 +864,21 @@ async function seedProrationTest(): Promise<SeedResult> {
 
   console.log("Organization billing created");
 
+  // Set subscriptionId in team metadata so the org upgrade banner check is satisfied.
+  // checkIfOrgNeedsUpgrade.handler.ts looks at team.metadata.subscriptionId to determine
+  // if the org has been fully set up (not in trial/needs-upgrade state).
+  await prisma.team.update({
+    where: { id: org.id },
+    data: {
+      metadata: {
+        subscriptionId: stripeSubscriptionId,
+        subscriptionItemId: stripeSubscriptionItemId,
+      },
+    },
+  });
+
+  console.log("Organization team metadata updated with subscriptionId");
+
   // Get the organization billing record for linking seat changes
   const orgBilling = await prisma.organizationBilling.findUnique({
     where: { teamId: org.id },
@@ -657,6 +1009,9 @@ async function seedProrationTest(): Promise<SeedResult> {
 
   console.log("Proration and seat change records created");
 
+  // Seed the trigger-ready org (no MonthlyProration, unprocessed seat changes)
+  const triggerOrgResult = await seedTriggerReadyOrg(stripe);
+
   return {
     organization: { id: org.id, name: org.name, slug: org.slug! },
     team: { id: team.id, name: team.name, slug: team.slug! },
@@ -669,6 +1024,7 @@ async function seedProrationTest(): Promise<SeedResult> {
       { id: warningProration.id, status: "INVOICE_CREATED", isBlocking: false },
     ],
     stripe: stripeResources,
+    triggerOrg: triggerOrgResult,
   };
 }
 
@@ -720,10 +1076,45 @@ async function main() {
     console.log("");
 
     if (result.stripe.customer) {
-      console.log("=== Stripe Dashboard ===\n");
+      console.log("=== Stripe Dashboard (Proration Org) ===\n");
       console.log(`Customer: https://dashboard.stripe.com/test/customers/${result.stripe.customer.id}`);
       console.log(
         `Subscription: https://dashboard.stripe.com/test/subscriptions/${result.stripe.subscription?.id}`
+      );
+      console.log("");
+    }
+
+    // Trigger-ready org output
+    if (result.triggerOrg) {
+      const t = result.triggerOrg;
+      console.log("=== Trigger-Ready Organization ===\n");
+      console.log("Organization:", t.organization);
+      console.log("Team:", t.team);
+      console.log(`MonthKey: ${t.monthKey}`);
+      console.log(`Unprocessed SeatChangeLogs: ${t.unprocessedSeatChanges}`);
+      console.log("MonthlyProration records: 0 (intentionally absent)");
+
+      if (t.stripe.customer) {
+        console.log(`\nStripe (Trigger Org):`);
+        console.log(`  Customer: https://dashboard.stripe.com/test/customers/${t.stripe.customer.id}`);
+        console.log(
+          `  Subscription: https://dashboard.stripe.com/test/subscriptions/${t.stripe.subscription?.id}`
+        );
+      }
+
+      console.log("\n=== Trigger Testing Instructions ===\n");
+      console.log("When scheduleMonthlyProration runs, it will:");
+      console.log(`  1. Query for annual orgs with unprocessed seat changes for monthKey "${t.monthKey}"`);
+      console.log(`  2. Find trigger-test-org with ${t.unprocessedSeatChanges} additions, 0 removals`);
+      console.log("  3. Calculate prorated amount based on remaining annual subscription days");
+      console.log("  4. Create a MonthlyProration record");
+      console.log("  5. Mark SeatChangeLog entries as processed");
+      console.log("  6. Create a Stripe invoice (if amount > 0)");
+      console.log("");
+      console.log("To verify after trigger runs:");
+      console.log(`  SELECT * FROM "MonthlyProration" WHERE "teamId" = ${t.organization.id};`);
+      console.log(
+        `  SELECT * FROM "SeatChangeLog" WHERE "teamId" = ${t.organization.id} AND "processedInProrationId" IS NOT NULL;`
       );
       console.log("");
     }

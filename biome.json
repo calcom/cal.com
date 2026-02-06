@@ -358,6 +358,9 @@
       "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
+          "correctness": {
+            "noProcessGlobal": "off"
+          },
           "style": {
             "noRestrictedImports": {
               "level": "error",

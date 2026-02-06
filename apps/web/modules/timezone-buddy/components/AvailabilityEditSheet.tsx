@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import Schedule from "@calcom/features/schedules/components/Schedule";
+import Schedule from "@calcom/web/modules/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -195,7 +195,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <SheetBody className="mt-4 flex flex-col stack-y-4">
+          <SheetBody className="mt-4 flex flex-col stack-y-8">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -234,13 +234,13 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
           </SheetBody>
           <SheetFooter>
             <SheetClose asChild>
-              <Button color="secondary" className="w-full justify-center">
+              <Button color="secondary" className="justify-center">
                 {t("cancel")}
               </Button>
             </SheetClose>
             <Button
               disabled={!hasEditPermission || !data.hasDefaultSchedule}
-              className="w-full justify-center"
+              className="justify-center"
               type="submit"
               loading={updateMutation.isPending}
               form="availability-form">

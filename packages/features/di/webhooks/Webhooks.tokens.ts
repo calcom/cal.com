@@ -1,4 +1,7 @@
+import { WEBHOOK_TASKER_DI_TOKENS } from "./tasker/tokens";
+
 export const WEBHOOK_TOKENS = {
+  ...WEBHOOK_TASKER_DI_TOKENS,
   // Core interfaces
   WEBHOOK_SERVICE: Symbol("IWebhookService"),
   BOOKING_WEBHOOK_SERVICE: Symbol("IBookingWebhookService"),
