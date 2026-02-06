@@ -18,45 +18,19 @@ interface WidgetProps {
   bookings: BookingData[];
 }
 
-// Calculate minutes until meeting starts
-function getMinutesUntilStart(startTimeISO?: string): number | null {
-  if (!startTimeISO) return null;
+// Get accent color based on start time proximity - returns HexColor type
+function getAccentColor(startTimeISO?: string): `#${string}` {
+  if (!startTimeISO) return "#007AFF";
   try {
     const startDate = new Date(startTimeISO);
     const now = new Date();
     const minutes = Math.floor((startDate.getTime() - now.getTime()) / 60000);
-    return Math.max(0, minutes);
+    if (minutes <= 0) return "#007AFF"; // Blue - already started or past
+    if (minutes <= 30) return "#FF9500"; // Orange - starting soon
+    return "#007AFF";
   } catch {
-    return null;
+    return "#007AFF";
   }
-}
-
-// Get countdown text
-function getCountdownText(minutes: number | null): string | null {
-  if (minutes === null) return null;
-  if (minutes <= 0) return "Now";
-  if (minutes < 60) return `In ${minutes}m`;
-  if (minutes < 1440) {
-    const hours = Math.floor(minutes / 60);
-    return `In ${hours}h`;
-  }
-  return null;
-}
-
-// Get accent color based on urgency - returns HexColor type
-function getAccentColor(minutes: number | null): `#${string}` {
-  if (minutes === null) return "#007AFF"; // Blue - default
-  if (minutes <= 0) return "#34C759"; // Green - happening now
-  if (minutes <= 30) return "#FF9500"; // Orange - starting soon
-  return "#007AFF"; // Blue - default
-}
-
-// Get countdown text color - returns HexColor type
-function getCountdownColor(minutes: number | null): `#${string}` {
-  if (minutes === null) return "#8E8E93";
-  if (minutes <= 0) return "#34C759"; // Green
-  if (minutes <= 30) return "#FF9500"; // Orange
-  return "#8E8E93"; // Gray
 }
 
 // Get first initial from name
@@ -66,10 +40,7 @@ function getInitial(name: string | null): string {
 }
 
 function BookingItem({ booking }: { booking: BookingData }) {
-  const minutes = getMinutesUntilStart(booking.startTimeISO);
-  const countdownText = getCountdownText(minutes);
-  const accentColor = getAccentColor(minutes);
-  const countdownColor = getCountdownColor(minutes);
+  const accentColor = getAccentColor(booking.startTimeISO);
 
   return (
     <FlexWidget
@@ -144,16 +115,6 @@ function BookingItem({ booking }: { booking: BookingData }) {
               color: "#8E8E93",
             }}
           />
-          {countdownText && (
-            <TextWidget
-              text={` • ${countdownText}`}
-              style={{
-                fontSize: 11,
-                fontWeight: "500",
-                color: countdownColor,
-              }}
-            />
-          )}
         </FlexWidget>
 
         {/* Attendee info with initial circle */}
