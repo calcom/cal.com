@@ -1,8 +1,12 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import { getCalendarCredentials, deduplicateCredentialsBasedOnSelectedCalendars, deleteEvent } from "./CalendarManager";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  deduplicateCredentialsBasedOnSelectedCalendars,
+  deleteEvent,
+  getCalendarCredentials,
+} from "./CalendarManager";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
@@ -40,21 +44,7 @@ function buildCredential(data: {
   };
 }
 
-function buildCalendarCredentialForDelete() {
-  return {
-    id: 1,
-    type: "google_calendar",
-    key: { access_token: "test_token" },
-    userId: 1,
-    user: { email: "test@example.com" },
-    teamId: null,
-    appId: "google-calendar",
-    invalid: false,
-    appName: "Google Calendar",
-  };
-}
-
-function buildCalendarEvent() {
+function buildCalendarEvent(): CalendarEvent {
   return {
     type: "test_event",
     title: "Test Event",
@@ -65,7 +55,10 @@ function buildCalendarEvent() {
       email: "organizer@example.com",
       name: "Organizer",
       timeZone: "UTC",
-      language: { locale: "en" },
+      language: {
+        translate: (() => {}) as any, // Mock translate function
+        locale: "en",
+      },
     },
     attendees: [],
     location: "Test Location",
@@ -427,10 +420,24 @@ describe("CalendarManager tests", () => {
       const mockCalendarDeleteEvent = vi.fn();
       mockedGetCalendar.mockResolvedValue({ deleteEvent: mockCalendarDeleteEvent } as any);
 
+      const credential = {
+        id: 1,
+        type: "google_calendar",
+        key: { access_token: "test_token" },
+        encryptedKey: null,
+        userId: 1,
+        user: { email: "test@example.com" },
+        teamId: null,
+        appId: "google-calendar",
+        invalid: false,
+        delegationCredentialId: null,
+        delegatedTo: null,
+      };
+
       const result = await deleteEvent({
-        credential: buildCalendarCredentialForDelete() as any,
-        bookingRefUid: bookingRefUid as any,
-        event: buildCalendarEvent() as any,
+        credential,
+        bookingRefUid: bookingRefUid as string,
+        event: buildCalendarEvent(),
         externalCalendarId: "calendar-id",
       });
 
@@ -443,15 +450,27 @@ describe("CalendarManager tests", () => {
       const mockCalendarDeleteEvent = vi.fn().mockResolvedValue({ success: true });
       mockedGetCalendar.mockResolvedValue({ deleteEvent: mockCalendarDeleteEvent } as any);
 
-      const credential = buildCalendarCredentialForDelete();
+      const credential = {
+        id: 1,
+        type: "google_calendar",
+        key: { access_token: "test_token" },
+        encryptedKey: null,
+        userId: 1,
+        user: { email: "test@example.com" },
+        teamId: null,
+        appId: "google-calendar",
+        invalid: false,
+        delegationCredentialId: null,
+        delegatedTo: null,
+      };
       const event = buildCalendarEvent();
       const bookingRefUid = "valid-booking-ref-uid";
       const externalCalendarId = "calendar-id";
 
       const result = await deleteEvent({
-        credential: credential as any,
+        credential,
         bookingRefUid,
-        event: event as any,
+        event,
         externalCalendarId,
       });
 
@@ -463,15 +482,28 @@ describe("CalendarManager tests", () => {
     it("should return empty object when calendar is not available", async () => {
       mockedGetCalendar.mockResolvedValue(null);
 
+      const credential = {
+        id: 1,
+        type: "google_calendar",
+        key: { access_token: "test_token" },
+        encryptedKey: null,
+        userId: 1,
+        user: { email: "test@example.com" },
+        teamId: null,
+        appId: "google-calendar",
+        invalid: false,
+        delegationCredentialId: null,
+        delegatedTo: null,
+      };
       const result = await deleteEvent({
-        credential: buildCalendarCredentialForDelete() as any,
+        credential,
         bookingRefUid: "valid-uid",
-        event: buildCalendarEvent() as any,
+        event: buildCalendarEvent(),
         externalCalendarId: "calendar-id",
       });
 
       expect(result).toEqual({});
-      expect(mockedGetCalendar).toHaveBeenCalledWith(buildCalendarCredentialForDelete(), "booking");
+      expect(mockedGetCalendar).toHaveBeenCalledWith(credential, "booking");
     });
   });
 });
