@@ -56,7 +56,7 @@ function buildCalendarEvent(): CalendarEvent {
       name: "Organizer",
       timeZone: "UTC",
       language: {
-        translate: (() => {}) as any, // Mock translate function
+        translate: (() => {}) as any,
         locale: "en",
       },
     },
