@@ -1,7 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import ProfileImpersonationViewWrapper from "~/settings/security/impersonation-view";
 

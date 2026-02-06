@@ -9,7 +9,7 @@ As an example, you can view our OAuth flow in action on Zapier. Try to connect y
   ![](/images/oauth-zapier.png)
 </Frame>
 
-### Get your OAuth "Continue with [Cal.com](http://Cal.com)" Badge
+#### Get your OAuth "Continue with [Cal.com](http://Cal.com)" Badge
 
 - https://app.cal.com/continue-with-calcom-coss-ui.svg
 - https://app.cal.com/continue-with-calcom-dark-rounded.svg
@@ -20,7 +20,7 @@ As an example, you can view our OAuth flow in action on Zapier. Try to connect y
 - https://app.cal.com/continue-with-calcom-light-squared.svg
 
 
-### OAuth Client Credentials
+## 1. OAuth Client Credentials
 
 You can create an OAuth client via the following page https://app.cal.com/settings/developer/oauth. The OAuth client will be in a "pending" state
 and not yet ready to use.
@@ -28,66 +28,424 @@ and not yet ready to use.
 An admin from Cal.com will then review your OAuth client and you will receive an email if it was accepted or rejected. If it was accepted then your OAuth client
 is ready to be used.
 
-### Authorization URL
+## 2. Authorize
 
 To initiate the OAuth flow, direct users to the following authorization URL:
 
-- `https://app.cal.com/auth/oauth2/authorize`
-- URL Parameters:
-  - _client_id_
-  - _state_: A securely generated random string to mitigate CSRF attacks
-  - _redirect_uri_: This is where users will be redirected after authorization
+`https://app.cal.com/auth/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=YOUR_STATE`
 
-After users click _Allow_, they will be redirected to the redirect_uri with the code (authorization code) and state as URL parameters.
+**URL Parameters:**
 
-### Access Token Request
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `client_id` | Yes | Your OAuth client ID |
+| `redirect_uri` | Yes | Where users will be redirected after authorization. Must exactly match the registered redirect URI. |
+| `state` | Recommended | A securely generated random string to mitigate CSRF attacks |
+| `code_challenge` | For public clients | PKCE code challenge (S256 method) |
 
-Endpoint: `POST https://app.cal.com/api/auth/oauth/token`
-
-Request Body:
-
-- _code_: The authorization code received in the redirect URI
-- _client_id_
-- _client_secret_
-- _grant_type_: "authorization_code"
-- _redirect_uri_
-
-Response:
+After users click **Allow**, they will be redirected to the `redirect_uri` with `code` (authorization code) and `state` as URL parameters:
 
 ```
+https://your-app.com/callback?code=AUTHORIZATION_CODE&state=YOUR_STATE
+```
+
+#### Error Handling
+
+Errors during the authorization step are displayed directly to the user on the Cal.com authorization page. Your application will not receive a JSON error response for these cases:
+
+- **Client not found**: No OAuth client exists with the provided `client_id`.
+- **Client not approved**: The OAuth client has not been approved by a Cal.com admin yet.
+- **Mismatched redirect URI**: The `redirect_uri` does not match the one registered for the OAuth client.
+
+If an error occurs after the client is validated (e.g., the user denies access or has insufficient permissions), the user is redirected to the `redirect_uri` with an error:
+
+```
+https://your-app.com/callback?error=access_denied&error_description=team_not_found_or_no_access&state=YOUR_STATE
+```
+
+## 3. Exchange Token
+
+Exchange an authorization code for access and refresh tokens. The token endpoint also accepts `application/x-www-form-urlencoded` content type.
+
+**Endpoint:** `POST https://api.cal.com/v2/auth/oauth2/token`
+
+### 3.1 Confidential Clients
+
+Confidential clients authenticate with a `client_secret`. All parameters are required:
+
+| Parameter | Description |
+|-----------|-------------|
+| `client_id` | Your OAuth client ID |
+| `client_secret` | Your OAuth client secret |
+| `grant_type` | Must be `authorization_code` |
+| `code` | The authorization code received in the redirect URI |
+| `redirect_uri` | Must match the redirect URI used in the authorization request |
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.cal.com/v2/auth/oauth2/token \
+      -H "Content-Type: application/json" \
+      -d '{
+        "client_id": "YOUR_CLIENT_ID",
+        "client_secret": "YOUR_CLIENT_SECRET",
+        "grant_type": "authorization_code",
+        "code": "AUTHORIZATION_CODE",
+        "redirect_uri": "https://your-app.com/callback"
+      }'
+    ```
+  </Tab>
+  <Tab title="fetch">
+    ```typescript
+    const response = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: "YOUR_CLIENT_ID",
+        client_secret: "YOUR_CLIENT_SECRET",
+        grant_type: "authorization_code",
+        code: "AUTHORIZATION_CODE",
+        redirect_uri: "https://your-app.com/callback",
+      }),
+    });
+
+    const tokens = await response.json();
+    ```
+  </Tab>
+  <Tab title="axios">
+    ```typescript
+    import axios from "axios";
+
+    const { data } = await axios.post(
+      "https://api.cal.com/v2/auth/oauth2/token",
+      {
+        client_id: "YOUR_CLIENT_ID",
+        client_secret: "YOUR_CLIENT_SECRET",
+        grant_type: "authorization_code",
+        code: "AUTHORIZATION_CODE",
+        redirect_uri: "https://your-app.com/callback",
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+### 3.2 Public Clients (PKCE)
+
+Public clients (e.g. single-page apps, mobile apps) use PKCE instead of a `client_secret`. You must have sent a `code_challenge` during the authorization step. All parameters are required:
+
+| Parameter | Description |
+|-----------|-------------|
+| `client_id` | Your OAuth client ID |
+| `grant_type` | Must be `authorization_code` |
+| `code` | The authorization code received in the redirect URI |
+| `redirect_uri` | Must match the redirect URI used in the authorization request |
+| `code_verifier` | The original PKCE code verifier used to generate the `code_challenge` |
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.cal.com/v2/auth/oauth2/token \
+      -H "Content-Type: application/json" \
+      -d '{
+        "client_id": "YOUR_CLIENT_ID",
+        "grant_type": "authorization_code",
+        "code": "AUTHORIZATION_CODE",
+        "redirect_uri": "https://your-app.com/callback",
+        "code_verifier": "YOUR_CODE_VERIFIER"
+      }'
+    ```
+  </Tab>
+  <Tab title="fetch">
+    ```typescript
+    const response = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: "YOUR_CLIENT_ID",
+        grant_type: "authorization_code",
+        code: "AUTHORIZATION_CODE",
+        redirect_uri: "https://your-app.com/callback",
+        code_verifier: "YOUR_CODE_VERIFIER",
+      }),
+    });
+
+    const tokens = await response.json();
+    ```
+  </Tab>
+  <Tab title="axios">
+    ```typescript
+    import axios from "axios";
+
+    const { data } = await axios.post(
+      "https://api.cal.com/v2/auth/oauth2/token",
+      {
+        client_id: "YOUR_CLIENT_ID",
+        grant_type: "authorization_code",
+        code: "AUTHORIZATION_CODE",
+        redirect_uri: "https://your-app.com/callback",
+        code_verifier: "YOUR_CODE_VERIFIER",
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+#### Success Response (200)
+
+```json
 {
-    access_token: “exampleAccessToken”
-    refresh_token: “exampleRefreshToken”
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer",
+  "expires_in": 1800
 }
 ```
 
-### Refresh Token Request
+<Note>
+  Access tokens expire after 30 minutes (`expires_in: 1800`). Use the refresh token to obtain a new access token.
+</Note>
 
-Endpoint: `POST https://app.cal.com/api/auth/oauth/refreshToken`
+#### Error Responses
 
-Headers:
+Error responses include `error` and `error_description` fields.
 
-- Authorization: Bearer _exampleRefreshToken_
+<AccordionGroup>
+  <Accordion title="Invalid or expired authorization code (400)">
+    ```json
+    {
+      "error": "invalid_grant",
+      "error_description": "code_invalid_or_expired"
+    }
+    ```
+    The authorization code has already been used, has expired, or is invalid. Request a new authorization code.
+  </Accordion>
+  <Accordion title="Invalid client credentials (401)">
+    ```json
+    {
+      "error": "invalid_client",
+      "error_description": "invalid_client_credentials"
+    }
+    ```
+    The `client_secret` does not match the `client_id`. Verify your credentials.
+  </Accordion>
+  <Accordion title="Client not found (401)">
+    ```json
+    {
+      "error": "invalid_client",
+      "error_description": "client_not_found"
+    }
+    ```
+    No OAuth client exists with the provided `client_id`.
+  </Accordion>
+  <Accordion title="Missing client_id (400)">
+    ```json
+    {
+      "error": "invalid_request",
+      "error_description": "client_id is required"
+    }
+    ```
+    The `client_id` field is missing from the request body.
+  </Accordion>
+  <Accordion title="Invalid grant_type (400)">
+    ```json
+    {
+      "error": "invalid_request",
+      "error_description": "grant_type must be 'authorization_code' or 'refresh_token'"
+    }
+    ```
+    The `grant_type` field must be either `authorization_code` or `refresh_token`.
+  </Accordion>
+</AccordionGroup>
 
-Request Body:
+## 4. Refresh Token
 
-- _grant_type_: "refresh_token"
-- _client_id_
-- _client_secret_
+Refresh an expired access token using a refresh token.
 
-Response:
+**Endpoint:** `POST https://api.cal.com/v2/auth/oauth2/token`
 
-```
+### 4.1 Confidential Clients
+
+Confidential clients authenticate with a `client_secret`. All parameters are required:
+
+| Parameter | Description |
+|-----------|-------------|
+| `client_id` | Your OAuth client ID |
+| `client_secret` | Your OAuth client secret |
+| `grant_type` | Must be `refresh_token` |
+| `refresh_token` | The refresh token received from a previous token response |
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.cal.com/v2/auth/oauth2/token \
+      -H "Content-Type: application/json" \
+      -d '{
+        "client_id": "YOUR_CLIENT_ID",
+        "client_secret": "YOUR_CLIENT_SECRET",
+        "grant_type": "refresh_token",
+        "refresh_token": "YOUR_REFRESH_TOKEN"
+      }'
+    ```
+  </Tab>
+  <Tab title="fetch">
+    ```typescript
+    const response = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: "YOUR_CLIENT_ID",
+        client_secret: "YOUR_CLIENT_SECRET",
+        grant_type: "refresh_token",
+        refresh_token: "YOUR_REFRESH_TOKEN",
+      }),
+    });
+
+    const tokens = await response.json();
+    ```
+  </Tab>
+  <Tab title="axios">
+    ```typescript
+    import axios from "axios";
+
+    const { data } = await axios.post(
+      "https://api.cal.com/v2/auth/oauth2/token",
+      {
+        client_id: "YOUR_CLIENT_ID",
+        client_secret: "YOUR_CLIENT_SECRET",
+        grant_type: "refresh_token",
+        refresh_token: "YOUR_REFRESH_TOKEN",
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+### 4.2 Public Clients
+
+Public clients do not use a `client_secret`. All parameters are required:
+
+| Parameter | Description |
+|-----------|-------------|
+| `client_id` | Your OAuth client ID |
+| `grant_type` | Must be `refresh_token` |
+| `refresh_token` | The refresh token received from a previous token response |
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.cal.com/v2/auth/oauth2/token \
+      -H "Content-Type: application/json" \
+      -d '{
+        "client_id": "YOUR_CLIENT_ID",
+        "grant_type": "refresh_token",
+        "refresh_token": "YOUR_REFRESH_TOKEN"
+      }'
+    ```
+  </Tab>
+  <Tab title="fetch">
+    ```typescript
+    const response = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: "YOUR_CLIENT_ID",
+        grant_type: "refresh_token",
+        refresh_token: "YOUR_REFRESH_TOKEN",
+      }),
+    });
+
+    const tokens = await response.json();
+    ```
+  </Tab>
+  <Tab title="axios">
+    ```typescript
+    import axios from "axios";
+
+    const { data } = await axios.post(
+      "https://api.cal.com/v2/auth/oauth2/token",
+      {
+        client_id: "YOUR_CLIENT_ID",
+        grant_type: "refresh_token",
+        refresh_token: "YOUR_REFRESH_TOKEN",
+      }
+    );
+    ```
+  </Tab>
+</Tabs>
+
+#### Success Response (200)
+
+```json
 {
-    access_token: “exampleAccessToken”,
-    refresh_token: "exampleRefreshToken"
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer",
+  "expires_in": 1800
 }
 ```
 
-### Testing OAuth Credentials
+#### Error Responses
 
-To verify the correct setup and functionality of OAuth credentials you can use the following endpoint: `GET https://api.cal.com/v2/me`
+<AccordionGroup>
+  <Accordion title="Invalid refresh token (400)">
+    ```json
+    {
+      "error": "invalid_grant",
+      "error_description": "invalid_refresh_token"
+    }
+    ```
+    The refresh token is invalid, expired, or malformed. The user must re-authorize.
+  </Accordion>
+  <Accordion title="Invalid client credentials (401)">
+    ```json
+    {
+      "error": "invalid_client",
+      "error_description": "invalid_client_credentials"
+    }
+    ```
+    The `client_secret` does not match the `client_id`.
+  </Accordion>
+  <Accordion title="Client not found (401)">
+    ```json
+    {
+      "error": "invalid_client",
+      "error_description": "client_not_found"
+    }
+    ```
+    No OAuth client exists with the provided `client_id`.
+  </Accordion>
+</AccordionGroup>
 
-Headers:
+## 5. Verify Access Token
 
-- Authorization: Bearer _exampleAccessToken_
+To verify the correct setup and functionality of OAuth credentials, use the following endpoint:
+
+**Endpoint:** `GET https://api.cal.com/v2/me`
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X GET https://api.cal.com/v2/me \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+    ```
+  </Tab>
+  <Tab title="fetch">
+    ```typescript
+    const response = await fetch("https://api.cal.com/v2/me", {
+      headers: { Authorization: "Bearer YOUR_ACCESS_TOKEN" },
+    });
+
+    const user = await response.json();
+    ```
+  </Tab>
+  <Tab title="axios">
+    ```typescript
+    import axios from "axios";
+
+    const { data } = await axios.get("https://api.cal.com/v2/me", {
+      headers: { Authorization: "Bearer YOUR_ACCESS_TOKEN" },
+    });
+    ```
+  </Tab>
+</Tabs>
