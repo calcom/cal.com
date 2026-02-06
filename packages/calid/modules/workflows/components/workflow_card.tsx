@@ -10,6 +10,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import React, { useCallback, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +21,10 @@ import type { CalIdWorkflowType } from "../config/types";
 import {
   generateTriggerText,
   generateEventTypeInfo,
-  generateActionText,
+  generateTriggerTimingBadgeText,
+  getActiveChannelsCount,
+  getEventTypeTooltipContent,
+  getActiveChannelNamesForTooltip,
   generateWorkflowTitle,
 } from "../config/utils";
 
@@ -51,13 +55,22 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
 
   const eventTypeInfo = useMemo(() => generateEventTypeInfo(workflow, t), [workflow, t]);
 
-  const actionText = useMemo(() => generateActionText(workflow), [workflow.steps]);
+  const triggerTimingText = useMemo(
+    () => generateTriggerTimingBadgeText(workflow, t),
+    [workflow.trigger, workflow.time, workflow.timeUnit, t]
+  );
+
+  const activeChannelsCount = useMemo(() => getActiveChannelsCount(workflow), [workflow.steps]);
+
+  const eventTypeTooltipContent = useMemo(() => getEventTypeTooltipContent(workflow, t), [workflow, t]);
+
+  const activeChannelNames = useMemo(() => getActiveChannelNamesForTooltip(workflow, t), [workflow.steps, t]);
 
   const workflowTitle = useMemo(() => generateWorkflowTitle(workflow, t), [workflow.name, workflow.steps, t]);
 
   return (
     <div
-      className="bg-card border-default cursor-pointer rounded-md border px-3 py-5 transition-all hover:shadow-md"
+      className="bg-default border-default cursor-pointer rounded-md border px-3 py-5 transition-all hover:shadow-md"
       onClick={handleCardClick}>
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
@@ -118,12 +131,21 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({
           <p className="text-subtle mb-2 text-sm">{triggerText}</p>
 
           <div className="flex items-center justify-start space-x-2">
-            <Badge variant="secondary" className="inline-flex items-center" startIcon="link">
-              {eventTypeInfo}
+            <Tooltip content={eventTypeTooltipContent}>
+              <Badge variant="secondary" className="inline-flex items-center" startIcon="link">
+                {eventTypeInfo}
+              </Badge>
+            </Tooltip>
+            <Badge variant="secondary" className="inline-flex items-center" startIcon="clock">
+              {triggerTimingText}
             </Badge>
-            <Badge variant="secondary" className="inline-flex items-center" startIcon="check">
-              {actionText}
-            </Badge>
+            {activeChannelsCount > 0 && (
+              <Tooltip content={activeChannelNames.join(", ")}>
+                <Badge variant="secondary" className="inline-flex items-center" startIcon="send">
+                  {t("active_on_channels", { count: activeChannelsCount })}
+                </Badge>
+              </Tooltip>
+            )}
             {workflow.calIdTeam?.name && (
               <Badge variant="secondary" className="inline-flex items-center">
                 <Avatar alt={workflow.calIdTeam.name} size="xs" className="mr-1" />

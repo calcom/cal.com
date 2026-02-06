@@ -894,7 +894,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       const currentSteps = form.getValues("steps") || [];
       const filtered = currentSteps.filter((step) => step.id !== stepId);
 
-      // Update step numbers
       const reordered = filtered.map((step, index) => ({
         ...step,
         stepNumber: index + 1,
@@ -902,7 +901,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
       form.setValue("steps", reordered, { shouldDirty: true });
 
-      // Clean up verification states
       const stepIdStr = stepId.toString();
       setVerificationCodes((prev) => {
         const { [stepIdStr]: removed, ...rest } = prev;
@@ -955,14 +953,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             );
 
             if (selectedTemplate) {
-              // Check if template needs variable mapping
-
-              // Auto-fill reminderBody with template body (optional)
               const bodyComponent = selectedTemplate.components.find((c: any) => c.type === "BODY");
               if (bodyComponent?.text) {
                 updatedStep.reminderBody = bodyComponent.text;
 
-                // Validate the template body
                 const invalidVar = validateWhatsAppTemplateVariables(bodyComponent.text);
                 setInvalidVariables((prev) => ({
                   ...prev,
@@ -973,17 +967,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             triggerTemplateUpdate(stepId);
           }
 
-          // Handle action type changes
           if (field === "action") {
             const newAction = value as WorkflowActions;
 
-            // Reset WhatsApp-specific fields when changing action
             if (!isWhatsappAction(newAction)) {
               updatedStep.metaTemplateName = null;
               updatedStep.metaTemplatePhoneNumberId = null;
             }
 
-            // Get fresh template content and completely replace reminderBody
             const freshTemplate = getTemplateBodyForAction({
               action: newAction,
               locale: i18n.language,
@@ -994,7 +985,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             updatedStep.reminderBody = freshTemplate;
             updatedStep.template = WorkflowTemplates.REMINDER;
 
-            // Reset sender and other fields
             if (isSMSAction(newAction)) {
               updatedStep.sender = SENDER_ID;
               updatedStep.senderName = SENDER_ID;
@@ -1006,16 +996,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               updatedStep.senderName = SENDER_NAME;
             }
 
-            // Reset sendTo
             updatedStep.sendTo = null;
 
-            // Reset OTP/verification states
             const stepIdStr = stepId.toString();
             setOtpSentForPhone((prev) => ({ ...prev, [stepIdStr]: false }));
             setOtpSentForEmail((prev) => ({ ...prev, [stepIdStr]: false }));
             setVerificationCodes((prev) => ({ ...prev, [stepIdStr]: "" }));
 
-            // Set email subject if action is email reminder
             if (shouldScheduleEmailReminder(newAction)) {
               updatedStep.emailSubject = emailReminderTemplate({
                 isEditingMode: true,
@@ -1028,7 +1015,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             triggerTemplateUpdate(stepId);
           }
 
-          // Handle template changes
           if (field === "template") {
             const newTemplate = value as WorkflowTemplates;
             const actionType = updatedStep.action;
@@ -1041,10 +1027,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               timeFormat,
             });
 
-            // Always replace (prevent duplication)
             updatedStep.reminderBody = freshTemplateBody;
 
-            // Update email subject depending on template
             if (shouldScheduleEmailReminder(actionType)) {
               if (newTemplate === WorkflowTemplates.REMINDER) {
                 updatedStep.emailSubject = emailReminderTemplate({
@@ -1094,11 +1078,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [form, i18n.language, t, timeFormat, triggerTemplateUpdate, whatsAppPhones]
   );
 
-  const toggleActionExpanded = useCallback((stepId: number) => {
-    // This is just for UI state, we can track it separately if needed
-    // For now, all actions will be expanded
-  }, []);
-
   const insertVariable = useCallback(
     (stepId: number, field: string, variable: string) => {
       const currentSteps = form.getValues("steps") || [];
@@ -1122,15 +1101,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
   const isSMSActionType = (action: WorkflowActions) => isSMSAction(action) || isWhatsappAction(action);
 
-  // Real save handler using tRPC mutation
   const handleSaveWorkflow = useCallback(async () => {
     let activeOnIds: number[] = [];
     let isEmpty = false;
     let isVerified = true;
     const hasMappingErrors = false;
-    let hasInvalidVariables = false; // Add this
+    let hasInvalidVariables = false;
 
-    // Get the latest form values - this now has the correct HTML
     const formValues = form.getValues();
     const formSteps = formValues.steps || [];
 
@@ -1142,7 +1119,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       }
     });
 
-    // Validate and prepare steps
     const validatedSteps = formSteps.map((step, index) => {
       const processedStep = {
         ...step,
@@ -1159,7 +1135,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         );
       }
 
-      // Validation logic - ONLY for checking, don't modify original
       const strippedHtml = processedStep.reminderBody?.replace(/<[^>]+>/g, "") || "";
       const isBodyEmpty = !isSMSOrWhatsappAction(processedStep.action) && strippedHtml.length <= 1;
 
@@ -1181,7 +1156,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         triggerToast(t("fill_this_field"), "error");
       }
 
-      // Translate variables back to English
       if (processedStep.reminderBody) {
         processedStep.reminderBody = translateVariablesToEnglish(processedStep.reminderBody, {
           locale: i18n.language,
@@ -1195,7 +1169,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         });
       }
 
-      // Check verification for SMS/WhatsApp actions
       if (
         (processedStep.action === WorkflowActions.SMS_NUMBER ||
           processedStep.action === WorkflowActions.WHATSAPP_NUMBER) &&
@@ -1254,7 +1227,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     form,
   ]);
 
-  // Helper function to send verification code
   const handleSendVerificationCode = useCallback(
     (step: WorkflowStep) => {
       if (isSMSOrWhatsappAction(step.action) && step.sendTo) {
@@ -1266,7 +1238,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [sendVerificationCodeMutation]
   );
 
-  // Helper function to verify phone number
   const handleVerifyPhoneNumber = useCallback(
     (step: WorkflowStep) => {
       const stepId = step.id.toString();
@@ -1283,7 +1254,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [verificationCodes, verifyPhoneNumberMutation, workflowData?.calIdTeam?.id]
   );
 
-  // Helper function to send email verification
   const handleSendEmailVerification = useCallback(
     (step: WorkflowStep) => {
       if (step.sendTo) {
@@ -1296,7 +1266,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [sendEmailVerificationCodeMutation]
   );
 
-  // Helper function to verify email
   const handleVerifyEmail = useCallback(
     (step: WorkflowStep) => {
       const stepId = step.id.toString();
@@ -1313,7 +1282,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [verificationCodes, verifyEmailCodeMutation, workflowData?.calIdTeam?.id]
   );
 
-  // Handle successful workflow deletion
   const handleDeleteSuccess = useCallback(async () => {
     await router.push("/workflows");
   }, [router]);
@@ -1330,7 +1298,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     router.push(destination);
   }, [deleteMutation, pendingNavigation, router, workflowId]);
 
-  // Loading and error states
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   if (isPending) {
@@ -1355,7 +1322,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const convertWhatsAppTemplateForDisplay = (text: string | null): string => {
     if (!text) return "";
 
-    // Replace \n with <br> for HTML display
     return text.replace(/\n/g, "<br>");
   };
 

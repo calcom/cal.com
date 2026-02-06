@@ -125,34 +125,36 @@ export function BookingExpandedCard(props: BookingItemProps) {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
-              <div className="text-default flex flex-wrap items-center gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="truncate sm:max-w-[200px]">{firstAttendee?.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee?.timeZone}</span>
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee?.email}</span>
-                  <Button
-                    StartIcon="copy"
-                    color="minimal"
-                    variant="icon"
-                    size="xs"
-                    onClick={() => {
-                      copyToClipboard(firstAttendee?.email || "");
-                      triggerToast(t("email_copied"), "success");
-                    }}
-                    aria-label="Copy email"
-                  />
+            {firstAttendee && (
+              <div>
+                <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
+                <div className="text-default flex flex-wrap items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="truncate sm:max-w-[200px]">{firstAttendee.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee.timeZone}</span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee.email}</span>
+                    <Button
+                      StartIcon="copy"
+                      color="minimal"
+                      variant="icon"
+                      size="xs"
+                      onClick={() => {
+                        copyToClipboard(firstAttendee.email);
+                        triggerToast(t("email_copied"), "success");
+                      }}
+                      aria-label="Copy email"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {attendeeList?.length > 1 && (
               <div>
