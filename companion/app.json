@@ -104,7 +104,6 @@
               "description": "View your upcoming Cal.com bookings",
               "previewImage": "./assets/icon.png",
               "resizeMode": "horizontal|vertical",
-              "widgetFeatures": "reconfigurable",
               "targetCellWidth": 3,
               "targetCellHeight": 2
             }
