@@ -251,6 +251,31 @@
       }
     },
     {
+      "includes": [
+        "packages/lib/**/*repository*.{ts,tsx,js,jsx}",
+        "packages/lib/**/*Repository*.{ts,tsx,js,jsx}",
+        "packages/lib/**/repository/**/*.{ts,tsx,js,jsx}",
+        "packages/lib/**/repositories/**/*.{ts,tsx,js,jsx}"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["*"],
+                    "message": "Repository files and folders are not allowed in packages/lib. This file matches a repository pattern (*repository*, *Repository*, */repository/**, */repositories/**). Repositories should be placed in packages/features instead to maintain proper architectural boundaries."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["packages/app-store/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
