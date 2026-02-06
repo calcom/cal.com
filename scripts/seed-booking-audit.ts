@@ -58,52 +58,32 @@ function hoursFromNow(hours: number): number {
   return Date.now() + hours * 60 * 60 * 1000;
 }
 
-export default async function seedBookingAuditLogs() {
-  console.log("🔍 Seeding booking audit logs...");
-
-  const proUser = await prisma.user.findFirst({
-    where: { username: "pro" },
-    select: { id: true, uuid: true, email: true },
-  });
-
-  if (!proUser) {
-    console.log("❌ Pro user not found. Run the main seed first.");
-    return;
-  }
-
-  const booking = await prisma.booking.findFirst({
-    where: { userId: proUser.id },
-    select: {
-      uid: true,
-      attendees: { select: { id: true, email: true }, take: 1 },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (!booking) {
-    console.log("❌ No booking found for pro user. Run the main seed first.");
-    return;
-  }
-
-  const bookingUid = booking.uid;
-  console.log(`📋 Using booking UID: ${bookingUid}`);
-
+async function seedAuditLogsForBooking({
+  bookingUid,
+  userUuid,
+  attendeeId,
+  attendeeEmail,
+}: {
+  bookingUid: string;
+  userUuid: string;
+  attendeeId: number | undefined;
+  attendeeEmail: string;
+}): Promise<number> {
   const existingLogs = await prisma.bookingAudit.findFirst({
     where: { bookingUid },
     select: { id: true },
   });
 
   if (existingLogs) {
-    console.log("⏭️ Audit logs already seeded for this booking, skipping.");
-    return;
+    console.log(`  ⏭️ Audit logs already exist for ${bookingUid}, skipping.`);
+    return 0;
   }
 
-  const userActor = await createUserActor(proUser.uuid);
+  const userActor = await createUserActor(userUuid);
   const systemActor = await createSystemActor();
   const guestActor = await createGuestActor("guest-attendee@example.com", "Guest Attendee");
   const appActor = await createAppActor("stripe", "Stripe");
 
-  const attendeeId = booking.attendees[0]?.id;
   let attendeeActor: { id: string } | null = null;
   if (attendeeId) {
     attendeeActor = await createAttendeeActor(attendeeId);
@@ -134,7 +114,7 @@ export default async function seedBookingAuditLogs() {
         startTime: hoursFromNow(24),
         endTime: hoursFromNow(24.5),
         status: BookingStatus.PENDING,
-        hostUserUuid: proUser.uuid,
+        hostUserUuid: userUuid,
         seatReferenceUid: null,
       },
     },
@@ -168,7 +148,7 @@ export default async function seedBookingAuditLogs() {
       version: 1,
       fields: {
         rescheduleReason: "Conflict with another meeting",
-        rescheduledRequestedBy: booking.attendees[0]?.email ?? "guest@example.com",
+        rescheduledRequestedBy: attendeeEmail,
       },
     },
   });
@@ -235,8 +215,8 @@ export default async function seedBookingAuditLogs() {
       version: 1,
       fields: {
         attendees: {
-          old: [booking.attendees[0]?.email ?? "attendee@example.com", "new-attendee@example.com"],
-          new: [booking.attendees[0]?.email ?? "attendee@example.com"],
+          old: [attendeeEmail, "new-attendee@example.com"],
+          new: [attendeeEmail],
         },
       },
     },
@@ -253,7 +233,7 @@ export default async function seedBookingAuditLogs() {
     data: {
       version: 1,
       fields: {
-        organizerUuid: { old: null, new: proUser.uuid },
+        organizerUuid: { old: null, new: userUuid },
         reassignmentReason: "Round-robin auto-reassignment",
         reassignmentType: "roundRobin",
       },
@@ -271,7 +251,7 @@ export default async function seedBookingAuditLogs() {
     data: {
       version: 1,
       fields: {
-        organizerUuid: { old: proUser.uuid, new: proUser.uuid },
+        organizerUuid: { old: userUuid, new: userUuid },
         reassignmentReason: "Manual reassignment by admin",
         reassignmentType: "manual",
       },
@@ -291,7 +271,7 @@ export default async function seedBookingAuditLogs() {
       fields: {
         attendeesNoShow: [
           {
-            attendeeEmail: booking.attendees[0]?.email ?? "attendee@example.com",
+            attendeeEmail,
             noShow: { old: false, new: true },
           },
         ],
@@ -311,12 +291,12 @@ export default async function seedBookingAuditLogs() {
       version: 1,
       fields: {
         host: {
-          userUuid: proUser.uuid,
+          userUuid,
           noShow: { old: null, new: true },
         },
       },
     },
-    context: { impersonatedBy: proUser.uuid },
+    context: { impersonatedBy: userUuid },
   });
 
   auditLogs.push({
@@ -400,35 +380,65 @@ export default async function seedBookingAuditLogs() {
     await prisma.bookingAudit.create({ data: logData });
   }
 
-  console.log(`✅ Created ${auditLogs.length} audit log entries for booking ${bookingUid}`);
-  console.log("\n📊 Summary of seeded audit actions:");
-  console.log("  Actions covered:");
+  return auditLogs.length;
+}
 
-  const actionSummary = [
-    "CREATED          - User actor, WEBAPP source",
-    "ACCEPTED         - User actor, WEBAPP source",
-    "RESCHEDULE_REQUESTED - Attendee actor, WEBAPP source",
-    "RESCHEDULED      - User actor, WEBAPP source",
-    "LOCATION_CHANGED - User actor, WEBAPP source",
-    "ATTENDEE_ADDED   - Guest actor, MAGIC_LINK source",
-    "ATTENDEE_REMOVED - User actor, WEBAPP source",
-    "REASSIGNMENT (roundRobin) - System actor, SYSTEM source",
-    "REASSIGNMENT (manual) - User actor, WEBAPP source",
-    "NO_SHOW_UPDATED (attendees) - User actor, WEBAPP source",
-    "NO_SHOW_UPDATED (host, impersonated) - User actor, WEBAPP source",
-    "CANCELLED        - App actor, WEBHOOK source",
-    "REJECTED         - User actor, API_V2 source",
-    "SEAT_BOOKED      - Guest actor, WEBAPP source",
-    "SEAT_RESCHEDULED - Attendee actor, API_V1 source",
-  ];
+export default async function seedBookingAuditLogs() {
+  console.log("🔍 Seeding booking audit logs...");
 
-  for (const line of actionSummary) {
-    console.log(`    - ${line}`);
+  const targetUsers = await prisma.user.findMany({
+    where: {
+      username: { in: ["pro", "owner1-acme"] },
+    },
+    select: { id: true, uuid: true, username: true, email: true },
+  });
+
+  if (targetUsers.length === 0) {
+    console.log("❌ No seed users found. Run the main seed first.");
+    return;
   }
 
-  console.log("\n  Actor types covered: USER, ATTENDEE, GUEST, SYSTEM, APP");
-  console.log("  Sources covered: WEBAPP, API_V1, API_V2, WEBHOOK, MAGIC_LINK, SYSTEM");
-  console.log(`\n  View logs at: /booking/${bookingUid}/logs`);
+  let totalCreated = 0;
+
+  for (const user of targetUsers) {
+    const booking = await prisma.booking.findFirst({
+      where: { userId: user.id },
+      select: {
+        uid: true,
+        attendees: { select: { id: true, email: true }, take: 1 },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!booking) {
+      console.log(`  ⚠️ No booking found for ${user.username}, skipping.`);
+      continue;
+    }
+
+    console.log(`📋 Seeding audit logs for ${user.username} — booking ${booking.uid}`);
+
+    const count = await seedAuditLogsForBooking({
+      bookingUid: booking.uid,
+      userUuid: user.uuid,
+      attendeeId: booking.attendees[0]?.id,
+      attendeeEmail: booking.attendees[0]?.email ?? "attendee@example.com",
+    });
+
+    if (count > 0) {
+      console.log(`  ✅ Created ${count} audit log entries`);
+      console.log(`  View logs at: /booking/${booking.uid}/logs`);
+    }
+
+    totalCreated += count;
+  }
+
+  console.log(`\n📊 Summary:`);
+  console.log(`  Total audit log entries created: ${totalCreated}`);
+  console.log("  Actions covered: CREATED, ACCEPTED, RESCHEDULE_REQUESTED, RESCHEDULED,");
+  console.log("    LOCATION_CHANGED, ATTENDEE_ADDED, ATTENDEE_REMOVED, REASSIGNMENT (x2),");
+  console.log("    NO_SHOW_UPDATED (x2), CANCELLED, REJECTED, SEAT_BOOKED, SEAT_RESCHEDULED");
+  console.log("  Actor types: USER, ATTENDEE, GUEST, SYSTEM, APP");
+  console.log("  Sources: WEBAPP, API_V1, API_V2, WEBHOOK, MAGIC_LINK, SYSTEM");
 }
 
 seedBookingAuditLogs()
