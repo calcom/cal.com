@@ -26,7 +26,7 @@ packages/features/<domain>/lib/tasker/
     <task-name>.ts            # schemaTask definition
 ```
 
-Reference implementation: `packages/features/calendars/lib/tasker/`
+Reference implementation: `packages/features/calendars/lib/tasker/` — see `CalendarsTasker.ts` for the Tasker subclass pattern and `trigger/config.ts` for queue/retry/machine configuration
 
 ## Creating a New Task
 
@@ -44,6 +44,8 @@ export const myTaskSchema = z.object({
 ```
 
 ### 2. Configure queue, retry, and machine
+
+See `packages/features/calendars/lib/tasker/trigger/config.ts` for a real example.
 
 ```typescript
 // trigger/config.ts
@@ -130,6 +132,8 @@ Concurrency limits control how many task runs execute in parallel within a queue
 - Time-sensitive tasks (emails, webhooks) need higher concurrency
 - Background jobs that are not time-sensitive can use lower concurrency
 - Start conservative and increase based on production metrics
+
+See `packages/features/calendars/lib/tasker/trigger/config.ts` (`concurrencyLimit: 10`) and `packages/features/webhooks/lib/tasker/trigger/config.ts` (`concurrencyLimit: 20`) for real examples of how concurrency is tuned per domain.
 
 Reference: [Trigger.dev Concurrency & Queues](https://trigger.dev/docs/queue-concurrency)
 
