@@ -4,7 +4,7 @@ import { VerificationTokenRepository } from "./repositories/VerificationTokenRep
 
 import { VerificationTokenService } from "./VerificationTokenService";
 
-vi.mock("../repositories/VerificationTokenRepository", () => ({
+vi.mock("./repositories/VerificationTokenRepository", () => ({
   VerificationTokenRepository: {
     create: vi.fn(),
   },
