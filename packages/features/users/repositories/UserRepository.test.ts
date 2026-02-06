@@ -111,4 +111,44 @@ describe("UserRepository", () => {
       );
     });
   });
+
+  describe("findUsersByEmails", () => {
+    test("returns empty array for empty emails input", async () => {
+      const result = await new UserRepository(prismock).findUsersByEmails({ emails: [] });
+      expect(result).toEqual([]);
+    });
+
+    test("queries by primary email and verified secondary emails", async () => {
+      const mockFindMany = vi.fn().mockResolvedValue([{ id: 1, email: "test@example.com" }]);
+      const mockPrisma = { user: { findMany: mockFindMany } } as any;
+      const userRepo = new UserRepository(mockPrisma);
+
+      const result = await userRepo.findUsersByEmails({ emails: ["test@example.com"] });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({ id: 1, email: "test@example.com" });
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([{ email: { in: ["test@example.com"], mode: "insensitive" } }]),
+          }),
+          select: { id: true, email: true },
+        })
+      );
+    });
+
+    test("selects only id and email fields", async () => {
+      const mockFindMany = vi.fn().mockResolvedValue([{ id: 2, email: "user@example.com" }]);
+      const mockPrisma = { user: { findMany: mockFindMany } } as any;
+      const userRepo = new UserRepository(mockPrisma);
+
+      await userRepo.findUsersByEmails({ emails: ["user@example.com"] });
+
+      expect(mockFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          select: { id: true, email: true },
+        })
+      );
+    });
+  });
 });

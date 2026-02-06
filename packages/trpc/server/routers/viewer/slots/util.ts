@@ -129,6 +129,60 @@ function withSlotsCache(
   };
 }
 
+export interface GuestBusyTimesDeps {
+  bookingRepo: Pick<BookingRepository, "findByUidIncludeEventType" | "findAcceptedBookingsByUserIdsOrEmails">;
+  userRepo: Pick<UserRepository, "findUsersByEmails">;
+}
+
+export async function getGuestBusyTimesForReschedule({
+  rescheduleUid,
+  startDate,
+  endDate,
+  hostEmails,
+  bookingRepo,
+  userRepo,
+}: {
+  rescheduleUid: string;
+  startDate: Date;
+  endDate: Date;
+  hostEmails: string[];
+} & GuestBusyTimesDeps): Promise<EventBusyDetails[]> {
+  try {
+    const booking = await bookingRepo.findByUidIncludeEventType({
+      bookingUid: rescheduleUid,
+    });
+    if (!booking?.attendees?.length) return [];
+
+    const hostEmailsLower = new Set(hostEmails.map((e) => e.toLowerCase()));
+    const guestEmails = booking.attendees
+      .map((a) => a.email)
+      .filter((email) => !hostEmailsLower.has(email.toLowerCase()));
+    if (!guestEmails.length) return [];
+
+    const calUsers = await userRepo.findUsersByEmails({ emails: guestEmails });
+    if (!calUsers.length) return [];
+
+    const guestBookings = await bookingRepo.findAcceptedBookingsByUserIdsOrEmails({
+      userIds: calUsers.map((u) => u.id),
+      emails: calUsers.map((u) => u.email),
+      startDate,
+      endDate,
+      excludeUid: rescheduleUid,
+    });
+
+    return guestBookings
+      .filter((b) => b.startTime && b.endTime)
+      .map((b) => ({
+        start: b.startTime.toISOString(),
+        end: b.endTime.toISOString(),
+        source: "guest-availability",
+      }));
+  } catch {
+    log.warn("Failed to fetch guest busy times for reschedule");
+    return [];
+  }
+}
+
 export class AvailableSlotsService {
   constructor(public readonly dependencies: IAvailableSlotsService) {}
 
@@ -852,6 +906,28 @@ export class AvailableSlotsService {
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   }
+
+  private async _getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    startDate,
+    endDate,
+    hostEmails,
+  }: {
+    rescheduleUid: string;
+    startDate: Date;
+    endDate: Date;
+    hostEmails: string[];
+  }): Promise<EventBusyDetails[]> {
+    return getGuestBusyTimesForReschedule({
+      rescheduleUid,
+      startDate,
+      endDate,
+      hostEmails,
+      bookingRepo: this.dependencies.bookingRepo,
+      userRepo: this.dependencies.userRepo,
+    });
+  }
+
   private async calculateHostsAndAvailabilities({
     input,
     eventType,
@@ -901,6 +977,16 @@ export class AvailableSlotsService {
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
+
+    let guestBusyTimes: EventBusyDetails[] = [];
+    if (input.rescheduleUid && eventType.schedulingType !== SchedulingType.COLLECTIVE) {
+      guestBusyTimes = await this._getGuestBusyTimesForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        startDate: startTimeDate,
+        endDate: endTimeDate,
+        hostEmails: Array.from(userIdAndEmailMap.values()),
+      });
+    }
 
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
@@ -1026,6 +1112,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
