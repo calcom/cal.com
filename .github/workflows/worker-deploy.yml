@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - build
+      - 401-unified-calendar-view
     paths:
       - 'apps/worker/**'
       - 'packages/queue/**'
@@ -47,7 +48,7 @@ concurrency:
 
 jobs:
   build-push-deploy-worker:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/build'
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/build' || github.ref == 'refs/heads/401-unified-calendar-view'
     runs-on: ubuntu-latest
 
     steps:
