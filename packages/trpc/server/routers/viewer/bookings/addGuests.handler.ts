@@ -90,7 +90,7 @@ export const addGuestsHandler = async ({
 
   const bookingEventHandlerService = getBookingEventHandlerService();
   const featuresRepository = getFeaturesRepository();
-  const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
+  const organizationId = user.organizationId ?? null;
   const isBookingAuditEnabled = organizationId
     ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
     : false;
