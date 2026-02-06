@@ -5,6 +5,7 @@ import {
   deduplicateCredentialsBasedOnSelectedCalendars,
   deleteEvent,
   getCalendarCredentials,
+  processEvent,
 } from "./CalendarManager";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 
