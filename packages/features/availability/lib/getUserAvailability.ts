@@ -159,6 +159,8 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  /** Guest busy times for reschedule scenarios - times when attendees (who are Cal.com users) are busy */
+  guestBusyTimes?: { start: Date; end: Date }[];
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
@@ -612,6 +614,19 @@ export class UserAvailabilityService {
       };
     }
 
+    // Add guest busy times for reschedule scenarios
+    const guestBusyTimesFormatted: EventBusyDetails[] =
+      initialData?.guestBusyTimes?.map((guestBusyTime) => ({
+        start: dayjs(guestBusyTime.start).toISOString(),
+        end: dayjs(guestBusyTime.end).toISOString(),
+        title: "Guest busy time",
+        source: params.withSource ? "guest-availability" : undefined,
+      })) || [];
+
+    if (guestBusyTimesFormatted.length > 0) {
+      log.debug(`EventType: ${eventTypeId} - Adding guest busy times: ${guestBusyTimesFormatted.length}`);
+    }
+
     const detailedBusyTimes: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
@@ -622,6 +637,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...guestBusyTimesFormatted,
     ];
 
     log.debug(

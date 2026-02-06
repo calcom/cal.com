@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "types": ["vitest/globals"]
+  },
+  "include": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/__tests__/**/*",
+    "**/__mocks__/**/*",
+    "../types/next-auth.d.ts",
+    "../types/tanstack-table.d.ts"
+  ],
+  "exclude": ["dist", "build", "**/node_modules/**"]
+}

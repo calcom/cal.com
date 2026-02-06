@@ -763,6 +763,125 @@ export class AvailableSlotsService {
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
+  /**
+   * Fetches busy times for guests (attendees who are Cal.com users) during reschedule scenarios.
+   * This ensures that when a host reschedules a booking, we check if the attendees are available
+   * at the new time slot.
+   *
+   * Improvements over base implementation:
+   * - Excludes host emails from guest list
+   * - Excludes the booking being rescheduled (avoids self-blocking)
+   * - Supports secondary verified emails
+   * - Graceful error handling with fallback
+   *
+   * Only applies to non-collective event types, as collective events already check all hosts.
+   */
+  private async _getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    eventTypeSchedulingType,
+    dateFrom,
+    dateTo,
+  }: {
+    rescheduleUid: string | null | undefined;
+    eventTypeSchedulingType: SchedulingType | null;
+    dateFrom: Date;
+    dateTo: Date;
+  }): Promise<{ start: Date; end: Date }[]> {
+    // Skip if not a reschedule or if collective (all hosts already checked)
+    if (!rescheduleUid || eventTypeSchedulingType === SchedulingType.COLLECTIVE) {
+      return [];
+    }
+
+    try {
+      // Get the original booking with attendees and host info
+      const bookingRepo = this.dependencies.bookingRepo;
+      const originalBooking = await bookingRepo.findBookingByUidWithAttendees({ uid: rescheduleUid });
+
+      if (!originalBooking || !originalBooking.attendees?.length) {
+        return [];
+      }
+
+      // Build set of host emails to exclude from guest list
+      const hostEmails = new Set<string>();
+      if (originalBooking.user?.email) {
+        hostEmails.add(originalBooking.user.email.toLowerCase());
+      }
+      if (originalBooking.eventType?.hosts) {
+        originalBooking.eventType.hosts.forEach((h) => {
+          if (h.user?.email) hostEmails.add(h.user.email.toLowerCase());
+        });
+      }
+      if (originalBooking.eventType?.users) {
+        originalBooking.eventType.users.forEach((u) => {
+          if (u.email) hostEmails.add(u.email.toLowerCase());
+        });
+      }
+
+      // Get attendee emails excluding hosts and empty values
+      const guestEmails = originalBooking.attendees
+        .map((a) => a.email?.toLowerCase())
+        .filter((email): email is string => Boolean(email) && !hostEmails.has(email));
+
+      if (!guestEmails.length) {
+        return [];
+      }
+
+      // Find which attendees are Cal.com users (checks primary + secondary emails)
+      const userRepo = this.dependencies.userRepo;
+      const calComUsers = await userRepo.findUsersByEmails({ emails: guestEmails });
+
+      if (!calComUsers.length) {
+        log.debug("No Cal.com users found among attendees for reschedule", {
+          rescheduleUid,
+          attendeeCount: guestEmails.length,
+        });
+        return [];
+      }
+
+      log.debug(
+        `Found ${calComUsers.length} Cal.com users among ${guestEmails.length} attendees for reschedule`
+      );
+
+      // Get their bookings in the date range
+      const guestUserIds = calComUsers.map((u) => u.id);
+      const guestUserEmails = calComUsers.map((u) => u.email);
+
+      const guestBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
+        userIds: guestUserIds,
+        userEmails: guestUserEmails,
+        dateFrom,
+        dateTo,
+      });
+
+      // Filter out the booking being rescheduled to avoid blocking the current slot
+      const busyTimes = guestBookings
+        .filter((booking) => booking.uid !== rescheduleUid && booking.startTime && booking.endTime)
+        .map((booking) => ({
+          start: booking.startTime,
+          end: booking.endTime,
+        }));
+
+      log.debug(`Found ${busyTimes.length} busy time slots for guest users during reschedule`, {
+        rescheduleUid,
+        guestUserCount: calComUsers.length,
+      });
+
+      return busyTimes;
+    } catch (error) {
+      // Graceful fallback - don't block rescheduling if guest availability check fails
+      log.warn("Failed to fetch guest busy times for reschedule, falling back to host-only availability", {
+        error,
+        rescheduleUid,
+      });
+      return [];
+    }
+  }
+
+  private getGuestBusyTimesForReschedule = withReporting(
+    this._getGuestBusyTimesForReschedule.bind(this),
+    "getGuestBusyTimesForReschedule"
+  );
+
   private _getUsersWithCredentials({
     hosts,
   }: {
@@ -918,6 +1037,14 @@ export class AvailableSlotsService {
       );
     }
 
+    // Fetch guest busy times for reschedule scenarios
+    const guestBusyTimes = await this.getGuestBusyTimesForReschedule({
+      rescheduleUid: input.rescheduleUid,
+      eventTypeSchedulingType: eventType.schedulingType,
+      dateFrom: startTimeDate,
+      dateTo: endTimeDate,
+    });
+
     function _enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
         return {
@@ -960,6 +1087,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes, // Pass guest busy times for reschedule scenarios
       },
     });
     /* We get all users working hours and busy slots */

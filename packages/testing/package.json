@@ -3,11 +3,26 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
-    "./setupVitest": "./src/setupVitest.ts",
-    "./lib/*": "./src/lib/*",
-    "./lib/__mocks__/*": "./src/lib/__mocks__/*",
-    "./lib/bookingScenario/*": "./src/lib/bookingScenario/*",
-    "./lib/fixtures/*": "./src/lib/fixtures/*"
+    "./setupVitest": {
+      "types": "./src/setupVitest.ts",
+      "default": "./src/setupVitest.ts"
+    },
+    "./lib/*": {
+      "types": "./src/lib/*.ts",
+      "default": "./src/lib/*"
+    },
+    "./lib/__mocks__/*": {
+      "types": "./src/lib/__mocks__/*.ts",
+      "default": "./src/lib/__mocks__/*"
+    },
+    "./lib/bookingScenario/*": {
+      "types": "./src/lib/bookingScenario/*.ts",
+      "default": "./src/lib/bookingScenario/*"
+    },
+    "./lib/fixtures/*": {
+      "types": "./src/lib/fixtures/*.ts",
+      "default": "./src/lib/fixtures/*"
+    }
   },
   "scripts": {
     "lint": "biome lint .",

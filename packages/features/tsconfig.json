@@ -5,7 +5,8 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"]
+      "~/*": ["./*"],
+      "@calcom/testing/*": ["../testing/src/*"]
     },
     "resolveJsonModule": true,
     "esModuleInterop": true,
