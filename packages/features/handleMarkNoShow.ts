@@ -319,17 +319,17 @@ const handleMarkNoShow = async ({
       await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
-    if (noShowHost) {
+    if (noShowHost !== undefined) {
       await prisma.booking.update({
         where: {
           uid: bookingUid,
         },
         data: {
-          noShowHost: true,
+          noShowHost,
         },
       });
 
-      responsePayload.setNoShowHost(true);
+      responsePayload.setNoShowHost(noShowHost);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
@@ -371,14 +371,15 @@ const updateAttendees = async (
     return acc;
   }, {} as Record<string, { id: number; email: string }>);
 
-  const updatePromises = attendees.map((attendee) => {
-    const attendeeToUpdate = allAttendeesMap[attendee.email];
-    if (!attendeeToUpdate) return;
-    return prisma.attendee.update({
-      where: { id: attendeeToUpdate.id },
-      data: { noShow: attendee.noShow },
+  const updatePromises = attendees
+    .filter((attendee) => allAttendeesMap[attendee.email])
+    .map((attendee) => {
+      const attendeeToUpdate = allAttendeesMap[attendee.email];
+      return prisma.attendee.update({
+        where: { id: attendeeToUpdate.id },
+        data: { noShow: attendee.noShow },
+      });
     });
-  });
 
   const results = await Promise.allSettled(updatePromises);
   logFailedResults(results);
