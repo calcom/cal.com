@@ -17,7 +17,15 @@ const SidebarHeading = ({ name }: { name: string }): JSX.Element => {
   );
 };
 
-export const TroubleshooterSidebar = (): JSX.Element => {
+interface TroubleshooterSidebarProps {
+  onManageCalendarsClick?: () => void;
+  onInstallCalendarClick?: () => void;
+}
+
+export const TroubleshooterSidebar = ({
+  onManageCalendarsClick,
+  onInstallCalendarClick,
+}: TroubleshooterSidebarProps): JSX.Element => {
   const { t } = useLocale();
 
   return (
@@ -25,7 +33,10 @@ export const TroubleshooterSidebar = (): JSX.Element => {
       <SidebarHeading name={t("troubleshooter")} />
       <EventTypeSelect />
       <EventScheduleItem />
-      <CalendarToggleContainer />
+      <CalendarToggleContainer
+        onManageCalendarsClick={onManageCalendarsClick}
+        onInstallCalendarClick={onInstallCalendarClick}
+      />
     </div>
   );
 };

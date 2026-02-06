@@ -6,16 +6,23 @@ import { TroubleshooterSidebar } from "../sidebar/TroubleshooterSidebar";
 import { LargeCalendar } from "../large-calendar/LargeCalendar";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 
+interface TroubleshooterComponentProps {
+  month?: string | null;
+  onManageCalendarsClick?: () => void;
+  onInstallCalendarClick?: () => void;
+}
+
 export const TroubleshooterComponent = ({
   month = null,
-}: {
-  month?: string | null;
-}): JSX.Element => {
+  onManageCalendarsClick,
+  onInstallCalendarClick,
+}: TroubleshooterComponentProps): JSX.Element => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
   useInitalizeTroubleshooterStore({
     month: month,
+    isPlatform: true,
   });
 
   return (
@@ -43,7 +50,10 @@ export const TroubleshooterComponent = ({
             )}
           >
             <div className="sticky top-0 z-10 self-start ps-6 [grid-area:meta]">
-              <TroubleshooterSidebar />
+              <TroubleshooterSidebar
+                onManageCalendarsClick={onManageCalendarsClick}
+                onInstallCalendarClick={onInstallCalendarClick}
+              />
             </div>
 
             <div className="ml-[-1px] border-subtle [grid-area:main]">
@@ -56,14 +66,24 @@ export const TroubleshooterComponent = ({
   );
 };
 
+interface TroubleshooterPlatformWrapperProps {
+  month?: string | null;
+  onManageCalendarsClick?: () => void;
+  onInstallCalendarClick?: () => void;
+}
+
 export const TroubleshooterPlatformWrapper = ({
   month,
-}: {
-  month?: string | null;
-}): JSX.Element => {
+  onManageCalendarsClick,
+  onInstallCalendarClick,
+}: TroubleshooterPlatformWrapperProps): JSX.Element => {
   return (
     <BookerStoreProvider>
-      <TroubleshooterComponent month={month} />
+      <TroubleshooterComponent
+        month={month}
+        onManageCalendarsClick={onManageCalendarsClick}
+        onInstallCalendarClick={onInstallCalendarClick}
+      />
     </BookerStoreProvider>
   );
 };

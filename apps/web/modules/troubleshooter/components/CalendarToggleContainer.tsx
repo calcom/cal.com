@@ -9,6 +9,8 @@ export function CalendarToggleContainer() {
     <CalendarToggleContainerComponent
       connectedCalendars={data?.connectedCalendars ?? []}
       isLoading={isLoading}
+      manageCalendarsAction={{ href: "/settings/my-account/calendars" }}
+      installCalendarAction={{ href: "/apps/categories/calendar" }}
     />
   );
 }

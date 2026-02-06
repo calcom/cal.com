@@ -55,7 +55,11 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
   );
 }
 
-function EmptyCalendarToggleItem() {
+function EmptyCalendarToggleItem({
+  installCalendarAction,
+}: {
+  installCalendarAction?: { href: string } | { onClick: () => void };
+}) {
   const { t } = useLocale();
 
   return (
@@ -75,15 +79,17 @@ function EmptyCalendarToggleItem() {
         </div>
       }
     >
-      <div className="flex flex-col gap-3">
-        <Button
-          color="secondary"
-          className="justify-center gap-2"
-          href="/apps/categories/calendar"
-        >
-          {t("install_calendar")}
-        </Button>
-      </div>
+      {installCalendarAction && (
+        <div className="flex flex-col gap-3">
+          <Button
+            color="secondary"
+            className="justify-center gap-2"
+            {...installCalendarAction}
+          >
+            {t("install_calendar")}
+          </Button>
+        </div>
+      )}
     </TroubleshooterListItemContainer>
   );
 }
@@ -106,13 +112,15 @@ interface ConnectedCalendarItem {
 interface CalendarToggleContainerComponentProps {
   connectedCalendars: ConnectedCalendarItem[];
   isLoading: boolean;
-  showManageCalendarsButton?: boolean;
+  manageCalendarsAction?: { href: string } | { onClick: () => void };
+  installCalendarAction?: { href: string } | { onClick: () => void };
 }
 
 export function CalendarToggleContainerComponent({
   connectedCalendars,
   isLoading,
-  showManageCalendarsButton = true,
+  manageCalendarsAction,
+  installCalendarAction,
 }: CalendarToggleContainerComponentProps): JSX.Element {
   const { t } = useLocale();
   const hasConnectedCalendars = connectedCalendars.length > 0;
@@ -148,18 +156,18 @@ export function CalendarToggleContainerComponent({
               />
             );
           })}
-          {showManageCalendarsButton && (
+          {manageCalendarsAction && (
             <Button
               color="secondary"
               className="justify-center gap-2"
-              href="/settings/my-account/calendars"
+              {...manageCalendarsAction}
             >
               {t("manage_calendars")}
             </Button>
           )}
         </>
       ) : (
-        <EmptyCalendarToggleItem />
+        <EmptyCalendarToggleItem installCalendarAction={installCalendarAction} />
       )}
     </div>
   );
