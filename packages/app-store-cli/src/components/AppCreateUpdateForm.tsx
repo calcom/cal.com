@@ -39,14 +39,14 @@ export const AppForm = ({
     try {
       const config = JSON.parse(
         fs.readFileSync(`${getAppDirPath(givenSlug, isTemplate)}/config.json`).toString()
-      ) as AppMeta & { externalLink?: { url: string; newTab?: boolean } };
+      ) as AppMeta;
       initialConfig = {
         ...config,
         category: config.categories[0],
         template: config.__template,
         externalLinkUrl: config.externalLink?.url || "",
       };
-    } catch (_e) {}
+    } catch (_e) { }
 
   const fields = [
     {
@@ -70,13 +70,13 @@ export const AppForm = ({
     cliTemplate || isEditAction
       ? null
       : {
-          label: "Choose a base Template",
-          name: "template",
-          type: "select",
-          options: Templates,
-          optional: false,
-          defaultValue: "",
-        },
+        label: "Choose a base Template",
+        name: "template",
+        type: "select",
+        options: Templates,
+        optional: false,
+        defaultValue: "",
+      },
     {
       optional: false,
       label: "Category of App",
@@ -116,13 +116,17 @@ export const AppForm = ({
     },
   ].filter((f) => f);
 
+  const [appInputData, setAppInputData] = useState(initialConfig);
+  const [inputIndex, setInputIndex] = useState(0);
+  const [slugFinalized, setSlugFinalized] = useState(false);
+
   // Add external link URL field for link-as-an-app template
-  // Use initialConfig.template since appInputData is not yet available
-  const templateForFields = initialConfig.template || cliTemplate;
+  // Must use appInputData.template (not initialConfig.template) to react to user's interactive selection
+  const templateForFields = appInputData.template || cliTemplate;
   if (templateForFields === "link-as-an-app") {
-    // Insert after category field
     const categoryIndex = fields.findIndex((f) => f?.name === "category");
-    if (categoryIndex !== -1) {
+    const hasExternalLinkField = fields.some((f) => f?.name === "externalLinkUrl");
+    if (categoryIndex !== -1 && !hasExternalLinkField) {
       fields.splice(categoryIndex + 1, 0, {
         optional: false,
         label: "External Link URL",
@@ -133,10 +137,6 @@ export const AppForm = ({
       });
     }
   }
-
-  const [appInputData, setAppInputData] = useState(initialConfig);
-  const [inputIndex, setInputIndex] = useState(0);
-  const [slugFinalized, setSlugFinalized] = useState(false);
 
   const field = fields[inputIndex];
   const fieldLabel = field?.label || "";
@@ -190,6 +190,7 @@ export const AppForm = ({
     publisher,
     slug,
     template,
+    externalLinkUrl,
   ]);
 
   if (action === "edit" || action === "edit-template") {
@@ -224,9 +225,8 @@ export const AppForm = ({
             message={{
               text: isEditAction
                 ? `Editing app with slug ${slug}`
-                : `Creating ${
-                    action === "create-template" ? "template" : "app"
-                  } with name '${name}' categorized in '${category}' using template '${template}'`,
+                : `Creating ${action === "create-template" ? "template" : "app"
+                } with name '${name}' categorized in '${category}' using template '${template}'`,
               type: "info",
               showInProgressIndicator: true,
             }}
@@ -291,9 +291,8 @@ export const AppForm = ({
   }
   if (slug && slug !== givenSlug && fs.existsSync(getAppDirPath(slug, isTemplate))) {
     validationResult = {
-      text: `${
-        action === "create" ? "App" : "Template"
-      } with slug ${slug} already exists. If you want to edit it, use edit command`,
+      text: `${action === "create" ? "App" : "Template"
+        } with slug ${slug} already exists. If you want to edit it, use edit command`,
       type: "error",
     };
 
@@ -315,9 +314,8 @@ export const AppForm = ({
         ) : (
           <Message
             message={{
-              text: `\nLet's create your ${
-                isTemplate ? "Template" : "App"
-              }! Start by providing the information that's asked\n`,
+              text: `\nLet's create your ${isTemplate ? "Template" : "App"
+                }! Start by providing the information that's asked\n`,
             }}
           />
         )}
