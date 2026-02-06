@@ -689,7 +689,6 @@ jobs:
               --add-host=host.docker.internal:host-gateway \
               -e IS_ROLLBACK=\"$IS_ROLLBACK\" \
               --name \"$CONTAINER_NAME\" \
-              --network cal-network \
               --env-file \"/home/onehash/.env\" \
               -p ${NEW_PORT}:3001 \
               \"${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${DOCKER_IMAGE_TAG}\""; then

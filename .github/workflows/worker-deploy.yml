@@ -380,7 +380,6 @@ jobs:
 
               if docker run -d \
                 --name "$WORKER_NAME" \
-                --network cal-network \
                 --restart unless-stopped \
                 --env-file "/home/onehash/.env" \
                 --add-host=host.docker.internal:host-gateway \

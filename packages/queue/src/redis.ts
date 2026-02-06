@@ -1,12 +1,28 @@
 import type { RedisOptions } from "bullmq";
 import IORedis from "ioredis";
 
-export const redisConnection: RedisOptions = {
-  host: process.env.REDIS_HOST ?? "localhost",
-  port: Number(process.env.REDIS_PORT ?? 6379),
-  password: process.env.REDIS_PASSWORD,
-  maxRetriesPerRequest: null,
-};
+const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
+
+function parseRedisUrl(url: string): RedisOptions {
+  try {
+    const parsed = new URL(url);
+
+    return {
+      host: parsed.hostname,
+      port: parseInt(parsed.port) || 6379,
+      password: parsed.password || undefined,
+      username: parsed.username || undefined,
+      db: parsed.pathname ? parseInt(parsed.pathname.slice(1)) : 0,
+      tls: parsed.protocol === "rediss:" ? {} : undefined,
+      maxRetriesPerRequest: null,
+    };
+  } catch (error) {
+    console.error("Failed to parse REDIS_URL:", error);
+    throw new Error("Invalid REDIS_URL format");
+  }
+}
+
+export const redisConnection: RedisOptions = parseRedisUrl(REDIS_URL);
 
 let client: IORedis | null = null;
 
