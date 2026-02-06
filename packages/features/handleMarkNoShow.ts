@@ -371,15 +371,14 @@ const updateAttendees = async (
     return acc;
   }, {} as Record<string, { id: number; email: string }>);
 
-  const updatePromises = attendees
-    .filter((attendee) => allAttendeesMap[attendee.email])
-    .map((attendee) => {
-      const attendeeToUpdate = allAttendeesMap[attendee.email];
-      return prisma.attendee.update({
-        where: { id: attendeeToUpdate.id },
-        data: { noShow: attendee.noShow },
-      });
+  const updatePromises = attendees.map((attendee) => {
+    const attendeeToUpdate = allAttendeesMap[attendee.email];
+    if (!attendeeToUpdate) return;
+    return prisma.attendee.update({
+      where: { id: attendeeToUpdate.id },
+      data: { noShow: attendee.noShow },
     });
+  });
 
   const results = await Promise.allSettled(updatePromises);
   logFailedResults(results);
