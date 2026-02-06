@@ -389,7 +389,7 @@ jobs:
                 "$WORKER_IMAGE"; then
 
                 # Wait a moment for container to initialize
-                sleep 5
+                sleep 10
 
                 # Health check
                 if check_worker_health "$WORKER_NAME"; then
