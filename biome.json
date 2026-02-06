@@ -232,6 +232,10 @@
                     "message": "lib package should not import from app-store to avoid circular dependencies."
                   },
                   {
+                    "group": ["@calcom/features", "@calcom/features/**"],
+                    "message": "lib package should not import from @calcom/features to avoid circular dependencies."
+                  },
+                  {
                     "group": ["../features/**"],
                     "message": "lib package should not import from features to avoid circular dependencies."
                   },
