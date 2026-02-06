@@ -403,6 +403,11 @@ export default async function seedBookingAuditLogs() {
     return;
   }
 
+  if (!user.profiles.length) {
+    console.log("❌ User owner1-acme has no organization profile. Run the main seed first.");
+    return;
+  }
+
   const organizationId = user.profiles[0].organizationId;
 
   // Enable bookings-v3 globally
