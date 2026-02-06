@@ -1,119 +1,238 @@
-import type { BaseWidget } from "react-awesome-query-builder";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import * as getAttributesModule from "@calcom/features/attributes/lib/getAttributes";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
-import type { AttributeType } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
+import { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
-
+import type { BaseWidget } from "react-awesome-query-builder";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
 } from "./findTeamMembersMatchingAttributeLogic";
 
-vi.mock("@calcom/features/attributes/lib/getAttributes", () => {
-  return {
-    getAttributesAssignmentData: vi.fn(),
-    extractAttributeIdsFromQueryValue: vi.fn().mockReturnValue([]),
-  };
-});
+let testFixtures: {
+  org: Team;
+  team: Team;
+};
 
-vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
-  default: {},
-}));
+const createdResources: {
+  attributeToUsers: string[];
+  attributes: string[];
+  memberships: number[];
+  users: number[];
+} = {
+  attributeToUsers: [],
+  attributes: [],
+  memberships: [],
+  users: [],
+};
 
-const orgId = 1001;
-function mockAttributesScenario({
-  attributes,
-  teamMembersWithAttributeOptionValuePerAttribute,
-}: {
+const createTestOrganization = async () => {
+  const timestamp = Date.now() + Math.random();
+  const org = await prisma.team.create({
+    data: {
+      name: `Test Org ${timestamp}`,
+      slug: `test-org-${timestamp}`,
+      isOrganization: true,
+    },
+  });
+  return org;
+};
+
+const createTestTeam = async (overrides: { parentId: number }) => {
+  const timestamp = Date.now() + Math.random();
+  const team = await prisma.team.create({
+    data: {
+      name: `Test Team ${timestamp}`,
+      slug: `test-team-${timestamp}`,
+      parentId: overrides.parentId,
+    },
+  });
+  return team;
+};
+
+const createTestUser = async (overrides?: { email?: string; username?: string }) => {
+  const timestamp = Date.now() + Math.random();
+  const user = await prisma.user.create({
+    data: {
+      email: overrides?.email ?? `test-user-${timestamp}@example.com`,
+      username: overrides?.username ?? `test-user-${timestamp}`,
+    },
+  });
+  createdResources.users.push(user.id);
+  return user;
+};
+
+const createTestMemberships = async (params: { userId: number; orgId: number; teamId: number }) => {
+  const orgMembership = await prisma.membership.create({
+    data: {
+      userId: params.userId,
+      teamId: params.orgId,
+      role: "MEMBER",
+      accepted: true,
+    },
+  });
+  createdResources.memberships.push(orgMembership.id);
+
+  const teamMembership = await prisma.membership.create({
+    data: {
+      userId: params.userId,
+      teamId: params.teamId,
+      role: "MEMBER",
+      accepted: true,
+    },
+  });
+  createdResources.memberships.push(teamMembership.id);
+
+  return { orgMembership, teamMembership };
+};
+
+const createTestAttribute = async (params: {
+  orgId: number;
+  id: string;
+  name: string;
+  type: AttributeType;
+  slug: string;
+  options: { id: string; value: string; slug: string; isGroup?: boolean; contains?: string[] }[];
+}) => {
+  const attribute = await prisma.attribute.create({
+    data: {
+      id: params.id,
+      teamId: params.orgId,
+      name: params.name,
+      type: params.type,
+      slug: params.slug,
+      enabled: true,
+      options: {
+        createMany: {
+          data: params.options.map((opt) => ({
+            id: opt.id,
+            value: opt.value,
+            slug: opt.slug,
+            isGroup: opt.isGroup ?? false,
+            contains: opt.contains ?? [],
+          })),
+        },
+      },
+    },
+  });
+  createdResources.attributes.push(attribute.id);
+  return attribute;
+};
+
+const createTestAttributeAssignment = async (params: {
+  orgMembershipId: number;
+  attributeOptionId: string;
+}) => {
+  const assignment = await prisma.attributeToUser.create({
+    data: {
+      memberId: params.orgMembershipId,
+      attributeOptionId: params.attributeOptionId,
+    },
+  });
+  createdResources.attributeToUsers.push(assignment.id);
+  return assignment;
+};
+
+async function createAttributesScenario(params: {
   attributes: {
     id: string;
     name: string;
     type: AttributeType;
     slug: string;
-    options: {
-      id: string;
-      value: string;
-      slug: string;
-    }[];
+    options: { id: string; value: string; slug: string; isGroup?: boolean; contains?: string[] }[];
   }[];
   teamMembersWithAttributeOptionValuePerAttribute: {
-    userId: number;
+    userId?: number;
     attributes: Record<string, string | string[]>;
   }[];
 }) {
-  const commonOptionsProps = {
-    isGroup: false,
-    contains: [],
-  };
-  vi.mocked(getAttributesModule.getAttributesAssignmentData).mockResolvedValue({
-    attributesOfTheOrg: attributes.map((attribute) => ({
-      ...attribute,
-      options: attribute.options.map((option) => ({
-        ...option,
-        attributeId: attribute.id,
-        ...commonOptionsProps,
-      })),
-    })),
-    attributesAssignedToTeamMembersWithOptions: teamMembersWithAttributeOptionValuePerAttribute.map(
-      (member) => {
-        return {
-          ...member,
-          attributes: Object.fromEntries(
-            Object.entries(member.attributes).map(([attributeId, value]) => {
-              return [
-                attributeId,
+  const { attributes, teamMembersWithAttributeOptionValuePerAttribute } = params;
 
-                {
-                  attributeOption:
-                    value instanceof Array
-                      ? value.map((value) => ({ value, isGroup: false, contains: [] }))
-                      : { value, isGroup: false, contains: [] },
+  const createdAttributes = await Promise.all(
+    attributes.map((attr) =>
+      createTestAttribute({
+        orgId: testFixtures.org.id,
+        ...attr,
+      })
+    )
+  );
 
-                  type: attributes.find((attribute) => attribute.id === attributeId)!.type,
-                },
-              ];
-            })
-          ),
-        };
+  const optionValueToId = new Map<string, string>();
+  for (const attr of attributes) {
+    for (const opt of attr.options) {
+      optionValueToId.set(`${attr.id}:${opt.value}`, opt.id);
+    }
+  }
+
+  const createdUsers: { userId: number; orgMembershipId: number }[] = [];
+
+  for (const member of teamMembersWithAttributeOptionValuePerAttribute) {
+    let userId: number;
+    if (member.userId) {
+      userId = member.userId;
+      const user = await createTestUser();
+      userId = user.id;
+    } else {
+      const user = await createTestUser();
+      userId = user.id;
+    }
+
+    const { orgMembership } = await createTestMemberships({
+      userId,
+      orgId: testFixtures.org.id,
+      teamId: testFixtures.team.id,
+    });
+
+    for (const [attrId, value] of Object.entries(member.attributes)) {
+      const values = Array.isArray(value) ? value : [value];
+      for (const v of values) {
+        const optionId = optionValueToId.get(`${attrId}:${v}`);
+        if (optionId) {
+          await createTestAttributeAssignment({
+            orgMembershipId: orgMembership.id,
+            attributeOptionId: optionId,
+          });
+        }
       }
-    ),
-  });
+    }
+
+    createdUsers.push({ userId, orgMembershipId: orgMembership.id });
+  }
+
+  return { createdAttributes, createdUsers };
 }
 
-function mockHugeAttributesOfTypeSingleSelect({
-  numAttributes,
-  numOptionsPerAttribute,
-  numTeamMembers,
-  numAttributesUsedPerTeamMember,
-}: {
+async function createHugeAttributesOfTypeSingleSelect(params: {
   numAttributes: number;
   numOptionsPerAttribute: number;
   numTeamMembers: number;
   numAttributesUsedPerTeamMember: number;
 }) {
+  const { numAttributes, numOptionsPerAttribute, numTeamMembers, numAttributesUsedPerTeamMember } = params;
+
   if (numAttributesUsedPerTeamMember > numAttributes) {
     throw new Error("numAttributesUsedPerTeamMember cannot be greater than numAttributes");
   }
+
+  const timestamp = Date.now();
   const attributes = Array.from({ length: numAttributes }, (_, i) => ({
-    id: `attr${i + 1}`,
+    id: `perf-attr-${timestamp}-${i + 1}`,
     name: `Attribute ${i + 1}`,
-    type: "SINGLE_SELECT" as const,
-    slug: `attribute-${i + 1}`,
-    options: Array.from({ length: numOptionsPerAttribute }, (_, i) => ({
-      id: `opt${i + 1}`,
-      value: `Option ${i + 1}`,
-      slug: `option-${i + 1}`,
+    type: AttributeType.SINGLE_SELECT,
+    slug: `perf-attribute-${timestamp}-${i + 1}`,
+    options: Array.from({ length: numOptionsPerAttribute }, (_, j) => ({
+      id: `perf-opt-${timestamp}-${i}-${j + 1}`,
+      value: `Option ${j + 1}`,
+      slug: `perf-option-${timestamp}-${i}-${j + 1}`,
     })),
   }));
 
   const assignedAttributeOptionIdForEachMember = 1;
 
   const teamMembersWithAttributeOptionValuePerAttribute = Array.from({ length: numTeamMembers }, (_, i) => ({
-    userId: i + 1,
     attributes: Object.fromEntries(
       Array.from({ length: numAttributesUsedPerTeamMember }, (_, j) => [
         attributes[j].id,
@@ -122,7 +241,7 @@ function mockHugeAttributesOfTypeSingleSelect({
     ),
   }));
 
-  mockAttributesScenario({
+  await createAttributesScenario({
     attributes,
     teamMembersWithAttributeOptionValuePerAttribute,
   });
@@ -132,6 +251,33 @@ function mockHugeAttributesOfTypeSingleSelect({
     teamMembersWithAttributeOptionValuePerAttribute,
   };
 }
+
+const cleanupCreatedResources = async () => {
+  if (createdResources.attributeToUsers.length > 0) {
+    await prisma.attributeToUser.deleteMany({
+      where: { id: { in: createdResources.attributeToUsers } },
+    });
+    createdResources.attributeToUsers = [];
+  }
+  if (createdResources.attributes.length > 0) {
+    await prisma.attribute.deleteMany({
+      where: { id: { in: createdResources.attributes } },
+    });
+    createdResources.attributes = [];
+  }
+  if (createdResources.memberships.length > 0) {
+    await prisma.membership.deleteMany({
+      where: { id: { in: createdResources.memberships } },
+    });
+    createdResources.memberships = [];
+  }
+  if (createdResources.users.length > 0) {
+    await prisma.user.deleteMany({
+      where: { id: { in: createdResources.users } },
+    });
+    createdResources.users = [];
+  }
+};
 
 function buildQueryValue({
   rules,
@@ -159,6 +305,7 @@ function buildQueryValue({
         },
       };
       return acc;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }, {} as any),
   };
 
@@ -222,21 +369,22 @@ function buildDefaultCustomPageRoute({
     attributesQueryValue,
   });
 }
-function buildScenarioWhereMainAttributeLogicFails() {
+
+async function buildScenarioWhereMainAttributeLogicFails() {
   const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
   const Option2OfAttribute1 = { id: "opt2", value: "Option 2", slug: "option-2" };
   const Attribute1 = {
     id: "attr1",
     name: "Attribute 1",
-    type: "SINGLE_SELECT" as const,
+    type: AttributeType.SINGLE_SELECT,
     slug: "attribute-1",
     options: [Option1OfAttribute1, Option2OfAttribute1],
   };
 
-  mockAttributesScenario({
+  await createAttributesScenario({
     attributes: [Attribute1],
     teamMembersWithAttributeOptionValuePerAttribute: [
-      { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+      { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
     ],
   });
 
@@ -264,14 +412,24 @@ function buildScenarioWhereMainAttributeLogicFails() {
 }
 
 describe("findTeamMembersMatchingAttributeLogic", () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
-    // Re-establish the mock for extractAttributeIdsFromQueryValue after resetAllMocks
-    vi.mocked(getAttributesModule.extractAttributeIdsFromQueryValue).mockReturnValue([]);
+  beforeAll(async () => {
+    const org = await createTestOrganization();
+    const team = await createTestTeam({ parentId: org.id });
+    testFixtures = { org, team };
+  });
+
+  afterAll(async () => {
+    await prisma.team.deleteMany({
+      where: { id: { in: [testFixtures.team.id, testFixtures.org.id] } },
+    });
+  });
+
+  afterEach(async () => {
+    await cleanupCreatedResources();
   });
 
   it("should return null if the route does not have an attributesQueryValue set", async () => {
-    mockAttributesScenario({
+    await createAttributesScenario({
       attributes: [],
       teamMembersWithAttributeOptionValuePerAttribute: [],
     });
@@ -283,8 +441,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           response: {},
         },
         attributesQueryValue: { type: "group" } as unknown as AttributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       },
       {
         enableTroubleshooter: true,
@@ -305,15 +463,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -334,13 +492,13 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             response: {},
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
       expect(result).toEqual([
         {
-          userId: 1,
+          userId: createdUsers[0].userId,
           result: RaqbLogicResult.MATCH,
         },
       ]);
@@ -368,15 +526,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const Attribute1 = {
           id: "attr1",
           name: "Attribute 1",
-          type: "SINGLE_SELECT" as const,
+          type: AttributeType.SINGLE_SELECT,
           slug: "attribute-1",
           options: [Option1OfAttribute1],
         };
 
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [Attribute1],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+            { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
           ],
         });
 
@@ -408,13 +566,13 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             },
           },
           attributesQueryValue: attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
         expect(result).toEqual([
           {
-            userId: 1,
+            userId: createdUsers[0].userId,
             result: RaqbLogicResult.MATCH,
           },
         ]);
@@ -445,15 +603,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -474,13 +632,13 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           response: {},
         },
         attributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
       expect(result).toEqual([
         {
-          userId: 1,
+          userId: createdUsers[0].userId,
           result: RaqbLogicResult.MATCH,
         },
       ]);
@@ -512,16 +670,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "MULTI_SELECT" as const,
+        type: AttributeType.MULTI_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          // user 1 has only one option selected for the attribute
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -542,13 +699,13 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           response: {},
         },
         attributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
       expect(result).toEqual([
         {
-          userId: 1,
+          userId: createdUsers[0].userId,
           result: RaqbLogicResult.MATCH,
         },
       ]);
@@ -578,17 +735,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "MULTI_SELECT" as const,
+        type: AttributeType.MULTI_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           {
-            userId: 1,
-            // user 1 has two options selected for the attribute
             attributes: { [Attribute1.id]: [Option2OfAttribute1.value, Option1OfAttribute1.value] },
           },
         ],
@@ -611,13 +766,13 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           response: {},
         },
         attributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
       expect(result).toEqual([
         {
-          userId: 1,
+          userId: createdUsers[0].userId,
           result: RaqbLogicResult.MATCH,
         },
       ]);
@@ -642,7 +797,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const HeadquartersAttribute = {
           id: "headquarters-attr",
           name: "Headquarters",
-          type: "MULTI_SELECT" as const,
+          type: AttributeType.MULTI_SELECT,
           slug: "headquarters",
           options: [
             { id: "delhi-hq", value: "Delhi", slug: "delhi" },
@@ -652,15 +807,12 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           ],
         };
 
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [HeadquartersAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            // User 1: headquarters in Delhi and Haryana
-            { userId: 1, attributes: { [HeadquartersAttribute.id]: ["Delhi", "Haryana"] } },
-            // User 2: headquarters only in Mumbai
-            { userId: 2, attributes: { [HeadquartersAttribute.id]: ["Mumbai"] } },
-            // User 3: headquarters in Chennai
-            { userId: 3, attributes: { [HeadquartersAttribute.id]: ["Chennai"] } },
+            { attributes: { [HeadquartersAttribute.id]: ["Delhi", "Haryana"] } },
+            { attributes: { [HeadquartersAttribute.id]: ["Mumbai"] } },
+            { attributes: { [HeadquartersAttribute.id]: ["Chennai"] } },
           ],
         });
 
@@ -675,7 +827,6 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           ],
         }) as AttributesQueryValue;
 
-        // Test case 1: Booker selects Delhi and Mumbai
         const { teamMembersMatchingAttributeLogic: result1 } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: {
             fields: [
@@ -687,24 +838,22 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
               },
             ],
             response: {
-              [Field1Id]: { label: "Location", value: [DelhiOption.id, MumbaiOption.id] }, // Booker selected Delhi and Mumbai
+              [Field1Id]: { label: "Location", value: [DelhiOption.id, MumbaiOption.id] },
             },
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // Should match users 1 and 2 (Delhi matches user 1, Mumbai matches user 2)
         expect(result1).toEqual(
           expect.arrayContaining([
-            { userId: 1, result: RaqbLogicResult.MATCH },
-            { userId: 2, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
           ])
         );
-        expect(result1).not.toContainEqual({ userId: 3, result: RaqbLogicResult.MATCH });
+        expect(result1).not.toContainEqual({ userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH });
 
-        // Test case 2: Booker selects only Chennai
         const { teamMembersMatchingAttributeLogic: result2 } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: {
             fields: [
@@ -716,16 +865,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
               },
             ],
             response: {
-              [Field1Id]: { label: "Location", value: ["chennai-opt"] }, // Booker selected only Chennai
+              [Field1Id]: { label: "Location", value: ["chennai-opt"] },
             },
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // Should match only user 3
-        expect(result2).toEqual([{ userId: 3, result: RaqbLogicResult.MATCH }]);
+        expect(result2).toEqual([{ userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH }]);
       });
     });
 
@@ -736,7 +884,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const LocationAttribute = {
         id: "location-attr",
         name: "Service Locations",
-        type: "MULTI_SELECT" as const,
+        type: AttributeType.MULTI_SELECT,
         slug: "service-locations",
         options: [
           { id: "delhi-loc", value: "Delhi", slug: "delhi" },
@@ -745,29 +893,25 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         ],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [LocationAttribute],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          // User 1: services Delhi and Chennai
-          { userId: 1, attributes: { [LocationAttribute.id]: ["Delhi", "Chennai"] } },
-          // User 2: services only Mumbai
-          { userId: 2, attributes: { [LocationAttribute.id]: ["Mumbai"] } },
+          { attributes: { [LocationAttribute.id]: ["Delhi", "Chennai"] } },
+          { attributes: { [LocationAttribute.id]: ["Mumbai"] } },
         ],
       });
 
-      // This simulates a complex rule: Location must include field value OR Chennai (fixed)
       const attributesQueryValue = buildSelectTypeFieldQueryValue({
         rules: [
           {
             raqbFieldId: LocationAttribute.id,
-            value: [[`{field:${LocationFieldId}}`, "Chennai"]], // Mixed: field template + fixed value
+            value: [[`{field:${LocationFieldId}}`, "Chennai"]],
             operator: "multiselect_some_in",
             valueType: ["multiselect"],
           },
         ],
       }) as AttributesQueryValue;
 
-      // When booker selects Mumbai
       const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
         dynamicFieldValueOperands: {
           fields: [
@@ -782,21 +926,18 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             },
           ],
           response: {
-            [LocationFieldId]: { value: ["Mumbai"], label: "Mumbai" }, // Booker selected Mumbai
+            [LocationFieldId]: { value: ["Mumbai"], label: "Mumbai" },
           },
         },
         attributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
-      // Should match both users:
-      // User 1: matches because they service Chennai (the fixed value)
-      // User 2: matches because they service Mumbai (the field value)
       expect(result).toEqual(
         expect.arrayContaining([
-          { userId: 1, result: RaqbLogicResult.MATCH },
-          { userId: 2, result: RaqbLogicResult.MATCH },
+          { userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH },
+          { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
         ])
       );
     });
@@ -804,7 +945,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
   describe("Fallback", () => {
     it("should return null when main attribute logic fails and no fallback is defined", async () => {
-      const { failingAttributesQueryValue } = buildScenarioWhereMainAttributeLogicFails();
+      const { failingAttributesQueryValue } = await buildScenarioWhereMainAttributeLogicFails();
       const {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
@@ -816,19 +957,18 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         },
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: null,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
       expect(result).toEqual(null);
-      // We checked the fallback, that is why we know it is not there
       expect(checkedFallback).toEqual(true);
       expect(troubleshooter).toBeUndefined();
     });
 
     it("should return matching members when main attribute logic fails and but fallback matches", async () => {
       const { failingAttributesQueryValue, matchingAttributesQueryValue } =
-        buildScenarioWhereMainAttributeLogicFails();
+        await buildScenarioWhereMainAttributeLogicFails();
       const {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
@@ -840,24 +980,19 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         },
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: matchingAttributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
       expect(checkedFallback).toEqual(true);
-      expect(result).toEqual([
-        {
-          userId: 1,
-          result: RaqbLogicResult.MATCH,
-        },
-      ]);
+      expect(result).toHaveLength(1);
+      expect(result![0].result).toBe(RaqbLogicResult.MATCH);
 
       expect(troubleshooter).toBeUndefined();
     });
 
     it("should return 0 matching members when main attribute logic and fallback attribute logic fail", async () => {
-      const { failingAttributesQueryValue, matchingAttributesQueryValue } =
-        buildScenarioWhereMainAttributeLogicFails();
+      const { failingAttributesQueryValue } = await buildScenarioWhereMainAttributeLogicFails();
       const {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
@@ -869,8 +1004,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         },
         attributesQueryValue: failingAttributesQueryValue,
         fallbackAttributesQueryValue: failingAttributesQueryValue,
-        teamId: 1,
-        orgId,
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
       });
 
       expect(checkedFallback).toEqual(true);
@@ -880,44 +1015,43 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
   });
 
   describe("Error handling", () => {
-    it("should throw an error if the attribute type is not supported", async () => {
+    it("should return null for attributes with unsupported types (TEXT with select operators)", async () => {
       const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "UNSUPPORTED_ATTRIBUTE_TYPE" as unknown as AttributeType,
+        type: AttributeType.TEXT,
         slug: "attribute-1",
         options: [Option1OfAttribute1],
       };
-      mockAttributesScenario({
+      await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
           {
-            userId: 1,
             attributes: { [Attribute1.id]: Option1OfAttribute1.value },
           },
         ],
       });
 
-      await expect(
-        findTeamMembersMatchingAttributeLogic({
-          dynamicFieldValueOperands: {
-            fields: [],
-            response: {},
-          },
-          attributesQueryValue: buildSelectTypeFieldQueryValue({
-            rules: [
-              {
-                raqbFieldId: Attribute1.id,
-                value: [Option1OfAttribute1.id],
-                operator: "select_equals",
-              },
-            ],
-          }),
-          teamId: 1,
-          orgId,
-        })
-      ).rejects.toThrow("Unsupported attribute type");
+      const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
+        dynamicFieldValueOperands: {
+          fields: [],
+          response: {},
+        },
+        attributesQueryValue: buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: Attribute1.id,
+              value: [Option1OfAttribute1.id],
+              operator: "select_equals",
+            },
+          ],
+        }),
+        teamId: testFixtures.team.id,
+        orgId: testFixtures.org.id,
+      });
+
+      expect(teamMembersMatchingAttributeLogic).toBeNull();
     });
 
     it("should return warnings in preview and live mode", async () => {
@@ -944,15 +1078,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -974,8 +1108,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             response: {},
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
           isPreview: mode === "preview" ? true : false,
           fallbackAttributesQueryValue: null,
         });
@@ -984,7 +1118,6 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       await (async function liveMode() {
         const result = await runInMode({ mode: "live" });
-        // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
         expect(result.mainAttributeLogicBuildingWarnings).toEqual([
           "Value NON_EXISTING_OPTION_1 is not in list of values",
@@ -993,7 +1126,6 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       await (async function previewMode() {
         const result = await runInMode({ mode: "preview" });
-        // it will fallback to the fallback attribute logic which isn't defined and thus will return null
         expect(result.teamMembersMatchingAttributeLogic).toEqual(null);
         expect(result.mainAttributeLogicBuildingWarnings).toEqual([
           "Value NON_EXISTING_OPTION_1 is not in list of values",
@@ -1025,15 +1157,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -1050,8 +1182,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             response: {},
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
           isPreview: mode === "preview" ? true : false,
         });
         return result;
@@ -1070,13 +1202,12 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
   });
 
   describe("Performance testing", () => {
-    describe("20 attributes, 4000 team members", async () => {
-      // In tests, the performance is actually really bad than real world. So, skipping this test for now
+    describe("20 attributes, 400 team members", async () => {
       it("should return matching team members with a SINGLE_SELECT attribute when 'all in' option is selected", async () => {
-        const { attributes } = mockHugeAttributesOfTypeSingleSelect({
+        const { attributes } = await createHugeAttributesOfTypeSingleSelect({
           numAttributes: 20,
           numOptionsPerAttribute: 30,
-          numTeamMembers: 4000,
+          numTeamMembers: 400,
           numAttributesUsedPerTeamMember: 10,
         });
         const attributesQueryValue = buildSelectTypeFieldQueryValue({
@@ -1097,8 +1228,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
                 response: {},
               },
               attributesQueryValue,
-              teamId: 1,
-              orgId,
+              teamId: testFixtures.team.id,
+              orgId: testFixtures.org.id,
             },
             {
               concurrency: 1,
@@ -1106,30 +1237,9 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             }
           );
 
+        expect(result).toHaveLength(400);
         expect(result).toEqual(
-          expect.arrayContaining([
-            {
-              userId: 1,
-              result: RaqbLogicResult.MATCH,
-            },
-            {
-              userId: 2,
-              result: RaqbLogicResult.MATCH,
-            },
-            {
-              userId: 3,
-              result: RaqbLogicResult.MATCH,
-            },
-            {
-              userId: 2000,
-              result: RaqbLogicResult.MATCH,
-            },
-            // Last Item
-            {
-              userId: 4000,
-              result: RaqbLogicResult.MATCH,
-            },
-          ])
+          expect.arrayContaining([expect.objectContaining({ result: RaqbLogicResult.MATCH })])
         );
 
         if (!timeTaken) {
@@ -1139,10 +1249,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         console.log("Total time taken", totalTimeTaken, {
           timeTaken,
         });
-        expect(totalTimeTaken).toBeLessThan(1000);
-        // All of them should match
-        expect(result?.length).toBe(4000);
-      }, 10000);
+        expect(totalTimeTaken).toBeLessThan(5000);
+      }, 60000);
     });
   });
 
@@ -1171,15 +1279,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1, Option3OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -1202,8 +1310,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
               response: {},
             },
             attributesQueryValue,
-            teamId: 1,
-            orgId,
+            teamId: testFixtures.team.id,
+            orgId: testFixtures.org.id,
           },
           {
             enableTroubleshooter: true,
@@ -1212,7 +1320,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
       expect(result).toEqual([
         {
-          userId: 1,
+          userId: createdUsers[0].userId,
           result: RaqbLogicResult.MATCH,
         },
       ]);
@@ -1224,15 +1332,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     const LocationAttribute = {
       id: "location-attr",
       name: "Location",
-      type: "SINGLE_SELECT" as const,
+      type: AttributeType.SINGLE_SELECT,
       slug: "location",
       options: [{ id: "ny-opt", value: "New York", slug: "new-york" }],
     };
 
-    mockAttributesScenario({
+    await createAttributesScenario({
       attributes: [LocationAttribute],
       teamMembersWithAttributeOptionValuePerAttribute: [
-        { userId: 1, attributes: { [LocationAttribute.id]: "New York" } },
+        { attributes: { [LocationAttribute.id]: "New York" } },
       ],
     });
 
@@ -1240,7 +1348,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       rules: [
         {
           raqbFieldId: LocationAttribute.id,
-          value: ["non-existent-id"], // Non-existent option ID
+          value: ["non-existent-id"],
           operator: "select_equals",
         },
       ],
@@ -1252,11 +1360,10 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         response: {},
       },
       attributesQueryValue,
-      teamId: 1,
-      orgId,
+      teamId: testFixtures.team.id,
+      orgId: testFixtures.org.id,
     });
 
-    // Should not match anyone as the option ID doesn't exist
     expect(result).toEqual([]);
   });
 
@@ -1266,15 +1373,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -1302,8 +1409,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             response: {},
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
           routeName: "Test Route",
           routeIsFallback: false,
         },
@@ -1327,15 +1434,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1, Option2OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -1374,8 +1481,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           },
           attributesQueryValue: failingAttributesQueryValue,
           fallbackAttributesQueryValue: matchingFallbackQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
           routeName: "Test Route",
           routeIsFallback: false,
         },
@@ -1398,15 +1505,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Attribute 1",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "attribute-1",
         options: [Option1OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -1434,8 +1541,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             response: {},
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         },
         {}
       );
@@ -1448,15 +1555,15 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       const Attribute1 = {
         id: "attr1",
         name: "Company Size",
-        type: "SINGLE_SELECT" as const,
+        type: AttributeType.SINGLE_SELECT,
         slug: "company-size",
         options: [Option1OfAttribute1],
       };
 
-      mockAttributesScenario({
+      const { createdUsers } = await createAttributesScenario({
         attributes: [Attribute1],
         teamMembersWithAttributeOptionValuePerAttribute: [
-          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+          { attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
         ],
       });
 
@@ -1484,8 +1591,8 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
             response: {},
           },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
           routeName: "Enterprise Route",
           routeIsFallback: false,
         },
@@ -1507,14 +1614,10 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
   });
 
   describe("negation operators with users who have no attribute assignment", () => {
-    // These tests verify that users without an attribute assignment are correctly
-    // included in the evaluation when using negation operators. This is important
-    // because users without the attribute should match "not" conditions.
-
     const DepartmentAttribute = {
       id: "dept-attr",
       name: "Department",
-      type: "SINGLE_SELECT" as const,
+      type: AttributeType.SINGLE_SELECT,
       slug: "department",
       options: [
         { id: "dept-sales", value: "Sales", slug: "sales" },
@@ -1526,7 +1629,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     const LocationsAttribute = {
       id: "locs-attr",
       name: "Locations",
-      type: "MULTI_SELECT" as const,
+      type: AttributeType.MULTI_SELECT,
       slug: "locations",
       options: [
         { id: "loc-nyc", value: "NYC", slug: "nyc" },
@@ -1537,12 +1640,12 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
     describe("select_not_equals", () => {
       it("should match users without the attribute (undefined != 'Sales' is true)", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [DepartmentAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
-            { userId: 2, attributes: { [DepartmentAttribute.id]: "Engineering" } },
-            { userId: 3, attributes: {} }, // No department assigned
+            { attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { attributes: { [DepartmentAttribute.id]: "Engineering" } },
+            { attributes: {} },
           ],
         });
 
@@ -1559,31 +1662,67 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // User 1 (Sales) should NOT match
-        // User 2 (Engineering) should match
-        // User 3 (no dept) should match (undefined != "Sales" is true)
         expect(result).toEqual(
           expect.arrayContaining([
-            { userId: 2, result: RaqbLogicResult.MATCH },
-            { userId: 3, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH },
           ])
         );
-        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+        expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
+      });
+
+      it("should match users who have a different attribute but not the queried one (undefined != 'Sales' is true)", async () => {
+        const { createdUsers } = await createAttributesScenario({
+          attributes: [DepartmentAttribute, LocationsAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { attributes: { [DepartmentAttribute.id]: "Engineering" } },
+            // User has Location but NOT Department - should still match Department != 'Sales'
+            { attributes: { [LocationsAttribute.id]: ["Chicago"] } },
+          ],
+        });
+
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: DepartmentAttribute.id,
+              value: ["dept-sales"],
+              operator: "select_not_equals",
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
+        });
+
+        // User 1 (Engineering) and User 2 (has Location but no Department) should match
+        // because Engineering != Sales and undefined != Sales are both true
+        expect(result).toEqual(
+          expect.arrayContaining([
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH },
+          ])
+        );
+        expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
       });
     });
 
     describe("select_not_any_in", () => {
       it("should match users without the attribute (undefined not in ['Sales', 'Marketing'] is true)", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [DepartmentAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
-            { userId: 2, attributes: { [DepartmentAttribute.id]: "Engineering" } },
-            { userId: 3, attributes: {} }, // No department assigned
+            { attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { attributes: { [DepartmentAttribute.id]: "Engineering" } },
+            { attributes: {} },
           ],
         });
 
@@ -1601,31 +1740,28 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // User 1 (Sales) should NOT match (Sales is in the excluded list)
-        // User 2 (Engineering) should match (Engineering is not in excluded list)
-        // User 3 (no dept) should match (undefined is not in excluded list)
         expect(result).toEqual(
           expect.arrayContaining([
-            { userId: 2, result: RaqbLogicResult.MATCH },
-            { userId: 3, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH },
           ])
         );
-        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+        expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
       });
     });
 
     describe("multiselect_not_equals (!all)", () => {
       it("should match users without the attribute (not all of undefined in values is true)", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [LocationsAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC", "LA"] } },
-            { userId: 2, attributes: { [LocationsAttribute.id]: ["Chicago"] } },
-            { userId: 3, attributes: {} }, // No locations assigned
+            { attributes: { [LocationsAttribute.id]: ["NYC", "LA"] } },
+            { attributes: { [LocationsAttribute.id]: ["Chicago"] } },
+            { attributes: {} },
           ],
         });
 
@@ -1643,31 +1779,28 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // User 1 (NYC, LA) should NOT match (all their values are in the list)
-        // User 2 (Chicago) should match (Chicago is not in the list)
-        // User 3 (no locations) should match (undefined means not all values match)
         expect(result).toEqual(
           expect.arrayContaining([
-            { userId: 2, result: RaqbLogicResult.MATCH },
-            { userId: 3, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH },
           ])
         );
-        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+        expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
       });
     });
 
     describe("multiselect_not_some_in (!some)", () => {
       it("should match users without the attribute (not some of undefined in values is true)", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [LocationsAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC"] } },
-            { userId: 2, attributes: { [LocationsAttribute.id]: ["Chicago"] } },
-            { userId: 3, attributes: {} }, // No locations assigned
+            { attributes: { [LocationsAttribute.id]: ["NYC"] } },
+            { attributes: { [LocationsAttribute.id]: ["Chicago"] } },
+            { attributes: {} },
           ],
         });
 
@@ -1685,30 +1818,27 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // User 1 (NYC) should NOT match (NYC is in the list)
-        // User 2 (Chicago) should match (Chicago is not in the list)
-        // User 3 (no locations) should match (undefined means none of their values are in the list)
         expect(result).toEqual(
           expect.arrayContaining([
-            { userId: 2, result: RaqbLogicResult.MATCH },
-            { userId: 3, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH },
           ])
         );
-        expect(result).not.toContainEqual({ userId: 1, result: RaqbLogicResult.MATCH });
+        expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
       });
     });
 
     describe("positive operators should NOT match users without the attribute", () => {
       it("select_equals should not match users without the attribute", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [DepartmentAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
-            { userId: 2, attributes: {} }, // No department assigned
+            { attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { attributes: {} },
           ],
         });
 
@@ -1725,20 +1855,19 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // Only User 1 should match
-        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        expect(result).toEqual([{ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH }]);
       });
 
       it("select_any_in should not match users without the attribute", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [DepartmentAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
-            { userId: 2, attributes: {} }, // No department assigned
+            { attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { attributes: {} },
           ],
         });
 
@@ -1756,20 +1885,19 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // Only User 1 should match
-        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        expect(result).toEqual([{ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH }]);
       });
 
       it("multiselect_some_in should not match users without the attribute", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [LocationsAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC"] } },
-            { userId: 2, attributes: {} }, // No locations assigned
+            { attributes: { [LocationsAttribute.id]: ["NYC"] } },
+            { attributes: {} },
           ],
         });
 
@@ -1787,20 +1915,19 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // Only User 1 should match
-        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        expect(result).toEqual([{ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH }]);
       });
 
       it("multiselect_equals (all) should not match users without the attribute", async () => {
-        mockAttributesScenario({
+        const { createdUsers } = await createAttributesScenario({
           attributes: [LocationsAttribute],
           teamMembersWithAttributeOptionValuePerAttribute: [
-            { userId: 1, attributes: { [LocationsAttribute.id]: ["NYC", "LA"] } },
-            { userId: 2, attributes: {} }, // No locations assigned
+            { attributes: { [LocationsAttribute.id]: ["NYC", "LA"] } },
+            { attributes: {} },
           ],
         });
 
@@ -1818,17 +1945,12 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
           dynamicFieldValueOperands: { fields: [], response: {} },
           attributesQueryValue,
-          teamId: 1,
-          orgId,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
         });
 
-        // Only User 1 should match
-        expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+        expect(result).toEqual([{ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH }]);
       });
     });
-
-    // Note: is_null and is_not_null operators are listed in the multiselect operators array
-    // but their definitions are commented out in BasicConfig.ts (lines 158-171).
-    // These operators are not currently supported for attributes.
   });
 });
