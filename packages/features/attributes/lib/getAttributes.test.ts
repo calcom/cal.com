@@ -734,7 +734,7 @@ describe("getAttributes", () => {
 
     it("should handle empty attributes gracefully", async () => {
       const team = await createMockTeam({ orgId });
-      await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -752,8 +752,13 @@ describe("getAttributes", () => {
       const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
         await getAttributesAssignmentData({ teamId: team.id, orgId });
 
-      // No assignments since there are no options to assign
-      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(0);
+      // Team member should still be included (with empty attributes) even though there are no assignments.
+      // This is important for "not any in" filters where members without the attribute should match.
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0]).toEqual({
+        userId: user.id,
+        attributes: {},
+      });
       expect(attributesOfTheOrg).toHaveLength(1);
     });
 
@@ -984,6 +989,94 @@ describe("getAttributes", () => {
 
       expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
       expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toEqual(["attr1"]);
+    });
+
+    it("should include team members without any assignment for queried attributes (important for 'not any in' filters)", async () => {
+      const team = await createMockTeam({ orgId });
+
+      // User 1 has Department assignment
+      const { user: user1, orgMembership: orgMembership1 } =
+        await createMockUserHavingMembershipWithBothTeamAndOrg({
+          orgId,
+          teamId: team.id,
+        });
+
+      // User 2 only has Location assignment (no Department)
+      const user2 = await prismock.user.create({
+        data: { name: "User 2", email: "user2@test.com" },
+      });
+      const orgMembership2 = await prismock.membership.create({
+        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: orgId, userId: user2.id },
+      });
+      await prismock.membership.create({
+        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: team.id, userId: user2.id },
+      });
+
+      // User 3 has no attribute assignments at all
+      const user3 = await prismock.user.create({
+        data: { name: "User 3", email: "user3@test.com" },
+      });
+      await prismock.membership.create({
+        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: orgId, userId: user3.id },
+      });
+      await prismock.membership.create({
+        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: team.id, userId: user3.id },
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "dept-attr",
+        name: "Department",
+        slug: "department",
+        type: AttributeType.SINGLE_SELECT,
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+          { id: "dept-sales", value: "Sales", slug: "sales", isGroup: false, contains: [] },
+        ],
+      });
+
+      await createMockAttribute({
+        orgId,
+        id: "loc-attr",
+        name: "Location",
+        slug: "location",
+        type: AttributeType.SINGLE_SELECT,
+        options: [{ id: "loc-nyc", value: "NYC", slug: "nyc", isGroup: false, contains: [] }],
+      });
+
+      // User 1: Department = Engineering
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership1.id,
+        attributeOptionId: "dept-eng",
+      });
+
+      // User 2: Location = NYC (no Department)
+      await createMockAttributeAssignment({
+        orgMembershipId: orgMembership2.id,
+        attributeOptionId: "loc-nyc",
+      });
+
+      // Query only for Department attribute (simulating "Department not any in [Sales]" filter)
+      const { attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
+        teamId: team.id,
+        orgId,
+        attributeIds: ["dept-attr"],
+      });
+
+      // All 3 team members should be included, even those without Department assignment
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(3);
+
+      const user1Data = attributesAssignedToTeamMembersWithOptions.find((m) => m.userId === user1.id);
+      const user2Data = attributesAssignedToTeamMembersWithOptions.find((m) => m.userId === user2.id);
+      const user3Data = attributesAssignedToTeamMembersWithOptions.find((m) => m.userId === user3.id);
+
+      // User 1 has Department assignment
+      expect(user1Data?.attributes["dept-attr"]).toBeDefined();
+      expect(user1Data?.attributes["dept-attr"].attributeOption).toMatchObject({ value: "Engineering" });
+
+      // User 2 and User 3 should be included with empty attributes (for "not any in" evaluation)
+      expect(user2Data?.attributes).toEqual({});
+      expect(user3Data?.attributes).toEqual({});
     });
   });
 });
