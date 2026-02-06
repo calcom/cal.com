@@ -168,6 +168,66 @@ describe("generateIcsString", () => {
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
     });
   });
+  
+  // Helper function to unfold ICS lines per RFC 5545
+  // RFC 5545: Lines are delimited by CRLF, and long lines can be folded by inserting CRLF + whitespace
+  const unfoldIcs = (icsString: string): string => {
+    // Remove CRLF followed by space or tab (line continuation)
+    return icsString.replace(/\r\n[ \t]/g, "");
+  };
+  
+  describe("optional guests", () => {
+    test("should mark team members as OPT-PARTICIPANT when their email is in optionalGuestEmails", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [
+          buildPerson({ email: "regular@example.com", name: "Regular Guest" }),
+          buildPerson({ email: "optional@example.com", name: "Optional Guest" }),
+        ],
+      });
+
+      const icsString = generateIcsString({
+        event,
+        status: "CONFIRMED",
+        optionalGuestEmails: ["optional@example.com"],
+      });
+
+      expect(icsString).toBeDefined();
+      
+      // Unfold ICS lines to handle RFC 5545 line folding before assertions
+      const unfoldedIcs = unfoldIcs(assertHasIcsString(icsString));
+      
+      // RFC 5545 compliant: optional guests use ROLE=OPT-PARTICIPANT
+      expect(unfoldedIcs).toContain("ROLE=OPT-PARTICIPANT");
+      expect(unfoldedIcs).toContain("optional@example.com");
+      // Regular guest should have ROLE=REQ-PARTICIPANT
+      expect(unfoldedIcs).toContain("ROLE=REQ-PARTICIPANT");
+      expect(unfoldedIcs).toContain("regular@example.com");
+    });
+
+    test("should mark all attendees as OPT-PARTICIPANT when all are in optionalGuestEmails", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [
+          buildPerson({ email: "optional1@example.com" }),
+          buildPerson({ email: "optional2@example.com" }),
+        ],
+      });
+
+      const icsString = generateIcsString({
+        event,
+        status: "CONFIRMED",
+        optionalGuestEmails: ["optional1@example.com", "optional2@example.com"],
+      });
+
+      const assertedIcsString = assertHasIcsString(icsString);
+      const unfoldedIcs = unfoldIcs(assertedIcsString);
+      
+      // Count occurrences of ROLE=OPT-PARTICIPANT - should be 2 (one per attendee)
+      const optionalMatches = unfoldedIcs.match(/ROLE=OPT-PARTICIPANT/g);
+      expect(optionalMatches).toHaveLength(2);
+    });
+  });
   describe("error handling", () => {
     test("throws ErrorWithCode.BadRequest when ics library returns ValidationError", async () => {
       // Mock the ics library to return a ValidationError

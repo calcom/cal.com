@@ -282,6 +282,10 @@ model EventType {
   bookingRequiresAuthentication Boolean @default(false)
   rrHostSubsetEnabled           Boolean @default(false)
   enablePerHostLocations        Boolean @default(false)
+  
+  /// Optional team member guests - invited without calendar conflict checking
+  /// @zod.array(z.number())
+  optionalTeamMemberGuests Int[] @default([])
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt

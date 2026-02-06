@@ -52,11 +52,13 @@ const generateIcsString = ({
   status,
   partstat = "ACCEPTED",
   t,
+  optionalGuestEmails = [],
 }: {
   event: ICSCalendarEvent;
   status: EventStatus;
   partstat?: ParticipationStatus;
   t?: TFunction;
+  optionalGuestEmails?: string[];
 }): string | undefined => {
   const location = getVideoCallUrlFromCalEvent(event) || event.location;
 
@@ -93,7 +95,7 @@ const generateIcsString = ({
         name: attendee.name,
         email: attendee.email,
         partstat,
-        role: icsRole,
+        role: optionalGuestEmails.includes(attendee.email) ? "OPT-PARTICIPANT" : icsRole,
         rsvp: true,
       })),
       ...(event.team?.members
@@ -101,7 +103,7 @@ const generateIcsString = ({
             name: member.name,
             email: member.email,
             partstat,
-            role: icsRole,
+            role: optionalGuestEmails.includes(member.email) ? "OPT-PARTICIPANT" : icsRole,
             rsvp: true,
           }))
         : []),
