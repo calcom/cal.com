@@ -460,7 +460,7 @@ describe("CalendarManager tests", () => {
         delegatedTo: null,
       };
       const event = buildCalendarEvent();
-      const bookingRefUid = "valid-booking-ref-uid";
+      const bookingRefUid = "valid-uid";
       const externalCalendarId = "calendar-id";
 
       const result = await deleteEvent({
