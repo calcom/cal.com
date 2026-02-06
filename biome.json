@@ -228,15 +228,15 @@
               "options": {
                 "patterns": [
                   {
-                    "group": ["../app-store/**", "@calcom/app-store", "@calcom/app-store/**"],
+                    "group": ["../app-store/**"],
                     "message": "lib package should not import from app-store to avoid circular dependencies."
                   },
                   {
-                    "group": ["../features/**", "@calcom/features", "@calcom/features/**"],
+                    "group": ["../features/**"],
                     "message": "lib package should not import from features to avoid circular dependencies."
                   },
                   {
-                    "group": ["../trpc/**", "@calcom/trpc", "@calcom/trpc/**"],
+                    "group": ["../trpc/**"],
                     "message": "lib package should not import from trpc to avoid circular dependencies."
                   },
                   {
