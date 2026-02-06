@@ -29,9 +29,8 @@ RUN yarn workspaces focus \
 # ---------- Build ----------
 FROM deps AS build
 
-# Build in correct order
-RUN yarn turbo run @calid/queue#build
-RUN yarn turbo run @calid/worker#build
+# Build in correct order handled by turborepo, but we need to specify the filter to avoid building the entire monorepo
+RUN yarn turbo run build --filter=@calid/worker...
 
 # ---------- Runtime ----------
 FROM base AS runner
