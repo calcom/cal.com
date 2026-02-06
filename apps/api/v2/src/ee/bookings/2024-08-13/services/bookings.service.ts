@@ -1005,7 +1005,7 @@ export class BookingsService_2024_08_13 {
     bookingUid: string,
     bookingOwnerId: number,
     body: MarkAbsentBookingInput_2024_08_13,
-    userUuid?: string
+    userUuid: string
   ) {
     const bodyTransformed = this.inputService.transformInputMarkAbsentBooking(body);
     const bookingBefore = await this.bookingsRepository.getByUid(bookingUid);
@@ -1034,6 +1034,8 @@ export class BookingsService_2024_08_13 {
       userId: bookingOwnerId,
       userUuid,
       platformClientParams,
+      actor: makeUserActor(userUuid),
+      actionSource: "API_V2",
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
