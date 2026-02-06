@@ -1,0 +1,16 @@
+{
+  "name": "@calcom/razorpay",
+  "version": "0.0.0",
+  "description": "Accept payments via UPI, Cards, and Netbanking using Razorpay.",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "@calcom/types": "*",
+    "@calcom/ui": "*",
+    "razorpay": "^2.9.4",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.1"
+  }
+}
