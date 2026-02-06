@@ -16,7 +16,14 @@ import turndown from "@calcom/lib/turndownService";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField, Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
+import {
+  CheckboxField,
+  Label,
+  Select,
+  SettingsToggle,
+  TextAreaField,
+  TextField,
+} from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 

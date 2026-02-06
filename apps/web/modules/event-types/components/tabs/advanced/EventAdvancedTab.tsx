@@ -1079,10 +1079,10 @@ export const EventAdvancedTab = ({
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
-                  ? t("no_show_fee_doesnt_support_seats")
-                  : isRecurringEvent
-                  ? t("recurring_event_doesnt_support_seats")
-                  : undefined
+                    ? t("no_show_fee_doesnt_support_seats")
+                    : isRecurringEvent
+                      ? t("recurring_event_doesnt_support_seats")
+                      : undefined
               }
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported
@@ -1113,7 +1113,7 @@ export const EventAdvancedTab = ({
                         type="number"
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
-                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : (value ?? 1)}
                         step={1}
                         placeholder="1"
                         min={1}
@@ -1244,7 +1244,7 @@ export const EventAdvancedTab = ({
               checked={value}
               onCheckedChange={(e) => {
                 onChange(e);
-                const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
+                const lockedTimeZone = e ? (eventType.lockedTimeZone ?? "Europe/London") : null;
                 formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
               }}
               data-testid="lock-timezone-toggle"

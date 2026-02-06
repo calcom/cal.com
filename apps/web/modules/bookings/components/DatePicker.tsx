@@ -33,8 +33,8 @@ const useMoveToNextMonthOnNoAvailability = ({
     };
   }
 
-  const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter(
-    (date) => dayjs(date).isSame(browsingDate, "month")
+  const nonEmptyScheduleDaysInBrowsingMonth = nonEmptyScheduleDays.filter((date) =>
+    dayjs(date).isSame(browsingDate, "month")
   );
 
   const moveToNextMonthOnNoAvailability = () => {
@@ -42,10 +42,7 @@ const useMoveToNextMonthOnNoAvailability = ({
     const browsingMonth = browsingDate.format("YYYY-MM");
     // Not meeting the criteria to move to next month
     // Has to be currentMonth and it must have all days unbookable
-    if (
-      currentMonth != browsingMonth ||
-      nonEmptyScheduleDaysInBrowsingMonth.length
-    ) {
+    if (currentMonth != browsingMonth || nonEmptyScheduleDaysInBrowsingMonth.length) {
       return;
     }
     onMonthChange(browsingDate.add(1, "month"));
@@ -105,13 +102,12 @@ export const DatePicker = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
-  const { moveToNextMonthOnNoAvailability } =
-    useMoveToNextMonthOnNoAvailability({
-      browsingDate,
-      nonEmptyScheduleDays,
-      onMonthChange,
-      isLoading: isLoading ?? true,
-    });
+  const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
+    browsingDate,
+    nonEmptyScheduleDays,
+    onMonthChange,
+    isLoading: isLoading ?? true,
+  });
   moveToNextMonthOnNoAvailability();
 
   // Determine if this is a compact sidebar view based on layout

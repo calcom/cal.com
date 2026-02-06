@@ -16,7 +16,10 @@ import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
 
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
-import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import type {
+  CheckedSelectOption,
+  CheckedTeamSelectCustomClassNames,
+} from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 
 interface IUserToValue {

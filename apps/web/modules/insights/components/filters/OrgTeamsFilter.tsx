@@ -1,10 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import {
-  FilterCheckboxField,
-  FilterCheckboxFieldsContainer,
-} from "~/filters/components/TeamsFilter";
+import { FilterCheckboxField, FilterCheckboxFieldsContainer } from "~/filters/components/TeamsFilter";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
