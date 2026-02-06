@@ -26,11 +26,13 @@ export async function checkTeamSlugAvailability(slug: string): Promise<{
     return { available: false, message: "Unauthorized" };
   }
 
-  // Check if slug already exists (teams have parentId, organizations don't)
+  const organizationId = session.user.profile?.organizationId ?? null;
+
+  // Check if slug already exists within the same parent context
   const existingTeam = await prisma.team.findFirst({
     where: {
       slug,
-      parentId: null,
+      parentId: organizationId,
     },
     select: {
       id: true,
@@ -39,6 +41,23 @@ export async function checkTeamSlugAvailability(slug: string): Promise<{
 
   if (existingTeam) {
     return { available: false, message: "This slug is already taken" };
+  }
+
+  // For org child teams, also check if slug conflicts with a user's username in the org
+  if (organizationId) {
+    const userWithSlug = await prisma.profile.findFirst({
+      where: {
+        organizationId,
+        username: slug,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (userWithSlug) {
+      return { available: false, message: "This slug is already taken by a user in your organization" };
+    }
   }
 
   return { available: true };
