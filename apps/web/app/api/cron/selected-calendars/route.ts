@@ -267,10 +267,13 @@ export async function handleCreateSelectedCalendars() {
   }
 
   // Groups delegationUserCredentials by delegationCredentialId
-  const groupedDelegationUserCredentials = allDelegationUserCredentials.reduce((acc, curr) => {
-    acc[curr.delegationCredentialId] = [...(acc[curr.delegationCredentialId] || []), curr];
-    return acc;
-  }, {} as Record<string, typeof allDelegationUserCredentials>);
+  const groupedDelegationUserCredentials = allDelegationUserCredentials.reduce(
+    (acc, curr) => {
+      acc[curr.delegationCredentialId] = [...(acc[curr.delegationCredentialId] || []), curr];
+      return acc;
+    },
+    {} as Record<string, typeof allDelegationUserCredentials>
+  );
 
   let totalSuccess = 0;
   let totalFailures = 0;
@@ -279,9 +282,8 @@ export async function handleCreateSelectedCalendars() {
     groupedDelegationUserCredentials
   )) {
     log.info(`Processing delegation user credentials for delegationCredentialId: ${delegationCredentialId}`);
-    const delegationUserCredentialsToProcess = await getDelegationUserCredentialsToProcess(
-      delegationUserCredentials
-    );
+    const delegationUserCredentialsToProcess =
+      await getDelegationUserCredentialsToProcess(delegationUserCredentials);
     log.info(
       `Found ${delegationUserCredentialsToProcess.length} delegationUserCredentials to process for delegationCredentialId: ${delegationCredentialId}`
     );

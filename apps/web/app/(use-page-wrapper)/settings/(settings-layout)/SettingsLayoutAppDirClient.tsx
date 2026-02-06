@@ -1052,12 +1052,7 @@ type SettingsLayoutProps = {
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-function SettingsLayoutAppDirClient({
-  children,
-  teamFeatures,
-  permissions,
-  ...rest
-}: SettingsLayoutProps) {
+function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;

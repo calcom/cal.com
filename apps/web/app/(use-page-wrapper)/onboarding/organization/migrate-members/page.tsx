@@ -28,7 +28,9 @@ export default async function MigrateMembersPage() {
   }
 
   const userRepository = new UserRepository(prisma);
-  const isMemberOfOrganization = await userRepository.findIfAMemberOfSomeOrganization({ user: { id: userId } });
+  const isMemberOfOrganization = await userRepository.findIfAMemberOfSomeOrganization({
+    user: { id: userId },
+  });
 
   if (isMemberOfOrganization) {
     return redirect(gettingStartedPath);

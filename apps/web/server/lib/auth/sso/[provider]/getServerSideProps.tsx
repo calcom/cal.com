@@ -20,12 +20,7 @@ const Params = z.object({
 });
 
 export const getServerSideProps = async ({ req, query }: GetServerSidePropsContext) => {
-
-  const {
-    provider: providerParam,
-    email: emailParam,
-    username: usernameParam,
-  } = Params.parse(query);
+  const { provider: providerParam, email: emailParam, username: usernameParam } = Params.parse(query);
 
   const successDestination = await OnboardingPathService.getGettingStartedPathWithParams(
     prisma,
@@ -148,8 +143,14 @@ const getStripePremiumUsernameUrl = async ({
     allow_promotion_codes: true,
     metadata: {
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
   });
 
