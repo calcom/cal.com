@@ -11,6 +11,7 @@ export interface CrmData {
 export interface ContactCreateInput {
   email: string;
   name: string;
+  phone?: string | null;
 }
 
 export interface Contact {

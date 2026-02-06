@@ -23,7 +23,7 @@ export function EventScheduleItem() {
 
   return (
     <div>
-      <Label>Availability Schedule</Label>
+      <Label>{t("availability_schedule")}</Label>
       <TroubleshooterListItemHeader
         className="group rounded-md border-b"
         prefixSlot={<div className="w-4 rounded-[4px] bg-black" />}
