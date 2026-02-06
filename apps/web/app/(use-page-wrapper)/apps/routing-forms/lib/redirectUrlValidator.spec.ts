@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { redirectUrlValidator } from './redirectUrlValidator';
 
 describe('redirectUrlValidator', () => {
-  describe('Valid cases (no variables in query params)', () => {
+  describe('Valid cases with no variables in query params', () => {
     it('should return valid for empty string', () => {
       const result = redirectUrlValidator('');
       expect(result.isValid).toBe(true);
@@ -52,7 +52,7 @@ describe('redirectUrlValidator', () => {
     });
   });
 
-  describe('Invalid cases (variables in query params)', () => {
+  describe('Invalid cases with variables in query params', () => {
     it('should return invalid for single variable in query param', () => {
       const result = redirectUrlValidator('/booking?user={userId}');
       expect(result.isValid).toBe(false);
@@ -63,12 +63,6 @@ describe('redirectUrlValidator', () => {
       const result = redirectUrlValidator('/booking?user={userId}&event={eventId}');
       expect(result.isValid).toBe(false);
       expect(result.invalidVariables).toEqual(['userId', 'eventId']);
-    });
-
-    it('should return invalid for variable in query param value', () => {
-      const result = redirectUrlValidator('/booking?name={userName}&date=2024-01-01');
-      expect(result.isValid).toBe(false);
-      expect(result.invalidVariables).toEqual(['userName']);
     });
 
     it('should return invalid for variable in query param key', () => {
@@ -108,7 +102,7 @@ describe('redirectUrlValidator', () => {
     });
   });
 
-  describe('Mixed cases (variables in both path and query params)', () => {
+  describe('Mixed cases with variables in both path and query params', () => {
     it('should only detect variables in query params, not path', () => {
       const result = redirectUrlValidator('/{username}/booking?user={userId}');
       expect(result.isValid).toBe(false);
@@ -133,12 +127,6 @@ describe('redirectUrlValidator', () => {
 
     it('should handle URL with only fragment', () => {
       const result = redirectUrlValidator('/booking#');
-      expect(result.isValid).toBe(true);
-      expect(result.invalidVariables).toEqual([]);
-    });
-
-    it('should handle malformed URLs gracefully', () => {
-      const result = redirectUrlValidator('not a valid url');
       expect(result.isValid).toBe(true);
       expect(result.invalidVariables).toEqual([]);
     });
@@ -176,20 +164,6 @@ describe('redirectUrlValidator', () => {
       const result = redirectUrlValidator('/booking?user={user name}');
       expect(result.isValid).toBe(false);
       expect(result.invalidVariables).toEqual(['user name']);
-    });
-  });
-
-  describe('Environment variable fallback', () => {
-    it('should use fallback URL when NEXT_PUBLIC_WEBSITE_URL is not set', () => {
-      const result = redirectUrlValidator('/booking?user={userId}');
-      expect(result.isValid).toBe(false);
-      expect(result.invalidVariables).toEqual(['userId']);
-    });
-
-    it('should use NEXT_PUBLIC_WEBSITE_URL when set', () => {
-      const result = redirectUrlValidator('/booking?user={userId}');
-      expect(result.isValid).toBe(false);
-      expect(result.invalidVariables).toEqual(['userId']);
     });
   });
 

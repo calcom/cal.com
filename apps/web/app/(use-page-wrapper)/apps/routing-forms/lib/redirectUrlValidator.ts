@@ -2,6 +2,8 @@
  * Validates slugs in URL (e.g., {name}) that has variable parameters (e.g., {name?={{user}}}).
  */
 
+import { WEBSITE_URL } from "@calcom/lib/constants";
+
 interface ValidationResult {
   isValid: boolean;
   invalidVariables: string[];
@@ -15,7 +17,7 @@ export const redirectUrlValidator = (
   }
 
   try {
-    const urlObj = new URL(url, process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://cal.com');
+    const urlObj = new URL(url, WEBSITE_URL);
     const queryString = decodeURIComponent(urlObj.search.slice(1));
 
     if (!queryString) {
