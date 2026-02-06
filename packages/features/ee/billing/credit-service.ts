@@ -315,7 +315,7 @@ export class CreditService {
   }
 
   /*
-    always returns a team, even if all teams are out of credits
+    always returns a team or user, even if out of credits
   */
   async getUserOrTeamToCharge({
     credits,
