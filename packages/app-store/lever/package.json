@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "@calcom/lever",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Lever is a collaborative recruiting software that helps companies post jobs, source candidates, and hire faster.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}
