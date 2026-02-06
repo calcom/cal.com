@@ -2072,6 +2072,9 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
    * Finds bookings for specified users within a date range.
    * Used to check guest availability during reschedule scenarios.
    * Includes bookings where user is host OR attendee.
+   *
+   * Note: userEmails should already be normalized to lowercase since they come
+   * from user records which store emails in lowercase format.
    */
   async findBookingsByUserIdsAndDateRange({
     userIds,
@@ -2086,6 +2089,9 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
   }) {
     if (!userIds.length && !userEmails.length) return [];
 
+    // Normalize emails to lowercase for case-insensitive matching
+    const normalizedEmails = userEmails.map((e) => e.toLowerCase());
+
     return this.prismaClient.booking.findMany({
       where: {
         status: {
@@ -2096,12 +2102,12 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
         // Booking belongs to one of the users (as host or attendee)
         OR: [
           ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
-          ...(userEmails.length > 0
+          ...(normalizedEmails.length > 0
             ? [
                 {
                   attendees: {
                     some: {
-                      email: { in: userEmails, mode: "insensitive" as const },
+                      OR: normalizedEmails.map((email) => ({ email })),
                     },
                   },
                 },
