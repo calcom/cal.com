@@ -73,6 +73,8 @@ export const BookEventForm = ({
 }) => {
   const eventType = eventQuery.data;
   const setFormValues = useBookerStoreContext((state) => state.setFormValues);
+  const selectedDatesAndTimes = useBookerStoreContext((state) => state.selectedDatesAndTimes);
+  const storedEventSlug = useBookerStoreContext((state) => state.eventSlug);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const username = useBookerStoreContext((state) => state.username);
@@ -93,6 +95,15 @@ export const BookEventForm = ({
     if (!eventType) return "USD";
     return getPaymentAppData(eventType)?.currency || "USD";
   }, [eventType]);
+
+  const selectedSlotsCount = useMemo(() => {
+    const slug = storedEventSlug;
+    if (!slug || !selectedDatesAndTimes?.[slug]) return 0;
+    return Object.values(selectedDatesAndTimes[slug]).flat().length;
+  }, [selectedDatesAndTimes, storedEventSlug]);
+  const showMultiSlotSelectionInfo = !!(
+    eventType?.metadata?.allowMultipleSlotsInBooking && selectedSlotsCount > 1
+  );
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
@@ -128,6 +139,11 @@ export const BookEventForm = ({
         form={bookingForm}
         handleSubmit={onSubmit}
         noValidate>
+        {showMultiSlotSelectionInfo && (
+          <div className="text-subtle mb-3 text-sm" data-testid="multi-slot-selection-count">
+            {t("number_selected", { count: selectedSlotsCount })}
+          </div>
+        )}
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}

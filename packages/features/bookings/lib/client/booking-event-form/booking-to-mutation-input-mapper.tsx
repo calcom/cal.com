@@ -139,3 +139,22 @@ export const mapRecurringBookingToMutationInput = (
     tracking,
   }));
 };
+
+export const mapMultiBookingToMutationInput = (
+  booking: BookingOptions,
+  dates: string[],
+  tracking?: Tracking
+): RecurringBookingCreateBody[] => {
+  const recurringEventId = uuidv4();
+
+  return dates.map((date) => {
+    const input = mapBookingToMutationInput({ ...booking, date });
+    return {
+      ...input,
+      recurringEventId,
+      schedulingType: booking.event.schedulingType || undefined,
+      recurringCount: dates.length,
+      tracking,
+    };
+  });
+};

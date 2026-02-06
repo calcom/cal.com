@@ -2080,6 +2080,7 @@
   "team_name_required": "Team name required",
   "show_attendees": "Share attendee information between guests",
   "show_available_seats_count": "Show the number of available seats",
+  "allow_multiple_sessions_per_booking": "Allow attendees to book multiple sessions in one flow",
   "how_booking_questions_as_variables": "How to use booking questions as variables?",
   "how_form_responses_as_variables": "How to use form responses as variables?",
   "format": "Format",

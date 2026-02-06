@@ -12,9 +12,11 @@ import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
@@ -57,6 +59,15 @@ type AvailableTimeSlotsProps = {
   confirmButtonDisabled?: boolean;
   onAvailableTimeSlotSelect: (time: string) => void;
   hideAvailableTimesHeader?: boolean;
+  allowMultiSelect?: boolean;
+  selectedSlots?: string[];
+  onMultiSelectContinue?: () => void;
+  onMultiSelectSlotToggle?: (slot: {
+    time: string;
+    attendees: number;
+    seatsPerTimeSlot?: number | null;
+    bookingUid?: string;
+  }) => void;
 };
 
 /**
@@ -82,8 +93,13 @@ export const AvailableTimeSlots = ({
   confirmStepClassNames,
   onAvailableTimeSlotSelect,
   hideAvailableTimesHeader = false,
+  allowMultiSelect = false,
+  selectedSlots,
+  onMultiSelectContinue,
+  onMultiSelectSlotToggle,
   ...props
 }: AvailableTimeSlotsProps) => {
+  const { t } = useLocale();
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
   const setSeatedEventData = useBookerStoreContext(
@@ -93,11 +109,9 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } =
-    useBookerStoreContext((state) => ({
-      setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
-      tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
-    }));
+  const { setTentativeSelectedTimeslots } = useBookerStoreContext((state) => ({
+    setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
+  }));
 
   const onTentativeTimeSelect = ({
     time,
@@ -110,6 +124,15 @@ export const AvailableTimeSlots = ({
     seatsPerTimeSlot?: number | null;
     bookingUid?: string;
   }) => {
+    if (allowMultiSelect) {
+      onMultiSelectSlotToggle?.({
+        time,
+        attendees: _attendees,
+        seatsPerTimeSlot: _seatsPerTimeSlot,
+        bookingUid: _bookingUid,
+      });
+      return;
+    }
     // We don't intentionally invalidate schedule here because that could remove the slot itself that was clicked, causing a bad UX.
     // We could start doing that after we fix this behaviour.
     // schedule?.invalidate();
@@ -151,6 +174,9 @@ export const AvailableTimeSlots = ({
       seatsPerTimeSlot?: number | null,
       bookingUid?: string
     ) => {
+      if (allowMultiSelect) {
+        return;
+      }
       // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
       if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
         // Ensures that user has latest available slots when they are about to confirm the booking by filling up the details
@@ -185,11 +211,15 @@ export const AvailableTimeSlots = ({
       schedule,
       setTentativeSelectedTimeslots,
       onAvailableTimeSlotSelect,
+      allowMultiSelect,
     ]
   );
 
   const handleSlotClick = useCallback(
     (selectedSlot: Slot, isOverlapping: boolean) => {
+      if (allowMultiSelect) {
+        return;
+      }
       if ((overlayCalendarToggled && isOverlapping) || skipConfirmStep) {
         toggleConfirmButton(selectedSlot);
       } else {
@@ -207,6 +237,7 @@ export const AvailableTimeSlots = ({
       seatsPerTimeSlot,
       skipConfirmStep,
       toggleConfirmButton,
+      allowMultiSelect,
     ]
   );
 
@@ -284,11 +315,26 @@ export const AvailableTimeSlots = ({
                 handleSlotClick={handleSlotClick}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={confirmStepClassNames}
+                selectedSlots={selectedSlots}
                 {...props}
               />
             </div>
           ))}
       </div>
+      {allowMultiSelect && (
+        <div className="border-subtle mt-4 flex items-center justify-between border-t pt-4">
+          <span className="text-default text-sm">
+            {t("number_selected", { count: selectedSlots?.length ?? 0 })}
+          </span>
+          <Button
+            type="button"
+            color="primary"
+            onClick={onMultiSelectContinue}
+            disabled={(selectedSlots?.length ?? 0) === 0 || confirmButtonDisabled}>
+            {t("continue")}
+          </Button>
+        </div>
+      )}
     </>
   );
 };

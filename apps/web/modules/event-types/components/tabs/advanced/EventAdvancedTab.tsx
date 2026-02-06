@@ -1048,6 +1048,9 @@ export const EventAdvancedTab = ({
                   });
                 } else {
                   formMethods.setValue("seatsPerTimeSlot", null);
+                  formMethods.setValue("metadata.allowMultipleSlotsInBooking", false, {
+                    shouldDirty: true,
+                  });
                   toggleGuests(true);
                 }
                 onChange(e);
@@ -1125,6 +1128,20 @@ export const EventAdvancedTab = ({
                               descriptionClassName={
                                 customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.description
                               }
+                            />
+                          )}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <Controller
+                          name="metadata.allowMultipleSlotsInBooking"
+                          render={({ field: { value, onChange } }) => (
+                            <CheckboxField
+                              description={t("allow_multiple_sessions_per_booking")}
+                              disabled={seatsLocked.disabled}
+                              onChange={(e) => onChange(e)}
+                              checked={value ?? false}
+                              data-testid="allow-multiple-sessions"
                             />
                           )}
                         />

@@ -1,6 +1,7 @@
 export { useTimePreferences, timePreferencesStore } from "./timePreferences";
 export {
   mapBookingToMutationInput,
+  mapMultiBookingToMutationInput,
   mapRecurringBookingToMutationInput,
 } from "./client/booking-event-form/booking-to-mutation-input-mapper";
 export { createBooking } from "./create-booking";

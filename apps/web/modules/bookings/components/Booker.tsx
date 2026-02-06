@@ -6,6 +6,7 @@ import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import {
@@ -33,7 +34,7 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
@@ -101,6 +102,18 @@ const BookerComponent = ({
   );
 
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
+  const [
+    selectedDatesAndTimes,
+    setSelectedDatesAndTimes,
+    setTentativeSelectedTimeslots,
+  ] = useBookerStoreContext(
+    (state) => [
+      state.selectedDatesAndTimes,
+      state.setSelectedDatesAndTimes,
+      state.setTentativeSelectedTimeslots,
+    ],
+    shallow
+  );
 
   const [isSlotSelectionModalVisible, setIsSlotSelectionModalVisible] = useBookerStoreContext(
     (state) => [state.isSlotSelectionModalVisible, state.setIsSlotSelectionModalVisible],
@@ -215,6 +228,12 @@ const BookerComponent = ({
     event?.data?.bookingFields,
     event?.data?.locations
   );
+  const { timezone } = useBookerTime();
+  const allowMultiSlotSelection = !!(
+    event.data?.metadata?.allowMultipleSlotsInBooking && event.data?.seatsPerTimeSlot
+  );
+  const [multiSlotSelectionConfirmed, setMultiSlotSelectionConfirmed] = useState(false);
+  const skipConfirmStepForSlots = allowMultiSlotSelection ? false : skipConfirmStep;
 
   // Cloudflare Turnstile Captcha
   // Note: process.env may be undefined in embed contexts, so we safely check it
@@ -224,15 +243,73 @@ const BookerComponent = ({
     renderCaptcha &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
-    (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
+    (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStepForSlots))
   );
 
   const onAvailableTimeSlotSelect = (time: string) => {
     setSelectedTimeslot(time);
 
-    if (!skipConfirmStep) {
+    if (!skipConfirmStepForSlots && !allowMultiSlotSelection) {
       setIsSlotSelectionModalVisible(false);
     }
+  };
+
+  const selectedSlotsForEvent = useMemo(() => {
+    const slug = event.data?.slug || eventSlug;
+    if (!slug || !selectedDatesAndTimes?.[slug]) return [];
+    const slots = Object.values(selectedDatesAndTimes[slug]).flat();
+    const uniqueSlots = Array.from(new Set(slots));
+    return uniqueSlots.sort();
+  }, [event.data?.slug, eventSlug, selectedDatesAndTimes]);
+
+  const toggleMultiSlotSelection = (time: string) => {
+    const slug = event.data?.slug || eventSlug;
+    if (!slug) return;
+    const slotDateKey = dayjs.utc(time).tz(timezone).format("YYYY-MM-DD");
+    const selectedDatesAndTimesForEvent = selectedDatesAndTimes?.[slug] ?? {};
+    const selectedSlotsForDate = selectedDatesAndTimesForEvent[slotDateKey] ?? [];
+    const isSelected = selectedSlotsForDate.includes(time);
+    const nextSelectedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
+
+    if (isSelected) {
+      const updatedSlots = selectedSlotsForDate.filter((slot) => slot !== time);
+      if (updatedSlots.length === 0) {
+        delete nextSelectedDatesAndTimesForEvent[slotDateKey];
+      } else {
+        nextSelectedDatesAndTimesForEvent[slotDateKey] = updatedSlots;
+      }
+    } else {
+      nextSelectedDatesAndTimesForEvent[slotDateKey] = [...selectedSlotsForDate, time];
+    }
+
+    const hasAnySelectedDates = Object.keys(nextSelectedDatesAndTimesForEvent).length > 0;
+    const nextSelectedDatesAndTimes = { ...(selectedDatesAndTimes || {}) };
+    if (hasAnySelectedDates) {
+      nextSelectedDatesAndTimes[slug] = nextSelectedDatesAndTimesForEvent;
+    } else {
+      delete nextSelectedDatesAndTimes[slug];
+    }
+    setSelectedDatesAndTimes(hasAnySelectedDates ? nextSelectedDatesAndTimes : null);
+
+    const updatedSlots = Object.values(nextSelectedDatesAndTimesForEvent).flat();
+    setTentativeSelectedTimeslots(updatedSlots);
+    if (updatedSlots.length === 0) {
+      setSelectedTimeslot(null);
+    } else if (!isSelected) {
+      setSelectedTimeslot(time);
+    } else if (selectedTimeslot === time) {
+      setSelectedTimeslot(updatedSlots[updatedSlots.length - 1] ?? null);
+    }
+    setMultiSlotSelectionConfirmed(false);
+  };
+
+  const confirmMultiSlotSelection = () => {
+    if (selectedSlotsForEvent.length === 0) return;
+    if (!selectedTimeslot) {
+      setSelectedTimeslot(selectedSlotsForEvent[0]);
+    }
+    setMultiSlotSelectionConfirmed(true);
+    setIsSlotSelectionModalVisible(false);
   };
 
   updateEmbedBookerState({ bookerState, slotsQuery: schedule });
@@ -241,8 +318,10 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (allowMultiSlotSelection && !multiSlotSelectionConfirmed)
+      return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
-    if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
+    if (selectedTimeslot && skipConfirmStepForSlots && isSkipConfirmStepSupported)
       return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [
@@ -250,9 +329,11 @@ const BookerComponent = ({
     selectedDate,
     selectedTimeslot,
     setBookerState,
-    skipConfirmStep,
+    skipConfirmStepForSlots,
     layout,
     isInstantMeeting,
+    allowMultiSlotSelection,
+    multiSlotSelectionConfirmed,
   ]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
@@ -281,7 +362,10 @@ const BookerComponent = ({
         timeslot={selectedTimeslot}
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
-          setSelectedTimeslot(null);
+          if (!allowMultiSlotSelection) {
+            setSelectedTimeslot(null);
+          }
+          setMultiSlotSelectionConfirmed(false);
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
@@ -347,6 +431,8 @@ const BookerComponent = ({
     seatedEventData,
     setSeatedEventData,
     setSelectedTimeslot,
+    allowMultiSlotSelection,
+    setMultiSlotSelectionConfirmed,
     isPlatform,
     shouldRenderCaptcha,
     isVerificationCodeSending,
@@ -566,11 +652,17 @@ const BookerComponent = ({
                 renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
                 isVerificationCodeSending={isVerificationCodeSending}
                 onSubmit={onSubmit}
-                skipConfirmStep={skipConfirmStep}
+                skipConfirmStep={skipConfirmStepForSlots}
                 shouldRenderCaptcha={shouldRenderCaptcha}
                 watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
+                allowMultiSelect={allowMultiSlotSelection}
+                selectedSlots={allowMultiSlotSelection ? selectedSlotsForEvent : undefined}
+                onMultiSelectSlotToggle={
+                  allowMultiSlotSelection ? ({ time }) => toggleMultiSlotSelection(time) : undefined
+                }
+                onMultiSelectContinue={allowMultiSlotSelection ? confirmMultiSlotSelection : undefined}
               />
             </BookerSection>
           </AnimatePresence>
@@ -645,7 +737,12 @@ const BookerComponent = ({
         )}
       </>
       <BookFormAsModal
-        onCancel={() => setSelectedTimeslot(null)}
+        onCancel={() => {
+          if (!allowMultiSlotSelection) {
+            setSelectedTimeslot(null);
+          }
+          setMultiSlotSelectionConfirmed(false);
+        }}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>
@@ -676,12 +773,18 @@ const BookerComponent = ({
             renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
             isVerificationCodeSending={isVerificationCodeSending}
             onSubmit={onSubmit}
-            skipConfirmStep={skipConfirmStep}
+            skipConfirmStep={skipConfirmStepForSlots}
             shouldRenderCaptcha={shouldRenderCaptcha}
             watchedCfToken={watchedCfToken}
             confirmButtonDisabled={confirmButtonDisabled}
             confirmStepClassNames={customClassNames?.confirmStep}
             hideAvailableTimesHeader
+            allowMultiSelect={allowMultiSlotSelection}
+            selectedSlots={allowMultiSlotSelection ? selectedSlotsForEvent : undefined}
+            onMultiSelectSlotToggle={
+              allowMultiSlotSelection ? ({ time }) => toggleMultiSlotSelection(time) : undefined
+            }
+            onMultiSelectContinue={allowMultiSlotSelection ? confirmMultiSlotSelection : undefined}
           />
         </DialogContent>
       </Dialog>

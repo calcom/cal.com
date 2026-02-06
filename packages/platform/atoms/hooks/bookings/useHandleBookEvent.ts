@@ -4,7 +4,11 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
+import {
+  mapBookingToMutationInput,
+  mapMultiBookingToMutationInput,
+  mapRecurringBookingToMutationInput,
+} from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -50,6 +54,8 @@ export const useHandleBookEvent = ({
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStoreContext((state) => state.setFormValues);
   const storeTimeSlot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const selectedDatesAndTimes = useBookerStoreContext((state) => state.selectedDatesAndTimes);
+  const storedEventSlug = useBookerStoreContext((state) => state.eventSlug);
   const duration = useBookerStoreContext((state) => state.selectedDuration);
   const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
@@ -66,6 +72,7 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
+  const allowMultiSlotSelection = !!event?.data?.metadata?.allowMultipleSlotsInBooking;
   const handleError = (err: unknown) => {
     const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
@@ -74,7 +81,14 @@ export const useHandleBookEvent = ({
 
   const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
-    const timeslot = inputTimeSlot ?? storeTimeSlot;
+    const selectedSlotsForEvent = (() => {
+      const slug = event?.data?.slug || storedEventSlug;
+      if (!slug || !selectedDatesAndTimes?.[slug]) return [];
+      const slots = Object.values(selectedDatesAndTimes[slug]).flat();
+      const uniqueSlots = Array.from(new Set(slots));
+      return uniqueSlots.sort();
+    })();
+    const timeslot = inputTimeSlot ?? storeTimeSlot ?? selectedSlotsForEvent[0];
     const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
@@ -121,9 +135,20 @@ export const useHandleBookEvent = ({
       };
 
       const tracking = getUtmTrackingParameters(searchParams);
+      const shouldHandleMultiSlotBooking =
+        allowMultiSlotSelection &&
+        selectedSlotsForEvent.length > 1 &&
+        !rescheduleUid &&
+        !event.data?.recurringEvent &&
+        !isInstantMeeting;
 
       if (isInstantMeeting) {
         handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
+      } else if (shouldHandleMultiSlotBooking) {
+        handleRecBooking(
+          mapMultiBookingToMutationInput(bookingInput, selectedSlotsForEvent, tracking),
+          callbacks
+        );
       } else if (event.data?.recurringEvent?.freq != null && recurringEventCount && !rescheduleUid) {
         handleRecBooking(
           mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
