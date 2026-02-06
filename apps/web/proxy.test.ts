@@ -446,7 +446,6 @@ describe("Middleware Integration Tests", () => {
   });
 
   describe("Multiple Features", () => {
-
     it("should handle embed route with routing forms rewrite", async () => {
       const req = createTestRequest({
         url: `${WEBAPP_URL}/apps/routing_forms/form/embed?ui.color-scheme=light`,
