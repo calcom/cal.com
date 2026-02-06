@@ -12,13 +12,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { EmptyScreen } from "@/components/EmptyScreen";
 import { EventTypeListItem } from "@/components/event-type-list-item/EventTypeListItem";
+import { EventTypeListSkeleton } from "@/components/event-type-list-item/EventTypeListItemSkeleton";
 import { FullScreenModal } from "@/components/FullScreenModal";
 import { Header } from "@/components/Header";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,8 +38,8 @@ import {
   useEventTypes,
 } from "@/hooks";
 import { useEventTypeFilter } from "@/hooks/useEventTypeFilter";
-import { CalComAPIService, type EventType } from "@/services/calcom";
-import { showErrorAlert } from "@/utils/alerts";
+import type { EventType } from "@/services/calcom";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getEventDuration } from "@/utils/getEventDuration";
 import { offlineAwareRefresh } from "@/utils/network";
@@ -46,9 +47,14 @@ import { normalizeMarkdown } from "@/utils/normalizeMarkdown";
 import { shadows } from "@/utils/shadows";
 import { slugify } from "@/utils/slugify";
 
+import { getColors } from "@/constants/colors";
+
 export default function EventTypes() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Modal state for creating new event type
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -90,18 +96,6 @@ export default function EventTypes() {
   // Modal state for delete confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventTypeToDelete, setEventTypeToDelete] = useState<EventType | null>(null);
-
-  // Toast state for web platform
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  // Function to show toast
-  const showToastMessage = (message: string) => {
-    setToastMessage(message);
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 2000);
-  };
 
   // Handle pull-to-refresh
   // Handle pull-to-refresh (offline-aware)
@@ -145,30 +139,27 @@ export default function EventTypes() {
   };
 
   const handleCopyLink = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      await Clipboard.setStringAsync(link);
-
-      if (Platform.OS === "web") {
-        showToastMessage("Link copied!");
-      } else {
-        Alert.alert("Link Copied", "Event type link copied!");
-      }
+      await Clipboard.setStringAsync(eventType.bookingUrl);
+      showSuccessAlert("Link Copied", "Event type link copied!");
     } catch {
-      if (Platform.OS === "web") {
-        showToastMessage("Failed to copy link");
-      } else {
-        showErrorAlert("Error", "Failed to copy link. Please try again.");
-      }
+      showErrorAlert("Error", "Failed to copy link. Please try again.");
     }
   };
 
   const _handleShare = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
       await Share.share({
         message: `Book a meeting: ${eventType.title}`,
-        url: link,
+        url: eventType.bookingUrl,
       });
     } catch {
       showErrorAlert("Error", "Failed to share link. Please try again.");
@@ -205,7 +196,7 @@ export default function EventTypes() {
             onPress: () => {
               deleteEventTypeMutation(eventType.id, {
                 onSuccess: () => {
-                  Alert.alert("Success", "Event type deleted successfully");
+                  showSuccessAlert("Success", "Event type deleted successfully");
                 },
                 onError: (error) => {
                   const message = error instanceof Error ? error.message : String(error);
@@ -241,11 +232,7 @@ export default function EventTypes() {
         setShowDeleteModal(false);
         setEventTypeToDelete(null);
 
-        if (Platform.OS === "web") {
-          showToastMessage("Event type deleted successfully");
-        } else {
-          Alert.alert("Success", "Event type deleted successfully");
-        }
+        showSuccessAlert("Success", "Event type deleted successfully");
       },
       onError: (error) => {
         const message = error instanceof Error ? error.message : String(error);
@@ -257,11 +244,7 @@ export default function EventTypes() {
             stack,
           });
         }
-        if (Platform.OS === "web") {
-          showToastMessage("Failed to delete event type");
-        } else {
-          showErrorAlert("Error", "Failed to delete event type. Please try again.");
-        }
+        showErrorAlert("Error", "Failed to delete event type. Please try again.");
       },
     });
   };
@@ -271,11 +254,7 @@ export default function EventTypes() {
       { eventType, existingEventTypes: eventTypes },
       {
         onSuccess: (duplicatedEventType) => {
-          if (Platform.OS === "web") {
-            showToastMessage("Event type duplicated successfully");
-          } else {
-            Alert.alert("Success", "Event type duplicated successfully");
-          }
+          showSuccessAlert("Success", "Event type duplicated successfully");
 
           const duration = getEventDuration(eventType);
 
@@ -305,33 +284,26 @@ export default function EventTypes() {
               stack,
             });
           }
-          if (Platform.OS === "web") {
-            showToastMessage("Failed to duplicate event type");
-          } else {
-            showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
-          }
+          showErrorAlert("Error", "Failed to duplicate event type. Please try again.");
         },
       }
     );
   };
 
   const handlePreview = async (eventType: EventType) => {
+    if (!eventType.bookingUrl) {
+      showErrorAlert("Error", "Booking URL not available for this event type.");
+      return;
+    }
     try {
-      const link = await CalComAPIService.buildEventTypeLink(eventType.slug);
-      // Open in browser
       if (Platform.OS === "web") {
-        window.open(link, "_blank");
+        window.open(eventType.bookingUrl, "_blank");
       } else {
-        // For mobile, use in-app browser
-        await openInAppBrowser(link, "event type preview");
+        await openInAppBrowser(eventType.bookingUrl, "event type preview");
       }
     } catch {
       console.error("Failed to open preview");
-      if (Platform.OS === "web") {
-        showToastMessage("Failed to open preview");
-      } else {
-        showErrorAlert("Error", "Failed to open preview. Please try again.");
-      }
+      showErrorAlert("Error", "Failed to open preview. Please try again.");
     }
   };
 
@@ -354,11 +326,11 @@ export default function EventTypes() {
     setTitleError("");
 
     if (!newEventTitle.trim()) {
-      // Use inline error for Android AlertDialog, Alert for others
+      // Use inline error for Android AlertDialog, showErrorAlert for others
       if (Platform.OS === "android") {
         setTitleError("Please enter a title for your event type");
       } else {
-        Alert.alert("Error", "Please enter a title for your event type");
+        showErrorAlert("Error", "Please enter a title for your event type");
       }
       return;
     }
@@ -368,7 +340,7 @@ export default function EventTypes() {
       if (Platform.OS === "android") {
         setTitleError("Title must contain at least one letter or number");
       } else {
-        Alert.alert("Error", "Title must contain at least one letter or number");
+        showErrorAlert("Error", "Title must contain at least one letter or number");
       }
       return;
     }
@@ -415,27 +387,52 @@ export default function EventTypes() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <LoadingSpinner size="large" />
-        </View>
+        <ScrollView
+          style={{ backgroundColor: theme.background }}
+          contentContainerStyle={{ paddingBottom: 90 }}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <EventTypeListSkeleton />
+        </ScrollView>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-gray-800">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
+          <Ionicons name="alert-circle" size={64} color={theme.destructive} />
+          <Text
+            className="mb-2 mt-4 text-center text-xl font-bold text-gray-800"
+            style={{ color: theme.text }}
+          >
             Unable to load event types
           </Text>
-          <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
-          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
-            <Text className="text-base font-semibold text-white">Retry</Text>
+          <Text
+            className="mb-6 text-center text-base text-gray-500"
+            style={{ color: theme.textMuted }}
+          >
+            {error}
+          </Text>
+          <TouchableOpacity
+            className="rounded-lg bg-black px-6 py-3"
+            style={{ backgroundColor: isDark ? "white" : "black" }}
+            onPress={() => refetch()}
+          >
+            <Text
+              className="text-base font-semibold text-white"
+              style={{ color: isDark ? "black" : "white" }}
+            >
+              Retry
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -444,9 +441,12 @@ export default function EventTypes() {
 
   if (eventTypes.length === 0) {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && <Header />}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <EmptyScreen
             icon="link-outline"
             headline="Create your first event type"
@@ -461,15 +461,26 @@ export default function EventTypes() {
 
   if (filteredEventTypes.length === 0 && searchQuery.trim() !== "") {
     return (
-      <View className="flex-1 bg-gray-100">
+      <View className="flex-1" style={{ backgroundColor: theme.background }}>
         {Platform.OS === "web" && (
           <>
             <Header />
-            <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+            <View
+              className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2"
+              style={{
+                borderBottomColor: theme.border,
+                backgroundColor: theme.backgroundSecondary,
+              }}
+            >
               <TextInput
                 className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: isDark ? theme.background : "white",
+                  color: theme.text,
+                }}
                 placeholder="Search event types"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={theme.textSecondary}
                 value={searchQuery}
                 onChangeText={handleSearch}
                 autoCapitalize="none"
@@ -478,15 +489,29 @@ export default function EventTypes() {
               />
               <TouchableOpacity
                 className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: isDark ? "white" : "black",
+                }}
                 onPress={handleCreateNew}
               >
-                <Ionicons name="add" size={18} color="#fff" />
-                <Text className="text-base font-semibold text-white">New</Text>
+                <Ionicons name="add" size={18} color={isDark ? "#000" : "#fff"} />
+                <Text
+                  className="text-base font-semibold text-white"
+                  style={{ color: isDark ? "black" : "white" }}
+                >
+                  New
+                </Text>
               </TouchableOpacity>
             </View>
           </>
         )}
-        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+        <View
+          className="flex-1 items-center justify-center bg-gray-50 p-5"
+          style={{ backgroundColor: theme.backgroundSecondary }}
+        >
           <EmptyScreen
             icon="search-outline"
             headline={`No results found for "${searchQuery}"`}
@@ -529,11 +554,19 @@ export default function EventTypes() {
               activeFilterCount,
             }}
           />
-          <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+          <View
+            className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2"
+            style={{ borderBottomColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+          >
             <TextInput
               className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: isDark ? theme.background : "white",
+                color: theme.text,
+              }}
               placeholder="Search event types"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.textSecondary}
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"
@@ -542,24 +575,40 @@ export default function EventTypes() {
             />
             <TouchableOpacity
               className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: isDark ? "white" : "black",
+              }}
               onPress={handleCreateNew}
             >
-              <Ionicons name="add" size={18} color="#fff" />
-              <Text className="text-base font-semibold text-white">New</Text>
+              <Ionicons name="add" size={18} color={isDark ? "#000" : "#fff"} />
+              <Text
+                className="text-base font-semibold text-white"
+                style={{ color: isDark ? "black" : "white" }}
+              >
+                New
+              </Text>
             </TouchableOpacity>
           </View>
         </>
       )}
 
       <ScrollView
-        style={{ backgroundColor: "white" }}
+        style={{ backgroundColor: theme.background }}
         contentContainerStyle={{ paddingBottom: 90 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        {filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
-          <View className="flex-1 items-center justify-center bg-white p-5 pt-20">
+        {refreshing ? (
+          <EventTypeListSkeleton />
+        ) : filteredEventTypes.length === 0 && activeFilterCount > 0 ? (
+          <View
+            className="flex-1 items-center justify-center bg-white p-5 pt-20"
+            style={{ backgroundColor: theme.background }}
+          >
             <EmptyScreen
               icon="filter-outline"
               headline="No event types match your filters"
@@ -571,7 +620,10 @@ export default function EventTypes() {
           </View>
         ) : (
           <View className="px-2 pt-4 md:px-4">
-            <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+            <View
+              className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+              style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+            >
               {filteredEventTypes.map((item, index) => (
                 <EventTypeListItem
                   key={item.id.toString()}
@@ -617,8 +669,8 @@ export default function EventTypes() {
             <View>
               <AlertDialogText className="mb-2 text-sm font-medium">Title</AlertDialogText>
               <TextInput
-                className={`rounded-md border bg-white px-3 py-2.5 text-base text-[#111827] ${
-                  titleError ? "border-red-500" : "border-[#D1D5DB]"
+                className={`rounded-md border bg-white px-3 py-2.5 text-base text-gray-900 ${
+                  titleError ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Quick Chat"
                 placeholderTextColor="#9CA3AF"
@@ -664,14 +716,17 @@ export default function EventTypes() {
               className="max-h-[90%] w-[90%] max-w-[500px] rounded-2xl bg-white"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
-              style={shadows.xl()}
+              style={{ ...shadows.xl(), backgroundColor: theme.backgroundSecondary }}
             >
               {/* Header */}
               <View className="px-8 pb-4 pt-6">
-                <Text className="mb-2 text-2xl font-semibold text-[#111827]">
+                <Text
+                  className="mb-2 text-2xl font-semibold text-gray-900"
+                  style={{ color: theme.text }}
+                >
                   Add a new event type
                 </Text>
-                <Text className="text-sm text-[#6B7280]">
+                <Text className="text-sm text-gray-500" style={{ color: theme.textSecondary }}>
                   Set up event types to offer different types of meetings.
                 </Text>
               </View>
@@ -680,11 +735,21 @@ export default function EventTypes() {
               <View className="px-8 pb-6">
                 {/* Title */}
                 <View className="mb-4">
-                  <Text className="mb-2 text-sm font-medium text-[#374151]">Title</Text>
+                  <Text
+                    className="mb-2 text-sm font-medium text-gray-700"
+                    style={{ color: theme.textSecondary }}
+                  >
+                    Title
+                  </Text>
                   <TextInput
-                    className="rounded-md border border-[#D1D5DB] bg-white px-3 py-2.5 text-base text-[#111827] focus:border-black focus:ring-2 focus:ring-black"
+                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-black focus:ring-2 focus:ring-black"
+                    style={{
+                      borderColor: theme.border,
+                      backgroundColor: isDark ? theme.backgroundMuted : "white",
+                      color: theme.text,
+                    }}
                     placeholder="Quick Chat"
-                    placeholderTextColor="#9CA3AF"
+                    placeholderTextColor={theme.textSecondary}
                     value={newEventTitle}
                     onChangeText={setNewEventTitle}
                     autoFocus
@@ -696,21 +761,25 @@ export default function EventTypes() {
               </View>
 
               {/* Footer */}
-              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4">
+              <View className="rounded-b-2xl border-t border-[#E5E7EB] bg-[#F9FAFB] px-8 py-4 dark:border-[#4D4D4D] dark:bg-[#2C2C2E]">
                 <View className="flex-row justify-end gap-2 space-x-2">
                   <TouchableOpacity
-                    className="rounded-xl border border-[#D1D5DB] bg-white px-4 py-2"
+                    className="rounded-xl border border-gray-300 bg-white px-4 py-2 dark:border-[#4D4D4D] dark:bg-[#171717]"
                     onPress={handleCloseCreateModal}
                     disabled={creating}
                   >
-                    <Text className="text-base font-medium text-[#374151]">Close</Text>
+                    <Text className="text-base font-medium text-gray-700 dark:text-gray-300">
+                      Close
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    className={`rounded-xl bg-[#111827] px-4 py-2 ${creating ? "opacity-60" : ""}`}
+                    className={`rounded-xl bg-[#111827] px-4 py-2 dark:bg-white ${creating ? "opacity-60" : ""}`}
                     onPress={handleCreateEventType}
                     disabled={creating}
                   >
-                    <Text className="text-base font-medium text-white">Continue</Text>
+                    <Text className="text-base font-medium text-white dark:text-black">
+                      Continue
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -737,18 +806,18 @@ export default function EventTypes() {
           }}
         >
           <TouchableOpacity
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white"
+            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#171717]"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             {selectedEventType ? (
               <>
-                <View className="border-b border-gray-200 p-6">
-                  <Text className="mb-2 text-lg font-semibold text-gray-900">
+                <View className="border-b border-gray-200 p-6 dark:border-[#4D4D4D]">
+                  <Text className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                     {selectedEventType.title}
                   </Text>
                   {selectedEventType.description ? (
-                    <Text className="text-sm text-gray-600">
+                    <Text className="text-sm text-gray-600 dark:text-gray-400">
                       {normalizeMarkdown(selectedEventType.description)}
                     </Text>
                   ) : null}
@@ -756,7 +825,7 @@ export default function EventTypes() {
 
                 <View className="p-2">
                   <TouchableOpacity
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                    className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] md:p-4"
                     onPress={() => {
                       setShowActionModal(false);
                       const eventType = selectedEventType;
@@ -764,12 +833,12 @@ export default function EventTypes() {
                       if (eventType) handleEdit(eventType);
                     }}
                   >
-                    <Ionicons name="pencil-outline" size={20} color="#6B7280" />
-                    <Text className="ml-3 text-base text-gray-900">Edit</Text>
+                    <Ionicons name="pencil-outline" size={20} color={theme.textSecondary} />
+                    <Text className="ml-3 text-base text-gray-900 dark:text-white">Edit</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                    className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] md:p-4"
                     onPress={() => {
                       setShowActionModal(false);
                       const eventType = selectedEventType;
@@ -777,15 +846,15 @@ export default function EventTypes() {
                       if (eventType) handleDuplicate(eventType);
                     }}
                   >
-                    <Ionicons name="copy-outline" size={20} color="#6B7280" />
-                    <Text className="ml-3 text-base text-gray-900">Duplicate</Text>
+                    <Ionicons name="copy-outline" size={20} color={theme.textSecondary} />
+                    <Text className="ml-3 text-base text-gray-900 dark:text-white">Duplicate</Text>
                   </TouchableOpacity>
 
                   {/* Separator before delete button */}
-                  <View className="my-2 h-px bg-gray-200" />
+                  <View className="my-2 h-px bg-gray-200 dark:bg-[#4D4D4D]" />
 
                   <TouchableOpacity
-                    className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                    className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] md:p-4"
                     onPress={() => {
                       setShowActionModal(false);
                       const eventType = selectedEventType;
@@ -793,20 +862,24 @@ export default function EventTypes() {
                       if (eventType) handleDelete(eventType);
                     }}
                   >
-                    <Ionicons name="trash-outline" size={20} color="#800000" />
-                    <Text className="ml-3 text-base text-[#800000]">Delete</Text>
+                    <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+                    <Text className="ml-3 text-base" style={{ color: theme.destructive }}>
+                      Delete
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
-                <View className="border-t border-gray-200 p-2 md:p-4">
+                <View className="border-t border-gray-200 p-2 dark:border-[#4D4D4D] md:p-4">
                   <TouchableOpacity
-                    className="w-full rounded-lg bg-gray-100 p-3"
+                    className="w-full rounded-lg bg-gray-100 p-3 dark:bg-[#2C2C2E]"
                     onPress={() => {
                       setShowActionModal(false);
                       setSelectedEventType(null);
                     }}
                   >
-                    <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                    <Text className="text-center text-base font-medium text-gray-700 dark:text-gray-300">
+                      Cancel
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -827,14 +900,16 @@ export default function EventTypes() {
           onPress={() => setShowNewModal(false)}
         >
           <TouchableOpacity
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white"
+            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#171717]"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <View className="border-b border-gray-200 p-6">
-              <Text className="text-xl font-semibold text-gray-900">New</Text>
-              <Text className="mt-1 text-sm text-gray-500">Choose what to create</Text>
+            <View className="border-b border-gray-200 p-6 dark:border-[#4D4D4D]">
+              <Text className="text-xl font-semibold text-gray-900 dark:text-white">New</Text>
+              <Text className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Choose what to create
+              </Text>
             </View>
 
             {/* Options List */}
@@ -848,20 +923,22 @@ export default function EventTypes() {
                     handleOpenCreateModal();
                   }, 100);
                 }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#2C2C2E] md:p-4"
               >
-                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">New Event Type</Text>
+                <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
+                <Text className="ml-3 text-base text-gray-900 dark:text-white">New Event Type</Text>
               </TouchableOpacity>
             </View>
 
             {/* Cancel button */}
-            <View className="border-t border-gray-200 p-2 md:p-4">
+            <View className="border-t border-gray-200 p-2 dark:border-[#4D4D4D] md:p-4">
               <TouchableOpacity
-                className="w-full rounded-lg bg-gray-100 p-3"
+                className="w-full rounded-lg bg-gray-100 p-3 dark:bg-[#2C2C2E]"
                 onPress={() => setShowNewModal(false)}
               >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                <Text className="text-center text-base font-medium text-gray-700 dark:text-gray-300">
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -880,21 +957,21 @@ export default function EventTypes() {
         }}
       >
         <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-[#171717]">
             {/* Header with icon and title */}
             <View className="p-6">
               <View className="flex-row">
                 {/* Danger icon */}
-                <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
+                <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
+                  <Ionicons name="alert-circle" size={20} color={theme.destructive} />
                 </View>
 
                 {/* Title and description */}
                 <View className="flex-1">
-                  <Text className="mb-2 text-xl font-semibold text-gray-900">
+                  <Text className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
                     Delete Event Type
                   </Text>
-                  <Text className="text-sm leading-5 text-gray-600">
+                  <Text className="text-sm leading-5 text-gray-600 dark:text-gray-400">
                     {eventTypeToDelete ? (
                       <>
                         This will permanently delete the "{eventTypeToDelete.title}" event type.
@@ -909,36 +986,31 @@ export default function EventTypes() {
             {/* Footer with buttons */}
             <View className="flex-row-reverse gap-2 px-6 pb-6 pt-2">
               <TouchableOpacity
-                className={`rounded-lg bg-gray-900 px-4 py-2.5 ${isDeleting ? "opacity-50" : ""}`}
+                className={`rounded-lg bg-gray-900 px-4 py-2.5 dark:bg-white ${isDeleting ? "opacity-50" : ""}`}
                 onPress={confirmDelete}
                 disabled={isDeleting}
               >
-                <Text className="text-center text-base font-medium text-white">Delete</Text>
+                <Text className="text-center text-base font-medium text-white dark:text-black">
+                  Delete
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 dark:border-[#4D4D4D] dark:bg-[#2C2C2E]"
                 onPress={() => {
                   setShowDeleteModal(false);
                   setEventTypeToDelete(null);
                 }}
                 disabled={isDeleting}
               >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                <Text className="text-center text-base font-medium text-gray-700 dark:text-gray-300">
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </FullScreenModal>
-
-      {/* Toast for Web Platform */}
-      {showToast ? (
-        <View className="absolute bottom-8 left-1/2 z-50 -translate-x-1/2 transform">
-          <View className="rounded-full bg-gray-800 px-6 py-3 shadow-lg">
-            <Text className="text-sm font-medium text-white">{toastMessage}</Text>
-          </View>
-        </View>
-      ) : null}
     </>
   );
 }

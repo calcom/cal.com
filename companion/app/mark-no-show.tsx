@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import { ActivityIndicator, Platform, useColorScheme, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
+import { getColors } from "@/constants/colors";
 import MarkNoShowScreenComponent from "@/components/screens/MarkNoShowScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 interface Attendee {
   id?: number | string;
@@ -28,6 +30,9 @@ export default function MarkNoShow() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   useEffect(() => {
     if (uid) {
@@ -50,13 +55,13 @@ export default function MarkNoShow() {
           setAttendees(bookingAttendees);
         })
         .catch(() => {
-          Alert.alert("Error", "Failed to load booking details");
+          showErrorAlert("Error", "Failed to load booking details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
@@ -64,12 +69,20 @@ export default function MarkNoShow() {
   const renderHeaderLeft = useCallback(
     () => (
       <HeaderButtonWrapper side="left">
-        <AppPressable onPress={() => router.back()} className="px-2 py-2">
-          <Ionicons name="close" size={24} color="#007AFF" />
+        <AppPressable
+          onPress={() => router.back()}
+          className="h-10 w-10 items-center justify-center rounded-full border"
+          style={{
+            borderColor: theme.border,
+            backgroundColor: theme.background,
+            marginRight: 8,
+          }}
+        >
+          <Ionicons name="close" size={20} color={theme.text} />
         </AppPressable>
       </HeaderButtonWrapper>
     ),
-    [router]
+    [router, theme.border, theme.background, theme.text]
   );
 
   if (isLoading) {
@@ -88,8 +101,11 @@ export default function MarkNoShow() {
           </Stack.Header>
         )}
 
-        <View className="flex-1 items-center justify-center bg-[#F2F2F7]">
-          <ActivityIndicator size="large" color="#007AFF" />
+        <View
+          className="flex-1 items-center justify-center"
+          style={{ backgroundColor: theme.background }}
+        >
+          <ActivityIndicator size="large" color={theme.text} />
         </View>
       </>
     );

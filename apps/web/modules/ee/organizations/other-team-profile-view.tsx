@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
+import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -264,6 +264,7 @@ const OtherTeamProfileView = () => {
                 {team && !isBioEmpty && (
                   <>
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
+                    {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
                     <div
                       className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                        

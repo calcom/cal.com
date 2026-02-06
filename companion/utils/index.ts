@@ -11,9 +11,10 @@
  */
 
 // Alert utilities
-export { showErrorAlert } from "./alerts";
+export { setGlobalToastFunction, showErrorAlert, showInfoAlert, showSuccessAlert } from "./alerts";
 // Browser utilities
 export { openInAppBrowser } from "./browser";
+export { openInDefaultBrowser } from "./browser";
 // Default location utilities
 export {
   type DefaultLocation,

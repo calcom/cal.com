@@ -1,13 +1,15 @@
 import * as Clipboard from "expo-clipboard";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
-import { Alert } from "react-native";
+import { useColorScheme } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
-import type { Booking } from "@/services/calcom";
+import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
-import { openInAppBrowser } from "@/utils/browser";
+import { getMeetingUrl } from "@/utils/booking";
+import { openInDefaultBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -40,28 +42,10 @@ const getMonthName = (dateString: string | undefined): string => {
   return date.toLocaleDateString("en-US", { month: "long" });
 };
 
-// Get meeting URL from booking
-const getMeetingUrl = (booking: Booking | null): string | null => {
-  if (!booking) return null;
-
-  // Check metadata for videoCallUrl first
-  const videoCallUrl = booking.responses?.videoCallUrl;
-  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
-    return videoCallUrl;
-  }
-
-  // Check location
-  const location = booking.location;
-  if (typeof location === "string" && location.startsWith("http")) {
-    return location;
-  }
-
-  return null;
-};
-
 export default function BookingDetailIOS() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
+  const colorScheme = useColorScheme();
 
   // Use React Query hook for booking data - single source of truth
   const { data: booking, isLoading, error, refetch, isRefetching } = useBookingByUid(uid);
@@ -86,7 +70,7 @@ export default function BookingDetailIOS() {
   // Handle join meeting
   const handleJoinMeeting = useCallback(() => {
     if (meetingUrl) {
-      openInAppBrowser(meetingUrl, "meeting link");
+      openInDefaultBrowser(meetingUrl, "meeting link");
     }
   }, [meetingUrl]);
 
@@ -94,7 +78,7 @@ export default function BookingDetailIOS() {
   const handleCopyMeetingLink = useCallback(async () => {
     if (meetingUrl) {
       await Clipboard.setStringAsync(meetingUrl);
-      Alert.alert("Copied", "Meeting link copied to clipboard");
+      showSuccessAlert("Copied", "Meeting link copied to clipboard");
     }
   }, [meetingUrl]);
 
@@ -117,7 +101,7 @@ export default function BookingDetailIOS() {
     if (handlers?.[handlerName]) {
       (handlers[handlerName] as () => void)();
     } else {
-      Alert.alert("Error", errorMessage);
+      showErrorAlert("Error", errorMessage);
     }
   }, []);
 
@@ -187,7 +171,7 @@ export default function BookingDetailIOS() {
         handlerName: null,
         errorMessage: null,
         customHandler: () => {
-          Alert.alert("Report Booking", "Report booking functionality is not yet available");
+          showInfoAlert("Report Booking", "Report booking functionality is not yet available");
         },
         destructive: true,
         gatingKey: null,
@@ -225,25 +209,16 @@ export default function BookingDetailIOS() {
           headerBackTitle: monthName, // This shows on the back button
           headerBackButtonDisplayMode: "default",
           headerTitle: "", // Hide the title in the header bar itself
-          headerStyle: {
-            backgroundColor: "#f2f2f7",
-          },
           headerShadowVisible: false,
+          headerTransparent: true,
         }}
       />
 
-      <Stack.Header style={{ shadowColor: "transparent", backgroundColor: "#f2f2f7" }}>
+      <Stack.Header
+        style={{ backgroundColor: "transparent", shadowColor: "transparent" }}
+        blurEffect={isLiquidGlassAvailable() ? undefined : "light"}
+      >
         <Stack.Header.Right>
-          {/* Join Meeting Menu - only show if there's a meeting URL */}
-          {meetingUrl && (
-            <Stack.Header.Menu>
-              <Stack.Header.Icon sf="video" />
-              <Stack.Header.MenuAction icon="video" onPress={handleJoinMeeting}>
-                Join Meeting
-              </Stack.Header.MenuAction>
-            </Stack.Header.Menu>
-          )}
-
           {/* Actions Menu */}
           <Stack.Header.Menu>
             <Stack.Header.Icon sf="ellipsis" />
@@ -301,6 +276,16 @@ export default function BookingDetailIOS() {
               ))}
             </Stack.Header.Menu>
           </Stack.Header.Menu>
+
+          {meetingUrl && (
+            <Stack.Header.Button
+              onPress={handleJoinMeeting}
+              variant="prominent"
+              tintColor={colorScheme === "dark" ? "#FFF" : "#000"}
+            >
+              Join
+            </Stack.Header.Button>
+          )}
         </Stack.Header.Right>
       </Stack.Header>
 

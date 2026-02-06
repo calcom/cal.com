@@ -6,7 +6,30 @@
  */
 
 import * as WebBrowser from "expo-web-browser";
+import { Linking, Platform } from "react-native";
+
 import { showErrorAlert } from "./alerts";
+
+/**
+ * Handle errors from browser functions in a consistent way.
+ *
+ * @param error - The error that occurred
+ * @param functionName - Name of the function for debug logging
+ * @param fallbackMessage - Optional message to show in error alert (defaults to "link")
+ */
+const handleBrowserError = (
+  error: unknown,
+  functionName: string,
+  fallbackMessage?: string
+): void => {
+  console.error(`Failed to open link in ${functionName}`);
+  if (__DEV__) {
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.debug(`[${functionName}] failed`, { message, stack, fallbackMessage });
+  }
+  showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+};
 
 /**
  * Configuration options for in-app browser
@@ -19,11 +42,49 @@ export interface BrowserOptions {
 }
 
 /**
+ * Appends ?standalone=true to app.cal.com URLs on iOS.
+ * This hides navigation elements when pages are opened in the in-app browser,
+ * which is required for Apple App Store compliance.
+ *
+ * @param url - The URL to process
+ * @returns The URL with standalone=true appended if it's an app.cal.com URL on iOS
+ */
+const appendStandaloneParam = (url: string): string => {
+  // Only apply to iOS
+  if (Platform.OS !== "ios") {
+    return url;
+  }
+
+  try {
+    const urlObj = new URL(url);
+
+    // Only apply to app.cal.com URLs
+    if (urlObj.hostname !== "app.cal.com") {
+      return url;
+    }
+
+    // Don't add if already present
+    if (urlObj.searchParams.has("standalone")) {
+      return url;
+    }
+
+    urlObj.searchParams.set("standalone", "true");
+    return urlObj.toString();
+  } catch {
+    // If URL parsing fails, return original
+    return url;
+  }
+};
+
+/**
  * Open a URL in the in-app browser with session sharing enabled.
  *
  * Session sharing allows cookies to be shared between the in-app browser
  * and Safari (iOS) or Chrome (Android). This means users who authenticate
  * via OAuth will remain logged in when opening Cal.com links.
+ *
+ * On iOS, app.cal.com URLs automatically get ?standalone=true appended
+ * to hide navigation elements for Apple App Store compliance.
  *
  * @param url - The URL to open
  * @param fallbackMessage - Optional message to show in error alert (defaults to "link")
@@ -47,6 +108,9 @@ export const openInAppBrowser = async (
   options?: BrowserOptions
 ): Promise<void> => {
   try {
+    // Append standalone=true for app.cal.com URLs on iOS
+    const processedUrl = appendStandaloneParam(url);
+
     // Configure browser options
     // Session sharing happens automatically when using Safari View Controller (iOS)
     // or Chrome Custom Tabs (Android) - no special configuration needed
@@ -55,14 +119,35 @@ export const openInAppBrowser = async (
       ...(options?.controlsColor && { controlsColor: options.controlsColor }),
     };
 
-    await WebBrowser.openBrowserAsync(url, browserOptions);
+    await WebBrowser.openBrowserAsync(processedUrl, browserOptions);
   } catch (error) {
-    console.error("Failed to open link");
-    if (__DEV__) {
-      const message = error instanceof Error ? error.message : String(error);
-      const stack = error instanceof Error ? error.stack : undefined;
-      console.debug("[openInAppBrowser] failed", { message, stack, fallbackMessage });
-    }
-    showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+    handleBrowserError(error, "openInAppBrowser", fallbackMessage);
+  }
+};
+
+/**
+ * Open a URL in the device's default browser (Safari on iOS, Chrome on Android).
+ *
+ * Unlike openInAppBrowser, this opens the URL in the actual browser app
+ * rather than an in-app browser view. This is useful for video meeting links
+ * where users may want to use their browser's native features or extensions.
+ *
+ * @param url - The URL to open
+ * @param fallbackMessage - Optional message to show in error alert (defaults to "link")
+ *
+ * @example
+ * ```tsx
+ * // Open a meeting link in the default browser
+ * await openInDefaultBrowser("https://meet.cal.com/abc123", "meeting link");
+ * ```
+ */
+export const openInDefaultBrowser = async (
+  url: string,
+  fallbackMessage?: string
+): Promise<void> => {
+  try {
+    await Linking.openURL(url);
+  } catch (error) {
+    handleBrowserError(error, "openInDefaultBrowser", fallbackMessage);
   }
 };

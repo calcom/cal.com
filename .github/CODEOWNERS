@@ -1,3 +1,5 @@
+.github/actions/**/* @calcom/Foundation
+.github/workflows/**/* @calcom/Foundation
 /**/package.json @calcom/Foundation
 /apps/api/**/* @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation

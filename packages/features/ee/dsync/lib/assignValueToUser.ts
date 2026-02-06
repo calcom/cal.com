@@ -331,13 +331,15 @@ const createMissingOptionsAndReturnAlongWithExisting = async <
     ),
   });
 
-  await PrismaAttributeOptionRepository.createMany({
+  const attributeOptionRepository = new PrismaAttributeOptionRepository(prisma);
+
+  await attributeOptionRepository.createMany({
     createManyInput: attributeOptionCreateManyInput,
   });
 
   // We need fetch all the attribute options to ensure that we have the newly created options as well.
   const allAttributeOptions = (
-    await PrismaAttributeOptionRepository.findMany({
+    await attributeOptionRepository.findMany({
       orgId,
     })
   ).map((attributeOption) => ({
@@ -424,7 +426,8 @@ export const assignValueToUserInOrgBulk = async ({
   attributeLabelToValueMap: AttributeLabelToValueMap;
   updater: BulkAttributeAssigner;
 }) => {
-  const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+  const membershipRepository = new MembershipRepository();
+  const membership = await membershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
   const defaultReturn = { numOfAttributeOptionsSet: 0, numOfAttributeOptionsDeleted: 0 };
   if (!membership) {
     console.error(`User ${userId} not a member of org ${orgId}, not assigning attribute options`);

@@ -58,24 +58,7 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
     },
   });
 
-  // const booking = await createBookingThroughFactory();
   return booking;
-
-  //  To be added in the follow-up PR
-  // async function createBookingThroughFactory() {
-  //   console.log("Creating booking through factory");
-  //   const regularBookingService = getRegularBookingService();
-
-  //   const booking = await regularBookingService.createBooking({
-  //     bookingData: req.body,
-  //     bookingMeta: {
-  //       userId: session?.user?.id || -1,
-  //       hostname: req.headers.host || "",
-  //       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-  //     },
-  //   });
-  //   return booking;
-  // }
 }
 
 export default defaultResponder(handler, "/api/book/event");

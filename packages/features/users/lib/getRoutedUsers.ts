@@ -65,6 +65,7 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
 
 type BaseUser = {
   id: number;
+  uuid: string;
   email: string;
 };
 

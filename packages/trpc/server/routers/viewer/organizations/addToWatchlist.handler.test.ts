@@ -16,7 +16,7 @@ describe("addToWatchlistHandler (Organization)", () => {
   };
 
   const mockService = {
-    addReportsToWatchlist: vi.fn(),
+    addToWatchlistByEmail: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -33,7 +33,7 @@ describe("addToWatchlistHandler (Organization)", () => {
         addToWatchlistHandler({
           ctx: { user: { ...mockUser, organizationId: undefined, profile: null } },
           input: {
-            reportIds: ["report-1"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
@@ -42,77 +42,77 @@ describe("addToWatchlistHandler (Organization)", () => {
         message: "You must be part of an organization to add to watchlist",
       });
 
-      expect(mockService.addReportsToWatchlist).not.toHaveBeenCalled();
+      expect(mockService.addToWatchlistByEmail).not.toHaveBeenCalled();
     });
   });
 
   describe("error mapping", () => {
-    it("should map NOT_FOUND error to NOT_FOUND", async () => {
-      mockService.addReportsToWatchlist.mockRejectedValue(
-        WatchlistErrors.notFound("Booking report(s) not found: report-1")
+    it("should propagate NOT_FOUND error from service", async () => {
+      mockService.addToWatchlistByEmail.mockRejectedValue(
+        WatchlistErrors.notFound("No pending reports found for this email")
       );
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Booking report(s) not found: report-1",
+        message: "No pending reports found for this email",
       });
     });
 
-    it("should map PERMISSION_DENIED error to UNAUTHORIZED", async () => {
-      mockService.addReportsToWatchlist.mockRejectedValue(
-        WatchlistErrors.permissionDenied("You are not authorized to add entries to the watchlist")
+    it("should propagate PERMISSION_DENIED error from service", async () => {
+      mockService.addToWatchlistByEmail.mockRejectedValue(
+        WatchlistErrors.permissionDenied("You are not authorized to create watchlist entries")
       );
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
       ).rejects.toMatchObject({
-        code: "UNAUTHORIZED",
-        message: "You are not authorized to add entries to the watchlist",
+        code: "PERMISSION_DENIED",
+        message: "You are not authorized to create watchlist entries",
       });
     });
 
-    it("should map ALREADY_IN_WATCHLIST error to BAD_REQUEST", async () => {
-      mockService.addReportsToWatchlist.mockRejectedValue(
-        WatchlistErrors.alreadyInWatchlist("All selected bookers are already in the watchlist")
+    it("should propagate ALREADY_IN_WATCHLIST error from service", async () => {
+      mockService.addToWatchlistByEmail.mockRejectedValue(
+        WatchlistErrors.alreadyInWatchlist("Email is already in the blocklist")
       );
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
       ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "All selected bookers are already in the watchlist",
+        code: "ALREADY_IN_WATCHLIST",
+        message: "Email is already in the blocklist",
       });
     });
 
     it("should re-throw unknown service errors", async () => {
       const unknownError = new Error("Database connection failed");
-      mockService.addReportsToWatchlist.mockRejectedValue(unknownError);
+      mockService.addToWatchlistByEmail.mockRejectedValue(unknownError);
 
       await expect(
         addToWatchlistHandler({
           ctx: { user: mockUser },
           input: {
-            reportIds: ["report-1"],
+            email: "spammer@example.com",
             type: WatchlistType.EMAIL,
           },
         })
@@ -121,30 +121,63 @@ describe("addToWatchlistHandler (Organization)", () => {
   });
 
   describe("successful delegation", () => {
-    it("should delegate to service with correct parameters", async () => {
-      mockService.addReportsToWatchlist.mockResolvedValue({
+    it("should delegate to service with correct parameters for email blocking", async () => {
+      mockService.addToWatchlistByEmail.mockResolvedValue({
         success: true,
         addedCount: 2,
-        message: "Successfully added 2 entries to watchlist",
+        skippedCount: 0,
+        message: "Successfully added email to blocklist",
+        results: [
+          { reportId: "report-1", watchlistId: "watchlist-1" },
+          { reportId: "report-2", watchlistId: "watchlist-1" },
+        ],
       });
 
       const result = await addToWatchlistHandler({
         ctx: { user: mockUser },
         input: {
-          reportIds: ["report-1", "report-2"],
+          email: "spammer@example.com",
           type: WatchlistType.EMAIL,
-          description: "Spam users",
+          description: "Spam user",
         },
       });
 
-      expect(mockService.addReportsToWatchlist).toHaveBeenCalledWith({
-        reportIds: ["report-1", "report-2"],
+      expect(mockService.addToWatchlistByEmail).toHaveBeenCalledWith({
+        email: "spammer@example.com",
         type: WatchlistType.EMAIL,
-        description: "Spam users",
+        description: "Spam user",
         userId: 1,
       });
       expect(result.success).toBe(true);
       expect(result.addedCount).toBe(2);
+    });
+
+    it("should delegate to service with correct parameters for domain blocking", async () => {
+      mockService.addToWatchlistByEmail.mockResolvedValue({
+        success: true,
+        addedCount: 5,
+        skippedCount: 0,
+        message: "Successfully added domain to blocklist",
+        results: [],
+      });
+
+      const result = await addToWatchlistHandler({
+        ctx: { user: mockUser },
+        input: {
+          email: "spammer@spamdomain.com",
+          type: WatchlistType.DOMAIN,
+          description: "Spam domain",
+        },
+      });
+
+      expect(mockService.addToWatchlistByEmail).toHaveBeenCalledWith({
+        email: "spammer@spamdomain.com",
+        type: WatchlistType.DOMAIN,
+        description: "Spam domain",
+        userId: 1,
+      });
+      expect(result.success).toBe(true);
+      expect(result.addedCount).toBe(5);
     });
   });
 });
