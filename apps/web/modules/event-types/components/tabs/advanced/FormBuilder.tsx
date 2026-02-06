@@ -38,44 +38,6 @@ import type { fieldsSchema } from "@calcom/features/form-builder/schema";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 
-/**
- * Normalizes field data by converting empty label strings to undefined.
- * This ensures that empty labels fall back to the default label instead of being saved as empty strings.
- */
-function normalizeFieldLabels(data: RhfFormField): RhfFormField {
-  const normalizedData = { ...data };
-
-  // Normalize main label: convert empty string to undefined
-  if (normalizedData.label === "") {
-    normalizedData.label = undefined;
-  }
-
-  // Normalize variant field labels
-  if (normalizedData.variantsConfig?.variants) {
-    const normalizedVariants = { ...normalizedData.variantsConfig.variants };
-    for (const variantKey of Object.keys(normalizedVariants)) {
-      const variant = normalizedVariants[variantKey];
-      if (variant?.fields) {
-        normalizedVariants[variantKey] = {
-          ...variant,
-          fields: variant.fields.map((field) => {
-            if (field.label === "" || field.label === field.name) {
-              return { ...field, label: undefined };
-            }
-            return field;
-          }),
-        };
-      }
-    }
-    normalizedData.variantsConfig = {
-      ...normalizedData.variantsConfig,
-      variants: normalizedVariants,
-    };
-  }
-
-  return normalizedData;
-}
-
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
 };
@@ -417,31 +379,30 @@ export const FormBuilder = function FormBuilder({
             })
           }
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
-            const normalizedData = normalizeFieldLabels(data);
-            const type = normalizedData.type || "text";
+            const type = data.type || "text";
             const isNewField = !fieldDialog.data;
 
-            if (normalizedData.name === "guests" && type !== "multiemail") {
+            if (data.name === "guests" && type !== "multiemail") {
               showToast(t("guests_field_must_be_multiemail"), "error");
               return;
             }
 
-            if (isNewField && fields.some((f) => f.name === normalizedData.name)) {
+            if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
             if (fieldDialog.data) {
-              update(fieldDialog.fieldIndex, normalizedData);
+              update(fieldDialog.fieldIndex, data);
             } else {
               const field: RhfFormField = {
-                ...normalizedData,
+                ...data,
                 type,
                 sources: [
                   {
                     label: "User",
                     type: "user",
                     id: "user",
-                    fieldRequired: normalizedData.required,
+                    fieldRequired: data.required,
                   },
                 ],
               };
@@ -467,7 +428,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => { },
+  onChange = () => {},
   className = "",
   readOnly = false,
   showPrice = false,
@@ -948,18 +909,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
     );
   }
-  const label =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
-  const fieldName =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
-
-  if (!label || label === fieldName) {
-    const defaultLabel = fieldTypeConfigVariants?.[variant]?.fieldsMap?.[fieldName as string]?.defaultLabel;
-    const resolvedLabel = defaultLabel || field.defaultLabel || field.name || "Name";
-    return <span>{t(resolvedLabel)}</span>;
-  }
-
-  return <span>{t(label)}</span>;
+  const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
+  const firstField = variantData?.fields?.[0];
+  const label = firstField?.label || "";
+  const firstFieldName = firstField?.name;
+  const defaultLabelFromTypeConfig =
+    fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
+      firstFieldName as keyof (typeof fieldTypeConfigVariants)[typeof variant]["fieldsMap"]
+    ]?.defaultLabel || "";
+  return <span>{t(label || defaultLabelFromTypeConfig)}</span>;
 }
 
 function VariantSelector() {
@@ -1045,7 +1003,7 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
