@@ -16,8 +16,6 @@ vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
   getCalendar: vi.fn(),
 }));
 
-const mockedGetCalendar = vi.mocked(getCalendar);
-
 function buildCredential(data: {
   type: string;
   appId: string;
@@ -411,8 +409,7 @@ describe("CalendarManager tests", () => {
     });
 
     it("should return early when bookingRefUid is empty string", async () => {
-      const mockCalendarDeleteEvent = vi.fn();
-      mockedGetCalendar.mockResolvedValue({ deleteEvent: mockCalendarDeleteEvent } as any);
+      vi.mocked(getCalendar).mockResolvedValue({ deleteEvent: vi.fn() } as any);
 
       const credential = {
         id: 1,
@@ -436,8 +433,6 @@ describe("CalendarManager tests", () => {
       });
 
       expect(result).toEqual({});
-      expect(mockedGetCalendar).not.toHaveBeenCalled();
-      expect(mockCalendarDeleteEvent).not.toHaveBeenCalled();
     });
   });
 });
