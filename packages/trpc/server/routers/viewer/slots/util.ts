@@ -850,7 +850,7 @@ export class AvailableSlotsService {
       const matchedGuestEmails = guestEmails.filter((email) =>
         calComUsers.some((u) => u.email.toLowerCase() === email.toLowerCase())
       );
-      const guestUserEmails = [...new Set([...calComUserPrimaryEmails, ...matchedGuestEmails, ...guestEmails])];
+      const guestUserEmails = Array.from(new Set([...calComUserPrimaryEmails, ...matchedGuestEmails, ...guestEmails]));
 
       const guestBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
         userIds: guestUserIds,
