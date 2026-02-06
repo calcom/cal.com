@@ -6,7 +6,7 @@ import {
   AvailableTimesSkeleton,
 } from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import type { IUseBookingLoadingStates } from "../hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
