@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
@@ -39,6 +40,7 @@ import {
 import { CalComAPIService, type Schedule } from "@/services/calcom";
 import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { offlineAwareRefresh } from "@/utils/network";
+import { getColors } from "@/constants/colors";
 
 export interface AvailabilityListScreenProps {
   searchQuery: string;
@@ -60,6 +62,18 @@ export function AvailabilityListScreen({
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
+  const colors = {
+    background: isDark ? "#000000" : "#FFFFFF",
+    backgroundSecondary: isDark ? "#171717" : "#f8f9fa",
+    border: isDark ? "#4D4D4D" : "#E5E5EA",
+    text: isDark ? "#FFFFFF" : "#333333",
+    textSecondary: isDark ? "#A3A3A3" : "#666666",
+  };
 
   // Use React Query hooks
   const { data: schedules = [], isLoading: loading, error: queryError, refetch } = useSchedules();
@@ -249,7 +263,7 @@ export function AvailabilityListScreen({
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
         <Header />
         <View className="flex-1 px-2 pt-4 md:px-4">
           <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
@@ -260,16 +274,21 @@ export function AvailabilityListScreen({
 
   if (error) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
+      <View style={{ flex: 1, backgroundColor: colors.backgroundSecondary }}>
         <Header />
         <View className="flex-1 items-center justify-center p-5">
-          <Ionicons name="alert-circle" size={64} color="#800020" />
-          <Text className="mb-2 mt-4 text-center text-xl font-bold text-[#333]">
+          <Ionicons name="alert-circle" size={64} color={theme.destructive} />
+          <Text style={{ color: colors.text }} className="mb-2 mt-4 text-center text-xl font-bold">
             Unable to load availability
           </Text>
-          <Text className="mb-6 text-center text-base text-[#666]">{error}</Text>
-          <AppPressable className="rounded-lg bg-black px-6 py-3" onPress={() => refetch()}>
-            <Text className="text-base font-semibold text-white">Retry</Text>
+          <Text style={{ color: colors.textSecondary }} className="mb-6 text-center text-base">
+            {error}
+          </Text>
+          <AppPressable
+            className="rounded-lg bg-black px-6 py-3 dark:bg-white"
+            onPress={() => refetch()}
+          >
+            <Text className="text-base font-semibold text-white dark:text-black">Retry</Text>
           </AppPressable>
         </View>
       </View>
@@ -287,11 +306,23 @@ export function AvailabilityListScreen({
       {/* Non-iOS header with search */}
       <Activity mode={Platform.OS !== "ios" ? "visible" : "hidden"}>
         <Header />
-        <View className="flex-row items-center gap-3 border-b border-gray-300 bg-gray-100 px-4 py-2">
+        <View
+          style={{
+            backgroundColor: isDark ? "#000000" : "#f3f4f6",
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}
+          className="flex-row items-center gap-3 px-4 py-2"
+        >
           <TextInput
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[17px] text-black focus:border-black focus:ring-2 focus:ring-black"
+            style={{
+              backgroundColor: isDark ? "#171717" : "#FFFFFF",
+              borderColor: colors.border,
+              color: colors.text,
+            }}
+            className="flex-1 rounded-lg border px-3 py-2 text-[17px]"
             placeholder="Search schedules"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={handleSearch}
             autoCapitalize="none"
@@ -299,11 +330,11 @@ export function AvailabilityListScreen({
             clearButtonMode="while-editing"
           />
           <TouchableOpacity
-            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2"
+            className="min-w-[60px] flex-row items-center justify-center gap-1 rounded-lg bg-black px-2.5 py-2 dark:bg-white"
             onPress={handleCreateNew}
           >
-            <Ionicons name="add" size={18} color="#fff" />
-            <Text className="text-base font-semibold text-white">New</Text>
+            <Ionicons name="add" size={18} color={isDark ? "#000" : "#fff"} />
+            <Text className="text-base font-semibold text-white dark:text-black">New</Text>
           </TouchableOpacity>
         </View>
       </Activity>
@@ -311,7 +342,7 @@ export function AvailabilityListScreen({
       {/* Empty state - no schedules */}
       <Activity mode={showEmptyState ? "visible" : "hidden"}>
         <ScrollView
-          style={{ backgroundColor: "white" }}
+          style={{ backgroundColor: colors.background }}
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: "center",
@@ -337,7 +368,7 @@ export function AvailabilityListScreen({
         {/* Search empty state */}
         <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
           <ScrollView
-            style={{ backgroundColor: "white" }}
+            style={{ backgroundColor: colors.background }}
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: "center",
@@ -363,7 +394,13 @@ export function AvailabilityListScreen({
             <AvailabilityListSkeleton iosStyle={Platform.OS === "ios"} />
           ) : (
             <FlatList
-              className="flex-1 rounded-lg border border-[#E5E5EA] bg-white"
+              style={{
+                flex: 1,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+              }}
               contentContainerStyle={{
                 paddingBottom: 90,
                 paddingHorizontal: 8,
@@ -455,24 +492,28 @@ export function AvailabilityListScreen({
         >
           <View className="flex-1 items-center justify-center bg-black/50 p-4">
             <TouchableOpacity
-              className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
+              className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-[#171717]"
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <View className="p-6 pb-2">
-                <Text className="mb-2 text-2xl font-semibold text-gray-900">
+                <Text className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
                   Add a new schedule
                 </Text>
-                <Text className="text-sm text-gray-500">Create a new availability schedule.</Text>
+                <Text className="text-sm text-gray-500 dark:text-[#A3A3A3]">
+                  Create a new availability schedule.
+                </Text>
               </View>
 
               {/* Content */}
               <View className="px-6 pb-4">
                 <View className="mb-1">
-                  <Text className="mb-2 text-sm font-medium text-gray-700">Name</Text>
+                  <Text className="mb-2 text-sm font-medium text-gray-700 dark:text-[#A3A3A3]">
+                    Name
+                  </Text>
                   <TextInput
-                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900"
+                    className="rounded-md border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 dark:border-[#4D4D4D] dark:bg-[#262626] dark:text-white"
                     placeholder="Working Hours"
                     placeholderTextColor="#9CA3AF"
                     value={newScheduleName}
@@ -500,14 +541,16 @@ export function AvailabilityListScreen({
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 dark:border-[#4D4D4D] dark:bg-[#262626]"
                   onPress={() => {
                     onShowCreateModalChange(false);
                     setNewScheduleName("");
                   }}
                   disabled={creating}
                 >
-                  <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                  <Text className="text-center text-base font-medium text-gray-700 dark:text-white">
+                    Cancel
+                  </Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -527,13 +570,13 @@ export function AvailabilityListScreen({
           onPress={() => setShowActionsModal(false)}
         >
           <AppPressable
-            className="mx-4 w-full max-w-sm rounded-2xl bg-white"
+            className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-[#171717]"
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <View className="border-b border-gray-200 p-6">
-              <Text className="text-center text-xl font-semibold text-gray-900">
+            <View className="border-b border-gray-200 p-6 dark:border-[#4D4D4D]">
+              <Text className="text-center text-xl font-semibold text-gray-900 dark:text-white">
                 Schedule Actions
               </Text>
             </View>
@@ -551,13 +594,15 @@ export function AvailabilityListScreen({
                       handleSetAsDefault(selectedSchedule);
                     }
                   }}
-                  className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                  className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#262626] md:p-4"
                 >
                   <Ionicons name="star-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-base text-gray-900">Set as Default</Text>
+                  <Text className="ml-3 text-base text-gray-900 dark:text-white">
+                    Set as Default
+                  </Text>
                 </AppPressable>
 
-                <View className="mx-4 my-2 h-px bg-gray-200" />
+                <View className="mx-4 my-2 h-px bg-gray-200 dark:bg-[#4D4D4D]" />
               </Activity>
 
               {/* Duplicate */}
@@ -570,14 +615,14 @@ export function AvailabilityListScreen({
                     }, 100);
                   }
                 }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#262626] md:p-4"
               >
                 <Ionicons name="copy-outline" size={20} color="#6B7280" />
-                <Text className="ml-3 text-base text-gray-900">Duplicate</Text>
+                <Text className="ml-3 text-base text-gray-900 dark:text-white">Duplicate</Text>
               </AppPressable>
 
               {/* Separator */}
-              <View className="mx-4 my-2 h-px bg-gray-200" />
+              <View className="mx-4 my-2 h-px bg-gray-200 dark:bg-[#4D4D4D]" />
 
               {/* Delete */}
               <AppPressable
@@ -590,20 +635,24 @@ export function AvailabilityListScreen({
                     }, 100);
                   }
                 }}
-                className="flex-row items-center p-2 hover:bg-gray-50 md:p-4"
+                className="flex-row items-center p-2 hover:bg-gray-50 dark:hover:bg-[#262626] md:p-4"
               >
-                <Ionicons name="trash-outline" size={20} color="#800000" />
-                <Text className="ml-3 text-base text-[#800000]">Delete</Text>
+                <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+                <Text className="ml-3 text-base" style={{ color: theme.destructive }}>
+                  Delete
+                </Text>
               </AppPressable>
             </View>
 
             {/* Cancel button */}
-            <View className="border-t border-gray-200 p-2 md:p-4">
+            <View className="border-t border-gray-200 p-2 dark:border-[#4D4D4D] md:p-4">
               <AppPressable
-                className="w-full rounded-lg bg-gray-100 p-3"
+                className="w-full rounded-lg bg-gray-100 p-3 dark:bg-[#262626]"
                 onPress={() => setShowActionsModal(false)}
               >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                <Text className="text-center text-base font-medium text-gray-700 dark:text-white">
+                  Cancel
+                </Text>
               </AppPressable>
             </View>
           </AppPressable>
@@ -617,18 +666,20 @@ export function AvailabilityListScreen({
         onRequestClose={() => !deleting && setShowDeleteModal(false)}
       >
         <View className="flex-1 items-center justify-center bg-black/50 p-4">
-          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+          <View className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-[#171717]">
             <View className="p-6">
               <View className="flex-row">
                 {/* Danger icon */}
-                <View className="mr-3 self-start rounded-full bg-red-50 p-2">
-                  <Ionicons name="alert-circle" size={20} color="#800000" />
+                <View className="mr-3 self-start rounded-full bg-red-50 p-2 dark:bg-red-900/30">
+                  <Ionicons name="alert-circle" size={20} color={theme.destructive} />
                 </View>
 
                 {/* Title and description */}
                 <View className="flex-1">
-                  <Text className="mb-2 text-xl font-semibold text-gray-900">Delete Schedule</Text>
-                  <Text className="text-sm leading-5 text-gray-600">
+                  <Text className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+                    Delete Schedule
+                  </Text>
+                  <Text className="text-sm leading-5 text-gray-600 dark:text-[#A3A3A3]">
                     Are you sure you want to delete "{selectedSchedule?.name}"? This action cannot
                     be undone.
                   </Text>
@@ -649,11 +700,13 @@ export function AvailabilityListScreen({
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5"
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 dark:border-[#4D4D4D] dark:bg-[#262626]"
                 onPress={() => setShowDeleteModal(false)}
                 disabled={deleting}
               >
-                <Text className="text-center text-base font-medium text-gray-700">Cancel</Text>
+                <Text className="text-center text-base font-medium text-gray-700 dark:text-white">
+                  Cancel
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

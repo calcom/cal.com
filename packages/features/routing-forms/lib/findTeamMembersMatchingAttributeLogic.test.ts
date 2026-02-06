@@ -16,6 +16,7 @@ import {
 vi.mock("@calcom/features/attributes/lib/getAttributes", () => {
   return {
     getAttributesAssignmentData: vi.fn(),
+    extractAttributeIdsFromQueryValue: vi.fn().mockReturnValue([]),
   };
 });
 
@@ -265,6 +266,8 @@ function buildScenarioWhereMainAttributeLogicFails() {
 describe("findTeamMembersMatchingAttributeLogic", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    // Re-establish the mock for extractAttributeIdsFromQueryValue after resetAllMocks
+    vi.mocked(getAttributesModule.extractAttributeIdsFromQueryValue).mockReturnValue([]);
   });
 
   it("should return null if the route does not have an attributesQueryValue set", async () => {
@@ -1255,5 +1258,251 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
     // Should not match anyone as the option ID doesn't exist
     expect(result).toEqual([]);
+  });
+
+  describe("routingFormTrace integration", () => {
+    it("should call attributeLogicEvaluated when routingFormTrace is provided and main logic matches", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option1OfAttribute1.id],
+            operator: "select_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const mockRoutingFormTrace = {
+        attributeLogicEvaluated: vi.fn(),
+        attributeFallbackUsed: vi.fn(),
+        routeMatched: vi.fn(),
+        fallbackRouteUsed: vi.fn(),
+      };
+
+      await findTeamMembersMatchingAttributeLogic(
+        {
+          dynamicFieldValueOperands: {
+            fields: [],
+            response: {},
+          },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+          routeName: "Test Route",
+          routeIsFallback: false,
+        },
+        {
+          routingFormTraceService: mockRoutingFormTrace as never,
+        }
+      );
+
+      expect(mockRoutingFormTrace.attributeLogicEvaluated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routeName: "Test Route",
+          routeIsFallback: false,
+          checkedFallback: false,
+        })
+      );
+    });
+
+    it("should call attributeLogicEvaluated with checkedFallback=true when fallback is used", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Option2OfAttribute1 = { id: "opt2", value: "Option 2", slug: "option-2" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1, Option2OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const failingAttributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option2OfAttribute1.id],
+            operator: "select_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const matchingFallbackQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option1OfAttribute1.id],
+            operator: "select_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const mockRoutingFormTrace = {
+        attributeLogicEvaluated: vi.fn(),
+        attributeFallbackUsed: vi.fn(),
+        routeMatched: vi.fn(),
+        fallbackRouteUsed: vi.fn(),
+      };
+
+      await findTeamMembersMatchingAttributeLogic(
+        {
+          dynamicFieldValueOperands: {
+            fields: [],
+            response: {},
+          },
+          attributesQueryValue: failingAttributesQueryValue,
+          fallbackAttributesQueryValue: matchingFallbackQueryValue,
+          teamId: 1,
+          orgId,
+          routeName: "Test Route",
+          routeIsFallback: false,
+        },
+        {
+          routingFormTraceService: mockRoutingFormTrace as never,
+        }
+      );
+
+      expect(mockRoutingFormTrace.attributeLogicEvaluated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routeName: "Test Route",
+          routeIsFallback: false,
+          checkedFallback: true,
+        })
+      );
+    });
+
+    it("should not call attributeLogicEvaluated when routingFormTrace is not provided", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option1OfAttribute1.id],
+            operator: "select_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const mockRoutingFormTrace = {
+        attributeLogicEvaluated: vi.fn(),
+        attributeFallbackUsed: vi.fn(),
+        routeMatched: vi.fn(),
+        fallbackRouteUsed: vi.fn(),
+      };
+
+      await findTeamMembersMatchingAttributeLogic(
+        {
+          dynamicFieldValueOperands: {
+            fields: [],
+            response: {},
+          },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        },
+        {}
+      );
+
+      expect(mockRoutingFormTrace.attributeLogicEvaluated).not.toHaveBeenCalled();
+    });
+
+    it("should include attributeRoutingDetails in trace when attributes are used", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Enterprise", slug: "enterprise" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Company Size",
+        type: "SINGLE_SELECT" as const,
+        slug: "company-size",
+        options: [Option1OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: { [Attribute1.id]: Option1OfAttribute1.value } },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option1OfAttribute1.id],
+            operator: "select_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const mockRoutingFormTrace = {
+        attributeLogicEvaluated: vi.fn(),
+        attributeFallbackUsed: vi.fn(),
+        routeMatched: vi.fn(),
+        fallbackRouteUsed: vi.fn(),
+      };
+
+      await findTeamMembersMatchingAttributeLogic(
+        {
+          dynamicFieldValueOperands: {
+            fields: [],
+            response: {},
+          },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+          routeName: "Enterprise Route",
+          routeIsFallback: false,
+        },
+        {
+          routingFormTraceService: mockRoutingFormTrace as never,
+        }
+      );
+
+      expect(mockRoutingFormTrace.attributeLogicEvaluated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attributeRoutingDetails: expect.arrayContaining([
+            expect.objectContaining({
+              attributeName: "Company Size",
+            }),
+          ]),
+        })
+      );
+    });
   });
 });

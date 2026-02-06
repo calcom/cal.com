@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -7,17 +5,17 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
   Dropdown,
-  DropdownMenuTrigger,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownItem,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import type { UserTableUser, UserTableAction } from "./types";
+import { useSession } from "next-auth/react";
+import type { UserTableAction, UserTableUser } from "./types";
 
 export function TableActions({
   user,
@@ -33,6 +31,7 @@ export function TableActions({
     canRemove: boolean;
     canImpersonate: boolean;
     canResendInvitation: boolean;
+    canResetPassword: boolean;
   };
 }) {
   const { t, i18n } = useLocale();
@@ -40,6 +39,14 @@ export function TableActions({
   const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
     onSuccess: () => {
       showToast(t("invitation_resent"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+  const sendPasswordResetMutation = trpc.viewer.organizations.sendPasswordReset.useMutation({
+    onSuccess: () => {
+      showToast(t("password_reset_email_sent"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -96,26 +103,37 @@ export function TableActions({
                   </DropdownMenuItem>
                 )}
                 {permissionsForUser.canImpersonate && (
-                  <>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() =>
-                          dispatch({
-                            type: "SET_IMPERSONATE_ID",
-                            payload: {
-                              user,
-                              showModal: true,
-                            },
-                          })
-                        }
-                        StartIcon="lock">
-                        {t("impersonate")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_IMPERSONATE_ID",
+                          payload: {
+                            user,
+                            showModal: true,
+                          },
+                        })
+                      }
+                      StartIcon="lock">
+                      {t("impersonate")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
                 )}
+                {permissionsForUser.canResetPassword && (
+                  <DropdownMenuItem>
+                    <DropdownItem
+                      type="button"
+                      onClick={() => {
+                        sendPasswordResetMutation.mutate({ userId: user.id });
+                      }}
+                      StartIcon="key">
+                      {t("reset_password")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
+                {(permissionsForUser.canImpersonate || permissionsForUser.canResetPassword) &&
+                  permissionsForUser.canRemove && <DropdownMenuSeparator />}
                 {permissionsForUser.canRemove && (
                   <DropdownMenuItem>
                     <DropdownItem
@@ -170,24 +188,34 @@ export function TableActions({
                 </DropdownItem>
               </DropdownMenuItem>
               {permissionsForUser.canEdit && (
-                <>
-                  <DropdownMenuItem>
-                    <DropdownItem
-                      type="button"
-                      onClick={() =>
-                        dispatch({
-                          type: "EDIT_USER_SHEET",
-                          payload: {
-                            user,
-                            showModal: true,
-                          },
-                        })
-                      }
-                      StartIcon="pencil">
-                      {t("edit")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    onClick={() =>
+                      dispatch({
+                        type: "EDIT_USER_SHEET",
+                        payload: {
+                          user,
+                          showModal: true,
+                        },
+                      })
+                    }
+                    StartIcon="pencil">
+                    {t("edit")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
+              {permissionsForUser.canResetPassword && (
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    onClick={() => {
+                      sendPasswordResetMutation.mutate({ userId: user.id });
+                    }}
+                    StartIcon="key">
+                    {t("reset_password")}
+                  </DropdownItem>
+                </DropdownMenuItem>
               )}
               {permissionsForUser.canRemove && (
                 <DropdownMenuItem>

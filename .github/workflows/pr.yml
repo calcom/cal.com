@@ -170,6 +170,7 @@ jobs:
       has-companion: ${{ steps.filter-inclusions.outputs.has-companion }}
       has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
+      has-agents-changes: ${{ steps.filter-inclusions.outputs.has-agents-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -210,6 +211,8 @@ jobs:
         id: filter-inclusions
         with:
           filters: |
+            has-agents-changes:
+              - "agents/**"
             has-companion:
               - "companion/**"
             has-api-v2-changes:
@@ -298,8 +301,15 @@ jobs:
         with:
           skip-install-if-cache-hit: "true"
 
+  validate-agents-format:
+    name: Validate agents/ format
+    needs: [trust-check, prepare]
+    if: needs.trust-check.outputs.is-trusted == 'true' && needs.prepare.outputs.has-agents-changes == 'true' && github.event.pull_request
+    uses: ./.github/workflows/validate-agents-format.yml
+    secrets: inherit
+
   type-check:
-    name: Type check
+    name: Type Checks
     needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
@@ -324,6 +334,13 @@ jobs:
     needs: [prepare]
     if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/api-v2-unit-tests.yml
+    secrets: inherit
+
+  security-audit:
+    name: Security Audit
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/security-audit.yml
     secrets: inherit
 
   check-prisma-migrations:
@@ -375,6 +392,20 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.has-companion == 'true'
     uses: ./.github/workflows/companion-build.yml
+    secrets: inherit
+
+  typecheck-companion:
+    name: Type Checks
+    needs: [prepare]
+    if: needs.prepare.outputs.has-companion == 'true'
+    uses: ./.github/workflows/companion-typecheck.yml
+    secrets: inherit
+
+  lint-companion:
+    name: Linters
+    needs: [prepare]
+    if: needs.prepare.outputs.has-companion == 'true'
+    uses: ./.github/workflows/companion-lint.yml
     secrets: inherit
 
   build:
@@ -444,10 +475,12 @@ jobs:
       [
         trust-check,
         prepare,
+        validate-agents-format,
         lint,
         type-check,
         unit-test,
         api-v2-unit-test,
+        security-audit,
         check-api-v2-breaking-changes,
         check-prisma-migrations,
         integration-test,
@@ -457,6 +490,8 @@ jobs:
         build-atoms,
         build-docs,
         build-companion,
+        typecheck-companion,
+        lint-companion,
         setup-db,
         e2e,
         e2e-api-v2,
@@ -488,6 +523,7 @@ jobs:
             needs.type-check.result != 'success' ||
             needs.unit-test.result != 'success' ||
             needs.api-v2-unit-test.result != 'success' ||
+            needs.security-audit.result != 'success' ||
             (needs.prepare.outputs.has-api-v2-changes == 'true' && needs.check-api-v2-breaking-changes.result != 'success') ||
             (needs.prepare.outputs.has-prisma-changes == 'true' && needs.check-prisma-migrations.result != 'success') ||
               needs.build.result != 'success' ||
@@ -506,5 +542,13 @@ jobs:
           ) ||
           (
             needs.prepare.outputs.has-companion == 'true' &&
-            needs.build-companion.result != 'success'
+            (
+              needs.build-companion.result != 'success' ||
+              needs.typecheck-companion.result != 'success' ||
+              needs.lint-companion.result != 'success'
+            )
+          ) ||
+          (
+            needs.prepare.outputs.has-agents-changes == 'true' &&
+            needs.validate-agents-format.result != 'success'
           )

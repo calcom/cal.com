@@ -6,11 +6,12 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Booking } from "@/services/calcom";
 import type { BookingActionsResult } from "@/utils/booking-actions";
 import { FullScreenModal } from "./FullScreenModal";
+import { getColors } from "@/constants/colors";
 
 export interface BookingActionsModalProps {
   visible: boolean;
@@ -60,10 +61,14 @@ function ActionButton({
   isDanger = false,
   isLast = false,
 }: ActionButtonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   if (!visible) return null;
 
-  const iconColor = !enabled ? "#C7C7CC" : isDanger ? "#FF3B30" : "#007AFF";
-  const textColor = !enabled ? "#C7C7CC" : isDanger ? "#FF3B30" : "#000";
+  const iconColor = !enabled ? "#C7C7CC" : isDanger ? theme.destructive : "#007AFF";
+  const textColor = !enabled ? "#C7C7CC" : isDanger ? theme.destructive : theme.text;
 
   return (
     <TouchableOpacity
@@ -72,8 +77,8 @@ function ActionButton({
         onPress();
       }}
       disabled={!enabled}
-      className={`flex-row items-center px-4 py-3.5 active:bg-[#F8F9FA] ${
-        !isLast ? "border-b border-gray-100" : ""
+      className={`flex-row items-center px-4 py-3.5 active:bg-[#F8F9FA] dark:active:bg-[#262626] ${
+        !isLast ? "border-b border-gray-100 dark:border-[#4D4D4D]" : ""
       }`}
       activeOpacity={0.7}
     >
@@ -87,8 +92,8 @@ function ActionButton({
         {label}
       </Text>
       {!enabled && (
-        <View className="rounded bg-gray-100 px-2 py-0.5">
-          <Text className="text-xs text-gray-500">Unavailable</Text>
+        <View className="rounded bg-gray-100 px-2 py-0.5 dark:bg-[#262626]">
+          <Text className="text-xs text-gray-500 dark:text-[#A3A3A3]">Unavailable</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -101,8 +106,10 @@ interface SectionHeaderProps {
 
 function SectionHeader({ title }: SectionHeaderProps) {
   return (
-    <View className="bg-[#F2F2F7] px-4 py-2">
-      <Text className="text-[13px] font-medium uppercase tracking-wide text-gray-500">{title}</Text>
+    <View className="bg-[#F2F2F7] px-4 py-2 dark:bg-[#262626]">
+      <Text className="text-[13px] font-medium uppercase tracking-wide text-gray-500 dark:text-[#A3A3A3]">
+        {title}
+      </Text>
     </View>
   );
 }
@@ -248,10 +255,13 @@ export function BookingActionsModal({
           style={{ paddingBottom: insets.bottom || 16 }}
         >
           {/* Actions Card */}
-          <View className="mx-4 mb-3 overflow-hidden rounded-2xl bg-white">
+          <View className="mx-4 mb-3 overflow-hidden rounded-2xl bg-white dark:bg-[#171717]">
             {/* Booking Title Header */}
-            <View className="border-b border-gray-100 px-4 py-4">
-              <Text className="text-center text-[13px] font-medium text-gray-500" numberOfLines={1}>
+            <View className="border-b border-gray-100 px-4 py-4 dark:border-[#4D4D4D]">
+              <Text
+                className="text-center text-[13px] font-medium text-gray-500 dark:text-[#A3A3A3]"
+                numberOfLines={1}
+              >
                 {booking.title}
               </Text>
             </View>
@@ -316,7 +326,7 @@ export function BookingActionsModal({
 
           {/* Cancel Button */}
           <TouchableOpacity
-            className="mx-4 overflow-hidden rounded-2xl bg-white"
+            className="mx-4 overflow-hidden rounded-2xl bg-white dark:bg-[#171717]"
             onPress={onClose}
             activeOpacity={0.7}
           >

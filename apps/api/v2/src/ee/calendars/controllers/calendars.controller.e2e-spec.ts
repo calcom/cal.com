@@ -292,6 +292,75 @@ describe("Platform Calendars Endpoints", () => {
     expect(data.destinationCalendar.integration).toEqual(GOOGLE_CALENDAR_TYPE);
   });
 
+  it(`/GET/v2/calendars/busy-times: should return 400 when neither timeZone nor loggedInUsersTz is provided`, async () => {
+    const response = await request(app.getHttpServer())
+      .get(
+        `/v2/calendars/busy-times?dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=${googleCalendarCredentials.id}&calendarsToLoad[0][externalId]=test@example.com`
+      )
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(400);
+
+    expect(response.body.error).toBeDefined();
+    expect(response.body.error.message).toContain("Either timeZone or loggedInUsersTz must be provided");
+  });
+
+  it(`/GET/v2/calendars/busy-times: should work with valid timeZone parameter`, async () => {
+    const mockBusyTimes = [
+      {
+        start: new Date("2024-12-18T10:00:00Z"),
+        end: new Date("2024-12-18T11:00:00Z"),
+        source: "google_calendar",
+      },
+    ];
+
+    const getBusyTimesSpy = jest
+      .spyOn(CalendarsService.prototype, "getBusyTimes")
+      .mockResolvedValue(mockBusyTimes);
+
+    const response = await request(app.getHttpServer())
+      .get(
+        `/v2/calendars/busy-times?timeZone=America/New_York&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=${googleCalendarCredentials.id}&calendarsToLoad[0][externalId]=test@example.com`
+      )
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(200);
+
+    expect(response.body.status).toEqual(SUCCESS_STATUS);
+    expect(response.body.data).toBeDefined();
+    expect(Array.isArray(response.body.data)).toBe(true);
+
+    getBusyTimesSpy.mockRestore();
+  });
+
+  it(`/GET/v2/calendars/busy-times: should work with loggedInUsersTz parameter (backwards compatibility)`, async () => {
+    const mockBusyTimes = [
+      {
+        start: new Date("2024-12-18T10:00:00Z"),
+        end: new Date("2024-12-18T11:00:00Z"),
+        source: "google_calendar",
+      },
+    ];
+
+    const getBusyTimesSpy = jest
+      .spyOn(CalendarsService.prototype, "getBusyTimes")
+      .mockResolvedValue(mockBusyTimes);
+
+    const response = await request(app.getHttpServer())
+      .get(
+        `/v2/calendars/busy-times?loggedInUsersTz=Europe/London&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=${googleCalendarCredentials.id}&calendarsToLoad[0][externalId]=test@example.com`
+      )
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .set("Origin", CLIENT_REDIRECT_URI)
+      .expect(200);
+
+    expect(response.body.status).toEqual(SUCCESS_STATUS);
+    expect(response.body.data).toBeDefined();
+    expect(Array.isArray(response.body.data)).toBe(true);
+
+    getBusyTimesSpy.mockRestore();
+  });
+
   it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
     const body = {
       id: 10,

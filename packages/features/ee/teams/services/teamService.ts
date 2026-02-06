@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -188,6 +189,7 @@ export class TeamService {
         team: {
           select: {
             name: true,
+            parentId: true,
           },
         },
       },
@@ -216,6 +218,15 @@ export class TeamService {
           );
         }
       } else throw e;
+    }
+
+    if (!verificationToken.team.parentId) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: verificationToken.teamId,
+        userId,
+        triggeredBy: userId,
+      });
     }
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
@@ -296,6 +307,15 @@ export class TeamService {
           },
         });
       }
+
+      if (!membership.team.parentId) {
+        const seatTracker = new SeatChangeTrackingService();
+        await seatTracker.logSeatRemoval({
+          teamId,
+          userId,
+          triggeredBy: userId,
+        });
+      }
     } catch (e) {
       console.log(e);
     }
@@ -374,6 +394,14 @@ export class TeamService {
     }
 
     await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
+
+    if (!team.parentId) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatRemoval({
+        teamId,
+        userId,
+      });
+    }
 
     return { membership };
   }
@@ -480,58 +508,73 @@ export class TeamService {
     await TeamService.cleanupTempOrgRedirect(user, team);
     const newUsername = generateNewUsername(user);
 
-    await prisma.$transaction([
-      // Remove user from all sub-teams event type hosts
-      prisma.host.deleteMany({
-        where: {
-          userId: membership.userId,
-          eventType: {
-            team: {
-              parentId: team.id,
+    const subTeamIds = await prisma.team.findMany({
+      where: {
+        parentId: team.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    const subTeamIdArray = subTeamIds.map((t) => t.id);
+
+    await prisma.$transaction(async (tx) => {
+      if (subTeamIdArray.length > 0) {
+        // Remove user from all sub-teams event type hosts
+        await tx.host.deleteMany({
+          where: {
+            userId: membership.userId,
+            eventType: {
+              teamId: {
+                in: subTeamIdArray,
+              },
             },
           },
-        },
-      }),
-      // Delete managed child events in sub-teams
-      prisma.eventType.deleteMany({
-        where: {
-          userId: membership.userId,
-          parent: {
-            team: {
-              parentId: team.id,
+        });
+        // Delete managed child events in sub-teams
+        await tx.eventType.deleteMany({
+          where: {
+            userId: membership.userId,
+            parent: {
+              teamId: {
+                in: subTeamIdArray,
+              },
             },
           },
-        },
-      }),
+        });
+        // Delete all sub-team memberships where this team is the organization
+        await tx.membership.deleteMany({
+          where: {
+            teamId: {
+              in: subTeamIdArray,
+            },
+            userId: membership.userId,
+          },
+        });
+      }
+
       // Remove organizationId from the user
-      prisma.user.update({
+      await tx.user.update({
         where: { id: membership.userId },
         data: {
           organizationId: null,
           username: newUsername,
         },
-      }),
+      });
       // Delete the profile of the user from the organization
-      ProfileRepository.delete({
-        userId: membership.userId,
-        organizationId: team.id,
-      }),
-      // Delete all sub-team memberships where this team is the organization
-      prisma.membership.deleteMany({
+      await tx.profile.deleteMany({
         where: {
-          team: {
-            parentId: team.id,
-          },
           userId: membership.userId,
+          organizationId: team.id,
         },
-      }),
+      });
       // Delete the membership of the user from the organization
-      prisma.membership.delete({
+      await tx.membership.delete({
         where: {
           userId_teamId: { userId: membership.userId, teamId: team.id },
         },
-      }),
-    ]);
+      });
+    });
 
     // Generate new username for user leaving organization
     function generateNewUsername(user: UserWithTeams): string | null {

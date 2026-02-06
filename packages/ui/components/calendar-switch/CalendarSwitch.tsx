@@ -1,11 +1,23 @@
 "use client";
 
 import type { ReactNode } from "react";
-
-import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../icon";
+
+export type ICalendarSwitchProps = {
+  title: string;
+  externalId: string;
+  type: string;
+  isChecked: boolean;
+  name: string;
+  isLastItemInList?: boolean;
+  destination?: boolean;
+  credentialId: number;
+  delegationCredentialId: string | null;
+  eventTypeId: number | null;
+  disabled?: boolean;
+};
 
 export function CalendarSwitchComponent(
   props: ICalendarSwitchProps & {
