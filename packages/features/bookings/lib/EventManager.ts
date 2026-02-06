@@ -1178,7 +1178,7 @@ export default class EventManager {
       if (newBookingId) {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
 
-        if (oldCalendarEvent?.credentialId && oldCalendarEvent?.uid) {
+        if (oldCalendarEvent?.credentialId) {
           const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
             id: oldCalendarEvent.credentialId,
           });
