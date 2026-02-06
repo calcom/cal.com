@@ -2094,9 +2094,9 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
 
     return this.prismaClient.booking.findMany({
       where: {
-        status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
-        },
+        // Only check confirmed bookings - PENDING bookings are unconfirmed
+        // and shouldn't block reschedule slot availability
+        status: BookingStatus.ACCEPTED,
         // Booking overlaps with the date range
         AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
         // Booking belongs to one of the users (as host or attendee)

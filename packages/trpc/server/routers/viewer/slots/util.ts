@@ -844,9 +844,16 @@ export class AvailableSlotsService {
 
       // Get their bookings in the date range
       const guestUserIds = calComUsers.map((u) => u.id);
-      // Only use primary emails of confirmed Cal.com users for booking lookup
-      // The userIds already cover host bookings, emails cover attendee bookings
-      const guestUserEmails = calComUsers.map((u) => u.email);
+      // Include both primary emails AND original attendee emails that matched Cal.com users
+      // This catches bookings where guests used secondary/verified emails
+      const calComUserPrimaryEmails = calComUsers.map((u) => u.email.toLowerCase());
+      const matchedAttendeeEmails = guestEmails.filter((email) =>
+        // Keep original attendee email if it belongs to a Cal.com user
+        // (findUsersByEmails already validated these via primary + secondary lookup)
+        calComUsers.some((u) => u.email.toLowerCase() === email.toLowerCase())
+      );
+      // Combine primary emails + matched attendee emails (which may include secondary emails)
+      const guestUserEmails = Array.from(new Set([...calComUserPrimaryEmails, ...matchedAttendeeEmails.map((e) => e.toLowerCase())]));
 
       const guestBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
         userIds: guestUserIds,
