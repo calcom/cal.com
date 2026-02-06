@@ -513,6 +513,20 @@ export async function getAttributesAssignmentData({
     lookupMaps,
   });
 
+  const usersWithAssignments = new Set(
+    attributesAssignedToTeamMembersWithOptions.map((m) => m.userId)
+  );
+
+  const allTeamMemberUserIds = Array.from(orgMembershipToUserIdForTeamMembers.values());
+  for (const userId of allTeamMemberUserIds) {
+    if (!usersWithAssignments.has(userId)) {
+      attributesAssignedToTeamMembersWithOptions.push({
+        userId,
+        attributes: {},
+      });
+    }
+  }
+
   return {
     attributesOfTheOrg,
     attributesAssignedToTeamMembersWithOptions,

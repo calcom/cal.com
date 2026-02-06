@@ -234,6 +234,19 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
       await expectNotRoutedToUser(page);
       await closeResults(page);
     });
+
+    test("select_not_equals - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.SINGLE_SELECT,
+        options: ["large", "medium", "small"],
+        assigned: [],
+        condition: { operator: "select_not_equals", value: ["large"], valueType: ["select"] },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
   });
 
   test.describe("MULTI_SELECT conditions", () => {
@@ -303,6 +316,36 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         attributeType: AttributeType.MULTI_SELECT,
         options: ["JavaScript", "React", "Python"],
         assigned: ["JavaScript"],
+        condition: {
+          operator: "multiselect_not_equals",
+          value: [["Python"]],
+          valueType: ["multiselect"],
+        },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
+
+    test("multiselect_not_some_in - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.MULTI_SELECT,
+        options: ["JavaScript", "React", "Python"],
+        assigned: [],
+        condition: { operator: "multiselect_not_some_in", value: [["Python"]], valueType: ["multiselect"] },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
+
+    test("multiselect_not_equals - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.MULTI_SELECT,
+        options: ["JavaScript", "React", "Python"],
+        assigned: [],
         condition: {
           operator: "multiselect_not_equals",
           value: [["Python"]],
@@ -463,6 +506,38 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
       await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
+
+    test("not_equal - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.NUMBER,
+        options: ["5"],
+        assigned: [],
+        condition: { operator: "not_equal", value: [5], valueType: ["number"] },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
+
+    test("not_between - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.NUMBER,
+        options: ["3"],
+        assigned: [],
+        condition: {
+          operator: "not_between",
+          value: [1, 5],
+          valueSrc: ["value", "value"],
+          valueType: ["number", "number"],
+          valueError: [null, null],
+        },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
   });
 
   test.describe("TEXT conditions", () => {
@@ -531,6 +606,32 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
       await closeResults(page);
     });
 
+    test("not_equal - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.TEXT,
+        options: ["hello world"],
+        assigned: [],
+        condition: { operator: "not_equal", value: ["goodbye"], valueType: ["text"] },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
+
+    test("not_like - no attribute assigned", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
+        users,
+        attributeType: AttributeType.TEXT,
+        options: ["hello world"],
+        assigned: [],
+        condition: { operator: "not_like", value: ["goodbye"], valueType: ["text"] },
+      });
+      await openPreview(page, formId);
+      await expectRoutedToUser(page, user.id);
+      await closeResults(page);
+    });
+
     test("starts_with - match", async ({ page, users }) => {
       const { formId, user } = await setupTest({
         users,
@@ -544,8 +645,8 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
       await closeResults(page);
     });
 
-    test("is_empty - no match when user has no assignment falls back", async ({ page, users }) => {
-      const { formId } = await setupTest({
+    test("is_empty - match when user has no assignment", async ({ page, users }) => {
+      const { formId, user } = await setupTest({
         users,
         attributeType: AttributeType.TEXT,
         options: ["some value"],
@@ -553,7 +654,7 @@ test.describe("Attribute Routing E2E - All Condition Combinations", () => {
         condition: { operator: "is_empty", value: [], valueSrc: [], valueType: [], valueError: [] },
       });
       await openPreview(page, formId);
-      await expectNotRoutedToUser(page);
+      await expectRoutedToUser(page, user.id);
       await closeResults(page);
     });
 

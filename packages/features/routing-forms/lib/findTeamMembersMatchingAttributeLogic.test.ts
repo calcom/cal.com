@@ -1505,4 +1505,281 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       );
     });
   });
+
+  describe("exclusion operators with no attribute assigned", () => {
+    it("select_not_equals should match a member with no attribute assigned", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option1OfAttribute1.id],
+            operator: "select_not_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+    });
+
+    it("multiselect_not_some_in should match a member with no attribute assigned", async () => {
+      const Option1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Option2 = { id: "opt2", value: "Option 2", slug: "option-2" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "MULTI_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1, Option2],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [[Option1.id]],
+            operator: "multiselect_not_some_in",
+            valueType: ["multiselect"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+    });
+
+    it("multiselect_not_equals should match a member with no attribute assigned", async () => {
+      const Option1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "MULTI_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [[Option1.id]],
+            operator: "multiselect_not_equals",
+            valueType: ["multiselect"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+    });
+
+    it("not_equal (number) should match a member with no attribute assigned", async () => {
+      const Option1 = { id: "opt1", value: "5", slug: "5" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "NUMBER" as const,
+        slug: "attribute-1",
+        options: [Option1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [5],
+            operator: "not_equal",
+            valueSrc: ["value"],
+            valueType: ["number"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+    });
+
+    it("not_equal (text) should match a member with no attribute assigned", async () => {
+      const Option1 = { id: "opt1", value: "hello", slug: "hello" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "TEXT" as const,
+        slug: "attribute-1",
+        options: [Option1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: ["goodbye"],
+            operator: "not_equal",
+            valueSrc: ["value"],
+            valueType: ["text"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+    });
+
+    it("not_like (text) should match a member with no attribute assigned", async () => {
+      const Option1 = { id: "opt1", value: "hello world", slug: "hello-world" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "TEXT" as const,
+        slug: "attribute-1",
+        options: [Option1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: ["goodbye"],
+            operator: "not_like",
+            valueSrc: ["value"],
+            valueType: ["text"],
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([{ userId: 1, result: RaqbLogicResult.MATCH }]);
+    });
+
+    it("select_equals should NOT match a member with no attribute assigned", async () => {
+      const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
+      const Attribute1 = {
+        id: "attr1",
+        name: "Attribute 1",
+        type: "SINGLE_SELECT" as const,
+        slug: "attribute-1",
+        options: [Option1OfAttribute1],
+      };
+
+      mockAttributesScenario({
+        attributes: [Attribute1],
+        teamMembersWithAttributeOptionValuePerAttribute: [
+          { userId: 1, attributes: {} },
+        ],
+      });
+
+      const attributesQueryValue = buildSelectTypeFieldQueryValue({
+        rules: [
+          {
+            raqbFieldId: Attribute1.id,
+            value: [Option1OfAttribute1.id],
+            operator: "select_equals",
+          },
+        ],
+      }) as AttributesQueryValue;
+
+      const { teamMembersMatchingAttributeLogic: result } =
+        await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: 1,
+          orgId,
+        });
+
+      expect(result).toEqual([]);
+    });
+  });
 });
