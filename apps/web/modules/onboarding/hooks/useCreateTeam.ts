@@ -1,15 +1,18 @@
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
-
 import type { OnboardingState } from "../store/onboarding-store";
 import { useOnboardingStore } from "../store/onboarding-store";
 
-export function useCreateTeam() {
+type UseCreateTeamOptions = {
+  redirectBasePath?: string;
+  skipRedirectAfterInvite?: boolean;
+};
+
+export function useCreateTeam(options: UseCreateTeamOptions = {}) {
+  const { redirectBasePath = "/onboarding/teams", skipRedirectAfterInvite = false } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
@@ -28,7 +31,7 @@ export function useCreateTeam() {
 
       // Validate team details - if empty, redirect back to team details step
       if (!teamDetails.name || !teamDetails.name.trim() || !teamDetails.slug || !teamDetails.slug.trim()) {
-        router.push("/onboarding/teams/details");
+        router.push(`${redirectBasePath}/details`);
         setIsSubmitting(false);
         return;
       }
@@ -51,7 +54,7 @@ export function useCreateTeam() {
       if (result.team) {
         // Store the teamId and redirect to invite flow after team creation
         setTeamId(result.team.id);
-        router.push(`/onboarding/teams/invite?teamId=${result.team.id}`);
+        router.push(`${redirectBasePath}/invite/email?teamId=${result.team.id}`);
       }
     } catch (error) {
       console.error("Failed to create team:", error);
@@ -106,11 +109,13 @@ export function useCreateTeam() {
         )
       );
 
-      // Redirect to personal settings after successful invite
-      const gettingStartedPath = flags["onboarding-v3"]
-        ? "/onboarding/personal/settings?fromTeamOnboarding=true"
-        : "/getting-started";
-      router.replace(gettingStartedPath);
+      // Redirect to personal settings after successful invite (unless caller handles its own redirect)
+      if (!skipRedirectAfterInvite) {
+        const gettingStartedPath = flags["onboarding-v3"]
+          ? "/onboarding/personal/settings?fromTeamOnboarding=true"
+          : "/getting-started";
+        router.replace(gettingStartedPath);
+      }
     } catch (error) {
       console.error("Failed to invite members:", error);
       // Extract error message from TRPC error

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Calcom",
     "slug": "calcom-companion",
-    "scheme": "expo-wxt-app",
+    "scheme": "calcom",
     "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
+      "appleTeamId": "ADWKXDJV75",
       "deploymentTarget": "18.0",
       "bundleIdentifier": "com.cal.companion",
       "userInterfaceStyle": "automatic",
@@ -22,7 +23,8 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
+        "com.apple.developer.default-data-protection": "NSFileProtectionComplete",
+        "com.apple.security.application-groups": ["group.com.cal.companion"]
       },
       "icon": "./assets/cal-logo.icon"
     },
@@ -73,12 +75,39 @@
               }
             },
             "timePicker": {
-              "background": { "light": "#ffffff" },
-              "numbersBackgroundColor": { "light": "#ffffff" },
-              "headerBackground": { "light": "#000000" },
-              "numbersSelectorColor": { "light": "#000000" }
+              "background": {
+                "light": "#ffffff"
+              },
+              "numbersBackgroundColor": {
+                "light": "#ffffff"
+              },
+              "headerBackground": {
+                "light": "#000000"
+              },
+              "numbersSelectorColor": {
+                "light": "#000000"
+              }
             }
           }
+        }
+      ],
+      "@bacons/apple-targets",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "UpcomingBookingsWidget",
+              "label": "Upcoming Bookings",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "description": "View your upcoming Cal.com bookings",
+              "previewImage": "./assets/icon.png",
+              "resizeMode": "horizontal|vertical",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2
+            }
+          ]
         }
       ]
     ],
