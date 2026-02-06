@@ -8,7 +8,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@calid/features/ui/components/dialog";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { InputField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";

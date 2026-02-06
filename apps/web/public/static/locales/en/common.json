@@ -99,6 +99,7 @@
   "edit_event_subtitle": "Make changes to your event type settings and preferences",
   "custom_reply_to_email_no_verified_emails": "No verified emails configured on profile",
   "event_icon_updated": "Event icon updated successfully",
+  "sms": "SMS",
   "whatsapp": "WhatsApp",
   "autorefund": "Enable auto refund of this paid event to the booker",
   "autorefund_info": "Enabling auto refund will ensure that event attendees receive a refund if the event is successfully canceled.",
@@ -1589,8 +1590,11 @@
   "active_on_teams_other": "Active on {{count}} teams",
   "active_on_all_event_types": "Active on all event types",
   "active_on_all_teams": "Active on all teams",
+  "active_on_channels_one": "Active on {{count}} channel",
+  "active_on_channels_other": "Active on {{count}} channels",
   "no_active_event_types": "No active event types",
   "no_active_teams": "No active teams",
+  "immediate_trigger": "Immediate",
   "new_seat_subject": "New Attendee {{name}} on {{eventType}} at {{date}}",
   "new_seat_title": "Someone has added themselves to an event",
   "variable": "Variable",
@@ -3021,6 +3025,7 @@
   "payment_option": "Payment Option",
   "if_cancelled": "If cancelled",
   "before": "before",
+  "after": "after",
   "show_all_columns": "Show all columns",
   "toggle_columns": "Toggle columns",
   "no_columns_found": "No columns found",
@@ -3746,5 +3751,7 @@
   "claim_username_trusted_by_professionals_title": "100K+ Users",
   "claim_username_trusted_by_professionals_description": "Trusted by professionals",
   "claim_username_yours_forever_title": "Yours forever",
-  "claim_username_yours_forever_description": "Once claimed, it's locked"
+  "claim_username_yours_forever_description": "Once claimed, it's locked",
+  "workflow_trigger": "When should this workflow be triggered?",
+  "worflow_trigger_channel": "Which channel should this workflow be triggered on?"
 }

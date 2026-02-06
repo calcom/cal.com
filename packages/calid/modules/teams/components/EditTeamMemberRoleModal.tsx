@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 

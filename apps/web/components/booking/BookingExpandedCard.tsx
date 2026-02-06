@@ -2,7 +2,6 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -12,7 +11,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
@@ -23,11 +21,8 @@ export type BookingItemProps = BookingItem & {
 
 export function BookingExpandedCard(props: BookingItemProps) {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
-  const { description: additionalNotes, id, startTime, endTime, responses } = props;
-
+  const { id, startTime, endTime, responses, rating, ratingFeedback } = props;
   const defaultFields = ["name", "email", "location", "title", "guests"];
-
   const bookingFields = props.eventType.bookingFields;
 
   const defaultLabels = {
@@ -58,7 +53,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
     }
   }
 
-  const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
   const meetingNote =
     parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
@@ -131,34 +125,36 @@ export function BookingExpandedCard(props: BookingItemProps) {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
-              <div className="text-default flex flex-wrap items-center gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="truncate sm:max-w-[200px]">{firstAttendee?.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee?.timeZone}</span>
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee?.email}</span>
-                  <Button
-                    StartIcon="copy"
-                    color="minimal"
-                    variant="icon"
-                    size="xs"
-                    onClick={() => {
-                      copyToClipboard(firstAttendee?.email || "");
-                      triggerToast(t("email_copied"), "success");
-                    }}
-                    aria-label="Copy email"
-                  />
+            {firstAttendee && (
+              <div>
+                <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
+                <div className="text-default flex flex-wrap items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="truncate sm:max-w-[200px]">{firstAttendee.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee.timeZone}</span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee.email}</span>
+                    <Button
+                      StartIcon="copy"
+                      color="minimal"
+                      variant="icon"
+                      size="xs"
+                      onClick={() => {
+                        copyToClipboard(firstAttendee.email);
+                        triggerToast(t("email_copied"), "success");
+                      }}
+                      aria-label="Copy email"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {attendeeList?.length > 1 && (
               <div>
@@ -266,6 +262,22 @@ export function BookingExpandedCard(props: BookingItemProps) {
                 ))}
               </div>
             )}
+
+            {(rating || ratingFeedback) && (
+              <div>
+                <h3 className="text-default text-sm font-medium">{t("rating")}</h3>
+                <div className="text-default flex items-center gap-2 text-sm">
+                  {rating && (
+                    <span className="text-lg" role="img" aria-label={t("rating")}>
+                      {[undefined, "😠", "🙁", "😐", "😄", "😍"][rating]}
+                    </span>
+                  )}
+                  {ratingFeedback && (
+                    <span className="text-default text-sm font-normal">- {ratingFeedback}</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -326,123 +338,3 @@ export function BookingExpandedCard(props: BookingItemProps) {
     </>
   );
 }
-
-const NoShowAttendeesDialog = ({
-  attendees,
-  bookingUid,
-  closeNoShowDialog,
-}: {
-  attendees: Array<{
-    name: string;
-    email: string;
-    id: number;
-    noShow: boolean;
-    phoneNumber: string | null;
-    timeZone?: string;
-  }>;
-  bookingUid: string;
-  closeNoShowDialog: () => void;
-}) => {
-  const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(
-    attendees.map((attendee) => ({
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    }))
-  );
-
-  const [loading, setLoading] = useState(false);
-
-  const utils = trpc.useUtils();
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setNoShowAttendees((old) =>
-        old.map((attendee) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
-        )
-      );
-      triggerToast(t(data.message), "success");
-      await utils.viewer.bookings.invalidate();
-
-      setLoading(false);
-      closeNoShowDialog();
-    },
-    onError: (err) => {
-      triggerToast(err.message, "error");
-    },
-  });
-
-  const toggleAttendee = (email: string) => {
-    setNoShowAttendees((prev) => prev.map((a) => (a.email === email ? { ...a, noShow: !a.noShow } : a)));
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={() => closeNoShowDialog()}>
-      <div
-        className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}>
-        <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
-        <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
-
-        <div className="mb-6 space-y-4">
-          {noShowAttendees.map((attendee, index) => (
-            <div
-              key={index}
-              className="flex cursor-pointer items-center justify-between rounded-lg p-2 hover:bg-gray-50"
-              onClick={() => toggleAttendee(attendee.email)}>
-              <div className="flex items-center space-x-3">
-                <div className="bg-default flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
-                  <span className="text-default text-sm font-medium">
-                    {(attendee.name || attendee.email).charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{attendee.name || attendee.email}</span>
-                  {attendee.name && <span className="text-default text-xs">{attendee.email}</span>}
-                </div>
-              </div>
-
-              <Checkbox
-                checked={attendee.noShow}
-                onCheckedChange={(checked) => {
-                  setNoShowAttendees((prev) =>
-                    prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
-                  );
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-end space-x-3">
-          <Button color="secondary" onClick={() => closeNoShowDialog()}>
-            Cancel
-          </Button>
-          <Button
-            loading={loading}
-            onClick={(e) => {
-              e.preventDefault();
-              setLoading(true);
-              noShowAttendees.forEach((attendee) => {
-                const originalAttendee = attendees.find((e) => e.email === attendee.email);
-                if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
-                  noShowMutation.mutate({
-                    bookingUid,
-                    attendees: [{ email: attendee.email, noShow: attendee.noShow }],
-                  });
-                }
-              });
-            }}>
-            {t("update_no_show_status")}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};

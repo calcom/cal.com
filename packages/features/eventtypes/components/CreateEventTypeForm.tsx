@@ -1,4 +1,4 @@
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextAreaField } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";

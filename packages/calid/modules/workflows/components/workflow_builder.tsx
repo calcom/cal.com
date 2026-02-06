@@ -3,7 +3,6 @@
 import { cn } from "@calid/features/lib/cn";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
 import { Collapsible, CollapsibleContent } from "@calid/features/ui/components/collapsible";
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
+import { Select, SelectField } from "@calid/features/ui/components/form/select";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
@@ -44,7 +44,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { Select } from "@calcom/ui/components/form";
+import { Radio, RadioField, RadioGroup, RadioIndicator } from "@calcom/ui/components/radio";
 
 import { DYNAMIC_TEXT_VARIABLES, META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
@@ -894,7 +894,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       const currentSteps = form.getValues("steps") || [];
       const filtered = currentSteps.filter((step) => step.id !== stepId);
 
-      // Update step numbers
       const reordered = filtered.map((step, index) => ({
         ...step,
         stepNumber: index + 1,
@@ -902,7 +901,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
       form.setValue("steps", reordered, { shouldDirty: true });
 
-      // Clean up verification states
       const stepIdStr = stepId.toString();
       setVerificationCodes((prev) => {
         const { [stepIdStr]: removed, ...rest } = prev;
@@ -955,14 +953,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             );
 
             if (selectedTemplate) {
-              // Check if template needs variable mapping
-
-              // Auto-fill reminderBody with template body (optional)
               const bodyComponent = selectedTemplate.components.find((c: any) => c.type === "BODY");
               if (bodyComponent?.text) {
                 updatedStep.reminderBody = bodyComponent.text;
 
-                // Validate the template body
                 const invalidVar = validateWhatsAppTemplateVariables(bodyComponent.text);
                 setInvalidVariables((prev) => ({
                   ...prev,
@@ -973,17 +967,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             triggerTemplateUpdate(stepId);
           }
 
-          // Handle action type changes
           if (field === "action") {
             const newAction = value as WorkflowActions;
 
-            // Reset WhatsApp-specific fields when changing action
             if (!isWhatsappAction(newAction)) {
               updatedStep.metaTemplateName = null;
               updatedStep.metaTemplatePhoneNumberId = null;
             }
 
-            // Get fresh template content and completely replace reminderBody
             const freshTemplate = getTemplateBodyForAction({
               action: newAction,
               locale: i18n.language,
@@ -994,7 +985,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             updatedStep.reminderBody = freshTemplate;
             updatedStep.template = WorkflowTemplates.REMINDER;
 
-            // Reset sender and other fields
             if (isSMSAction(newAction)) {
               updatedStep.sender = SENDER_ID;
               updatedStep.senderName = SENDER_ID;
@@ -1006,16 +996,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               updatedStep.senderName = SENDER_NAME;
             }
 
-            // Reset sendTo
             updatedStep.sendTo = null;
 
-            // Reset OTP/verification states
             const stepIdStr = stepId.toString();
             setOtpSentForPhone((prev) => ({ ...prev, [stepIdStr]: false }));
             setOtpSentForEmail((prev) => ({ ...prev, [stepIdStr]: false }));
             setVerificationCodes((prev) => ({ ...prev, [stepIdStr]: "" }));
 
-            // Set email subject if action is email reminder
             if (shouldScheduleEmailReminder(newAction)) {
               updatedStep.emailSubject = emailReminderTemplate({
                 isEditingMode: true,
@@ -1028,7 +1015,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             triggerTemplateUpdate(stepId);
           }
 
-          // Handle template changes
           if (field === "template") {
             const newTemplate = value as WorkflowTemplates;
             const actionType = updatedStep.action;
@@ -1041,10 +1027,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               timeFormat,
             });
 
-            // Always replace (prevent duplication)
             updatedStep.reminderBody = freshTemplateBody;
 
-            // Update email subject depending on template
             if (shouldScheduleEmailReminder(actionType)) {
               if (newTemplate === WorkflowTemplates.REMINDER) {
                 updatedStep.emailSubject = emailReminderTemplate({
@@ -1094,11 +1078,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [form, i18n.language, t, timeFormat, triggerTemplateUpdate, whatsAppPhones]
   );
 
-  const toggleActionExpanded = useCallback((stepId: number) => {
-    // This is just for UI state, we can track it separately if needed
-    // For now, all actions will be expanded
-  }, []);
-
   const insertVariable = useCallback(
     (stepId: number, field: string, variable: string) => {
       const currentSteps = form.getValues("steps") || [];
@@ -1122,15 +1101,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
   const isSMSActionType = (action: WorkflowActions) => isSMSAction(action) || isWhatsappAction(action);
 
-  // Real save handler using tRPC mutation
   const handleSaveWorkflow = useCallback(async () => {
     let activeOnIds: number[] = [];
     let isEmpty = false;
     let isVerified = true;
     const hasMappingErrors = false;
-    let hasInvalidVariables = false; // Add this
+    let hasInvalidVariables = false;
 
-    // Get the latest form values - this now has the correct HTML
     const formValues = form.getValues();
     const formSteps = formValues.steps || [];
 
@@ -1142,7 +1119,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       }
     });
 
-    // Validate and prepare steps
     const validatedSteps = formSteps.map((step, index) => {
       const processedStep = {
         ...step,
@@ -1159,7 +1135,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         );
       }
 
-      // Validation logic - ONLY for checking, don't modify original
       const strippedHtml = processedStep.reminderBody?.replace(/<[^>]+>/g, "") || "";
       const isBodyEmpty = !isSMSOrWhatsappAction(processedStep.action) && strippedHtml.length <= 1;
 
@@ -1181,7 +1156,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         triggerToast(t("fill_this_field"), "error");
       }
 
-      // Translate variables back to English
       if (processedStep.reminderBody) {
         processedStep.reminderBody = translateVariablesToEnglish(processedStep.reminderBody, {
           locale: i18n.language,
@@ -1195,7 +1169,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         });
       }
 
-      // Check verification for SMS/WhatsApp actions
       if (
         (processedStep.action === WorkflowActions.SMS_NUMBER ||
           processedStep.action === WorkflowActions.WHATSAPP_NUMBER) &&
@@ -1254,7 +1227,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     form,
   ]);
 
-  // Helper function to send verification code
   const handleSendVerificationCode = useCallback(
     (step: WorkflowStep) => {
       if (isSMSOrWhatsappAction(step.action) && step.sendTo) {
@@ -1266,7 +1238,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [sendVerificationCodeMutation]
   );
 
-  // Helper function to verify phone number
   const handleVerifyPhoneNumber = useCallback(
     (step: WorkflowStep) => {
       const stepId = step.id.toString();
@@ -1283,7 +1254,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [verificationCodes, verifyPhoneNumberMutation, workflowData?.calIdTeam?.id]
   );
 
-  // Helper function to send email verification
   const handleSendEmailVerification = useCallback(
     (step: WorkflowStep) => {
       if (step.sendTo) {
@@ -1296,7 +1266,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [sendEmailVerificationCodeMutation]
   );
 
-  // Helper function to verify email
   const handleVerifyEmail = useCallback(
     (step: WorkflowStep) => {
       const stepId = step.id.toString();
@@ -1313,7 +1282,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [verificationCodes, verifyEmailCodeMutation, workflowData?.calIdTeam?.id]
   );
 
-  // Handle successful workflow deletion
   const handleDeleteSuccess = useCallback(async () => {
     await router.push("/workflows");
   }, [router]);
@@ -1330,7 +1298,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     router.push(destination);
   }, [deleteMutation, pendingNavigation, router, workflowId]);
 
-  // Loading and error states
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   if (isPending) {
@@ -1355,7 +1322,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const convertWhatsAppTemplateForDisplay = (text: string | null): string => {
     if (!text) return "";
 
-    // Replace \n with <br> for HTML display
     return text.replace(/\n/g, "<br>");
   };
 
@@ -1418,40 +1384,33 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         {isError ? (
           <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
         ) : (
-          <div className="bg-card flex justify-center p-0 md:p-14">
-            <div className="bg-card mx-auto w-full p-6">
+          <div className="bg-default flex justify-center p-0 md:p-14">
+            <div className="bg-default mx-auto w-full p-6">
               <div className="mx-auto max-w-2xl space-y-6">
-                <div className="bg-card w-full space-y-6 rounded-lg border p-6">
-                  {/* Workflow name section */}
+                <div className="bg-default w-full space-y-6 rounded-lg border p-6">
                   <div className="space-y-6">
                     <div>
-                      <Label htmlFor="workflow-name">Workflow name</Label>
+                      <Label htmlFor="workflow-name">{t("workflow_name")}</Label>
                       <Input
                         id="workflow-name"
                         value={workflowName}
                         onChange={(e) => {
                           setWorkflowName(e.target.value);
                         }}
-                        className="mt-2"
-                        placeholder="Enter workflow name"
+                        placeholder={t("workflow_name")}
                         disabled={readOnly}
                       />
                     </div>
 
-                    {/* Event Type Selection */}
                     {showEventTypeSection && (
                       <div className="slideInTop">
                         <div>
-                          <Label>
-                            {isOrg
-                              ? "Which teams will this apply to?"
-                              : "Which event types will this apply to?"}
-                          </Label>
+                          <Label>{isOrg ? t("which_team_apply") : t("which_event_type_apply")}</Label>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
                                 color="secondary"
-                                className="mt-2 w-full justify-between"
+                                className="text-default w-full justify-between font-normal shadow-sm"
                                 disabled={readOnly}>
                                 {selectedOptions.length > 0
                                   ? `${selectedOptions.length} ${isOrg ? "teams" : "event types"} selected`
@@ -1459,10 +1418,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                 <Icon name="chevron-down" className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-80">
+                            <DropdownMenuContent side="bottom" align="start">
                               <div className="space-y-4 p-4">
                                 {(isOrg ? teamOptions : allEventTypeOptions).map((option) => (
-                                  <div key={option.value} className=" flex items-center space-x-2">
+                                  <div
+                                    key={option.value}
+                                    className="text-default flex items-center space-x-2 text-sm">
                                     <Checkbox
                                       id={option.value}
                                       checked={selectedOptions.some(
@@ -1471,9 +1432,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       onCheckedChange={() => handleEventTypeSelection("", option.value)}
                                       disabled={readOnly}
                                     />
-                                    <Label htmlFor={option.value} className="text-sm">
-                                      {option.label}
-                                    </Label>
+                                    <Label htmlFor={option.value}>{option.label}</Label>
                                   </div>
                                 ))}
                               </div>
@@ -1485,491 +1444,191 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                   </div>
                 </div>
 
-                {/* Trigger Section */}
                 {showTriggerSection && (
-                  <div className="slideInTop">
-                    <Card className="slideInTop">
-                      <CardHeader>
-                        <CardTitle>When this happens</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <Select
-                            value={triggerOptions.find((option) => option.value === trigger) || null}
-                            onChange={(option) => {
-                              setTrigger((option?.value as WorkflowTriggerEvents) || "");
-                            }}
-                            options={triggerOptions}
-                            placeholder="Select an occurrence"
-                            isDisabled={readOnly}
-                            className="mt-2"
-                          />
-                        </div>
+                  <div className="bg-default slideInTop w-full space-y-6 rounded-lg border p-6">
+                    <div className="space-y-6">
+                      <SelectField
+                        name={t("workflow_trigger")}
+                        value={triggerOptions.find((option) => option.value === trigger) || null}
+                        onChange={(option) => {
+                          setTrigger((option?.value as WorkflowTriggerEvents) || "");
+                        }}
+                        options={triggerOptions}
+                        isDisabled={readOnly}
+                      />
 
-                        {trigger && (
-                          <div className="animate-fade-in space-y-4">
-                            <div>
-                              <Label className="text-sm">
-                                How long {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
-                                {triggerOptions
-                                  .find((t) => t.value === trigger)
-                                  ?.label.toLowerCase()
-                                  .replace("when ", "")
-                                  .replace("before ", "")
-                                  .replace("after ", "")}
-                                ?
-                              </Label>
+                      {trigger && (
+                        <div className="animate-fade-in space-y-2">
+                          <Label className="text-sm">
+                            How long {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
+                            {triggerOptions
+                              .find((t) => t.value === trigger)
+                              ?.label.toLowerCase()
+                              .replace("when ", "")
+                              .replace("before ", "")
+                              .replace("after ", "")}
+                            ?
+                          </Label>
 
-                              <div className="mt-2 space-y-3">
-                                {trigger !== "BEFORE_EVENT" && trigger !== "AFTER_EVENT" && (
-                                  <div className="flex items-center space-x-2">
-                                    <input
-                                      type="radio"
-                                      id="immediately"
-                                      name="timing"
-                                      value="immediately"
-                                      checked={triggerTiming === "immediately"}
-                                      onChange={(e) => {
-                                        setTriggerTiming(e.target.value);
-                                      }}
-                                      disabled={readOnly}
-                                    />
-                                    <Label htmlFor="immediately" className="text-muted-foreground text-sm">
-                                      Immediately when{" "}
-                                      {triggerOptions
-                                        .find((t) => t.value === trigger)
-                                        ?.label.toLowerCase()
-                                        .replace("when ", "")
-                                        .replace("before ", "")
-                                        .replace("after ", "")}
-                                    </Label>
-                                  </div>
-                                )}
+                          <RadioGroup
+                            value={triggerTiming}
+                            onValueChange={setTriggerTiming}
+                            className="space-y-2">
+                            {trigger !== "BEFORE_EVENT" && trigger !== "AFTER_EVENT" && (
+                              <RadioField
+                                value="immediately"
+                                id="immediately"
+                                disabled={readOnly}
+                                label={
+                                  <>
+                                    Immediately when{" "}
+                                    {triggerOptions
+                                      .find((t) => t.value === trigger)
+                                      ?.label.toLowerCase()
+                                      .replace("when ", "")
+                                      .replace("before ", "")
+                                      .replace("after ", "")}
+                                  </>
+                                }
+                              />
+                            )}
 
-                                <div className="flex items-center space-x-2">
-                                  <input
-                                    type="radio"
-                                    id="custom"
-                                    name="timing"
-                                    value="custom"
-                                    checked={triggerTiming === "custom"}
-                                    onChange={(e) => {
-                                      setTriggerTiming(e.target.value);
-                                    }}
-                                    disabled={readOnly}
-                                  />
-                                  <div className="flex flex-1 items-center space-x-2">
-                                    <Input
-                                      value={customTime}
-                                      onChange={(e) => {
-                                        setCustomTime(e.target.value);
-                                      }}
-                                      className="w-20"
-                                      placeholder="24"
-                                      onClick={() => {
-                                        setTriggerTiming("custom");
-                                      }}
-                                      disabled={readOnly}
-                                    />
-                                    <Select
-                                      value={
-                                        [
-                                          { value: "MINUTE", label: "minutes" },
-                                          { value: "HOUR", label: "hours" },
-                                        ].find((option) => option.value === timeUnit) || null
-                                      }
-                                      onChange={(option) => {
-                                        setTimeUnit((option?.value as TimeUnit) || "HOUR");
-                                      }}
-                                      options={[
-                                        { value: "MINUTE", label: "minutes" },
-                                        { value: "HOUR", label: "hours" },
-                                      ]}
-                                      isDisabled={readOnly}
-                                      className="w-24"
-                                    />
-                                    <span className="text-muted-foreground text-sm">
-                                      {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
-                                      {triggerOptions
-                                        .find((t) => t.value === trigger)
-                                        ?.label.toLowerCase()
-                                        .replace("when ", "")
-                                        .replace("before ", "")
-                                        .replace("after ", "")}
-                                    </span>
-                                  </div>
-                                </div>
+                            <div className="flex items-center space-x-2">
+                              <Radio value="custom" id="custom" disabled={readOnly}>
+                                <RadioIndicator disabled={readOnly} />
+                              </Radio>
+                              <div className="flex flex-1 items-center space-x-2">
+                                <Input
+                                  value={customTime}
+                                  onChange={(e) => {
+                                    setCustomTime(e.target.value);
+                                  }}
+                                  className="w-20"
+                                  placeholder="24"
+                                  onClick={() => {
+                                    setTriggerTiming("custom");
+                                  }}
+                                  disabled={readOnly}
+                                />
+                                <Select
+                                  value={
+                                    [
+                                      { value: "MINUTE", label: "minutes" },
+                                      { value: "HOUR", label: "hours" },
+                                    ].find((option) => option.value === timeUnit) || null
+                                  }
+                                  onChange={(option) => {
+                                    setTimeUnit((option?.value as TimeUnit) || "HOUR");
+                                  }}
+                                  options={[
+                                    { value: "MINUTE", label: "minutes" },
+                                    { value: "HOUR", label: "hours" },
+                                  ]}
+                                  isDisabled={readOnly}
+                                  className="w-24"
+                                />
+                                <span className="text-muted-foreground text-sm">
+                                  {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
+                                  {triggerOptions
+                                    .find((t) => t.value === trigger)
+                                    ?.label.toLowerCase()
+                                    .replace("when ", "")
+                                    .replace("before ", "")
+                                    .replace("after ", "")}
+                                </span>
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                          </RadioGroup>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                {/* Actions Section */}
                 {showActionsSection && (
-                  <div className="slideInTop">
-                    <Card className="slideInTop">
-                      <CardHeader>
-                        <CardTitle>Do this</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {steps.map((step) => {
-                          const stepId = step.id.toString();
-                          const isNumberVerified = numberVerificationStatus[stepId] || false;
-                          const isEmailVerified = emailVerificationStatus[stepId] || false;
-                          const verificationCode = verificationCodes[stepId] || "";
-                          const templateOptions = getWorkflowTemplateOptions(t, step.action);
-                          const stepTemplateUpdate = updateTemplate[stepId] || 0;
-                          const isPhoneOtpSent = otpSentForPhone[stepId] || false;
-                          const isEmailOtpSent = otpSentForEmail[stepId] || false;
-                          const isPhoneValid = isValidPhoneNumber(step.sendTo || "");
-                          const isEmailValid = isValidEmail(step.sendTo || "");
+                  <div className="slideInTop space-y-4">
+                    {steps.map((step) => {
+                      const stepId = step.id.toString();
+                      const isNumberVerified = numberVerificationStatus[stepId] || false;
+                      const isEmailVerified = emailVerificationStatus[stepId] || false;
+                      const verificationCode = verificationCodes[stepId] || "";
+                      const templateOptions = getWorkflowTemplateOptions(t, step.action);
+                      const stepTemplateUpdate = updateTemplate[stepId] || 0;
+                      const isPhoneOtpSent = otpSentForPhone[stepId] || false;
+                      const isEmailOtpSent = otpSentForEmail[stepId] || false;
+                      const isPhoneValid = isValidPhoneNumber(step.sendTo || "");
+                      const isEmailValid = isValidEmail(step.sendTo || "");
 
-                          return (
-                            <Card key={step.id} className="border">
-                              <Collapsible open={true}>
-                                <div className="p-4">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex flex-1 items-center space-x-3">
-                                      <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
-                                        <span className="text-xs font-medium">
-                                          {isEmailAction(step.action) ? (
-                                            <Icon name="mail" />
-                                          ) : (
-                                            <Icon name="phone" />
-                                          )}
-                                        </span>
-                                      </div>
-                                      <Select
-                                        value={
-                                          actionOptions?.find((option) => option.value === step.action) ||
-                                          null
-                                        }
-                                        onChange={(option) =>
-                                          updateAction(step.id, "action", option?.value as WorkflowActions)
-                                        }
-                                        options={actionOptions || []}
-                                        isDisabled={readOnly}
-                                        className="w-fit"
-                                      />
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                      {steps.length > 1 && !readOnly && (
-                                        <Button
-                                          color="destructive"
-                                          size="sm"
-                                          onClick={() => removeAction(step.id)}
-                                          className="p-2">
-                                          <Icon name="trash" className="h-4 w-4" />
-                                        </Button>
+                      return (
+                        <div key={step.id} className="border-default rounded-md border p-6">
+                          <Collapsible open={true}>
+                            <div className="space-y-6">
+                              <div className="flex flex-col items-start justify-between">
+                                <Label className="mb-2">{t("worflow_trigger_channel")}</Label>
+                                <div className="flex w-full items-center space-x-2">
+                                  <div className="bg-default border-default flex h-8 w-8 items-center justify-center rounded border shadow-sm">
+                                    <span className="text-default text-xs font-medium">
+                                      {isEmailAction(step.action) ? (
+                                        <Icon name="mail" />
+                                      ) : (
+                                        <Icon name="phone" />
                                       )}
-                                    </div>
+                                    </span>
                                   </div>
+                                  <Select
+                                    value={
+                                      actionOptions?.find((option) => option.value === step.action) || null
+                                    }
+                                    onChange={(option) =>
+                                      updateAction(step.id, "action", option?.value as WorkflowActions)
+                                    }
+                                    options={actionOptions || []}
+                                    isDisabled={readOnly}
+                                    className="w-full"
+                                  />
+                                  {steps.length > 1 && !readOnly && (
+                                    <Button
+                                      color="destructive"
+                                      StartIcon="trash"
+                                      variant="icon"
+                                      onClick={() => removeAction(step.id)}
+                                    />
+                                  )}
+                                </div>
+                              </div>
 
-                                  <CollapsibleContent className="mt-4">
-                                    <div className="space-y-4">
-                                      {/* Phone Number Input for SMS/WhatsApp specific actions */}
-                                      {(step.action === WorkflowActions.SMS_NUMBER ||
-                                        step.action === WorkflowActions.WHATSAPP_NUMBER) && (
-                                        <div className="bg-default rounded-md">
-                                          <Label className="pt-4">
-                                            {step.action === WorkflowActions.WHATSAPP_NUMBER
-                                              ? "WhatsApp Number"
-                                              : "Phone Number"}
-                                          </Label>
-                                          <div className="block sm:flex">
-                                            <Controller
-                                              name={`steps.${step.stepNumber - 1}.sendTo`}
-                                              control={form.control}
-                                              render={({ field: { value, onChange } }) => (
-                                                <PhoneInput
-                                                  placeholder={t("phone_number")}
-                                                  className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
-                                                  required
-                                                  disabled={readOnly}
-                                                  value={value || ""}
-                                                  onChange={(val) => {
-                                                    const isAlreadyVerified = !!verifiedNumbersData?.find(
-                                                      (number) =>
-                                                        number.phoneNumber?.replace(/\s/g, "") ===
-                                                        val?.replace(/\s/g, "")
-                                                    );
-                                                    setNumberVerificationStatus((prev) => ({
-                                                      ...prev,
-                                                      [stepId]: isAlreadyVerified,
-                                                    }));
-                                                    setOtpSentForPhone((prev) => ({
-                                                      ...prev,
-                                                      [stepId]: false,
-                                                    }));
-                                                    setVerificationCodes((prev) => ({
-                                                      ...prev,
-                                                      [stepId]: "",
-                                                    }));
-                                                    updateAction(step.id, "sendTo", val);
-                                                    onChange(val);
-                                                  }}
-                                                />
-                                              )}
-                                            />
-                                            <Button
-                                              color="secondary"
-                                              disabled={isNumberVerified || readOnly || !isPhoneValid}
-                                              className={cn(
-                                                "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
-                                                isNumberVerified ? "hidden" : "mt-3 sm:mt-0"
-                                              )}
-                                              onClick={() => handleSendVerificationCode(step)}>
-                                              {t("send_code")}
-                                            </Button>
-                                          </div>
-
-                                          {isNumberVerified ? (
-                                            <div className="mt-1">
-                                              <Badge variant="success">{t("number_verified")}</Badge>
-                                            </div>
-                                          ) : (
-                                            !readOnly &&
-                                            step.sendTo &&
-                                            isPhoneValid &&
-                                            isPhoneOtpSent && (
-                                              <>
-                                                <div className="mt-3 flex">
-                                                  <Input
-                                                    className="h-[36px] rounded-r-none border-r-transparent"
-                                                    placeholder="Verification code"
-                                                    disabled={readOnly}
-                                                    value={verificationCode}
-                                                    onChange={(e) => {
-                                                      setVerificationCodes((prev) => ({
-                                                        ...prev,
-                                                        [stepId]: e.target.value,
-                                                      }));
-                                                    }}
-                                                    required
-                                                  />
-                                                  <Button
-                                                    color="secondary"
-                                                    className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none"
-                                                    disabled={verifyPhoneNumberMutation.isPending || readOnly}
-                                                    onClick={() => handleVerifyPhoneNumber(step)}>
-                                                    {t("verify")}
-                                                  </Button>
-                                                </div>
-                                              </>
-                                            )
-                                          )}
-                                        </div>
-                                      )}
-
-                                      {/* WhatsApp Phone Number Selector */}
-                                      {isWhatsappAction(step.action) && (
-                                        <div className="bg-default mt-4 rounded-md">
-                                          <div className="flex items-center justify-between">
-                                            <Label>WhatsApp Business Phone Number</Label>
-                                          </div>
-                                          <Select
-                                            value={
-                                              whatsAppPhones?.find(
-                                                (phone) => phone.id === step.metaTemplatePhoneNumberId
-                                              )
-                                                ? {
-                                                    value: step.metaTemplatePhoneNumberId || "",
-                                                    label: step.metaTemplatePhoneNumberId
-                                                      ? whatsAppPhones?.find(
-                                                          (p) => p.id === step.metaTemplatePhoneNumberId
-                                                        )?.phoneNumber || "Unknown"
-                                                      : "Default",
-                                                  }
-                                                : { value: "", label: "Default" }
-                                            }
-                                            onChange={(option) => {
-                                              // Handle redirect for setup option
-                                              if (option?.value === step.metaTemplatePhoneNumberId) {
-                                                return;
-                                              }
-
-                                              if (option?.value === "setup") {
-                                                window.open("/apps/whatsapp-business", "_blank"); // To prevent user from accidently exiting the page without saving
-                                                return;
-                                              }
-
-                                              updateAction(
-                                                step.id,
-                                                "metaTemplatePhoneNumberId",
-                                                option?.value || null
-                                              );
-
-                                              updateAction(step.id, "metaTemplateName", null);
-
-                                              // Reset template when phone changes
-
-                                              if (option?.value === "" && step.template) {
-                                                updateAction(step.id, "template", step.template);
-                                              }
-                                            }}
-                                            options={[
-                                              { value: "", label: "Default" },
-                                              ...(whatsAppPhones && whatsAppPhones.length > 0
-                                                ? whatsAppPhones.map((phone) => ({
-                                                    value: phone.id,
-                                                    label: phone.phoneNumber,
-                                                  }))
-                                                : [
-                                                    {
-                                                      value: "setup",
-                                                      label: "→ Set up WhatsApp Business Phone",
-                                                    },
-                                                  ]),
-                                            ]}
-                                            isDisabled={readOnly}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                      )}
-
-                                      {!step.metaTemplatePhoneNumberId && (
-                                        <div className="mt-5">
-                                          <div className="flex items-center justify-between">
-                                            <Label>Message Template</Label>
-                                            {/* {isSMSAction(step.action) &&
-                                              step.template !== WorkflowTemplates.CUSTOM && (
-                                                <span className="text-xs text-gray-500">(Read-only)</span>
-                                              )} */}
-                                          </div>
-                                          <Select
-                                            value={
-                                              templateOptions.find(
-                                                (option) => option.value === step.template
-                                              ) || null
-                                            }
-                                            onChange={(option) =>
-                                              updateAction(
-                                                step.id,
-                                                "template",
-                                                option?.value as WorkflowTemplates
-                                              )
-                                            }
-                                            options={templateOptions}
-                                            isDisabled={readOnly}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                      )}
-
-                                      {/* WhatsApp Template Selector */}
-                                      {step.metaTemplatePhoneNumberId && whatsAppPhones && (
-                                        <div className="bg-default mt-4 rounded-md">
-                                          <div className="flex items-center justify-between">
-                                            <Label>Message template</Label>
-
-                                            <div className="flex flex-row gap-2">
-                                              {step.metaTemplatePhoneNumberId && (
-                                                <Button
-                                                  color="minimal"
-                                                  size="sm"
-                                                  onClick={() => {
-                                                    const phone = whatsAppPhones?.find(
-                                                      (phone) => phone.id === step.metaTemplatePhoneNumberId
-                                                    );
-
-                                                    return window.open(
-                                                      `https://business.facebook.com/latest/whatsapp_manager/message_templates?asset_id=${phone?.wabaId}`,
-                                                      "_blank"
-                                                    );
-                                                  }}
-                                                  className="flex items-center gap-1 border-none text-xs underline underline-offset-2">
-                                                  <Icon name="external-link" className="h-3 w-3" />
-
-                                                  {t("create_templates")}
-                                                </Button>
-                                              )}
-
-                                              {step.metaTemplatePhoneNumberId && (
-                                                <Button
-                                                  color="minimal"
-                                                  size="sm"
-                                                  loading={syncingTemplates}
-                                                  onClick={() =>
-                                                    handleSyncTemplates(step.metaTemplatePhoneNumberId)
-                                                  }
-                                                  className="flex items-center gap-1 text-xs">
-                                                  <Icon name="info" className="h-4 w-4" />
-                                                  {t("sync_templates")}
-                                                </Button>
-                                              )}
-                                            </div>
-                                          </div>
-                                          <Select
-                                            value={
-                                              whatsAppTemplates(step.metaTemplatePhoneNumberId).find(
-                                                (template) => template.name === step.metaTemplateName
-                                              )
-                                                ? {
-                                                    value: step.metaTemplateName || "",
-                                                    label:
-                                                      whatsAppTemplates(step.metaTemplatePhoneNumberId).find(
-                                                        (t) => t.name === step.metaTemplateName
-                                                      )?.name || "",
-                                                  }
-                                                : null
-                                            }
-                                            onChange={(option) => {
-                                              updateAction(
-                                                step.id,
-                                                "metaTemplateName",
-                                                option?.value || null
-                                              );
-
-                                              // Optionally auto-fill reminderBody with template body
-                                              const selectedTemplate = whatsAppTemplates(
-                                                step.metaTemplatePhoneNumberId
-                                              ).find((t) => t.name === option?.value);
-                                              if (selectedTemplate?.components) {
-                                                const bodyComponent = selectedTemplate.components.find(
-                                                  (c: any) => c.type === "BODY"
-                                                );
-                                                if (bodyComponent?.text) {
-                                                  updateAction(step.id, "reminderBody", bodyComponent.text);
-                                                }
-                                              }
-                                            }}
-                                            options={whatsAppTemplates(step.metaTemplatePhoneNumberId).map(
-                                              (template) => ({
-                                                value: template.name,
-                                                label: `${template.name} (${template.language})`,
-                                              })
-                                            )}
-                                            isDisabled={readOnly}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                      )}
-
-                                      {/* Email Address Input for EMAIL_ADDRESS action */}
-                                      {step.action === WorkflowActions.EMAIL_ADDRESS && (
-                                        <div className="bg-default rounded-md">
-                                          <Label>Email address</Label>
-                                          <div className="block sm:flex">
-                                            <Input
-                                              type="email"
+                              <CollapsibleContent>
+                                <div className="space-y-6">
+                                  {(step.action === WorkflowActions.SMS_NUMBER ||
+                                    step.action === WorkflowActions.WHATSAPP_NUMBER) && (
+                                    <div className="bg-default rounded-md">
+                                      <Label className="pt-4">
+                                        {step.action === WorkflowActions.WHATSAPP_NUMBER
+                                          ? "WhatsApp Number"
+                                          : "Phone Number"}
+                                      </Label>
+                                      <div className="block sm:flex">
+                                        <Controller
+                                          name={`steps.${step.stepNumber - 1}.sendTo`}
+                                          control={form.control}
+                                          render={({ field: { value, onChange } }) => (
+                                            <PhoneInput
+                                              placeholder={t("phone_number")}
+                                              className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
                                               required
-                                              className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
-                                              placeholder="recipient@example.com"
-                                              value={step.sendTo || ""}
                                               disabled={readOnly}
-                                              onChange={(e) => {
-                                                const isAlreadyVerified = !!verifiedEmailsData?.find(
-                                                  (email) => email === e.target.value
+                                              value={value || ""}
+                                              onChange={(val) => {
+                                                const isAlreadyVerified = !!verifiedNumbersData?.find(
+                                                  (number) =>
+                                                    number.phoneNumber?.replace(/\s/g, "") ===
+                                                    val?.replace(/\s/g, "")
                                                 );
-                                                setEmailVerificationStatus((prev) => ({
+                                                setNumberVerificationStatus((prev) => ({
                                                   ...prev,
                                                   [stepId]: isAlreadyVerified,
                                                 }));
-                                                setOtpSentForEmail((prev) => ({
+                                                setOtpSentForPhone((prev) => ({
                                                   ...prev,
                                                   [stepId]: false,
                                                 }));
@@ -1977,331 +1636,539 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                   ...prev,
                                                   [stepId]: "",
                                                 }));
-                                                updateAction(step.id, "sendTo", e.target.value);
+                                                updateAction(step.id, "sendTo", val);
+                                                onChange(val);
                                               }}
                                             />
-                                            <Button
-                                              color="secondary"
-                                              disabled={isEmailVerified || readOnly || !isEmailValid}
-                                              className={cn(
-                                                "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
-                                                isEmailVerified ? "hidden" : "mt-3 sm:mt-0"
-                                              )}
-                                              onClick={() => handleSendEmailVerification(step)}>
-                                              {t("send_code")}
-                                            </Button>
-                                          </div>
-
-                                          {isEmailVerified ? (
-                                            <div className="mt-1">
-                                              <Badge variant="success">{t("email_verified")}</Badge>
-                                            </div>
-                                          ) : (
-                                            !readOnly &&
-                                            step.sendTo &&
-                                            isEmailValid &&
-                                            isEmailOtpSent && (
-                                              <>
-                                                <div className="mt-3 flex">
-                                                  <Input
-                                                    className="h-[36px] rounded-r-none border-r-transparent"
-                                                    placeholder="Verification code"
-                                                    disabled={readOnly}
-                                                    value={verificationCode}
-                                                    onChange={(e) => {
-                                                      setVerificationCodes((prev) => ({
-                                                        ...prev,
-                                                        [stepId]: e.target.value,
-                                                      }));
-                                                    }}
-                                                    required
-                                                  />
-                                                  <Button
-                                                    color="secondary"
-                                                    className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none"
-                                                    disabled={verifyEmailCodeMutation.isPending || readOnly}
-                                                    onClick={() => handleVerifyEmail(step)}>
-                                                    {t("verify")}
-                                                  </Button>
-                                                </div>
-                                              </>
-                                            )
                                           )}
-                                        </div>
-                                      )}
+                                        />
+                                        <Button
+                                          color="secondary"
+                                          disabled={isNumberVerified || readOnly || !isPhoneValid}
+                                          className={cn(
+                                            "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                                            isNumberVerified ? "hidden" : "mt-3 sm:mt-0"
+                                          )}
+                                          onClick={() => handleSendVerificationCode(step)}>
+                                          {t("send_code")}
+                                        </Button>
+                                      </div>
 
-                                      {/* Sender Configuration for SMS (not WhatsApp) */}
-                                      {/* {isSMSAction(step.action) && (
-                                        <div className="bg-default rounded-md">
-                                          <div className="pt-4">
-                                            <div className="flex items-center">
-                                              <Label>{t("sender_id")}</Label>
-                                              <Icon
-                                                name="info"
-                                                className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500"
+                                      {isNumberVerified ? (
+                                        <div className="mt-1">
+                                          <Badge variant="success">{t("number_verified")}</Badge>
+                                        </div>
+                                      ) : (
+                                        !readOnly &&
+                                        step.sendTo &&
+                                        isPhoneValid &&
+                                        isPhoneOtpSent && (
+                                          <>
+                                            <div className="mt-3 flex">
+                                              <Input
+                                                className="h-[36px] rounded-r-none border-r-transparent"
+                                                placeholder="Verification code"
+                                                disabled={readOnly}
+                                                value={verificationCode}
+                                                onChange={(e) => {
+                                                  setVerificationCodes((prev) => ({
+                                                    ...prev,
+                                                    [stepId]: e.target.value,
+                                                  }));
+                                                }}
+                                                required
                                               />
+                                              <Button
+                                                color="secondary"
+                                                className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none"
+                                                disabled={verifyPhoneNumberMutation.isPending || readOnly}
+                                                onClick={() => handleVerifyPhoneNumber(step)}>
+                                                {t("verify")}
+                                              </Button>
                                             </div>
-                                            <Input
-                                              type="text"
-                                              placeholder={SENDER_ID}
-                                              disabled={true} // Always disabled for SMS
-                                              maxLength={11}
-                                              value={SENDER_ID} // Always "SENDER_ID" for SMS
-                                              readOnly
-                                              className="cursor-not-allowed bg-gray-50"
-                                            />
-                                            <p className="mt-1 text-xs text-gray-500">
-                                              SMS messages will be sent from &quot;CALID&quot; sender ID
-                                            </p>
-                                          </div>
-                                        </div>
-                                      )} */}
-
-                                      {isWhatsappAction(step.action) && step.metaTemplatePhoneNumberId && (
-                                        <div className="bg-default rounded-md">
-                                          <div>
-                                            <div className="flex flex-row items-center py-2">
-                                              <Label>Whatsapp Business Account ID</Label>
-                                              <span className="group relative ml-2 inline-flex">
-                                                <Icon name="info" className="h-4 w-4 text-gray-500" />
-
-                                                <span
-                                                  className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-max -translate-x-1/2
-               rounded bg-black px-2 py-1 text-xs text-white opacity-0
-               transition-opacity duration-0 group-hover:opacity-100">
-                                                  This is the WhatsApp Business Account ID associated with the
-                                                  selected phone number and your Cal ID account.
-                                                </span>
-                                              </span>
-                                            </div>
-                                            <Input
-                                              type="text"
-                                              disabled={true}
-                                              value={currentPhone(step.metaTemplatePhoneNumberId)?.wabaId}
-                                              onChange={(e) =>
-                                                updateAction(step.id, "senderName", e.target.value)
-                                              }
-                                            />
-                                          </div>
-                                        </div>
+                                          </>
+                                        )
                                       )}
+                                    </div>
+                                  )}
 
-                                      {/* Sender Name for WhatsApp and Email */}
-                                      {(isWhatsappAction(step.action) || isEmailAction(step.action)) && (
-                                        <div className="bg-default rounded-md">
-                                          <div>
-                                            <Label>
-                                              {isWhatsappAction(step.action)
-                                                ? t("sender_name")
-                                                : "Sender name"}
-                                            </Label>
-                                            <Input
-                                              type="text"
-                                              disabled={readOnly || isAWhatsappAction(step.action)}
-                                              placeholder={SENDER_NAME}
-                                              value={
-                                                (isAWhatsappAction(step.action)
-                                                  ? currentPhone(step.metaTemplatePhoneNumberId)
-                                                      ?.displayName ?? "Cal ID"
-                                                  : step.senderName) || ""
+                                  {isWhatsappAction(step.action) && (
+                                    <div className="bg-default mt-4 rounded-md">
+                                      <div className="flex items-center justify-between">
+                                        <Label>WhatsApp Business Phone Number</Label>
+                                      </div>
+                                      <Select
+                                        value={
+                                          whatsAppPhones?.find(
+                                            (phone) => phone.id === step.metaTemplatePhoneNumberId
+                                          )
+                                            ? {
+                                                value: step.metaTemplatePhoneNumberId || "",
+                                                label: step.metaTemplatePhoneNumberId
+                                                  ? whatsAppPhones?.find(
+                                                      (p) => p.id === step.metaTemplatePhoneNumberId
+                                                    )?.phoneNumber || "Unknown"
+                                                  : "Default",
                                               }
-                                              onChange={(e) =>
-                                                updateAction(step.id, "senderName", e.target.value)
-                                              }
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
+                                            : { value: "", label: "Default" }
+                                        }
+                                        onChange={(option) => {
+                                          if (option?.value === step.metaTemplatePhoneNumberId) {
+                                            return;
+                                          }
 
-                                      {/* Number Required Checkbox for SMS/WhatsApp attendee actions */}
-                                      {(step.action === WorkflowActions.SMS_ATTENDEE ||
-                                        step.action === WorkflowActions.WHATSAPP_ATTENDEE) && (
-                                        <div className="mt-2">
-                                          <Controller
-                                            name={`steps.${step.stepNumber - 1}.numberRequired`}
-                                            control={form.control}
-                                            render={() => (
-                                              <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                  disabled={readOnly}
-                                                  checked={step.numberRequired || false}
-                                                  onCheckedChange={(checked) =>
-                                                    updateAction(step.id, "numberRequired", checked)
-                                                  }
-                                                />
-                                                <Label className="text-sm">
-                                                  {t("make_phone_number_required")}
-                                                </Label>
-                                              </div>
-                                            )}
-                                          />
-                                        </div>
-                                      )}
+                                          if (option?.value === "setup") {
+                                            window.open("/apps/whatsapp-business", "_blank");
+                                          }
 
-                                      {/* Message Content */}
-                                      <div className="bg-default rounded-md">
-                                        {/* Email Subject for Email Actions */}
-                                        {isEmailAction(step.action) && (
-                                          <div className="mb-6">
-                                            <div className="flex items-center">
-                                              <Label className={cn("flex-none", readOnly ? "mb-2" : "mb-0")}>
-                                                {t("email_subject")}
-                                              </Label>
-                                              {!readOnly && step.template == WorkflowTemplates.CUSTOM && (
-                                                <div className="flex-grow text-right">
-                                                  <VariableDropdown
-                                                    onSelect={(variable) =>
-                                                      insertVariable(step.id, "emailSubject", variable)
-                                                    }
-                                                  />
-                                                </div>
-                                              )}
-                                            </div>
-                                            <TextArea
-                                              rows={2}
-                                              disabled={
-                                                readOnly || step.template !== WorkflowTemplates.CUSTOM
-                                              }
-                                              className={cn("border-default my-0 rounded-md focus:ring-2", {
-                                                "cursor-not-allowed":
-                                                  readOnly || step.template !== WorkflowTemplates.CUSTOM,
-                                              })}
-                                              required
-                                              value={step.emailSubject || ""}
-                                              onChange={(e) =>
-                                                updateAction(step.id, "emailSubject", e.target.value)
-                                              }
-                                            />
-                                          </div>
-                                        )}
+                                          updateAction(
+                                            step.id,
+                                            "metaTemplatePhoneNumberId",
+                                            option?.value || null
+                                          );
 
-                                        {/* Message Body */}
-                                        <div className="mb-2 flex items-center justify-between">
-                                          <Label className="mb-0 flex-none">
-                                            {isEmailAction(step.action) ? t("email_body") : t("text_message")}
-                                          </Label>
+                                          updateAction(step.id, "metaTemplateName", null);
+                                          if (option?.value === "" && step.template) {
+                                            updateAction(step.id, "template", step.template);
+                                          }
+                                        }}
+                                        options={[
+                                          { value: "", label: "Default" },
+                                          ...(whatsAppPhones && whatsAppPhones.length > 0
+                                            ? whatsAppPhones.map((phone) => ({
+                                                value: phone.id,
+                                                label: phone.phoneNumber,
+                                              }))
+                                            : [
+                                                {
+                                                  value: "setup",
+                                                  label: "→ Set up WhatsApp Business Phone",
+                                                },
+                                              ]),
+                                        ]}
+                                        isDisabled={readOnly}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {!step.metaTemplatePhoneNumberId && (
+                                    <div className="mt-5">
+                                      <Label>{t("message_template")}</Label>
+                                      <Select
+                                        value={
+                                          templateOptions.find((option) => option.value === step.template) ||
+                                          null
+                                        }
+                                        onChange={(option) =>
+                                          updateAction(
+                                            step.id,
+                                            "template",
+                                            option?.value as WorkflowTemplates
+                                          )
+                                        }
+                                        options={templateOptions}
+                                        isDisabled={readOnly}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {step.metaTemplatePhoneNumberId && whatsAppPhones && (
+                                    <div className="bg-default mt-4 rounded-md">
+                                      <div className="flex items-center justify-between">
+                                        <Label>{t("message_template")}</Label>
+
+                                        <div className="flex flex-row gap-2">
                                           {step.metaTemplatePhoneNumberId && (
                                             <Button
                                               color="minimal"
                                               size="sm"
-                                              onClick={() => setIsVariableDocsOpen(true)}
+                                              onClick={() => {
+                                                const phone = whatsAppPhones?.find(
+                                                  (phone) => phone.id === step.metaTemplatePhoneNumberId
+                                                );
+
+                                                return window.open(
+                                                  `https://business.facebook.com/latest/whatsapp_manager/message_templates?asset_id=${phone?.wabaId}`,
+                                                  "_blank"
+                                                );
+                                              }}
+                                              className="flex items-center gap-1 border-none text-xs underline underline-offset-2">
+                                              <Icon name="external-link" className="h-3 w-3" />
+
+                                              {t("create_templates")}
+                                            </Button>
+                                          )}
+
+                                          {step.metaTemplatePhoneNumberId && (
+                                            <Button
+                                              color="minimal"
+                                              size="sm"
+                                              loading={syncingTemplates}
+                                              onClick={() =>
+                                                handleSyncTemplates(step.metaTemplatePhoneNumberId)
+                                              }
                                               className="flex items-center gap-1 text-xs">
                                               <Icon name="info" className="h-4 w-4" />
-                                              View Available Variables
+                                              {t("sync_templates")}
                                             </Button>
                                           )}
                                         </div>
-                                        <div
-                                          className={cn("rounded-md border", {
-                                            "cursor-not-allowed":
-                                              readOnly || step.template !== WorkflowTemplates.CUSTOM,
-                                          })}>
-                                          <Editor
-                                            key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
-                                            getText={() => {
-                                              let body = step.reminderBody || "";
-
-                                              const isWhatsApp =
-                                                step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
-                                                step.action === WorkflowActions.WHATSAPP_NUMBER;
-
-                                              if (!isWhatsApp) return body;
-
-                                              const isTemplateMatched =
-                                                Boolean(step.metaTemplatePhoneNumberId) ===
-                                                Boolean(step.metaTemplateName);
-
-                                              // Always take whatsapp body from code not from db record.
-                                              if (isWhatsApp && isTemplateMatched) {
-                                                if (!step.metaTemplateName) {
-                                                  body = getTemplateBodyForAction({
-                                                    action: step.action,
-                                                    locale: i18n.language,
-                                                    t,
-                                                    template: step.template,
-                                                    timeFormat,
-                                                  });
-                                                }
+                                      </div>
+                                      <Select
+                                        value={
+                                          whatsAppTemplates(step.metaTemplatePhoneNumberId).find(
+                                            (template) => template.name === step.metaTemplateName
+                                          )
+                                            ? {
+                                                value: step.metaTemplateName || "",
+                                                label:
+                                                  whatsAppTemplates(step.metaTemplatePhoneNumberId).find(
+                                                    (t) => t.name === step.metaTemplateName
+                                                  )?.name || "",
                                               }
+                                            : null
+                                        }
+                                        onChange={(option) => {
+                                          updateAction(step.id, "metaTemplateName", option?.value || null);
 
-                                              return isTemplateMatched
-                                                ? convertWhatsAppTemplateForDisplay(body)
-                                                : body;
-                                            }}
-                                            setText={(text: string) => {
-                                              const stepIndex = steps.findIndex((s) => s.id === step.id);
-                                              if (stepIndex !== -1) {
-                                                form.setValue(`steps.${stepIndex}.reminderBody`, text, {
-                                                  shouldDirty: true,
-                                                  shouldValidate: false,
-                                                });
-                                              }
-                                            }}
-                                            variables={DYNAMIC_TEXT_VARIABLES}
-                                            addVariableButtonTop={isSMSAction(step.action)}
-                                            height="200px"
-                                            editable={!readOnly && step.template === WorkflowTemplates.CUSTOM}
-                                            excludedToolbarItems={
-                                              !isSMSAction(step.action)
-                                                ? []
-                                                : ["blockType", "bold", "italic", "link"]
+                                          const selectedTemplate = whatsAppTemplates(
+                                            step.metaTemplatePhoneNumberId
+                                          ).find((t) => t.name === option?.value);
+                                          if (selectedTemplate?.components) {
+                                            const bodyComponent = selectedTemplate.components.find(
+                                              (c: any) => c.type === "BODY"
+                                            );
+                                            if (bodyComponent?.text) {
+                                              updateAction(step.id, "reminderBody", bodyComponent.text);
                                             }
-                                            plainText={isSMSAction(step.action)}
-                                          />
+                                          }
+                                        }}
+                                        options={whatsAppTemplates(step.metaTemplatePhoneNumberId).map(
+                                          (template) => ({
+                                            value: template.name,
+                                            label: `${template.name} (${template.language})`,
+                                          })
+                                        )}
+                                        isDisabled={readOnly}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {step.action === WorkflowActions.EMAIL_ADDRESS && (
+                                    <div className="bg-default rounded-md">
+                                      <Label>Email address</Label>
+                                      <div className="block sm:flex">
+                                        <Input
+                                          type="email"
+                                          required
+                                          className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                                          placeholder="recipient@example.com"
+                                          value={step.sendTo || ""}
+                                          disabled={readOnly}
+                                          onChange={(e) => {
+                                            const isAlreadyVerified = !!verifiedEmailsData?.find(
+                                              (email) => email === e.target.value
+                                            );
+                                            setEmailVerificationStatus((prev) => ({
+                                              ...prev,
+                                              [stepId]: isAlreadyVerified,
+                                            }));
+                                            setOtpSentForEmail((prev) => ({
+                                              ...prev,
+                                              [stepId]: false,
+                                            }));
+                                            setVerificationCodes((prev) => ({
+                                              ...prev,
+                                              [stepId]: "",
+                                            }));
+                                            updateAction(step.id, "sendTo", e.target.value);
+                                          }}
+                                        />
+                                        <Button
+                                          color="secondary"
+                                          disabled={isEmailVerified || readOnly || !isEmailValid}
+                                          className={cn(
+                                            "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                                            isEmailVerified ? "hidden" : "mt-3 sm:mt-0"
+                                          )}
+                                          onClick={() => handleSendEmailVerification(step)}>
+                                          {t("send_code")}
+                                        </Button>
+                                      </div>
+
+                                      {isEmailVerified ? (
+                                        <div className="mt-1">
+                                          <Badge variant="success">{t("email_verified")}</Badge>
                                         </div>
+                                      ) : (
+                                        !readOnly &&
+                                        step.sendTo &&
+                                        isEmailValid &&
+                                        isEmailOtpSent && (
+                                          <>
+                                            <div className="mt-3 flex">
+                                              <Input
+                                                className="h-[36px] rounded-r-none border-r-transparent"
+                                                placeholder="Verification code"
+                                                disabled={readOnly}
+                                                value={verificationCode}
+                                                onChange={(e) => {
+                                                  setVerificationCodes((prev) => ({
+                                                    ...prev,
+                                                    [stepId]: e.target.value,
+                                                  }));
+                                                }}
+                                                required
+                                              />
+                                              <Button
+                                                color="secondary"
+                                                className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none"
+                                                disabled={verifyEmailCodeMutation.isPending || readOnly}
+                                                onClick={() => handleVerifyEmail(step)}>
+                                                {t("verify")}
+                                              </Button>
+                                            </div>
+                                          </>
+                                        )
+                                      )}
+                                    </div>
+                                  )}
 
-                                        {/* Show error message for invalid variables */}
-                                        {invalidVariables[stepId] && isWhatsappAction(step.action) && (
-                                          <Alert
-                                            severity="error"
-                                            className="mt-2"
-                                            message={`'${invalidVariables[stepId]}' is not in the allowed variables list.`}
-                                          />
-                                        )}
+                                  {isWhatsappAction(step.action) && step.metaTemplatePhoneNumberId && (
+                                    <div className="bg-default rounded-md">
+                                      <div>
+                                        <div className="flex flex-row items-center py-2">
+                                          <Label>Whatsapp Business Account ID</Label>
+                                          <span className="group relative ml-2 inline-flex">
+                                            <Icon name="info" className="h-4 w-4 text-gray-500" />
 
-                                        {/* Include Calendar Event for Email Actions */}
-                                        {isEmailAction(step.action) && (
-                                          <div className="mt-2">
-                                            <Controller
-                                              name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
-                                              control={form.control}
-                                              render={() => (
-                                                <div className="flex items-center space-x-2">
-                                                  <Checkbox
-                                                    disabled={readOnly}
-                                                    checked={step.includeCalendarEvent || false}
-                                                    onCheckedChange={(checked) =>
-                                                      updateAction(step.id, "includeCalendarEvent", checked)
-                                                    }
-                                                  />
-                                                  <Label className="text-sm">
-                                                    {t("include_calendar_event")}
-                                                  </Label>
-                                                </div>
-                                              )}
-                                            />
-                                          </div>
-                                        )}
+                                            <span
+                                              className="pointer-events-none absolute bottom-full left-1/2 mb-1 w-max -translate-x-1/2
+               rounded bg-black px-2 py-1 text-xs text-white opacity-0
+               transition-opacity duration-0 group-hover:opacity-100">
+                                              This is the WhatsApp Business Account ID associated with the
+                                              selected phone number and your Cal ID account.
+                                            </span>
+                                          </span>
+                                        </div>
+                                        <Input
+                                          type="text"
+                                          disabled={true}
+                                          value={currentPhone(step.metaTemplatePhoneNumberId)?.wabaId}
+                                          onChange={(e) =>
+                                            updateAction(step.id, "senderName", e.target.value)
+                                          }
+                                        />
                                       </div>
                                     </div>
-                                  </CollapsibleContent>
-                                </div>
-                              </Collapsible>
-                            </Card>
-                          );
-                        })}
+                                  )}
 
-                        {!readOnly && (
-                          <Button
-                            color="secondary"
-                            onClick={addAction}
-                            className="w-full border-2 border-dashed">
-                            <Icon name="plus" className="mr-2 h-4 w-4" />
-                            Add action
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
+                                  {/* Sender Name for WhatsApp and Email */}
+                                  {(isWhatsappAction(step.action) || isEmailAction(step.action)) && (
+                                    <div className="bg-default rounded-md">
+                                      <div>
+                                        <Label>
+                                          {isWhatsappAction(step.action) ? t("sender_name") : "Sender name"}
+                                        </Label>
+                                        <Input
+                                          type="text"
+                                          disabled={readOnly || isAWhatsappAction(step.action)}
+                                          placeholder={SENDER_NAME}
+                                          value={
+                                            (isAWhatsappAction(step.action)
+                                              ? currentPhone(step.metaTemplatePhoneNumberId)?.displayName ??
+                                                "Cal ID"
+                                              : step.senderName) || ""
+                                          }
+                                          onChange={(e) =>
+                                            updateAction(step.id, "senderName", e.target.value)
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {(step.action === WorkflowActions.SMS_ATTENDEE ||
+                                    step.action === WorkflowActions.WHATSAPP_ATTENDEE) && (
+                                    <div className="mt-2">
+                                      <Controller
+                                        name={`steps.${step.stepNumber - 1}.numberRequired`}
+                                        control={form.control}
+                                        render={() => (
+                                          <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                              disabled={readOnly}
+                                              checked={step.numberRequired || false}
+                                              onCheckedChange={(checked) =>
+                                                updateAction(step.id, "numberRequired", checked)
+                                              }
+                                            />
+                                            <Label className="text-sm">
+                                              {t("make_phone_number_required")}
+                                            </Label>
+                                          </div>
+                                        )}
+                                      />
+                                    </div>
+                                  )}
+
+                                  <div className="bg-default rounded-md">
+                                    {isEmailAction(step.action) && (
+                                      <div className="mb-6">
+                                        <div className="flex items-center">
+                                          <Label className="mb-2 flex-none">{t("email_subject")}</Label>
+                                          {!readOnly && step.template == WorkflowTemplates.CUSTOM && (
+                                            <div className="flex-grow text-right">
+                                              <VariableDropdown
+                                                onSelect={(variable) =>
+                                                  insertVariable(step.id, "emailSubject", variable)
+                                                }
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                        <TextArea
+                                          rows={2}
+                                          disabled={readOnly || step.template !== WorkflowTemplates.CUSTOM}
+                                          className={cn(
+                                            " text-default border-default rounded-md text-sm focus:ring-2",
+                                            {
+                                              "cursor-not-allowed":
+                                                readOnly || step.template !== WorkflowTemplates.CUSTOM,
+                                            }
+                                          )}
+                                          required
+                                          value={step.emailSubject || ""}
+                                          onChange={(e) =>
+                                            updateAction(step.id, "emailSubject", e.target.value)
+                                          }
+                                        />
+                                      </div>
+                                    )}
+
+                                    <div className="mb-2 flex items-center justify-between">
+                                      <Label className="mb-0 flex-none">
+                                        {isEmailAction(step.action) ? t("email_body") : t("text_message")}
+                                      </Label>
+                                      {step.metaTemplatePhoneNumberId && (
+                                        <Button
+                                          color="minimal"
+                                          size="sm"
+                                          onClick={() => setIsVariableDocsOpen(true)}
+                                          className="flex items-center gap-1 text-xs">
+                                          <Icon name="info" className="h-4 w-4" />
+                                          View Available Variables
+                                        </Button>
+                                      )}
+                                    </div>
+                                    <div
+                                      className={cn("rounded-md border", {
+                                        "cursor-not-allowed":
+                                          readOnly || step.template !== WorkflowTemplates.CUSTOM,
+                                      })}>
+                                      <Editor
+                                        key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
+                                        getText={() => {
+                                          let body = step.reminderBody || "";
+
+                                          const isWhatsApp =
+                                            step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
+                                            step.action === WorkflowActions.WHATSAPP_NUMBER;
+
+                                          if (!isWhatsApp) return body;
+
+                                          const isTemplateMatched =
+                                            Boolean(step.metaTemplatePhoneNumberId) ===
+                                            Boolean(step.metaTemplateName);
+
+                                          // Always take whatsapp body from code not from db record.
+                                          if (isWhatsApp && isTemplateMatched) {
+                                            if (!step.metaTemplateName) {
+                                              body = getTemplateBodyForAction({
+                                                action: step.action,
+                                                locale: i18n.language,
+                                                t,
+                                                template: step.template,
+                                                timeFormat,
+                                              });
+                                            }
+                                          }
+
+                                          return isTemplateMatched
+                                            ? convertWhatsAppTemplateForDisplay(body)
+                                            : body;
+                                        }}
+                                        setText={(text: string) => {
+                                          const stepIndex = steps.findIndex((s) => s.id === step.id);
+                                          if (stepIndex !== -1) {
+                                            form.setValue(`steps.${stepIndex}.reminderBody`, text, {
+                                              shouldDirty: true,
+                                              shouldValidate: false,
+                                            });
+                                          }
+                                        }}
+                                        variables={DYNAMIC_TEXT_VARIABLES}
+                                        addVariableButtonTop={isSMSAction(step.action)}
+                                        height="200px"
+                                        editable={!readOnly && step.template === WorkflowTemplates.CUSTOM}
+                                        excludedToolbarItems={
+                                          !isSMSAction(step.action)
+                                            ? []
+                                            : ["blockType", "bold", "italic", "link"]
+                                        }
+                                        plainText={isSMSAction(step.action)}
+                                      />
+                                    </div>
+
+                                    {invalidVariables[stepId] && isWhatsappAction(step.action) && (
+                                      <Alert
+                                        severity="error"
+                                        className="mt-2"
+                                        message={`'${invalidVariables[stepId]}' is not in the allowed variables list.`}
+                                      />
+                                    )}
+
+                                    {isEmailAction(step.action) && (
+                                      <div className="mt-2">
+                                        <Controller
+                                          name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                                          control={form.control}
+                                          render={() => (
+                                            <div className="flex items-center space-x-2">
+                                              <Checkbox
+                                                disabled={readOnly}
+                                                checked={step.includeCalendarEvent || false}
+                                                onCheckedChange={(checked) =>
+                                                  updateAction(step.id, "includeCalendarEvent", checked)
+                                                }
+                                              />
+                                              <Label className="text-sm">{t("include_calendar_event")}</Label>
+                                            </div>
+                                          )}
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </CollapsibleContent>
+                            </div>
+                          </Collapsible>
+                        </div>
+                      );
+                    })}
+
+                    {!readOnly && (
+                      <Button
+                        StartIcon="plus"
+                        color="secondary"
+                        onClick={addAction}
+                        className="flex w-full items-center justify-center border-2 border-dashed">
+                        {t("add_action")}
+                      </Button>
+                    )}
                   </div>
                 )}
 
@@ -2571,14 +2438,12 @@ export default function WhatsAppVariableMapper({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Map Template Variables</span>
-          {isComplete && <Badge variant="success">All variables mapped</Badge>}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-default text-sm font-medium">Map Template Variables</h3>
+        {isComplete && <Badge variant="success">All variables mapped</Badge>}
+      </div>
+      <div className="space-y-6">
         {/* <Alert>
           <AlertDescription></AlertDescription>
 
@@ -2720,7 +2585,7 @@ export default function WhatsAppVariableMapper({
               : "This template uses positional variables (e.g., {{1}}, {{2}})"}
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
