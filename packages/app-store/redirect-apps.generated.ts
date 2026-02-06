@@ -17,6 +17,7 @@ export const REDIRECT_APPS = [
   "granola",
   "greetmate-ai",
   "lindy",
+  "linear",
   "millis-ai",
   "monobot",
   "n8n",
@@ -27,5 +28,6 @@ export const REDIRECT_APPS = [
   "telli",
   "vimcal",
   "wordpress",
+  "zapier",
 ] as const;
 export type RedirectApp = (typeof REDIRECT_APPS)[number];
