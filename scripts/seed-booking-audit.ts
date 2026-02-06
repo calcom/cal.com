@@ -54,10 +54,6 @@ async function createAppActor(appSlug: string, appName: string) {
   });
 }
 
-function minutesFromNow(minutes: number): number {
-  return Date.now() + minutes * 60 * 1000;
-}
-
 function hoursFromNow(hours: number): number {
   return Date.now() + hours * 60 * 60 * 1000;
 }
@@ -320,7 +316,7 @@ export default async function seedBookingAuditLogs() {
         },
       },
     },
-    context: { impersonatedBy: "admin-user-uuid-placeholder" },
+    context: { impersonatedBy: proUser.uuid },
   });
 
   auditLogs.push({
