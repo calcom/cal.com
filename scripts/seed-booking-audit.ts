@@ -81,7 +81,7 @@ async function seedAuditLogsForBooking({
 
   const userActor = await createUserActor(userUuid);
   const systemActor = await createSystemActor();
-  const guestActor = await createGuestActor("guest-attendee@example.com", "Guest Attendee");
+  const guestActor = await createGuestActor("priya.sharma@acmecorp.io", "Priya Sharma");
   const appActor = await createAppActor("stripe", "Stripe");
 
   let attendeeActor: { id: string } | null = null;
@@ -198,7 +198,7 @@ async function seedAuditLogsForBooking({
     data: {
       version: 1,
       fields: {
-        added: ["new-attendee@example.com"],
+        added: ["rachel.nguyen@designhub.co"],
       },
     },
   });
@@ -215,7 +215,7 @@ async function seedAuditLogsForBooking({
       version: 1,
       fields: {
         attendees: {
-          old: [attendeeEmail, "new-attendee@example.com"],
+          old: [attendeeEmail, "rachel.nguyen@designhub.co"],
           new: [attendeeEmail],
         },
       },
@@ -348,8 +348,8 @@ async function seedAuditLogsForBooking({
       version: 1,
       fields: {
         seatReferenceUid: seatRefUid,
-        attendeeEmail: "seat-guest@example.com",
-        attendeeName: "Seat Guest",
+        attendeeEmail: "marcus.johnson@consulting.io",
+        attendeeName: "Marcus Johnson",
         startTime: hoursFromNow(48),
         endTime: hoursFromNow(48.5),
       },
@@ -368,7 +368,7 @@ async function seedAuditLogsForBooking({
       version: 1,
       fields: {
         seatReferenceUid: seatRefUid,
-        attendeeEmail: "seat-guest@example.com",
+        attendeeEmail: "marcus.johnson@consulting.io",
         startTime: { old: hoursFromNow(48), new: hoursFromNow(72) },
         endTime: { old: hoursFromNow(48.5), new: hoursFromNow(72.5) },
         rescheduledToBookingUid: { old: null, new: rescheduledToUid },
@@ -426,8 +426,8 @@ export default async function seedBookingAuditLogs() {
       eventTypeId: eventType.id,
       attendees: {
         create: {
-          email: "audit-test-attendee@example.com",
-          name: "Audit Test Attendee",
+          email: "james.wilson@techstart.dev",
+          name: "James Wilson",
           timeZone: "UTC",
         },
       },
@@ -446,7 +446,7 @@ export default async function seedBookingAuditLogs() {
     bookingUid: booking.uid,
     userUuid: user.uuid,
     attendeeId: booking.attendees[0]?.id,
-    attendeeEmail: booking.attendees[0]?.email ?? "attendee@example.com",
+    attendeeEmail: booking.attendees[0]?.email ?? "james.wilson@techstart.dev",
   });
 
   console.log(`  ✅ Created ${count} audit log entries`);
