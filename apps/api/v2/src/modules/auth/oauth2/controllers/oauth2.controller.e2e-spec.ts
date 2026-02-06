@@ -79,6 +79,7 @@ describe("OAuth2 Controller Endpoints", () => {
     let oAuthClient: { clientId: string };
     let authorizationCode: string;
     let refreshToken: string;
+    let tokenEndpointRefreshToken: string;
 
     const testClientId = `test-oauth-client-${randomString()}`;
     const testClientSecret = "test-secret-123";
@@ -302,6 +303,61 @@ describe("OAuth2 Controller Endpoints", () => {
             clientSecret: testClientSecret,
           })
           .expect(401);
+      });
+    });
+
+    describe("POST /api/v2/auth/oauth2/token", () => {
+      it("should exchange authorization code for tokens", async () => {
+        const authResponse = await request(app.getHttpServer())
+          .post(`/api/v2/auth/oauth2/clients/${testClientId}/authorize`)
+          .send({
+            redirectUri: testRedirectUri,
+            scopes: [AccessScope.READ_BOOKING],
+            teamSlug: team.slug,
+          })
+          .expect(303);
+
+        const redirectUrl = new URL(authResponse.headers.location);
+        const authCode = redirectUrl.searchParams.get("code") as string;
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
+          .send({
+            grant_type: "authorization_code",
+            client_id: testClientId,
+            client_secret: testClientSecret,
+            code: authCode,
+            redirect_uri: testRedirectUri,
+          })
+          .expect(200);
+
+        expect(response.body.status).toBe("success");
+        expect(response.body.data.access_token).toBeDefined();
+        expect(response.body.data.refresh_token).toBeDefined();
+        expect(response.body.data.token_type).toBe("bearer");
+        expect(response.body.data.expires_in).toBe(1800);
+
+        tokenEndpointRefreshToken = response.body.data.refresh_token;
+      });
+
+      it("should refresh access token with valid refresh token", async () => {
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/auth/oauth2/token")
+          .type("form")
+          .send({
+            grant_type: "refresh_token",
+            client_id: testClientId,
+            client_secret: testClientSecret,
+            refresh_token: tokenEndpointRefreshToken,
+          })
+          .expect(200);
+
+        expect(response.body.status).toBe("success");
+        expect(response.body.data.access_token).toBeDefined();
+        expect(response.body.data.refresh_token).toBeDefined();
+        expect(response.body.data.token_type).toBe("bearer");
+        expect(response.body.data.expires_in).toBe(1800);
       });
     });
 

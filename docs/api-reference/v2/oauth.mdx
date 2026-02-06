@@ -42,7 +42,11 @@ After users click _Allow_, they will be redirected to the redirect_uri with the 
 
 ### Access Token Request
 
-Endpoint: `POST https://app.cal.com/api/auth/oauth/token`
+Endpoint: `POST https://api.cal.com/v2/auth/oauth2/token`
+
+Headers:
+
+- Content-Type: application/x-www-form-urlencoded
 
 Request Body:
 
@@ -51,6 +55,7 @@ Request Body:
 - _client_secret_
 - _grant_type_: "authorization_code"
 - _redirect_uri_
+- _code_verifier_: Required if PKCE was used
 
 Response:
 
@@ -63,17 +68,18 @@ Response:
 
 ### Refresh Token Request
 
-Endpoint: `POST https://app.cal.com/api/auth/oauth/refreshToken`
+Endpoint: `POST https://api.cal.com/v2/auth/oauth2/token`
 
 Headers:
 
-- Authorization: Bearer _exampleRefreshToken_
+- Content-Type: application/x-www-form-urlencoded
 
 Request Body:
 
 - _grant_type_: "refresh_token"
 - _client_id_
 - _client_secret_
+- _refresh_token_
 
 Response:
 

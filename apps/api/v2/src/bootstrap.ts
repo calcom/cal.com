@@ -13,6 +13,7 @@ import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, Logger, ValidationPipe, VersioningType } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
+import express from "express";
 import { Request } from "express";
 import helmet from "helmet";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -55,6 +56,9 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
       ],
       maxAge: 86_400,
     });
+    // Ensure both JSON and form-encoded bodies are parsed for OAuth2 token requests.
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json());
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
