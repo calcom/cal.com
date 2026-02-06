@@ -168,7 +168,7 @@ export function WorkflowCreationDialog({
             type="button"
             onClick={handleContinue}
             loading={createMutation.isPending || isLoading}>
-            {t("continue")}
+            {t("create")}
           </Button>
         </DialogFooter>
       </DialogContent>

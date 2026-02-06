@@ -41,6 +41,7 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
       id: true,
       type: true,
       key: true,
+      encryptedKey: true,
       userId: true,
       teamId: true,
       appId: true,

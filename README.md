@@ -384,6 +384,50 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
    ```
 
 1. Enjoy the new version.
+
+## AI-Assisted Development
+
+This repository includes configuration for AI coding assistants. All AI configuration lives in the `agents/` directory as a single source of truth.
+
+### Structure
+
+```
+agents/
+├── rules/           # Modular engineering rules
+├── skills/          # Reusable skills/prompts
+├── commands.md      # Command reference
+└── knowledge-base.md # Domain knowledge
+
+AGENTS.md            # Main agent instructions
+```
+
+### Tool Configuration
+
+We use symlinks to share configuration across tools:
+
+```
+.claude/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+
+.cursor/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+```
+
+### Using Other Tools
+
+If you prefer other AI tools (Windsurf, Goose, OpenCode, etc.), you can create your own dot folders and exclude them from git:
+
+```bash
+# Add to .git/info/exclude (local only, not committed)
+.windsurf/
+.goose/
+.opencode/
+```
+
+This keeps the repository clean while allowing personal tool preferences.
+
 <!-- DEPLOYMENT -->
 
 ## Deployment

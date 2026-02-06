@@ -6,7 +6,9 @@
   "logo": "icon.svg",
   "url": "https://cal.com/BAA",
   "variant": "other",
-  "categories": ["other"],
+  "categories": [
+    "other"
+  ],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Request a signed Business Associate Agreement for your HIPAA compliance records",
@@ -16,5 +18,9 @@
   "paid": {
     "priceInUsd": 300,
     "mode": "subscription"
+  },
+  "externalLink": {
+    "url": "https://cal.com/BAA",
+    "newTab": true
   }
 }
