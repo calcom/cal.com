@@ -56,8 +56,8 @@ describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
     expect(mockFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          startTime: { gte: startDate },
-          endTime: { lte: endDate },
+          startTime: { lte: endDate },
+          endTime: { gte: startDate },
         }),
       })
     );

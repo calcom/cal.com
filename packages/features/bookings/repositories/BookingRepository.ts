@@ -1755,8 +1755,8 @@ export class BookingRepository implements IBookingRepository {
     return this.prismaClient.booking.findMany({
       where: {
         status: BookingStatus.ACCEPTED,
-        startTime: { gte: startDate },
-        endTime: { lte: endDate },
+        startTime: { lte: endDate },
+        endTime: { gte: startDate },
         ...(excludeUid ? { uid: { not: excludeUid } } : {}),
         OR: [
           ...(userIds.length ? [{ userId: { in: userIds } }] : []),
