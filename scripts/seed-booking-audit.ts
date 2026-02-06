@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
-
+import process from "node:process";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { v4 as uuidv4 } from "uuid";
 
 async function createUserActor(userUuid: string) {
   return prisma.auditActor.upsert({
@@ -389,7 +389,13 @@ export default async function seedBookingAuditLogs() {
   // Audit logs is an org-only feature, so we only seed for owner1-acme
   const user = await prisma.user.findFirst({
     where: { username: "owner1-acme" },
-    select: { id: true, uuid: true, username: true, email: true, organizationId: true },
+    select: {
+      id: true,
+      uuid: true,
+      username: true,
+      email: true,
+      profiles: { select: { organizationId: true } },
+    },
   });
 
   if (!user) {
@@ -397,16 +403,23 @@ export default async function seedBookingAuditLogs() {
     return;
   }
 
+  const organizationId = user.profiles[0].organizationId;
+
   // Enable bookings-v3 globally
   await prisma.feature.upsert({
     where: { slug: "bookings-v3" },
-    create: { slug: "bookings-v3", enabled: true, description: "Enable bookings redesign v3 for all users", type: "EXPERIMENT" },
+    create: {
+      slug: "bookings-v3",
+      enabled: true,
+      description: "Enable bookings redesign v3 for all users",
+      type: "EXPERIMENT",
+    },
     update: { enabled: true },
   });
   console.log("  ✅ Enabled bookings-v3 globally");
 
   // Enable booking-audit at team level for owner1-acme's organization
-  if (user.organizationId) {
+  if (organizationId) {
     await prisma.feature.upsert({
       where: { slug: "booking-audit" },
       create: {
@@ -419,16 +432,16 @@ export default async function seedBookingAuditLogs() {
     });
 
     await prisma.teamFeatures.upsert({
-      where: { teamId_featureId: { teamId: user.organizationId, featureId: "booking-audit" } },
+      where: { teamId_featureId: { teamId: organizationId, featureId: "booking-audit" } },
       create: {
-        teamId: user.organizationId,
+        teamId: organizationId,
         featureId: "booking-audit",
         enabled: true,
         assignedBy: "seed-script",
       },
       update: { enabled: true },
     });
-    console.log(`  ✅ Enabled booking-audit for organization ${user.organizationId}`);
+    console.log(`  ✅ Enabled booking-audit for organization ${organizationId}`);
   }
 
   // Find an event type for this user to create a booking
