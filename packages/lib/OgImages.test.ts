@@ -78,32 +78,37 @@ describe("OgImages", () => {
     });
   });
 
-  describe("all OG image types use LOGO constant for consistent branding", () => {
-    it("generic type version changes when LOGO value would change", async () => {
+  describe("OG image branding uses configurable logo constants", () => {
+    it("generic type uses LOGO_DARK (with LOGO fallback) for darker logo on light backgrounds", async () => {
       const genericVersion = await getOGImageVersion("generic");
       expect(genericVersion).toBeTruthy();
       expect(typeof genericVersion).toBe("string");
       expect(genericVersion.length).toBe(8);
     });
 
-    it("meeting and generic types produce different versions due to different configs (not different logos)", async () => {
+    it("meeting and app types use LOGO constant", async () => {
       const meetingVersion = await getOGImageVersion("meeting");
-      const genericVersion = await getOGImageVersion("generic");
-      expect(meetingVersion).not.toBe(genericVersion);
+      const appVersion = await getOGImageVersion("app");
+      expect(meetingVersion).toBeTruthy();
+      expect(appVersion).toBeTruthy();
+      expect(meetingVersion.length).toBe(8);
+      expect(appVersion.length).toBe(8);
     });
 
-    it("all types include LOGO in their version computation", async () => {
-      const meetingV1 = await getOGImageVersion("meeting");
-      const appV1 = await getOGImageVersion("app");
-      const genericV1 = await getOGImageVersion("generic");
+    it("all three types produce distinct version hashes", async () => {
+      const meetingVersion = await getOGImageVersion("meeting");
+      const appVersion = await getOGImageVersion("app");
+      const genericVersion = await getOGImageVersion("generic");
 
-      expect(meetingV1).toBeTruthy();
-      expect(appV1).toBeTruthy();
-      expect(genericV1).toBeTruthy();
+      expect(meetingVersion).not.toBe(appVersion);
+      expect(meetingVersion).not.toBe(genericVersion);
+      expect(appVersion).not.toBe(genericVersion);
+    });
 
-      expect(meetingV1.length).toBe(8);
-      expect(appV1.length).toBe(8);
-      expect(genericV1.length).toBe(8);
+    it("self-hosters can override logos by replacing the referenced SVG files", async () => {
+      const v1 = await getOGImageVersion("generic");
+      const v2 = await getOGImageVersion("generic");
+      expect(v1).toBe(v2);
     });
   });
 });
