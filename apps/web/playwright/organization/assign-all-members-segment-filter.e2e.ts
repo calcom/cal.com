@@ -769,7 +769,6 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
       users,
       orgs,
     }) => {
-      test.fail();
       const org = await orgs.create({ name: "TestOrg" });
       const teamMatesObj = [{ name: "teammate-1" }];
 
@@ -854,7 +853,6 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
       users,
       orgs,
     }) => {
-      test.fail();
       const org = await orgs.create({ name: "TestOrg" });
       const teamMatesObj = [{ name: "teammate-1" }];
 
@@ -939,7 +937,6 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
       users,
       orgs,
     }) => {
-      test.fail();
       const org = await orgs.create({ name: "TestOrg" });
       const teamMatesObj = [{ name: "teammate-1" }];
 
@@ -1023,7 +1020,6 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
       users,
       orgs,
     }) => {
-      test.fail();
       const org = await orgs.create({ name: "TestOrg" });
       const teamMatesObj = [{ name: "teammate-1" }];
 
