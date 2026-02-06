@@ -1,15 +1,15 @@
 import * as Clipboard from "expo-clipboard";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
 import { useColorScheme } from "react-native";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
-import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
-import { openInAppBrowser } from "@/utils/browser";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { getMeetingUrl } from "@/utils/booking";
+import { openInDefaultBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -42,25 +42,6 @@ const getMonthName = (dateString: string | undefined): string => {
   return date.toLocaleDateString("en-US", { month: "long" });
 };
 
-// Get meeting URL from booking
-const getMeetingUrl = (booking: Booking | null): string | null => {
-  if (!booking) return null;
-
-  // Check metadata for videoCallUrl first
-  const videoCallUrl = booking.responses?.videoCallUrl;
-  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
-    return videoCallUrl;
-  }
-
-  // Check location
-  const location = booking.location;
-  if (typeof location === "string" && location.startsWith("http")) {
-    return location;
-  }
-
-  return null;
-};
-
 export default function BookingDetailIOS() {
   const { uid } = useLocalSearchParams<{ uid: string }>();
   const { userInfo } = useAuth();
@@ -89,7 +70,7 @@ export default function BookingDetailIOS() {
   // Handle join meeting
   const handleJoinMeeting = useCallback(() => {
     if (meetingUrl) {
-      openInAppBrowser(meetingUrl, "meeting link");
+      openInDefaultBrowser(meetingUrl, "meeting link");
     }
   }, [meetingUrl]);
 
