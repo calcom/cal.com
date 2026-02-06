@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@calid/features/ui/components/dialog";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { Icon } from "@calid/features/ui/components/icon";
 import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";

@@ -3,7 +3,7 @@
 import type { IntervalLimit } from "@calid/features/lib/intervalLimit";
 import { IntervalLimitsManager } from "@calid/features/modules/event-types/components/tabs/event-types-limit";
 import { Button } from "@calid/features/ui/components/button";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useSession } from "next-auth/react";

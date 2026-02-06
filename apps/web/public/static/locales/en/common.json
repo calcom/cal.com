@@ -3751,5 +3751,7 @@
   "claim_username_trusted_by_professionals_title": "100K+ Users",
   "claim_username_trusted_by_professionals_description": "Trusted by professionals",
   "claim_username_yours_forever_title": "Yours forever",
-  "claim_username_yours_forever_description": "Once claimed, it's locked"
+  "claim_username_yours_forever_description": "Once claimed, it's locked",
+  "workflow_trigger": "When should this workflow be triggered?",
+  "worflow_trigger_channel": "Which channel should this workflow be triggered on?"
 }

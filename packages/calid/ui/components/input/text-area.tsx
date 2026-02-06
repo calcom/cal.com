@@ -14,7 +14,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 type TextAreaProps = JSX.IntrinsicElements["textarea"];
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
-  return <textarea {...props} ref={ref} className={cn("dark:focus:border-white bg-default min-h-[80px] w-full", props.className)} />;
+  return (
+    <textarea
+      {...props}
+      ref={ref}
+      className={cn("bg-default min-h-[80px] w-full rounded-md dark:focus:border-white", props.className)}
+    />
+  );
 });
 
 type TextAreaFieldProps = {

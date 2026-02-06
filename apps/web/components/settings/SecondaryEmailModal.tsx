@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "@calid/features/ui/components/dialog";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { InputError } from "@calid/features/ui/components/input/hint-or-errors";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@calid/features/ui/components/dialog";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextAreaField } from "@calid/features/ui/components/input/text-area";

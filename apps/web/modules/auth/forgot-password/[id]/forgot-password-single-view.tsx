@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { PasswordField } from "@calid/features/ui/components/input/input";
 import { Logo } from "@calid/features/ui/components/logo";
 import Link from "next/link";

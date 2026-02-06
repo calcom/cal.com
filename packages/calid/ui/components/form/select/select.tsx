@@ -1,26 +1,15 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
+import type { GroupBase, SingleValue, MultiValue } from "react-select";
 import ReactSelect from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import cx from "@calcom/ui/classNames";
 
-import { Label } from "../inputs/Label";
-import { inputStyles } from "../inputs/TextField";
+import { inputStyles } from "../../input/input";
+import { Label } from "../../label";
 import { getReactSelectProps } from "./selectTheme";
 import type { SelectProps } from "./types";
-
-type SelectProps<
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & {
-  variant?: "default" | "checkbox";
-  "data-testid"?: string;
-  size?: "sm" | "md";
-  grow?: boolean;
-};
 
 export const Select = <
   Option,
