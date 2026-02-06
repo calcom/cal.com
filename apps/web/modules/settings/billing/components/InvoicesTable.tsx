@@ -143,7 +143,10 @@ function InvoicesTableContent() {
   };
 
   return (
-    <PanelCard title={t("invoices")} headerContent={<DateRangeFilter column={createdAtColumn} />} className="mt-5">
+    <PanelCard
+      title={t("invoices")}
+      headerContent={<DateRangeFilter column={createdAtColumn} />}
+      className="mt-5">
       {!data?.invoices.length && currentPage === 0 ? (
         <div className="text-subtle p-6 text-center text-sm">{t("no_invoices_in_date_range")}</div>
       ) : (

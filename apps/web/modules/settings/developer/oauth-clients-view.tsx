@@ -105,7 +105,10 @@ const OAuthClientsView = () => {
   }
 
   const newOAuthClientButton = (
-    <NewOAuthClientButton dataTestId="open-oauth-client-create-dialog" onClick={() => setIsCreatingClient(true)} />
+    <NewOAuthClientButton
+      dataTestId="open-oauth-client-create-dialog"
+      onClick={() => setIsCreatingClient(true)}
+    />
   );
 
   return (
