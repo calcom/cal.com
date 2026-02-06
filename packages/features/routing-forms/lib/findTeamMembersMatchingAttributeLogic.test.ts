@@ -16,6 +16,7 @@ import {
 vi.mock("@calcom/features/attributes/lib/getAttributes", () => {
   return {
     getAttributesAssignmentData: vi.fn(),
+    extractAttributeIdsFromQueryValue: vi.fn().mockReturnValue([]),
   };
 });
 
@@ -265,6 +266,8 @@ function buildScenarioWhereMainAttributeLogicFails() {
 describe("findTeamMembersMatchingAttributeLogic", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    // Re-establish the mock for extractAttributeIdsFromQueryValue after resetAllMocks
+    vi.mocked(getAttributesModule.extractAttributeIdsFromQueryValue).mockReturnValue([]);
   });
 
   it("should return null if the route does not have an attributesQueryValue set", async () => {
