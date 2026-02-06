@@ -130,7 +130,17 @@ describe("UserRepository", () => {
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            OR: expect.arrayContaining([{ email: { in: ["test@example.com"], mode: "insensitive" } }]),
+            OR: expect.arrayContaining([
+              { email: { in: ["test@example.com"], mode: "insensitive" } },
+              {
+                secondaryEmails: {
+                  some: {
+                    email: { in: ["test@example.com"], mode: "insensitive" },
+                    emailVerified: { not: null },
+                  },
+                },
+              },
+            ]),
           }),
           select: { id: true, email: true },
         })
