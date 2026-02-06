@@ -1,11 +1,8 @@
 import { EventTypeSelectComponent } from "@calcom/features/troubleshooter/components/EventTypeSelectComponent";
-import { trpc } from "@calcom/trpc/react";
-
-export { EventTypeSelectComponent };
+import { useEventTypesList } from "../../hooks/useEventTypesList";
 
 export function EventTypeSelect(): JSX.Element {
-  const { data: eventTypes, isPending } =
-    trpc.viewer.eventTypes.listWithTeam.useQuery();
+  const { data: eventTypes, isPending } = useEventTypesList({});
 
   return (
     <EventTypeSelectComponent
