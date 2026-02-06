@@ -1,3 +1,4 @@
+"use no memo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { WidgetTaskHandlerProps } from "react-native-android-widget";
 import { UpcomingBookingsWidget } from "./UpcomingBookingsWidget";
@@ -7,8 +8,14 @@ const WIDGET_STORAGE_KEY = "android_widget_bookings";
 interface BookingData {
   id: string;
   title: string;
+  date: string;
   startTime: string;
+  endTime: string;
+  startTimeISO?: string;
   attendeeName: string | null;
+  hostName?: string | null;
+  location?: string | null;
+  hasVideoCall?: boolean;
 }
 
 async function getStoredBookings(): Promise<BookingData[]> {
