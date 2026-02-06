@@ -7,7 +7,7 @@ import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ApiKeyDialogForm from "~/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "~/ee/api-keys/components/ApiKeyListItem";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
