@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { VerificationTokenRepository } from "../repositories/VerificationTokenRepository";
+import { VerificationTokenRepository } from "./repositories/VerificationTokenRepository";
 
 import { VerificationTokenService } from "./VerificationTokenService";
 
