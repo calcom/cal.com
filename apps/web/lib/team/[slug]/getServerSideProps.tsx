@@ -164,41 +164,105 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
 
-  team.eventTypes =
+  const minimalEventTypes =
     team.eventTypes?.map((type) => ({
-      ...type,
+      // Fields from baseEventTypeSelect (except description which becomes descriptionAsSafeHTML)
+      id: type.id,
+      title: type.title,
+      slug: type.slug,
+      length: type.length,
+      schedulingType: type.schedulingType,
+      recurringEvent: type.recurringEvent,
+      hidden: type.hidden,
+      price: type.price,
+      currency: type.currency,
+      lockTimeZoneToggleOnBookingPage: type.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: type.lockedTimeZone,
+      requiresConfirmation: type.requiresConfirmation,
+      requiresBookerEmailVerification: type.requiresBookerEmailVerification,
+      canSendCalVideoTranscriptionEmails: type.canSendCalVideoTranscriptionEmails,
+      seatsPerTimeSlot: type.seatsPerTimeSlot,
+      // Additional fields needed by EventTypeDescription
+      metadata: type.metadata,
+      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
       users: !isTeamOrParentOrgPrivate
         ? type.users.map((user) => ({
-            ...user,
+            name: user.name,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
             avatar: getUserAvatarUrl(user),
+            profile: {
+              id: user.profile.id,
+              upId: user.profile.upId,
+              username: user.profile.username,
+              organizationId: user.profile.organizationId,
+              organization: user.profile.organization
+                ? {
+                    id: user.profile.organization.id,
+                    slug: user.profile.organization.slug,
+                    name: user.profile.organization.name,
+                    requestedSlug: user.profile.organization.requestedSlug,
+                    calVideoLogo: user.profile.organization.calVideoLogo,
+                    bannerUrl: user.profile.organization.bannerUrl,
+                  }
+                : null,
+            },
           }))
         : [],
-      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
     })) ?? null;
 
   const safeBio = markdownToSafeHTML(team.bio) || "";
 
-  const members = !isTeamOrParentOrgPrivate
-    ? team.members.map((member) => {
-        return {
-          name: member.name,
-          id: member.id,
-          avatarUrl: member.avatarUrl,
-          bio: member.bio,
-          profile: member.profile,
-          subteams: member.subteams,
-          username: member.username,
-          accepted: member.accepted,
-          organizationId: member.organizationId,
-          safeBio: markdownToSafeHTML(member.bio || ""),
-          bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
-        };
-      })
+  const minimalMembers = !isTeamOrParentOrgPrivate
+    ? team.members.map((member) => ({
+        id: member.id,
+        name: member.name,
+        username: member.username,
+        avatarUrl: member.avatarUrl,
+        bio: member.bio,
+        organizationId: member.organizationId,
+        subteams: member.subteams,
+        accepted: member.accepted,
+        profile: {
+          id: member.profile.id,
+          username: member.profile.username,
+          organizationId: member.profile.organizationId,
+          organization: member.profile.organization
+            ? {
+                id: member.profile.organization.id,
+                slug: member.profile.organization.slug,
+                name: member.profile.organization.name,
+                requestedSlug: member.profile.organization.requestedSlug,
+                calVideoLogo: member.profile.organization.calVideoLogo,
+                bannerUrl: member.profile.organization.bannerUrl,
+              }
+            : null,
+        },
+        safeBio: markdownToSafeHTML(member.bio || ""),
+        bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
+      }))
     : [];
 
   const markdownStrippedBio = stripMarkdown(team?.bio || "");
 
-  const serializableTeam = getSerializableTeam(team);
+  const minimalParent = team.parent
+    ? {
+        id: team.parent.id,
+        slug: team.parent.slug,
+        name: team.parent.name,
+        isOrganization: team.parent.isOrganization,
+        isPrivate: team.parent.isPrivate,
+        logoUrl: team.parent.logoUrl,
+        requestedSlug: teamMetadataSchema.parse(team.parent.metadata)?.requestedSlug ?? null,
+      }
+    : null;
+
+  const minimalChildren = isTeamOrParentOrgPrivate
+    ? []
+    : team.children.map((child) => ({
+        slug: child.slug,
+        name: child.name,
+      }));
 
   // For a team or Organization we check if it's unpublished
   // For a subteam, we check if the parent org is unpublished. A subteam can't be unpublished in itself
@@ -211,7 +275,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       props: {
         considerUnpublished: true,
-        team: { ...serializableTeam },
+        team: {
+          id: team.id,
+          slug: team.slug,
+          name: team.name,
+          isOrganization: team.isOrganization,
+          logoUrl: team.logoUrl,
+          metadata,
+          parent: minimalParent,
+          createdAt: null,
+        },
       },
     } as const;
   }
@@ -219,13 +292,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team: {
-        ...serializableTeam,
+        id: team.id,
+        slug: team.slug,
+        name: team.name,
+        bio: team.bio,
         safeBio,
-        members,
+        theme: team.theme,
+        isPrivate: team.isPrivate,
+        isOrganization: team.isOrganization,
+        hideBookATeamMember: team.hideBookATeamMember,
+        logoUrl: team.logoUrl,
+        brandColor: team.brandColor,
+        darkBrandColor: team.darkBrandColor,
         metadata,
-        children: isTeamOrParentOrgPrivate ? [] : team.children,
+        parent: minimalParent,
+        eventTypes: minimalEventTypes,
+        members: minimalMembers,
+        children: minimalChildren,
       },
-      themeBasis: serializableTeam.slug,
+      themeBasis: team.slug,
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
@@ -235,20 +320,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 };
 
 /**
- * Removes sensitive data from team and ensures that the object is serialiable by Next.js
- */
-function getSerializableTeam(team: NonNullable<Awaited<ReturnType<typeof getTeamWithMembers>>>) {
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
-
-  const teamParent = team.parent ? getTeamWithoutMetadata(team.parent) : null;
-
-  return {
-    ...serializableTeam,
-    parent: teamParent,
-  };
-}
-
-/**
  * Removes metadata from team and just adds requestedSlug
  */
 function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
@@ -256,7 +327,6 @@ function getTeamWithoutMetadata<T extends Pick<Team, "metadata">>(team: T) {
   const teamMetadata = teamMetadataSchema.parse(metadata);
   return {
     ...rest,
-    // add requestedSlug if available.
     ...(typeof teamMetadata?.requestedSlug !== "undefined"
       ? { requestedSlug: teamMetadata?.requestedSlug }
       : {}),

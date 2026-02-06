@@ -43,6 +43,7 @@ import { useCancelBooking } from "@/hooks/useBookings";
 import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
+import { getMeetingUrl } from "@/utils/booking";
 import { openInAppBrowser } from "@/utils/browser";
 import { getColors } from "@/constants/colors";
 
@@ -134,22 +135,6 @@ const calculateDuration = (startDateString: string, endDateString: string): numb
   const endDate = new Date(endDateString);
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 0;
   return Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
-};
-
-const getMeetingUrl = (booking: Booking | null): string | null => {
-  if (!booking) return null;
-
-  const videoCallUrl = booking.responses?.videoCallUrl;
-  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
-    return videoCallUrl;
-  }
-
-  const location = booking.location;
-  if (typeof location === "string" && location.startsWith("http")) {
-    return location;
-  }
-
-  return null;
 };
 
 export interface BookingDetailScreenProps {
