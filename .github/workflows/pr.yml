@@ -170,6 +170,7 @@ jobs:
       has-companion: ${{ steps.filter-inclusions.outputs.has-companion }}
       has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
+      has-agents-changes: ${{ steps.filter-inclusions.outputs.has-agents-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -210,6 +211,8 @@ jobs:
         id: filter-inclusions
         with:
           filters: |
+            has-agents-changes:
+              - "agents/**"
             has-companion:
               - "companion/**"
             has-api-v2-changes:
@@ -297,6 +300,13 @@ jobs:
         if: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks == 'true' }}
         with:
           skip-install-if-cache-hit: "true"
+
+  validate-agents-format:
+    name: Validate agents/ format
+    needs: [trust-check, prepare]
+    if: needs.trust-check.outputs.is-trusted == 'true' && needs.prepare.outputs.has-agents-changes == 'true' && github.event.pull_request
+    uses: ./.github/workflows/validate-agents-format.yml
+    secrets: inherit
 
   type-check:
     name: Type Checks
@@ -465,6 +475,7 @@ jobs:
       [
         trust-check,
         prepare,
+        validate-agents-format,
         lint,
         type-check,
         unit-test,
@@ -536,4 +547,8 @@ jobs:
               needs.typecheck-companion.result != 'success' ||
               needs.lint-companion.result != 'success'
             )
+          ) ||
+          (
+            needs.prepare.outputs.has-agents-changes == 'true' &&
+            needs.validate-agents-format.result != 'success'
           )

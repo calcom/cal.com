@@ -1,11 +1,28 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { getCalendarCredentials, deduplicateCredentialsBasedOnSelectedCalendars } from "./CalendarManager";
+import {
+  getCalendarCredentials,
+  deduplicateCredentialsBasedOnSelectedCalendars,
+  processEvent,
+} from "./CalendarManager";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
+}));
+
+vi.mock("@calcom/lib/constants", () => ({
+  ORGANIZER_EMAIL_EXEMPT_DOMAINS: "",
+  IS_PRODUCTION: false,
+}));
+
+vi.mock("@calcom/app-store/locations", () => ({
+  MeetLocationType: "integrations:google:meet",
+}));
+
+vi.mock("@calcom/lib/CalEventParser", () => ({
+  getRichDescription: vi.fn(() => "Test description"),
 }));
 
 function buildCredential(data: {
@@ -32,7 +49,178 @@ function buildCredential(data: {
   };
 }
 
+function buildCalendarEvent(overrides = {}) {
+  return {
+    type: "test-event",
+    title: "Test Event",
+    startTime: "2024-01-01T10:00:00Z",
+    endTime: "2024-01-01T11:00:00Z",
+    organizer: {
+      name: "Organizer",
+      email: "organizer@example.com",
+      timeZone: "UTC",
+      language: { translate: (x: string) => x, locale: "en" },
+    },
+    attendees: [
+      {
+        name: "Attendee 1",
+        email: "attendee1@example.com",
+        timeZone: "UTC",
+        language: { translate: (x: string) => x, locale: "en" },
+      },
+      {
+        name: "Attendee 2",
+        email: "attendee2@example.com",
+        timeZone: "UTC",
+        language: { translate: (x: string) => x, locale: "en" },
+      },
+    ],
+    destinationCalendar: null,
+    hideOrganizerEmail: false,
+    location: null,
+    ...overrides,
+  };
+}
+
 describe("CalendarManager tests", () => {
+  describe("fn: processEvent", () => {
+    it("should clear attendees when hideOrganizerEmail is true and no Zoho Calendar destination", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: true,
+        destinationCalendar: [
+          {
+            integration: "google_calendar",
+            externalId: "calendar-1",
+          },
+        ],
+      });
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.attendees).toEqual([]);
+    });
+
+    it("should NOT clear attendees when hideOrganizerEmail is true and destination is Zoho Calendar", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: true,
+        destinationCalendar: [
+          {
+            integration: "zoho_calendar",
+            externalId: "calendar-1",
+          },
+        ],
+      });
+
+      const result = processEvent(calEvent as any);
+
+      // Zoho Calendar requires at least one attendee, so attendees should NOT be cleared
+      expect(result.attendees).toHaveLength(2);
+      expect(result.attendees[0].email).toBe("attendee1@example.com");
+      expect(result.attendees[1].email).toBe("attendee2@example.com");
+    });
+
+    it("should NOT clear attendees when hideOrganizerEmail is true and one of multiple destinations is Zoho Calendar", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: true,
+        destinationCalendar: [
+          {
+            integration: "google_calendar",
+            externalId: "google-calendar-1",
+          },
+          {
+            integration: "zoho_calendar",
+            externalId: "zoho-calendar-1",
+          },
+        ],
+      });
+
+      const result = processEvent(calEvent as any);
+
+      // Zoho Calendar is in the list, so attendees should NOT be cleared
+      expect(result.attendees).toHaveLength(2);
+    });
+
+    it("should NOT clear attendees when hideOrganizerEmail is false", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: false,
+        destinationCalendar: [
+          {
+            integration: "google_calendar",
+            externalId: "calendar-1",
+          },
+        ],
+      });
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.attendees).toHaveLength(2);
+    });
+
+    it("should NOT clear attendees when location is MeetLocationType even with hideOrganizerEmail true", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: true,
+        location: "integrations:google:meet",
+        destinationCalendar: [
+          {
+            integration: "google_calendar",
+            externalId: "calendar-1",
+          },
+        ],
+      });
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.attendees).toHaveLength(2);
+    });
+
+    it("should handle null destinationCalendar with hideOrganizerEmail true", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: true,
+        destinationCalendar: null,
+      });
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.attendees).toEqual([]);
+    });
+
+    it("should handle empty destinationCalendar array with hideOrganizerEmail true", () => {
+      const calEvent = buildCalendarEvent({
+        hideOrganizerEmail: true,
+        destinationCalendar: [],
+      });
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.attendees).toEqual([]);
+    });
+
+    it("should include calendarDescription from getRichDescription", () => {
+      const calEvent = buildCalendarEvent();
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.calendarDescription).toBe("Test description");
+    });
+
+    it("should clear responses for seatsPerTimeSlot events", () => {
+      const calEvent = buildCalendarEvent({
+        seatsPerTimeSlot: 5,
+        responses: { field1: { label: "Field 1", value: "test" } },
+        userFieldsResponses: { field1: { label: "Field 1", value: "test" } },
+        additionalNotes: "Test notes",
+        customInputs: { input1: "value1" },
+      });
+
+      const result = processEvent(calEvent as any);
+
+      expect(result.responses).toBeNull();
+      expect(result.userFieldsResponses).toBeNull();
+      expect(result.additionalNotes).toBeNull();
+      expect(result.customInputs).toBeNull();
+    });
+  });
+
   describe("fn: getCalendarCredentials", () => {
     it("should only return credentials for calendar apps", async () => {
       const googleCalendarCredentials = {

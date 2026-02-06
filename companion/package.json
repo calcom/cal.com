@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "prewidget": "EXPO_NO_GIT_STATUS=1 npx expo prebuild --template ./node_modules/@bacons/apple-targets/prebuild-blank.tgz --clean",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:extension": "tsc -p tsconfig.extension.json --noEmit",
     "typecheck:all": "npm run typecheck && npm run typecheck:extension",
@@ -49,6 +50,7 @@
     "check:ci": "biome ci ."
   },
   "dependencies": {
+    "@bacons/apple-targets": "^3.0.7",
     "@expo/ui": "0.2.0-canary-20251230-fc48ddc",
     "@expo/vector-icons": "15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -85,6 +87,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-native": "0.83.1",
+    "react-native-android-widget": "^0.20.1",
     "react-native-gesture-handler": "2.28.0",
     "react-native-reanimated": "4.2.0",
     "react-native-safe-area-context": "5.6.2",

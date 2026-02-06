@@ -1,3 +1,4 @@
+import { getActiveUserBillingService } from "@calcom/platform-libraries/organizations";
 import { getIncrementUsageIdempotencyKey, getIncrementUsageJobTag } from "@calcom/platform-libraries/tasker";
 import { InjectQueue } from "@nestjs/bull";
 import {
@@ -342,36 +343,13 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     invoiceStart: Date,
     invoiceEnd: Date
   ): Promise<number> {
-    const managedUsersEmails =
-      await this.usersRepository.getOrgsManagedUserEmailsBySubscriptionId(subscriptionId);
-
-    if (!managedUsersEmails) return 0;
-
     if (!invoiceStart || !invoiceEnd) {
       this.logger.log("Invoice period start or end date is null");
       return 0;
     }
 
-    const activeManagedUserEmailsAsHost = await this.usersRepository.getActiveManagedUsersAsHost(
-      subscriptionId,
-      invoiceStart,
-      invoiceEnd
-    );
-
-    const activeHostEmails = activeManagedUserEmailsAsHost.map((email) => email.email);
-    const notActiveHostEmails = managedUsersEmails
-      .filter((email) => !activeHostEmails.includes(email.email))
-      .map((email) => email.email);
-
-    if (notActiveHostEmails.length === 0) return activeManagedUserEmailsAsHost.length;
-
-    const activeManagedUserEmailsAsAttendee = await this.usersRepository.getActiveManagedUsersAsAttendee(
-      notActiveHostEmails,
-      invoiceStart,
-      invoiceEnd
-    );
-
-    return activeManagedUserEmailsAsAttendee.length + activeManagedUserEmailsAsHost.length;
+    const activeUserBillingService = getActiveUserBillingService();
+    return activeUserBillingService.getActiveUserCountForPlatformOrg(subscriptionId, invoiceStart, invoiceEnd);
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan): Promise<void> {
