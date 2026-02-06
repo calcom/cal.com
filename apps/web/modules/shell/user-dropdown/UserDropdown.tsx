@@ -277,9 +277,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
           )}
 
           {!isPlatformPages && isPlatformUser && (
-            <MenuItem
-              render={<Link href="/settings/platform" />}
-              className="todesktop:hidden hidden lg:flex">
+            <MenuItem render={<Link href="/settings/platform" />} className="todesktop:hidden hidden lg:flex">
               <Icon name="blocks" />
               {t("platform")}
             </MenuItem>

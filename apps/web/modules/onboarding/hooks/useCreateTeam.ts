@@ -81,14 +81,17 @@ export function useCreateTeam() {
 
       // Group invites by role and send separate requests for each role
       // This is necessary because the schema validation expects array of strings when using bulk invites
-      const invitesByRole = validInvites.reduce((acc, invite) => {
-        const role = invite.role === "ADMIN" ? MembershipRole.ADMIN : MembershipRole.MEMBER;
-        if (!acc[role]) {
-          acc[role] = [];
-        }
-        acc[role].push(invite.email.trim().toLowerCase());
-        return acc;
-      }, {} as Record<MembershipRole, string[]>);
+      const invitesByRole = validInvites.reduce(
+        (acc, invite) => {
+          const role = invite.role === "ADMIN" ? MembershipRole.ADMIN : MembershipRole.MEMBER;
+          if (!acc[role]) {
+            acc[role] = [];
+          }
+          acc[role].push(invite.email.trim().toLowerCase());
+          return acc;
+        },
+        {} as Record<MembershipRole, string[]>
+      );
 
       // Send invites for each role group
       await Promise.all(

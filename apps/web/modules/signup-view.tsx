@@ -16,7 +16,11 @@ import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
-import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession } from "@calcom/features/auth/signup/lib/fetchSignup";
+import {
+  fetchSignup,
+  isUserAlreadyExistsError,
+  hasCheckoutSession,
+} from "@calcom/features/auth/signup/lib/fetchSignup";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -54,7 +58,9 @@ const signupSchema = apiSignupSchema.extend({
   cfToken: z.string().optional(),
 });
 
-const TurnstileCaptcha = dynamic(() => import("@calcom/web/modules/auth/components/Turnstile"), { ssr: false });
+const TurnstileCaptcha = dynamic(() => import("@calcom/web/modules/auth/components/Turnstile"), {
+  ssr: false,
+});
 
 type FormValues = z.infer<typeof signupSchema>;
 

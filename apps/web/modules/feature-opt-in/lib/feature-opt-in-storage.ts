@@ -80,9 +80,4 @@ function setFeatureOptedIn(featureId: string): void {
   setTimestampFeatureInMap(OPTED_IN_STORAGE_KEY, featureId, Date.now());
 }
 
-export {
-  getFeatureOptInTimestamp,
-  isFeatureDismissed,
-  setFeatureDismissed,
-  setFeatureOptedIn,
-};
+export { getFeatureOptInTimestamp, isFeatureDismissed, setFeatureDismissed, setFeatureOptedIn };
