@@ -2856,6 +2856,7 @@ __metadata:
     i18next: "npm:23.2.3"
     ical.js: "npm:1.5.0"
     ics: "npm:2.37.0"
+    ipaddr.js: "npm:2.3.0"
     jimp: "npm:0.16.1"
     lingo.dev: "npm:0.117.14"
     rrule: "npm:2.7.1"
@@ -25481,6 +25482,13 @@ __metadata:
   version: 2.2.0
   resolution: "ipaddr.js@npm:2.2.0"
   checksum: 10/9e1cdd9110b3bca5d910ab70d7fb1933e9c485d9b92cb14ef39f30c412ba3fe02a553921bf696efc7149cc653453c48ccf173adb996ec27d925f1f340f872986
+  languageName: node
+  linkType: hard
+
+"ipaddr.js@npm:2.3.0":
+  version: 2.3.0
+  resolution: "ipaddr.js@npm:2.3.0"
+  checksum: 10/be3d01bc2e20fc2dc5349b489ea40883954b816ce3e57aa48ad943d4e7c4ace501f28a7a15bde4b96b6b97d0fbb28d599ff2f87399f3cda7bd728889402eed3b
   languageName: node
   linkType: hard
 
