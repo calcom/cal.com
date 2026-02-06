@@ -5,14 +5,14 @@ on:
     branches:
       - build
       - 401-unified-calendar-view
-    paths:
-      - 'apps/worker/**'
-      - 'packages/queue/**'
-      # Shared packages that workers depend on
-      - 'packages/tsconfig/**'
-      - 'packages/types/**'
-      - 'packages/prisma/**'
-      - 'packages/lib/**'
+    # paths:
+    #   - 'apps/worker/**'
+    #   - 'packages/queue/**'
+    #   # Shared packages that workers depend on
+    #   - 'packages/tsconfig/**'
+    #   - 'packages/types/**'
+    #   - 'packages/prisma/**'
+    #   - 'packages/lib/**'
   pull_request:
     types:
       - closed
