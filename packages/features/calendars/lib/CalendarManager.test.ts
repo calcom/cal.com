@@ -1,12 +1,12 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   deduplicateCredentialsBasedOnSelectedCalendars,
   deleteEvent,
   getCalendarCredentials,
 } from "./CalendarManager";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
@@ -15,8 +15,6 @@ vi.mock("@calcom/prisma", () => ({
 vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
   getCalendar: vi.fn(),
 }));
-
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 
 const mockedGetCalendar = vi.mocked(getCalendar);
 
