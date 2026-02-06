@@ -19,19 +19,31 @@ describe("TeamBilling", () => {
   const createMockBillingProviderService = (): IBillingProviderService => ({
     handleSubscriptionCancel: vi.fn(),
     handleSubscriptionUpdate: vi.fn(),
+    handleSubscriptionCreation: vi.fn(),
     checkoutSessionIsPaid: vi.fn(),
     getSubscriptionStatus: vi.fn(),
     handleEndTrial: vi.fn(),
     createCustomer: vi.fn(),
+    createPaymentIntent: vi.fn(),
+    createSubscriptionCheckout: vi.fn(),
     createPrice: vi.fn(),
     getPrice: vi.fn(),
     getCheckoutSession: vi.fn(),
-    createCheckoutSession: vi.fn(),
+    getCustomer: vi.fn(),
+    getSubscriptions: vi.fn(),
+    updateCustomer: vi.fn(),
+    createInvoiceItem: vi.fn(),
+    deleteInvoiceItem: vi.fn(),
+    createInvoice: vi.fn(),
+    finalizeInvoice: vi.fn(),
+    getSubscription: vi.fn(),
+    getPaymentIntentFailureReason: vi.fn(),
   });
 
   const createMockTeamBillingDataRepository = (): ITeamBillingDataRepository => ({
     find: vi.fn(),
     findMany: vi.fn(),
+    findBySubscriptionId: vi.fn(),
   });
 
   const createMockBillingRepository = (): IBillingRepository => ({

@@ -1,6 +1,7 @@
 import { BullModule } from "@nestjs/bull";
 import { Module } from "@nestjs/common";
 import { CALENDARS_QUEUE } from "@/ee/calendars/processors/calendars.processor";
+import { CalendarsTaskerModule } from "@/lib/modules/calendars-tasker.module";
 import { ApiKeysModule } from "@/modules/api-keys/api-keys.module";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
@@ -35,6 +36,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
         duration: 1000,
       },
     }),
+    CalendarsTaskerModule,
   ],
   providers: [
     ManagedOrganizationsService,

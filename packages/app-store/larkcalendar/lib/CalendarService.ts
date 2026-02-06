@@ -392,7 +392,14 @@ class LarkCalendarService implements Calendar {
       ],
     };
     if (event.location) {
-      larkEvent.location = { name: getLocation(event) };
+      larkEvent.location = {
+        name: getLocation({
+          videoCallData: event.videoCallData,
+          additionalInformation: event.additionalInformation,
+          location: event.location,
+          uid: event.uid,
+        }),
+      };
     }
     return larkEvent;
   };

@@ -1,20 +1,16 @@
-import { v4 as uuidv4 } from "uuid";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { IProfileRepository } from "@calcom/lib/server/repository/dto/IProfileRepository";
 import prisma from "@calcom/prisma";
-import type { PrismaClient, User as PrismaUser } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Team } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient, User as PrismaUser, Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
-
-import type { IProfileRepository } from "@calcom/lib/server/repository/dto/IProfileRepository";
+import { v4 as uuidv4 } from "uuid";
 
 const userSelect = {
   name: true,
@@ -24,8 +20,6 @@ const userSelect = {
   email: true,
   locale: true,
   defaultScheduleId: true,
-  startTime: true,
-  endTime: true,
   bufferTime: true,
   isPlatformManaged: true,
 } satisfies Prisma.UserSelect;
@@ -119,8 +113,6 @@ export class ProfileRepository implements IProfileRepository {
         username: true,
         name: true,
         avatarUrl: true,
-        startTime: true,
-        endTime: true,
         bufferTime: true,
         metadata: true,
       },
@@ -138,13 +130,11 @@ export class ProfileRepository implements IProfileRepository {
   private static getInheritedDataFromUser({
     user,
   }: {
-    user: Pick<PrismaUser, "name" | "avatarUrl" | "startTime" | "endTime" | "bufferTime">;
+    user: Pick<PrismaUser, "name" | "avatarUrl" | "bufferTime">;
   }) {
     return {
       name: user.name,
       avatarUrl: user.avatarUrl,
-      startTime: user.startTime,
-      endTime: user.endTime,
       bufferTime: user.bufferTime,
     };
   }
@@ -215,12 +205,12 @@ export class ProfileRepository implements IProfileRepository {
         },
         ...(movedFromUserId
           ? {
-            movedFromUser: {
-              connect: {
-                id: movedFromUserId,
+              movedFromUser: {
+                connect: {
+                  id: movedFromUserId,
+                },
               },
-            },
-          }
+            }
           : null),
 
         username: username || email.split("@")[0],
@@ -535,7 +525,7 @@ export class ProfileRepository implements IProfileRepository {
         }
       }
 
-      const user = await this.findUserByid({ id: targetUserId });
+      const user = await ProfileRepository.findUserByid({ id: targetUserId });
       if (!user) {
         return null;
       }
@@ -639,7 +629,7 @@ export class ProfileRepository implements IProfileRepository {
 
     if (profile.organization?.isPlatform && !user.isPlatformManaged) {
       return {
-        ...this.buildPersonalProfileFromUser({ user }),
+        ...ProfileRepository.buildPersonalProfileFromUser({ user }),
         ...ProfileRepository.getInheritedDataFromUser({ user }),
       };
     }
@@ -1017,16 +1007,16 @@ export class ProfileRepository implements IProfileRepository {
       profiles: {
         ...(orgSlug
           ? {
-            some: {
-              organization: {
-                slug: orgSlug,
+              some: {
+                organization: {
+                  slug: orgSlug,
+                },
               },
-            },
-          }
+            }
           : // If it's not orgSlug we want to ensure that no profile is there. Having a profile means that the user is a member of some organization.
-          {
-            none: {},
-          }),
+            {
+              none: {},
+            }),
       },
     };
   }
@@ -1048,7 +1038,7 @@ export const normalizeProfile = <
     organization: Pick<Team, keyof typeof organizationSelect>;
     createdAt?: Date;
     updatedAt?: Date;
-  }
+  },
 >(
   profile: T
 ) => {

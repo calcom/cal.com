@@ -192,7 +192,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.UserPhone,
-    label: "organizer_phone_number",
+    label: "phone_call",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
     organizerInputLabel: "phone_number",
@@ -209,7 +209,7 @@ const translateAbleKeys = [
   "in_person",
   "attendee_phone_number",
   "link_meeting",
-  "organizer_phone_number",
+  "phone_call",
   "organizer_default_conferencing_app",
   "somewhere_else",
   "custom_attendee_location",
@@ -300,6 +300,23 @@ export const guessEventLocationType = (locationTypeOrValue: string | undefined |
   getEventLocationType(locationTypeOrValue) || getStaticLinkLocationByValue(locationTypeOrValue);
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
+
+export const isStaticLocationType = (locationType: string): boolean => {
+  return Object.values(DefaultEventLocationTypeEnum).includes(locationType as DefaultEventLocationTypeEnum);
+};
+
+export const isCalVideoLocation = (locationType: string): boolean => {
+  return locationType === DailyLocationType;
+};
+
+export const getAppSlugFromLocationType = (locationType: string): string | null => {
+  for (const [, meta] of Object.entries(appStoreMetadata)) {
+    if (meta.appData?.location?.type === locationType) {
+      return meta.slug;
+    }
+  }
+  return null;
+};
 
 type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link" | "customLabel">;
 

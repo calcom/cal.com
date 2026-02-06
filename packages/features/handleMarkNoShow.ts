@@ -1,10 +1,18 @@
-import { type TFunction } from "i18next";
-
+import process from "node:process";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import {
+  buildActorEmail,
+  getUniqueIdentifier,
+  makeGuestActor,
+  makeUserActor,
+} from "@calcom/features/booking-audit/lib/makeActor";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -18,21 +26,68 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
-
+import type { TFunction } from "i18next";
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
 
-const buildResultPayload = async (
-  bookingUid: string,
-  attendeeEmails: string[],
-  inputAttendees: NonNullable<TNoShowInputSchema["attendees"]>,
-  t: TFunction
-) => {
-  const attendees = await updateAttendees(bookingUid, attendeeEmails, inputAttendees);
+type GetWebhooksServiceArgs = {
+  platformClientId?: string;
+  orgId: number | undefined;
+  booking: {
+    id: number;
+    eventType: {
+      id: number;
+      teamId: number | null;
+      userId: number | null;
+    } | null;
+  } | null;
+};
 
-  if (attendees.length === 1) {
-    const [attendee] = attendees;
+type HandleMarkHostNoShowArgs = {
+  bookingUid: string;
+  noShowHost: boolean;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+};
+
+type HandleMarkAttendeesAndHostNoShowArgs = {
+  bookingUid: string;
+  attendees?: { email: string; noShow: boolean }[];
+  noShowHost?: boolean;
+  userId: number;
+  userUuid: string;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+};
+
+type HandleMarkNoShowArgs = {
+  bookingUid: string;
+  attendees?: { email: string; noShow: boolean }[];
+  noShowHost?: boolean;
+  userId?: number;
+  userUuid?: string;
+  actionSource: ValidActionSource;
+  locale?: string;
+  platformClientParams?: PlatformClientParams;
+  actor: Actor;
+};
+
+const buildResultPayload = async ({
+  attendees,
+  t,
+  emailToAttendeeMap,
+}: {
+  attendees: NonNullable<TNoShowInputSchema["attendees"]>;
+  t: TFunction;
+  emailToAttendeeMap: EmailToAttendeeMap;
+}): Promise<{message: string; attendees: NoShowAttendees}> => {
+  const updatedAttendees = await updateAttendees({ attendees, emailToAttendeeMap });
+
+  if (updatedAttendees.length === 1) {
+    const [attendee] = updatedAttendees;
     return {
       message: t(attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
         x: attendee.email ?? "User",
@@ -42,7 +97,7 @@ const buildResultPayload = async (
   }
   return {
     message: t("no_show_updated"),
-    attendees: attendees,
+    attendees: updatedAttendees,
   };
 };
 
@@ -51,6 +106,12 @@ const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
   console.error("Failed to update no-show status", failedMessage.join(","));
+};
+
+type ResponsePayloadResult = {
+  attendees: NoShowAttendees;
+  noShowHost: boolean;
+  message: string;
 };
 
 class ResponsePayload {
@@ -76,7 +137,7 @@ class ResponsePayload {
     this.message = message;
   }
 
-  getPayload() {
+  getPayload(): ResponsePayloadResult {
     return {
       attendees: this.attendees,
       noShowHost: this.noShowHost,
@@ -85,35 +146,131 @@ class ResponsePayload {
   }
 }
 
+type EmailToAttendeeMap = Record<string, { id: number; email: string; noShow: boolean | null }>;
+
+const getBookingAttendeesFromEmails = async (
+  bookingUid: string,
+  emails: string[]
+): Promise<EmailToAttendeeMap> => {
+  const attendeeRepository = new AttendeeRepository(prisma);
+  const dbAttendees = await attendeeRepository.findByBookingUidAndEmails({ bookingUid, emails });
+  const emailToAttendeeMap = dbAttendees.reduce((acc, a) => {
+    acc[a.email] = a;
+    return acc;
+  }, {} as EmailToAttendeeMap);
+  return emailToAttendeeMap;
+};
+
+async function fireNoShowUpdated({
+  updatedNoShowHost,
+  hostUserUuid,
+  booking,
+  updatedAttendees,
+  emailToAttendeeMap,
+  actor,
+  orgId,
+  actionSource,
+}: {
+  updatedNoShowHost?: boolean;
+  hostUserUuid?: string;
+  booking: {
+    uid: string;
+    noShowHost: boolean | null;
+  };
+  updatedAttendees?: NoShowAttendees;
+  emailToAttendeeMap: EmailToAttendeeMap;
+  actor: Actor;
+  orgId: number | null;
+  actionSource: ValidActionSource;
+}): Promise<void> {
+  const auditData: {
+    host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
+    attendeesNoShow?: Array<{ attendeeEmail: string; noShow: { old: boolean | null; new: boolean } }>;
+  } = {};
+
+  if (updatedNoShowHost !== undefined && hostUserUuid) {
+    auditData.host = {
+      userUuid: hostUserUuid,
+      noShow: { old: booking.noShowHost, new: updatedNoShowHost },
+    };
+  }
+
+  if (updatedAttendees) {
+    auditData.attendeesNoShow = [];
+    for (const attendee of updatedAttendees) {
+      const dbAttendee = emailToAttendeeMap[attendee.email];
+      if (dbAttendee) {
+        auditData.attendeesNoShow.push({
+          attendeeEmail: attendee.email,
+          noShow: { old: dbAttendee.noShow ?? null, new: attendee.noShow },
+        });
+      }
+    }
+  }
+
+  const bookingEventHandlerService = getBookingEventHandlerService();
+
+  const isSomethingChanged = auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
+  if (isSomethingChanged) {
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      actor,
+      organizationId: orgId ?? null,
+      source: actionSource,
+      auditData,
+    });
+  }
+}
+
 const handleMarkNoShow = async ({
   bookingUid,
   attendees,
   noShowHost,
   userId,
-  userUuid: _userUuid,
+  actor,
   locale,
   platformClientParams,
-}: TNoShowInputSchema & {
-  userId?: number;
-  userUuid?: string;
-  locale?: string;
-  platformClientParams?: PlatformClientParams;
-}) => {
+  actionSource,
+}: HandleMarkNoShowArgs): Promise<ResponsePayloadResult> => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
 
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
 
+    const bookingRepository = new BookingRepository(prisma);
+    const booking = await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid,
+    });
+
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
+
+    const [orgId, emailToAttendeeMap] = await Promise.all([
+      getOrgIdFromMemberOrTeamId({
+        memberId: booking.eventType?.userId,
+        teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+      }),
+      getBookingAttendeesFromEmails(bookingUid, attendeeEmails),
+    ]);
+
+    let successfullyUpdatedAttendees: NoShowAttendees | undefined;
+
     if (attendees && attendeeEmails.length > 0) {
       await assertCanAccessBooking(bookingUid, userId);
 
-      const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
-
-      const { webhooks, bookingId } = await getWebhooksService(
-        bookingUid,
-        platformClientParams?.platformClientId
-      );
+      const payload = await buildResultPayload({
+        attendees,
+        t,
+        emailToAttendeeMap,
+      });
+      successfullyUpdatedAttendees = payload.attendees;
+      const { webhooks, bookingId } = await getWebhooksService({
+        platformClientId: platformClientParams?.platformClientId,
+        orgId,
+        booking,
+      });
 
       await webhooks.sendPayload({
         ...payload,
@@ -123,98 +280,7 @@ const handleMarkNoShow = async ({
         ...(platformClientParams ? platformClientParams : {}),
       });
 
-      const booking = await prisma.booking.findUnique({
-        where: { uid: bookingUid },
-        select: {
-          startTime: true,
-          endTime: true,
-          title: true,
-          metadata: true,
-          uid: true,
-          location: true,
-          destinationCalendar: true,
-          smsReminderNumber: true,
-          userPrimaryEmail: true,
-          eventType: {
-            select: {
-              id: true,
-              hideOrganizerEmail: true,
-              customReplyToEmail: true,
-              schedulingType: true,
-              slug: true,
-              title: true,
-              metadata: true,
-              parentId: true,
-              teamId: true,
-              hosts: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                      destinationCalendar: {
-                        select: {
-                          primaryEmail: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              parent: {
-                select: {
-                  teamId: true,
-                },
-              },
-              workflows: {
-                select: {
-                  workflow: {
-                    select: workflowSelect,
-                  },
-                },
-              },
-              owner: {
-                select: {
-                  hideBranding: true,
-                  email: true,
-                  name: true,
-                  timeZone: true,
-                  locale: true,
-                },
-              },
-              team: {
-                select: {
-                  parentId: true,
-                  name: true,
-                  id: true,
-                },
-              },
-            },
-          },
-          attendees: {
-            select: {
-              email: true,
-              name: true,
-              timeZone: true,
-              locale: true,
-              phoneNumber: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              destinationCalendar: true,
-              timeZone: true,
-              locale: true,
-              username: true,
-              timeFormat: true,
-            },
-          },
-        },
-      });
-
-      if (booking?.eventType) {
+      if (booking.eventType) {
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
 
         if (workflows.length > 0) {
@@ -251,8 +317,8 @@ const handleMarkNoShow = async ({
             const destinationCalendar = booking.destinationCalendar
               ? [booking.destinationCalendar]
               : booking.user?.destinationCalendar
-              ? [booking.user?.destinationCalendar]
-              : [];
+                ? [booking.user?.destinationCalendar]
+                : [];
             const team = booking.eventType?.team
               ? {
                   name: booking.eventType.team.name,
@@ -268,7 +334,7 @@ const handleMarkNoShow = async ({
               endTime: booking.endTime.toISOString(),
               organizer: {
                 id: booking.user?.id,
-                email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+                email: booking.userPrimaryEmail || booking.user?.email || "Email-less",
                 name: booking.user?.name || "Nameless",
                 username: booking.user?.username || undefined,
                 timeZone: organizer?.timeZone || "UTC",
@@ -320,18 +386,21 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
-      await prisma.booking.update({
-        where: {
-          uid: bookingUid,
-        },
-        data: {
-          noShowHost: true,
-        },
-      });
-
+      await bookingRepository.updateNoShowHost({ bookingUid, noShowHost: true });
       responsePayload.setNoShowHost(true);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
+
+    await fireNoShowUpdated({
+      booking,
+      updatedNoShowHost: noShowHost,
+      hostUserUuid: booking.user?.uuid,
+      updatedAttendees: successfullyUpdatedAttendees,
+      emailToAttendeeMap,
+      actor,
+      orgId: orgId ?? null,
+      actionSource,
+    });
 
     return responsePayload.getPayload();
   } catch (error) {
@@ -342,40 +411,19 @@ const handleMarkNoShow = async ({
   }
 };
 
-const updateAttendees = async (
-  bookingUid: string,
-  attendeeEmails: string[],
-  attendees: NonNullable<TNoShowInputSchema["attendees"]>
-) => {
-  const allAttendees = await prisma.attendee.findMany({
-    where: {
-      AND: [
-        {
-          booking: {
-            uid: bookingUid,
-          },
-          email: {
-            in: attendeeEmails,
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      email: true,
-    },
-  });
-
-  const allAttendeesMap = allAttendees.reduce((acc, attendee) => {
-    acc[attendee.email] = attendee;
-    return acc;
-  }, {} as Record<string, { id: number; email: string }>);
-
+const updateAttendees = async ({
+  attendees,
+  emailToAttendeeMap,
+}: {
+  attendees: NonNullable<TNoShowInputSchema["attendees"]>;
+  emailToAttendeeMap: EmailToAttendeeMap; 
+}): Promise<NoShowAttendees> => {
+  const attendeeRepository = new AttendeeRepository(prisma);
   const updatePromises = attendees.map((attendee) => {
-    const attendeeToUpdate = allAttendeesMap[attendee.email];
-    if (!attendeeToUpdate) return;
-    return prisma.attendee.update({
-      where: { id: attendeeToUpdate.id },
+    const attendeeToUpdate = emailToAttendeeMap[attendee.email];
+    if (!attendeeToUpdate) return null;
+    return attendeeRepository.updateNoShow({
+      where: { attendeeId: attendeeToUpdate.id },
       data: { noShow: attendee.noShow },
     });
   });
@@ -385,29 +433,12 @@ const updateAttendees = async (
 
   return results
     .filter((x) => x.status === "fulfilled")
-    .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string }>).value)
+    .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string } | null>).value)
+    .filter((x): x is { noShow: boolean; email: string } => x !== null)
     .map((x) => ({ email: x.email, noShow: x.noShow }));
 };
 
-const getWebhooksService = async (bookingUid: string, platformClientId?: string) => {
-  const booking = await prisma.booking.findUnique({
-    where: { uid: bookingUid },
-    select: {
-      id: true,
-      eventType: {
-        select: {
-          id: true,
-          teamId: true,
-          userId: true,
-        },
-      },
-    },
-  });
-
-  const orgId = await getOrgIdFromMemberOrTeamId({
-    memberId: booking?.eventType?.userId,
-    teamId: booking?.eventType?.teamId,
-  });
+const getWebhooksService = async ({ platformClientId, orgId, booking }: GetWebhooksServiceArgs) => {
   const webhooks = await WebhookService.init({
     teamId: booking?.eventType?.teamId,
     userId: booking?.eventType?.userId,
@@ -443,6 +474,60 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
       message: "Cannot mark no-show before the meeting has started.",
     });
   }
+};
+
+export const handleMarkHostNoShow = async ({
+  bookingUid,
+  noShowHost,
+  actionSource,
+  locale,
+  platformClientParams,
+}: HandleMarkHostNoShowArgs): Promise<ResponsePayloadResult> => {
+  const actorEmail = buildActorEmail({
+    identifier: getUniqueIdentifier({ prefix: "attendee" }),
+    actorType: "guest",
+  });
+
+  // TODO: Accept attendee email/name from the caller to track which attendee triggered this action
+  const actor = makeGuestActor({ email: actorEmail, name: null });
+
+  return handleMarkNoShow({
+    bookingUid,
+    noShowHost,
+    actor,
+    actionSource,
+    locale,
+    platformClientParams,
+  });
+};
+
+/**
+ * Handle marking attendees as no-show.
+ * This is called from authenticated endpoints where a logged-in host marks attendees as absent.
+ * Requires userId and userUuid for proper authorization and audit tracking.
+ */
+export const handleMarkAttendeesAndHostNoShow = async ({
+  bookingUid,
+  attendees,
+  noShowHost,
+  userId,
+  userUuid,
+  actionSource,
+  locale,
+  platformClientParams,
+}: HandleMarkAttendeesAndHostNoShowArgs): Promise<ResponsePayloadResult> => {
+  const actor = makeUserActor(userUuid);
+
+  return handleMarkNoShow({
+    bookingUid,
+    attendees,
+    noShowHost,
+    userId,
+    actor,
+    actionSource,
+    locale,
+    platformClientParams,
+  });
 };
 
 export default handleMarkNoShow;

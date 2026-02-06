@@ -466,14 +466,21 @@ class ZohoCalendarService implements Calendar {
         timezone: event.organizer.timeZone,
       },
       attendees: event.attendees.map((attendee) => ({ email: attendee.email })),
-      isprivate: event.seatsShowAttendees,
+      isprivate: event.hideCalendarEventDetails ?? false,
       reminders: [
         {
           minutes: "-15",
-          action: "popup",
-        },
-      ],
-      location: event.location ? getLocation(event) : undefined,
+            action: "popup",
+          },
+        ],
+      location: event.location
+        ? getLocation({
+            videoCallData: event.videoCallData,
+            additionalInformation: event.additionalInformation,
+            location: event.location,
+            uid: event.uid,
+          })
+        : undefined,
     };
 
     return zohoEvent;

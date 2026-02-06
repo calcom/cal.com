@@ -8,11 +8,13 @@ import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
-import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
+import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
+import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
+import { ZReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
@@ -42,6 +44,7 @@ export const bookingsRouter = router({
     return editLocationHandler({
       ctx,
       input,
+      actionSource: "WEBAPP",
     });
   }),
 
@@ -116,10 +119,28 @@ export const bookingsRouter = router({
       input,
     });
   }),
+  reportWrongAssignment: authedProcedure
+    .input(ZReportWrongAssignmentInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { reportWrongAssignmentHandler } = await import("./reportWrongAssignment.handler");
+
+      return reportWrongAssignmentHandler({
+        ctx,
+        input,
+      });
+    }),
   getBookingHistory: authedProcedure.input(ZGetBookingHistoryInputSchema).query(async ({ input, ctx }) => {
     const { getBookingHistoryHandler } = await import("./getBookingHistory.handler");
 
     return getBookingHistoryHandler({
+      ctx,
+      input,
+    });
+  }),
+  getRoutingTrace: authedProcedure.input(ZGetRoutingTraceInputSchema).query(async ({ input, ctx }) => {
+    const { getRoutingTraceHandler } = await import("./getRoutingTrace.handler");
+
+    return getRoutingTraceHandler({
       ctx,
       input,
     });

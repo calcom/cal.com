@@ -392,7 +392,14 @@ class FeishuCalendarService implements Calendar {
       ],
     };
     if (event.location) {
-      feishuEvent.location = { name: getLocation(event) };
+      feishuEvent.location = {
+        name: getLocation({
+          videoCallData: event.videoCallData,
+          additionalInformation: event.additionalInformation,
+          location: event.location,
+          uid: event.uid,
+        }),
+      };
     }
     return feishuEvent;
   };

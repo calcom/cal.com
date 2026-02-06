@@ -116,7 +116,7 @@ export class OAuthFlowController {
   })
   @ApiOperation({
     summary: "Refresh managed user tokens",
-    description: `If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use
+    description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use
     "refresh token rotation" mechanism. ${TOKENS_DOCS}`,
   })
   async refreshTokens(

@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import WorkspacePlatformsPage from "~/ee/organizations/admin/WorkspacePlatformPage";
+import WorkspacePlatformsPage from "~/ee/organizations/admin/views/WorkspacePlatformPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -16,7 +16,10 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("workspace_platforms")} description={t("workspace_platforms_description")}>
+    <SettingsHeader
+      title={t("workspace_platforms")}
+      description={t("workspace_platforms_description")}
+    >
       <LicenseRequired>
         <WorkspacePlatformsPage />
       </LicenseRequired>

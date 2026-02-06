@@ -141,7 +141,7 @@ function EventTypeSingleLayout({
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
                   }
                   side="bottom">
-                  <div className="self-center rounded-md p-2">
+                  <div className="self-center rounded-md">
                     <Switch
                       id="hiddenSwitch"
                       disabled={eventTypesLockedByOrg}
@@ -302,6 +302,7 @@ function EventTypeSingleLayout({
               className="primary-navigation w-64"
               tabs={EventTypeTabs}
               sticky
+              stickyOffset="var(--navbar-height, 64px)"
               linkShallow
               itemClassname="items-start"
             />
