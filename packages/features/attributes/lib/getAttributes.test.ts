@@ -752,8 +752,9 @@ describe("getAttributes", () => {
       const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
         await getAttributesAssignmentData({ teamId: team.id, orgId });
 
-      // No assignments since there are no options to assign
-      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(0);
+      // User is still included with empty attributes so exclusion operators can match them
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0].attributes).toEqual({});
       expect(attributesOfTheOrg).toHaveLength(1);
     });
 
