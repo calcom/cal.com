@@ -171,9 +171,10 @@ export const NavigationItem: React.FC<{
             aria-expanded={isExpanded}
             aria-current={current ? "page" : undefined}
             onClick={() => {
-              setIsExpanded(!isExpanded);
               if (isTablet && hasChildren) {
                 setIsTooltipOpen(!isTooltipOpen);
+              } else {
+                setIsExpanded(!isExpanded);
               }
             }}
             className={classNames(
@@ -274,11 +275,20 @@ export const NavigationItem: React.FC<{
           </Link>
         </Tooltip>
       )}
-      {item.child &&
-        shouldShowChildren &&
-        item.child.map((item, index) => (
-          <NavigationItem index={index} key={item.name} item={item} isChild />
-        ))}
+      {hasChildren && (
+        <div
+          className={classNames(
+            "grid transition-all duration-300 ease-in-out",
+            shouldShowChildren ? "grid-rows-[1fr] opacity-100 visible" : "grid-rows-[0fr] opacity-0 invisible"
+          )}
+          aria-hidden={!shouldShowChildren}>
+          <div className="overflow-hidden">
+            {item.child?.map((item, index) => (
+              <NavigationItem index={index} key={item.name} item={item} isChild />
+            ))}
+          </div>
+        </div>
+      )}
     </Fragment>
   );
 };
@@ -362,22 +372,30 @@ export const MobileNavigationMoreItem: React.FC<{
               className="text-subtle h-5 w-5"
             />
           </button>
-          {isExpanded && item.child && (
-            <ul className="bg-subtle">
-              {item.child.map((childItem) => (
-                <li key={childItem.name} className="border-subtle border-t">
-                  <Link
-                    href={childItem.href}
-                    className="hover:bg-cal-muted flex items-center p-4 pl-12 transition"
-                  >
-                    <span className="text-default font-medium">
-                      {isLocaleReady ? t(childItem.name) : <SkeletonText />}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div
+            className={classNames(
+              "grid transition-all duration-300 ease-in-out",
+              isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            )}>
+            <div className="overflow-hidden">
+              {item.child && (
+                <ul className="bg-subtle">
+                  {item.child.map((childItem) => (
+                    <li key={childItem.name} className="border-subtle border-t">
+                      <Link
+                        href={childItem.href}
+                        className="hover:bg-cal-muted flex items-center p-4 pl-12 transition"
+                      >
+                        <span className="text-default font-medium">
+                          {isLocaleReady ? t(childItem.name) : <SkeletonText />}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </>
       ) : (
         <Link
