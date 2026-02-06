@@ -1674,6 +1674,45 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
         );
         expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
       });
+
+      it("should match users who have a different attribute but not the queried one (undefined != 'Sales' is true)", async () => {
+        const { createdUsers } = await createAttributesScenario({
+          attributes: [DepartmentAttribute, LocationsAttribute],
+          teamMembersWithAttributeOptionValuePerAttribute: [
+            { attributes: { [DepartmentAttribute.id]: "Sales" } },
+            { attributes: { [DepartmentAttribute.id]: "Engineering" } },
+            // User has Location but NOT Department - should still match Department != 'Sales'
+            { attributes: { [LocationsAttribute.id]: ["Chicago"] } },
+          ],
+        });
+
+        const attributesQueryValue = buildSelectTypeFieldQueryValue({
+          rules: [
+            {
+              raqbFieldId: DepartmentAttribute.id,
+              value: ["dept-sales"],
+              operator: "select_not_equals",
+            },
+          ],
+        }) as AttributesQueryValue;
+
+        const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+          dynamicFieldValueOperands: { fields: [], response: {} },
+          attributesQueryValue,
+          teamId: testFixtures.team.id,
+          orgId: testFixtures.org.id,
+        });
+
+        // User 1 (Engineering) and User 2 (has Location but no Department) should match
+        // because Engineering != Sales and undefined != Sales are both true
+        expect(result).toEqual(
+          expect.arrayContaining([
+            { userId: createdUsers[1].userId, result: RaqbLogicResult.MATCH },
+            { userId: createdUsers[2].userId, result: RaqbLogicResult.MATCH },
+          ])
+        );
+        expect(result).not.toContainEqual({ userId: createdUsers[0].userId, result: RaqbLogicResult.MATCH });
+      });
     });
 
     describe("select_not_any_in", () => {
