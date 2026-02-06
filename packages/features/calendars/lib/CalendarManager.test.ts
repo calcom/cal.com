@@ -419,64 +419,18 @@ describe("CalendarManager tests", () => {
       vi.clearAllMocks();
     });
 
-    it("should return early and not call calendar.deleteEvent when bookingRefUid is empty string", async () => {
+    it.each([
+      ["empty string", ""],
+      ["undefined", undefined],
+      ["null", null],
+    ])("should return early when bookingRefUid is %s", async (_, bookingRefUid) => {
       const mockCalendarDeleteEvent = vi.fn();
-      const mockCalendar = {
-        deleteEvent: mockCalendarDeleteEvent,
-      };
-      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
-
-      const credential = buildCalendarCredentialForDelete();
-      const event = buildCalendarEvent();
+      mockedGetCalendar.mockResolvedValue({ deleteEvent: mockCalendarDeleteEvent } as any);
 
       const result = await deleteEvent({
-        credential: credential as any,
-        bookingRefUid: "",
-        event: event as any,
-        externalCalendarId: "calendar-id",
-      });
-
-      expect(result).toEqual({});
-      expect(mockedGetCalendar).not.toHaveBeenCalled();
-      expect(mockCalendarDeleteEvent).not.toHaveBeenCalled();
-    });
-
-    it("should return early and not call calendar.deleteEvent when bookingRefUid is undefined", async () => {
-      const mockCalendarDeleteEvent = vi.fn();
-      const mockCalendar = {
-        deleteEvent: mockCalendarDeleteEvent,
-      };
-      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
-
-      const credential = buildCalendarCredentialForDelete();
-      const event = buildCalendarEvent();
-
-      const result = await deleteEvent({
-        credential: credential as any,
-        bookingRefUid: undefined as any,
-        event: event as any,
-        externalCalendarId: "calendar-id",
-      });
-
-      expect(result).toEqual({});
-      expect(mockedGetCalendar).not.toHaveBeenCalled();
-      expect(mockCalendarDeleteEvent).not.toHaveBeenCalled();
-    });
-
-    it("should return early and not call calendar.deleteEvent when bookingRefUid is null", async () => {
-      const mockCalendarDeleteEvent = vi.fn();
-      const mockCalendar = {
-        deleteEvent: mockCalendarDeleteEvent,
-      };
-      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
-
-      const credential = buildCalendarCredentialForDelete();
-      const event = buildCalendarEvent();
-
-      const result = await deleteEvent({
-        credential: credential as any,
-        bookingRefUid: null as any,
-        event: event as any,
+        credential: buildCalendarCredentialForDelete() as any,
+        bookingRefUid: bookingRefUid as any,
+        event: buildCalendarEvent() as any,
         externalCalendarId: "calendar-id",
       });
 
@@ -487,10 +441,7 @@ describe("CalendarManager tests", () => {
 
     it("should call calendar.deleteEvent when bookingRefUid is valid", async () => {
       const mockCalendarDeleteEvent = vi.fn().mockResolvedValue({ success: true });
-      const mockCalendar = {
-        deleteEvent: mockCalendarDeleteEvent,
-      };
-      mockedGetCalendar.mockResolvedValue(mockCalendar as any);
+      mockedGetCalendar.mockResolvedValue({ deleteEvent: mockCalendarDeleteEvent } as any);
 
       const credential = buildCalendarCredentialForDelete();
       const event = buildCalendarEvent();
@@ -512,18 +463,15 @@ describe("CalendarManager tests", () => {
     it("should return empty object when calendar is not available", async () => {
       mockedGetCalendar.mockResolvedValue(null);
 
-      const credential = buildCalendarCredentialForDelete();
-      const event = buildCalendarEvent();
-
       const result = await deleteEvent({
-        credential: credential as any,
+        credential: buildCalendarCredentialForDelete() as any,
         bookingRefUid: "valid-uid",
-        event: event as any,
+        event: buildCalendarEvent() as any,
         externalCalendarId: "calendar-id",
       });
 
       expect(result).toEqual({});
-      expect(mockedGetCalendar).toHaveBeenCalledWith(credential, "booking");
+      expect(mockedGetCalendar).toHaveBeenCalledWith(buildCalendarCredentialForDelete(), "booking");
     });
   });
 });
