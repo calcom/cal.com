@@ -41,6 +41,7 @@
   "dependencies": {
     "@axiomhq/winston": "1.2.0",
     "@calcom/platform-constants": "workspace:*",
+    "@calcom/features": "workspace:*",
     "@calcom/platform-enums": "workspace:*",
     "@calcom/platform-libraries": "workspace:*",
     "@calcom/platform-types": "workspace:*",

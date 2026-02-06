@@ -12,6 +12,8 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { User } from "@calcom/prisma/client";
 import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
@@ -181,7 +183,8 @@ export class OrganizationsTeamsMembershipsController {
   async createOrgTeamMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() data: CreateOrgTeamMembershipDto
+    @Body() data: CreateOrgTeamMembershipDto,
+    @GetUser() inviter: User
   ): Promise<OrgTeamMembershipOutputResponseDto> {
     const user = await this.organizationsRepository.findOrgUser(Number(orgId), Number(data.userId));
 
@@ -200,8 +203,11 @@ export class OrganizationsTeamsMembershipsController {
 
     const membershipData = { ...data, accepted: acceptedStatus };
     const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(
+      orgId,
       teamId,
-      membershipData
+      membershipData,
+      user, // invitee
+      inviter // inviter
     );
 
     if (membership.accepted) {

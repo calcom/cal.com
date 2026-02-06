@@ -5,21 +5,53 @@ import { TeamsMembershipsService } from "@/modules/teams/memberships/services/te
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { TeamService } from "@calcom/platform-libraries";
+import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/features/ee/teams/lib/inviteMembers";
+import { CreationSource } from "@calcom/prisma/enums";
+import { User } from "@calcom/prisma/client";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsService {
   constructor(
     private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository,
-    private readonly teamsMembershipsService: TeamsMembershipsService
-  ) {}
+    private readonly teamsMembershipsService: TeamsMembershipsService,
+    private readonly organizationsRepository: OrganizationsRepository
+  ) { }
 
-  async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
-    await this.teamsMembershipsService.canUserBeAddedToTeam(data.userId, teamId);
-    const teamMembership = await this.organizationsTeamsMembershipsRepository.createOrgTeamMembership(
+  async createOrgTeamMembership(
+    orgId: number,
+    teamId: number,
+    data: CreateOrgTeamMembershipDto,
+    invitee: User,
+    inviter: User
+  ) {
+    const org = await this.organizationsRepository.findByIdIncludeBilling(orgId);
+    if (!org) {
+      throw new NotFoundException("Organization not found");
+    }
+
+    await inviteMembersWithNoInviterPermissionCheck({
+      language: inviter.locale ?? "en",
+      inviterName: inviter.name,
+      orgSlug: org.slug,
+      invitations: [{ usernameOrEmail: invitee.email, role: data.role }],
+      creationSource: CreationSource.API,
       teamId,
-      data
+      isDirectUserAction: true,
+    });
+
+    const membership = await this.organizationsTeamsMembershipsRepository.findOrgTeamMembershipByUserId(
+      orgId,
+      teamId,
+      invitee.id
     );
-    return teamMembership;
+
+    if (!membership) {
+      // Should not happen if inviteMembersWithNoInviterPermissionCheck succeeded
+      throw new NotFoundException("Membership created but could not be found");
+    }
+
+    return membership;
   }
 
   async getPaginatedOrgTeamMemberships(organizationId: number, teamId: number, skip = 0, take = 250) {
