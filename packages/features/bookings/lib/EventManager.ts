@@ -1040,6 +1040,7 @@ export default class EventManager {
       return undefined;
     }
 
+    /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
     let videoCredential;
     if (event.conferenceCredentialId) {
@@ -1047,13 +1048,8 @@ export default class EventManager {
         (credential) => credential.id === event.conferenceCredentialId
       );
     } else {
-      // For Google Meet (integrations:google:meet), the credential type is "google_video", not "google:meet"
-      // We need to handle this special case by looking for the correct credential type
-      const credentialTypeToSearch =
-        integrationName === "google:meet" ? "google_video" : integrationName;
-
       videoCredential = this.videoCredentials.find((credential: CredentialForCalendarService) =>
-        credential.type.includes(credentialTypeToSearch)
+        credential.type.includes(integrationName)
       );
       log.warn(
         `Could not find conferenceCredentialId for event with location: ${event.location}, trying to use last added video credential`
