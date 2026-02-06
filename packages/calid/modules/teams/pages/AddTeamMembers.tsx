@@ -2,7 +2,7 @@
 
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { triggerToast } from "@calid/features/ui/components/toast";

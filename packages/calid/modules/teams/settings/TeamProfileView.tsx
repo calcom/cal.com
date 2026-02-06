@@ -13,7 +13,7 @@ import {
   DialogClose,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { CustomImageUploader } from "@calid/features/ui/components/uploader";

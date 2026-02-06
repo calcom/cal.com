@@ -2,7 +2,7 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import ThemeCard from "@calid/features/ui/components/card/theme-card";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
