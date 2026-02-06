@@ -52,15 +52,20 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  SelectWithValidation as Select,
+  SelectField,
+  Switch,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { redirectUrlValidator } from "../lib/redirectUrlValidator";
+import { CustomEventTypeSlugInput } from "./CustomEventTypeSlugInput";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
@@ -401,6 +406,8 @@ const Route = ({
     return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
   });
 
+  const [urlValidationError, setUrlValidationError] = useState<string | null>(null);
+
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
     eventOptions,
@@ -457,6 +464,25 @@ const Route = ({
       fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
     });
   };
+
+  const onChangeCustomEventTypeSlug = (slug: string): boolean => {
+    const validation = redirectUrlValidator(slug);
+    if (!validation.isValid) {
+      setUrlValidationError(
+        t("variables_not_allowed_in_query_params", {
+          variables: validation.invalidVariables.map((v) => `{${v}}`).join(", "),
+        })
+      );
+      return false;
+    } else {
+      setUrlValidationError(null);
+    }
+    setCustomEventTypeSlug(slug);
+    setRoute(route.id, {
+      action: { ...route.action, value: `${eventTypePrefix}${slug}`}
+    })
+    return true;
+  }
 
   const renderBuilder = useCallback(
     (props: BuilderProps) => (
@@ -756,35 +782,15 @@ const Route = ({
                       route.action.value !== "" &&
                       (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
                         customEventTypeSlug.length) ? (
-                        <>
-                          <TextField
-                            disabled={disabled}
-                            className="border-default flex w-full grow text-sm"
-                            containerClassName="grow mt-2"
-                            addOnLeading={eventTypePrefix}
-                            required
-                            value={customEventTypeSlug}
-                            onChange={(e) => {
-                              setCustomEventTypeSlug(e.target.value);
-                              setRoute(route.id, {
-                                action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
-                              });
-                            }}
-                            placeholder="event-url"
-                          />
-                          <div className="mt-2 ">
-                            <p className="text-subtle text-xs">
-                              {fieldIdentifiers.length
-                                ? t("field_identifiers_as_variables_with_example", {
-                                    variable: `{${fieldIdentifiers[0]}}`,
-                                  })
-                                : t("field_identifiers_as_variables")}
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <></>
-                      )}
+                        <CustomEventTypeSlugInput
+                          disabled={disabled}
+                          eventTypePrefix={eventTypePrefix}
+                          customEventTypeSlug={customEventTypeSlug}
+                          urlValidationError={urlValidationError}
+                          fieldIdentifiers={fieldIdentifiers}
+                          onChange={onChangeCustomEventTypeSlug}
+                        />
+                      ) : null}
                     </div>
                   )
                 ) : null}
@@ -892,35 +898,15 @@ const Route = ({
                         route.action.value !== "" &&
                         (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
                           customEventTypeSlug.length) ? (
-                          <>
-                            <TextField
-                              disabled={disabled}
-                              className="border-default flex w-full grow text-sm"
-                              containerClassName="grow mt-2"
-                              addOnLeading={eventTypePrefix}
-                              required
-                              value={customEventTypeSlug}
-                              onChange={(e) => {
-                                setCustomEventTypeSlug(e.target.value);
-                                setRoute(route.id, {
-                                  action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
-                                });
-                              }}
-                              placeholder="event-url"
-                            />
-                            <div className="mt-2 ">
-                              <p className="text-subtle text-xs">
-                                {fieldIdentifiers.length
-                                  ? t("field_identifiers_as_variables_with_example", {
-                                      variable: `{${fieldIdentifiers[0]}}`,
-                                    })
-                                  : t("field_identifiers_as_variables")}
-                              </p>
-                            </div>
-                          </>
-                        ) : (
-                          <></>
-                        )}
+                          <CustomEventTypeSlugInput
+                            disabled={disabled}
+                            eventTypePrefix={eventTypePrefix}
+                            customEventTypeSlug={customEventTypeSlug}
+                            urlValidationError={urlValidationError}
+                            fieldIdentifiers={fieldIdentifiers}
+                            onChange={onChangeCustomEventTypeSlug}
+                          />
+                        ) : null}
                       </div>
                     )
                   ) : null}
