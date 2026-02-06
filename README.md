@@ -427,7 +427,7 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
    cp .env.example .env
    ```
 
-   Most configurations can be left as-is, but for configuration options see [Important Run-time variables](#important-run-time-variables) below.
+   The default `docker-compose.yml` uses the **pre-built image** (no build step). Database and Redis URLs default to the included Postgres and Redis services, so you do not need to set `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `DATABASE_HOST`, or `REDIS_URL` in `.env` when using the full stack. For other configuration options see [Important Run-time variables](#important-run-time-variables) below.
 
    **Push Notifications (VAPID Keys)**
    If you see an error like:
@@ -511,79 +511,45 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
    docker compose up -d
    ```
 
-#### (Advanced users) Build and Run Cal.com
+#### (Advanced users) Build and Run Cal.com from source
 
-1. Clone calcom/docker.
+If you need to build the Cal.com web image from source (e.g. to customize build-time variables), use the optional `docker-compose.build.yml` override.
 
-   ```bash
-   git clone https://github.com/calcom/cal.com.git calcom-docker
-   ```
+1. Clone the repository and change into the directory (same as the "Most users" steps 1–2).
 
-2. Change into the directory
+2. Copy `.env.example` to `.env` and set [Build-time variables](#build-time-variables). For the default stack you can set `DATABASE_URL=postgresql://unicorn_user:magical_password@database:5432/calendso` (or leave it unset if you use the compose defaults after starting the database).
 
-   ```bash
-   cd calcom-docker
-   ```
-
-3. Update the calcom submodule. This project depends on the Cal.com source code, which is included here as a Git submodule. To make sure you get everything you need, update the submodule with the command below.
-
-   ```bash
-   git submodule update --remote --init
-   ```
-
-   Note: DO NOT use recursive submodule update, otherwise you will receive a git authentication error.
-
-4. Rename `.env.example` to `.env` and then update `.env`
-
-   For configuration options see [Build-time variables](#build-time-variables) below. Update the appropriate values in your .env file, then proceed.
-
-5. Build the Cal.com docker image:
-
-   Note: Due to application configuration requirements, an available database is currently required during the build process.
-
-   a) If hosting elsewhere, configure the `DATABASE_URL` in the .env file, and skip the next step
-
-   b) If a local or temporary database is required, start a local database via docker compose.
+3. Start the database so it is available during build (if using the stack database):
 
    ```bash
    docker compose up -d database
    ```
 
-6. Build Cal.com via docker compose (DOCKER_BUILDKIT=0 must be provided to allow a network bridge to be used at build time. This requirement will be removed in the future)
+4. Build the Cal.com image using the build override (DOCKER_BUILDKIT=0 may be required for network access during build):
 
    ```bash
-   DOCKER_BUILDKIT=0 docker compose build calcom
+   DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml -f docker-compose.build.yml build calcom
    ```
 
-7. Start Cal.com via docker compose
-
-   (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+5. Start the stack (use the same override when running so the built image is used):
 
    ```bash
-   docker compose up -d
+   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d
    ```
 
-   To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
+   Or run only Cal.com (and optionally studio) if you use an external database:
 
    ```bash
-   docker compose up -d calcom studio
+   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d calcom studio
    ```
 
-   To run only the Cal.com web app, ensure that DATABASE_URL is configured for an available database and run:
-
-   ```bash
-   docker compose up -d calcom
-   ```
-
-   **Note: to run in attached mode for debugging, remove `-d` from your desired run command.**
-
-8. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+6. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
 
 #### Configuration
 
 ##### Important Run-time variables
 
-These variables must also be provided at runtime
+These variables must also be provided at runtime. When using `docker-compose.yml` with the included database and Redis services, `DATABASE_URL` and `REDIS_URL` are set from defaults in the compose file (no need to set `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, or `DATABASE_HOST` in `.env` unless you use different credentials or a remote database).
 
 | Variable                | Description                                                                                                                                                                      | Required | Default                                                             |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------- |
