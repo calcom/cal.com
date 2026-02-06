@@ -1,9 +1,14 @@
-import { getCalendarSyncQueue } from "@calid/queue";
+// import { getCalendarSyncQueue } from "@calid/queue";
 import { appRouter } from "@queuedash/api";
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-function handler(req: Request) {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function handler(req: Request) {
+  const { getCalendarSyncQueue } = await import("@calid/queue");
+
   return fetchRequestHandler({
     endpoint: "/api/queuedash",
     req,
