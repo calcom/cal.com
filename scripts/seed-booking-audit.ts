@@ -386,54 +386,75 @@ async function seedAuditLogsForBooking({
 export default async function seedBookingAuditLogs() {
   console.log("🔍 Seeding booking audit logs...");
 
-  const targetUsers = await prisma.user.findMany({
-    where: {
-      username: { in: ["pro", "owner1-acme"] },
-    },
+  // Audit logs is an org-only feature, so we only seed for owner1-acme
+  const user = await prisma.user.findFirst({
+    where: { username: "owner1-acme" },
     select: { id: true, uuid: true, username: true, email: true },
   });
 
-  if (targetUsers.length === 0) {
-    console.log("❌ No seed users found. Run the main seed first.");
+  if (!user) {
+    console.log("❌ User owner1-acme not found. Run the main seed first.");
     return;
   }
 
-  let totalCreated = 0;
+  // Find an event type for this user to create a booking
+  const eventType = await prisma.eventType.findFirst({
+    where: { userId: user.id },
+    select: { id: true, title: true, length: true },
+  });
 
-  for (const user of targetUsers) {
-    const booking = await prisma.booking.findFirst({
-      where: { userId: user.id },
-      select: {
-        uid: true,
-        attendees: { select: { id: true, email: true }, take: 1 },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (!booking) {
-      console.log(`  ⚠️ No booking found for ${user.username}, skipping.`);
-      continue;
-    }
-
-    console.log(`📋 Seeding audit logs for ${user.username} — booking ${booking.uid}`);
-
-    const count = await seedAuditLogsForBooking({
-      bookingUid: booking.uid,
-      userUuid: user.uuid,
-      attendeeId: booking.attendees[0]?.id,
-      attendeeEmail: booking.attendees[0]?.email ?? "attendee@example.com",
-    });
-
-    if (count > 0) {
-      console.log(`  ✅ Created ${count} audit log entries`);
-      console.log(`  View logs at: /booking/${booking.uid}/logs`);
-    }
-
-    totalCreated += count;
+  if (!eventType) {
+    console.log("❌ No event type found for owner1-acme. Run the main seed first.");
+    return;
   }
 
+  // Create a new upcoming booking specifically for audit logs
+  const bookingUid = uuidv4();
+  const startTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+  const endTime = new Date(startTime.getTime() + eventType.length * 60 * 1000);
+
+  console.log(`📋 Creating new booking for audit logs...`);
+
+  const booking = await prisma.booking.create({
+    data: {
+      uid: bookingUid,
+      title: `Audit Log Test Booking - ${eventType.title}`,
+      startTime,
+      endTime,
+      status: BookingStatus.ACCEPTED,
+      userId: user.id,
+      eventTypeId: eventType.id,
+      attendees: {
+        create: {
+          email: "audit-test-attendee@example.com",
+          name: "Audit Test Attendee",
+          timeZone: "UTC",
+        },
+      },
+    },
+    select: {
+      uid: true,
+      attendees: { select: { id: true, email: true }, take: 1 },
+    },
+  });
+
+  console.log(`  ✅ Created booking: ${booking.uid}`);
+
+  console.log(`📋 Seeding audit logs for ${user.username} — booking ${booking.uid}`);
+
+  const count = await seedAuditLogsForBooking({
+    bookingUid: booking.uid,
+    userUuid: user.uuid,
+    attendeeId: booking.attendees[0]?.id,
+    attendeeEmail: booking.attendees[0]?.email ?? "attendee@example.com",
+  });
+
+  console.log(`  ✅ Created ${count} audit log entries`);
+  console.log(`  View logs at: /booking/${booking.uid}/logs`);
+
   console.log(`\n📊 Summary:`);
-  console.log(`  Total audit log entries created: ${totalCreated}`);
+  console.log(`  Booking UID: ${booking.uid}`);
+  console.log(`  Total audit log entries created: ${count}`);
   console.log("  Actions covered: CREATED, ACCEPTED, RESCHEDULE_REQUESTED, RESCHEDULED,");
   console.log("    LOCATION_CHANGED, ATTENDEE_ADDED, ATTENDEE_REMOVED, REASSIGNMENT (x2),");
   console.log("    NO_SHOW_UPDATED (x2), CANCELLED, REJECTED, SEAT_BOOKED, SEAT_RESCHEDULED");
