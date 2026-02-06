@@ -10,6 +10,7 @@ export const apiHandlers = {
   autocheckin: import("./autocheckin/api"),
   "baa-for-hipaa": import("./baa-for-hipaa/api"),
   basecamp3: import("./basecamp3/api"),
+  bigbluebutton: import("./bigbluebutton/api"),
   bolna: import("./bolna/api"),
   btcpayserver: import("./btcpayserver/api"),
   caldavcalendar: import("./caldavcalendar/api"),
