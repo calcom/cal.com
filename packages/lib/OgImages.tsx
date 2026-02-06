@@ -67,7 +67,7 @@ const OG_ASSETS = {
   },
   generic: {
     id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
-    logo: LOGO_DARK ?? LOGO, // Fallback approach because self-hosters might leave the dark logo empty.
+    logo: LOGO_DARK,
     logoWidth: "350",
     variant: "light" as const,
   },
