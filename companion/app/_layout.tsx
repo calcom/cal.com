@@ -411,6 +411,14 @@ function RootLayoutContent() {
                 : "light",
         }}
       />
+      <Stack.Screen
+        name="video/[bookingUid]"
+        options={{
+          headerShown: false,
+          presentation: "fullScreenModal",
+          animation: "fade",
+        }}
+      />
     </Stack>
   ) : (
     <LoginScreenComponent />

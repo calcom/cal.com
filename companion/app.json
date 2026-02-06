@@ -19,10 +19,14 @@
       "bundleIdentifier": "com.cal.companion",
       "userInterfaceStyle": "automatic",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Cal.com needs camera access for video calls",
+        "NSMicrophoneUsageDescription": "Cal.com needs microphone access for video calls",
+        "UIBackgroundModes": ["voip", "audio"]
       },
       "entitlements": {
-        "com.apple.developer.default-data-protection": "NSFileProtectionComplete"
+        "com.apple.developer.default-data-protection": "NSFileProtectionComplete",
+        "com.apple.developer.associated-domains": ["applinks:app.cal.com"]
       },
       "icon": "./assets/cal-logo.icon"
     },
@@ -35,7 +39,22 @@
       "package": "com.calcom.companion",
       "softwareKeyboardLayoutMode": "pan",
       "usesCleartextTraffic": false,
-      "userInterfaceStyle": "automatic"
+      "userInterfaceStyle": "automatic",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "app.cal.com",
+              "pathPrefix": "/video"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -80,7 +99,9 @@
             }
           }
         }
-      ]
+      ],
+      "@config-plugins/react-native-webrtc",
+      "@daily-co/config-plugin-rn-daily-js"
     ],
     "experiments": {
       "typedRoutes": true,

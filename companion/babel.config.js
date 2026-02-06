@@ -8,6 +8,13 @@ module.exports = (api) => {
           jsxImportSource: "nativewind",
           "react-compiler": {
             panicThreshold: "all_errors",
+            sources: (filename) => {
+              // Exclude video screen from React Compiler - dynamic imports not supported
+              if (filename.includes("app/video/[bookingUid].tsx")) {
+                return false;
+              }
+              return true;
+            },
           },
         },
       ],
