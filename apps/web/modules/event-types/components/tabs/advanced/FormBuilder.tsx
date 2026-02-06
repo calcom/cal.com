@@ -911,7 +911,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   }
   const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
   const firstField = variantData?.fields?.[0];
-  const label = firstField?.label || "";
+  const label = firstField?.label?.trim() ? firstField.label : "";
   const firstFieldName = firstField?.name;
   const defaultLabelFromTypeConfig =
     fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
