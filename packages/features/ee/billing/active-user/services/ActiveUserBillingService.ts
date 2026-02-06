@@ -10,6 +10,9 @@ export class ActiveUserBillingService {
   /**
    * Count active users for a platform organization (uses PlatformBilling subscription ID).
    * A user is "active" if they hosted or attended at least one booking in the period.
+   *
+   * Uses the platform-specific host query that filters on isPlatformManaged + subscriptionId
+   * to ensure only bookings belonging to this org's managed users are counted.
    */
   async getActiveUserCountForPlatformOrg(
     subscriptionId: string,
@@ -19,11 +22,29 @@ export class ActiveUserBillingService {
     const managedUserEmails =
       await this.deps.activeUserBillingRepository.getManagedUserEmailsBySubscriptionId(subscriptionId);
 
-    return this.countActiveUsers(
-      managedUserEmails.map((u) => u.email),
+    if (managedUserEmails.length === 0) return 0;
+
+    const activeHosts = await this.deps.activeUserBillingRepository.getActivePlatformUsersAsHost(
+      subscriptionId,
       periodStart,
       periodEnd
     );
+
+    const activeHostEmails = new Set(activeHosts.map((h) => h.email));
+
+    const nonHostEmails = managedUserEmails
+      .map((u) => u.email)
+      .filter((email) => !activeHostEmails.has(email));
+
+    if (nonHostEmails.length === 0) return activeHostEmails.size;
+
+    const activeAttendees = await this.deps.activeUserBillingRepository.getActiveUsersAsAttendee(
+      nonHostEmails,
+      periodStart,
+      periodEnd
+    );
+
+    return activeHostEmails.size + activeAttendees.length;
   }
 
   /**

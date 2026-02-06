@@ -5,9 +5,6 @@ export class ActiveUserBillingRepository {
 
   /**
    * Get all managed user emails for a platform org identified by its PlatformBilling subscription ID.
-   * Includes:
-   *  - managed users of the main org (direct subscription match)
-   *  - managed users of managed sub-orgs (via managerBillingId pointing to the main org's billing)
    */
   async getManagedUserEmailsBySubscriptionId(subscriptionId: string): Promise<{ email: string }[]> {
     return this.prismaClient.user.findMany({
@@ -18,16 +15,7 @@ export class ActiveUserBillingRepository {
           some: {
             organization: {
               platformBilling: {
-                OR: [
-                  // Direct match: user belongs to the org with this subscription
-                  { subscriptionId },
-                  // Sub-org match: user belongs to a managed org whose manager has this subscription
-                  {
-                    managerBilling: {
-                      subscriptionId,
-                    },
-                  },
-                ],
+                subscriptionId,
               },
             },
           },
@@ -51,6 +39,44 @@ export class ActiveUserBillingRepository {
           some: {
             teamId: orgId,
             accepted: true,
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  /**
+   * Find platform-managed users (by email) who hosted at least one booking in the given period.
+   * Filters on isPlatformManaged to match only platform org users.
+   */
+  async getActivePlatformUsersAsHost(
+    subscriptionId: string,
+    periodStart: Date,
+    periodEnd: Date
+  ): Promise<{ email: string }[]> {
+    return this.prismaClient.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+        bookings: {
+          some: {
+            userId: { not: null },
+            startTime: {
+              gte: periodStart,
+              lte: periodEnd,
+            },
           },
         },
       },

@@ -9,6 +9,7 @@ function createMockRepository(): {
   return {
     getManagedUserEmailsBySubscriptionId: vi.fn().mockResolvedValue([]),
     getOrgMemberEmailsByOrgId: vi.fn().mockResolvedValue([]),
+    getActivePlatformUsersAsHost: vi.fn().mockResolvedValue([]),
     getActiveUsersAsHost: vi.fn().mockResolvedValue([]),
     getActiveUsersAsAttendee: vi.fn().mockResolvedValue([]),
   };
@@ -38,7 +39,7 @@ describe("ActiveUserBillingService", () => {
 
       expect(count).toBe(0);
       expect(mockRepo.getManagedUserEmailsBySubscriptionId).toHaveBeenCalledWith(subscriptionId);
-      expect(mockRepo.getActiveUsersAsHost).not.toHaveBeenCalled();
+      expect(mockRepo.getActivePlatformUsersAsHost).not.toHaveBeenCalled();
       expect(mockRepo.getActiveUsersAsAttendee).not.toHaveBeenCalled();
     });
 
@@ -48,12 +49,20 @@ describe("ActiveUserBillingService", () => {
         { email: "bob@test.com" },
         { email: "charlie@test.com" },
       ]);
-      mockRepo.getActiveUsersAsHost.mockResolvedValue([{ email: "alice@test.com" }, { email: "bob@test.com" }]);
+      mockRepo.getActivePlatformUsersAsHost.mockResolvedValue([
+        { email: "alice@test.com" },
+        { email: "bob@test.com" },
+      ]);
       mockRepo.getActiveUsersAsAttendee.mockResolvedValue([]);
 
       const count = await service.getActiveUserCountForPlatformOrg(subscriptionId, periodStart, periodEnd);
 
       expect(count).toBe(2);
+      expect(mockRepo.getActivePlatformUsersAsHost).toHaveBeenCalledWith(
+        subscriptionId,
+        periodStart,
+        periodEnd
+      );
       expect(mockRepo.getActiveUsersAsAttendee).toHaveBeenCalledWith(
         ["charlie@test.com"],
         periodStart,
@@ -66,7 +75,7 @@ describe("ActiveUserBillingService", () => {
         { email: "alice@test.com" },
         { email: "bob@test.com" },
       ]);
-      mockRepo.getActiveUsersAsHost.mockResolvedValue([]);
+      mockRepo.getActivePlatformUsersAsHost.mockResolvedValue([]);
       mockRepo.getActiveUsersAsAttendee.mockResolvedValue([{ email: "alice@test.com" }]);
 
       const count = await service.getActiveUserCountForPlatformOrg(subscriptionId, periodStart, periodEnd);
@@ -80,7 +89,7 @@ describe("ActiveUserBillingService", () => {
         { email: "bob@test.com" },
         { email: "charlie@test.com" },
       ]);
-      mockRepo.getActiveUsersAsHost.mockResolvedValue([{ email: "alice@test.com" }]);
+      mockRepo.getActivePlatformUsersAsHost.mockResolvedValue([{ email: "alice@test.com" }]);
       mockRepo.getActiveUsersAsAttendee.mockResolvedValue([{ email: "bob@test.com" }]);
 
       const count = await service.getActiveUserCountForPlatformOrg(subscriptionId, periodStart, periodEnd);
@@ -99,7 +108,7 @@ describe("ActiveUserBillingService", () => {
         { email: "alice@test.com" },
         { email: "bob@test.com" },
       ]);
-      mockRepo.getActiveUsersAsHost.mockResolvedValue([
+      mockRepo.getActivePlatformUsersAsHost.mockResolvedValue([
         { email: "alice@test.com" },
         { email: "bob@test.com" },
       ]);
@@ -116,7 +125,7 @@ describe("ActiveUserBillingService", () => {
         { email: "alice@test.com" },
         { email: "bob@test.com" },
       ]);
-      mockRepo.getActiveUsersAsHost.mockResolvedValue([]);
+      mockRepo.getActivePlatformUsersAsHost.mockResolvedValue([]);
       mockRepo.getActiveUsersAsAttendee.mockResolvedValue([]);
 
       const count = await service.getActiveUserCountForPlatformOrg(subscriptionId, periodStart, periodEnd);
