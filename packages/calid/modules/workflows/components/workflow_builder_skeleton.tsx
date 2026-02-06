@@ -46,19 +46,16 @@ const SkeletonCard: React.FC<SkeletonBaseProps & { children: React.ReactNode }> 
 
 export const WorkflowBuilderSkeleton: React.FC = () => {
   return (
-    <div className="bg-card flex justify-center p-6 p-8">
-      <div className="bg-card mx-auto w-full p-6">
+    <div className="bg-default flex justify-center p-6 p-8">
+      <div className="bg-default mx-auto w-full p-6">
         <div className="mx-auto max-w-2xl space-y-6">
-          {/* Workflow name section skeleton */}
-          <div className="bg-card w-full space-y-6 rounded-lg border p-6">
+          <div className="bg-default w-full space-y-6 rounded-lg border p-6">
             <div className="space-y-6">
-              {/* Workflow name input skeleton */}
               <div>
                 <SkeletonText className="mb-2 h-4 w-32" />
                 <SkeletonInput className="h-10 w-full" />
               </div>
 
-              {/* Event type selection skeleton */}
               <div>
                 <SkeletonText className="mb-2 h-4 w-48" />
                 <SkeletonButton className="h-10 w-full" />
@@ -66,7 +63,6 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
             </div>
           </div>
 
-          {/* Trigger section skeleton */}
           <SkeletonCard>
             <CardHeader>
               <SkeletonText className="h-6 w-40" />
@@ -95,13 +91,11 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
             </CardContent>
           </SkeletonCard>
 
-          {/* Actions section skeleton */}
           <SkeletonCard>
             <CardHeader>
               <SkeletonText className="h-6 w-20" />
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Action step skeleton */}
               <Card className="border">
                 <div className="p-4">
                   <div className="flex items-center justify-between">
@@ -117,7 +111,6 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
                   </div>
 
                   <div className="mt-4 space-y-4">
-                    {/* Phone/Email input skeleton */}
                     <div className="bg-default rounded-md p-4">
                       <SkeletonText className="mb-2 h-4 w-24" />
                       <div className="flex">
@@ -126,21 +119,17 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Sender configuration skeleton */}
                     <div className="bg-default rounded-md p-4">
                       <SkeletonText className="mb-2 h-4 w-20" />
                       <SkeletonInput className="h-10 w-full" />
                     </div>
 
-                    {/* Template selection skeleton */}
                     <div className="mt-5">
                       <SkeletonText className="mb-2 h-4 w-32" />
                       <SkeletonSelect className="h-10 w-full" />
                     </div>
 
-                    {/* Message content skeleton */}
                     <div className="bg-default rounded-md p-4">
-                      {/* Email subject skeleton */}
                       <div className="mb-6">
                         <div className="mb-2 flex items-center justify-between">
                           <SkeletonText className="h-4 w-24" />
@@ -149,7 +138,6 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
                         <SkeletonInput className="h-16 w-full" />
                       </div>
 
-                      {/* Message body skeleton */}
                       <div className="mb-2">
                         <SkeletonText className="h-4 w-24" />
                       </div>
@@ -157,7 +145,6 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
                         <SkeletonText className="h-32 w-full" />
                       </div>
 
-                      {/* Include calendar event checkbox skeleton */}
                       <div className="mt-2 flex items-center space-x-2">
                         <div className="bg-emphasis h-4 w-4 animate-pulse rounded" />
                         <SkeletonText className="h-4 w-40" />
@@ -167,7 +154,6 @@ export const WorkflowBuilderSkeleton: React.FC = () => {
                 </div>
               </Card>
 
-              {/* Add action button skeleton */}
               <SkeletonButton className="h-10 w-full border-2 border-dashed" />
             </CardContent>
           </SkeletonCard>
