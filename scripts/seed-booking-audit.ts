@@ -389,12 +389,46 @@ export default async function seedBookingAuditLogs() {
   // Audit logs is an org-only feature, so we only seed for owner1-acme
   const user = await prisma.user.findFirst({
     where: { username: "owner1-acme" },
-    select: { id: true, uuid: true, username: true, email: true },
+    select: { id: true, uuid: true, username: true, email: true, organizationId: true },
   });
 
   if (!user) {
     console.log("❌ User owner1-acme not found. Run the main seed first.");
     return;
+  }
+
+  // Enable bookings-v3 globally
+  await prisma.feature.upsert({
+    where: { slug: "bookings-v3" },
+    create: { slug: "bookings-v3", enabled: true, description: "Enable bookings redesign v3 for all users", type: "EXPERIMENT" },
+    update: { enabled: true },
+  });
+  console.log("  ✅ Enabled bookings-v3 globally");
+
+  // Enable booking-audit at team level for owner1-acme's organization
+  if (user.organizationId) {
+    await prisma.feature.upsert({
+      where: { slug: "booking-audit" },
+      create: {
+        slug: "booking-audit",
+        enabled: false,
+        description: "Enable booking audit trails - Track all booking actions and changes for organizations",
+        type: "OPERATIONAL",
+      },
+      update: {},
+    });
+
+    await prisma.teamFeatures.upsert({
+      where: { teamId_featureId: { teamId: user.organizationId, featureId: "booking-audit" } },
+      create: {
+        teamId: user.organizationId,
+        featureId: "booking-audit",
+        enabled: true,
+        assignedBy: "seed-script",
+      },
+      update: { enabled: true },
+    });
+    console.log(`  ✅ Enabled booking-audit for organization ${user.organizationId}`);
   }
 
   // Find an event type for this user to create a booking
