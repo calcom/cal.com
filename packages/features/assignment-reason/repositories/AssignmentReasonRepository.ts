@@ -63,23 +63,5 @@ export class AssignmentReasonRepository {
       },
     });
   }
-
-  /**
-   * Finds the latest assignment reason for a booking by booking UID
-   * @param bookingUid - The booking UID
-   * @returns The most recent assignment reason or null
-   */
-  async findLatestReasonFromBookingUid(bookingUid: string) {
-    return this.prismaClient.assignmentReason.findFirst({
-      where: {
-        booking: {
-          uid: bookingUid,
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }
 }
 

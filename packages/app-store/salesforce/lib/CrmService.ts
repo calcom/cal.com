@@ -10,7 +10,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
+import { PrismaAssignmentReasonRepository } from "./repositories/PrismaAssignmentReasonRepository";
 import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
@@ -1733,8 +1733,7 @@ class SalesforceCRMService implements CRM {
   }
 
   private async getAssignmentReason(bookingId: string) {
-    const assignmentReasonRepository = new AssignmentReasonRepository(prisma);
-    const assignmentReason = await assignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
+    const assignmentReason = await PrismaAssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
     return assignmentReason?.reasonString ?? "";
   }
 
