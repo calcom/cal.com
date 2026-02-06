@@ -57,8 +57,8 @@ services:
       context: .
       dockerfile: apps/api/v2/Dockerfile
       args:
-        DATABASE_URL: ${DATABASE_URL:-postgresql://unicorn_user:magical_password@database:5432/calendso}
-        DATABASE_DIRECT_URL: ${DATABASE_URL:-postgresql://unicorn_user:magical_password@database:5432/calendso}
+        DATABASE_URL: postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}:5432/${POSTGRES_DB:-calendso}
+        DATABASE_DIRECT_URL: postgresql://${POSTGRES_USER:-unicorn_user}:${POSTGRES_PASSWORD:-magical_password}@${DATABASE_HOST:-database}:5432/${POSTGRES_DB:-calendso}
     restart: always
     networks:
       - stack
