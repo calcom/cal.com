@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { VerificationTokenRepository } from "@calcom/features/auth/repositories/VerificationTokenRepository";
+import { VerificationTokenRepository } from "../repositories/VerificationTokenRepository";
 
-import { VerificationTokenService } from "../VerificationTokenService";
+import { VerificationTokenService } from "./VerificationTokenService";
 
-vi.mock("@calcom/features/auth/repositories/VerificationTokenRepository", () => ({
+vi.mock("../repositories/VerificationTokenRepository", () => ({
   VerificationTokenRepository: {
     create: vi.fn(),
   },
