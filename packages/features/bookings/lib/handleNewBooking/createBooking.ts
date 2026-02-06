@@ -143,7 +143,7 @@ async function saveBooking(
   const createBookingObj = {
     include: {
       user: {
-        select: { uuid: true, email: true, name: true, timeZone: true, username: true },
+        select: { uuid: true, email: true, name: true, timeZone: true, username: true, isPlatformManaged: true },
       },
       attendees: true,
       payment: true,
