@@ -65,7 +65,7 @@ export type NavigationItemType = {
 };
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
-  return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) ?? false : false;
+  return isChild ? item.href === pathname : item.href ? (pathname?.startsWith(item.href) ?? false) : false;
 };
 
 export const NavigationItem: React.FC<{
@@ -240,8 +240,7 @@ export const NavigationItem: React.FC<{
             "grid transition-all duration-300 ease-in-out",
             shouldShowChildren ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
           )}
-          aria-hidden={!shouldShowChildren}
-          inert={!shouldShowChildren ? ("" as any) : undefined}>
+          aria-hidden={!shouldShowChildren}>
           <div className="overflow-hidden">
             {item.child?.map((item, index) => (
               <NavigationItem index={index} key={item.name} item={item} isChild />
