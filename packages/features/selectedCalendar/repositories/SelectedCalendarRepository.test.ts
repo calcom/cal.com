@@ -1,7 +1,4 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, test, expect, vi, beforeEach, it } from "vitest";
-
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
@@ -9,6 +6,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, test, vi, it } from "vitest";
 
 const mockPrismaClient = {
   selectedCalendar: {
@@ -123,7 +121,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        featureIds: ["calendar-subscription-cache"],
+        teamIds: [1, 2, 3],
         integrations: ["google_calendar", "office365_calendar"],
       });
 
@@ -134,14 +132,7 @@ describe("SelectedCalendarRepository", () => {
             teams: {
               some: {
                 accepted: true,
-                team: {
-                  features: {
-                    some: {
-                      featureId: { in: ["calendar-subscription-cache"] },
-                      enabled: true,
-                    },
-                  },
-                },
+                teamId: { in: [1, 2, 3] },
               },
             },
           },
@@ -154,10 +145,7 @@ describe("SelectedCalendarRepository", () => {
               ],
             },
             {
-              OR: [
-                { syncSubscribedErrorAt: null },
-                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
-              ],
+              OR: [{ syncSubscribedErrorAt: null }, { syncSubscribedErrorAt: { lt: expect.any(Date) } }],
             },
             {
               syncSubscribedErrorCount: { lt: 3 },
@@ -176,7 +164,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 5,
-        featureIds: ["calendar-subscription-cache"],
+        teamIds: [1, 2, 3],
         integrations: [],
       });
 
@@ -187,14 +175,7 @@ describe("SelectedCalendarRepository", () => {
             teams: {
               some: {
                 accepted: true,
-                team: {
-                  features: {
-                    some: {
-                      featureId: { in: ["calendar-subscription-cache"] },
-                      enabled: true,
-                    },
-                  },
-                },
+                teamId: { in: [1, 2, 3] },
               },
             },
           },
@@ -207,10 +188,7 @@ describe("SelectedCalendarRepository", () => {
               ],
             },
             {
-              OR: [
-                { syncSubscribedErrorAt: null },
-                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
-              ],
+              OR: [{ syncSubscribedErrorAt: null }, { syncSubscribedErrorAt: { lt: expect.any(Date) } }],
             },
             {
               syncSubscribedErrorCount: { lt: 3 },
@@ -231,7 +209,7 @@ describe("SelectedCalendarRepository", () => {
 
       const result = await repository.findNextSubscriptionBatch({
         take: 10,
-        featureIds: ["calendar-subscription-cache"],
+        teamIds: [1, 2, 3],
         integrations: ["google_calendar"],
         genericCalendarSuffixes: genericSuffixes,
       });
@@ -243,14 +221,7 @@ describe("SelectedCalendarRepository", () => {
             teams: {
               some: {
                 accepted: true,
-                team: {
-                  features: {
-                    some: {
-                      featureId: { in: ["calendar-subscription-cache"] },
-                      enabled: true,
-                    },
-                  },
-                },
+                teamId: { in: [1, 2, 3] },
               },
             },
           },
@@ -263,10 +234,7 @@ describe("SelectedCalendarRepository", () => {
               ],
             },
             {
-              OR: [
-                { syncSubscribedErrorAt: null },
-                { syncSubscribedErrorAt: { lt: expect.any(Date) } },
-              ],
+              OR: [{ syncSubscribedErrorAt: null }, { syncSubscribedErrorAt: { lt: expect.any(Date) } }],
             },
             {
               syncSubscribedErrorCount: { lt: 3 },
