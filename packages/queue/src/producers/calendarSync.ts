@@ -1,6 +1,5 @@
-import type { CalendarSyncJob } from "@calcom/types/Jobs";
-
 import { getCalendarSyncQueue } from "../queues/calendarSyncQueue";
+import type { CalendarSyncJob } from "../types";
 
 export async function enqueueCalendarSync(job: CalendarSyncJob) {
   const calendarQueue = getCalendarSyncQueue();

@@ -1,5 +1,5 @@
 {
-  "extends": "@calcom/tsconfig/base.json",
+  // "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
@@ -12,7 +12,12 @@
     "lib": ["ES2022"],
 
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "sourceMap": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

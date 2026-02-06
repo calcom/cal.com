@@ -1,8 +1,7 @@
 import { CALENDAR_SYNC_QUEUE } from "@calid/queue";
 import { redisConnection } from "@calid/queue";
+import type { CalendarSyncJob } from "@calid/queue/types";
 import { Worker } from "bullmq";
-
-import type { CalendarSyncJob } from "@calcom/types/Jobs";
 
 import { processCalendarSync } from "../processors/calendarSync.processor";
 

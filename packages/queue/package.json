@@ -8,12 +8,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "enqueue-test": "tsx scripts/enqueueCalendarSync.ts"
-
   },
   "dependencies": {
     "bullmq": "^5.67.2",
