@@ -24,6 +24,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+import { Icon } from "@calcom/ui/components/icon";
 
 export type FormValues = {
   locale: {
@@ -317,6 +318,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             />
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
+              <Icon name="info" className="mr-2" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller

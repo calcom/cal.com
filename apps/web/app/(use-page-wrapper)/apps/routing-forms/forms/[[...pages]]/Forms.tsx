@@ -159,8 +159,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
           plan="team"
-          title={t("teams_plan_required")}
-          description={t("routing_forms_are_a_great_way")}
+          title={t("routing_that_grows_with_you")}
+          description={t("routing_forms_upgrade_description")}
           features={features}
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
@@ -168,7 +168,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
             <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
+                  {t("get_started")}
                 </Button>
                 <Button color="minimal" href="https://cal.com/routing" target="_blank">
                   {t("learn_more")}
