@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@calid/features/ui/components/dialog";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { RadioGroup, RadioGroupItem } from "@calid/features/ui/components/radio-group";

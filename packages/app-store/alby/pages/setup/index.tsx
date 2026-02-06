@@ -1,4 +1,7 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,9 +12,6 @@ import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalle
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
@@ -81,11 +81,11 @@ function AlbySetupPage(props: IAlbySetupProps) {
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
   const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
-      showToast(t("keys_have_been_saved"), "success");
+      triggerToast(t("keys_have_been_saved"), "success");
       router.push("/event-types");
     },
     onError: (error) => {
-      showToast(error.message, "error");
+      triggerToast(error.message, "error");
     },
   });
 
@@ -95,7 +95,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
       client_secret: props.clientSecret,
       callback: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/apps/alby/setup?callback=true`,
       scopes: ["invoices:read", "account:read"],
-      user_agent: "cal.com",
+      user_agent: "cal.id",
     });
 
     const weblnOAuthProvider = new webln.OauthWeblnProvider({

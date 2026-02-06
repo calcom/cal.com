@@ -2,7 +2,7 @@
 
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { EmailField, TextField } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { useCallback, useEffect, useMemo, useRef } from "react";

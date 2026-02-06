@@ -13,7 +13,7 @@ import {
   DialogClose,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { PasswordField } from "@calid/features/ui/components/input/input";
