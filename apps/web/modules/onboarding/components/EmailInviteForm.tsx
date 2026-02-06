@@ -50,7 +50,7 @@ export function EmailInviteForm({
     <div className="flex h-full w-full flex-col gap-4">
       <div className="flex flex-col gap-2">
         {showTeamSelect ? (
-          <div className="grid grid-cols-2">
+          <div className="mr-7 grid grid-cols-2">
             <Label className="text-emphasis mb-0 text-sm font-medium" htmlFor="invites.0.email">
               {t("email")}
             </Label>
@@ -64,10 +64,10 @@ export function EmailInviteForm({
 
         <div
           className={
-            showTeamSelect ? "flex flex-col gap-2" : "scroll-bar flex max-h-72 flex-col gap-1 overflow-y-auto"
+            showTeamSelect ? "flex flex-col gap-2" : "scroll-bar flex max-h-72 flex-col gap-2 overflow-y-auto"
           }>
           {fields.map((field, index) => (
-            <div key={field.id} className="flex items-start gap-0.5 p-0.5">
+            <div key={field.id} className="flex items-start gap-2">
               <div className={showTeamSelect ? "grid flex-1 items-start gap-2 md:grid-cols-2" : "flex-1"}>
                 <TextField
                   labelSrOnly

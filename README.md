@@ -123,7 +123,7 @@ Here is what you need to be able to run Cal.com.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/calcom/cal.com/fork). If you plan to distribute the code, keep the source code public to comply with [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE). To clone in a private repository, [acquire a commercial license](https://cal.com/sales)
+1. Clone the repo (or fork https://github.com/calcom/cal.com/fork). The code is licensed under [AGPLv3](https://github.com/calcom/cal.com/blob/main/LICENSE), which requires you to provide source code to users who interact with the software over a network. For commercial use without these requirements, [acquire a commercial license](https://cal.com/sales)
 
    ```sh
    git clone https://github.com/calcom/cal.com.git
@@ -148,7 +148,7 @@ Here is what you need to be able to run Cal.com.
 
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -174,6 +174,20 @@ Here is what you need to be able to run Cal.com.
 yarn dx
 ```
 
+**Default credentials created:**
+
+| Email | Password | Role |
+|-------|----------|------|
+| `free@example.com` | `free` | Free user |
+| `pro@example.com` | `pro` | Pro user |
+| `trial@example.com` | `trial` | Trial user |
+| `admin@example.com` | `ADMINadmin2022!` | Admin user |
+| `onboarding@example.com` | `onboarding` | Onboarding incomplete |
+
+You can use any of these credentials to sign in at [http://localhost:3000](http://localhost:3000)
+
+> **Tip**: To view the full list of seeded users and their details, run `yarn db-studio` and visit [http://localhost:5555](http://localhost:5555)
+
 #### Development tip
 
 1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
@@ -193,7 +207,7 @@ yarn dx
 
    The logger will include all logs that are at the specified level or higher. For example: \
 
-   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and (fatal) will be logged. \
+   - If you set `NEXT_PUBLIC_LOGGER_LEVEL=2`, it will log from level 2 (debug) upwards, meaning levels 2 (debug), 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged. \
    - If you set `NEXT_PUBLIC_LOGGER_LEVEL=3`, it will log from level 3 (info) upwards, meaning levels 3 (info), 4 (warn), 5 (error), and 6 (fatal) will be logged, but level 2 (debug) and level 1 (trace) will be ignored. \
 
 ```sh
@@ -241,9 +255,9 @@ for Logger level to be set at info, for example.
    - [Setup postgres DB with Northflank](https://northflank.com/guides/deploy-postgres-database-on-northflank)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
-1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
+2. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
 
-1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
+3. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
    In a development environment, run:
 
@@ -257,7 +271,7 @@ for Logger level to be set at info, for example.
    yarn workspace @calcom/prisma db-deploy
    ```
 
-1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
+4. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
 
    > **_NOTE:_** Required when `E2E_TEST_MAILHOG_ENABLED` is "1"
 
@@ -266,7 +280,7 @@ for Logger level to be set at info, for example.
    docker run -d -p 8025:8025 -p 1025:1025 mailhog/mailhog
    ```
 
-1. Run (in development mode)
+5. Run (in development mode)
 
    ```sh
    yarn dev
@@ -370,6 +384,50 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
    ```
 
 1. Enjoy the new version.
+
+## AI-Assisted Development
+
+This repository includes configuration for AI coding assistants. All AI configuration lives in the `agents/` directory as a single source of truth.
+
+### Structure
+
+```
+agents/
+├── rules/           # Modular engineering rules
+├── skills/          # Reusable skills/prompts
+├── commands.md      # Command reference
+└── knowledge-base.md # Domain knowledge
+
+AGENTS.md            # Main agent instructions
+```
+
+### Tool Configuration
+
+We use symlinks to share configuration across tools:
+
+```
+.claude/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+
+.cursor/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+```
+
+### Using Other Tools
+
+If you prefer other AI tools (Windsurf, Goose, OpenCode, etc.), you can create your own dot folders and exclude them from git:
+
+```bash
+# Add to .git/info/exclude (local only, not committed)
+.windsurf/
+.goose/
+.opencode/
+```
+
+This keeps the repository clean while allowing personal tool preferences.
+
 <!-- DEPLOYMENT -->
 
 ## Deployment
@@ -836,12 +894,12 @@ following
 
 1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.
 2. From within the home of the Developer account page, go to "Manage apps".
-3. Click "Create app" button top right.
+3. Click "Create legacy app" button top right and select public app.
 4. Fill in any information you want in the "App info" tab
 5. Go to tab "Auth"
 6. Now copy the Client ID and Client Secret to your `.env` file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
 7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot/callback` replacing Cal.com URL with the URI at which your application runs.
-8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
+8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scopes called `crm.objects.contacts` and `crm.lists`.
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
 
@@ -873,6 +931,19 @@ following
 ### Obtaining Pipedrive Client ID and Secret
 
 [Follow these steps](./packages/app-store/pipedrive-crm/)
+
+### Rate Limiting with Unkey
+
+Cal.com uses [Unkey](https://unkey.com) for rate limiting. This is an optional feature and is not required for testing or self-hosting.
+
+If you want to enable rate limiting:
+
+1. Sign up for an account at [unkey.com](https://unkey.com)
+2. Create a Root key with permissions for 
+   `ratelimit.create_namespace` and `ratelimit.limit`
+3. Copy the root key to your `.env` file into the `UNKEY_ROOT_KEY` field
+
+Note: If you don't configure Unkey, Cal.com will work normally without rate limiting enabled.
 
 ## Workflows
 

@@ -1,0 +1,29 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Databuddy",
+  "slug": "databuddy",
+  "type": "databuddy_analytics",
+  "logo": "icon.svg",
+  "url": "https://github.com/vachmara",
+  "variant": "analytics",
+  "categories": ["analytics"],
+  "publisher": "Valentin Chmara",
+  "email": "valentinchmara@gmail.com",
+  "extendsFeature": "EventType",
+  "appData": {
+    "tag": {
+      "scripts": [
+        {
+          "src": "{DATABUDDY_SCRIPT_URL}",
+          "attrs": {
+            "data-client-id": "{CLIENT_ID}",
+            "data-api-url": "{DATABUDDY_API_URL}"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Privacy-first web analytics for devs (Google Analytics alternative) — 3 KB, GDPR-compliant",
+  "__createdUsingCli": true,
+  "isOAuth": false
+}

@@ -1,12 +1,10 @@
-import fs from "fs";
+import fs from "node:fs";
+import type { AppMeta } from "@calcom/types/App";
 import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
-import React, { useEffect, useState } from "react";
-
-import type { AppMeta } from "@calcom/types/App";
-
-import { getSlugFromAppName, BaseAppFork, generateAppFiles, getAppDirPath } from "../core";
+import { useEffect, useState } from "react";
+import { BaseAppFork, generateAppFiles, getAppDirPath, getSlugFromAppName } from "../core";
 import { getApp } from "../utils/getApp";
 import Templates from "../utils/templates";
 import Label from "./Label";
@@ -46,7 +44,7 @@ export const AppForm = ({
         category: config.categories[0],
         template: config.__template,
       };
-    } catch (e) {}
+    } catch (_e) {}
 
   const fields = [
     {
@@ -87,7 +85,7 @@ export const AppForm = ({
       options: [
         // Manually sorted alphabetically
         { label: "Analytics", value: "analytics" },
-        { label: "Automation", value: "automation" },
+        { label: "AI & Automation", value: "automation" },
         { label: "Calendar", value: "calendar" },
         { label: "Conferencing", value: "conferencing" },
         { label: "CRM", value: "crm" },
@@ -130,7 +128,7 @@ export const AppForm = ({
   const formCompleted = inputIndex === fields.length;
   if (field?.name === "appCategory") {
     // Use template category as the default category
-    fieldValue = Templates.find((t) => t.value === appInputData["template"])?.category || "";
+    fieldValue = Templates.find((t) => t.value === appInputData.template)?.category || "";
   }
   const slug = getSlugFromAppName(name) || givenSlug;
 
@@ -158,7 +156,19 @@ export const AppForm = ({
         setStatus("done");
       }
     })();
-  }, [formCompleted]);
+  }, [
+    formCompleted,
+    category,
+    description,
+    email,
+    givenSlug,
+    isEditAction,
+    isTemplate,
+    name,
+    publisher,
+    slug,
+    template,
+  ]);
 
   if (action === "edit" || action === "edit-template") {
     if (!slug) {
@@ -291,7 +301,7 @@ export const AppForm = ({
         )}
         <Box>
           <Label>{`${fieldLabel}`}</Label>
-          {field?.type == "text" ? (
+          {field?.type === "text" ? (
             <TextInput
               value={fieldValue}
               placeholder={field?.defaultValue}

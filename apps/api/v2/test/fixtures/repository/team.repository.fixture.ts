@@ -33,4 +33,30 @@ export class TeamRepositoryFixture {
       },
     });
   }
+
+  async createOrgSettings(
+    organizationId: number,
+    settings: {
+      orgAutoAcceptEmail: string;
+      isOrganizationVerified?: boolean;
+      isOrganizationConfigured?: boolean;
+      isAdminAPIEnabled?: boolean;
+    }
+  ) {
+    return this.prismaWriteClient.organizationSettings.create({
+      data: {
+        organizationId,
+        orgAutoAcceptEmail: settings.orgAutoAcceptEmail,
+        isOrganizationVerified: settings.isOrganizationVerified,
+        isOrganizationConfigured: settings.isOrganizationConfigured,
+        isAdminAPIEnabled: settings.isAdminAPIEnabled,
+      },
+    });
+  }
+
+  async deleteOrgSettings(organizationId: number) {
+    return this.prismaWriteClient.organizationSettings.deleteMany({
+      where: { organizationId },
+    });
+  }
 }

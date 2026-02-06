@@ -15,9 +15,9 @@ import { Switch } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import DatePicker from "../../calendars/DatePicker";
-import type { TimeRange } from "./Schedule";
-import { DayRanges } from "./Schedule";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
+import type { TimeRange } from "./ScheduleComponent";
+import { DayRanges } from "./ScheduleComponent";
 
 const DateOverrideForm = ({
   value,
@@ -164,7 +164,7 @@ const DateOverrideForm = ({
       <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
         {selectedDates[0] ? (
           <>
-            <div className="mb-4 flex-grow space-y-4">
+            <div className="mb-4 grow stack-y-4">
               <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
               <div>
                 {datesUnavailable ? (

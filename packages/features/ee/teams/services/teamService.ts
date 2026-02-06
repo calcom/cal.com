@@ -1,6 +1,7 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -11,12 +12,12 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["TeamService"] });
 
@@ -62,7 +63,7 @@ export class TeamService {
       select: { parentId: true, isOrganization: true },
     });
 
-    if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    if (!team) throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
 
     const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
 
@@ -74,7 +75,7 @@ export class TeamService {
           teamId,
         },
       });
-      if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
+      if (!existingToken) throw new ErrorWithCode(ErrorCode.NotFound, "Invite token not found");
       return {
         token: existingToken.token,
         inviteLink: await TeamService.buildInviteLink(
@@ -177,7 +178,6 @@ export class TeamService {
     await Promise.allSettled(teamBillingPromises);
   }
 
-  // TODO: Move errors away from TRPC error to make it more generic
   static async inviteMemberByToken(token: string, userId: number) {
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
@@ -189,17 +189,15 @@ export class TeamService {
         team: {
           select: {
             name: true,
+            parentId: true,
           },
         },
       },
     });
 
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    if (!verificationToken) throw new ErrorWithCode(ErrorCode.NotFound, "Invite not found");
     if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team");
 
     try {
       await prisma.membership.create({
@@ -214,12 +212,21 @@ export class TeamService {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
+          throw new ErrorWithCode(
+            ErrorCode.Forbidden,
+            "This user is a member of this team / has a pending invitation."
+          );
         }
       } else throw e;
+    }
+
+    if (!verificationToken.team.parentId) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatAddition({
+        teamId: verificationToken.teamId,
+        userId,
+        triggeredBy: userId,
+      });
     }
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
@@ -300,6 +307,15 @@ export class TeamService {
           },
         });
       }
+
+      if (!membership.team.parentId) {
+        const seatTracker = new SeatChangeTrackingService();
+        await seatTracker.logSeatRemoval({
+          teamId,
+          userId,
+          triggeredBy: userId,
+        });
+      }
     } catch (e) {
       console.log(e);
     }
@@ -319,14 +335,11 @@ export class TeamService {
     });
 
     if (!verificationToken) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite not found");
     }
 
     if (!verificationToken.teamId || !verificationToken.team) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Invite token is not associated with any team");
     }
 
     const currentUser = await prisma.user.findUnique({
@@ -335,17 +348,14 @@ export class TeamService {
     });
 
     if (!currentUser) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "User not found");
     }
 
     if (
       currentUser.email !== verificationToken.identifier &&
       currentUser.username !== verificationToken.identifier
     ) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "This invitation is not for your account",
-      });
+      throw new ErrorWithCode(ErrorCode.Forbidden, "This invitation is not for your account");
     }
 
     await TeamService.acceptTeamMembership({
@@ -385,6 +395,14 @@ export class TeamService {
 
     await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
 
+    if (!team.parentId) {
+      const seatTracker = new SeatChangeTrackingService();
+      await seatTracker.logSeatRemoval({
+        teamId,
+        userId,
+      });
+    }
+
     return { membership };
   }
 
@@ -408,7 +426,7 @@ export class TeamService {
     });
 
     if (!membership) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Membership not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Membership not found");
     }
 
     return membership;
@@ -429,7 +447,7 @@ export class TeamService {
     });
 
     if (!team) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
     }
 
     return team;
@@ -459,7 +477,7 @@ export class TeamService {
     });
 
     if (!user) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new ErrorWithCode(ErrorCode.NotFound, "User not found");
     }
 
     return user;
@@ -490,58 +508,73 @@ export class TeamService {
     await TeamService.cleanupTempOrgRedirect(user, team);
     const newUsername = generateNewUsername(user);
 
-    await prisma.$transaction([
-      // Remove user from all sub-teams event type hosts
-      prisma.host.deleteMany({
-        where: {
-          userId: membership.userId,
-          eventType: {
-            team: {
-              parentId: team.id,
+    const subTeamIds = await prisma.team.findMany({
+      where: {
+        parentId: team.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+    const subTeamIdArray = subTeamIds.map((t) => t.id);
+
+    await prisma.$transaction(async (tx) => {
+      if (subTeamIdArray.length > 0) {
+        // Remove user from all sub-teams event type hosts
+        await tx.host.deleteMany({
+          where: {
+            userId: membership.userId,
+            eventType: {
+              teamId: {
+                in: subTeamIdArray,
+              },
             },
           },
-        },
-      }),
-      // Delete managed child events in sub-teams
-      prisma.eventType.deleteMany({
-        where: {
-          userId: membership.userId,
-          parent: {
-            team: {
-              parentId: team.id,
+        });
+        // Delete managed child events in sub-teams
+        await tx.eventType.deleteMany({
+          where: {
+            userId: membership.userId,
+            parent: {
+              teamId: {
+                in: subTeamIdArray,
+              },
             },
           },
-        },
-      }),
+        });
+        // Delete all sub-team memberships where this team is the organization
+        await tx.membership.deleteMany({
+          where: {
+            teamId: {
+              in: subTeamIdArray,
+            },
+            userId: membership.userId,
+          },
+        });
+      }
+
       // Remove organizationId from the user
-      prisma.user.update({
+      await tx.user.update({
         where: { id: membership.userId },
         data: {
           organizationId: null,
           username: newUsername,
         },
-      }),
+      });
       // Delete the profile of the user from the organization
-      ProfileRepository.delete({
-        userId: membership.userId,
-        organizationId: team.id,
-      }),
-      // Delete all sub-team memberships where this team is the organization
-      prisma.membership.deleteMany({
+      await tx.profile.deleteMany({
         where: {
-          team: {
-            parentId: team.id,
-          },
           userId: membership.userId,
+          organizationId: team.id,
         },
-      }),
+      });
       // Delete the membership of the user from the organization
-      prisma.membership.delete({
+      await tx.membership.delete({
         where: {
           userId_teamId: { userId: membership.userId, teamId: team.id },
         },
-      }),
-    ]);
+      });
+    });
 
     // Generate new username for user leaving organization
     function generateNewUsername(user: UserWithTeams): string | null {

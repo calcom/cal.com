@@ -1,10 +1,14 @@
 import { BookingGuestsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-guests.controller";
+import { BookingLocationController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-location.controller";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
+import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
+import { BookingLocationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location.service";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { CalVideoOutputService } from "@/ee/bookings/2024-08-13/services/cal-video.output.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
@@ -46,6 +50,7 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
+import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.module";
 
 @Module({
   imports: [
@@ -67,6 +72,7 @@ import { Module } from "@nestjs/common";
     RegularBookingModule,
     RecurringBookingModule,
     InstantBookingModule,
+    BookingEventHandlerModule,
   ],
   providers: [
     TokensRepository,
@@ -96,8 +102,15 @@ import { Module } from "@nestjs/common";
     BookingReferencesService_2024_08_13,
     BookingReferencesRepository_2024_08_13,
     CalVideoService,
+    CalVideoOutputService,
+    BookingPbacGuard,
+    BookingLocationService_2024_08_13,
   ],
-  controllers: [BookingsController_2024_08_13, BookingGuestsController_2024_08_13],
+  controllers: [
+    BookingsController_2024_08_13,
+    BookingGuestsController_2024_08_13,
+    BookingLocationController_2024_08_13,
+  ],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
 })
 export class BookingsModule_2024_08_13 {}

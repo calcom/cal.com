@@ -4,6 +4,8 @@ import classNames from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -18,6 +20,21 @@ type OnboardingBrowserViewProps = {
   teamSlug?: string;
 };
 
+const getDisplayUrl = (
+  orgSlug: string | null | undefined,
+  username: string | null | undefined,
+  teamSlug: string | undefined
+): string => {
+  if (orgSlug) {
+    return teamSlug !== undefined
+      ? `${orgSlug}.${subdomainSuffix()}/team/${teamSlug || ""}`
+      : `${orgSlug}.${subdomainSuffix()}/${username || ""}`;
+  }
+
+  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
+  return teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+};
+
 export const OnboardingBrowserView = ({
   avatar,
   name,
@@ -27,9 +44,9 @@ export const OnboardingBrowserView = ({
 }: OnboardingBrowserViewProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
-  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl =
-    teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+  const orgBranding = useOrgBranding();
+
+  const displayUrl = getDisplayUrl(orgBranding?.slug, username, teamSlug);
 
   // Animation variants for entry and exit
   const containerVariants = {
@@ -94,14 +111,14 @@ export const OnboardingBrowserView = ({
           <Icon name="arrow-right" className="text-subtle h-4 w-4" />
           <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
         </div>
-        <div className="bg-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
+        <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
           <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}</p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>
       {/* Content */}
-      <div className="bg-muted h-full pl-11 pt-11">
+      <div className="bg-cal-muted h-full pl-11 pt-11">
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}

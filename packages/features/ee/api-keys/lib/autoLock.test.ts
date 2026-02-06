@@ -34,7 +34,7 @@ describe("autoLock", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
-    vi.mocked(RedisService).mockImplementation(() => mockRedis as any);
+    vi.mocked(RedisService).mockImplementation(function() { return mockRedis as any; });
 
     // Mock environment variables
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";

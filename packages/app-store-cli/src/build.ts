@@ -1,28 +1,40 @@
-import chokidar from "chokidar";
-import fs from "fs";
-// eslint-disable-next-line no-restricted-imports
-import { debounce } from "lodash";
-import path from "path";
-import prettier from "prettier";
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import prettierConfig from "@calcom/config/prettier-preset";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 import type { AppMeta } from "@calcom/types/App";
 import { AppMetaSchema } from "@calcom/types/AppMetaSchema";
-
+import chokidar from "chokidar";
+// eslint-disable-next-line no-restricted-imports
+import { debounce } from "lodash";
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
 const isInWatchMode = process.argv[2] === "--watch";
 
-const formatOutput = (source: string) =>
-  prettier.format(source, {
-    parser: "babel",
-    ...prettierConfig,
-  });
+const repoRoot = path.resolve(__dirname, "../../..");
 
-const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
+const formatFileWithBiome = (filePath: string) => {
+  // Normalize to forward slashes for cross-platform Biome compatibility
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const { status } = spawnSync(
+    "yarn",
+    ["biome", "format", "--write", "--no-errors-on-unmatched", normalizedPath],
+    {
+      stdio: "inherit",
+      cwd: repoRoot,
+      shell: true,
+    }
+  );
+
+  if (status !== 0) {
+    throw new Error(`Biome formatting failed for ${filePath}`);
+  }
+};
+
+const formatOutput = (source: string) => source;
+
+const getVariableName = (appName: string) => appName.replace(/[-./]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
@@ -41,9 +53,9 @@ function generateFiles() {
   const crmOutput = [];
   const appDirs: { name: string; path: string }[] = [];
 
-  fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
+  fs.readdirSync(`${APP_STORE_PATH}`).forEach((dir) => {
     if (dir === "ee" || dir === "templates") {
-      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (subDir) {
+      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach((subDir) => {
         if (fs.statSync(path.join(APP_STORE_PATH, dir, subDir)).isDirectory()) {
           if (getAppName(subDir)) {
             appDirs.push({
@@ -70,7 +82,7 @@ function generateFiles() {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
       const metadataPath = path.join(APP_STORE_PATH, appDirs[i].path, "_metadata.ts");
-      let app;
+      let app: AppMetaSchema;
 
       if (fs.existsSync(configPath)) {
         try {
@@ -124,7 +136,7 @@ function generateFiles() {
         {
           fileToBeImported: string;
           importName: string;
-        }
+        },
       ];
 
   /**
@@ -218,9 +230,9 @@ function generateFiles() {
     }
 
     function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
-      let chosenConfig;
+      let chosenConfig: ImportConfig;
 
-      if (!(importConfig instanceof Array)) {
+      if (!Array.isArray(importConfig)) {
         chosenConfig = importConfig;
       } else {
         if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
@@ -494,7 +506,9 @@ function generateFiles() {
     ["video.adapters.generated.ts", videoOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
-    fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
+    const filePath = path.join(APP_STORE_PATH, fileName);
+    fs.writeFileSync(filePath, formatOutput(`${banner}${output.join("\n")}`));
+    formatFileWithBiome(filePath);
   });
   console.log(`Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`);
 }

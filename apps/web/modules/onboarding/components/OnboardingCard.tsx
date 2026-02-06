@@ -9,8 +9,8 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 type OnboardingCardProps = {
   title: string;
   subtitle: string;
-  children: ReactNode;
-  footer: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
   isLoading?: boolean;
   floatingFooter?: boolean;
 };

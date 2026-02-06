@@ -1,4 +1,4 @@
-import type { ParsedUrlQuery } from "querystring";
+import type { ParsedUrlQuery } from "node:querystring";
 import { z } from "zod";
 
 // Take array as a string and return zod array

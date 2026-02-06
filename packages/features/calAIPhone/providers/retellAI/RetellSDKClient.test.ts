@@ -16,30 +16,32 @@ import type {
 let RetellSDKClient: typeof import("./RetellSDKClient").RetellSDKClient;
 
 vi.mock("retell-sdk", () => ({
-  Retell: vi.fn().mockImplementation(() => ({
-    llm: {
-      create: vi.fn(),
-      retrieve: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    agent: {
-      create: vi.fn(),
-      retrieve: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    phoneNumber: {
-      create: vi.fn(),
-      import: vi.fn(),
-      delete: vi.fn(),
-      retrieve: vi.fn(),
-      update: vi.fn(),
-    },
-    call: {
-      createPhoneCall: vi.fn(),
-    },
-  })),
+  Retell: vi.fn().mockImplementation(function() {
+    return {
+      llm: {
+        create: vi.fn(),
+        retrieve: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
+      agent: {
+        create: vi.fn(),
+        retrieve: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
+      phoneNumber: {
+        create: vi.fn(),
+        import: vi.fn(),
+        delete: vi.fn(),
+        retrieve: vi.fn(),
+        update: vi.fn(),
+      },
+      call: {
+        createPhoneCall: vi.fn(),
+      },
+    };
+  }),
 }));
 
 vi.mock("@calcom/lib/logger", () => ({
@@ -107,7 +109,7 @@ describe("RetellSDKClient", () => {
       },
     };
 
-    (Retell as any).mockImplementation(() => mockRetellInstance);
+    (Retell as any).mockImplementation(function() { return mockRetellInstance; });
   });
 
   describe("constructor", () => {

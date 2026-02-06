@@ -3,7 +3,7 @@ import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/comp
 export function BillingCreditsSkeleton() {
   return (
     <SkeletonContainer>
-      <div className="bg-muted border-muted mt-5 rounded-xl p-1">
+      <div className="bg-cal-muted border-muted mt-5 rounded-xl p-1">
         <div className="flex flex-col gap-1 px-4 py-5">
           <SkeletonText className="h-4 w-20" /> {/* Credits title */}
           <SkeletonText className="h-4 w-48" /> {/* View and manage credits description */}
