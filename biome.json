@@ -260,15 +260,11 @@
       "linter": {
         "rules": {
           "style": {
-            "noRestrictedImports": {
+            "useFilenamingConvention": {
               "level": "error",
               "options": {
-                "patterns": [
-                  {
-                    "group": ["*"],
-                    "message": "Repository files and folders are not allowed in packages/lib. This file matches a repository pattern (*repository*, *Repository*, */repository/**, */repositories/**). Repositories should be placed in packages/features instead to maintain proper architectural boundaries."
-                  }
-                ]
+                "match": "REPOSITORY-FILES-NOT-ALLOWED-IN-PACKAGES-LIB[.](.+)",
+                "filenameCases": ["camelCase"]
               }
             }
           }
