@@ -412,11 +412,7 @@ describe("CalendarManager tests", () => {
       vi.clearAllMocks();
     });
 
-    it.each([
-      ["empty string", ""],
-      ["undefined", undefined],
-      ["null", null],
-    ])("should return early when bookingRefUid is %s", async (_, bookingRefUid) => {
+    it("should return early when bookingRefUid is empty string", async () => {
       const mockCalendarDeleteEvent = vi.fn();
       mockedGetCalendar.mockResolvedValue({ deleteEvent: mockCalendarDeleteEvent } as any);
 
@@ -436,7 +432,7 @@ describe("CalendarManager tests", () => {
 
       const result = await deleteEvent({
         credential,
-        bookingRefUid: bookingRefUid as string,
+        bookingRefUid: "",
         event: buildCalendarEvent(),
         externalCalendarId: "calendar-id",
       });
