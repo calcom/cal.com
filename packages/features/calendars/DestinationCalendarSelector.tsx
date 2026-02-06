@@ -119,7 +119,9 @@ const DestinationCalendarSelector = ({
           : selectedCalendar.primary?.name
       })`,
       options: (selectedCalendar.calendars ?? [])
-        .filter((cal) => cal.readOnly === false)
+        // Include calendars that are writable (readOnly !== true)
+        // This allows CalDAV and other calendars without explicit readOnly flag
+        .filter((cal) => cal.readOnly !== true)
         .map((cal) => ({
           label: ` ${cal.name} `,
           subtitle: `(${selectedCalendar?.integration.title?.replace(/calendar/i, "")} - ${

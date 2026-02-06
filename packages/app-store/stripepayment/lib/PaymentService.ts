@@ -22,6 +22,9 @@ import type { StripePaymentData, StripeSetupIntentData } from "./server";
 
 const log = logger.getSubLogger({ prefix: ["payment-service:stripe"] });
 
+const STRIPE_PAYMENT_RETRY_ATTEMPTS = 3;
+const STRIPE_PAYMENT_RETRY_BASE_DELAY_MS = 200;
+
 export const stripeCredentialKeysSchema = z.object({
   stripe_user_id: z.string(),
   default_currency: z.string(),
@@ -55,6 +58,37 @@ class StripePaymentService implements IAbstractPaymentService {
       throw new Error("Payment externalId not found");
     }
     return { ...payment, externalId: payment.externalId };
+  }
+
+  private async retryStripeCall<T>(action: string, fn: (attempt: number) => Promise<T>): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= STRIPE_PAYMENT_RETRY_ATTEMPTS; attempt++) {
+      try {
+        return await fn(attempt);
+      } catch (error) {
+        lastError = error;
+        const remaining = STRIPE_PAYMENT_RETRY_ATTEMPTS - attempt;
+        if (remaining > 0) {
+          log.warn(
+            "Stripe: Payment attempt failed, retrying",
+            action,
+            `attempt=${attempt}`,
+            `remaining=${remaining}`,
+            safeStringify(error)
+          );
+          await this.sleep(this.getRetryDelayMs(attempt));
+        }
+      }
+    }
+    throw lastError;
+  }
+
+  private getRetryDelayMs(attempt: number) {
+    return STRIPE_PAYMENT_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+  }
+
+  private async sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /* This method is for creating charges at the time of booking */
@@ -105,9 +139,13 @@ class StripePaymentService implements IAbstractPaymentService {
         }),
       };
 
-      const paymentIntent = await this.stripe.paymentIntents.create(params, {
-        stripeAccount: this.credentials.stripe_user_id,
-      });
+      const idempotencyKey = `booking-create-${bookingId}-${uuidv4()}`;
+      const paymentIntent = await this.retryStripeCall("payment_intent_create", () =>
+        this.stripe.paymentIntents.create(params, {
+          stripeAccount: this.credentials.stripe_user_id,
+          idempotencyKey,
+        })
+      );
 
       const paymentData = await prisma.payment.create({
         data: {
@@ -177,9 +215,13 @@ class StripePaymentService implements IAbstractPaymentService {
         },
       };
 
-      const setupIntent = await this.stripe.setupIntents.create(params, {
-        stripeAccount: this.credentials.stripe_user_id,
-      });
+      const idempotencyKey = `booking-setup-${bookingId}-${uuidv4()}`;
+      const setupIntent = await this.retryStripeCall("setup_intent_create", () =>
+        this.stripe.setupIntents.create(params, {
+          stripeAccount: this.credentials.stripe_user_id,
+          idempotencyKey,
+        })
+      );
 
       const paymentData = await prisma.payment.create({
         data: {
@@ -279,9 +321,13 @@ class StripePaymentService implements IAbstractPaymentService {
         }),
       };
 
-      const paymentIntent = await this.stripe.paymentIntents.create(params, {
-        stripeAccount: this.credentials.stripe_user_id,
-      });
+      const idempotencyKey = `booking-charge-${payment.id}-${uuidv4()}`;
+      const paymentIntent = await this.retryStripeCall("payment_intent_charge", () =>
+        this.stripe.paymentIntents.create(params, {
+          stripeAccount: this.credentials.stripe_user_id,
+          idempotencyKey,
+        })
+      );
 
       const paymentData = await prisma.payment.update({
         where: {
