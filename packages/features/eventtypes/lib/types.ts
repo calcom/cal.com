@@ -11,11 +11,12 @@ import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
+import type { RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
+import type { EventType } from "./getEventTypeById";
+import type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -24,9 +25,9 @@ export type AvailabilityOption = {
   isDefault: boolean;
   isManaged?: boolean;
 };
-export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
-export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
+export type EventTypeSetupProps = EventType;
+export type EventTypeSetup = EventType["eventType"];
+export type EventTypeApps = ConnectedApps[];
 export type HostLocation = {
   id?: string;
   userId: number;
