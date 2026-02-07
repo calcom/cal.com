@@ -2,8 +2,9 @@ import process from "node:process";
 import type { CalendarService } from "@calcom/types/Calendar";
 import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
-import { expect, vi } from "vitest";
+import { afterEach, expect, vi } from "vitest";
 import createFetchMock from "vitest-fetch-mock";
+import "vitest-fetch-mock";
 
 global.ResizeObserver = ResizeObserver;
 
@@ -30,6 +31,14 @@ const fetchMocker = createFetchMock(vi);
 fetchMocker.enableMocks();
 
 expect.extend(matchers);
+
+// Global cleanup to prevent "Closing rpc while 'fetch' was pending" errors
+afterEach(async () => {
+  if (typeof fetchMock !== "undefined" && fetchMock?.resetMocks) {
+    fetchMock.resetMocks();
+  }
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
 
 class MockExchangeCalendarService implements CalendarService {
   async createEvent() {
