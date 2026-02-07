@@ -6,27 +6,16 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationAttributesRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) { }
 
-  async createOrganizationAttribute(organizationId: number, data: CreateOrganizationAttributeInput) {
-    const { options, ...attributeData } = data;
-
+  async createOrganizationAttribute(organizationId: number, data: Omit<CreateOrganizationAttributeInput, 'options'>) {
     const attribute = await this.dbWrite.prisma.attribute.create({
       data: {
-        ...attributeData,
+        ...data,
         teamId: organizationId,
       },
     });
 
-    if (attribute.type === "SINGLE_SELECT" || attribute.type === "MULTI_SELECT") {
-      // TODO: move this to attribute option service
-      await this.dbWrite.prisma.attributeOption.createMany({
-        data: options.map((option) => ({
-          ...option,
-          attributeId: attribute.id,
-        })),
-      });
-    }
     return attribute;
   }
 

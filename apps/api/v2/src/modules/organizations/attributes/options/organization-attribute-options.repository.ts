@@ -16,7 +16,7 @@ export class OrganizationAttributeOptionRepository {
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly organizationsMembershipsService: OrganizationsMembershipService
-  ) {}
+  ) { }
 
   async createOrganizationAttributeOption(
     organizationId: number,
@@ -28,6 +28,18 @@ export class OrganizationAttributeOptionRepository {
         ...data,
         attributeId,
       },
+    });
+  }
+
+  async createManyOrganizationAttributeOptions(
+    attributeId: string,
+    options: CreateOrganizationAttributeOptionInput[]
+  ) {
+    return this.dbWrite.prisma.attributeOption.createMany({
+      data: options.map((option) => ({
+        ...option,
+        attributeId,
+      })),
     });
   }
 
