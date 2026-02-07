@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { Slots } from "~/schedules/lib/types";
+import type { Slots } from "../lib/types";
 
 const getNonEmptyScheduleDays = (slots?: Slots) => {
   if (typeof slots === "undefined") return [];
