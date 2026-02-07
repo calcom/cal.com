@@ -29,8 +29,9 @@ export class AccessCodeRepository {
     });
   }
 
-  async findValidCode(code: string, clientId: string) {
-    return this.prisma.accessCode.findFirst({
+  async findValidCode(code: string, clientId: string, tx?: PrismaClient) {
+    const prisma = tx || this.prisma;
+    return prisma.accessCode.findFirst({
       where: {
         code,
         clientId,
@@ -48,8 +49,9 @@ export class AccessCodeRepository {
     });
   }
 
-  async deleteExpiredAndUsedCodes(code: string, clientId: string) {
-    await this.prisma.accessCode.deleteMany({
+  async deleteExpiredAndUsedCodes(code: string, clientId: string, tx?: PrismaClient) {
+    const prisma = tx || this.prisma;
+    await prisma.accessCode.deleteMany({
       where: {
         OR: [
           {
