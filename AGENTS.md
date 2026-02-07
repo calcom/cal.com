@@ -17,7 +17,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 - Use Biome for formatting and linting
-- Only add code comments that explain **why**, not **what** — the "what" is already conveyed by function names, parameters, and return types. Good reasons to comment: business logic rationale, non-obvious side effects, workarounds with context. If there is no meaningful "why" to explain, do not add a comment.
+- Only add code comments that explain **why**, not **what** — see [code comment guidelines](agents/rules/quality-code-comments.md)
 
 
 ## Don't
@@ -176,31 +176,6 @@ const booking = await prisma.booking.findFirst({
 const booking = await prisma.booking.findFirst({
   include: { user: true }
 });
-```
-
-### Good comments
-
-```typescript
-// Bad - Restates what the code already tells you
-// Get the user
-const user = await getUser(userId);
-
-// Bad - Obvious from the code
-// Loop through bookings
-for (const booking of bookings) {
-  // Process booking
-  processBooking(booking);
-}
-
-// Good - Explains WHY, not what
-// We need to fetch availability before slots because the timezone
-// conversion depends on the user's configured availability rules
-const availability = await getAvailability(userId);
-const slots = convertToSlots(availability, timezone);
-
-// Good - Documents a non-obvious constraint
-// Google Calendar API has a 2500 event limit per sync request
-const BATCH_SIZE = 2500;
 ```
 
 ### Good imports
