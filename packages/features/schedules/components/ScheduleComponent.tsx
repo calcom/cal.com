@@ -18,7 +18,6 @@ import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
 import cn from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
