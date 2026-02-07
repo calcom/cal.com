@@ -17,7 +17,6 @@
     "@calcom/atoms": "workspace:*",
     "@calcom/dayjs": "workspace:*",
     "@calcom/lib": "workspace:*",
-    "@calcom/trpc": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@coss/ui": "workspace:*",
     "@evyweb/ioctopus": "1.2.0",
