@@ -1,26 +1,26 @@
-import { z } from "zod";
-
-import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
-import type { EventTypeUpdateInput } from "@calcom/features/eventtypes/lib/types";
-import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type {
-  CustomInputSchema,
-  EventTypeMetadata,
-  IntervalLimit,
-  EventTypeLocation,
-} from "@calcom/prisma/zod-utils";
+  AiPhoneCallConfig,
+  CalVideoSettings,
+  ChildInput,
+  DestinationCalendarInput,
+  EventTypeUpdateInput,
+  HashedLinkInput,
+  HostGroupInput,
+  HostInput,
+} from "@calcom/features/eventtypes/lib/types";
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  rrSegmentQueryValueSchema,
-  eventTypeLocations,
-  recurringEventType,
-  intervalLimitsType,
   eventTypeBookingFields,
   eventTypeColor,
+  eventTypeLocations,
+  intervalLimitsType,
+  recurringEventType,
+  rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 // ============================================================================
 // EXPLICIT TYPE DEFINITIONS
@@ -36,120 +36,10 @@ import {
 export type TUpdateInputSchema = EventTypeUpdateInput;
 
 // ============================================================================
-// HELPER TYPES FOR ZOD SCHEMAS
-// ============================================================================
-// These types are only used for Zod schema definitions below and are not
-// exported. The runtime validation logic remains in the tRPC package.
-// ============================================================================
-
-type HashedLinkInput = {
-  link: string;
-  expiresAt?: Date | null;
-  maxUsageCount?: number | null;
-  usageCount?: number | null;
-};
-
-type AiPhoneCallConfig = {
-  generalPrompt: string;
-  enabled: boolean;
-  beginMessage: string | null;
-  yourPhoneNumber: string;
-  numberToCall: string;
-  guestName?: string | null;
-  guestEmail?: string | null;
-  guestCompany?: string | null;
-  templateType: TemplateType;
-};
-
-type CalVideoSettings = {
-  disableRecordingForGuests?: boolean | null;
-  disableRecordingForOrganizer?: boolean | null;
-  enableAutomaticTranscription?: boolean | null;
-  enableAutomaticRecordingForOrganizer?: boolean | null;
-  disableTranscriptionForGuests?: boolean | null;
-  disableTranscriptionForOrganizer?: boolean | null;
-  redirectUrlOnExit?: string | null;
-  requireEmailForGuests?: boolean | null;
-} | null;
-
-type HostLocationInput = {
-  id?: string;
-  userId: number;
-  eventTypeId: number;
-  type: string;
-  credentialId?: number | null;
-  link?: string | null;
-  address?: string | null;
-  phoneNumber?: string | null;
-};
-
-type HostInput = {
-  userId: number;
-  profileId?: number | null;
-  isFixed?: boolean;
-  priority?: number | null;
-  weight?: number | null;
-  scheduleId?: number | null;
-  groupId?: string | null;
-  location?: HostLocationInput | null;
-};
-
-type HostGroupInput = {
-  id: string;
-  name: string;
-};
-
-type ChildInput = {
-  owner: {
-    id: number;
-    name: string;
-    email: string;
-    eventTypeSlugs: string[];
-  };
-  hidden: boolean;
-};
-
-type DestinationCalendarInput = {
-  integration: string;
-  externalId: string;
-} | null;
-
-type RecurringEventInput = {
-  dtstart?: Date;
-  interval: number;
-  count: number;
-  freq: number;
-  until?: Date;
-  tzid?: string;
-} | null;
-
-type EventTypeColorInput = {
-  lightEventTypeColor: string;
-  darkEventTypeColor: string;
-} | null;
-
-/**
- * Booking field type - minimal type definition for fields that need to be accessed.
- * Only includes properties that are actually read in server code.
- * Does NOT use an index signature to maintain compatibility with API v2 DTO classes.
- */
-type BookingFieldInput = {
-  name: string;
-  hidden?: boolean;
-  required?: boolean;
-  type?: string;
-};
-
-/**
- * RR Segment query value - using index signature for complex RAQB structure.
- * The values need to be indexable (string keys) for downstream usage.
- */
-type RRSegmentQueryValueInput = {
-  [key: string]: unknown;
-} | null;
-
-// ============================================================================
 // ZOD SCHEMAS
+// ============================================================================
+// All type definitions are imported from @calcom/features/eventtypes/lib/types
+// to avoid duplication and maintain proper dependency direction.
 // ============================================================================
 
 const hashedLinkInputSchema: z.ZodType<HashedLinkInput> = z

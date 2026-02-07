@@ -1,23 +1,25 @@
-import { z } from "zod";
-
+import type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import type { customInputSchema } from "@calcom/prisma/zod-utils";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata, EventTypeLocation, CustomInputSchema } from "@calcom/prisma/zod-utils";
+import type { MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type {
+  BookerLayoutSettings,
+  CustomInputSchema,
+  customInputSchema,
+  EventTypeLocation,
+  EventTypeMetadata,
+  eventTypeBookingFields,
+  eventTypeColor,
+} from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
+import type { z } from "zod";
 import type { EventType } from "./getEventTypeById";
-import type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
-import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -233,14 +235,14 @@ export type EventTypeHosts = {
 // consumed by both the features package and tRPC routers.
 // ============================================================================
 
-type HashedLinkInput = {
+export type HashedLinkInput = {
   link: string;
   expiresAt?: Date | null;
   maxUsageCount?: number | null;
   usageCount?: number | null;
 };
 
-type AiPhoneCallConfig = {
+export type AiPhoneCallConfig = {
   generalPrompt: string;
   enabled: boolean;
   beginMessage: string | null;
@@ -252,7 +254,7 @@ type AiPhoneCallConfig = {
   templateType: TemplateType;
 };
 
-type HostLocationInput = {
+export type HostLocationInput = {
   id?: string;
   userId: number;
   eventTypeId: number;
@@ -263,7 +265,7 @@ type HostLocationInput = {
   phoneNumber?: string | null;
 };
 
-type HostInput = {
+export type HostInput = {
   userId: number;
   profileId?: number | null;
   isFixed?: boolean;
@@ -274,12 +276,12 @@ type HostInput = {
   location?: HostLocationInput | null;
 };
 
-type HostGroupInput = {
+export type HostGroupInput = {
   id: string;
   name: string;
 };
 
-type ChildInput = {
+export type ChildInput = {
   owner: {
     id: number;
     name: string;
@@ -289,12 +291,12 @@ type ChildInput = {
   hidden: boolean;
 };
 
-type DestinationCalendarInput = {
+export type DestinationCalendarInput = {
   integration: string;
   externalId: string;
 } | null;
 
-type RecurringEventInput = {
+export type RecurringEventInput = {
   dtstart?: Date;
   interval: number;
   count: number;
@@ -303,7 +305,7 @@ type RecurringEventInput = {
   tzid?: string;
 } | null;
 
-type EventTypeColorInput = {
+export type EventTypeColorInput = {
   lightEventTypeColor: string;
   darkEventTypeColor: string;
 } | null;
@@ -313,7 +315,7 @@ type EventTypeColorInput = {
  * Only includes properties that are actually read in server code.
  * Does NOT use an index signature to maintain compatibility with API v2 DTO classes.
  */
-type BookingFieldInput = {
+export type BookingFieldInput = {
   name: string;
   hidden?: boolean;
   required?: boolean;
@@ -324,7 +326,7 @@ type BookingFieldInput = {
  * RR Segment query value - using index signature for complex RAQB structure.
  * The values need to be indexable (string keys) for downstream usage.
  */
-type RRSegmentQueryValueInput = {
+export type RRSegmentQueryValueInput = {
   [key: string]: unknown;
 } | null;
 
@@ -492,7 +494,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;
@@ -504,13 +506,13 @@ export interface EventTypePlatformWrapperRef {
   handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
 }
 
-export interface CalVideoSettings {
-  disableRecordingForOrganizer?: boolean;
-  disableRecordingForGuests?: boolean;
-  enableAutomaticTranscription?: boolean;
-  enableAutomaticRecordingForOrganizer?: boolean;
-  disableTranscriptionForGuests?: boolean;
-  disableTranscriptionForOrganizer?: boolean;
-  redirectUrlOnExit?: string;
-  requireEmailForGuests?: boolean;
-}
+export type CalVideoSettings = {
+  disableRecordingForGuests?: boolean | null;
+  disableRecordingForOrganizer?: boolean | null;
+  enableAutomaticTranscription?: boolean | null;
+  enableAutomaticRecordingForOrganizer?: boolean | null;
+  disableTranscriptionForGuests?: boolean | null;
+  disableTranscriptionForOrganizer?: boolean | null;
+  redirectUrlOnExit?: string | null;
+  requireEmailForGuests?: boolean | null;
+} | null;
