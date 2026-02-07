@@ -252,6 +252,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
             crmLookupDone: fetchCrm,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
+            eventTypeId: decidedAction.eventTypeId ?? null,
           }),
           isEmbed: pageProps.isEmbed,
         }),

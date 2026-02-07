@@ -34,6 +34,7 @@ type GetUrlSearchParamsToForwardOptions = {
   reroutingFormResponses?: FormResponseValueOnly;
   teamId?: number | null;
   orgId?: number | null;
+  eventTypeId?: number | null;
 };
 
 export function getUrlSearchParamsToForward({
@@ -51,6 +52,7 @@ export function getUrlSearchParamsToForward({
   reroutingFormResponses,
   teamId,
   orgId,
+  eventTypeId,
 }: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -138,6 +140,7 @@ export function getUrlSearchParamsToForward({
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
       : null),
+    ...(eventTypeId ? { ["cal.eventTypeId"]: String(eventTypeId) } : null),
   };
 
   const allQueryURLSearchParams = new URLSearchParams();
