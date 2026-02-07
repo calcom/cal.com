@@ -20,7 +20,6 @@ import {
   MobileNavigationItem,
   MobileNavigationMoreItem,
 } from "./NavigationItem";
-import { useBottomNavItems } from "~/shell/useBottomNavItems";
 
 export const MORE_SEPARATOR_NAME = "more";
 
