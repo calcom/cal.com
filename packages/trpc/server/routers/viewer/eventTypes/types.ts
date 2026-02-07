@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
+import type { EventTypeUpdateInput } from "@calcom/features/eventtypes/lib/types";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type {
@@ -24,9 +25,21 @@ import {
 // ============================================================================
 // EXPLICIT TYPE DEFINITIONS
 // ============================================================================
-// These explicit types prevent TypeScript from having to infer complex types
-// through chains of .extend(), .partial(), .merge() etc. This significantly
-// reduces type-checking time by giving TypeScript the answer directly.
+// Type alias for backwards compatibility. The actual type is now defined in
+// @calcom/features/eventtypes/lib/types to avoid circular dependencies.
+// ============================================================================
+
+/**
+ * Type alias for event type update input.
+ * Imported from features package to maintain proper dependency direction.
+ */
+export type TUpdateInputSchema = EventTypeUpdateInput;
+
+// ============================================================================
+// HELPER TYPES FOR ZOD SCHEMAS
+// ============================================================================
+// These types are only used for Zod schema definitions below and are not
+// exported. The runtime validation logic remains in the tRPC package.
 // ============================================================================
 
 type HashedLinkInput = {
@@ -134,120 +147,6 @@ type BookingFieldInput = {
 type RRSegmentQueryValueInput = {
   [key: string]: unknown;
 } | null;
-
-/**
- * Explicit type definition for event type update input.
- *
- * This type is defined explicitly rather than using z.infer<> on a complex
- * schema chain to significantly reduce TypeScript type-checking time.
- * The schema still validates all fields at runtime.
- *
- * All fields are optional (from .partial()) except `id` which is required.
- */
-export type TUpdateInputSchema = {
-  // Required field
-  id: number;
-
-  // Fields from EventTypeSchema (all optional due to .partial())
-  periodType?: PeriodType;
-  schedulingType?: SchedulingType | null;
-  title?: string;
-  slug?: string;
-  description?: string | null;
-  interfaceLanguage?: string | null;
-  position?: number;
-  locations?: EventTypeLocation[] | null;
-  length?: number;
-  offsetStart?: number;
-  hidden?: boolean;
-  userId?: number | null;
-  profileId?: number | null;
-  teamId?: number | null;
-  useEventLevelSelectedCalendars?: boolean;
-  eventName?: string | null;
-  parentId?: number | null;
-  bookingFields?: BookingFieldInput[] | null;
-  timeZone?: string | null;
-  periodStartDate?: Date | null;
-  periodEndDate?: Date | null;
-  periodDays?: number | null;
-  periodCountCalendarDays?: boolean | null;
-  lockTimeZoneToggleOnBookingPage?: boolean;
-  lockedTimeZone?: string | null;
-  requiresConfirmation?: boolean;
-  requiresConfirmationWillBlockSlot?: boolean;
-  requiresConfirmationForFreeEmail?: boolean;
-  requiresBookerEmailVerification?: boolean;
-  canSendCalVideoTranscriptionEmails?: boolean;
-  autoTranslateDescriptionEnabled?: boolean;
-  autoTranslateInstantMeetingTitleEnabled?: boolean;
-  recurringEvent?: RecurringEventInput;
-  disableGuests?: boolean;
-  hideCalendarNotes?: boolean;
-  hideCalendarEventDetails?: boolean;
-  minimumBookingNotice?: number;
-  beforeEventBuffer?: number;
-  afterEventBuffer?: number;
-  seatsPerTimeSlot?: number | null;
-  onlyShowFirstAvailableSlot?: boolean;
-  showOptimizedSlots?: boolean | null;
-  disableCancelling?: boolean | null;
-  disableRescheduling?: boolean | null;
-  minimumRescheduleNotice?: number | null;
-  seatsShowAttendees?: boolean | null;
-  seatsShowAvailabilityCount?: boolean | null;
-  scheduleId?: number | null;
-  allowReschedulingCancelledBookings?: boolean | null;
-  price?: number;
-  currency?: string;
-  slotInterval?: number | null;
-  metadata?: EventTypeMetadata;
-  successRedirectUrl?: string | null;
-  forwardParamsSuccessRedirect?: boolean | null;
-  redirectUrlOnNoRoutingFormResponse?: string | null;
-  bookingLimits?: IntervalLimit | null;
-  durationLimits?: IntervalLimit | null;
-  isInstantEvent?: boolean;
-  instantMeetingExpiryTimeOffsetInSeconds?: number;
-  instantMeetingScheduleId?: number | null;
-  instantMeetingParameters?: string[];
-  assignAllTeamMembers?: boolean;
-  assignRRMembersUsingSegment?: boolean;
-  rrSegmentQueryValue?: RRSegmentQueryValueInput;
-  useEventTypeDestinationCalendarEmail?: boolean;
-  isRRWeightsEnabled?: boolean;
-  maxLeadThreshold?: number | null;
-  includeNoShowInRRCalculation?: boolean;
-  allowReschedulingPastBookings?: boolean;
-  hideOrganizerEmail?: boolean;
-  maxActiveBookingsPerBooker?: number | null;
-  maxActiveBookingPerBookerOfferReschedule?: boolean;
-  customReplyToEmail?: string | null;
-  eventTypeColor?: EventTypeColorInput;
-  rescheduleWithSameRoundRobinHost?: boolean;
-  secondaryEmailId?: number | null;
-  useBookerTimezone?: boolean;
-  restrictionScheduleId?: number | null;
-  bookingRequiresAuthentication?: boolean;
-  rrHostSubsetEnabled?: boolean;
-  createdAt?: Date | null;
-  updatedAt?: Date | null;
-
-  // Extended fields (all optional due to .partial())
-  aiPhoneCallConfig?: AiPhoneCallConfig;
-  calVideoSettings?: CalVideoSettings;
-  calAiPhoneScript?: string;
-  customInputs?: CustomInputSchema[];
-  destinationCalendar?: DestinationCalendarInput;
-  users?: number[];
-  children?: ChildInput[];
-  hosts?: HostInput[];
-  schedule?: number | null;
-  instantMeetingSchedule?: number | null;
-  multiplePrivateLinks?: (string | HashedLinkInput)[];
-  hostGroups?: HostGroupInput[];
-  enablePerHostLocations?: boolean;
-};
 
 // ============================================================================
 // ZOD SCHEMAS
