@@ -724,9 +724,20 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       <Activity mode={showList ? "visible" : "hidden"}>
         {isManualRefreshing ? (
           <BookingListSkeleton count={4} iosStyle={iosStyle} />
+        ) : iosStyle ? (
+          <FlatList
+            data={listItems}
+            keyExtractor={(item) => item.key}
+            renderItem={renderListItem}
+            contentContainerStyle={{ paddingBottom: 90 }}
+            refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
+            showsVerticalScrollIndicator={false}
+            contentInsetAdjustmentBehavior="automatic"
+            style={{ backgroundColor: isDark ? "#000000" : "white" }}
+          />
         ) : (
-          <>
-            <Activity mode={iosStyle ? "visible" : "hidden"}>
+          <View className="flex-1 px-2 pt-4 md:px-4">
+            <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-black">
               <FlatList
                 data={listItems}
                 keyExtractor={(item) => item.key}
@@ -734,26 +745,9 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 contentContainerStyle={{ paddingBottom: 90 }}
                 refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
                 showsVerticalScrollIndicator={false}
-                contentInsetAdjustmentBehavior="automatic"
-                style={{ backgroundColor: isDark ? "#000000" : "white" }}
               />
-            </Activity>
-
-            <Activity mode={!iosStyle ? "visible" : "hidden"}>
-              <View className="flex-1 px-2 pt-4 md:px-4">
-                <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-black">
-                  <FlatList
-                    data={listItems}
-                    keyExtractor={(item) => item.key}
-                    renderItem={renderListItem}
-                    contentContainerStyle={{ paddingBottom: 90 }}
-                    refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
-                    showsVerticalScrollIndicator={false}
-                  />
-                </View>
-              </View>
-            </Activity>
-          </>
+            </View>
+          </View>
         )}
       </Activity>
 
