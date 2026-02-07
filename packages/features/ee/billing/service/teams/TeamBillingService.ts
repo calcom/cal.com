@@ -173,6 +173,16 @@ export class TeamBillingService implements ITeamBillingService {
         return;
       }
 
+      // Skip immediate subscription update for monthly billing with high water mark
+      // The subscription quantity will be updated before renewal via invoice.upcoming webhook
+      const shouldApplyHighWaterMark = await billingPeriodService.shouldApplyHighWaterMark(teamId);
+      if (shouldApplyHighWaterMark) {
+        log.info(
+          `Skipping subscription update for team ${teamId} because high water mark billing is enabled for monthly plans.`
+        );
+        return;
+      }
+
       await updateSubscriptionQuantity({
         billingService: this.billingProviderService,
         subscriptionId,

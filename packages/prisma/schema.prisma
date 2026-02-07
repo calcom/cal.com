@@ -3003,6 +3003,10 @@ model TeamBilling {
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
 
+  // High water mark tracking for monthly billing
+  highWaterMark            Int?
+  highWaterMarkPeriodStart DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -3026,6 +3030,10 @@ model OrganizationBilling {
   paidSeats         Int?
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
+
+  // High water mark tracking for monthly billing
+  highWaterMark            Int?
+  highWaterMarkPeriodStart DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

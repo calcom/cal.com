@@ -1,6 +1,6 @@
 import type React from "react";
 
-import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
+import { CAL_URL, LOGO, LOGO_DARK, WEBAPP_URL } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
@@ -67,7 +67,7 @@ const OG_ASSETS = {
   },
   generic: {
     id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
-    logo: "cal-logo-word-black.svg",
+    logo: LOGO_DARK,
     logoWidth: "350",
     variant: "light" as const,
   },

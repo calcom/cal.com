@@ -17,6 +17,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 - Use Biome for formatting and linting
+- Only add code comments that explain **why**, not **what** — see [code comment guidelines](agents/rules/quality-code-comments.md)
 
 
 ## Don't
@@ -29,6 +30,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never use barrel imports from index.ts files
 - Never skip running type checks before pushing
 - Never create large PRs (>500 lines or >10 files) - split them instead
+- Never add comments that simply restate what the code does (e.g., `// Get the user` above a `getUser()` call)
 
 ## PR Size Guidelines
 

@@ -11,6 +11,8 @@ import {
   setFeatureDismissed,
   setFeatureOptedIn,
 } from "../lib/feature-opt-in-storage";
+import type { OptInFeedbackState } from "./useOptInFeedback";
+import { useOptInFeedback } from "./useOptInFeedback";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -48,6 +50,7 @@ type UseFeatureOptInBannerResult = {
   dismiss: () => void;
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
+  feedback: OptInFeedbackState;
   trackFeatureEnabled: (data: FeatureOptInTrackingData) => void;
 };
 
@@ -61,6 +64,9 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   const [isOptedIn, setIsOptedIn] = useState(() => isFeatureOptedIn(featureId));
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
+
+  const feedback = useOptInFeedback(featureId, featureConfig);
+
   const utils = trpc.useUtils();
 
   const eligibilityQuery = trpc.viewer.featureOptIn.checkFeatureOptInEligibility.useQuery(
@@ -187,6 +193,7 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     dismiss,
     markOptedIn,
     mutations,
+    feedback,
     trackFeatureEnabled,
   };
 }
