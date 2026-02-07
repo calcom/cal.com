@@ -10,7 +10,7 @@ import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import PhoneInput from "@calcom/web/components/phone-input";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
-import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
+import { ComponentForField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
