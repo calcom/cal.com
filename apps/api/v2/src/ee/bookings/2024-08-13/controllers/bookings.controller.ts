@@ -50,6 +50,7 @@ import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.gua
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
+import { GetCalendarLinksInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/get-calendar-links.input";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
@@ -102,7 +103,7 @@ export class BookingsController_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
     private readonly calVideoService: CalVideoService
-  ) {}
+  ) { }
 
   @Post("/")
   @UseGuards(OptionalApiAuthGuard)
@@ -544,8 +545,11 @@ export class BookingsController_2024_08_13 {
       `,
   })
   @HttpCode(HttpStatus.OK)
-  async getCalendarLinks(@Param("bookingUid") bookingUid: string): Promise<CalendarLinksOutput_2024_08_13> {
-    const calendarLinks = await this.bookingsService.getCalendarLinks(bookingUid);
+  async getCalendarLinks(
+    @Param("bookingUid") bookingUid: string,
+    @Query() queryParams: GetCalendarLinksInput_2024_08_13
+  ): Promise<CalendarLinksOutput_2024_08_13> {
+    const calendarLinks = await this.bookingsService.getCalendarLinks(bookingUid, queryParams.locale);
 
     return {
       status: SUCCESS_STATUS,

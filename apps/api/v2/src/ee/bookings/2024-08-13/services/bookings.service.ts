@@ -115,7 +115,7 @@ export class BookingsService_2024_08_13 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) {}
+  ) { }
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
     let bookingTeamEventType = false;
@@ -321,8 +321,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -336,8 +335,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -351,8 +349,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -367,8 +364,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -544,8 +540,8 @@ export class BookingsService_2024_08_13 {
       outputBooking,
       booking.userId
         ? {
-            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-          }
+          isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+        }
         : {}
     );
   }
@@ -591,8 +587,8 @@ export class BookingsService_2024_08_13 {
         outputBooking,
         booking.userId
           ? {
-              isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-            }
+            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+          }
           : {}
       );
     } catch (error) {
@@ -657,9 +653,9 @@ export class BookingsService_2024_08_13 {
     const userIsEventTypeAdminOrOwner =
       authUser && booking.eventType
         ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-            authUser,
-            booking.eventType as EventType
-          )
+          authUser,
+          booking.eventType as EventType
+        )
         : false;
 
     const isRecurring = !!booking.recurringEventId;
@@ -1283,7 +1279,7 @@ export class BookingsService_2024_08_13 {
     return this.getBooking(bookingUid, requestUser);
   }
 
-  async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
+  async getCalendarLinks(bookingUid: string, locale?: string): Promise<CalendarLink[]> {
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
 
     if (!booking) {
@@ -1300,16 +1296,18 @@ export class BookingsService_2024_08_13 {
     if (!eventType) {
       throw new BadRequestException(`Booking with uid ${bookingUid} has no event type`);
     }
-    // TODO: Maybe we should get locale from query params?
+
+    // Determine if this is a dynamic event based on event type slug pattern
+    const isDynamic = eventType.slug?.includes("+") ?? false;
+
+    const effectiveLocale = locale || "en";
     return getCalendarLinks({
       booking,
       eventType: {
         ...eventType,
-        // TODO: Support dynamic event bookings later. It would require a slug input it seems
-        isDynamic: false,
+        isDynamic,
       },
-      // It can be made customizable through the API endpoint later.
-      t: await getTranslation("en", "common"),
+      t: await getTranslation(effectiveLocale, "common"),
     });
   }
 }
