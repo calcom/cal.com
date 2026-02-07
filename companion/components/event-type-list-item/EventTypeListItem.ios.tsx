@@ -2,7 +2,7 @@ import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import type React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import { EventTypeBadges, EventTypeDescription, EventTypeTitle } from "./EventTypeListItemParts";
 import type { EventTypeListItemProps } from "./types";
 import { useEventTypeListItemData } from "./useEventTypeListItemData";
@@ -20,6 +20,8 @@ export const EventTypeListItem = ({
   const { formattedDuration, normalizedDescription, hasPrice, formattedPrice } =
     useEventTypeListItemData(item);
   const isLast = index === filteredEventTypes.length - 1;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   // Calculate badge count to force remount when badges change
   // This fixes SwiftUI Host caching stale layout measurements
@@ -88,7 +90,11 @@ export const EventTypeListItem = ({
   // This fixes SwiftUI Host caching stale layout measurements
   return (
     <View
-      className={`bg-cal-bg active:bg-cal-bg-secondary ${!isLast ? "border-b border-cal-border" : ""}`}
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: !isLast ? 1 : 0,
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
+      }}
     >
       {/* Calculate minHeight based on badge rows to ensure proper spacing */}
       {/* 1-3 badges = 1 row, 4-5 badges = likely 2 rows, 6 badges = 2 rows */}

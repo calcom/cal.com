@@ -84,9 +84,17 @@ jobs:
       - name: Update Env Files
         run: |
           VERSION="${{ steps.deploy-trigger.outputs.deploymentVersion }}"
-          echo "TRIGGER_VERSION=$VERSION" > apps/web/.env.production
-          echo "TRIGGER_VERSION=$VERSION" > apps/api/v2/.env.production
-          git add -f apps/web/.env.production apps/api/v2/.env.production
+    
+          # Create the TypeScript content
+          CONTENT="export const TRIGGER_VERSION = '$VERSION';"
+    
+          # Write to the specific paths
+          echo "$CONTENT" > apps/web/trigger.version.ts
+          echo "$CONTENT" > apps/api/v2/trigger.version.ts
+          echo "$CONTENT" > apps/api/v1/trigger.version.js
+    
+          # Force add to git since these are likely in .gitignore
+          git add -f apps/web/trigger.version.ts apps/api/v2/trigger.version.ts apps/api/v1/trigger.version.js
 
       # 4. Commit everything together
       - name: Commit changes
@@ -94,7 +102,6 @@ jobs:
           VERSION: ${{ inputs.next_version }}
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
-          echo "$GITHUB_TOKEN" | gh auth login --with-token
           gh auth setup-git
           git add .
           git commit -m "chore: release v$VERSION"

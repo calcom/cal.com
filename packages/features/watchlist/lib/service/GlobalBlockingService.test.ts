@@ -14,6 +14,7 @@ const mockGlobalRepo: IGlobalWatchlistRepository = {
   deleteEntry: vi.fn(),
   findById: vi.fn(),
   listBlockedEntries: vi.fn(),
+  findBlockingEntriesForEmailsAndDomains: vi.fn(),
 };
 
 describe("GlobalBlockingService", () => {
@@ -38,16 +39,17 @@ describe("GlobalBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockGlobalRepo.findBlockedEmail).mockResolvedValue(mockEntry);
-      vi.mocked(mockGlobalRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([mockEntry]);
 
       const result = await service.isBlocked("blocked@example.com");
 
       expect(result.isBlocked).toBe(true);
       expect(result.reason).toBe(WatchlistType.EMAIL);
       expect(result.watchlistEntry).toEqual(mockEntry);
-      expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalledWith("blocked@example.com");
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("example.com");
+      expect(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["blocked@example.com"],
+        domains: ["example.com"],
+      });
     });
 
     test("should return blocked when domain matches", async () => {
@@ -63,21 +65,21 @@ describe("GlobalBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockGlobalRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockGlobalRepo.findBlockedDomain).mockResolvedValue(mockEntry);
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([mockEntry]);
 
       const result = await service.isBlocked("user@spam.com");
 
       expect(result.isBlocked).toBe(true);
       expect(result.reason).toBe(WatchlistType.DOMAIN);
       expect(result.watchlistEntry).toEqual(mockEntry);
-      expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalledWith("user@spam.com");
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("spam.com");
+      expect(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@spam.com"],
+        domains: ["spam.com"],
+      });
     });
 
     test("should return not blocked when no matches", async () => {
-      vi.mocked(mockGlobalRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockGlobalRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([]);
 
       const result = await service.isBlocked("clean@example.com");
 
@@ -87,27 +89,14 @@ describe("GlobalBlockingService", () => {
     });
 
     test("should normalize email before checking", async () => {
-      vi.mocked(mockGlobalRepo.findBlockedEmail).mockResolvedValue(null);
-      vi.mocked(mockGlobalRepo.findBlockedDomain).mockResolvedValue(null);
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([]);
 
       await service.isBlocked("USER@EXAMPLE.COM");
 
-      expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalledWith("user@example.com");
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalledWith("example.com");
-    });
-
-    test("should check both email and domain in parallel", async () => {
-      const emailPromise = Promise.resolve(null);
-      const domainPromise = Promise.resolve(null);
-
-      vi.mocked(mockGlobalRepo.findBlockedEmail).mockReturnValue(emailPromise);
-      vi.mocked(mockGlobalRepo.findBlockedDomain).mockReturnValue(domainPromise);
-
-      await service.isBlocked("test@example.com");
-
-      // Both should be called before awaiting (parallel execution)
-      expect(mockGlobalRepo.findBlockedEmail).toHaveBeenCalled();
-      expect(mockGlobalRepo.findBlockedDomain).toHaveBeenCalled();
+      expect(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@example.com"],
+        domains: ["example.com"],
+      });
     });
 
     test("should return email match over domain match", async () => {
@@ -135,14 +124,145 @@ describe("GlobalBlockingService", () => {
         lastUpdatedAt: new Date(),
       };
 
-      vi.mocked(mockGlobalRepo.findBlockedEmail).mockResolvedValue(emailEntry);
-      vi.mocked(mockGlobalRepo.findBlockedDomain).mockResolvedValue(domainEntry);
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
+        emailEntry,
+        domainEntry,
+      ]);
 
       const result = await service.isBlocked("specific@example.com");
 
       expect(result.isBlocked).toBe(true);
-      expect(result.reason).toBe(WatchlistType.EMAIL); // Email takes precedence
+      expect(result.reason).toBe(WatchlistType.EMAIL);
       expect(result.watchlistEntry).toEqual(emailEntry);
+    });
+
+    test("should NOT block subdomain when exact domain is blocked (no wildcard)", async () => {
+      const exactDomainEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([exactDomainEntry]);
+
+      const result = await service.isBlocked("user@app.cal.com");
+
+      expect(result.isBlocked).toBe(false);
+      expect(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@app.cal.com"],
+        domains: ["app.cal.com", "*.cal.com"],
+      });
+    });
+
+    test("should block subdomain when wildcard pattern is used", async () => {
+      const wildcardEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "*.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([wildcardEntry]);
+
+      const result = await service.isBlocked("user@app.cal.com");
+
+      expect(result.isBlocked).toBe(true);
+      expect(result.reason).toBe(WatchlistType.DOMAIN);
+      expect(result.watchlistEntry).toEqual(wildcardEntry);
+    });
+
+    test("should block deeply nested subdomain with wildcard pattern", async () => {
+      const wildcardEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "*.app.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([wildcardEntry]);
+
+      const result = await service.isBlocked("user@sub.app.cal.com");
+
+      expect(result.isBlocked).toBe(true);
+      expect(result.reason).toBe(WatchlistType.DOMAIN);
+      expect(result.watchlistEntry).toEqual(wildcardEntry);
+      expect(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).toHaveBeenCalledWith({
+        emails: ["user@sub.app.cal.com"],
+        domains: ["sub.app.cal.com", "*.app.cal.com"],
+      });
+    });
+
+    test("should NOT block exact domain with wildcard pattern", async () => {
+      const wildcardEntry = {
+        id: "789",
+        type: WatchlistType.DOMAIN,
+        value: "*.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([wildcardEntry]);
+
+      const result = await service.isBlocked("user@cal.com");
+
+      expect(result.isBlocked).toBe(false);
+    });
+
+    test("should prefer exact domain match over wildcard", async () => {
+      const exactEntry = {
+        id: "111",
+        type: WatchlistType.DOMAIN,
+        value: "app.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      const wildcardEntry = {
+        id: "222",
+        type: WatchlistType.DOMAIN,
+        value: "*.cal.com",
+        description: null,
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
+        lastUpdatedAt: new Date(),
+      };
+
+      vi.mocked(mockGlobalRepo.findBlockingEntriesForEmailsAndDomains).mockResolvedValue([
+        exactEntry,
+        wildcardEntry,
+      ]);
+
+      const result = await service.isBlocked("user@app.cal.com");
+
+      expect(result.isBlocked).toBe(true);
+      expect(result.reason).toBe(WatchlistType.DOMAIN);
+      expect(result.watchlistEntry).toEqual(exactEntry);
     });
   });
 

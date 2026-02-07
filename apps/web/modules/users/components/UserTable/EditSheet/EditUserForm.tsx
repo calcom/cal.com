@@ -192,7 +192,7 @@ export function EditForm({
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
         </SheetHeader>
-        <SheetBody className="bg-cal-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
+        <SheetBody className="bg-cal-muted border-subtle mt-6 gap-4 rounded-xl border p-4 stack-y-6">
           <div className="">
             <Controller
               control={form.control}
@@ -217,40 +217,43 @@ export function EditForm({
             />
           </div>
           <Divider />
-          <TextField label={t("name")} {...form.register("name")} className="mb-6" />
-          <TextField label={t("username")} {...form.register("username")} className="mb-6" />
-          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
-          <div className="mb-6">
-            <Label>{t("role")}</Label>
-            {teamRoles?.length > 0 ? (
-              <SelectField
-                defaultValue={membershipOptions.find(
-                  (option) => option.value === (selectedUser?.role ?? "MEMBER")
-                )}
-                value={membershipOptions.find((option) => option.value === form.watch("role"))}
-                options={membershipOptions}
-                onChange={(option) => {
-                  if (option) {
-                    form.setValue("role", option.value);
-                  }
-                }}
-              />
-            ) : (
-              <ToggleGroup
-                isFullWidth
-                defaultValue={selectedUser?.role ?? "MEMBER"}
-                value={form.watch("role")}
-                options={membershipOptions}
-                onValueChange={(value) => {
-                  form.setValue("role", value);
-                }}
-              />
-            )}
+          <div className="stack-y-3">
+            <TextField label={t("name")} {...form.register("name")} />
+            <TextField label={t("username")} {...form.register("username")} />
+            <TextAreaField label={t("about")} {...form.register("bio")} />
+            <div>
+              <Label>{t("role")}</Label>
+              {teamRoles?.length > 0 ? (
+                <SelectField
+                  defaultValue={membershipOptions.find(
+                    (option) => option.value === (selectedUser?.role ?? "MEMBER")
+                  )}
+                  value={membershipOptions.find((option) => option.value === form.watch("role"))}
+                  options={membershipOptions}
+                  onChange={(option) => {
+                    if (option) {
+                      form.setValue("role", option.value);
+                    }
+                  }}
+                />
+              ) : (
+                <ToggleGroup
+                  isFullWidth
+                  defaultValue={selectedUser?.role ?? "MEMBER"}
+                  value={form.watch("role")}
+                  options={membershipOptions}
+                  onValueChange={(value) => {
+                    form.setValue("role", value);
+                  }}
+                />
+              )}
+            </div>
+            <div>
+              <Label>{t("timezone")}</Label>
+              <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
+            </div>
           </div>
-          <div className="mb-6">
-            <Label>{t("timezone")}</Label>
-            <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
-          </div>
+
           {canEditAttributesForUser && (
             <>
               <Divider />
@@ -262,14 +265,14 @@ export function EditForm({
           <Button
             color="secondary"
             type="button"
-            className="justify-center md:w-1/5"
+            className="justify-center"
             onClick={() => {
               setEditMode(false);
             }}>
             {t("cancel")}
           </Button>
 
-          <Button type="submit" className="w-full justify-center">
+          <Button type="submit" className="justify-center">
             {t("update")}
           </Button>
         </SheetFooter>
@@ -299,9 +302,9 @@ function AttributesList(props: { selectedUserId: number }) {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
     return attribute
       ? attribute.options.map((option) => ({
-          value: option.id,
-          label: option.value,
-        }))
+        value: option.id,
+        label: option.value,
+      }))
       : [];
   };
 
@@ -403,17 +406,17 @@ function AttributesList(props: { selectedUserId: number }) {
                           const updatedOptions =
                             attr.type === "MULTI_SELECT"
                               ? valueAsArray.map((v) => ({
-                                  label: v.label,
-                                  value: v.value,
-                                  weight: v.weight || 100,
-                                }))
+                                label: v.label,
+                                value: v.value,
+                                weight: v.weight || 100,
+                              }))
                               : [
-                                  {
-                                    label: valueAsArray[0].label,
-                                    value: valueAsArray[0].value,
-                                    weight: valueAsArray[0].weight || 100,
-                                  },
-                                ];
+                                {
+                                  label: valueAsArray[0].label,
+                                  value: valueAsArray[0].value,
+                                  weight: valueAsArray[0].weight || 100,
+                                },
+                              ];
 
                           field.onChange({
                             id: attr.id,

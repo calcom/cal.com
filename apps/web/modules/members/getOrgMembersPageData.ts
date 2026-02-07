@@ -1,17 +1,15 @@
-import { unstable_cache } from "next/cache";
-import { redirect } from "next/navigation";
-
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
-import type { Session } from "next-auth";
 import { CrudAction, CustomAction, Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
-
 import { createRouterCaller } from "app/_trpc/context";
+import { unstable_cache } from "next/cache";
+import { redirect } from "next/navigation";
+import type { Session } from "next-auth";
 
 const getCachedAttributes = unstable_cache(
   async (orgId: number) => {
@@ -60,6 +58,7 @@ export async function getOrgMembersPageData(session: Session) {
         CustomAction.ChangeMemberRole,
         CustomAction.Remove,
         CustomAction.Impersonate,
+        CustomAction.PasswordReset,
       ],
       fallbackRoles: {
         [CustomAction.ListMembers]: {
@@ -78,6 +77,9 @@ export async function getOrgMembersPageData(session: Session) {
           roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
         [CustomAction.Impersonate]: {
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+        [CustomAction.PasswordReset]: {
           roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
       },
@@ -107,6 +109,7 @@ export async function getOrgMembersPageData(session: Session) {
     canChangeMemberRole: orgPermissions[CustomAction.ChangeMemberRole],
     canRemove: orgPermissions[CustomAction.Remove],
     canImpersonate: orgPermissions[CustomAction.Impersonate],
+    canResetPassword: orgPermissions[CustomAction.PasswordReset],
     canViewAttributes: attributesPermissions[CrudAction.Read],
     canEditAttributesForUser: attributesPermissions[CustomAction.EditUsers],
   };

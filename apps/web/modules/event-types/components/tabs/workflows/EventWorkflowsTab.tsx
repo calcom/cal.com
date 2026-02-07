@@ -253,7 +253,7 @@ function EventWorkflowsTab(props: Props) {
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"}`}
                 />
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
@@ -261,7 +261,7 @@ function EventWorkflowsTab(props: Props) {
                 <ServerTrans
                   t={t}
                   i18nKey={`workflows_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
+                    isManagedEventType ? "for_members" : "by_team_admin"
                   }_description`}
                 />
               }
