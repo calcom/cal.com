@@ -23,6 +23,7 @@ const FILTER_COLUMN_IDS = [
   "attendeeName",
   "attendeeEmail",
   "dateRange",
+  "noShow",
   "bookingUid",
 ] as const;
 
@@ -110,6 +111,18 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
           dateRangeOptions: {
             range: status === "past" ? "past" : status === "cancelled" ? "any" : "future", // upcoming, unconfirmed, recurring are all future-only
           },
+        },
+      },
+    }),
+    columnHelper.accessor((row) => row, {
+      id: "noShow",
+      header: t("no_show"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.SINGLE_SELECT,
         },
       },
     }),

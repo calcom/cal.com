@@ -14,6 +14,7 @@ type TGetInputSchemaFilters = {
   attendeeEmail?: string | z.infer<typeof ZTextFilterValue>;
   attendeeName?: string | z.infer<typeof ZTextFilterValue>;
   bookingUid?: string;
+  noShow?: boolean;
   afterStartDate?: string;
   beforeEndDate?: string;
   afterUpdatedDate?: string;
@@ -53,6 +54,7 @@ export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInput
     attendeeEmail: z.union([z.string(), ZTextFilterValue]).optional(),
     attendeeName: z.union([z.string(), ZTextFilterValue]).optional(),
     bookingUid: z.string().optional(),
+    noShow: z.boolean().optional(),
     afterStartDate: z.string().optional(),
     beforeEndDate: z.string().optional(),
     afterUpdatedDate: z.string().optional(),

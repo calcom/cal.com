@@ -155,16 +155,20 @@ export function BaseSelectFilterOptions<
           );
         })}
       </CommandList>
-      <CommandSeparator />
-      <CommandGroup>
-        <CommandItem
-          onSelect={() => {
-            removeFilter(column.id);
-          }}
-          className={classNames("w-full justify-center text-center", buttonClasses({ color: "secondary" }))}>
-          {t("clear")}
-        </CommandItem>
-      </CommandGroup>
+      {column.id !== "noShow" && (
+        <>
+          <CommandSeparator />
+          <CommandGroup>
+            <CommandItem
+              onSelect={() => {
+                removeFilter(column.id);
+              }}
+              className={classNames("w-full justify-center text-center", buttonClasses({ color: "secondary" }))}>
+              {t("clear")}
+            </CommandItem>
+          </CommandGroup>
+        </>
+      )}
     </Command>
   );
 }

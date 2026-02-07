@@ -31,6 +31,7 @@ type GetOptions = {
     attendeeEmail?: string | TextFilterValue;
     attendeeName?: string | TextFilterValue;
     bookingUid?: string | undefined;
+    noShow?: boolean;
   };
   sort?: SortOptions;
 };

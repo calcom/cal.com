@@ -102,6 +102,18 @@ export function useBookingListColumns({
           },
         },
       }),
+      columnHelper.accessor((row) => row, {
+        id: "noShow",
+        header: t("no_show"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+      }),
       columnHelper.accessor((row) => !isSeparatorRow(row) && row.booking.uid, {
         id: "bookingUid",
         header: t("booking_uid"),

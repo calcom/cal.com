@@ -14,7 +14,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
-import type { Kysely, SelectQueryBuilder } from "kysely";
+import { sql, type Kysely, type SelectQueryBuilder } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
@@ -397,6 +397,18 @@ export async function getBookings({
     }
     if (filters?.beforeEndDate) {
       fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+    }
+
+    if (typeof filters?.noShow === "boolean") {
+      if (filters.noShow) {
+        fullQuery = fullQuery.where(
+          sql<boolean>`("Booking"."noShowHost" = true OR EXISTS (SELECT 1 FROM "Attendee" WHERE "Attendee"."bookingId" = "Booking"."id" AND "Attendee"."noShow" = true))`
+        );
+      } else {
+        fullQuery = fullQuery.where(
+          sql<boolean>`(("Booking"."noShowHost" IS NULL OR "Booking"."noShowHost" = false) AND NOT EXISTS (SELECT 1 FROM "Attendee" WHERE "Attendee"."bookingId" = "Booking"."id" AND "Attendee"."noShow" = true))`
+        );
+      }
     }
 
     return fullQuery;
