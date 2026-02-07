@@ -26,7 +26,7 @@ export function LandingPagePicker({
 
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          title: "Default Landing Page",
+          title: "First Page",
           message: "Choose which page opens when you launch the app",
           options,
           cancelButtonIndex,

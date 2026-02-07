@@ -28,7 +28,7 @@ export default function More() {
   const handleLandingPageSelect = async (value: LandingPage) => {
     try {
       await setLandingPage(value);
-      showSuccessAlert("Saved", "Default landing page updated");
+      showSuccessAlert("Saved", "First page updated");
     } catch {
       showErrorAlert("Error", "Failed to save preference. Please try again.");
     }
@@ -140,9 +140,7 @@ export default function More() {
           >
             <View className="flex-row items-center">
               <Ionicons name="home-outline" size={20} color="#333" />
-              <Text className="ml-3 text-base font-semibold text-[#333]">
-                Default Landing{"\n"}Page
-              </Text>
+              <Text className="ml-3 text-base font-semibold text-[#333]">First Page</Text>
             </View>
             <View className="flex-row items-center">
               <View className="ml-3 rounded-md bg-gray-100 px-2.5 py-1">

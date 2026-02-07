@@ -30,7 +30,7 @@ export function LandingPagePicker({
       <View className="flex-1 items-center justify-center bg-black/50">
         <View className="mx-4 min-w-[320px] max-w-[400px] rounded-lg bg-white shadow-lg">
           <View className="border-b border-gray-200 px-4 py-3">
-            <Text className="text-lg font-semibold text-gray-900">Default Landing Page</Text>
+            <Text className="text-lg font-semibold text-gray-900">First Page</Text>
             <Text className="mt-1 text-sm text-gray-500">
               Choose which page opens when you launch the app
             </Text>
