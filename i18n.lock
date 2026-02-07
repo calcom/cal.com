@@ -1434,6 +1434,8 @@ checksums:
     redirect_success_booking: 1e101a2ec1211f7be2d3daab0ef8f56e
     you_are_being_redirected: 52d0751d59f5c4523b04728e0c28b312
     redirect_url_description: 837d96d921e54d838efacdd873990ca7
+    redirect_on_no_routing_form: cff4089289cc6b3ec1eaa5d8a451e816
+    redirect_on_no_routing_form_description: fdb70bd8e6e3f1c0b42dd2d13b428a94
     duplicate: 27756566785c2b8463e21582c4bb619b
     offer_seats: 397e1d0c97bf4c59d19893c4b5e4701a
     offer_seats_description: 4936a2610fbb332071296addca56dcce
@@ -3817,6 +3819,8 @@ checksums:
     proration_reminder_subject: 5f317aab47ec7dc7e9637cfe02cced71
     proration_reminder_message: bf1f3dcb4bd2cfcf2f06e3088a9b152d
     proration_reminder_warning: a65f6089c87c0af775386d523223b021
+    proration_invoice_text: 88b912dc686a4ad7a68735192e111687
+    proration_reminder_text: ea3f743d478ca5529ce2c69d5575b381
     current_balance: 88bcb1c91fad643bb53d2df22f6cd29f
     notification_about_your_booking: a98d4c351d6ec6042e488f90b0864d41
     monthly_credits: a95229fd9020089dfad6fb6cd92f7952

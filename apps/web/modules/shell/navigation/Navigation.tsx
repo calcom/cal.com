@@ -25,7 +25,7 @@ export const MORE_SEPARATOR_NAME = "more";
 
 const getNavigationItems = (
   orgBranding: OrganizationBranding,
-  hasInsightsAccess: boolean
+  hasAllInsightsAccess: boolean
 ): NavigationItemType[] => [
   {
     name: "event_types_page_title",
@@ -120,7 +120,7 @@ const getNavigationItems = (
     isCurrent: ({ pathname: path, item }) =>
       path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
-    child: hasInsightsAccess
+    child: hasAllInsightsAccess
       ? [
           {
             name: "bookings",
@@ -147,7 +147,14 @@ const getNavigationItems = (
               path?.startsWith("/insights/call-history") ?? false,
           },
         ]
-      : undefined,
+      : [
+          {
+            name: "call_history",
+            href: "/insights/call-history",
+            // icon: "phone",
+            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
+          }
+        ],
   },
 ];
 
@@ -205,9 +212,9 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   const { hasPaidPlan, isPending } = useHasPaidPlan();
   return useMemo(() => {
-    const hasInsightsAccess = !isPending && !!hasPaidPlan;
+    const hasAllInsightsAccess = !isPending && !!hasPaidPlan;
     const items = !isPlatformNavigation
-      ? getNavigationItems(orgBranding, hasInsightsAccess)
+      ? getNavigationItems(orgBranding, hasAllInsightsAccess)
       : platformNavigationItems;
 
     const desktopNavigationItems = items.filter(
