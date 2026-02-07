@@ -10,6 +10,7 @@ import { CalComLogo } from "@/components/CalComLogo";
 import LoginScreenComponent from "@/components/LoginScreen";
 import { NetworkStatusBanner } from "@/components/NetworkStatusBanner";
 import { GlobalToast } from "@/components/ui/GlobalToast";
+import { WidgetSyncProvider } from "@/components/WidgetSyncProvider";
 import { getColors, colors as semanticColors } from "@/constants/colors";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/contexts/QueryContext";
@@ -454,7 +455,9 @@ export default function RootLayout() {
     <QueryProvider>
       <AuthProvider>
         <ToastProvider>
-          <RootLayoutContent />
+          <WidgetSyncProvider>
+            <RootLayoutContent />
+          </WidgetSyncProvider>
           <GlobalToast />
         </ToastProvider>
       </AuthProvider>

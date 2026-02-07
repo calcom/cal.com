@@ -19,12 +19,12 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
 
   async findNextSubscriptionBatch({
     take,
-    featureIds,
+    teamIds,
     integrations,
     genericCalendarSuffixes,
   }: {
     take: number;
-    featureIds: string[];
+    teamIds: number[];
     integrations: string[];
     genericCalendarSuffixes?: string[];
   }) {
@@ -32,11 +32,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const needsSubscriptionFilter: Prisma.SelectedCalendarWhereInput = {
-      OR: [
-        { syncSubscribedAt: null },
-        { channelExpiration: null },
-        { channelExpiration: { lte: now } },
-      ],
+      OR: [{ syncSubscribedAt: null }, { channelExpiration: null }, { channelExpiration: { lte: now } }],
     };
 
     const retryableWindowFilter: Prisma.SelectedCalendarWhereInput = {
@@ -66,14 +62,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
           teams: {
             some: {
               accepted: true,
-              team: {
-                features: {
-                  some: {
-                    featureId: { in: featureIds },
-                    enabled: true,
-                  },
-                },
-              },
+              teamId: { in: teamIds },
             },
           },
         },

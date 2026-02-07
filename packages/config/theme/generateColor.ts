@@ -14,7 +14,7 @@ const hexToHSL = (hex: string): HSL => {
       s,
       // eslint-disable-next-line prefer-const
       l = (max + min) / 2;
-    if (max == min) {
+    if (max === min) {
       h = s = 0; // achromatic
     } else {
       const d = max - min;
@@ -37,7 +37,7 @@ const hexToHSL = (hex: string): HSL => {
     HSL.s = Math.round(s * 100);
     HSL.l = Math.round(l * 100);
     return HSL;
-  } catch (error) {
+  } catch (_error) {
     console.log(hex);
     return { h: 0, s: 0, l: 0 };
   }

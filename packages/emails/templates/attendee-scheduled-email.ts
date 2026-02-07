@@ -1,11 +1,9 @@
-import type { TFunction } from "i18next";
-import { default as cloneDeep } from "lodash/cloneDeep";
-
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
+import type { TFunction } from "i18next";
+import { default as cloneDeep } from "lodash/cloneDeep";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
@@ -18,7 +16,16 @@ export default class AttendeeScheduledEmail extends BaseEmail {
 
   constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
-    if (!showAttendees && calEvent.seatsPerTimeSlot) {
+    let shouldShowAttendees: boolean;
+    if (showAttendees !== undefined) {
+      shouldShowAttendees = showAttendees;
+    } else if (calEvent.seatsPerTimeSlot) {
+      shouldShowAttendees = calEvent.seatsShowAttendees ?? false;
+    } else {
+      shouldShowAttendees = true;
+    }
+
+    if (!shouldShowAttendees && calEvent.seatsPerTimeSlot) {
       this.calEvent = cloneDeep(calEvent);
       this.calEvent.attendees = [attendee];
     } else {
@@ -63,8 +70,8 @@ ${this.t(
   title
     ? title
     : this.calEvent.recurringEvent?.count
-    ? "your_event_has_been_scheduled_recurring"
-    : "your_event_has_been_scheduled"
+      ? "your_event_has_been_scheduled_recurring"
+      : "your_event_has_been_scheduled"
 )}
 ${this.t(subtitle)}
 

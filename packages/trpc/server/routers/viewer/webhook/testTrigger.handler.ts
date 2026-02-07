@@ -1,7 +1,7 @@
 import { DEFAULT_WEBHOOK_VERSION } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
-
+import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
 import type { TTestTriggerInputSchema } from "./testTrigger.schema";
@@ -13,6 +13,17 @@ type TestTriggerOptions = {
 
 export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOptions) => {
   const { url, type, payloadTemplate = null, secret = null } = input;
+
+  // SSRF validation for webhook URL
+  const validation = validateUrlForSSRFSync(url);
+  if (!validation.isValid) {
+    return {
+      ok: false,
+      status: 400,
+      message: `Webhook URL is not allowed: ${validation.error}`,
+    };
+  }
+
   const translation = await getTranslation("en", "common");
   const language = {
     locale: "en",
