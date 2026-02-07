@@ -21,18 +21,6 @@ import {
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
-
-// ============================================================================
-// EXPLICIT TYPE DEFINITIONS
-// ============================================================================
-// Type alias for backwards compatibility. The actual type is now defined in
-// @calcom/features/eventtypes/lib/types to avoid circular dependencies.
-// ============================================================================
-
-/**
- * Type alias for event type update input.
- * Imported from features package to maintain proper dependency direction.
- */
 export type TUpdateInputSchema = EventTypeUpdateInput;
 
 // ============================================================================
