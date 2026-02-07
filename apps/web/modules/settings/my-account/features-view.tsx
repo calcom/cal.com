@@ -1,6 +1,6 @@
 "use client";
 
-import { FeaturesSettings } from "@calcom/features/feature-opt-in/components/FeaturesSettings";
+import { FeaturesSettings } from "~/feature-opt-in/components/FeaturesSettings";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ReactElement } from "react";
