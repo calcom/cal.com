@@ -26,9 +26,6 @@ export type TUpdateInputSchema = EventTypeUpdateInput;
 // ============================================================================
 // ZOD SCHEMAS
 // ============================================================================
-// All type definitions are imported from @calcom/features/eventtypes/lib/types
-// to avoid duplication and maintain proper dependency direction.
-// ============================================================================
 
 const hashedLinkInputSchema: z.ZodType<HashedLinkInput> = z
   .object({
