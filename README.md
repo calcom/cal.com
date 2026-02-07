@@ -512,11 +512,13 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
 5. Start Cal.com via docker compose
 
-   (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+   (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio (no build required; all images are pre-built):
 
    ```bash
    docker compose up -d
    ```
+
+   The API v2 service (`calcom-api`) is not started by default because it requires building from source. To include it, use: `docker compose --profile api up -d` (ensure required env vars such as `NEXTAUTH_SECRET` and `JWT_SECRET` are set in `.env`).
 
    To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
 

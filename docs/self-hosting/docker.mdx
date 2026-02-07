@@ -50,11 +50,13 @@ Note: `docker compose` without the hyphen is now the primary method of using doc
     ```
 5. Start Cal.com via docker compose
 
-    (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+    (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio (all pre-built; no build step):
 
     ```bash
     docker compose up -d
     ```
+
+    The API v2 service is not started by default (it requires building from source). To include it: `docker compose --profile api up -d`.
 
     To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
 
