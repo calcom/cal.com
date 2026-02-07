@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { Activity, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -677,7 +677,7 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
       {renderFilterControls?.()}
 
       {/* Empty state - no bookings */}
-      <Activity mode={showEmptyState ? "visible" : "hidden"}>
+      {showEmptyState && (
         <View className="flex-1 bg-gray-50 dark:bg-black">
           <ScrollView
             contentContainerStyle={{
@@ -696,10 +696,10 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             />
           </ScrollView>
         </View>
-      </Activity>
+      )}
 
       {/* Search empty state */}
-      <Activity mode={showSearchEmptyState ? "visible" : "hidden"}>
+      {showSearchEmptyState && (
         <View className="flex-1 bg-gray-50 dark:bg-black">
           <ScrollView
             contentContainerStyle={{
@@ -718,15 +718,26 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
             />
           </ScrollView>
         </View>
-      </Activity>
+      )}
 
       {/* Bookings list */}
-      <Activity mode={showList ? "visible" : "hidden"}>
-        {isManualRefreshing ? (
+      {showList &&
+        (isManualRefreshing ? (
           <BookingListSkeleton count={4} iosStyle={iosStyle} />
+        ) : iosStyle ? (
+          <FlatList
+            data={listItems}
+            keyExtractor={(item) => item.key}
+            renderItem={renderListItem}
+            contentContainerStyle={{ paddingBottom: 90 }}
+            refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
+            showsVerticalScrollIndicator={false}
+            contentInsetAdjustmentBehavior="automatic"
+            style={{ backgroundColor: isDark ? "#000000" : "white" }}
+          />
         ) : (
-          <>
-            <Activity mode={iosStyle ? "visible" : "hidden"}>
+          <View className="flex-1 px-2 pt-4 md:px-4">
+            <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-black">
               <FlatList
                 data={listItems}
                 keyExtractor={(item) => item.key}
@@ -734,28 +745,10 @@ export const BookingListScreen: React.FC<BookingListScreenProps> = ({
                 contentContainerStyle={{ paddingBottom: 90 }}
                 refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
                 showsVerticalScrollIndicator={false}
-                contentInsetAdjustmentBehavior="automatic"
-                style={{ backgroundColor: isDark ? "#000000" : "white" }}
               />
-            </Activity>
-
-            <Activity mode={!iosStyle ? "visible" : "hidden"}>
-              <View className="flex-1 px-2 pt-4 md:px-4">
-                <View className="flex-1 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white dark:border-[#4D4D4D] dark:bg-black">
-                  <FlatList
-                    data={listItems}
-                    keyExtractor={(item) => item.key}
-                    renderItem={renderListItem}
-                    contentContainerStyle={{ paddingBottom: 90 }}
-                    refreshControl={<RefreshControl refreshing={false} onRefresh={manualRefresh} />}
-                    showsVerticalScrollIndicator={false}
-                  />
-                </View>
-              </View>
-            </Activity>
-          </>
-        )}
-      </Activity>
+            </View>
+          </View>
+        ))}
 
       {/* Modals */}
       <BookingModals

@@ -1,7 +1,7 @@
 import type { NativeStackHeaderItemMenuAction } from "@react-navigation/native-stack";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useColorScheme } from "react-native";
 
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
@@ -24,8 +24,6 @@ export default function Bookings() {
   const { filter } = useLocalSearchParams<{ filter?: string }>();
   const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
 
-  console.log("[Bookings.ios] Received filter param:", filter, "initialFilter:", initialFilter);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const { data: eventTypes } = useEventTypes();
@@ -40,10 +38,17 @@ export default function Bookings() {
     }
   );
 
+  // Track if we want to ignore the next activeFilter change (because it came from URL sync)
+  const lastUrlFilter = useRef<string | null>(null);
+
   // Update filter when URL params change (for when component is already mounted)
   useEffect(() => {
-    if (isValidBookingFilter(filter) && filter !== activeFilter) {
-      console.log("[Bookings.ios] Updating filter from URL param:", filter);
+    if (
+      isValidBookingFilter(filter) &&
+      filter !== activeFilter &&
+      filter !== lastUrlFilter.current
+    ) {
+      lastUrlFilter.current = filter;
       handleFilterChange(filter);
     }
   }, [filter, activeFilter, handleFilterChange]);
