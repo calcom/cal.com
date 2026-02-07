@@ -6,8 +6,6 @@ import { useSchedule } from "@calcom/web/modules/schedules/hooks/useSchedule";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
-import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
-
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
 
