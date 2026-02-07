@@ -100,14 +100,10 @@ export default function Availability() {
       >
         <Stack.Header.Title large>Availability</Stack.Header.Title>
         <Stack.Header.Right>
-          {/* New Menu */}
-          <Stack.Header.Menu>
+          {/* New Button - directly opens create dialog */}
+          <Stack.Header.Button onPress={handleCreateNew}>
             <Stack.Header.Icon sf="plus" />
-
-            <Stack.Header.MenuAction icon="clock" onPress={handleCreateNew}>
-              New Availability
-            </Stack.Header.MenuAction>
-          </Stack.Header.Menu>
+          </Stack.Header.Button>
 
           {/* Profile Button */}
           {userProfile?.avatarUrl ? (
