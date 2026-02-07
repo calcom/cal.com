@@ -1,7 +1,7 @@
 import type { DataTableRow } from "@calcom/features/data-table/lib/separator";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
-import type { useScheduleForEventReturnType } from "./hooks/useEvent";
+import type { useScheduleForEventReturnType } from "@calcom/web/modules/bookings/hooks/useEvent";
 import type { ToggledConnectedCalendars, CustomClassNames } from "@calcom/features/bookings/Booker/types";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
