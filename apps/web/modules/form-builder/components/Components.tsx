@@ -18,8 +18,8 @@ import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
-import { propsTypes } from "./propsTypes";
-import { preprocessNameFieldDataWithVariant } from "./utils";
+import { propsTypes } from "@calcom/features/form-builder/propsTypes";
+import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
   boolean: (val) => typeof val === "boolean",
