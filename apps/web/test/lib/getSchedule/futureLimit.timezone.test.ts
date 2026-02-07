@@ -1,10 +1,10 @@
 import {
-  TestData,
-  Timezones,
   createBookingScenario,
   replaceDates,
-} from "../../utils/bookingScenario/bookingScenario";
-import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
+  TestData,
+  Timezones,
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import type { ScenarioData } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, expect, vi, test } from "vitest";
 
@@ -1489,13 +1489,12 @@ describe("getSchedule", () => {
             {
               id: 1,
               length: 60,
-              // Makes today and tomorrow only available
+              // Makes plus1 and plus2 dates only available (June 1-2 in event timezone)
+              // Period dates are now stored as UTC midnight for the selected date
               ...getPeriodTypeData({
                 type: "RANGE",
-                // dayPlus1InIst
-                periodStartDate: new Date(`${todayDateString}T18:30:00.000Z`),
-                // datePlus2InIst
-                periodEndDate: new Date(`${plus1DateString}T18:30:00.000Z`),
+                periodStartDate: new Date(`${plus1DateString}T00:00:00.000Z`), // June 1 UTC midnight
+                periodEndDate: new Date(`${plus2DateString}T00:00:00.000Z`), // June 2 UTC midnight
                 periodCountCalendarDays: true,
               }),
               users: [
@@ -1574,14 +1573,12 @@ describe("getSchedule", () => {
               {
                 id: 1,
                 length: 60,
-                // Makes today and tomorrow only available
+                // Makes 25th and 26th July (in event timezone) available
+                // Period dates are now stored as UTC midnight for the selected date
                 ...getPeriodTypeData({
                   type: "RANGE",
-
-                  // Only 25th and 26th(as per the event timezone(IST)) should be available
-                  periodStartDate: new Date(`2024-07-24T18:30:00.000Z`), // 25th July in IST
-                  periodEndDate: new Date(`2024-07-25T18:30:00.000Z`), // 26th July in IST
-
+                  periodStartDate: new Date(`2024-07-25T00:00:00.000Z`), // July 25 UTC midnight
+                  periodEndDate: new Date(`2024-07-26T00:00:00.000Z`), // July 26 UTC midnight
                   periodCountCalendarDays: true,
                 }),
                 users: [
@@ -1614,23 +1611,17 @@ describe("getSchedule", () => {
               orgSlug: null,
             },
           });
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-21",
+          });
 
-          /**
-           * Current day in test is 5th July, so verify that earlier timeslots than 24th July are disabled
-           */
-          {
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-21",
-            });
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-22",
+          });
 
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-22",
-            });
-
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-23",
-            });
-          }
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-23",
+          });
 
           expect(scheduleForEventForPagoTz).toHaveTimeSlots(
             [
@@ -1670,19 +1661,13 @@ describe("getSchedule", () => {
             dateString: "2024-07-26",
             doExactMatch: true,
           });
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-27",
+          });
 
-          /**
-           * Verify that timeslots beyond 26th July are disabled
-           */
-          {
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-27",
-            });
-
-            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
-              dateString: "2024-07-28",
-            });
-          }
+          expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+            dateString: "2024-07-28",
+          });
         });
       });
     });

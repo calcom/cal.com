@@ -1,11 +1,10 @@
+import type { Schedule } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { useEffect, useRef } from "react";
-
-import { Schedule } from "@calcom/lib/schedules/transformers/getTransformedSchedles";
 
 export function useEnsureDefaultSchedule(
   schedules: Schedule[],
   onUpdateSchedule: (scheduleId: number) => void | Promise<void>
-) {
+): void {
   const onUpdateRef = useRef(onUpdateSchedule);
 
   useEffect(() => {

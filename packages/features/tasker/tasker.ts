@@ -1,7 +1,7 @@
-import type { z } from "zod";
-
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { BookingAuditTaskConsumerPayload } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
+import type { z } from "zod";
+
 export type TaskerTypes = "internal" | "redis";
 type TaskPayloads = {
   sendWebhook: string;
@@ -24,6 +24,7 @@ type TaskPayloads = {
   createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
   sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
+  scanWorkflowUrls: z.infer<typeof import("./tasks/scanWorkflowUrls").scanWorkflowUrlsSchema>;
   sendAnalyticsEvent: z.infer<typeof import("./tasks/analytics/schema").sendAnalyticsEventSchema>;
   executeAIPhoneCall: {
     workflowReminderId: number;
@@ -38,6 +39,21 @@ type TaskPayloads = {
     routedEventTypeId?: number | null;
   };
   bookingAudit: BookingAuditTaskConsumerPayload;
+  sendAwaitingPaymentEmail: z.infer<
+    typeof import("./tasks/sendAwaitingPaymentEmail").sendAwaitingPaymentEmailPayloadSchema
+  >;
+  sendProrationInvoiceEmail: z.infer<
+    typeof import("./tasks/sendProrationInvoiceEmail").sendProrationInvoiceEmailPayloadSchema
+  >;
+  sendProrationReminderEmail: z.infer<
+    typeof import("./tasks/sendProrationReminderEmail").sendProrationReminderEmailPayloadSchema
+  >;
+  cancelProrationReminder: z.infer<
+    typeof import("./tasks/cancelProrationReminder").cancelProrationReminderPayloadSchema
+  >;
+  webhookDelivery: z.infer<
+    typeof import("@calcom/features/webhooks/lib/types/webhookTask").webhookTaskPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string, taskId?: string) => Promise<void>;

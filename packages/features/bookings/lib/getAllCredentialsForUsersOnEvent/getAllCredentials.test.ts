@@ -3,7 +3,7 @@ import {
   addTeamsToDb,
   addEventTypesToDb,
   addUsersToDb,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test, expect, vi } from "vitest";
 

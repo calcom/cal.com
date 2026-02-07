@@ -1,16 +1,9 @@
-import { bootstrap } from "@/app";
-import { AppModule } from "@/app.module";
-import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import * as request from "supertest";
+import request from "supertest";
 import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
 import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -19,9 +12,15 @@ import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User } from "@calcom/prisma/client";
+import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
+import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
+import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersModule } from "@/modules/users/users.module";
 
 const expectedSlotsUTC = {
   slots: {

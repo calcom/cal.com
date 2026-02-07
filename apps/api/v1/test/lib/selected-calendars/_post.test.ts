@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -102,6 +102,8 @@ describe("POST /api/selected-calendars", () => {
         channelResourceUri: null,
         channelExpiration: null,
         syncSubscribedAt: null,
+        syncSubscribedErrorAt: null,
+        syncSubscribedErrorCount: 0,
         syncToken: null,
         syncedAt: null,
         syncErrorAt: null,
@@ -157,6 +159,8 @@ describe("POST /api/selected-calendars", () => {
         channelResourceUri: null,
         channelExpiration: null,
         syncSubscribedAt: null,
+        syncSubscribedErrorAt: null,
+        syncSubscribedErrorCount: 0,
         syncToken: null,
         syncedAt: null,
         syncErrorAt: null,

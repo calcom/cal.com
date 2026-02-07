@@ -1,10 +1,7 @@
-import type { Kysely } from "kysely";
-import { type SelectQueryBuilder } from "kysely";
-import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
-
 import dayjs from "@calcom/dayjs";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
@@ -12,13 +9,13 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Booking, Prisma, Prisma as PrismaClientType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { Booking, Prisma as PrismaClientType } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import type { Kysely, SelectQueryBuilder } from "kysely";
+import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
 
@@ -111,63 +108,39 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-        ...(user.orgId && {
-          OR: [
-            {
-              teamId: user.orgId,
-            },
-            {
-              team: {
-                parentId: user.orgId,
-              },
-            },
-          ],
-        }),
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
+  const permissionCheckService = new PermissionCheckService();
+  const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
 
-  const membershipConditionWhereUserIsAdminOwner = {
-    some: {
-      id: { in: membershipIdsWhereUserIsAdminOwner },
-    },
-  };
+  const teamIdsWithBookingPermission = await permissionCheckService.getTeamIdsWithPermission({
+    userId: user.id,
+    permission: "booking.read",
+    fallbackRoles,
+    orgId: user.orgId ?? undefined,
+  });
+
+  // Only fetch user IDs from teams if we need to validate userIds filter
+  // PERFORMANCE: We no longer need to fetch all emails/IDs for the main query since we use subqueries
+  const needsUserIdsValidation = !!filters?.userIds && filters.userIds.length > 0;
 
   const [
     eventTypeIdsFromTeamIdsFilter,
     attendeeEmailsFromUserIdsFilter,
     eventTypeIdsFromEventTypeIdsFilter,
-    eventTypeIdsWhereUserIsAdminOrOwner,
-    userIdsAndEmailsWhereUserIsAdminOrOwner,
+    allAccessibleUserIds,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
-    getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
-    getUserIdsAndEmailsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
+    // Only fetch accessible user IDs when we need to validate the userIds filter
+    needsUserIdsValidation ? getUserIdsFromTeamIds(prisma, teamIdsWithBookingPermission) : Promise.resolve([]),
   ]);
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
 
-  // If user is organization owner/admin, contains organization members emails and ids (organization plan)
-  // If user is only team owner/admin, contain team members emails and ids (teams plan)
-  const [userIdsWhereUserIsAdminOrOwner, userEmailsWhereUserIsAdminOrOwner] =
-    userIdsAndEmailsWhereUserIsAdminOrOwner;
-
   // If userIds filter is provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
     const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
-      userIdsWhereUserIsAdminOrOwner.includes(userId)
+      allAccessibleUserIds.includes(userId)
     );
 
     const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
@@ -268,9 +241,9 @@ export async function getBookings({
       tables: ["Booking", "Attendee", "BookingSeat"],
     });
     // 4. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
-    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees
+    // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
+    if (teamIdsWithBookingPermission?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -280,14 +253,20 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+          .where("Attendee.email", "in", (eb) =>
+            eb
+              .selectFrom("users")
+              .select("users.email")
+              .innerJoin("Membership", "Membership.userId", "users.id")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
+          ),
         tables: ["Booking", "Attendee"],
       });
     }
     // 5. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
-    // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees via seatsReference
+    // PERFORMANCE: Use subquery with team membership instead of materializing all emails
+    if (teamIdsWithBookingPermission?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -298,15 +277,21 @@ export async function getBookings({
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
+          .where("Attendee.email", "in", (eb) =>
+            eb
+              .selectFrom("users")
+              .select("users.email")
+              .innerJoin("Membership", "Membership.userId", "users.id")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
+          ),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
     }
 
     // 6. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get booking created for an event type within the organization/team
+    // PERFORMANCE: Use subquery to get event type IDs instead of materializing them
+    if (teamIdsWithBookingPermission?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -315,16 +300,20 @@ export async function getBookings({
           .select("Booking.endTime")
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
-          .innerJoin("EventType", "EventType.id", "Booking.eventTypeId")
-          .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
-        tables: ["Booking", "EventType"],
+          .where("Booking.eventTypeId", "in", (eb) =>
+            eb
+              .selectFrom("EventType")
+              .select("EventType.id")
+              .where("EventType.teamId", "in", teamIdsWithBookingPermission)
+          ),
+        tables: ["Booking"],
       });
     }
 
     // 7. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
-    // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    if (userIdsWhereUserIsAdminOrOwner?.length) {
+    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings created by users within the same organization/team
+    // PERFORMANCE: Use subquery with team membership instead of materializing all user IDs
+    if (teamIdsWithBookingPermission?.length) {
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -333,7 +322,12 @@ export async function getBookings({
           .select("Booking.endTime")
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
-          .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
+          .where("Booking.userId", "in", (eb) =>
+            eb
+              .selectFrom("Membership")
+              .select("Membership.userId")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
+          ),
         tables: ["Booking"],
       });
     }
@@ -468,7 +462,8 @@ export async function getBookings({
           "Booking.metadata",
           "Booking.uid",
           eb
-            .cast<Prisma.JsonValue>( // Target TypeScript type
+            .cast<Prisma.JsonValue>(
+              // Target TypeScript type
               eb.ref("Booking.responses"), // Source column
               "jsonb" // Target SQL type
             )
@@ -480,16 +475,16 @@ export async function getBookings({
               eb
                 .case()
                 .when("Booking.status", "=", "cancelled")
-                .then(BookingStatus["CANCELLED"])
+                .then(BookingStatus.CANCELLED)
                 .when("Booking.status", "=", "accepted")
-                .then(BookingStatus["ACCEPTED"])
+                .then(BookingStatus.ACCEPTED)
                 .when("Booking.status", "=", "rejected")
-                .then(BookingStatus["REJECTED"])
+                .then(BookingStatus.REJECTED)
                 .when("Booking.status", "=", "pending")
-                .then(BookingStatus["PENDING"])
+                .then(BookingStatus.PENDING)
                 .when("Booking.status", "=", "awaiting_host")
-                .then(BookingStatus["AWAITING_HOST"])
-                .else(BookingStatus["PENDING"])
+                .then(BookingStatus.AWAITING_HOST)
+                .else(BookingStatus.PENDING)
                 .end(), // End of CASE expression
               "varchar"
             )
@@ -539,11 +534,11 @@ export async function getBookings({
                     eb
                       .case()
                       .when("EventType.schedulingType", "=", "roundRobin")
-                      .then(SchedulingType["ROUND_ROBIN"])
+                      .then(SchedulingType.ROUND_ROBIN)
                       .when("EventType.schedulingType", "=", "collective")
-                      .then(SchedulingType["COLLECTIVE"])
+                      .then(SchedulingType.COLLECTIVE)
                       .when("EventType.schedulingType", "=", "managed")
-                      .then(SchedulingType["MANAGED"])
+                      .then(SchedulingType.MANAGED)
                       .else(null)
                       .end(),
                     "varchar" // Or 'text' - use the actual SQL data type
@@ -812,7 +807,7 @@ type EnrichedUserData = {
  * @returns Bookings with attendees enriched with user data (name, email, avatarUrl, username)
  */
 async function enrichAttendeesWithUserData<
-  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> }
+  TBooking extends { attendees: ReadonlyArray<{ id: number; email: string }> },
 >(
   bookings: TBooking[],
   kysely: Kysely<DB>
@@ -861,38 +856,40 @@ async function enrichAttendeesWithUserData<
   }));
 }
 
+/**
+ * Gets event type IDs for the given team IDs using an optimized raw SQL query.
+ *
+ * This query uses a UNION to combine:
+ * 1. Child event types whose parent belongs to the specified teams (managed event types)
+ * 2. Direct team event types that belong to the specified teams
+ *
+ * The subquery structure `WHERE "parent"."id" IN (SELECT "id" FROM "EventType" WHERE "teamId" IN (...)))`
+ * is intentional - it allows PostgreSQL to use the composite index on EventType(parentId, teamId)
+ * efficiently via Nested Loop joins, resulting in ~66x faster execution compared to a direct
+ * WHERE clause on parent.teamId (2.46ms vs 164ms in production benchmarks).
+ *
+ * @param prisma The Prisma client
+ * @param teamIds Array of team IDs to filter by
+ * @returns Array of event type IDs or undefined if no teamIds provided
+ */
 async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: number[]) {
   if (!teamIds || teamIds.length === 0) {
     return undefined;
   }
 
-  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    prisma.eventType
-      .findMany({
-        where: {
-          teamId: { in: teamIds },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+  const result = await prisma.$queryRaw<{ id: number }[]>`
+    SELECT "child"."id"
+    FROM "public"."EventType" AS "parent"
+    LEFT JOIN "public"."EventType" "child" ON ("parent"."id") = ("child"."parentId")
+    WHERE "parent"."id" IN (SELECT "id" FROM "public"."EventType" WHERE "teamId" IN (${Prisma.join(teamIds)}))
+      AND "child"."id" IS NOT NULL
+    UNION
+    SELECT "parent"."id"
+    FROM "public"."EventType" AS "parent"
+    WHERE "parent"."teamId" IN (${Prisma.join(teamIds)})
+  `;
 
-    prisma.eventType
-      .findMany({
-        where: {
-          parent: {
-            teamId: { in: teamIds },
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-  ]);
-
-  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
+  return result.map((row) => row.id);
 }
 
 async function getAttendeeEmailsFromUserIdsFilter(
@@ -971,72 +968,33 @@ async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, event
   return eventTypeIdsFromDb;
 }
 
-async function getEventTypeIdsWhereUserIsAdminOrOwner(
-  prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
-) {
-  const [directTeamEventTypeIds, parentTeamEventTypeIds] = await Promise.all([
-    prisma.eventType
-      .findMany({
-        where: {
-          team: {
-            members: membershipCondition,
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-
-    prisma.eventType
-      .findMany({
-        where: {
-          parent: {
-            team: {
-              members: membershipCondition,
-            },
-          },
-        },
-        select: {
-          id: true,
-        },
-      })
-      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
-  ]);
-
-  return Array.from(new Set([...directTeamEventTypeIds, ...parentTeamEventTypeIds]));
-}
-
 /**
- * Gets [IDs, Emails] of members where the auth user is team/org admin/owner.
+ * Gets user IDs of members from specified team IDs.
+ * PERFORMANCE: This is a lighter version that only fetches IDs (not emails) for permission validation.
  * @param prisma The Prisma client.
- * @param membershipCondition Filter containing the team/org ids where user is ADMIN/OWNER
- * @returns {Promise<[number[], string[]]>} [UserIDs, UserEmails] for members in the determined scope.
+ * @param teamIds Array of team IDs to get members from
+ * @returns {Promise<number[]>} UserIDs for members in the specified teams.
  */
-async function getUserIdsAndEmailsWhereUserIsAdminOrOwner(
-  prisma: PrismaClient,
-  membershipCondition: PrismaClientType.MembershipListRelationFilter
-): Promise<[number[], string[]]> {
+async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): Promise<number[]> {
+  if (teamIds.length === 0) {
+    return [];
+  }
+
   const users = await prisma.user.findMany({
     where: {
       teams: {
         some: {
-          team: {
-            members: membershipCondition,
+          teamId: {
+            in: teamIds,
           },
         },
       },
     },
     select: {
       id: true,
-      email: true,
     },
   });
-  const userIds = Array.from(new Set(users.map((user) => user.id)));
-  const userEmails = Array.from(new Set(users.map((user) => user.email)));
-
-  return [userIds, userEmails];
+  return Array.from(new Set(users.map((user) => user.id)));
 }
 
 function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {

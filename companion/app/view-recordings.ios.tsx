@@ -2,11 +2,13 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import ViewRecordingsScreenComponent from "@/components/screens/ViewRecordingsScreen";
 import { CalComAPIService } from "@/services/calcom";
 import type { BookingRecording } from "@/services/types/bookings.types";
+import { showErrorAlert } from "@/utils/alerts";
 import { safeLogError } from "@/utils/safeLogger";
 
 function getPresentationStyle(): "formSheet" | "modal" {
@@ -22,6 +24,9 @@ export default function ViewRecordingsIOS() {
   const insets = useSafeAreaInsets();
   const [recordings, setRecordings] = useState<BookingRecording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   useEffect(() => {
     if (uid) {
@@ -30,13 +35,13 @@ export default function ViewRecordingsIOS() {
         .then(setRecordings)
         .catch((error) => {
           safeLogError("Failed to load recordings:", error);
-          Alert.alert("Error", "Failed to load recordings");
+          showErrorAlert("Error", "Failed to load recordings");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
@@ -54,7 +59,7 @@ export default function ViewRecordingsIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "transparent" : theme.background,
           },
         }}
       />
@@ -72,14 +77,14 @@ export default function ViewRecordingsIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "transparent" : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
       >
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={theme.text} />
           </View>
         ) : (
           <ViewRecordingsScreenComponent

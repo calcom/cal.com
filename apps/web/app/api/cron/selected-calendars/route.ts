@@ -7,7 +7,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { findUniqueDelegationCalendarCredential } from "@calcom/app-store/delegationCredential";
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import {
+  createGoogleCalendarServiceWithGoogleType,
+  type GoogleCalendar,
+} from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 import { HttpError } from "@calcom/lib/http-error";
@@ -135,7 +138,7 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
     return null;
   }
 
-  const googleCalendarService = new GoogleCalendarService(
+  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(
     credentialForCalendarService as CredentialForCalendarServiceWithEmail
   );
 
@@ -146,7 +149,7 @@ async function fetchPrimaryCalendarId({
   googleCalendarService,
   delegationUserCredential,
 }: {
-  googleCalendarService: GoogleCalendarService;
+  googleCalendarService: GoogleCalendar;
   delegationUserCredential: DelegationUserCredentialWithEnsuredUser;
 }) {
   let primaryCalendarId;

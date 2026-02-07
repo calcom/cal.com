@@ -1,4 +1,5 @@
 import { CONSOLE_URL, WEBAPP_URL, WEBSITE_URL, EMBED_LIB_URL } from "@calcom/lib/constants";
+import { getTldPlus1 } from "@calcom/lib/getTldPlus1";
 
 // It ensures that redirection URL safe where it is accepted through a query params or other means where user can change it.
 export const getSafeRedirectUrl = (url = "") => {
@@ -46,10 +47,5 @@ export function isSafeUrlToLoadResourceFrom(urlString: string) {
   } catch {
     return false;
   }
-
-  function getTldPlus1(hostname: string) {
-    // Note: It doesn't support multipart tlds like .co.uk and thus makes only one part tld's safe like .com(and thus cal.com)
-    // If we want to use it elsewhere as well(apart from embed/preview.ts) we must consider Public Suffix List
-    return hostname.split(".").slice(-2).join(".");
-  }
 }
+

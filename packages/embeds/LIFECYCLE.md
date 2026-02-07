@@ -122,12 +122,14 @@ The embed system carefully manages visibility to prevent visual glitches:
     - Indicates: Booker has been reopened after modal was closed
     - Triggers: On subsequent linkReady events (viewId > 1) when modal is reopened without reload
     - Note: Distinguishes between first view (bookerViewed) and reopen (bookerReopened). Uses viewId to determine if it's a reopen.
+    - Applicability: Only applicable for prerendered modals that are now visible.
 
 13. **bookerReloaded Event**
     - Fired by: Iframe
     - Indicates: Booker has been reloaded (full page reload within modal)
     - Triggers: On linkReady after fullReload action is taken (when reloadInitiated flag is set)
     - Note: Distinguishes between first view (bookerViewed), reopen (bookerReopened), and reload (bookerReloaded). Fires only once per reload.
+    - Applicability: Only applicable for prerendered modals that are now visible.
 
 14. **bookerReady Event**
     - Fired by: Iframe

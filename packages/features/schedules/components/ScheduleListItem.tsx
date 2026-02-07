@@ -6,7 +6,6 @@ import { Fragment, useState } from "react";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -21,6 +20,23 @@ import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+interface Schedule {
+  id: number;
+  name: string;
+  isDefault: boolean;
+  timeZone?: string | null;
+  availability: {
+    id: number;
+    userId: number | null;
+    eventTypeId: number | null;
+    days: number[];
+    startTime: Date;
+    endTime: Date;
+    date: Date | null;
+    scheduleId: number | null;
+  }[];
+}
+
 export function ScheduleListItem({
   schedule,
   deleteFunction,
@@ -30,7 +46,7 @@ export function ScheduleListItem({
   duplicateFunction,
   redirectUrl,
 }: {
-  schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
+  schedule: Schedule;
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
   displayOptions?: {
     timeZone?: string;
@@ -50,7 +66,6 @@ export function ScheduleListItem({
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
-        <div className="group flex w-full items-center justify-between ">
           <Link href={redirectUrl} className="grow truncate text-sm" title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
@@ -92,7 +107,6 @@ export function ScheduleListItem({
               )}
             </p>
           </Link>
-        </div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button
