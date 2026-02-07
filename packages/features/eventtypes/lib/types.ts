@@ -494,7 +494,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
+export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;
