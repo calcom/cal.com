@@ -2,10 +2,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
-
+import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../InstallAppButton";
 import type { AppCardApp } from "../types";
-import useAddAppMutation from "../_utils/useAddAppMutation";
 
 type AppData = Pick<AppCardApp, "type" | "variant" | "slug" | "teamsPlanRequired">;
 
