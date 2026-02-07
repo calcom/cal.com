@@ -2,7 +2,7 @@
 
 import { ColumnFilterType, DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
 import { useSegments } from "~/data-table/hooks/useSegments";
-import FeatureOptInBannerWrapper from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
+import FeatureOptInBannerWrapper from "~/feature-opt-in/components/FeatureOptInBannerWrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
