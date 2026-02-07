@@ -71,6 +71,7 @@ export const useScheduleForEvent = ({
   isTeamEvent,
   useApiV2 = true,
   bookerLayout,
+  includeBookerTimezoneInQueryKey,
 }: {
   username?: string | null;
   eventSlug?: string | null;
@@ -84,6 +85,11 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
   useApiV2?: boolean;
+  /**
+   * When true, include `timeZone` in the query key so react-query will refetch
+   * when the booker timezone changes for restriction schedules using booker timezone.
+   */
+  includeBookerTimezoneInQueryKey?: boolean;
   /**
    * Required when prefetching is needed
    */
@@ -116,6 +122,7 @@ export const useScheduleForEvent = ({
     orgSlug,
     teamMemberEmail,
     useApiV2: useApiV2,
+    includeBookerTimezoneInQueryKey,
     bookerLayout,
   });
 

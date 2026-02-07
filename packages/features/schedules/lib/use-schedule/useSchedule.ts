@@ -28,6 +28,11 @@ export type UseScheduleWithCacheArgs = {
   useApiV2?: boolean;
   enabled?: boolean;
   /***
+   * When true, include `timeZone` in the query key so react-query will refetch
+   * when the booker timezone changes for restriction schedules using booker timezone.
+   */
+  includeBookerTimezoneInQueryKey?: boolean;
+  /***
    * Required when prefetching is needed
    */
   bookerLayout?: {
@@ -65,6 +70,7 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
+  includeBookerTimezoneInQueryKey,
   bookerLayout,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
@@ -103,9 +109,10 @@ export const useSchedule = ({
     startTime,
     // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
-    // We use a placeholder value that is there to keep TS happy, but still invalid to tell us that it shouldn't actually be passed in request(and wouldn't because enabled is false if timezone is nullish)
-    // TODO: Better approach here is to use `skipToken` from react-query which requires an upgrade of react-query
-    timeZone: timezone ?? "PLACEHOLDER_TIMEZONE",
+    // Only include timeZone in input when it affects slot calculation (restriction schedules with useBookerTimezone).
+    // When excluded, tRPC query key won't change on timezone change, avoiding unnecessary refetches.
+    // When included, always provide a fallback (UTC) to prevent server errors if timezone is null/undefined.
+    ...(includeBookerTimezoneInQueryKey ? { timeZone: timezone || "UTC" } : {}),
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
     orgSlug,
@@ -151,6 +158,7 @@ export const useSchedule = ({
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
+    includeBookerTimezoneInQueryKey,
   });
 
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
