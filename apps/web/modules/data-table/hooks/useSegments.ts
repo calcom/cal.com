@@ -2,9 +2,9 @@ import { useMemo } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 
-import { recalculateDateRange } from "../lib/dateRange";
-import { type UseSegments, SYSTEM_SEGMENT_PREFIX } from "../lib/types";
-import { isDateRangeFilterValue } from "../lib/utils";
+import { recalculateDateRange } from "@calcom/features/data-table/lib/dateRange";
+import { type UseSegments, SYSTEM_SEGMENT_PREFIX } from "@calcom/features/data-table/lib/types";
+import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
 
 export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, systemSegments }) => {
   const { data: rawSegments, isSuccess } = trpc.viewer.filterSegments.list.useQuery(
