@@ -30,7 +30,7 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = EventType;
 export type EventTypeSetup = EventType["eventType"];
-export type EventTypeApps = ConnectedApps[];
+export type EventTypeApps = ConnectedApps;
 export type HostLocation = {
   id?: string;
   userId: number;
