@@ -1,9 +1,7 @@
-import { expect, type Locator, type Page } from "@playwright/test";
 import path from "node:path";
-
 import type { PrismaClient } from "@calcom/prisma";
 import type { OAuthClientType } from "@calcom/prisma/enums";
-
+import { expect, type Locator, type Page } from "@playwright/test";
 import { test } from "../lib/fixtures";
 
 async function loginAsSeededAdminAndGoToOAuthSettings(page: Page) {
@@ -80,7 +78,10 @@ const oAuthClientSelect = {
   logo: true,
 } as const;
 
-async function createOAuthClient(page: Page, input: CreateOAuthClientInput): Promise<CreateOAuthClientResult> {
+async function createOAuthClient(
+  page: Page,
+  input: CreateOAuthClientInput
+): Promise<CreateOAuthClientResult> {
   await goToOAuthSettings(page);
 
   await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
@@ -116,9 +117,7 @@ async function createOAuthClient(page: Page, input: CreateOAuthClientInput): Pro
   expect(clientId.length).toBeGreaterThan(1);
 
   const secretLocator = page.getByTestId("oauth-client-submitted-client-secret");
-  const clientSecret = input.enablePkce
-    ? null
-    : ((await secretLocator.textContent()) ?? "").trim();
+  const clientSecret = input.enablePkce ? null : ((await secretLocator.textContent()) ?? "").trim();
 
   if (input.enablePkce) {
     await expect(secretLocator).toHaveCount(0);
@@ -146,7 +145,9 @@ async function updateOAuthClient(page: Page, input: UpdateOAuthClientInput): Pro
     await uploadOAuthClientLogo(page, input.logoFileName);
   }
 
-  const updateResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/oAuth/updateClient"));
+  const updateResponsePromise = page.waitForResponse((res) =>
+    res.url().includes("/api/trpc/oAuth/updateClient")
+  );
   await page.getByTestId("oauth-client-details-save").click();
   const updateResponse = await updateResponsePromise;
   expect(updateResponse.ok()).toBe(true);
@@ -156,14 +157,20 @@ async function updateOAuthClient(page: Page, input: UpdateOAuthClientInput): Pro
   await expectOAuthClientInList(page, { clientId: input.clientId, name: input.name });
 }
 
-async function deleteOAuthClient(page: Page, clientId: string, expectedNameToDisappear: string): Promise<void> {
+async function deleteOAuthClient(
+  page: Page,
+  clientId: string,
+  expectedNameToDisappear: string
+): Promise<void> {
   await goToOAuthSettings(page);
 
   await openOAuthClientDetails(page, clientId);
   await page.getByTestId("oauth-client-details-delete-trigger").click();
   await expect(page.getByTestId("oauth-client-details-delete-confirm")).toBeVisible();
 
-  const deleteResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/oAuth/deleteClient"));
+  const deleteResponsePromise = page.waitForResponse((res) =>
+    res.url().includes("/api/trpc/oAuth/deleteClient")
+  );
   await page.getByTestId("oauth-client-details-delete-confirm").click();
   const deleteResponse = await deleteResponsePromise;
   expect(deleteResponse.ok()).toBe(true);
@@ -183,7 +190,9 @@ async function closeOAuthClientDetails(page: Page): Promise<void> {
 async function openOAuthClientDetails(page: Page, clientId: string): Promise<Locator> {
   const details = getOAuthClientDetailsForm(page);
   if (await details.isVisible()) {
-    const visibleClientId = ((await details.getByTestId("oauth-client-details-client-id").textContent()) ?? "").trim();
+    const visibleClientId = (
+      (await details.getByTestId("oauth-client-details-client-id").textContent()) ?? ""
+    ).trim();
     if (visibleClientId === clientId) return details;
 
     await closeOAuthClientDetails(page);
@@ -196,7 +205,10 @@ async function openOAuthClientDetails(page: Page, clientId: string): Promise<Loc
 }
 
 async function expectOAuthClientDeletedInDb(prisma: PrismaClient, clientId: string): Promise<void> {
-  const dbClientAfterDelete = await prisma.oAuthClient.findUnique({ where: { clientId }, select: { clientId: true } });
+  const dbClientAfterDelete = await prisma.oAuthClient.findUnique({
+    where: { clientId },
+    select: { clientId: true },
+  });
   expect(dbClientAfterDelete).toBeNull();
 }
 
@@ -205,14 +217,18 @@ async function expectOAuthClientInDb(
   clientId: string,
   expected: OAuthClientDbExpectations
 ): Promise<void> {
-  const dbClient = await prisma.oAuthClient.findUniqueOrThrow({ where: { clientId }, select: oAuthClientSelect });
+  const dbClient = await prisma.oAuthClient.findUniqueOrThrow({
+    where: { clientId },
+    select: oAuthClientSelect,
+  });
 
   if (expected.name !== undefined) expect(dbClient.name).toBe(expected.name);
   if (expected.purpose !== undefined) expect(dbClient.purpose).toBe(expected.purpose);
   if (expected.redirectUri !== undefined) expect(dbClient.redirectUri).toBe(expected.redirectUri);
   if (expected.websiteUrl !== undefined) expect(dbClient.websiteUrl).toBe(expected.websiteUrl);
   if (expected.status !== undefined) expect(dbClient.status).toBe(expected.status);
-  if (expected.clientType !== undefined) expect(dbClient.clientType as OAuthClientType).toBe(expected.clientType);
+  if (expected.clientType !== undefined)
+    expect(dbClient.clientType as OAuthClientType).toBe(expected.clientType);
 
   if (expected.clientSecret !== undefined) {
     if (typeof expected.clientSecret === "object" && expected.clientSecret?.kind === "truthy") {
@@ -231,7 +247,10 @@ async function expectOAuthClientInDb(
   }
 }
 
-async function expectOAuthClientDetails(details: Locator, expected: ExpectedOAuthClientDetails): Promise<void> {
+async function expectOAuthClientDetails(
+  details: Locator,
+  expected: ExpectedOAuthClientDetails
+): Promise<void> {
   await expect(details.getByTestId("oauth-client-details-status-badge")).toHaveText(expected.statusLabel);
   await expect(details.getByTestId("oauth-client-details-client-id")).toHaveText(expected.clientId);
   await expect(getOAuthClientDetailsNameInput(details)).toHaveValue(expected.name);
@@ -314,7 +333,10 @@ test.describe("OAuth client creation", () => {
     await expect(redirectUriInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
   });
 
-  test("creates a private (confidential) OAuth client with minimal fields; submitted modal shows id+secret; list/details/DB reflect values", async ({ page, prisma }, testInfo) => {
+  test("creates a private (confidential) OAuth client with minimal fields; submitted modal shows id+secret; list/details/DB reflect values", async ({
+    page,
+    prisma,
+  }, testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
@@ -411,7 +433,11 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("editing redirect uri of an approved client triggers reapproval (status becomes PENDING)", async ({ page, prisma, users }, testInfo) => {
+  test("editing redirect uri of an approved client triggers reapproval (status becomes PENDING)", async ({
+    page,
+    prisma,
+    users,
+  }, testInfo) => {
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
 
     const user = await users.create();
@@ -462,7 +488,9 @@ test.describe("OAuth client creation", () => {
 
     await getOAuthClientDetailsRedirectUriInput(detailsBeforeUpdate).fill(updatedRedirectUri);
 
-    const updateResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/oAuth/updateClient"));
+    const updateResponsePromise = page.waitForResponse((res) =>
+      res.url().includes("/api/trpc/oAuth/updateClient")
+    );
     await page.getByTestId("oauth-client-details-save").click();
     const updateResponse = await updateResponsePromise;
     expect(updateResponse.ok()).toBe(true);
@@ -492,7 +520,10 @@ test.describe("OAuth client creation", () => {
     });
   });
 
-  test("creates a private (confidential) OAuth client; submitted modal shows id+secret; list/details/DB reflect values", async ({ page, prisma }, testInfo) => {
+  test("creates a private (confidential) OAuth client; submitted modal shows id+secret; list/details/DB reflect values", async ({
+    page,
+    prisma,
+  }, testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
@@ -593,7 +624,10 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("creates a public (PKCE) OAuth client; submitted modal shows id but no secret; list/details/DB reflect values", async ({ page, prisma }, testInfo) => {
+  test("creates a public (PKCE) OAuth client; submitted modal shows id but no secret; list/details/DB reflect values", async ({
+    page,
+    prisma,
+  }, testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
