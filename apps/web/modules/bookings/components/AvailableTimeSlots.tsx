@@ -10,7 +10,7 @@ import type { IUseBookingLoadingStates } from "../hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "~/schedules/lib/types";
 import { useNonEmptyScheduleDays } from "~/schedules/hooks/useNonEmptyScheduleDays";
-import { useSlotsForAvailableDates } from "~/schedules/hooks/useSlotsForAvailableDates";
+import { useSlotsForAvailableDates } from "~/schedules/hooks/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
