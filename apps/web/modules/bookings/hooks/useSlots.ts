@@ -77,16 +77,22 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 export const useSlots = (event: { id: number; length: number } | null) => {
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
   const searchParams = useCompatSearchParams();
-  const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
-    useBookerStoreContext(
-      (state) => [
-        state.selectedTimeslot,
-        state.setSelectedTimeslot,
-        state.tentativeSelectedTimeslots,
-        state.setTentativeSelectedTimeslots,
-      ],
-      shallow
-    );
+  const [
+    selectedTimeslot,
+    setSelectedTimeslot,
+    tentativeSelectedTimeslots,
+    setTentativeSelectedTimeslots,
+    selectedTimeslots,
+  ] = useBookerStoreContext(
+    (state) => [
+      state.selectedTimeslot,
+      state.setSelectedTimeslot,
+      state.tentativeSelectedTimeslots,
+      state.setTentativeSelectedTimeslots,
+      state.selectedTimeslots,
+    ],
+    shallow
+  );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
     trpc: {
@@ -110,7 +116,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
 
   const eventTypeId = event?.id;
   const eventDuration = selectedDuration || event?.length || 0;
-  const allSelectedTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
+  const allSelectedTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot, ...selectedTimeslots].filter(
     (slot): slot is string => slot !== null
   );
 
@@ -140,9 +146,12 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   useEffect(() => {
     handleReserveSlot();
 
-    const interval = setInterval(() => {
-      handleReserveSlot();
-    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+    const interval = setInterval(
+      () => {
+        handleReserveSlot();
+      },
+      parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000
+    );
 
     return () => {
       handleRemoveSlot();

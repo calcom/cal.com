@@ -183,6 +183,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     (state) => [state.bookingData, state.setBookingData],
     shallow
   );
+  const isBatchInProgress = useRef(false);
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
@@ -309,8 +310,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-        ? duration
-        : event.data?.length;
+          ? duration
+          : event.data?.length;
 
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
@@ -382,6 +383,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
         rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
       };
+
+      if (isBatchInProgress.current) {
+        return;
+      }
 
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
@@ -529,7 +534,9 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     },
   });
 
-  const handleBookEvent = useHandleBookEvent({
+  const selectedTimeslots = useBookerStoreContext((state) => state.selectedTimeslots);
+
+  const baseHandleBookEvent = useHandleBookEvent({
     event,
     bookingForm,
     hashedLink,
@@ -549,6 +556,32 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     handleBooking: createBookingMutation.mutate,
     isBookingDryRun,
   });
+
+  const handleBookEvent = async (inputTimeSlot?: string) => {
+    if (selectedTimeslots.length > 1) {
+      isBatchInProgress.current = true;
+      const slotsToBook = [...selectedTimeslots];
+      const lastSlot = slotsToBook.pop();
+
+      for (const slot of slotsToBook) {
+        try {
+          // baseHandleBookEvent calls mutate which is async inside
+          baseHandleBookEvent(slot);
+          // We might need to wait for the mutation to finish if we want to be safe
+          // But since they are independent bookings, sequential start is often fine
+          // however, we want to avoid UI jumps, so let's just wait a bit.
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        } catch (e) {
+          console.error("Booking failed for slot", slot, e);
+        }
+      }
+
+      isBatchInProgress.current = false;
+      return baseHandleBookEvent(lastSlot);
+    }
+
+    return baseHandleBookEvent(inputTimeSlot);
+  };
 
   const errors = {
     hasDataErrors: Boolean(

@@ -109,6 +109,7 @@ export const EventMeta = ({
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
+  const selectedTimeslots = useBookerStoreContext((state) => state.selectedTimeslots);
   const { i18n, t } = useLocale();
   const [TimezoneSelect] = useMemo(
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
@@ -206,7 +207,19 @@ export const EventMeta = ({
                 </span>
               </EventMetaBlock>
             )}
-            {selectedTimeslot && (
+            {selectedTimeslots.length > 1 ? (
+              selectedTimeslots.map((slot) => (
+                <EventMetaBlock key={slot} icon="calendar">
+                  <FromToTime
+                    date={slot}
+                    duration={selectedDuration || event.length}
+                    timeFormat={timeFormat}
+                    timeZone={timezone}
+                    language={i18n.language}
+                  />
+                </EventMetaBlock>
+              ))
+            ) : selectedTimeslot ? (
               <EventMetaBlock icon="calendar">
                 <FromToTime
                   date={selectedTimeslot}
@@ -216,7 +229,7 @@ export const EventMeta = ({
                   language={i18n.language}
                 />
               </EventMetaBlock>
-            )}
+            ) : null}
             <EventDetails event={event} />
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"

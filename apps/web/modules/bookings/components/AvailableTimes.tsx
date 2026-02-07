@@ -184,6 +184,9 @@ const SlotItem = ({
               />
             )}
             {computedDateWithUsersTimezone.format(timeFormat)}
+            {selectedSlots?.includes(slot.time) && (
+              <Icon name="check" className="ml-auto h-4 w-4 text-brand-default" />
+            )}
           </div>
           {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
           {hasTimeSlots && !bookingFull && (
