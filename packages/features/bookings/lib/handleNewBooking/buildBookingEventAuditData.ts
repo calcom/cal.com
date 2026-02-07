@@ -50,3 +50,62 @@ export const buildBookingRescheduledAuditData = ({
     },
   };
 };
+
+export const buildSeatBookedAuditData = ({
+  seatReferenceUid,
+  attendeeEmail,
+  attendeeName,
+  startTime,
+  endTime,
+}: {
+  seatReferenceUid: string;
+  attendeeEmail: string;
+  attendeeName: string;
+  startTime: Date;
+  endTime: Date;
+}) => {
+  return {
+    seatReferenceUid,
+    attendeeEmail,
+    attendeeName,
+    startTime: startTime.getTime(),
+    endTime: endTime.getTime(),
+  };
+};
+
+export const buildSeatRescheduledAuditData = ({
+  seatReferenceUid,
+  attendeeEmail,
+  oldBooking,
+  newBooking,
+  rescheduledToBookingUid,
+}: {
+  seatReferenceUid: string;
+  attendeeEmail: string;
+  oldBooking: {
+    startTime: Date;
+    endTime: Date;
+  };
+  newBooking: {
+    startTime: Date;
+    endTime: Date;
+  };
+  rescheduledToBookingUid: string | null;
+}) => {
+  return {
+    seatReferenceUid,
+    attendeeEmail,
+    startTime: {
+      old: oldBooking.startTime.getTime(),
+      new: newBooking.startTime.getTime(),
+    },
+    endTime: {
+      old: oldBooking.endTime.getTime(),
+      new: newBooking.endTime.getTime(),
+    },
+    rescheduledToBookingUid: {
+      old: null,
+      new: rescheduledToBookingUid,
+    },
+  };
+};
