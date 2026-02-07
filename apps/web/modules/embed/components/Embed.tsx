@@ -24,7 +24,7 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type { Slot } from "~/schedules/lib/types";
 import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
-import { useSlotsForDate } from "~/schedules/hooks/useSlotsForDate";
+import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import {
   APP_NAME,
   DEFAULT_LIGHT_BRAND_COLOR,
