@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Text, TextInput, useColorScheme, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
@@ -42,23 +42,37 @@ export default function Bookings() {
   const { data: eventTypes = [], isLoading: eventTypesLoading } = useEventTypes();
 
   // Use the active booking filter hook
-  const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
-    initialFilter,
-    () => {
-      // Clear dependent filters when status filter changes
-      setSearchQuery("");
-      setSelectedEventTypeId(null);
-      setSelectedEventTypeLabel(null);
-    }
-  );
+  const {
+    activeFilter,
+    filterOptions,
+    filterParams,
+    handleFilterChange: originalHandleFilterChange,
+  } = useActiveBookingFilter(initialFilter, () => {
+    // Clear dependent filters when status filter changes
+    setSearchQuery("");
+    setSelectedEventTypeId(null);
+    setSelectedEventTypeLabel(null);
+  });
 
-  // Reactively update filter when URL params change
+  // Wrap handleFilterChange with debug logging
+  const handleFilterChange = (filter: string) => {
+    originalHandleFilterChange(filter as BookingFilter);
+  };
+
+  // Track if we want to ignore the next activeFilter change (because it came from URL sync)
+  const lastUrlFilter = useRef<string | null>(null);
+
+  // Reactively update filter when URL params change (e.g., from deep link)
   useEffect(() => {
-    if (isValidBookingFilter(filter) && filter !== activeFilter) {
-      console.log("[Bookings Android] Filter param changed:", filter);
-      handleFilterChange(filter);
+    if (
+      isValidBookingFilter(filter) &&
+      filter !== activeFilter &&
+      filter !== lastUrlFilter.current
+    ) {
+      lastUrlFilter.current = filter;
+      originalHandleFilterChange(filter);
     }
-  }, [filter, activeFilter, handleFilterChange]);
+  }, [filter, activeFilter, originalHandleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
