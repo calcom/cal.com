@@ -11,8 +11,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { ReactElement } from "react";
 import { useMemo } from "react";
 
-import { getOptInFeatureConfig } from "../config";
-import type { NormalizedFeature, UseFeatureOptInResult } from "../types";
+import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 
 interface FeaturesSettingsProps {
   /** The hook result - can be from useUserFeatureOptIn, useTeamFeatureOptIn, or useOrganizationFeatureOptIn */

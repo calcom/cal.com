@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { Slots, Slot } from "./types";
+import type { Slots, Slot } from "../lib/types";
 
 /**
  * Gets slots for a specific date from the schedule cache.

@@ -20,7 +20,7 @@ import {
   DataTableToolbar,
   DataTableFilters,
 } from "~/data-table/components";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type {
   CallDetailsState,
