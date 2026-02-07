@@ -373,6 +373,39 @@ function BookingListItem(booking: BookingItemProps) {
                 </div>
               </div>
 
+              {/* Meeting link for mobile */}
+              {!isPending && (
+                <div className="mt-2">
+                  {(provider?.label ||
+                    (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={provider.iconUrl}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
+
               {isPending && (
                 <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("unconfirmed")}
