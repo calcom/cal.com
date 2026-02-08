@@ -47,6 +47,7 @@ async function handler(req: NextRequest) {
     });
 
     const body = await parseRequestData(req);
+    const query = Object.fromEntries(req.nextUrl.searchParams.entries());
     await checkCfTurnstileToken({
       token: req.headers.get("cf-access-token") as string,
       remoteIp,
@@ -62,7 +63,7 @@ async function handler(req: NextRequest) {
      * @zomars: We need to be able to test this with E2E. They way it's done RN it will never run on CI.
      */
     if (IS_PREMIUM_USERNAME_ENABLED) {
-      return await calcomSignupHandler(body);
+      return await calcomSignupHandler(body, query);
     }
 
     return await selfHostedSignupHandler(body);

@@ -1,7 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Alert, Platform, Switch, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  Switch,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { openInAppBrowser } from "@/utils/browser";
 import { IOSPickerTrigger } from "./tabs/IOSPickerTrigger";
+import { getColors } from "@/constants/colors";
 
 // Section header
 export function SectionHeader({
@@ -11,11 +20,13 @@ export function SectionHeader({
   title: string;
   rightElement?: React.ReactNode;
 }) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
     <View className={`flex-row items-center ${rightElement ? "justify-between pr-4" : ""} mb-2`}>
       <Text
-        className="ml-4 text-[13px] uppercase tracking-wide text-[#6D6D72]"
-        style={{ letterSpacing: 0.5 }}
+        className="ml-4 text-[13px] uppercase tracking-wide"
+        style={{ letterSpacing: 0.5, color: theme.textSecondary }}
       >
         {title}
       </Text>
@@ -36,11 +47,22 @@ export function SettingsGroup({
   headerRight?: React.ReactNode;
   footer?: string;
 }) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
     <View>
       {header ? <SectionHeader title={header} rightElement={headerRight} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-      {footer ? <Text className="ml-4 mt-2 text-[13px] text-[#6D6D72]">{footer}</Text> : null}
+      <View
+        className="overflow-hidden rounded-[14px] bg-white"
+        style={{ backgroundColor: theme.backgroundSecondary }}
+      >
+        {children}
+      </View>
+      {footer ? (
+        <Text className="ml-4 mt-2 text-[13px]" style={{ color: theme.textSecondary }}>
+          {footer}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -63,6 +85,9 @@ export function SettingRow({
   isFirst?: boolean;
   isLast?: boolean;
 }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
   const height = isFirst || isLast ? 52 : 44;
   const showDescription = () => {
     if (!description) return;
@@ -84,10 +109,16 @@ export function SettingRow({
   };
 
   return (
-    <View className="bg-white pl-4">
+    <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
       <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height, flexDirection: "row", alignItems: "center" }}
+        className={`flex-row items-center pr-4`}
+        style={{
+          height,
+          flexDirection: "row",
+          alignItems: "center",
+          borderBottomWidth: !isLast ? 1 : 0,
+          borderBottomColor: theme.borderSubtle,
+        }}
       >
         <TouchableOpacity
           className="flex-1 flex-row items-center"
@@ -96,7 +127,7 @@ export function SettingRow({
           activeOpacity={description ? 0.7 : 1}
           disabled={!description}
         >
-          <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+          <Text className="text-[17px]" style={{ fontWeight: "400", color: theme.text }}>
             {title}
           </Text>
           {description ? (
@@ -107,8 +138,11 @@ export function SettingRow({
           <Switch
             value={value}
             onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
+            trackColor={{
+              false: isDark ? theme.backgroundEmphasis : "#E9E9EA",
+              true: isDark ? "#34C759" : "#000000",
+            }}
+            thumbColor="#FFFFFF"
           />
         </View>
       </View>
@@ -135,22 +169,26 @@ export function NavigationRow({
   onSelect?: (value: string) => void;
 }) {
   const height = isFirst || isLast ? 52 : 44;
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
-    <View className="bg-white pl-4" style={{ height }}>
+    <View className="bg-white pl-4" style={{ height, backgroundColor: theme.backgroundSecondary }}>
       <View
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
-        }`}
-        style={{ height }}
+        className={`flex-1 flex-row items-center justify-between pr-4`}
+        style={{
+          height,
+          borderBottomWidth: !isLast ? 1 : 0,
+          borderBottomColor: theme.borderSubtle,
+        }}
       >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
+        <Text className="text-[17px]" style={{ fontWeight: "400", color: theme.text }}>
           {title}
         </Text>
         <View className="flex-row items-center">
           {Platform.OS === "ios" && options && onSelect ? (
             <>
               {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-2 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}
@@ -163,7 +201,7 @@ export function NavigationRow({
               activeOpacity={0.5}
             >
               {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
+                <Text className="mr-1 text-[17px] text-[#A3A3A3]" numberOfLines={1}>
                   {value}
                 </Text>
               ) : null}

@@ -1,20 +1,18 @@
+import { useFlagMap } from "@calcom/features/flags/context/provider";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
-import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
-
 import type { OnboardingState } from "../store/onboarding-store";
 import { useOnboardingStore } from "../store/onboarding-store";
 
 type UseCreateTeamOptions = {
   redirectBasePath?: string;
+  skipRedirectAfterInvite?: boolean;
 };
 
 export function useCreateTeam(options: UseCreateTeamOptions = {}) {
-  const { redirectBasePath = "/onboarding/teams" } = options;
+  const { redirectBasePath = "/onboarding/teams", skipRedirectAfterInvite = false } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
@@ -86,14 +84,17 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
 
       // Group invites by role and send separate requests for each role
       // This is necessary because the schema validation expects array of strings when using bulk invites
-      const invitesByRole = validInvites.reduce((acc, invite) => {
-        const role = invite.role === "ADMIN" ? MembershipRole.ADMIN : MembershipRole.MEMBER;
-        if (!acc[role]) {
-          acc[role] = [];
-        }
-        acc[role].push(invite.email.trim().toLowerCase());
-        return acc;
-      }, {} as Record<MembershipRole, string[]>);
+      const invitesByRole = validInvites.reduce(
+        (acc, invite) => {
+          const role = invite.role === "ADMIN" ? MembershipRole.ADMIN : MembershipRole.MEMBER;
+          if (!acc[role]) {
+            acc[role] = [];
+          }
+          acc[role].push(invite.email.trim().toLowerCase());
+          return acc;
+        },
+        {} as Record<MembershipRole, string[]>
+      );
 
       // Send invites for each role group
       await Promise.all(
@@ -108,11 +109,13 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
         )
       );
 
-      // Redirect to personal settings after successful invite
-      const gettingStartedPath = flags["onboarding-v3"]
-        ? "/onboarding/personal/settings?fromTeamOnboarding=true"
-        : "/getting-started";
-      router.replace(gettingStartedPath);
+      // Redirect to personal settings after successful invite (unless caller handles its own redirect)
+      if (!skipRedirectAfterInvite) {
+        const gettingStartedPath = flags["onboarding-v3"]
+          ? "/onboarding/personal/settings?fromTeamOnboarding=true"
+          : "/getting-started";
+        router.replace(gettingStartedPath);
+      }
     } catch (error) {
       console.error("Failed to invite members:", error);
       // Extract error message from TRPC error

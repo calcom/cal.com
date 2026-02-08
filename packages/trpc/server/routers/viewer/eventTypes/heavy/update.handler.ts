@@ -102,6 +102,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     restrictionScheduleId,
     calVideoSettings,
     hostGroups,
+    enablePerHostLocations,
     ...rest
   } = input;
 
@@ -256,6 +257,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }),
     seatsPerTimeSlot,
     maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
+    ...(enablePerHostLocations !== undefined && { enablePerHostLocations }),
   };
   data.locations = locations ?? undefined;
 
@@ -473,6 +475,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
+
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
@@ -489,6 +493,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
 
     const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    hostLocationDeletions = existingHosts
+      .filter((host) => host.location === null)
+      .map((host) => ({ userId: host.userId, eventTypeId: id }));
     const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
@@ -500,29 +507,105 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         })),
       },
       create: newHosts.map((host) => {
-        return {
-          ...host,
+        const hostData: {
+          userId: number;
+          isFixed: boolean;
+          priority: number;
+          weight: number;
+          groupId: string | null | undefined;
+          scheduleId?: number | null | undefined;
+          location?: {
+            create: {
+              type: string;
+              credentialId: number | null | undefined;
+              link: string | null | undefined;
+              address: string | null | undefined;
+              phoneNumber: string | null | undefined;
+            };
+          };
+        } = {
+          userId: host.userId,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
+          priority: host.priority ?? 2,
+          weight: host.weight ?? 100,
+          groupId: host.groupId,
+          scheduleId: host.scheduleId ?? null,
+        };
+        if (host.location) {
+          hostData.location = {
+            create: {
+              type: host.location.type,
+              credentialId: host.location.credentialId,
+              link: host.location.link,
+              address: host.location.address,
+              phoneNumber: host.location.phoneNumber,
+            },
+          };
+        }
+        return hostData;
+      }),
+      update: existingHosts.map((host) => {
+        const updateData: {
+          isFixed: boolean | undefined;
+          priority: number;
+          weight: number;
+          scheduleId: number | null | undefined;
+          groupId: string | null | undefined;
+          location?: {
+            upsert: {
+              create: {
+                type: string;
+                credentialId: number | null | undefined;
+                link: string | null | undefined;
+                address: string | null | undefined;
+                phoneNumber: string | null | undefined;
+              };
+              update: {
+                type: string;
+                credentialId: number | null | undefined;
+                link: string | null | undefined;
+                address: string | null | undefined;
+                phoneNumber: string | null | undefined;
+              };
+            };
+          };
+        } = {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
           groupId: host.groupId,
         };
-      }),
-      update: existingHosts.map((host) => ({
-        where: {
-          userId_eventTypeId: {
-            userId: host.userId,
-            eventTypeId: id,
+        if (host.location) {
+          updateData.location = {
+            upsert: {
+              create: {
+                type: host.location.type,
+                credentialId: host.location.credentialId,
+                link: host.location.link,
+                address: host.location.address,
+                phoneNumber: host.location.phoneNumber,
+              },
+              update: {
+                type: host.location.type,
+                credentialId: host.location.credentialId,
+                link: host.location.link,
+                address: host.location.address,
+                phoneNumber: host.location.phoneNumber,
+              },
+            },
+          };
+        }
+        return {
+          where: {
+            userId_eventTypeId: {
+              userId: host.userId,
+              eventTypeId: id,
+            },
           },
-        },
-        data: {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId ?? null,
-          groupId: host.groupId,
-        },
-      })),
+          data: updateData,
+        };
+      }),
     };
   }
 
@@ -710,6 +793,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     throw e;
   }
+
+  if (hostLocationDeletions.length > 0) {
+    await ctx.prisma.hostLocation.deleteMany({
+      where: {
+        OR: hostLocationDeletions,
+      },
+    });
+  }
+
   const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
     if (value !== undefined) {
       // @ts-expect-error Element implicitly has any type

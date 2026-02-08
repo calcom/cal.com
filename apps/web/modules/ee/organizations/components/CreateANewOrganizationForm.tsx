@@ -22,7 +22,7 @@ import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 
-import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
 
 function extractDomainFromEmail(email: string) {
   const match = email.match(/^(?:.*?:\/\/)?.*?([\w-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[/?#:]|$)/);

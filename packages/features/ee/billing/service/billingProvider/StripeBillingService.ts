@@ -1,9 +1,9 @@
-import type Stripe from "stripe";
-
 import logger from "@calcom/lib/logger";
-
+import type Stripe from "stripe";
 import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { IBillingProviderService } from "./IBillingProviderService";
+
+const log = logger.getSubLogger({ prefix: ["StripeBillingService"] });
 
 export class StripeBillingService implements IBillingProviderService {
   constructor(private stripe: Stripe) {}
@@ -138,7 +138,7 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async handleSubscriptionUpdate(args: Parameters<IBillingProviderService["handleSubscriptionUpdate"]>[0]) {
-    const { subscriptionId, subscriptionItemId, membershipCount } = args;
+    const { subscriptionId, subscriptionItemId, membershipCount, prorationBehavior } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
@@ -146,6 +146,7 @@ export class StripeBillingService implements IBillingProviderService {
     if (!subscriptionQuantity) throw new Error("Subscription not found");
     await this.stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],
+      ...(prorationBehavior ? { proration_behavior: prorationBehavior } : {}),
     });
   }
 
@@ -245,23 +246,44 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async createInvoiceItem(args: Parameters<IBillingProviderService["createInvoiceItem"]>[0]) {
-    const { customerId, amount, currency, description, metadata } = args;
+    const { customerId, amount, currency, description, subscriptionId, invoiceId, metadata } = args;
     const invoiceItem = await this.stripe.invoiceItems.create({
       customer: customerId,
       amount,
       currency,
       description,
+      invoice: invoiceId,
+      subscription: subscriptionId,
       metadata,
     });
 
     return { invoiceItemId: invoiceItem.id };
   }
 
+  async deleteInvoiceItem(invoiceItemId: string) {
+    await this.stripe.invoiceItems.del(invoiceItemId);
+  }
+
   async createInvoice(args: Parameters<IBillingProviderService["createInvoice"]>[0]) {
-    const { customerId, autoAdvance, metadata } = args;
+    const {
+      customerId,
+      autoAdvance,
+      collectionMethod,
+      daysUntilDue,
+      pendingInvoiceItemsBehavior,
+      subscriptionId,
+      metadata,
+    } = args;
     const invoice = await this.stripe.invoices.create({
       customer: customerId,
       auto_advance: autoAdvance,
+      collection_method: collectionMethod,
+      ...(pendingInvoiceItemsBehavior && !subscriptionId
+        ? { pending_invoice_items_behavior: pendingInvoiceItemsBehavior }
+        : {}),
+      subscription: subscriptionId,
+      // days_until_due is required for send_invoice collection method
+      ...(collectionMethod === "send_invoice" && { days_until_due: daysUntilDue ?? 30 }),
       metadata,
     });
 
@@ -269,18 +291,73 @@ export class StripeBillingService implements IBillingProviderService {
   }
 
   async finalizeInvoice(invoiceId: string) {
-    await this.stripe.invoices.finalizeInvoice(invoiceId);
+    const invoice = await this.stripe.invoices.finalizeInvoice(invoiceId);
+    return { invoiceUrl: invoice.hosted_invoice_url ?? null };
+  }
+
+  async voidInvoice(invoiceId: string) {
+    try {
+      const invoice = await this.stripe.invoices.retrieve(invoiceId);
+      // Can only void invoices that are open or uncollectible
+      if (invoice.status === "open" || invoice.status === "uncollectible") {
+        await this.stripe.invoices.voidInvoice(invoiceId);
+      } else if (invoice.status === "draft") {
+        // Delete draft invoices instead of voiding
+        await this.stripe.invoices.del(invoiceId);
+      }
+      // If paid or void, no action needed
+    } catch (error) {
+      log.warn("Failed to void invoice", { invoiceId, error });
+      throw error;
+    }
+  }
+
+  async getPaymentIntentFailureReason(paymentIntentId: string) {
+    try {
+      const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+      return paymentIntent.last_payment_error?.message ?? null;
+    } catch (error) {
+      log.warn("Failed to retrieve payment intent failure reason", { paymentIntentId, error });
+      return null;
+    }
+  }
+
+  async hasDefaultPaymentMethod(args: Parameters<IBillingProviderService["hasDefaultPaymentMethod"]>[0]) {
+    const { customerId, subscriptionId } = args;
+    const subscription = subscriptionId ? await this.stripe.subscriptions.retrieve(subscriptionId) : null;
+
+    const subscriptionDefault = subscription
+      ? typeof subscription.default_payment_method === "string"
+        ? subscription.default_payment_method
+        : subscription.default_payment_method?.id
+      : null;
+
+    if (subscriptionDefault) {
+      return true;
+    }
+
+    const customer = await this.stripe.customers.retrieve(customerId);
+    if (customer.deleted) {
+      return false;
+    }
+
+    const customerDefault =
+      typeof customer.invoice_settings?.default_payment_method === "string"
+        ? customer.invoice_settings.default_payment_method
+        : customer.invoice_settings?.default_payment_method?.id;
+
+    return Boolean(customerDefault);
   }
 
   async createSubscriptionUsageRecord(
     args: Parameters<IBillingProviderService["createSubscriptionUsageRecord"]>[0]
   ) {
     const { subscriptionId, action, quantity } = args;
-    const log = logger.getSubLogger({ prefix: ["createSubscriptionUsageRecord"] });
+    const usageLog = logger.getSubLogger({ prefix: ["createSubscriptionUsageRecord"] });
 
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     if (!subscription?.id) {
-      log.error(`Failed to retrieve stripe subscription (${subscriptionId})`);
+      usageLog.error(`Failed to retrieve stripe subscription (${subscriptionId})`);
       throw new Error(`Failed to retrieve stripe subscription (${subscriptionId})`);
     }
 
@@ -288,7 +365,7 @@ export class StripeBillingService implements IBillingProviderService {
       (item) => item.price?.recurring?.usage_type === "metered"
     );
     if (!meteredItem) {
-      log.error(`Stripe subscription (${subscriptionId}) is not usage based`);
+      usageLog.error(`Stripe subscription (${subscriptionId}) is not usage based`);
       throw new Error(`Stripe subscription (${subscriptionId}) is not usage based`);
     }
 
@@ -298,7 +375,7 @@ export class StripeBillingService implements IBillingProviderService {
       timestamp: "now",
     });
 
-    log.info(`Created usage record for subscription ${subscriptionId}`, {
+    usageLog.info(`Created usage record for subscription ${subscriptionId}`, {
       subscriptionId,
       itemId: meteredItem.id,
       action,
@@ -324,6 +401,69 @@ export class StripeBillingService implements IBillingProviderService {
       current_period_start: subscription.current_period_start,
       current_period_end: subscription.current_period_end,
       trial_end: subscription.trial_end,
+    };
+  }
+
+  async listInvoices(args: {
+    customerId: string;
+    subscriptionId?: string;
+    limit: number;
+    startingAfter?: string;
+    createdGte?: number;
+    createdLte?: number;
+  }) {
+    const { customerId, subscriptionId, limit, startingAfter, createdGte, createdLte } = args;
+
+    const invoicesResponse = await this.stripe.invoices.list({
+      customer: customerId,
+      subscription: subscriptionId,
+      limit,
+      starting_after: startingAfter,
+      expand: ["data.default_payment_method"],
+      ...(createdGte || createdLte
+        ? {
+            created: {
+              ...(createdGte ? { gte: createdGte } : {}),
+              ...(createdLte ? { lte: createdLte } : {}),
+            },
+          }
+        : {}),
+    });
+
+    return {
+      invoices: invoicesResponse.data.map((invoice) => ({
+        id: invoice.id,
+        number: invoice.number,
+        created: invoice.created,
+        amountDue: invoice.amount_due,
+        amountPaid: invoice.amount_paid,
+        currency: invoice.currency,
+        status: invoice.status,
+        hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+        invoicePdf: invoice.invoice_pdf ?? null,
+        lineItems: invoice.lines.data.map((line) => ({
+          id: line.id,
+          description: line.description,
+          amount: line.amount,
+          quantity: line.quantity,
+        })),
+        description: invoice.description,
+        paymentMethod: this.extractPaymentMethod(
+          invoice.default_payment_method as Stripe.PaymentMethod | null
+        ),
+      })),
+      hasMore: invoicesResponse.has_more,
+    };
+  }
+
+  private extractPaymentMethod(pm: Stripe.PaymentMethod | string | null): {
+    type: string;
+    card?: { last4: string; brand: string };
+  } | null {
+    if (!pm || typeof pm === "string") return null;
+    return {
+      type: pm.type,
+      card: pm.card ? { last4: pm.card.last4, brand: pm.card.brand } : undefined,
     };
   }
 }

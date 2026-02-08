@@ -171,7 +171,7 @@ test.describe("Teams - NonOrg", () => {
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
       // Wait for the invite email page
-      await page.waitForURL(/\/settings\/teams\/new\/invite\/email.*$/i);
+      await expect(page).toHaveURL(/\/settings\/teams\/new\/invite\/email.*$/i);
       await page.waitForLoadState("networkidle");
       // Skip the invite step
       const skipButton = page.locator("[data-testid=skip-invite-button]");

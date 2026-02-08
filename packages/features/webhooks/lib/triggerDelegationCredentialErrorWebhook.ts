@@ -1,10 +1,9 @@
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
+import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
+import type { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import type { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import { WebhookRepository } from "./repository/WebhookRepository";
 import sendPayload from "./sendPayload";
 
 const log = logger.getSubLogger({ prefix: ["triggerDelegationCredentialErrorWebhook"] });
@@ -30,7 +29,7 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
       return;
     }
 
-    const webhookRepository = WebhookRepository.getInstance();
+    const { repository: webhookRepository } = getWebhookFeature();
     const webhooks = await webhookRepository.findByOrgIdAndTrigger({
       orgId: delegationCredential.organizationId,
       triggerEvent: WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,
@@ -61,7 +60,7 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
       },
     } satisfies DelegationCredentialErrorPayloadType;
 
-    const webhookPromises = webhooks.map((webhook) =>
+    const webhookPromises = webhooks.map((webhook: (typeof webhooks)[number]) =>
       sendPayload(
         webhook.secret,
         WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR,

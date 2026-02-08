@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { forwardRef } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppPressable } from "@/components/AppPressable";
 import type { Schedule } from "@/services/calcom";
 import type { ScheduleAvailability } from "@/services/types";
+import { getColors } from "@/constants/colors";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -90,34 +91,48 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
     _ref
   ) {
     const insets = useSafeAreaInsets();
-    const backgroundStyle = transparentBackground ? "bg-transparent" : "bg-[#F2F2F7]";
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
+    const theme = getColors(isDark);
+    const backgroundColor = transparentBackground
+      ? "transparent"
+      : isDark
+        ? theme.background
+        : theme.backgroundMuted;
 
     const availability = parseAvailability(schedule);
 
     if (!schedule) {
       return (
-        <View className={`flex-1 items-center justify-center ${backgroundStyle}`}>
-          <Text className="text-[#8E8E93]">No schedule data</Text>
+        <View className="flex-1 items-center justify-center" style={{ backgroundColor }}>
+          <Text className="text-[#A3A3A3]">No schedule data</Text>
         </View>
       );
     }
 
     return (
       <ScrollView
-        className={`flex-1 ${backgroundStyle}`}
+        className="flex-1"
+        style={{ backgroundColor }}
         contentContainerStyle={{
           padding: 16,
           paddingBottom: insets.bottom + 16,
         }}
         showsVerticalScrollIndicator={!transparentBackground}
       >
-        <Text className="mb-3 px-1 text-[13px] font-medium text-[#8E8E93]">
+        <Text className="mb-3 px-1 text-[13px] font-medium text-[#A3A3A3]">
           Tap a day to edit its hours
         </Text>
 
         <View
           className={`overflow-hidden rounded-xl ${
-            transparentBackground ? "border border-gray-300/40 bg-white/60" : "bg-white"
+            transparentBackground
+              ? isDark
+                ? "border border-[#4D4D4D]/40 bg-[#171717]/80"
+                : "border border-gray-300/40 bg-white/60"
+              : isDark
+                ? "bg-[#171717]"
+                : "bg-white"
           }`}
         >
           {DAYS.map((day, dayIndex) => {
@@ -128,44 +143,44 @@ export const EditAvailabilityHoursScreen = forwardRef<unknown, EditAvailabilityH
               <AppPressable
                 key={day}
                 className={`flex-row items-center px-4 py-3.5 ${
-                  dayIndex > 0 ? "border-t border-[#E5E5EA]" : ""
+                  dayIndex > 0
+                    ? isDark
+                      ? "border-t border-[#4D4D4D]"
+                      : "border-t border-[#E5E5EA]"
+                    : ""
                 }`}
                 onPress={() => onDayPress(dayIndex)}
               >
-                {/* Day status indicator */}
                 <View
                   className={`mr-3 h-2.5 w-2.5 rounded-full ${
-                    isEnabled ? "bg-[#34C759]" : "bg-[#E5E5EA]"
+                    isEnabled ? "bg-[#34C759]" : isDark ? "bg-[#48484A]" : "bg-[#E5E5EA]"
                   }`}
                 />
 
-                {/* Day name */}
                 <Text
                   className={`w-24 text-[17px] font-medium ${
-                    isEnabled ? "text-black" : "text-[#8E8E93]"
+                    isEnabled ? (isDark ? "text-white" : "text-black") : "text-[#A3A3A3]"
                   }`}
                 >
                   {day}
                 </Text>
 
-                {/* Time slots or unavailable */}
                 <View className="flex-1">
                   {isEnabled ? (
                     daySlots.map((slot, slotIndex) => (
                       <Text
                         key={`${slotIndex}-${slot.startTime}`}
-                        className={`text-[15px] text-[#8E8E93] ${slotIndex > 0 ? "mt-0.5" : ""}`}
+                        className={`text-[15px] text-[#A3A3A3] ${slotIndex > 0 ? "mt-0.5" : ""}`}
                       >
                         {formatTime12Hour(slot.startTime)} – {formatTime12Hour(slot.endTime)}
                       </Text>
                     ))
                   ) : (
-                    <Text className="text-[15px] text-[#8E8E93]">Unavailable</Text>
+                    <Text className="text-[15px] text-[#A3A3A3]">Unavailable</Text>
                   )}
                 </View>
 
-                {/* Chevron */}
-                <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                <Ionicons name="chevron-forward" size={18} color={isDark ? "#A3A3A3" : "#C7C7CC"} />
               </AppPressable>
             );
           })}

@@ -1,4 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
+import { getLocation } from "@calcom/lib/CalEventParser";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
+import prisma from "@calcom/prisma";
+import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
+import type { Contact, ContactCreateInput, CRM, CrmEvent } from "@calcom/types/CrmService";
 import * as hubspot from "@hubspot/api-client";
 import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
 import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
@@ -7,22 +20,9 @@ import type {
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 import type { z } from "zod";
-
-import { getLocation } from "@calcom/lib/CalEventParser";
-import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
-import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
-
 import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
 import type { HubspotToken } from "../api/callback";
 import type { appDataSchema } from "../zod";
 
@@ -336,11 +336,11 @@ class HubspotCalendarService implements CRM {
         hs_meeting_title: event.title,
         hs_meeting_body: this.getHubspotMeetingBody(event),
         hs_meeting_location: getLocation({
-        videoCallData: event.videoCallData,
-        additionalInformation: event.additionalInformation,
-        location: event.location,
-        uid: event.uid,
-      }),
+          videoCallData: event.videoCallData,
+          additionalInformation: event.additionalInformation,
+          location: event.location,
+          uid: event.uid,
+        }),
         hs_meeting_start_time: new Date(event.startTime).toISOString(),
         hs_meeting_end_time: new Date(event.endTime).toISOString(),
         hs_meeting_outcome: "RESCHEDULED",
@@ -364,7 +364,6 @@ class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
-
   private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
@@ -375,11 +374,7 @@ class HubspotCalendarService implements CRM {
     let currentToken = credential.key as unknown as HubspotToken;
 
     const isTokenValid = (token: HubspotToken) =>
-      token &&
-      token.tokenType &&
-      token.accessToken &&
-      token.expiryDate &&
-      token.expiryDate > Date.now();
+      token && token.tokenType && token.accessToken && token.expiryDate && token.expiryDate > Date.now();
 
     const refreshAccessToken = async (refreshToken: string) => {
       try {
@@ -488,11 +483,24 @@ class HubspotCalendarService implements CRM {
     await this.hubspotCancelMeeting(uid);
   }
 
-  async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
+  async getContacts({
+    emails,
+    includeOwner,
+    forRoundRobinSkip,
+  }: {
+    emails: string | string[];
+    includeOwner?: boolean;
+    forRoundRobinSkip?: boolean;
+  }): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
     const emailArray = Array.isArray(emails) ? emails : [emails];
+
+    const shouldIncludeOwner = includeOwner || forRoundRobinSkip;
+
+    const skipDueToFreeEmail =
+      forRoundRobinSkip && (await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
 
     const publicObjectSearchRequest: PublicObjectSearchRequest = {
       filterGroups: emailArray.map((attendeeEmail) => ({
@@ -505,7 +513,10 @@ class HubspotCalendarService implements CRM {
         ],
       })),
       sorts: ["hs_object_id"],
-      properties: ["hs_object_id", "email"],
+      properties:
+        shouldIncludeOwner && !skipDueToFreeEmail
+          ? ["hs_object_id", "email", "hubspot_owner_id"]
+          : ["hs_object_id", "email"],
       limit: 10,
       after: 0,
     };
@@ -513,6 +524,27 @@ class HubspotCalendarService implements CRM {
     const contacts = await this.hubspotClient.crm.contacts.searchApi
       .doSearch(publicObjectSearchRequest)
       .then((apiResponse) => apiResponse.results);
+
+    if (shouldIncludeOwner && !skipDueToFreeEmail) {
+      return await Promise.all(
+        contacts.map(async (contact) => {
+          const ownerId = contact.properties.hubspot_owner_id;
+          let ownerEmail: string | undefined;
+
+          if (ownerId) {
+            ownerEmail = await this.getOwnerEmailFromId(ownerId);
+          }
+
+          return {
+            id: contact.id,
+            email: contact.properties.email,
+            ownerId,
+            ownerEmail,
+            recordType: "CONTACT",
+          };
+        })
+      );
+    }
 
     return contacts.map((contact) => {
       return {
@@ -528,12 +560,18 @@ class HubspotCalendarService implements CRM {
 
     const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      const properties: Record<string, string> = {
+        firstname,
+        lastname,
+        email: attendee.email,
+      };
+      
+      if (attendee.phone) {
+        properties.phone = attendee.phone;
+      }
+      
       return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
+        properties,
       };
     });
     const createdContacts = await Promise.all(
@@ -598,9 +636,7 @@ class HubspotCalendarService implements CRM {
   }
 
   private async getContactOwnerId(contactId: string): Promise<string | null> {
-    const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, [
-      "hubspot_owner_id",
-    ]);
+    const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, ["hubspot_owner_id"]);
     return contact.properties.hubspot_owner_id ?? null;
   }
 
@@ -622,6 +658,24 @@ class HubspotCalendarService implements CRM {
     } catch (error) {
       this.log.error("Error fetching contact owner, skipping owner update:", error);
     }
+  }
+
+  private async getOwnerEmailFromId(ownerId: string): Promise<string | undefined> {
+    try {
+      const owner = await this.hubspotClient.crm.owners.ownersApi.getById(parseInt(ownerId, 10));
+      return owner.email ?? undefined;
+    } catch (error) {
+      this.log.error("Error fetching owner by ID:", error);
+      return undefined;
+    }
+  }
+
+  private async shouldSkipAttendeeIfFreeEmailDomain(attendeeEmail: string): Promise<boolean> {
+    const appOptions = this.getAppOptions();
+    if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
+
+    const response = await checkIfFreeEmailDomain({ email: attendeeEmail });
+    return response;
   }
 }
 

@@ -41,22 +41,18 @@ function normalizeUserFeatures(data: UserFeatureData[] | undefined): NormalizedF
   }));
 }
 
+const WARNING_REASONS: Set<string> = new Set([
+  "feature_org_disabled",
+  "feature_all_teams_disabled",
+  "feature_any_team_disabled",
+  "feature_no_explicit_enablement",
+  "feature_user_only_not_allowed",
+]);
+
 function createUserBlockedWarningFn(t: TFunction): (feature: NormalizedFeature) => string | null {
   return (feature: NormalizedFeature): string | null => {
-    if (!feature.effectiveReason) return null;
-    switch (feature.effectiveReason) {
-      case "feature_org_disabled":
-        return t("feature_blocked_by_org_warning");
-      case "feature_all_teams_disabled":
-      case "feature_any_team_disabled":
-        return t("feature_blocked_by_team_warning");
-      case "feature_no_explicit_enablement":
-        return t("feature_no_explicit_enablement_warning");
-      case "feature_user_only_not_allowed":
-        return t("feature_user_only_not_allowed_warning");
-      default:
-        return null;
-    }
+    if (!feature.effectiveReason || !WARNING_REASONS.has(feature.effectiveReason)) return null;
+    return t(feature.effectiveReason);
   };
 }
 

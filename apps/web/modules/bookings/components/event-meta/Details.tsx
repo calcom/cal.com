@@ -13,7 +13,7 @@ import { EventDetailBlocks } from "@calcom/features/bookings/types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
-import { Price } from "./Price";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 
 type EventDetailsPropsBase = {
   event: Pick<
@@ -21,6 +21,7 @@ type EventDetailsPropsBase = {
     | "currency"
     | "price"
     | "locations"
+    | "enablePerHostLocations"
     | "requiresConfirmation"
     | "recurringEvent"
     | "length"
@@ -149,7 +150,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
             );
 
           case EventDetailBlocks.LOCATION:
-            if (!event?.locations?.length || isInstantMeeting) return null;
+            if (!event?.locations?.length || isInstantMeeting || event.enablePerHostLocations) return null;
             return (
               <EventMetaBlock key={block}>
                 <AvailableEventLocations locations={event.locations} />

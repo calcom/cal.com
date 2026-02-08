@@ -65,7 +65,8 @@
       "!!packages/lib/raqb/resolveQueryValue.test.ts",
       "!!packages/ui/components/editor/plugins/ToolbarPlugin.tsx",
       "!!packages/embeds/embed-core/src/lib/domUtils.ts"
-    ]
+    ],
+    "maxSize": 2097152
   },
   "javascript": {
     "parser": {
@@ -93,11 +94,6 @@
     }
   },
   "overrides": [
-    {
-      "includes": ["docs/api-reference/v2/openapi.json"],
-      "linter": { "enabled": false },
-      "formatter": { "enabled": false }
-    },
     {
       "includes": ["**/*.tsx"],
       "javascript": {
@@ -362,6 +358,9 @@
       "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
+          "correctness": {
+            "noProcessGlobal": "off"
+          },
           "style": {
             "noRestrictedImports": {
               "level": "error",

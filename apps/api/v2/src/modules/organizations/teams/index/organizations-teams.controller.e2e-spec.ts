@@ -12,6 +12,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
+import { mockThrottlerGuard } from "test/utils/withNoThrottler";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
@@ -39,42 +40,44 @@ describe("Organizations Team Endpoints", () => {
     const userEmail = `organizations-teams-admin-${randomString()}@api.com`;
     let user: User;
 
-    beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
-      ).compile();
+        beforeAll(async () => {
+          mockThrottlerGuard();
 
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+          const moduleRef = await withApiAuth(
+            userEmail,
+            Test.createTestingModule({
+              imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+            })
+          ).compile();
 
-      user = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
-      });
+          userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+          organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+          teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+          membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
-      org = await organizationsRepositoryFixture.create({
-        name: `organizations-teams-organization-${randomString()}`,
-        isOrganization: true,
-      });
+          user = await userRepositoryFixture.create({
+            email: userEmail,
+            username: userEmail,
+          });
 
-      await membershipsRepositoryFixture.create({
-        role: "ADMIN",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: org.id } },
-      });
+          org = await organizationsRepositoryFixture.create({
+            name: `organizations-teams-organization-${randomString()}`,
+            isOrganization: true,
+          });
 
-      team = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team1-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
-      });
+          await membershipsRepositoryFixture.create({
+            role: "ADMIN",
+            user: { connect: { id: user.id } },
+            team: { connect: { id: org.id } },
+          });
 
-      team2 = await teamsRepositoryFixture.create({
+          team = await teamsRepositoryFixture.create({
+            name: `organizations-teams-team1-${randomString()}`,
+            isOrganization: false,
+            parent: { connect: { id: org.id } },
+          });
+
+          team2 = await teamsRepositoryFixture.create({
         name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
@@ -300,93 +303,95 @@ describe("Organizations Team Endpoints", () => {
     const userEmail = `organizations-teams-member-${randomString()}@api.com`;
     let user: User;
 
-    beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
-      ).compile();
+        beforeAll(async () => {
+          mockThrottlerGuard();
 
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+          const moduleRef = await withApiAuth(
+            userEmail,
+            Test.createTestingModule({
+              imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+            })
+          ).compile();
 
-      user = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
-      });
+          userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+          organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+          teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+          membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
-      org = await organizationsRepositoryFixture.create({
-        name: `organizations-teams-organization-${randomString()}`,
-        isOrganization: true,
-      });
+          user = await userRepositoryFixture.create({
+            email: userEmail,
+            username: userEmail,
+          });
 
-      await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: org.id } },
-      });
+          org = await organizationsRepositoryFixture.create({
+            name: `organizations-teams-organization-${randomString()}`,
+            isOrganization: true,
+          });
 
-      team = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team1-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
-      });
+          await membershipsRepositoryFixture.create({
+            role: "MEMBER",
+            user: { connect: { id: user.id } },
+            team: { connect: { id: org.id } },
+          });
 
-      team2 = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team2-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
-      });
+          team = await teamsRepositoryFixture.create({
+            name: `organizations-teams-team1-${randomString()}`,
+            isOrganization: false,
+            parent: { connect: { id: org.id } },
+          });
 
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
+          team2 = await teamsRepositoryFixture.create({
+            name: `organizations-teams-team2-${randomString()}`,
+            isOrganization: false,
+            parent: { connect: { id: org.id } },
+          });
 
-      await app.init();
-    });
+          app = moduleRef.createNestApplication();
+          bootstrap(app as NestExpressApplication);
 
-    it("should be defined", () => {
-      expect(userRepositoryFixture).toBeDefined();
-      expect(teamsRepositoryFixture).toBeDefined();
-      expect(user).toBeDefined();
-      expect(org).toBeDefined();
-    });
+          await app.init();
+        });
 
-    it("should deny get all the teams of the org", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams`).expect(403);
-    });
+        it("should be defined", () => {
+          expect(userRepositoryFixture).toBeDefined();
+          expect(teamsRepositoryFixture).toBeDefined();
+          expect(user).toBeDefined();
+          expect(org).toBeDefined();
+        });
 
-    it("should deny get all the teams of the org paginated", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams?skip=1&take=1`).expect(403);
-    });
+        it("should deny get all the teams of the org", async () => {
+          return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams`).expect(403);
+        });
 
-    it("should deny get the team of the org", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/${team.id}`).expect(403);
-    });
+        it("should deny get all the teams of the org paginated", async () => {
+          return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams?skip=1&take=1`).expect(403);
+        });
 
-    it("should deny create the team of the org", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/teams`)
-        .send({
-          name: `organizations-teams-api-team1-${randomString()}`,
-        } satisfies CreateOrgTeamDto)
-        .expect(403);
-    });
+        it("should deny get the team of the org", async () => {
+          return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/${team.id}`).expect(403);
+        });
 
-    it("should deny update the team of the org", async () => {
-      return request(app.getHttpServer())
-        .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
-        .send({
-          name: `organizations-teams-api-team1-${randomString()}-updated`,
-        } satisfies CreateOrgTeamDto)
-        .expect(403);
-    });
+        it("should deny create the team of the org", async () => {
+          return request(app.getHttpServer())
+            .post(`/v2/organizations/${org.id}/teams`)
+            .send({
+              name: `organizations-teams-api-team1-${randomString()}`,
+            } satisfies CreateOrgTeamDto)
+            .expect(403);
+        });
 
-    it("should deny delete the team of the org we created via api", async () => {
-      return request(app.getHttpServer()).delete(`/v2/organizations/${org.id}/teams/${team2.id}`).expect(403);
-    });
+        it("should deny update the team of the org", async () => {
+          return request(app.getHttpServer())
+            .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
+            .send({
+              name: `organizations-teams-api-team1-${randomString()}-updated`,
+            } satisfies CreateOrgTeamDto)
+            .expect(403);
+        });
+
+        it("should deny delete the team of the org we created via api", async () => {
+          return request(app.getHttpServer()).delete(`/v2/organizations/${org.id}/teams/${team2.id}`).expect(403);
+        });
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
@@ -414,105 +419,107 @@ describe("Organizations Team Endpoints", () => {
     const userEmail = `organizations-teams-owner-${randomString()}@api.com`;
     let user: User;
 
-    beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
-      ).compile();
+        beforeAll(async () => {
+          mockThrottlerGuard();
 
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+          const moduleRef = await withApiAuth(
+            userEmail,
+            Test.createTestingModule({
+              imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+            })
+          ).compile();
 
-      user = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
-      });
+          userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+          organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+          teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+          membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
-      org = await organizationsRepositoryFixture.create({
-        name: `organizations-teams-organization-${randomString()}`,
-        isOrganization: true,
-      });
+          user = await userRepositoryFixture.create({
+            email: userEmail,
+            username: userEmail,
+          });
 
-      await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: org.id } },
-      });
+          org = await organizationsRepositoryFixture.create({
+            name: `organizations-teams-organization-${randomString()}`,
+            isOrganization: true,
+          });
 
-      team = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team1-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
-      });
+          await membershipsRepositoryFixture.create({
+            role: "MEMBER",
+            user: { connect: { id: user.id } },
+            team: { connect: { id: org.id } },
+          });
 
-      team2 = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team2-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
-      });
+          team = await teamsRepositoryFixture.create({
+            name: `organizations-teams-team1-${randomString()}`,
+            isOrganization: false,
+            parent: { connect: { id: org.id } },
+          });
 
-      await membershipsRepositoryFixture.create({
-        role: "OWNER",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: team.id } },
-      });
+          team2 = await teamsRepositoryFixture.create({
+            name: `organizations-teams-team2-${randomString()}`,
+            isOrganization: false,
+            parent: { connect: { id: org.id } },
+          });
 
-      await membershipsRepositoryFixture.create({
-        role: "OWNER",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: team2.id } },
-      });
+          await membershipsRepositoryFixture.create({
+            role: "OWNER",
+            user: { connect: { id: user.id } },
+            team: { connect: { id: team.id } },
+          });
 
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
+          await membershipsRepositoryFixture.create({
+            role: "OWNER",
+            user: { connect: { id: user.id } },
+            team: { connect: { id: team2.id } },
+          });
 
-      await app.init();
-    });
+          app = moduleRef.createNestApplication();
+          bootstrap(app as NestExpressApplication);
 
-    it("should be defined", () => {
-      expect(userRepositoryFixture).toBeDefined();
-      expect(organizationsRepositoryFixture).toBeDefined();
-      expect(user).toBeDefined();
-      expect(org).toBeDefined();
-    });
+          await app.init();
+        });
 
-    it("should deny get all the teams of the org", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams`).expect(403);
-    });
+        it("should be defined", () => {
+          expect(userRepositoryFixture).toBeDefined();
+          expect(organizationsRepositoryFixture).toBeDefined();
+          expect(user).toBeDefined();
+          expect(org).toBeDefined();
+        });
 
-    it("should deny get all the teams of the org paginated", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams?skip=1&take=1`).expect(403);
-    });
+        it("should deny get all the teams of the org", async () => {
+          return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams`).expect(403);
+        });
 
-    it("should get the team of the org for which the user is team owner", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/${team.id}`).expect(200);
-    });
+        it("should deny get all the teams of the org paginated", async () => {
+          return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams?skip=1&take=1`).expect(403);
+        });
 
-    it("should deny create the team of the org", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/teams`)
-        .send({
-          name: `organizations-teams-api-team1-${randomString()}`,
-        } satisfies CreateOrgTeamDto)
-        .expect(403);
-    });
+        it("should get the team of the org for which the user is team owner", async () => {
+          return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/${team.id}`).expect(200);
+        });
 
-    it("should deny update the team of the org", async () => {
-      return request(app.getHttpServer())
-        .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
-        .send({
-          name: `organizations-teams-api-team1-${randomString()}-updated`,
-        } satisfies CreateOrgTeamDto)
-        .expect(403);
-    });
+        it("should deny create the team of the org", async () => {
+          return request(app.getHttpServer())
+            .post(`/v2/organizations/${org.id}/teams`)
+            .send({
+              name: `organizations-teams-api-team1-${randomString()}`,
+            } satisfies CreateOrgTeamDto)
+            .expect(403);
+        });
 
-    it("should deny delete the team of the org we created via api", async () => {
-      return request(app.getHttpServer()).delete(`/v2/organizations/${org.id}/teams/${team2.id}`).expect(403);
-    });
+        it("should deny update the team of the org", async () => {
+          return request(app.getHttpServer())
+            .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
+            .send({
+              name: `organizations-teams-api-team1-${randomString()}-updated`,
+            } satisfies CreateOrgTeamDto)
+            .expect(403);
+        });
+
+        it("should deny delete the team of the org we created via api", async () => {
+          return request(app.getHttpServer()).delete(`/v2/organizations/${org.id}/teams/${team2.id}`).expect(403);
+        });
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
@@ -544,43 +551,45 @@ describe("Organizations Team Endpoints", () => {
     const userEmail = `organizations-teams-platform-owner-${randomString()}@api.com`;
     let user: User;
 
-    beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
-      ).compile();
+        beforeAll(async () => {
+          mockThrottlerGuard();
 
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      orgRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      user = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
-      });
+          const moduleRef = await withApiAuth(
+            userEmail,
+            Test.createTestingModule({
+              imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+            })
+          ).compile();
 
-      org = await orgRepositoryFixture.create({
-        name: `organizations-teams-platform-organization-${randomString()}`,
-        isOrganization: true,
-      });
+          userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+          teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+          membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+          oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+          orgRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+          user = await userRepositoryFixture.create({
+            email: userEmail,
+            username: userEmail,
+          });
 
-      await membershipsRepositoryFixture.create({
-        role: "ADMIN",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: org.id } },
-      });
+          org = await orgRepositoryFixture.create({
+            name: `organizations-teams-platform-organization-${randomString()}`,
+            isOrganization: true,
+          });
 
-      oAuthClient1 = await createOAuthClient(org.id);
-      oAuthClient2 = await createOAuthClient(org.id);
+          await membershipsRepositoryFixture.create({
+            role: "ADMIN",
+            user: { connect: { id: user.id } },
+            team: { connect: { id: org.id } },
+          });
 
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
+          oAuthClient1 = await createOAuthClient(org.id);
+          oAuthClient2 = await createOAuthClient(org.id);
 
-      await app.init();
-    });
+          app = moduleRef.createNestApplication();
+          bootstrap(app as NestExpressApplication);
+
+          await app.init();
+        });
 
     async function createOAuthClient(organizationId: number) {
       const data = {
