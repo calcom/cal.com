@@ -28,7 +28,7 @@
   position: relative;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-  overflow: scroll;
+  overflow: auto;
   resize: vertical;
   height: auto;
   min-height: 40px;
