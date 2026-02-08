@@ -72,10 +72,10 @@ function buildParsedBooking(booking: BookingItemProps) {
   // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
-        typeof booking.eventType,
-        // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
-        "id" | "length" | "title" | "slug" | "schedulingType" | "team"
-      >)
+      typeof booking.eventType,
+      // It would only ensure that the props are present, if they are optional in the original type. So, it is safe to assert here.
+      "id" | "length" | "title" | "slug" | "schedulingType" | "team"
+    >)
     : null;
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
@@ -297,7 +297,7 @@ function BookingListItem(booking: BookingItemProps) {
         "group relative w-full transition-all duration-100 ease-out",
         "hover:bg-cal-muted",
         isSelected &&
-          "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
+        "bg-cal-muted before:bg-brand-default rounded-r-md before:absolute before:left-0 before:top-0 before:h-full before:w-1"
       )}>
       <div className="flex flex-col sm:flex-row">
         <div className="sm:min-w-48 hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell">
@@ -403,6 +403,37 @@ function BookingListItem(booking: BookingItemProps) {
                     booking={booking}
                     recurringDates={recurringDates}
                   />
+                </div>
+              )}
+              {!isPending && (
+                <div className="mt-2 sm:hidden">
+                  {(provider?.label ||
+                    (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={provider.iconUrl}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
                 </div>
               )}
             </div>
@@ -689,13 +720,13 @@ const RecurringBookingsTooltip = ({
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining_other", {
-                        count: recurringCount,
-                      })}`
+                      count: recurringCount,
+                    })}`
                     : getEveryFreqFor({
-                        t,
-                        recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount: booking.recurringInfo.count,
-                      })}
+                      t,
+                      recurringEvent: booking.eventType.recurringEvent,
+                      recurringCount: booking.recurringInfo.count,
+                    })}
                 </p>
               </div>
             </Tooltip>
@@ -771,14 +802,14 @@ const Attendee = (
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-      onSuccess: async (data) => {
-        showToast(data.message, "success");
-        await utils.viewer.bookings.invalidate();
-      },
-      onError: (err) => {
-        showToast(err.message, "error");
-      },
-    });
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+      await utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
 
   const displayName = user?.name || name || user?.email || email;
 
