@@ -9,6 +9,7 @@ import {
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
@@ -18,11 +19,13 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { useState } from "react";
 import { Toaster } from "sonner";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
   const { users, profile, eventTypes, entity } = props;
+  const [showMore , setShowMore] = useState(true);
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -99,9 +102,12 @@ export function UserPage(props: PageProps) {
                 <>
                   {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
                   <div
-                    className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className={`text-default wrap-break-word text-sm mb-2 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600 ${showMore ? "max-h-30 overflow-hidden" : ""}`}
                     dangerouslySetInnerHTML={{ __html: props.safeBio }}
                   />
+                    
+                  <Button onClick={ () => setShowMore(!showMore)}>{showMore ? "Show more" : "Show less"}</Button>
+                  
                 </>
               )}
             </div>
