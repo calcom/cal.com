@@ -1,8 +1,9 @@
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { z } from "zod";
 import { StringChangeSchema } from "../common/changeSchemas";
+import type { DataRequirements, EnrichmentDataStore } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  BaseStoredAuditData,
   GetDisplayFieldsParams,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
@@ -46,7 +47,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     typeof ReassignmentAuditActionService.storedDataSchema
   >;
 
-  constructor(private userRepository: UserRepository) {
+  constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: this.VERSION,
       latestFieldsSchema: ReassignmentAuditActionService.latestFieldsSchema,
@@ -72,9 +73,30 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     return { isMigrated: false, latestData: validated };
   }
 
-  async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
     const { fields } = this.parseStored(storedData);
-    const { newUser } = await this.getPreviousAndNewAssigneeUser(fields);
+    const userUuids: string[] = [];
+    const { newHostUuid, previousHostUuid } = this.getHostUuids(fields);
+    if (newHostUuid) userUuids.push(newHostUuid);
+    if (previousHostUuid) userUuids.push(previousHostUuid);
+    return { userUuids };
+  }
+
+  private getHostUuids(fields: ReassignmentAuditData) {
+    const hasAttendeeUpdated = fields.hostAttendeeUpdated != null;
+    const newHostUuid = hasAttendeeUpdated
+      ? fields.hostAttendeeUpdated?.withUserUuid?.new
+      : fields.organizerUuid?.new;
+    const previousHostUuid = hasAttendeeUpdated
+      ? fields.hostAttendeeUpdated?.withUserUuid?.old
+      : fields.organizerUuid?.old;
+    return { newHostUuid, previousHostUuid };
+  }
+
+  async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+    const { fields } = this.parseStored(storedData);
+    const { newHostUuid } = this.getHostUuids(fields);
+    const newUser = newHostUuid ? dbStore.getUserByUuid(newHostUuid) : null;
     const reassignedToName = newUser?.name || "Unknown";
     return {
       key: "booking_audit_action.booking_reassigned_to_host",
@@ -103,27 +125,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     };
   }
 
-  private async getPreviousAndNewAssigneeUser(fields: ReassignmentAuditData) {
-    const hasAttendeeUpdated = fields.hostAttendeeUpdated != null;
-    const newHostUuid = hasAttendeeUpdated
-      ? fields.hostAttendeeUpdated?.withUserUuid?.new
-      : fields.organizerUuid?.new;
-    const previousHostUuid = hasAttendeeUpdated
-      ? fields.hostAttendeeUpdated?.withUserUuid?.old
-      : fields.organizerUuid?.old;
-
-    const newUser = newHostUuid ? await this.userRepository.findByUuid({ uuid: newHostUuid }) : null;
-    const previousUser = previousHostUuid
-      ? await this.userRepository.findByUuid({ uuid: previousHostUuid })
-      : null;
-
-    return {
-      previousUser: previousUser,
-      newUser: newUser,
-    };
-  }
-
-  async getDisplayFields({ storedData }: GetDisplayFieldsParams): Promise<
+  async getDisplayFields({ storedData, dbStore }: GetDisplayFieldsParams): Promise<
     Array<{
       labelKey: string;
       valueKey: string;
@@ -135,7 +137,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
       roundRobin: "round_robin",
     };
     const typeTranslationKey = `booking_audit_action.assignment_type_${map[fields.reassignmentType]}`;
-    const { previousUser } = await this.getPreviousAndNewAssigneeUser(fields);
+    const { previousHostUuid } = this.getHostUuids(fields);
+    const previousUser = previousHostUuid ? dbStore.getUserByUuid(previousHostUuid) : null;
     return [
       {
         labelKey: "booking_audit_action.assignment_type",

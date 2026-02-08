@@ -1,3 +1,4 @@
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -5,6 +6,7 @@ import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { ScheduleRepository, UpdateScheduleResponse } from "@calcom/platform-libraries/schedules";
+import { getScheduleByEventSlugHandler } from "@calcom/platform-libraries/schedules";
 import { updateSchedule } from "@calcom/platform-libraries/schedules";
 import { UpdateAtomScheduleDto } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
@@ -15,6 +17,7 @@ export class SchedulesAtomsService {
 
   constructor(
     private readonly usersRepository: UsersRepository,
+    private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService
   ) {}
 
@@ -39,6 +42,13 @@ export class SchedulesAtomsService {
       userId,
       timeZone,
       defaultScheduleId: user.defaultScheduleId,
+    });
+  }
+
+  async getScheduleByEventSlug(user: UserWithProfile, eventSlug: string) {
+    return getScheduleByEventSlugHandler({
+      ctx: { user, prisma: this.dbRead.prisma as unknown as PrismaClient },
+      input: { eventSlug },
     });
   }
 

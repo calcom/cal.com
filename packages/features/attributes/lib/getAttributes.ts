@@ -129,70 +129,81 @@ async function _findMembershipsForBothOrgAndTeam({
 function _prepareAssignmentData({
   assignmentsForTheTeam,
   lookupMaps,
+  allTeamMemberIds,
 }: {
   assignmentsForTheTeam: AssignmentForTheTeam[];
   lookupMaps: AttributeLookupMaps;
+  /** All team member user IDs - ensures members without assignments are included */
+  allTeamMemberIds: UserId[];
 }) {
   const { optionIdToOption, attributeIdToOptions } = lookupMaps;
 
-  const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce(
-    (acc, attributeToUser) => {
-      const userId = attributeToUser.userId;
-      const attributeOption = attributeToUser.attributeOption;
-      const attribute = attributeToUser.attribute;
+  // Group assignments by userId for O(1) lookup
+  const assignmentsByUserId = new Map<UserId, AssignmentForTheTeam[]>();
+  for (const assignment of assignmentsForTheTeam) {
+    const existing = assignmentsByUserId.get(assignment.userId);
+    if (existing) {
+      existing.push(assignment);
+    } else {
+      assignmentsByUserId.set(assignment.userId, [assignment]);
+    }
+  }
 
-      if (!acc[userId]) {
-        acc[userId] = { userId, attributes: {} };
-      }
+  // Iterate over all team members once, applying their assignments if any.
+  // This ensures members without assignments are still included (important for
+  // "not any in" filters where members without the attribute should match).
+  const result: {
+    userId: UserId;
+    attributes: Record<AttributeId, AttributeOptionValueWithType>;
+  }[] = [];
 
-      const attributes = acc[userId].attributes;
-      const currentAttributeOptionValue =
-        attributes[attribute.id]?.attributeOption;
-      const newAttributeOptionValue = {
-        isGroup: attributeOption.isGroup,
-        value: attributeOption.value,
-        contains: tranformContains({
-          contains: attributeOption.contains,
-          attribute,
-        }),
-      };
+  for (const userId of allTeamMemberIds) {
+    const memberData: {
+      userId: UserId;
+      attributes: Record<AttributeId, AttributeOptionValueWithType>;
+    } = { userId, attributes: {} };
 
-      if (currentAttributeOptionValue instanceof Array) {
-        attributes[attribute.id].attributeOption = [
-          ...currentAttributeOptionValue,
-          newAttributeOptionValue,
-        ];
-      } else if (currentAttributeOptionValue) {
-        attributes[attribute.id].attributeOption = [
-          currentAttributeOptionValue,
-          {
-            isGroup: attributeOption.isGroup,
-            value: attributeOption.value,
-            contains: tranformContains({
-              contains: attributeOption.contains,
-              attribute,
-            }),
-          },
-        ];
-      } else {
-        // Set the first value
-        attributes[attribute.id] = {
-          type: attribute.type,
-          attributeOption: newAttributeOptionValue,
+    const userAssignments = assignmentsByUserId.get(userId);
+    if (userAssignments) {
+      for (const attributeToUser of userAssignments) {
+        const attributeOption = attributeToUser.attributeOption;
+        const attribute = attributeToUser.attribute;
+        const attributes = memberData.attributes;
+
+        const currentAttributeOptionValue = attributes[attribute.id]?.attributeOption;
+        const newAttributeOptionValue = {
+          isGroup: attributeOption.isGroup,
+          value: attributeOption.value,
+          contains: tranformContains({
+            contains: attributeOption.contains,
+            attribute,
+          }),
         };
-      }
-      return acc;
-    },
-    {} as Record<
-      UserId,
-      {
-        userId: UserId;
-        attributes: Record<AttributeId, AttributeOptionValueWithType>;
-      }
-    >
-  );
 
-  return Object.values(teamMembersThatHaveOptionAssigned);
+        if (currentAttributeOptionValue instanceof Array) {
+          attributes[attribute.id].attributeOption = [
+            ...currentAttributeOptionValue,
+            newAttributeOptionValue,
+          ];
+        } else if (currentAttributeOptionValue) {
+          attributes[attribute.id].attributeOption = [
+            currentAttributeOptionValue,
+            newAttributeOptionValue,
+          ];
+        } else {
+          // Set the first value
+          attributes[attribute.id] = {
+            type: attribute.type,
+            attributeOption: newAttributeOptionValue,
+          };
+        }
+      }
+    }
+
+    result.push(memberData);
+  }
+
+  return result;
 
   /**
    * Transforms ["optionId1", "optionId2"] to [{
@@ -508,9 +519,24 @@ export async function getAttributesAssignmentData({
     lookupMaps,
   });
 
+  const allTeamMemberIds = Array.from(orgMembershipToUserIdForTeamMembers.values());
+
+  logger.debug("getAttributesAssignmentData", {
+    teamId,
+    orgId,
+    attributeIds,
+    allTeamMemberIdsCount: allTeamMemberIds.length,
+    assignmentsForTheTeamCount: assignmentsForTheTeam.length,
+  });
+
   const attributesAssignedToTeamMembersWithOptions = _prepareAssignmentData({
     assignmentsForTheTeam,
     lookupMaps,
+    allTeamMemberIds,
+  });
+
+  logger.debug("getAttributesAssignmentData result", {
+    attributesAssignedToTeamMembersWithOptionsCount: attributesAssignedToTeamMembersWithOptions.length,
   });
 
   return {
