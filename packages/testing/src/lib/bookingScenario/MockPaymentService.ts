@@ -4,7 +4,7 @@ import "vitest-fetch-mock";
 
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails/email-manager";
 import logger from "@calcom/lib/logger";
-import type { Payment, Prisma, PaymentOption, Booking } from "@calcom/prisma/client";
+import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -23,10 +23,10 @@ export function getMockPaymentService() {
     async create(
       payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
       bookingId: Booking["id"],
-      userId: Booking["userId"],
-      username: string | null,
-      bookerName: string | null,
-      bookerEmail: string,
+      _userId: Booking["userId"],
+      _username: string | null,
+      _bookerName: string | null,
+      _bookerEmail: string,
       paymentOption: PaymentOption
     ) {
       const paymentCreateData = {
@@ -59,7 +59,7 @@ export function getMockPaymentService() {
     }
     async afterPayment(
       event: CalendarEvent,
-      booking: {
+      _booking: {
         user: { email: string | null; name: string | null; timeZone: string } | null;
         id: number;
         startTime: { toISOString: () => string };
@@ -71,12 +71,14 @@ export function getMockPaymentService() {
       await sendAwaitingPaymentEmailAndSMS({
         ...event,
         paymentInfo: {
-          link: createPaymentLink(/*{
+          link: createPaymentLink(
+            /*{
             paymentUid: paymentData.uid,
             name: booking.user?.name,
             email: booking.user?.email,
             date: booking.startTime.toISOString(),
-          }*/),
+          }*/
+          ),
           paymentOption: paymentData.paymentOption || "ON_BOOKING",
           amount: paymentData.amount,
           currency: paymentData.currency,
