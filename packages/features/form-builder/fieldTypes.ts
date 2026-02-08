@@ -120,7 +120,7 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     optionsSupportPricing: true,
   },
   multiselect: {
-    label: "Multi Select",
+    label: "MultiSelect",
     value: "multiselect",
     needsOptions: true,
     isTextType: false,
