@@ -60,7 +60,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   return { url: getInstalledAppPath({ variant: "calendar", slug: "exchange2013-calendar" }) };
 }
 
-async function getHandler() {
+async function getHandler(_req: NextApiRequest) {
   return { url: "/apps/exchange2013-calendar/setup" };
 }
 
