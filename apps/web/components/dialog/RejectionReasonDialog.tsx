@@ -35,11 +35,13 @@ export function RejectionReasonDialog({
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-        <div>
+      <DialogContent
+        title={t("rejection_reason_title")}
+        description={t("rejection_reason_description")}
+        enableOverflow>
+        <div className="min-h-0 max-h-[40vh] overflow-y-auto">
           <TextAreaField
             name="rejectionReason"
-            className="resize-none"
             label={
               <>
                 {t("rejection_reason")}
@@ -51,7 +53,7 @@ export function RejectionReasonDialog({
           />
         </div>
 
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose color="secondary" />
           <Button disabled={isPending} data-testid="rejection-confirm" onClick={handleConfirm}>
             {t("rejection_confirmation")}
