@@ -423,6 +423,26 @@ function BookingListItem(booking: BookingItemProps) {
                   </Badge>
                 )}
               </div>
+              {booking.description && (
+                <div
+                  className="max-w-10/12 text-default sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm"
+                  title={booking.description}>
+                  &quot;{booking.description}&quot;
+                </div>
+              )}
+              {booking.attendees.length !== 0 && (
+                <DisplayAttendees
+                  attendees={attendeeList}
+                  user={booking.user}
+                  currentEmail={userEmail}
+                  bookingUid={booking.uid}
+                  isBookingInPast={isBookingInPast}
+                  hideOrganizerEmail={booking.eventType?.hideOrganizerEmail}
+                  organizerEmail={booking.user?.email}
+                  eventTypeHosts={booking.eventType?.hosts}
+                />
+              )}
+              {/* Mobile join link - shown below attendees */}
               {!isPending && (
                 <div className="sm:hidden">
                   {(provider?.label ||
@@ -453,25 +473,6 @@ function BookingListItem(booking: BookingItemProps) {
                       </a>
                     )}
                 </div>
-              )}
-              {booking.description && (
-                <div
-                  className="max-w-10/12 text-default sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm"
-                  title={booking.description}>
-                  &quot;{booking.description}&quot;
-                </div>
-              )}
-              {booking.attendees.length !== 0 && (
-                <DisplayAttendees
-                  attendees={attendeeList}
-                  user={booking.user}
-                  currentEmail={userEmail}
-                  bookingUid={booking.uid}
-                  isBookingInPast={isBookingInPast}
-                  hideOrganizerEmail={booking.eventType?.hideOrganizerEmail}
-                  organizerEmail={booking.user?.email}
-                  eventTypeHosts={booking.eventType?.hosts}
-                />
               )}
               {isCancelled && booking.rescheduled && (
                 <div className="mt-2 inline-block md:hidden">
