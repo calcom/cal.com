@@ -145,7 +145,7 @@ export const Components: Record<FieldType, Component> = {
             value={value}
             required={variantField.required}
             type="text"
-            autoComplete="name"
+            autoComplete="given-name"
             onChange={(e) => {
               props.setValue(e.target.value);
             }}
