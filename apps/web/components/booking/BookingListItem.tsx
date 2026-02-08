@@ -442,7 +442,6 @@ function BookingListItem(booking: BookingItemProps) {
                   eventTypeHosts={booking.eventType?.hosts}
                 />
               )}
-              {/* Mobile join link - shown below attendees */}
               {!isPending && (
                 <div className="sm:hidden">
                   {(provider?.label ||
@@ -457,7 +456,6 @@ function BookingListItem(booking: BookingItemProps) {
                         className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                         <div className="flex items-center gap-2">
                           {provider?.iconUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={provider.iconUrl}
                               width={16}
