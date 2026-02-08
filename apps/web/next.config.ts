@@ -222,6 +222,7 @@ const nextConfig = (phase: string): NextConfig => {
   }
 
   return {
+    poweredByHeader: false,
     output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
     serverExternalPackages: [
       "deasync",
@@ -408,19 +409,23 @@ const nextConfig = (phase: string): NextConfig => {
             },
           ],
         },
-        {
-          source: "/:path*",
-          headers: [
-            {
-              key: "X-Content-Type-Options",
-              value: "nosniff",
-            },
-            {
-              key: "Referrer-Policy",
-              value: "strict-origin-when-cross-origin",
-            },
-          ],
-        },
+        ...(process.env.SKIP_PROXY_SECURITY_HEADERS !== "true"
+          ? [
+              {
+                source: "/:path*",
+                headers: [
+                  {
+                    key: "X-Content-Type-Options",
+                    value: "nosniff",
+                  },
+                  {
+                    key: "Referrer-Policy",
+                    value: "strict-origin-when-cross-origin",
+                  },
+                ],
+              },
+            ]
+          : []),
         {
           source: "/embed/embed.js",
           headers: [CORP_CROSS_ORIGIN_HEADER],
