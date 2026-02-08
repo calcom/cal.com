@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import posthog from "posthog-js";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
@@ -21,6 +21,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 interface AppCardProps {
   app: App;
@@ -53,10 +54,28 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   });
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+
+  const checkTruncation = useCallback(() => {
+    const el = descriptionRef.current;
+    if (el) {
+      setIsDescriptionTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, []);
 
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
+
+  useEffect(() => {
+    checkTruncation();
+    const el = descriptionRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(checkTruncation);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [app.description, checkTruncation]);
 
   const handleAppInstall = () => {
     posthog.capture("app_install_button_clicked", {
@@ -127,9 +146,20 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p className="text-default mt-2 text-sm line-clamp-3">
-        {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
-      </p>
+      {isDescriptionTruncated ? (
+        <Tooltip
+          content={markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
+          side="bottom"
+          sideOffset={4}>
+          <p ref={descriptionRef} className="text-default mt-2 cursor-pointer text-sm line-clamp-3">
+            {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
+          </p>
+        </Tooltip>
+      ) : (
+        <p ref={descriptionRef} className="text-default mt-2 text-sm line-clamp-3">
+          {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
+        </p>
+      )}
 
       <div className="mt-auto flex max-w-full flex-row justify-between gap-2">
         <Button
