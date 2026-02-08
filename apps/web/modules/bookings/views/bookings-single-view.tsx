@@ -486,7 +486,9 @@ export default function Success(props: PageProps) {
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
-              "flex items-end justify-center px-4 pb-20 pt-4 sm:flex sm:p-0"
+              isEmbed
+                ? "flex items-end justify-center p-0 sm:flex sm:p-0"
+                : "flex items-end justify-center px-4 pb-20 pt-4 sm:flex sm:p-0"
             )}>
             <div
               className={classNames(
@@ -496,7 +498,9 @@ export default function Success(props: PageProps) {
               aria-hidden="true">
               <div
                 className={classNames(
-                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  isEmbed
+                    ? "block w-full transform overflow-hidden border-0 sm:inline-block sm:rounded-lg sm:border sm:my-8 sm:max-w-xl"
+                    : "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   !isBackgroundTransparent &&
                     " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
