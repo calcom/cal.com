@@ -12,7 +12,6 @@ const apiProxyV2 = createProxyMiddleware({
 
 const app = connect();
 
-// Order matters: "/v2" must be handled before "/".This ensures v2 requests are correctly proxied and not captured by the root handler
 app.use("/v2", apiProxyV2);
 app.use("/", apiProxyV1);
 
