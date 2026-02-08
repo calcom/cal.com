@@ -15,6 +15,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import LocationSettingsContainer from "@calcom/web/modules/event-types/components/locations/LocationSettingsContainer";
+import { InfoBadge } from "@calcom/ui/components/badge";
 
 const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
   const { t } = useLocale();
@@ -30,7 +31,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
           aria-expanded={isExpanded}
           onClick={() => setIsExpanded(!isExpanded)}
           className={classNames(
-            "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+            "cursor-pointer todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 pt-1.5 text-sm font-medium transition",
             "[&[aria-current='page']]:!bg-transparent",
             "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm"
           )}>
@@ -169,7 +170,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
             />
 
             <TextField
-              label={t("enter_redirect_url_on_exit_description")}
+              label={<div className="flex gap-1 items-center">{t("redirect_url")}<InfoBadge content={t("enter_redirect_url_on_exit_description")} /></div>}
               defaultValue={calVideoSettings?.redirectUrlOnExit || ""}
               data-testid="calVideoSettings.redirectUrlOnExit"
               containerClassName="mt-4"
