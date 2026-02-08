@@ -1,7 +1,7 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { FeedbackDialog } from "@calcom/features/feedback/components/FeedbackDialog";
+import { FeedbackDialog } from "./FeedbackDialog";
 import type { ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { FeatureOptInBanner } from "./FeatureOptInBanner";

@@ -9,7 +9,7 @@ import { cn } from "@coss/ui/lib/utils";
 import { XIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { useState } from "react";
-import { RATING_OPTIONS } from "../../bookings/lib/rating";
+import { RATING_OPTIONS } from "@calcom/features/bookings/lib/rating";
 
 export interface FeedbackDialogProps {
   isOpen: boolean;

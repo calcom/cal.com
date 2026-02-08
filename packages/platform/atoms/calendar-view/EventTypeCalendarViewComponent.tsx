@@ -12,7 +12,7 @@ import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBooke
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
 
 import { formatUsername } from "../booker/BookerPlatformWrapper";
 import type {

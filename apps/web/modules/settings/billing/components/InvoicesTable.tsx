@@ -13,7 +13,7 @@ import {
   ZDateRangeFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { FilterType } from "@calcom/types/data-table";
