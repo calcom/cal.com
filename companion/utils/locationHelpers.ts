@@ -83,7 +83,7 @@ export function mapApiLocationToItem(apiLocation: ApiLocation): LocationItem {
       id,
       type: "phone",
       phone: apiLocation.phone || "",
-      displayName: "Organizer Phone Number",
+      displayName: "Phone Call",
       iconUrl: "https://app.cal.com/phone.svg",
       public: apiLocation.public,
     };
@@ -198,7 +198,7 @@ export function getLocationDisplayName(locationType: string, integration?: strin
     address: "In Person (Organizer Address)",
     attendeeAddress: "In Person (Attendee Address)",
     link: "Link Meeting",
-    phone: "Organizer Phone Number",
+    phone: "Phone Call",
     attendeePhone: "Attendee Phone Number",
     attendeeDefined: "Custom Attendee Location",
   };

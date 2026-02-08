@@ -4,6 +4,7 @@ import {
   deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -30,6 +31,17 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
 
   if (!webhook) {
     return null;
+  }
+
+  // SSRF validation: only validate if URL is being changed
+  if (data.subscriberUrl && data.subscriberUrl !== webhook.subscriberUrl) {
+    const validation = validateUrlForSSRFSync(data.subscriberUrl);
+    if (!validation.isValid) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Webhook URL is not allowed: ${validation.error}`,
+      });
+    }
   }
 
   if (webhook.platform) {

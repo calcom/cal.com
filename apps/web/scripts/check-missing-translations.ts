@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 const TEMPLATE_LANGUAGE = "en";
 const SPECIFIC_LOCALES = process.argv.slice(2) || [];

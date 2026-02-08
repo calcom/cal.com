@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createStore, useStore } from "zustand";
 
+import { useActiveSegmentFromUrl } from "../hooks/useActiveSegmentFromUrl";
 import { useSelectedBookingUid } from "../hooks/useSelectedBookingUid";
 import type { BookingOutput } from "../types";
 
@@ -44,6 +45,7 @@ export interface NavigationCapabilities {
 interface BookingDetailsSheetStore {
   // Core state (view-agnostic)
   selectedBookingUid: string | null;
+  activeSegment: "info" | "history" | null;
   bookings: BookingOutput[];
   isTransitioning: boolean;
   pendingSelection: PendingSelectionType;
@@ -53,6 +55,7 @@ interface BookingDetailsSheetStore {
 
   // Core actions
   setSelectedBookingUid: (uid: string | null) => void;
+  setActiveSegment: (segment: "info" | "history" | null) => void;
   setBookings: (bookings: BookingOutput[]) => void;
   setCapabilities: (capabilities: NavigationCapabilities | null) => void;
   clearSelection: () => void;
@@ -78,6 +81,7 @@ const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) =
   return createStore<BookingDetailsSheetStore>((set, get) => ({
     // Initial state
     selectedBookingUid: null,
+    activeSegment: null,
     bookings: initialBookings,
     isTransitioning: false,
     pendingSelection: null,
@@ -86,6 +90,9 @@ const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) =
     // Actions
     setSelectedBookingUid: (uid) => {
       set({ selectedBookingUid: uid });
+    },
+    setActiveSegment: (segment) => {
+      set({ activeSegment: segment });
     },
     setBookings: (bookings) => set({ bookings }),
     setCapabilities: (capabilities) => set({ capabilities }),
@@ -169,6 +176,45 @@ const createBookingDetailsSheetStore = (initialBookings: BookingOutput[] = []) =
 
 const BookingDetailsSheetStoreContext = React.createContext<BookingDetailsSheetStoreType | null>(null);
 
+// TODO: To Avoid this useEffect based double sync, we should return a wrapper store over Zustand and Nuqs.
+// Certain states that are stored in query params would be fully powered by Nuqs and other states would be fully powered by Zustand and the wrapper store provides a generic interface to work with both
+function useBiDirectionalSyncBetweenStoreAndUrl({ store }: { store: BookingDetailsSheetStoreType }) {
+  const [selectedBookingUidFromUrl, setSelectedBookingUidToUrl] = useSelectedBookingUid();
+  const [activeSegmentFromUrl, setActiveSegmentToUrl] = useActiveSegmentFromUrl();
+  const isSyncedFromUrlToStoreRef = useRef(false);
+
+  // Sync Store → URL
+  useEffect(() => {
+    // We can't sync from Store to URL if URL hasn't first been synced to Store
+    // This is to prevent override of any user configuration provided by URL query params. Think about page being refreshed
+    if (!isSyncedFromUrlToStoreRef.current) return;
+
+    const unsubscribe = store.subscribe((state) => {
+      if (state.selectedBookingUid !== selectedBookingUidFromUrl) {
+        setSelectedBookingUidToUrl(state.selectedBookingUid);
+      }
+      if (state.activeSegment !== activeSegmentFromUrl) {
+        setActiveSegmentToUrl(state.activeSegment);
+      }
+    });
+
+    return unsubscribe;
+  }, [selectedBookingUidFromUrl, activeSegmentFromUrl, store]);
+
+  // Sync URL → Store
+  useEffect(() => {
+    const state = store.getState();
+    if (selectedBookingUidFromUrl !== state.selectedBookingUid) {
+      state.setSelectedBookingUid(selectedBookingUidFromUrl);
+    }
+
+    if (activeSegmentFromUrl !== state.activeSegment) {
+      state.setActiveSegment(activeSegmentFromUrl);
+    }
+    isSyncedFromUrlToStoreRef.current = true;
+  }, [selectedBookingUidFromUrl, activeSegmentFromUrl, store]);
+}
+
 export function BookingDetailsSheetStoreProvider({
   children,
   bookings,
@@ -179,7 +225,6 @@ export function BookingDetailsSheetStoreProvider({
   capabilities?: NavigationCapabilities | null;
 }) {
   const [store] = useState(() => createBookingDetailsSheetStore(bookings));
-  const [selectedBookingUidFromUrl, setSelectedBookingUidToUrl] = useSelectedBookingUid();
   const previousBookingsRef = useRef<BookingOutput[]>(bookings);
 
   // Update bookings in store
@@ -198,25 +243,7 @@ export function BookingDetailsSheetStoreProvider({
     store.getState().setCapabilities(capabilities ?? null);
   }, [capabilities, store]);
 
-  // Sync Store → URL
-  useEffect(() => {
-    const unsubscribe = store.subscribe((state) => {
-      const storeUid = state.selectedBookingUid;
-      if (storeUid !== selectedBookingUidFromUrl) {
-        setSelectedBookingUidToUrl(storeUid);
-      }
-    });
-
-    return unsubscribe;
-  }, [selectedBookingUidFromUrl, setSelectedBookingUidToUrl, store]);
-
-  // Sync URL → Store
-  useEffect(() => {
-    const currentStoreUid = store.getState().selectedBookingUid;
-    if (currentStoreUid !== selectedBookingUidFromUrl) {
-      store.getState().setSelectedBookingUid(selectedBookingUidFromUrl);
-    }
-  }, [selectedBookingUidFromUrl, store]);
+  useBiDirectionalSyncBetweenStoreAndUrl({ store });
 
   return (
     <BookingDetailsSheetStoreContext.Provider value={store}>

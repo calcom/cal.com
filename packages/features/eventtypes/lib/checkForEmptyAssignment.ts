@@ -1,4 +1,4 @@
-import type { EventTypeAssignedUsers, EventTypeHosts } from "../components/EventType";
+import type { EventTypeAssignedUsers, EventTypeHosts } from "./types";
 
 // This function checks if EventType requires assignment.
 // returns true: if EventType requires assignment but there is no assignment yet done by the user.

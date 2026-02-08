@@ -15,7 +15,7 @@ import type { Booking, EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { EventBusyDetails } from "@calcom/types/Calendar";
+import type { CalendarFetchMode, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 export interface IBusyTimesService {
@@ -79,7 +79,7 @@ export class BusyTimesService {
       | null;
     bypassBusyCalendarTimes: boolean;
     silentlyHandleCalendarFailures?: boolean;
-    shouldServeCache?: boolean;
+    mode?: CalendarFetchMode;
   }) {
     const {
       credentials,
@@ -97,7 +97,7 @@ export class BusyTimesService {
       duration,
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
-      shouldServeCache,
+      mode,
     } = params;
 
     logger.silly(
@@ -222,7 +222,7 @@ export class BusyTimesService {
         startTime,
         endTime,
         selectedCalendars,
-        shouldServeCache
+        mode
       );
 
       if (!calendarBusyTimesQuery.success) {

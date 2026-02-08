@@ -7,7 +7,7 @@ import logger from "@calcom/lib/logger";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { i18n } = require("@calcom/config/next-i18next.config");
-const path = require("path");
+const path = require("node:path");
 const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/static/locales/en/common.json");
 const englishTranslations: Record<string, string> = require(translationsPath);
 /* eslint-enable @typescript-eslint/no-require-imports */

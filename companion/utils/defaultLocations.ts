@@ -71,7 +71,7 @@ export const defaultLocations: DefaultLocation[] = [
   },
   {
     type: DefaultLocationType.UserPhone,
-    label: "Organizer Phone Number",
+    label: "Phone Call",
     iconUrl: "https://app.cal.com/phone.svg",
     category: "phone",
     organizerInputType: "phone",

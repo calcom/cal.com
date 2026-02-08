@@ -1,12 +1,10 @@
-import fs from "fs";
+import fs from "node:fs";
+import type { AppMeta } from "@calcom/types/App";
 import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
-import React, { useEffect, useState } from "react";
-
-import type { AppMeta } from "@calcom/types/App";
-
-import { getSlugFromAppName, BaseAppFork, generateAppFiles, getAppDirPath } from "../core";
+import { useEffect, useState } from "react";
+import { BaseAppFork, generateAppFiles, getAppDirPath, getSlugFromAppName } from "../core";
 import { getApp } from "../utils/getApp";
 import Templates from "../utils/templates";
 import Label from "./Label";
@@ -32,6 +30,7 @@ export const AppForm = ({
     category: "",
     publisher: "",
     email: "",
+    externalLinkUrl: "",
   };
 
   const [app] = useState(() => getApp(givenSlug, isTemplate));
@@ -45,8 +44,9 @@ export const AppForm = ({
         ...config,
         category: config.categories[0],
         template: config.__template,
+        externalLinkUrl: config.externalLink?.url || "",
       };
-    } catch (e) {}
+    } catch (_e) { }
 
   const fields = [
     {
@@ -70,13 +70,13 @@ export const AppForm = ({
     cliTemplate || isEditAction
       ? null
       : {
-          label: "Choose a base Template",
-          name: "template",
-          type: "select",
-          options: Templates,
-          optional: false,
-          defaultValue: "",
-        },
+        label: "Choose a base Template",
+        name: "template",
+        type: "select",
+        options: Templates,
+        optional: false,
+        defaultValue: "",
+      },
     {
       optional: false,
       label: "Category of App",
@@ -87,7 +87,7 @@ export const AppForm = ({
       options: [
         // Manually sorted alphabetically
         { label: "Analytics", value: "analytics" },
-        { label: "Automation", value: "automation" },
+        { label: "AI & Automation", value: "automation" },
         { label: "Calendar", value: "calendar" },
         { label: "Conferencing", value: "conferencing" },
         { label: "CRM", value: "crm" },
@@ -115,22 +115,41 @@ export const AppForm = ({
       defaultValue: "email@example.com",
     },
   ].filter((f) => f);
+
   const [appInputData, setAppInputData] = useState(initialConfig);
   const [inputIndex, setInputIndex] = useState(0);
   const [slugFinalized, setSlugFinalized] = useState(false);
+
+  // Add external link URL field for link-as-an-app template
+  // Must use appInputData.template (not initialConfig.template) to react to user's interactive selection
+  const templateForFields = appInputData.template || cliTemplate;
+  if (templateForFields === "link-as-an-app") {
+    const categoryIndex = fields.findIndex((f) => f?.name === "category");
+    const hasExternalLinkField = fields.some((f) => f?.name === "externalLinkUrl");
+    if (categoryIndex !== -1 && !hasExternalLinkField) {
+      fields.splice(categoryIndex + 1, 0, {
+        optional: false,
+        label: "External Link URL",
+        name: "externalLinkUrl",
+        type: "text",
+        explainer: "The URL users will be redirected to when they install this app (e.g., https://example.com/signup)",
+        defaultValue: "https://example.com",
+      });
+    }
+  }
 
   const field = fields[inputIndex];
   const fieldLabel = field?.label || "";
   const fieldName = field?.name || "";
   let fieldValue = appInputData[fieldName as keyof typeof appInputData] || "";
   let validationResult: Parameters<typeof Message>[0]["message"] | null = null;
-  const { name, category, description, publisher, email, template } = appInputData;
+  const { name, category, description, publisher, email, template, externalLinkUrl } = appInputData;
 
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const formCompleted = inputIndex === fields.length;
   if (field?.name === "appCategory") {
     // Use template category as the default category
-    fieldValue = Templates.find((t) => t.value === appInputData["template"])?.category || "";
+    fieldValue = Templates.find((t) => t.value === appInputData.template)?.category || "";
   }
   const slug = getSlugFromAppName(name) || givenSlug;
 
@@ -149,6 +168,7 @@ export const AppForm = ({
           editMode: isEditAction,
           isTemplate,
           oldSlug: givenSlug,
+          externalLinkUrl,
         });
 
         await generateAppFiles();
@@ -158,7 +178,20 @@ export const AppForm = ({
         setStatus("done");
       }
     })();
-  }, [formCompleted]);
+  }, [
+    formCompleted,
+    category,
+    description,
+    email,
+    givenSlug,
+    isEditAction,
+    isTemplate,
+    name,
+    publisher,
+    slug,
+    template,
+    externalLinkUrl,
+  ]);
 
   if (action === "edit" || action === "edit-template") {
     if (!slug) {
@@ -192,9 +225,8 @@ export const AppForm = ({
             message={{
               text: isEditAction
                 ? `Editing app with slug ${slug}`
-                : `Creating ${
-                    action === "create-template" ? "template" : "app"
-                  } with name '${name}' categorized in '${category}' using template '${template}'`,
+                : `Creating ${action === "create-template" ? "template" : "app"
+                } with name '${name}' categorized in '${category}' using template '${template}'`,
               type: "info",
               showInProgressIndicator: true,
             }}
@@ -259,9 +291,8 @@ export const AppForm = ({
   }
   if (slug && slug !== givenSlug && fs.existsSync(getAppDirPath(slug, isTemplate))) {
     validationResult = {
-      text: `${
-        action === "create" ? "App" : "Template"
-      } with slug ${slug} already exists. If you want to edit it, use edit command`,
+      text: `${action === "create" ? "App" : "Template"
+        } with slug ${slug} already exists. If you want to edit it, use edit command`,
       type: "error",
     };
 
@@ -283,15 +314,14 @@ export const AppForm = ({
         ) : (
           <Message
             message={{
-              text: `\nLet's create your ${
-                isTemplate ? "Template" : "App"
-              }! Start by providing the information that's asked\n`,
+              text: `\nLet's create your ${isTemplate ? "Template" : "App"
+                }! Start by providing the information that's asked\n`,
             }}
           />
         )}
         <Box>
           <Label>{`${fieldLabel}`}</Label>
-          {field?.type == "text" ? (
+          {field?.type === "text" ? (
             <TextInput
               value={fieldValue}
               placeholder={field?.defaultValue}

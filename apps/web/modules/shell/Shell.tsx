@@ -3,13 +3,15 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement } from "react";
+import type React from "react";
+import { cloneElement } from "react";
 import { Toaster } from "sonner";
 
-import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
-import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useFormbricks } from "@calcom/features/formbricks/formbricks-client";
-import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
+import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbricks";
+import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
+import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
+
+import TimezoneChangeDialog from "@calcom/web/modules/settings/components/TimezoneChangeDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -85,6 +87,7 @@ export type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   isPlatformUser?: boolean;
+  disableSticky?: boolean;
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -124,14 +127,22 @@ export default function Shell(props: LayoutProps) {
 export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady } = useLocale();
+  const { bannersHeight } = useBanners();
+
+  const headerStyle =
+    !props.disableSticky && bannersHeight
+      ? { top: `${bannersHeight}px` as const }
+      : undefined;
 
   return (
     <>
       {(props.heading || !!props.backPath) && (
         <div
+          style={headerStyle}
           className={classNames(
-            "bg-default sticky top-0 z-10 mb-0 flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
+            "bg-default mb-0 flex items-center md:mb-6 md:mt-0",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            !props.disableSticky && "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] md:pt-3 md:pb-2 md:pl-5 md:left-14 lg:left-56 lg:w-[calc(100%-14rem)]"
           )}>
           {!!props.backPath && (
             <Button
@@ -184,6 +195,9 @@ export function ShellMain(props: LayoutProps) {
             </header>
           )}
         </div>
+      )}
+      {(props.heading || !!props.backPath) && !props.disableSticky && (
+        <div className="hidden md:block md:h-14" aria-hidden="true" />
       )}
       {props.afterHeading && <>{props.afterHeading}</>}
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>

@@ -1,6 +1,5 @@
-import fs from "fs";
-import path from "path";
-
+import fs from "node:fs";
+import path from "node:path";
 import { APP_STORE_PATH, TEMPLATES_PATH } from "../constants";
 import { getAppName } from "./getAppName";
 
@@ -18,7 +17,7 @@ export const getApp = (slug: string, isTemplate: boolean) => {
   if (foundApp) {
     try {
       return JSON.parse(fs.readFileSync(path.join(base, foundApp, "config.json")).toString());
-    } catch (e) {
+    } catch (_e) {
       return {};
     }
   }

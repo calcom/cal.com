@@ -1,5 +1,18 @@
+/**
+ * LimitsTab Component
+ *
+ * Settings app style with grouped rows, section headers, and compact toggles.
+ * Uses native iOS ContextMenu for pickers on iOS, Modal-based dropdowns on Android/Web.
+ */
+
 import { Ionicons } from "@expo/vector-icons";
-import { Animated, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { type Animated, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
+
+import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
+import { LimitsTabDatePicker } from "./LimitsTabDatePicker";
+import { LimitsTabIOSPicker } from "./LimitsTabIOSPicker";
+import { getColors } from "@/constants/colors";
+import { useColorScheme } from "react-native";
 
 interface FrequencyLimit {
   id: number;
@@ -13,24 +26,83 @@ interface DurationLimit {
   unit: string;
 }
 
+// Buffer time options
+const BUFFER_TIME_OPTIONS = [
+  "No buffer time",
+  "5 Minutes",
+  "10 Minutes",
+  "15 Minutes",
+  "20 Minutes",
+  "30 Minutes",
+  "45 Minutes",
+  "60 Minutes",
+  "90 Minutes",
+  "120 Minutes",
+];
+
+// Time unit options
+const TIME_UNIT_OPTIONS = ["Minutes", "Hours", "Days"];
+
+// Slot interval options
+const SLOT_INTERVAL_OPTIONS = [
+  "Default",
+  "5 Minutes",
+  "10 Minutes",
+  "15 Minutes",
+  "20 Minutes",
+  "30 Minutes",
+  "45 Minutes",
+  "60 Minutes",
+  "75 Minutes",
+  "90 Minutes",
+  "105 Minutes",
+  "120 Minutes",
+];
+
+// Frequency unit options
+const FREQUENCY_UNIT_OPTIONS = ["Per day", "Per week", "Per month", "Per year"];
+
+// Duration unit options
+const DURATION_UNIT_OPTIONS = ["Per day", "Per week", "Per month"];
+
+// Local components removed in favor of SettingsUI
+
+// Android/Web picker button (opens modal)
+// Android/Web picker button (opens modal)
+function ModalPickerButton({ value, onPress }: { value: string; onPress: () => void }) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
+  return (
+    <TouchableOpacity
+      className="flex-row items-center rounded-lg px-2 py-1.5"
+      style={{ backgroundColor: theme.backgroundMuted }}
+      onPress={onPress}
+    >
+      <Text className="text-[15px]" style={{ color: theme.text }}>
+        {value}
+      </Text>
+      <Ionicons name="chevron-down" size={14} color={theme.textMuted} style={{ marginLeft: 4 }} />
+    </TouchableOpacity>
+  );
+}
+
+// Navigation row with native iOS picker or modal button
+
 interface LimitsTabProps {
-  // Buffer times
   beforeEventBuffer: string;
+  setBeforeEventBuffer: (value: string) => void;
   setShowBeforeBufferDropdown: (show: boolean) => void;
   afterEventBuffer: string;
+  setAfterEventBuffer: (value: string) => void;
   setShowAfterBufferDropdown: (show: boolean) => void;
-
-  // Minimum notice
   minimumNoticeValue: string;
   setMinimumNoticeValue: (value: string) => void;
   minimumNoticeUnit: string;
+  setMinimumNoticeUnit: (value: string) => void;
   setShowMinimumNoticeUnitDropdown: (show: boolean) => void;
-
-  // Slot interval
   slotInterval: string;
+  setSlotInterval: (value: string) => void;
   setShowSlotIntervalDropdown: (show: boolean) => void;
-
-  // Booking frequency
   limitBookingFrequency: boolean;
   toggleBookingFrequency: (value: boolean) => void;
   frequencyAnimationValue: Animated.Value;
@@ -39,12 +111,8 @@ interface LimitsTabProps {
   setShowFrequencyUnitDropdown: (id: number) => void;
   removeFrequencyLimit: (id: number) => void;
   addFrequencyLimit: () => void;
-
-  // Only show first slot
   onlyShowFirstAvailableSlot: boolean;
   setOnlyShowFirstAvailableSlot: (value: boolean) => void;
-
-  // Total duration
   limitTotalDuration: boolean;
   toggleTotalDuration: (value: boolean) => void;
   durationAnimationValue: Animated.Value;
@@ -53,16 +121,12 @@ interface LimitsTabProps {
   setShowDurationUnitDropdown: (id: number) => void;
   removeDurationLimit: (id: number) => void;
   addDurationLimit: () => void;
-
-  // Max active bookings
   maxActiveBookingsPerBooker: boolean;
   setMaxActiveBookingsPerBooker: (value: boolean) => void;
   maxActiveBookingsValue: string;
   setMaxActiveBookingsValue: (value: string) => void;
   offerReschedule: boolean;
   setOfferReschedule: (value: boolean) => void;
-
-  // Future bookings
   limitFutureBookings: boolean;
   setLimitFutureBookings: (value: boolean) => void;
   futureBookingType: "rolling" | "range";
@@ -78,416 +142,415 @@ interface LimitsTabProps {
 }
 
 export function LimitsTab(props: LimitsTabProps) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
+
   return (
-    <View className="gap-3">
-      {/* Buffer Time, Minimum Notice, and Slot Interval Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="mb-3">
-          <Text className="mb-1.5 text-base font-semibold text-[#333]">Before event</Text>
-          <TouchableOpacity
-            className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-            onPress={() => props.setShowBeforeBufferDropdown(true)}
+    <View className="gap-6">
+      {/* Buffer & Notice Settings */}
+      <SettingsGroup header="Buffer & Notice">
+        <NavigationRow
+          title="Before event"
+          value={props.beforeEventBuffer}
+          options={BUFFER_TIME_OPTIONS.map((o) => ({ label: o, value: o }))}
+          onSelect={props.setBeforeEventBuffer}
+          onPress={() => props.setShowBeforeBufferDropdown(true)}
+        />
+        <NavigationRow
+          title="After event"
+          value={props.afterEventBuffer}
+          options={BUFFER_TIME_OPTIONS.map((o) => ({ label: o, value: o }))}
+          onSelect={props.setAfterEventBuffer}
+          onPress={() => props.setShowAfterBufferDropdown(true)}
+        />
+        <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+          <View
+            className="flex-row items-center justify-between pr-4"
+            style={{ height: 44, borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
           >
-            <Text className="text-base text-black">{props.beforeEventBuffer}</Text>
-            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-          </TouchableOpacity>
+            <Text className="text-[17px]" style={{ color: theme.text }}>
+              Minimum Notice
+            </Text>
+            <View className="flex-row items-center gap-2">
+              <TextInput
+                className="w-16 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
+                value={props.minimumNoticeValue}
+                onChangeText={(text) => {
+                  const numericValue = text.replace(/[^0-9]/g, "");
+                  props.setMinimumNoticeValue(numericValue);
+                }}
+                placeholder="1"
+                placeholderTextColor={theme.textMuted}
+                keyboardType="numeric"
+              />
+              {Platform.OS === "ios" ? (
+                <View className="flex-row items-center">
+                  <Text className="mr-1 text-[17px]" style={{ color: theme.textMuted }}>
+                    {props.minimumNoticeUnit}
+                  </Text>
+                  <LimitsTabIOSPicker
+                    options={TIME_UNIT_OPTIONS}
+                    selectedValue={props.minimumNoticeUnit}
+                    onSelect={props.setMinimumNoticeUnit}
+                  />
+                </View>
+              ) : (
+                <ModalPickerButton
+                  value={props.minimumNoticeUnit}
+                  onPress={() => props.setShowMinimumNoticeUnitDropdown(true)}
+                />
+              )}
+            </View>
+          </View>
         </View>
+        <NavigationRow
+          title="Time-slot intervals"
+          value={props.slotInterval === "Default" ? "Event length" : props.slotInterval}
+          options={SLOT_INTERVAL_OPTIONS.map((o) => ({ label: o, value: o }))}
+          onSelect={props.setSlotInterval}
+          onPress={() => props.setShowSlotIntervalDropdown(true)}
+          isLast
+        />
+      </SettingsGroup>
 
-        <View
-          className="mb-3"
-          style={{ borderTopWidth: 1, borderTopColor: "#E5E5EA", paddingTop: 12, marginTop: 12 }}
-        >
-          <Text className="mb-1.5 text-base font-semibold text-[#333]">After event</Text>
-          <TouchableOpacity
-            className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-            onPress={() => props.setShowAfterBufferDropdown(true)}
-          >
-            <Text className="text-base text-black">{props.afterEventBuffer}</Text>
-            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-          </TouchableOpacity>
-        </View>
+      {/* Booking Limits */}
+      <SettingsGroup header="Booking Limits">
+        <SettingRow
+          title="Limit booking frequency"
+          description="Limit how many times this event can be booked."
+          value={props.limitBookingFrequency}
+          onValueChange={props.toggleBookingFrequency}
+        />
+        <SettingRow
+          title="First slot only"
+          description="Only show the first slot of each day as available. This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
+          value={props.onlyShowFirstAvailableSlot}
+          onValueChange={props.setOnlyShowFirstAvailableSlot}
+        />
+        <SettingRow
+          title="Limit total duration"
+          description="Limit total amount of time that this event can be booked."
+          value={props.limitTotalDuration}
+          onValueChange={props.toggleTotalDuration}
+        />
+        <SettingRow
+          title="Limit active bookings"
+          description="Limit the number of active bookings a booker can make for this event type."
+          value={props.maxActiveBookingsPerBooker}
+          onValueChange={props.setMaxActiveBookingsPerBooker}
+        />
+        <SettingRow
+          title="Limit future bookings"
+          description="Limit how far in the future this event can be booked."
+          value={props.limitFutureBookings}
+          onValueChange={props.setLimitFutureBookings}
+          isLast
+        />
+      </SettingsGroup>
 
-        <View
-          className="mb-3"
-          style={{ borderTopWidth: 1, borderTopColor: "#E5E5EA", paddingTop: 12, marginTop: 12 }}
-        >
-          <Text className="mb-1.5 text-base font-semibold text-[#333]">Minimum Notice</Text>
-          <View className="flex-row items-center gap-3">
-            <TextInput
-              className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
-              value={props.minimumNoticeValue}
-              onChangeText={(text) => {
-                const numericValue = text.replace(/[^0-9]/g, "");
-                const num = parseInt(numericValue, 10) || 0;
-                if (num >= 0) {
-                  props.setMinimumNoticeValue(numericValue || "0");
-                }
-              }}
-              placeholder="1"
-              placeholderTextColor="#8E8E93"
-              keyboardType="numeric"
-            />
-            <TouchableOpacity
-              className="min-w-[100px] flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-              onPress={() => props.setShowMinimumNoticeUnitDropdown(true)}
+      {/* Frequency Limit Configuration */}
+      {props.limitBookingFrequency ? (
+        <SettingsGroup header="Frequency Limits">
+          {props.frequencyLimits.map((limit, index) => (
+            <View
+              key={limit.id}
+              className="bg-white pl-4"
+              style={{ backgroundColor: theme.backgroundSecondary }}
             >
-              <Text className="text-base text-black">{props.minimumNoticeUnit}</Text>
-              <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View
-          style={{ borderTopWidth: 1, borderTopColor: "#E5E5EA", paddingTop: 12, marginTop: 12 }}
-        >
-          <Text className="mb-1.5 text-base font-semibold text-[#333]">Time-slot intervals</Text>
-          <TouchableOpacity
-            className="flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-            onPress={() => props.setShowSlotIntervalDropdown(true)}
-          >
-            <Text className="text-base text-black">
-              {props.slotInterval === "Default" ? "Use event length (default)" : props.slotInterval}
-            </Text>
-            <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 1. Booking Frequency Limit Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Limit booking frequency</Text>
-            <Text className="text-sm leading-5 text-[#666]">
-              Limit how many times this event can be booked.
-            </Text>
-          </View>
-          <Switch
-            value={props.limitBookingFrequency}
-            onValueChange={props.toggleBookingFrequency}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        <Animated.View
-          style={[
-            { overflow: "hidden" },
-            {
-              opacity: props.frequencyAnimationValue,
-              maxHeight: props.frequencyAnimationValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 500],
-              }),
-            },
-          ]}
-        >
-          {props.limitBookingFrequency ? (
-            <>
-              {props.frequencyLimits.map((limit) => (
-                <View key={limit.id} className="mt-4 flex-row items-center gap-3">
+              <View
+                className={`flex-row items-center justify-between pr-4 py-3`}
+                style={{
+                  borderBottomWidth: index !== props.frequencyLimits.length - 1 ? 1 : 0,
+                  borderBottomColor: theme.borderSubtle,
+                }}
+              >
+                <View className="flex-row items-center gap-2">
                   <TextInput
-                    className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
+                    className="w-16 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                    style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                     value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      const num = parseInt(numericValue, 10) || 0;
-                      if (num >= 0) {
-                        props.updateFrequencyLimit(limit.id, "value", numericValue || "0");
-                      }
+                      props.updateFrequencyLimit(limit.id, "value", numericValue);
                     }}
                     placeholder="1"
-                    placeholderTextColor="#8E8E93"
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="numeric"
                   />
-                  <TouchableOpacity
-                    className="min-w-[100px] flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-                    onPress={() => props.setShowFrequencyUnitDropdown(limit.id)}
-                  >
-                    <Text className="text-base text-black">{limit.unit}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                  {props.frequencyLimits.length > 1 ? (
-                    <TouchableOpacity
-                      className="h-10 w-10 items-center justify-center rounded-lg border border-[#FFCCC7] bg-[#FFF1F0]"
-                      onPress={() => props.removeFrequencyLimit(limit.id)}
-                    >
-                      <Ionicons name="trash-outline" size={20} color="#800000" />
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
-              ))}
-              <TouchableOpacity
-                className="mt-4 flex-row items-center justify-center gap-2 rounded-lg border border-black bg-transparent px-2 py-3 md:px-4"
-                onPress={props.addFrequencyLimit}
-              >
-                <Ionicons name="add" size={20} color="#000" />
-                <Text className="text-base font-medium text-black">Add Limit</Text>
-              </TouchableOpacity>
-            </>
-          ) : null}
-        </Animated.View>
-      </View>
-
-      {/* 2. Only Show First Available Slot Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Only show the first slot of each day as available
-            </Text>
-            <Text className="text-sm leading-5 text-[#666]">
-              This will limit your availability for this event type to one slot per day, scheduled
-              at the earliest available time.
-            </Text>
-          </View>
-          <Switch
-            value={props.onlyShowFirstAvailableSlot}
-            onValueChange={props.setOnlyShowFirstAvailableSlot}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-      </View>
-
-      {/* 3. Total Booking Duration Limit Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Limit total booking duration
-            </Text>
-            <Text className="text-sm leading-5 text-[#666]">
-              Limit total amount of time that this event can be booked.
-            </Text>
-          </View>
-          <Switch
-            value={props.limitTotalDuration}
-            onValueChange={props.toggleTotalDuration}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-
-        <Animated.View
-          style={[
-            { overflow: "hidden" },
-            {
-              opacity: props.durationAnimationValue,
-              maxHeight: props.durationAnimationValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 500],
-              }),
-            },
-          ]}
-        >
-          {props.limitTotalDuration ? (
-            <>
-              {props.durationLimits.map((limit) => (
-                <View key={limit.id} className="mt-4 flex-row items-center gap-3">
-                  <View className="flex-row items-center gap-3">
-                    <TextInput
-                      className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
-                      value={limit.value}
-                      onChangeText={(text) => {
-                        const numericValue = text.replace(/[^0-9]/g, "");
-                        const num = parseInt(numericValue, 10) || 0;
-                        if (num >= 0) {
-                          props.updateDurationLimit(limit.id, "value", numericValue || "0");
+                  <Text className="text-[15px]" style={{ color: theme.textSecondary }}>
+                    per
+                  </Text>
+                  {Platform.OS === "ios" ? (
+                    <View className="flex-row items-center">
+                      <Text className="mr-1 text-[17px]" style={{ color: theme.textMuted }}>
+                        {limit.unit}
+                      </Text>
+                      <LimitsTabIOSPicker
+                        options={FREQUENCY_UNIT_OPTIONS}
+                        selectedValue={limit.unit}
+                        onSelect={(value: string) =>
+                          props.updateFrequencyLimit(limit.id, "unit", value)
                         }
-                      }}
-                      placeholder="60"
-                      placeholderTextColor="#8E8E93"
-                      keyboardType="numeric"
+                      />
+                    </View>
+                  ) : (
+                    <ModalPickerButton
+                      value={limit.unit}
+                      onPress={() => props.setShowFrequencyUnitDropdown(limit.id)}
                     />
-                    <Text className="text-base text-[#666]">Minutes</Text>
-                  </View>
-                  <TouchableOpacity
-                    className="min-w-[100px] flex-row items-center justify-between rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3"
-                    onPress={() => props.setShowDurationUnitDropdown(limit.id)}
-                  >
-                    <Text className="text-base text-black">{limit.unit}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-                  {props.durationLimits.length > 1 ? (
-                    <TouchableOpacity
-                      className="h-10 w-10 items-center justify-center rounded-lg border border-[#FFCCC7] bg-[#FFF1F0]"
-                      onPress={() => props.removeDurationLimit(limit.id)}
-                    >
-                      <Ionicons name="trash-outline" size={20} color="#800000" />
-                    </TouchableOpacity>
-                  ) : null}
+                  )}
                 </View>
-              ))}
-              <TouchableOpacity
-                className="mt-4 flex-row items-center justify-center gap-2 rounded-lg border border-black bg-transparent px-2 py-3 md:px-4"
-                onPress={props.addDurationLimit}
-              >
-                <Ionicons name="add" size={20} color="#000" />
-                <Text className="text-base font-medium text-black">Add Limit</Text>
-              </TouchableOpacity>
-            </>
-          ) : null}
-        </Animated.View>
-      </View>
-
-      {/* 4. Max Active Bookings Per Booker Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">
-              Limit number of upcoming bookings per booker
-            </Text>
-            <Text className="text-sm leading-5 text-[#666]">
-              Limit the number of active bookings a booker can make for this event type.
-            </Text>
-          </View>
-          <Switch
-            value={props.maxActiveBookingsPerBooker}
-            onValueChange={props.setMaxActiveBookingsPerBooker}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-        {props.maxActiveBookingsPerBooker ? (
-          <View className="mt-4 gap-3">
-            <View className="flex-row items-center gap-3">
-              <TextInput
-                className="w-20 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-3 text-center text-base text-black"
-                value={props.maxActiveBookingsValue}
-                onChangeText={(text) => {
-                  const numericValue = text.replace(/[^0-9]/g, "");
-                  const num = parseInt(numericValue, 10) || 0;
-                  if (num >= 0) {
-                    props.setMaxActiveBookingsValue(numericValue || "1");
-                  }
-                }}
-                placeholder="1"
-                placeholderTextColor="#8E8E93"
-                keyboardType="numeric"
-              />
-              <Text className="text-base text-[#666]">bookings</Text>
-            </View>
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={() => props.setOfferReschedule(!props.offerReschedule)}
-            >
-              <View
-                className={`mr-3 h-5 w-5 items-center justify-center rounded border ${
-                  props.offerReschedule ? "border-[#007AFF] bg-[#007AFF]" : "border-[#C7C7CC]"
-                }`}
-              >
-                {props.offerReschedule && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
-              </View>
-              <Text className="flex-1 text-sm text-[#333]">
-                Offer to reschedule the last booking to the new time slot
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
-
-      {/* 5. Limit Future Bookings Card */}
-      <View className="rounded-2xl border border-[#E5E5EA] bg-white p-5">
-        <View className="flex-row items-start justify-between">
-          <View className="mr-4 flex-1">
-            <Text className="mb-1 text-base font-medium text-[#333]">Limit future bookings</Text>
-            <Text className="text-sm leading-5 text-[#666]">
-              Limit how far in the future this event can be booked.
-            </Text>
-          </View>
-          <Switch
-            value={props.limitFutureBookings}
-            onValueChange={props.setLimitFutureBookings}
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor="#FFFFFF"
-          />
-        </View>
-        {props.limitFutureBookings ? (
-          <View className="mt-4 gap-3">
-            {/* Rolling option */}
-            <TouchableOpacity
-              className="flex-row items-start"
-              onPress={() => props.setFutureBookingType("rolling")}
-            >
-              <View
-                className={`mr-3 mt-0.5 h-5 w-5 items-center justify-center rounded-full border-2 ${
-                  props.futureBookingType === "rolling" ? "border-[#007AFF]" : "border-[#C7C7CC]"
-                }`}
-              >
-                {props.futureBookingType === "rolling" ? (
-                  <View className="h-2.5 w-2.5 rounded-full bg-[#007AFF]" />
+                {props.frequencyLimits.length > 1 ? (
+                  <TouchableOpacity onPress={() => props.removeFrequencyLimit(limit.id)}>
+                    <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+                  </TouchableOpacity>
                 ) : null}
               </View>
-              <View className="flex-1">
-                <View className="flex-row flex-wrap items-center gap-2">
+            </View>
+          ))}
+          <TouchableOpacity
+            className="flex-row items-center justify-center py-3"
+            style={{ backgroundColor: theme.background }}
+            onPress={props.addFrequencyLimit}
+          >
+            <Ionicons name="add" size={20} color={theme.accent} />
+            <Text className="ml-1 text-[17px]" style={{ color: theme.accent }}>
+              Add Limit
+            </Text>
+          </TouchableOpacity>
+        </SettingsGroup>
+      ) : null}
+
+      {/* Duration Limit Configuration */}
+      {props.limitTotalDuration ? (
+        <SettingsGroup header="Duration Limits">
+          {props.durationLimits.map((limit, index) => (
+            <View
+              key={limit.id}
+              className="bg-white pl-4"
+              style={{ backgroundColor: theme.backgroundSecondary }}
+            >
+              <View
+                className={`flex-row items-center justify-between pr-4 py-3`}
+                style={{
+                  borderBottomWidth: index !== props.durationLimits.length - 1 ? 1 : 0,
+                  borderBottomColor: theme.borderSubtle,
+                }}
+              >
+                <View className="flex-row items-center gap-2">
                   <TextInput
-                    className="w-16 rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-2 py-2 text-center text-base text-black"
-                    value={props.rollingDays}
+                    className="w-16 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                    style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
+                    value={limit.value}
                     onChangeText={(text) => {
                       const numericValue = text.replace(/[^0-9]/g, "");
-                      props.setRollingDays(numericValue || "30");
-                      props.setFutureBookingType("rolling");
+                      props.updateDurationLimit(limit.id, "value", numericValue);
                     }}
-                    placeholder="30"
-                    placeholderTextColor="#8E8E93"
+                    placeholder="60"
+                    placeholderTextColor={theme.textMuted}
                     keyboardType="numeric"
                   />
-                  <TouchableOpacity
-                    className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2"
-                    onPress={() => {
-                      props.setRollingCalendarDays(!props.rollingCalendarDays);
-                      props.setFutureBookingType("rolling");
-                    }}
-                  >
-                    <Text className="text-base text-black">
-                      {props.rollingCalendarDays ? "calendar days" : "business days"}
-                    </Text>
-                  </TouchableOpacity>
-                  <Text className="text-base text-[#666]">into the future</Text>
+                  <Text className="text-[15px]" style={{ color: theme.textSecondary }}>
+                    minutes per
+                  </Text>
+                  {Platform.OS === "ios" ? (
+                    <View className="flex-row items-center">
+                      <Text className="mr-1 text-[17px]" style={{ color: theme.textMuted }}>
+                        {limit.unit}
+                      </Text>
+                      <LimitsTabIOSPicker
+                        options={DURATION_UNIT_OPTIONS}
+                        selectedValue={limit.unit}
+                        onSelect={(value: string) =>
+                          props.updateDurationLimit(limit.id, "unit", value)
+                        }
+                      />
+                    </View>
+                  ) : (
+                    <ModalPickerButton
+                      value={limit.unit}
+                      onPress={() => props.setShowDurationUnitDropdown(limit.id)}
+                    />
+                  )}
                 </View>
+                {props.durationLimits.length > 1 ? (
+                  <TouchableOpacity onPress={() => props.removeDurationLimit(limit.id)}>
+                    <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+                  </TouchableOpacity>
+                ) : null}
               </View>
-            </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity
+            className="flex-row items-center justify-center py-3"
+            style={{ backgroundColor: theme.background }}
+            onPress={props.addDurationLimit}
+          >
+            <Ionicons name="add" size={20} color={theme.accent} />
+            <Text className="ml-1 text-[17px]" style={{ color: theme.accent }}>
+              Add Limit
+            </Text>
+          </TouchableOpacity>
+        </SettingsGroup>
+      ) : null}
 
-            {/* Date Range option */}
-            <TouchableOpacity
-              className="flex-row items-start"
-              onPress={() => props.setFutureBookingType("range")}
+      {/* Max Active Bookings Configuration */}
+      {props.maxActiveBookingsPerBooker ? (
+        <SettingsGroup header="Active Bookings Limit">
+          <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
+            <View
+              className="flex-row items-center justify-between pr-4"
+              style={{ height: 44, borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
+            >
+              <Text className="text-[17px]" style={{ color: theme.text }}>
+                Max bookings
+              </Text>
+              <View className="flex-row items-center gap-2">
+                <TextInput
+                  className="w-16 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
+                  value={props.maxActiveBookingsValue}
+                  onChangeText={(text) => {
+                    const numericValue = text.replace(/[^0-9]/g, "");
+                    props.setMaxActiveBookingsValue(numericValue);
+                  }}
+                  placeholder="1"
+                  placeholderTextColor={theme.textMuted}
+                  keyboardType="numeric"
+                />
+                <Text className="text-[15px]" style={{ color: theme.textSecondary }}>
+                  bookings
+                </Text>
+              </View>
+            </View>
+          </View>
+          <SettingRow
+            title="Offer reschedule"
+            description="Offer to reschedule the last booking to the new time slot."
+            value={props.offerReschedule}
+            onValueChange={props.setOfferReschedule}
+            isLast
+          />
+        </SettingsGroup>
+      ) : null}
+
+      {/* Future Bookings Configuration */}
+      {props.limitFutureBookings ? (
+        <SettingsGroup header="Future Booking Limit">
+          {/* Rolling option */}
+          <TouchableOpacity
+            className="bg-white pl-4"
+            style={{ backgroundColor: theme.backgroundSecondary }}
+            onPress={() => props.setFutureBookingType("rolling")}
+            activeOpacity={0.7}
+          >
+            <View
+              className="flex-row items-center pr-4 py-3"
+              style={{ borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
             >
               <View
-                className={`mr-3 mt-0.5 h-5 w-5 items-center justify-center rounded-full border-2 ${
-                  props.futureBookingType === "range" ? "border-[#007AFF]" : "border-[#C7C7CC]"
-                }`}
+                className={`mr-3 h-5 w-5 items-center justify-center rounded-full border-2`}
+                style={{
+                  borderColor:
+                    props.futureBookingType === "rolling" ? theme.accent : theme.borderLight,
+                }}
+              >
+                {props.futureBookingType === "rolling" ? (
+                  <View
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: theme.accent }}
+                  />
+                ) : null}
+              </View>
+              <View className="flex-1 flex-row flex-wrap items-center gap-2">
+                <TextInput
+                  className="w-14 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
+                  value={props.rollingDays}
+                  onChangeText={(text) => {
+                    const numericValue = text.replace(/[^0-9]/g, "");
+                    props.setRollingDays(numericValue);
+                    props.setFutureBookingType("rolling");
+                  }}
+                  placeholder="30"
+                  placeholderTextColor={theme.textMuted}
+                  keyboardType="numeric"
+                />
+                <TouchableOpacity
+                  className="rounded-lg px-2 py-1.5"
+                  style={{ backgroundColor: theme.backgroundMuted }}
+                  onPress={() => {
+                    props.setRollingCalendarDays(!props.rollingCalendarDays);
+                    props.setFutureBookingType("rolling");
+                  }}
+                >
+                  <Text className="text-[15px]" style={{ color: theme.text }}>
+                    {props.rollingCalendarDays ? "calendar" : "business"}
+                  </Text>
+                </TouchableOpacity>
+                <Text className="text-[15px]" style={{ color: theme.textSecondary }}>
+                  days ahead
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          {/* Date Range option */}
+          <TouchableOpacity
+            className="bg-white pl-4"
+            style={{ backgroundColor: theme.backgroundSecondary }}
+            onPress={() => props.setFutureBookingType("range")}
+            activeOpacity={0.7}
+          >
+            <View className="flex-row items-start pr-4 py-3">
+              <View
+                className={`mr-3 mt-0.5 h-5 w-5 items-center justify-center rounded-full border-2`}
+                style={{
+                  borderColor:
+                    props.futureBookingType === "range" ? theme.accent : theme.borderLight,
+                }}
               >
                 {props.futureBookingType === "range" ? (
-                  <View className="h-2.5 w-2.5 rounded-full bg-[#007AFF]" />
+                  <View
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: theme.accent }}
+                  />
                 ) : null}
               </View>
               <View className="flex-1">
-                <Text className="mb-2 text-base text-[#333]">Within a date range</Text>
+                <Text className="mb-2 text-[17px]" style={{ color: theme.text }}>
+                  Within a date range
+                </Text>
                 {props.futureBookingType === "range" ? (
-                  <View className="gap-2">
-                    <TextInput
-                      className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2 text-base text-black"
-                      value={props.rangeStartDate}
-                      onChangeText={props.setRangeStartDate}
-                      placeholder="Start date (YYYY-MM-DD)"
-                      placeholderTextColor="#8E8E93"
-                    />
-                    <TextInput
-                      className="rounded-lg border border-[#E5E5EA] bg-[#F8F9FA] px-3 py-2 text-base text-black"
-                      value={props.rangeEndDate}
-                      onChangeText={props.setRangeEndDate}
-                      placeholder="End date (YYYY-MM-DD)"
-                      placeholderTextColor="#8E8E93"
-                    />
+                  <View className="gap-3">
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px]" style={{ color: theme.textSecondary }}>
+                        Start date
+                      </Text>
+                      <LimitsTabDatePicker
+                        value={props.rangeStartDate}
+                        onChange={props.setRangeStartDate}
+                        placeholder="Select start date"
+                      />
+                    </View>
+                    <View className="flex-row items-center">
+                      <Text className="w-20 text-[13px]" style={{ color: theme.textSecondary }}>
+                        End date
+                      </Text>
+                      <LimitsTabDatePicker
+                        value={props.rangeEndDate}
+                        onChange={props.setRangeEndDate}
+                        placeholder="Select end date"
+                      />
+                    </View>
                   </View>
                 ) : null}
               </View>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
+            </View>
+          </TouchableOpacity>
+        </SettingsGroup>
+      ) : null}
     </View>
   );
 }
