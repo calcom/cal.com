@@ -39,6 +39,7 @@ export function RejectionReasonDialog({
         <div>
           <TextAreaField
             name="rejectionReason"
+            className="resize-none"
             label={
               <>
                 {t("rejection_reason")}
