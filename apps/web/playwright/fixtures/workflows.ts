@@ -11,14 +11,13 @@ type CreateWorkflowProps = {
   name?: string;
   isTeam?: true;
   trigger?: WorkflowTriggerEvents;
-  eventTypeNames?: string[];
 };
 
 const subjectPattern = /^Reminder: /i;
 
 export function createWorkflowPageFixture(page: Page) {
   const createWorkflow = async (props: CreateWorkflowProps) => {
-    const { name, isTeam, trigger, eventTypeNames } = props;
+    const { name, isTeam, trigger } = props;
     if (isTeam) {
       await page.getByTestId("create-button-dropdown").click();
       await page.getByTestId("option-team-1").click();
@@ -35,12 +34,7 @@ export function createWorkflowPageFixture(page: Page) {
 
     await page.locator("#trigger-select").click();
     await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
-
-    if (eventTypeNames && eventTypeNames.length > 0) {
-      await selectEventTypes(eventTypeNames);
-    } else {
-      await page.getByText(/Apply to all/i).first().click();
-    }
+    await selectEventType("30 min");
 
     const workflow = await saveWorkflow();
 
@@ -106,13 +100,6 @@ export function createWorkflowPageFixture(page: Page) {
   const selectEventType = async (name: string) => {
     await page.getByTestId("multi-select-check-boxes").click();
     await page.getByText(name, { exact: true }).click();
-  };
-
-  const selectEventTypes = async (names: string[]) => {
-    await page.getByTestId("multi-select-check-boxes").click();
-    for (const name of names) {
-      await page.getByText(name, { exact: true }).click();
-    }
   };
 
   const hasReadonlyBadge = async () => {
