@@ -27,12 +27,7 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
-    // TODO [Phase 1+]: Implement using BookingRepository (to be injected)
-    // const booking = await this.bookingRepository.findByUid(bookingUid);
-    // const eventType = await this.eventTypeRepository.findById(booking.eventTypeId);
-    // const organizer = await this.userRepository.findById(booking.userId);
-    // return { booking, eventType, organizer, attendees: booking.attendees };
-
+    // TODO: Implement using BookingRepository/EventTypeRepository/UserRepository (Phase 1+)
     this.logger.debug("Booking data fetch not implemented yet (Phase 0 scaffold)", { bookingUid });
     return { bookingUid, _scaffold: true };
   }

@@ -18,11 +18,7 @@ export class FormWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
-    // TODO [Phase 1+]: Implement using FormRepository
-    // const form = await this.formRepository.findById(formId);
-    // const responses = await this.formRepository.getResponses(formId);
-    // return { form, responses };
-
+    // TODO: Implement using FormRepository (Phase 1+)
     this.logger.debug("Form data fetch not implemented yet (Phase 0 scaffold)", { formId });
     return { formId, _scaffold: true };
   }

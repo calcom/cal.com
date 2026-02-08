@@ -23,11 +23,7 @@ export class PaymentWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
-    // TODO [Phase 1+]: Implement using BookingRepository and PaymentRepository
-    // const booking = await this.bookingRepository.findByUid(bookingUid);
-    // const payment = await this.paymentRepository.findByBookingId(booking.id);
-    // return { booking, payment, eventType, organizer, attendees };
-
+    // TODO: Implement using BookingRepository/PaymentRepository (Phase 1+)
     this.logger.debug("Payment data fetch not implemented yet (Phase 0 scaffold)", { bookingUid });
     return { bookingUid, _scaffold: true };
   }

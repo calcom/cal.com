@@ -1,13 +1,24 @@
-import { View } from "react-native";
+import { View, useColorScheme } from "react-native";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getColors } from "@/constants/colors";
 
 interface EventTypeListItemSkeletonProps {
   isLast?: boolean;
 }
 
 export function EventTypeListItemSkeleton({ isLast = false }: EventTypeListItemSkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   return (
-    <View className={`bg-cal-bg ${!isLast ? "border-b border-cal-border" : ""}`}>
+    <View
+      style={{
+        backgroundColor: theme.background,
+        borderBottomWidth: !isLast ? 1 : 0,
+        borderBottomColor: theme.border,
+      }}
+    >
       <View
         style={{
           paddingHorizontal: 16,
@@ -50,8 +61,8 @@ export function EventTypeListItemSkeleton({ isLast = false }: EventTypeListItemS
                 alignItems: "center",
                 borderRadius: 6,
                 borderWidth: 1,
-                borderColor: "#E5E5EA",
-                backgroundColor: "#F5F5F5",
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundMuted,
               }}
             >
               <Skeleton style={{ height: 14, width: 14, borderRadius: 3 }} />
@@ -67,8 +78,8 @@ export function EventTypeListItemSkeleton({ isLast = false }: EventTypeListItemS
                 alignItems: "center",
                 borderRadius: 6,
                 borderWidth: 1,
-                borderColor: "#E5E5EA",
-                backgroundColor: "#F5F5F5",
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundMuted,
               }}
             >
               <Skeleton style={{ height: 14, width: 14, borderRadius: 3 }} />
@@ -84,8 +95,8 @@ export function EventTypeListItemSkeleton({ isLast = false }: EventTypeListItemS
                 alignItems: "center",
                 borderRadius: 6,
                 borderWidth: 1,
-                borderColor: "#E5E5EA",
-                backgroundColor: "#F5F5F5",
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundMuted,
               }}
             >
               <Skeleton style={{ height: 14, width: 14, borderRadius: 3 }} />
@@ -106,9 +117,19 @@ interface EventTypeListSkeletonProps {
 }
 
 export function EventTypeListSkeleton({ count = 5 }: EventTypeListSkeletonProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
+
   return (
     <View className="px-2 pt-4 md:px-4">
-      <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+      <View
+        className="overflow-hidden rounded-lg border"
+        style={{
+          borderColor: theme.border,
+          backgroundColor: theme.background,
+        }}
+      >
         {Array.from({ length: count }).map((_, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton items don't reorder
           <EventTypeListItemSkeleton key={`skeleton-${index}`} isLast={index === count - 1} />

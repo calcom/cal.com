@@ -22,10 +22,12 @@ vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
 }));
 
 const shouldApplyMonthlyProration = vi.fn().mockResolvedValue(false);
+const shouldApplyHighWaterMark = vi.fn().mockResolvedValue(false);
 
 vi.mock("../billingPeriod/BillingPeriodService", () => ({
   BillingPeriodService: class {
     shouldApplyMonthlyProration = shouldApplyMonthlyProration;
+    shouldApplyHighWaterMark = shouldApplyHighWaterMark;
   },
 }));
 

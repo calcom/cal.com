@@ -1,8 +1,8 @@
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { PrismaOrganizationBillingRepository } from "@calcom/features/ee/billing/repository/billing/PrismaOrganizationBillingRepository";
 import { PrismaTeamBillingRepository } from "@calcom/features/ee/billing/repository/billing/PrismaTeamBillingRepository";
-import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -68,7 +68,11 @@ async function handleCalAIPhoneNumberSubscriptionUpdate(
     },
   });
 
-  return { success: true, subscriptionId: subscription.id, status: subscriptionStatus };
+  return {
+    success: true,
+    subscriptionId: subscription.id,
+    status: subscriptionStatus,
+  };
 }
 
 async function handleTeamBillingRenewal(
@@ -101,6 +105,7 @@ async function handleTeamBillingRenewal(
 
   if (teamBilling) {
     await teamBillingRepo.updateById(teamBilling.id, billingUpdateData);
+    // HWM reset is handled by invoice.paid webhook after payment completes
     return { success: true, type: "team", teamId: teamBilling.teamId };
   }
 
@@ -108,6 +113,7 @@ async function handleTeamBillingRenewal(
 
   if (orgBilling) {
     await orgBillingRepo.updateById(orgBilling.id, billingUpdateData);
+    // HWM reset is handled by invoice.paid webhook after payment completes
     return { success: true, type: "organization", teamId: orgBilling.teamId };
   }
 

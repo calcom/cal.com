@@ -3,7 +3,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 
-import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
+import { TroubleshooterListItemContainer } from "@calcom/features/troubleshooter/components/TroubleshooterListItemContainer";
 
 function AvailabiltyItem() {
   const { t } = useLocale();

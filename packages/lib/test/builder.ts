@@ -147,6 +147,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     metadata: null,
     successRedirectUrl: null,
     forwardParamsSuccessRedirect: true,
+    redirectUrlOnNoRoutingFormResponse: null,
     bookingFields: [],
     parentId: null,
     profileId: null,
@@ -167,6 +168,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     createdAt: null,
     updatedAt: null,
     rrHostSubsetEnabled: false,
+    enablePerHostLocations: false,
     ...eventType,
   };
 };

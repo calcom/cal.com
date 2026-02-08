@@ -23,6 +23,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           />
         </div>
       }
+      disableSticky={true}
       title={t("platform_members")}
       subtitle={t("platform_members_description")}
       withoutMain={false}

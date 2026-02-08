@@ -12,7 +12,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
-import { useTeamInvites } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
 import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
@@ -30,7 +30,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
   const [isPending, startTransition] = useTransition();
-  const { listInvites, isPending: isPendingInvites } = useTeamInvites();
+  const { hasTeamMembership, isPending: isPendingMembership } = useHasTeamMembership();
 
   // Reset onboarding data when visiting this page, but preserve the selected plan
   useEffect(() => {
@@ -38,15 +38,16 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // If user has pending team invites, redirect them directly to personal onboarding
+  // If user has any team membership (pending or accepted), redirect them directly to personal onboarding
+  // This handles the case where users sign up with an invite token (membership is auto-accepted)
   useEffect(() => {
-    if (!isPendingInvites && listInvites && listInvites.length > 0) {
+    if (!isPendingMembership && hasTeamMembership) {
       setSelectedPlan("personal");
       startTransition(() => {
         router.push("/onboarding/personal/settings");
       });
     }
-  }, [isPendingInvites, listInvites, router, setSelectedPlan]);
+  }, [isPendingMembership, hasTeamMembership, router, setSelectedPlan]);
 
   // Plan order mapping for determining direction
   const planOrder: Record<PlanType, number> = {
@@ -130,8 +131,8 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
 
-  // Show loading state while checking for invites or if redirecting
-  if (isPendingInvites || (listInvites && listInvites.length > 0)) {
+  // Show loading state while checking for team membership or if redirecting
+  if (isPendingMembership || hasTeamMembership) {
     return (
       <OnboardingLayout userEmail={userEmail}>
         <OnboardingCard title={t("loading")} subtitle="" />

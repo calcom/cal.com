@@ -2,8 +2,8 @@ import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";

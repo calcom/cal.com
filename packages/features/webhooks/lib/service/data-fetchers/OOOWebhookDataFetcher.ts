@@ -18,11 +18,7 @@ export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
-    // TODO [Phase 1+]: Implement using OOORepository
-    // const oooEntry = await this.oooRepository.findById(oooEntryId);
-    // const user = await this.userRepository.findById(oooEntry.userId);
-    // return { oooEntry, user };
-
+    // TODO: Implement using OOORepository (Phase 1+)
     this.logger.debug("OOO data fetch not implemented yet (Phase 0 scaffold)", { oooEntryId });
     return { oooEntryId, _scaffold: true };
   }

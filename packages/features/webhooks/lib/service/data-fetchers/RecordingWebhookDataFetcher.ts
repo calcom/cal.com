@@ -23,22 +23,7 @@ export class RecordingWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
-    // TODO [Phase 1+]: Implement recording data fetching
-    // Note: Recording files are stored by video providers. We receive recording_id from their webhook
-    // and generate our own proxy download link (using generateVideoToken + our API endpoint).
-    // This method fetches booking/event data from DB needed to build the webhook payload.
-    //
-    // Pattern: recordingId → booking → eventType → user → attendees
-    // Then generate downloadLink: `${WEBAPP_URL}/api/video/recording?token=${generateVideoToken(recordingId)}`
-    //
-    // const booking = await this.bookingRepository.findByUid(payload.bookingUid);
-    // const eventType = await this.eventTypeRepository.findById(booking.eventTypeId);
-    // const user = await this.userRepository.findById(booking.userId);
-    // const attendees = booking.attendees;
-    // const token = generateVideoToken(recordingId);
-    // const downloadLink = `${WEBAPP_URL}/api/video/recording?token=${token}`;
-    // return { booking, eventType, user, attendees, downloadLink };
-
+    // TODO: Fetch booking data and generate download link (Phase 1+)
     this.logger.debug("Recording data fetch not implemented yet (Phase 0 scaffold)", { recordingId });
     return { recordingId, _scaffold: true };
   }

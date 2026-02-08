@@ -35,7 +35,7 @@ export class WebhookTaskConsumer {
    * Main entry point for processing webhook delivery tasks.
    */
   async processWebhookTask(payload: WebhookTaskPayload, taskId: string): Promise<void> {
-    this.log.info("Processing webhook delivery task", {
+    this.log.debug("Processing webhook delivery task", {
       operationId: payload.operationId,
       taskId,
       triggerEvent: payload.triggerEvent,
@@ -58,7 +58,7 @@ export class WebhookTaskConsumer {
       const subscribers = await this.webhookRepository.getSubscribers(subscriberContext);
 
       if (subscribers.length === 0) {
-        this.log.info("No webhook subscribers found", { operationId: payload.operationId });
+        this.log.debug("No webhook subscribers found", { operationId: payload.operationId });
         return;
       }
 
@@ -80,7 +80,7 @@ export class WebhookTaskConsumer {
       // Step 4: Build and send webhooks to each subscriber
       await this.sendWebhooksToSubscribers(subscribers, eventData, payload);
 
-      this.log.info("Webhook delivery task completed", {
+      this.log.debug("Webhook delivery task completed", {
         operationId: payload.operationId,
         subscriberCount: subscribers.length,
       });
@@ -106,25 +106,16 @@ export class WebhookTaskConsumer {
   /**
    * Build webhook payloads and send to each subscriber.
    *
-   * TODO: Implement payload building using PayloadBuilders and HTTP sending.
-   * For Phase 0, this is a scaffold showing the pattern.
+   * TODO: Implement with PayloadBuilders and HTTP client (Phase 1+)
    */
   private async sendWebhooksToSubscribers(
     subscribers: unknown[],
     eventData: Record<string, unknown>,
     payload: WebhookTaskPayload
   ): Promise<void> {
-    // TODO: For each subscriber:
-    // 1. Build versioned payload using PayloadBuilders
-    // 2. Send HTTP request to subscriber.subscriberUrl
-    // 3. Handle retries/failures
-    // 4. Log delivery status
-
     this.log.debug("Webhook sending not implemented yet (Phase 0 scaffold)", {
       subscriberCount: subscribers.length,
       triggerEvent: payload.triggerEvent,
     });
-
-    // This will be implemented when we add PayloadBuilders and HTTP client dependencies
   }
 }
