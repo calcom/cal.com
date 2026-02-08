@@ -33,15 +33,11 @@ export function createWorkflowPageFixture(page: Page) {
       await fillNameInput(name);
     }
 
-    const selectedTrigger = trigger ?? WorkflowTriggerEvents.BEFORE_EVENT;
     await page.locator("#trigger-select").click();
-    await page.getByTestId(`select-option-${selectedTrigger}`).click();
+    await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
 
     if (eventTypeNames && eventTypeNames.length > 0) {
-      await page.getByTestId("multi-select-check-boxes").click();
-      for (const eventTypeName of eventTypeNames) {
-        await page.getByText(eventTypeName, { exact: true }).click();
-      }
+      await selectEventTypes(eventTypeNames);
     } else {
       await page.getByText(/Apply to all/i).first().click();
     }
@@ -110,6 +106,13 @@ export function createWorkflowPageFixture(page: Page) {
   const selectEventType = async (name: string) => {
     await page.getByTestId("multi-select-check-boxes").click();
     await page.getByText(name, { exact: true }).click();
+  };
+
+  const selectEventTypes = async (names: string[]) => {
+    await page.getByTestId("multi-select-check-boxes").click();
+    for (const name of names) {
+      await page.getByText(name, { exact: true }).click();
+    }
   };
 
   const hasReadonlyBadge = async () => {
