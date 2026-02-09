@@ -554,6 +554,26 @@ async function handler(
     });
   }
 
+  if (eventType.metadata?.showBusy && typeof eventType.metadata?.showBusyPercent === "number") {
+    const requestedStartUtc = dayjs(reqBody.start).utc();
+    const formatter = new Intl.DateTimeFormat("fr-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: reqBody.timeZone,
+    });
+    const dateKey = formatter.format(requestedStartUtc.toDate());
+    const storedSlotsByDate = (eventType.metadata?.showBusySlots || {}) as Record<string, string[]>;
+    const storedSlotsForDate = storedSlotsByDate[dateKey] || [];
+    const isVisibleSlot = storedSlotsForDate.some((slot) =>
+      dayjs(slot).utc().isSame(requestedStartUtc, "minute")
+    );
+
+    if (!isVisibleSlot) {
+      throw new Error(ErrorCode.NoAvailableUsersFound);
+    }
+  }
+
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
   }

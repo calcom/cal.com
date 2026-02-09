@@ -75,32 +75,25 @@ const getStableSlotScore = (eventTypeId: number, time: string) => {
   return parseInt(hash.slice(0, 8), 16);
 };
 
-const applySoBusyFilter = <T extends { time: string }>(
-  slotsByDate: Record<string, T[]>,
-  eventTypeId: number
+const selectShowBusySlotsForDate = <T extends { time: string }>(
+  slots: T[],
+  eventTypeId: number,
+  percent: number
 ) => {
-  const filtered: typeof slotsByDate = {};
+  const clampedPercent = Math.min(100, Math.max(0, percent));
+  const targetCount = Math.max(1, Math.ceil((slots.length * clampedPercent) / 100));
+  const scored = slots
+    .map((slot) => ({
+      time: slot.time,
+      score: getStableSlotScore(eventTypeId, slot.time),
+    }))
+    .sort((a, b) => a.score - b.score);
 
-  for (const [date, slots] of Object.entries(slotsByDate)) {
-    if (!slots.length) continue;
+  const keepTimes = scored.slice(0, targetCount).map((slot) => slot.time);
+  const keepSet = new Set(keepTimes);
+  const keptSlots = slots.filter((slot) => keepSet.has(slot.time));
 
-    const targetCount = Math.ceil(slots.length / 2);
-    const scored = slots
-      .map((slot) => ({
-        time: slot.time,
-        score: getStableSlotScore(eventTypeId, slot.time),
-      }))
-      .sort((a, b) => a.score - b.score);
-
-    const keep = new Set(scored.slice(0, targetCount).map((slot) => slot.time));
-    const keptSlots = slots.filter((slot) => keep.has(slot.time));
-
-    if (keptSlots.length) {
-      filtered[date] = keptSlots;
-    }
-  }
-
-  return filtered;
+  return { keptSlots, keepTimes };
 };
 
 export interface IGetAvailableSlots {
@@ -1395,9 +1388,42 @@ export class AvailableSlotsService {
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
-    const finalSlotsMappedToDate = eventType.metadata?.showBusy
-      ? applySoBusyFilter(withinBoundsSlotsMappedToDate, eventType.id)
-      : withinBoundsSlotsMappedToDate;
+    const showBusyPercent = eventType.metadata?.showBusyPercent;
+    const storedShowBusySlots = (eventType.metadata?.showBusySlots || {}) as Record<string, string[]>;
+    let didUpdateStoredSlots = false;
+
+    const finalSlotsMappedToDate =
+      eventType.metadata?.showBusy && typeof showBusyPercent === "number"
+        ? Object.entries(withinBoundsSlotsMappedToDate).reduce((acc, [date, slots]) => {
+            if (!slots.length) return acc;
+
+            const storedTimes = storedShowBusySlots[date];
+            if (storedTimes?.length) {
+              const storedSet = new Set(storedTimes);
+              const keptSlots = slots.filter((slot) => storedSet.has(slot.time));
+              if (keptSlots.length) acc[date] = keptSlots;
+              return acc;
+            }
+
+            const { keptSlots, keepTimes } = selectShowBusySlotsForDate(slots, eventType.id, showBusyPercent);
+            storedShowBusySlots[date] = keepTimes;
+            didUpdateStoredSlots = true;
+            if (keptSlots.length) acc[date] = keptSlots;
+            return acc;
+          }, {} as typeof withinBoundsSlotsMappedToDate)
+        : withinBoundsSlotsMappedToDate;
+
+    if (didUpdateStoredSlots && ctx?.prisma) {
+      await ctx.prisma.eventType.update({
+        where: { id: eventType.id },
+        data: {
+          metadata: {
+            ...(eventType.metadata || {}),
+            showBusySlots: storedShowBusySlots,
+          },
+        },
+      });
+    }
 
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {

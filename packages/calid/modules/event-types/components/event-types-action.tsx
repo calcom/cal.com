@@ -116,6 +116,13 @@ export const EventTypeActions = ({
       const formIsDirty = form?.formState?.isDirty || false;
       if (!formIsDirty) return false;
 
+      const metadata = form?.getValues("metadata") as Record<string, unknown> | undefined;
+      const showBusy = metadata?.showBusy === true;
+      const showBusyPercent = metadata?.showBusyPercent;
+      if (showBusy && (showBusyPercent === undefined || showBusyPercent === null)) {
+        return false;
+      }
+
       // Check if current values actually differ from default values
       const currentValues = form.getValues();
       const defaultValues = form.formState.defaultValues;
@@ -159,7 +166,18 @@ export const EventTypeActions = ({
         }
 
         // Special handling for Apps tab metadata to fix toggle reset issue
-        if (key === "metadata" && currentValue && defaultValue) {
+        if (key === "metadata") {
+          const metadata = (currentValue as Record<string, unknown>) || {};
+          const showBusy = metadata.showBusy === true;
+          const showBusyPercent = metadata.showBusyPercent;
+          if (showBusy && (showBusyPercent === undefined || showBusyPercent === null)) {
+            return false;
+          }
+
+          if (!currentValue || !defaultValue) {
+            return JSON.stringify(currentValue) !== JSON.stringify(defaultValue);
+          }
+
           const currentMetadata = currentValue as Record<string, unknown>;
           const defaultMetadata = defaultValue as Record<string, unknown>;
           const currentApps = (currentMetadata?.apps as Record<string, unknown>) || {};
