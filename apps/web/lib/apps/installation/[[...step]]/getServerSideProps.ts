@@ -259,8 +259,8 @@ const getEventTypeGroupsForStep = async (user: MinimalUser, userTeams: MinimalTe
     return groups;
 };
 
-const getInitialStep = (parsedStepParam: string | undefined, hasTeams: boolean, showEventTypesStep: boolean, parsedAppSlug: string): { step: string | undefined; redirect?: RedirectResult } => {
-    if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP && showEventTypesStep) {
+const getInitialStep = (parsedStepParam: string | undefined, hasTeams: boolean, showEventTypesStep: boolean, parsedAppSlug: string, isOAuth: boolean): { step: string | undefined; redirect?: RedirectResult } => {
+    if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP && showEventTypesStep && !isOAuth) {
         return {
             step: parsedStepParam,
             redirect: { redirect: { permanent: false, destination: `/apps/installation/event-types?slug=${parsedAppSlug}` } }
@@ -271,7 +271,7 @@ const getInitialStep = (parsedStepParam: string | undefined, hasTeams: boolean, 
         if (hasTeams) {
             step = AppOnboardingSteps.ACCOUNTS_STEP;
         } else {
-            step = AppOnboardingSteps.EVENT_TYPES_STEP;
+            step = isOAuth ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
         }
     }
     return { step };
@@ -308,7 +308,7 @@ const prepareUserTeams = async (user: MinimalUser & { teams: MinimalTeam[] }, pa
 
 const getCredential = async (parsedTeamIdParam: number | undefined, appInstalls: Prisma.CredentialGetPayload<Record<string, never>>[], user: MinimalUser & { teams: MinimalTeam[] }, initialStep: string, appMetadata: import("@calcom/types/App").AppMeta, parsedAppSlug: string): Promise<{ credentialId: number | null; redirect?: RedirectResult }> => {
     let credentialId = getCredentialId(parsedTeamIdParam, appInstalls, user.id);
-    if (!credentialId && !user.teams.length && initialStep === AppOnboardingSteps.EVENT_TYPES_STEP) {
+    if (!credentialId && !user.teams.length && initialStep === AppOnboardingSteps.EVENT_TYPES_STEP && !appMetadata.isOAuth) {
         credentialId = await handleAutoInstall(user, appMetadata, parsedAppSlug);
         if (!credentialId) return { credentialId: null, redirect: { redirect: { permanent: false, destination: "/apps" } } };
     }
@@ -351,8 +351,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext): Pr
     const showEventTypesStep = appMetadataFinal.extendsFeature === "EventType" || isConferencingApp(appMetadataFinal.categories);
     const { userTeams, isOrg, redirect: teamRedirect } = await prepareUserTeams(user, parsedTeamIdParam);
     if (teamRedirect) return teamRedirect;
-    const { step: initialStep, redirect: stepRedirect } = getInitialStep(parsedStepParam, !!userTeams.length, showEventTypesStep, parsedAppSlug);
+    const { step: initialStep, redirect: stepRedirect } = getInitialStep(parsedStepParam, !!userTeams.length, showEventTypesStep, parsedAppSlug, !!appMetadataFinal.isOAuth);
     if (stepRedirect) return stepRedirect;
+    if (!initialStep) {
+        return { redirect: { permanent: false, destination: "/apps" } };
+    }
 
     let initialStepValidated: (typeof STEPS)[number];
     try {

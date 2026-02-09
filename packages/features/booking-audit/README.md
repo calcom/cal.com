@@ -51,6 +51,7 @@ The booking audit system uses two complementary fields:
 - **API_V1**: API v1 endpoint
 - **API_V2**: API v2 endpoint
 - **WEBHOOK**: External webhook (e.g., Stripe)
+- **SYSTEM**: Background job (e.g., Tasker's task, trigger.dev job for automatic no-show detection)
 - **UNKNOWN**: Source cannot be determined
 
 ### Actor: The Entity
@@ -75,8 +76,7 @@ The system tracks various booking actions including:
 - **ATTENDEE_REMOVED**: Attendee removed
 - **REASSIGNMENT**: Booking reassigned to different host
 - **LOCATION_CHANGED**: Meeting location updated
-- **HOST_NO_SHOW_UPDATED**: Host no-show status changed
-- **ATTENDEE_NO_SHOW_UPDATED**: Attendee no-show status changed
+- **NO_SHOW_UPDATED**: Host or attendee no-show status changed
 - **SEAT_BOOKED**: Seat reserved in group booking
 - **SEAT_RESCHEDULED**: Seat rescheduled in group booking
 
@@ -204,7 +204,7 @@ The audit system works with third-party queue providers without exposing PII:
 - `operationId`: Required string for correlating related audit logs
 - `data`: Action-specific data
 - `timestamp`: Number (milliseconds since epoch)
-- `source`: Action source (API_V1, API_V2, WEBAPP, WEBHOOK, UNKNOWN)
+- `source`: Action source (API_V1, API_V2, WEBAPP, WEBHOOK, SYSTEM, UNKNOWN)
 
 **BookingAuditTaskConsumer** processes audit records:
 - Validates queue payload structure

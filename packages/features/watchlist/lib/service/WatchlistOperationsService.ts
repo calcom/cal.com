@@ -56,8 +56,11 @@ export abstract class WatchlistOperationsService {
       throw WatchlistErrors.invalidEmail("Invalid email address format");
     }
 
-    if (type === WatchlistType.DOMAIN && !domainRegex.test(value)) {
-      throw WatchlistErrors.invalidDomain("Invalid domain format (e.g., example.com)");
+    if (type === WatchlistType.DOMAIN) {
+      const domainToValidate = value.startsWith("*.") ? value.slice(2) : value;
+      if (!domainRegex.test(domainToValidate)) {
+        throw WatchlistErrors.invalidDomain("Invalid domain format (e.g., example.com or *.example.com)");
+      }
     }
   }
 

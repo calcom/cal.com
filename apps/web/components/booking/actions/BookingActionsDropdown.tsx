@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { ActionType } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -32,6 +33,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog";
+import { RoutingTraceSheet } from "../RoutingTraceSheet";
 
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
 import type { BookingItemProps } from "../types";
@@ -129,6 +131,10 @@ export function BookingActionsDropdown({
   const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
   const isCancelDialogOpen = useBookingActionsStoreContext((state) => state.isCancelDialogOpen);
   const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
+  const isOpenRoutingTraceSheet = useBookingActionsStoreContext((state) => state.isOpenRoutingTraceSheet);
+  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
+    (state) => state.setIsOpenRoutingTraceSheet
+  );
 
   const cardCharged = booking?.payment[0]?.success;
 
@@ -254,6 +260,7 @@ export function BookingActionsDropdown({
   } as BookingActionContext;
 
   const cancelEventAction = getCancelEventAction(actionContext);
+  const showPastBookingCancelTooltip = isBookingInPast && cancelEventAction.disabled;
 
   // Get pending actions (accept/reject) - only for details context
   const shouldShowPending = shouldShowPendingActions(actionContext);
@@ -448,16 +455,23 @@ export function BookingActionsDropdown({
         status={getBookingStatus()}
       />
       {isBookingFromRoutingForm && (
-        <WrongAssignmentDialog
-          isOpenDialog={isOpenWrongAssignmentDialog}
-          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-          bookingUid={booking.uid}
-          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-          guestEmail={booking.attendees[0]?.email ?? ""}
-          hostEmail={booking.user?.email ?? ""}
-          hostName={booking.user?.name ?? null}
-          teamId={booking.eventType?.team?.id ?? null}
-        />
+        <>
+          <WrongAssignmentDialog
+            isOpenDialog={isOpenWrongAssignmentDialog}
+            setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+            bookingUid={booking.uid}
+            routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+            guestEmail={booking.attendees[0]?.email ?? ""}
+            hostEmail={booking.user?.email ?? ""}
+            hostName={booking.user?.name ?? null}
+            teamId={booking.eventType?.team?.id ?? null}
+          />
+          <RoutingTraceSheet
+            isOpen={isOpenRoutingTraceSheet}
+            setIsOpen={setIsOpenRoutingTraceSheet}
+            bookingUid={booking.uid}
+          />
+        </>
       )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
@@ -661,6 +675,20 @@ export function BookingActionsDropdown({
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
+            {isBookingFromRoutingForm && (
+              <DropdownMenuItem className="rounded-lg" key="view_routing_trace">
+                <DropdownItem
+                  type="button"
+                  StartIcon="git-merge"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpenRoutingTraceSheet(true);
+                  }}
+                  data-testid="view_routing_trace">
+                  {t("routing_trace")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
             {afterEventActions.map((action) => (
@@ -719,25 +747,30 @@ export function BookingActionsDropdown({
               )}
             </>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="rounded-lg"
-              key={cancelEventAction.id}
-              disabled={cancelEventAction.disabled}>
-              <DropdownItem
-                type="button"
-                color={cancelEventAction.color}
-                StartIcon={cancelEventAction.icon}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsCancelDialogOpen(true);
-                }}
-                disabled={cancelEventAction.disabled}
-                data-booking-uid={cancelEventAction.bookingUid}
-                data-testid={cancelEventAction.id}
-                className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                {cancelEventAction.label}
-              </DropdownItem>
-            </DropdownMenuItem>
+            <Tooltip
+              content={isBookingInPast ? t("cannot_cancel_past_booking") : ""}
+              side="left"
+              open={showPastBookingCancelTooltip ? undefined : false}>
+              <DropdownMenuItem
+                className="rounded-lg"
+                key={cancelEventAction.id}
+                disabled={cancelEventAction.disabled}>
+                <DropdownItem
+                  type="button"
+                  color={cancelEventAction.color}
+                  StartIcon={cancelEventAction.icon}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCancelDialogOpen(true);
+                  }}
+                  disabled={cancelEventAction.disabled}
+                  data-booking-uid={cancelEventAction.bookingUid}
+                  data-testid={cancelEventAction.id}
+                  className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                  {cancelEventAction.label}
+                </DropdownItem>
+              </DropdownMenuItem>
+            </Tooltip>
           </DropdownMenuContent>
         </ConditionalPortal>
       </Dropdown>

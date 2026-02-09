@@ -12,7 +12,7 @@ export type BookingAuditType = "RECORD_CREATED" | "RECORD_UPDATED" | "RECORD_DEL
  * They are reserved in the enum for potential future use but should not appear in audit logs.
  * Use the CREATED action to capture initial booking status instead.
  */
-export type BookingAuditAction = "CREATED" | "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING" | "AWAITING_HOST" | "RESCHEDULED" | "ATTENDEE_ADDED" | "ATTENDEE_REMOVED" | "REASSIGNMENT" | "LOCATION_CHANGED" | "HOST_NO_SHOW_UPDATED" | "ATTENDEE_NO_SHOW_UPDATED" | "RESCHEDULE_REQUESTED" | "SEAT_BOOKED" | "SEAT_RESCHEDULED"
+export type BookingAuditAction = "CREATED" | "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING" | "AWAITING_HOST" | "RESCHEDULED" | "ATTENDEE_ADDED" | "ATTENDEE_REMOVED" | "REASSIGNMENT" | "LOCATION_CHANGED" | "NO_SHOW_UPDATED" | "RESCHEDULE_REQUESTED" | "SEAT_BOOKED" | "SEAT_RESCHEDULED"
 export type BookingAuditCreateInput = {
     bookingUid: string;
     actorId: string;

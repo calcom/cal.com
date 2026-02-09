@@ -21,13 +21,13 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import {
   useEvent,
   useScheduleForEvent,
-} from "@calcom/features/bookings/Booker/utils/event";
-import DatePicker from "@calcom/features/calendars/DatePicker";
+} from "@calcom/web/modules/schedules/hooks/useEvent";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
-import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import type { Slot } from "~/schedules/lib/types";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import {
   APP_NAME,
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -53,7 +53,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";

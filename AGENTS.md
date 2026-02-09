@@ -17,6 +17,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 - Use Biome for formatting and linting
+- Only add code comments that explain **why**, not **what** — see [code comment guidelines](agents/rules/quality-code-comments.md)
 
 
 ## Don't
@@ -29,6 +30,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never use barrel imports from index.ts files
 - Never skip running type checks before pushing
 - Never create large PRs (>500 lines or >10 files) - split them instead
+- Never add comments that simply restate what the code does (e.g., `// Get the user` above a `getUser()` call)
 
 ## PR Size Guidelines
 
@@ -75,60 +77,13 @@ When a task requires extensive changes, break it into multiple PRs:
 
 ## Commands
 
-### File-scoped (preferred for speed)
+See [agents/commands.md](agents/commands.md) for full reference. Key commands:
 
 ```bash
-# Type check - always run on changed files
-yarn type-check:ci --force
-
-# Lint and format single file
-yarn biome check --write path/to/file.tsx
-
-# Unit test specific file
-yarn vitest run path/to/file.test.ts
-
-# Unit test specific file + specific test
-yarn vitest run path/to/file.test.ts --testNamePattern="specific test name"
-
-# Integration test specific file
-VITEST_MODE=integration yarn test path/to/file.integration-test.ts
-
-# Integration test specific file + specific test
-VITEST_MODE=integration yarn test path/to/file.integration-test.ts --testNamePattern="specific test name"
-
-# E2E test specific file
-PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts
-
-# E2E test specific file + specific test
-PLAYWRIGHT_HEADLESS=1 yarn e2e path/to/file.e2e.ts --grep "specific test name"
-```
-
-### Project-wide (use sparingly)
-
-```bash
-# Development
-yarn dev              # Start dev server
-yarn dx               # Dev with database setup
-
-# Build & check
-yarn build                   # Build all packages
-yarn biome check --write .   # Lint and format all
-yarn type-check              # Type check all
-
-# Tests (use TZ=UTC for consistency)
-TZ=UTC yarn test      # All unit tests
-yarn e2e              # All E2E tests
-
-# Database
-yarn prisma generate  # Regenerate types after schema changes
-yarn workspace @calcom/prisma db-migrate  # Run migrations
-```
-
-### Biome focused workflow
-+
-```bash
-yarn biome check --write .
-yarn type-check:ci --force
+yarn type-check:ci --force  # Type check (always run before pushing)
+yarn biome check --write .  # Lint and format
+TZ=UTC yarn test            # Run unit tests
+yarn prisma generate        # Regenerate types after schema changes
 ```
 
 
@@ -197,7 +152,7 @@ throw new Error(`Unable to create booking: User ${userId} has no available time 
 throw new Error("Booking failed");
 ```
 
-For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [Error Types in knowledge-base.md](agents/knowledge-base.md#error-types).
+For which error class to use (`ErrorWithCode` vs `TRPCError`) and concrete examples, see [quality-error-handling](agents/rules/quality-error-handling.md).
 
 ### Good Prisma query
 
@@ -275,8 +230,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 
 For detailed information, see the `agents/` directory:
 
-- **[agents/README.md](agents/README.md)** - Architecture overview and patterns
-- **[agents/rules/](agents/rules/)** - Modular engineering rules (performance, architecture, data layer, etc.)
+- **[agents/README.md](agents/README.md)** - Rules index and architecture overview
+- **[agents/rules/](agents/rules/)** - Modular engineering rules
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
-- **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and best practices
-- **[agents/coding-standards.md](agents/coding-standards.md)** - Coding standards with examples
+- **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and business rules

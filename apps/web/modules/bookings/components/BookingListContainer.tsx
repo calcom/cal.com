@@ -19,7 +19,6 @@ import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
-import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
 import { DataTableFilters, DataTableSegment } from "~/data-table/components";
 import {
   BookingDetailsSheetStoreProvider,
@@ -277,16 +276,16 @@ export function BookingListContainer(props: BookingListContainerProps) {
 
   // Always call the hook and provide navigation capabilities
   // The BookingDetailsSheet is only rendered when bookingsV3Enabled is true (see line 212)
-  const capabilities = useListNavigationCapabilities({
-    limit,
-    offset,
-    totalCount: query.data?.totalCount,
-    setPageIndex,
-    queryInput,
-  });
+  // const capabilities = useListNavigationCapabilities({
+  //   limit,
+  //   offset,
+  //   totalCount: query.data?.totalCount,
+  //   setPageIndex,
+  //   queryInput,
+  // });
 
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingListInner
         {...props}
         data={query.data}
