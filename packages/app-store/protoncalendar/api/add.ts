@@ -12,11 +12,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!url) return res.status(400).json({ message: "URL is required" });
 
-        // Validate Proton domain
-        const isProton = url.includes("proton.me") || url.includes("protonmail.com");
+        // Strict Domain Validation (Prevent SSRF)
+        let hostname;
+        try {
+            hostname = new URL(url).hostname;
+        } catch (e) {
+            return res.status(400).json({ message: "Invalid URL format" });
+        }
+
+        const allowedDomains = ["proton.me", "protonmail.com"];
+        const isProton = allowedDomains.some(domain => hostname === domain || hostname.endsWith("." + domain));
+
         if (!isProton) {
-            logger.warn("Attempted to add non-Proton URL to Proton App", { url });
+            logger.warn("Attempted to add non-Proton URL to Proton App");
             return res.status(400).json({ message: "Invalid URL: Only 'proton.me' or 'protonmail.com' domains are allowed." });
+        }
+
+        const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+        if (!encryptionKey) {
+            throw new Error("Missing CALENDSO_ENCRYPTION_KEY");
         }
 
         const user = await prisma.user.findFirstOrThrow({
@@ -26,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const data = {
             type: metadata.type,
-            key: symmetricEncrypt(JSON.stringify({ url }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+            key: symmetricEncrypt(JSON.stringify({ url }), encryptionKey),
             userId: user.id,
             teamId: null,
             appId: metadata.slug,

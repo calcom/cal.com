@@ -3,6 +3,8 @@
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
+import ICAL from "ical.js";
+import dayjs from "@calcom/dayjs";
 import type {
   Calendar,
   CalendarEvent,
@@ -13,16 +15,17 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
-import dayjs from "@calcom/dayjs";
-
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+import dayjs from "dayjs";
 
 class ProtonCalendarService implements Calendar {
   private url: string = "";
   protected integrationName = "proton_calendar";
 
   constructor(credential: CredentialPayload) {
-    const decrypted = symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY);
+    const key = process.env.CALENDSO_ENCRYPTION_KEY;
+    if (!key) throw new Error("Missing CALENDSO_ENCRYPTION_KEY");
+
+    const decrypted = symmetricDecrypt(credential.key as string, key);
     const { url } = JSON.parse(decrypted);
     this.url = url;
   }
@@ -48,21 +51,45 @@ class ProtonCalendarService implements Calendar {
 
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo } = params;
+    const rangeStart = dayjs(dateFrom);
+    const rangeEnd = dayjs(dateTo);
 
     const events = await this.fetchAndParseICS(this.url);
     const busyTimes: EventBusyDate[] = [];
 
     events.forEach((event) => {
-      const start = dayjs(event.startDate.toJSDate());
-      const end = dayjs(event.endDate.toJSDate());
-      const rangeStart = dayjs(dateFrom);
-      const rangeEnd = dayjs(dateTo);
+      if (event.isRecurring()) {
+        const iterator = event.iterator();
+        let next;
+        // Iterate through occurrences
+        while ((next = iterator.next())) {
+          const start = dayjs(next.toJSDate());
 
-      if (start.isBefore(rangeEnd) && end.isAfter(rangeStart)) {
-        busyTimes.push({
-          start: start.toISOString(),
-          end: end.toISOString(),
-        });
+          // Optimization: If the occurrence starts after our range, stop iterating (assuming sorted/monotonic)
+          // However, RRULEs can be complex, but generally chronological. 
+          // We break if we assume it goes to infinity.
+          if (start.isAfter(rangeEnd)) break;
+
+          const duration = event.duration;
+          const end = start.add(duration.toSeconds(), "second");
+
+          if (start.isBefore(rangeEnd) && end.isAfter(rangeStart)) {
+            busyTimes.push({
+              start: start.toISOString(),
+              end: end.toISOString(),
+            });
+          }
+        }
+      } else {
+        const start = dayjs(event.startDate.toJSDate());
+        const end = dayjs(event.endDate.toJSDate());
+
+        if (start.isBefore(rangeEnd) && end.isAfter(rangeStart)) {
+          busyTimes.push({
+            start: start.toISOString(),
+            end: end.toISOString(),
+          });
+        }
       }
     });
 
