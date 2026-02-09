@@ -535,7 +535,8 @@ class Office365CalendarService implements Calendar {
                     address: destinationCalendar?.externalId ?? member.email,
                     name: member.name,
                   },
-                  type: "required" as const,
+                  // Set type to "optional" if the optional flag is set, otherwise "required"
+                  type: (member.optional ? "optional" : "required") as const,
                 };
               })
           : []),

@@ -731,6 +731,72 @@ const Hosts = ({
   );
 };
 
+const OptionalGuestTeamMembers = ({
+  teamMembers,
+  teamId,
+}: {
+  teamMembers: TeamMember[];
+  teamId: number;
+}) => {
+  const { t } = useLocale();
+  const { control } = useFormContext<FormValues>();
+
+  return (
+    <div className="border-subtle mt-6 flex flex-col rounded-md">
+      <div className="border-subtle rounded-t-md border p-6 pb-5">
+        <Label className="mb-1 text-sm font-semibold">{t("optional_guest_team_members")}</Label>
+        <p className="text-subtle wrap-break-word max-w-full text-sm leading-tight">
+          {t("optional_guest_team_members_description")}
+        </p>
+      </div>
+      <div className="border-subtle rounded-b-md border border-t-0 p-6 pt-4">
+        <Controller<FormValues>
+          name="optionalGuestTeamMemberIds"
+          control={control}
+          render={({ field: { value, onChange } }) => {
+            const selectedOptions = teamMembers.filter((member) =>
+              value?.includes(parseInt(member.value, 10))
+            );
+
+            return (
+              <Select
+                isMulti
+                name="optionalGuestTeamMemberIds"
+                placeholder={t("select_team_members")}
+                options={teamMembers}
+                value={selectedOptions}
+                onChange={(selectedMembers) => {
+                  const memberIds = selectedMembers
+                    ? selectedMembers.map((member) => parseInt(member.value, 10))
+                    : [];
+                  onChange(memberIds);
+                }}
+                className="react-select-container"
+                classNamePrefix="react-select"
+                components={{
+                  Option: (props) => {
+                    const { data, innerRef, innerProps } = props;
+                    return (
+                      <div ref={innerRef} {...innerProps} className="flex cursor-pointer items-center p-2 hover:bg-gray-100">
+                        <img
+                          src={data.avatar}
+                          alt={data.label}
+                          className="mr-2 h-6 w-6 rounded-full"
+                        />
+                        <span>{data.label}</span>
+                      </div>
+                    );
+                  },
+                }}
+              />
+            );
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 export const EventTeamAssignmentTab = ({
   team,
   teamMembers,
@@ -950,6 +1016,7 @@ export const EventTeamAssignmentTab = ({
             customClassNames={customClassNames?.hosts}
             hideFixedHostsForCollective={hideFixedHostsForCollective}
           />
+          <OptionalGuestTeamMembers teamMembers={teamMembersOptions} teamId={team.id} />
         </>
       )}
       {team && isManagedEventType && (

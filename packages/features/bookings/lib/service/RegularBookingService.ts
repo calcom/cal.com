@@ -286,6 +286,7 @@ export const buildEventForTeamEventType = async ({
   organizerUser,
   schedulingType,
   team,
+  optionalGuestUserIds,
 }: {
   existingEvent: Partial<CalendarEvent>;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
@@ -298,6 +299,7 @@ export const buildEventForTeamEventType = async ({
     id: number;
     name: string;
   } | null;
+  optionalGuestUserIds?: number[];
 }) => {
   // not null assertion.
   if (!schedulingType) {
@@ -333,10 +335,51 @@ export const buildEventForTeamEventType = async ({
           translate: await getTranslation(user.locale ?? "en", "common"),
           locale: user.locale ?? "en",
         },
+        optional: false,
       };
     });
 
   const teamMembers = await Promise.all(teamMemberPromises);
+
+  // Add optional guests if provided (they won't be checked for conflicts)
+  if (optionalGuestUserIds && optionalGuestUserIds.length > 0 && team?.id) {
+    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+    const optionalGuestUsers = await prisma.user.findMany({
+      where: {
+        id: { in: optionalGuestUserIds },
+        teams: {
+          some: {
+            teamId: team.id,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        timeZone: true,
+        locale: true,
+      },
+    });
+
+    const optionalGuestPromises = optionalGuestUsers.map(async (user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name ?? "",
+      firstName: "",
+      lastName: "",
+      timeZone: user.timeZone,
+      language: {
+        translate: await getTranslation(user.locale ?? "en", "common"),
+        locale: user.locale ?? "en",
+      },
+      optional: true,
+    }));
+
+    const optionalGuests = await Promise.all(optionalGuestPromises);
+    teamMembers.push(...optionalGuests);
+  }
 
   const updatedEvt = CalendarEventBuilder.fromEvent(evt)
     ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
@@ -1603,6 +1646,7 @@ async function handler(
       users,
       team: eventType.team,
       organizerUser,
+      optionalGuestUserIds: eventType.optionalGuestTeamMemberIds || [],
     });
 
     if (!teamEvt) {

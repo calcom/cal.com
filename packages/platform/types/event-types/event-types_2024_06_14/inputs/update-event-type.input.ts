@@ -584,6 +584,17 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   })
   assignAllTeamMembers?: boolean;
 
+  @IsArray()
+  @IsInt({ each: true })
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: [Number],
+    description:
+      "Array of team member user IDs to be added as optional guests. These members will be invited to bookings but their calendars won't be checked for conflicts and they'll be marked as optional attendees.",
+    example: [1, 2, 3],
+  })
+  optionalGuestTeamMemberIds?: number[];
+
   @IsOptional()
   @ValidateTeamLocations_2024_06_14()
   @DocsPropertyOptional({

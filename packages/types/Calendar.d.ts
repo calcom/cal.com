@@ -51,6 +51,7 @@ export type TeamMember = {
   phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
+  optional?: boolean;
 };
 
 export type EventBusyDate = {

@@ -586,6 +586,17 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   assignAllTeamMembers?: boolean;
 
+  @IsArray()
+  @IsInt({ each: true })
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: [Number],
+    description:
+      "Array of team member user IDs added as optional guests. These members are invited to bookings but their calendars aren't checked for conflicts.",
+    example: [1, 2, 3],
+  })
+  optionalGuestTeamMemberIds?: number[];
+
   @IsEnum(["roundRobin", "collective", "managed"] as const)
   @DocsProperty({ enum: ["roundRobin", "collective", "managed"] })
   schedulingType!: "roundRobin" | "collective" | "managed" | null;

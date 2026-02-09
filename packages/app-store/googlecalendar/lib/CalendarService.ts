@@ -168,6 +168,8 @@ class GoogleCalendarService implements Calendar {
             email: teamMemberDestinationCalendar?.externalId ?? m.email,
             displayName: m.name,
             responseStatus: "accepted",
+            // Mark as optional in Google Calendar if the optional flag is set
+            ...(m.optional && { optional: true }),
           };
         });
       attendees.push(...teamAttendeesWithoutCurrentUser);
