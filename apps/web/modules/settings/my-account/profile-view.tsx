@@ -545,7 +545,8 @@ const ProfileForm = ({
       .min(1, t("you_need_to_add_a_name"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
-      }),
+      })
+      .regex(/^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/, "Invalid name"),
     email: emailSchema,
     bio: z.string(),
     secondaryEmails: z.array(

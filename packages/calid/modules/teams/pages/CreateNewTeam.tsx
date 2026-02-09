@@ -72,7 +72,13 @@ const CreateNewTeamPage = () => {
           <FormField
             name="name"
             control={formMethods.control}
-            rules={{ required: t("team_name_is_required") }}
+            rules={{
+              required: t("team_name_is_required"),
+              pattern: {
+                value: /^[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/,
+                message: "Invalid team name",
+              },
+            }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <>
                 <TextField

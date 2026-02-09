@@ -27,7 +27,10 @@ export type TUpdateInputSchema = {
 export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   id: z.number(),
   bio: z.string().optional(),
-  name: z.string().optional(),
+  name: z
+    .string()
+    .regex(/^[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/, "Invalid team name")
+    .optional(),
   logo: z
     .string()
     .transform(async (val) => await resizeBase64Image(val))
