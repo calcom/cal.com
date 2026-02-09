@@ -30,6 +30,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     "email-verification"
   );
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
+  const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -62,6 +63,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
+    onboardingV3Enabled,
   };
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
@@ -123,28 +125,43 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     } as const;
   }
 
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      AND: [
-        {
-          email: verificationToken?.identifier,
-        },
-        {
-          emailVerified: {
-            not: null,
-          },
-        },
-      ],
-    },
-  });
-
-  if (existingUser) {
+  if (!verificationToken?.team) {
     return {
       redirect: {
         permanent: false,
-        destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        destination: `/auth/error?error=Verification Token is not associated with any team`,
       },
-    };
+    } as const;
+  }
+
+  const isValidEmail = checkValidEmail(verificationToken.identifier);
+  if (isValidEmail) {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        AND: [
+          {
+            email: verificationToken.identifier,
+          },
+          {
+            emailVerified: {
+              not: null,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingUser) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/auth/login?callbackUrl=${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+        },
+      };
+    }
   }
 
   const guessUsernameFromEmail = (email: string) => {
@@ -152,11 +169,11 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     return username;
   };
 
-  let username = guessUsernameFromEmail(verificationToken.identifier);
+  let username = isValidEmail ? guessUsernameFromEmail(verificationToken.identifier) : "";
 
   const tokenTeam = {
-    ...verificationToken?.team,
-    metadata: teamMetadataSchema.parse(verificationToken?.team?.metadata),
+    ...verificationToken.team,
+    metadata: teamMetadataSchema.parse(verificationToken.team.metadata ?? null),
   };
 
   const isATeamInOrganization = tokenTeam?.parentId !== null;
@@ -169,14 +186,13 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     : null;
 
   // Org context shouldn't check if a username is premium
-  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization) {
+  if (!IS_SELF_HOSTED && !isOrganizationOrATeamInOrganization && username) {
     // Im not sure we actually hit this because of next redirects signup to website repo - but just in case this is pretty cool :)
     const { available, suggestion } = await checkPremiumUsername(username);
 
     username = available ? username : suggestion || username;
   }
 
-  const isValidEmail = checkValidEmail(verificationToken.identifier);
   const isOrgInviteByLink = isOrganizationOrATeamInOrganization && !isValidEmail;
   const parentOrgSettings = tokenTeam?.parent?.organizationSettings ?? null;
 
@@ -184,7 +200,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       ...props,
       token,
-      prepopulateFormValues: !isOrgInviteByLink
+      prepopulateFormValues: !isOrgInviteByLink && isValidEmail
         ? {
             email: verificationToken.identifier,
             username: isOrganizationOrATeamInOrganization

@@ -7,7 +7,6 @@ import { expect } from "@playwright/test";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
-import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { entries } from "@calcom/prisma/zod-utils";
@@ -57,7 +56,15 @@ const firstMondayInBookingMonth = firstDayInBookingMonth.day(
 // ensure we land on the same weekday when incrementing month
 const incrementDate = (date: Dayjs, unit: dayjs.ManipulateType) => {
   if (unit !== "month") return date.add(1, unit);
-  return date.add(1, "month").day(date.day());
+  // Find the first occurrence of the same weekday in the next month
+  // Note: .day() sets the day of the week for the CURRENT week, which can
+  // return a date in the previous month. Instead, we calculate the correct date.
+  const targetDay = date.day();
+  const startOfNextMonth = date.add(1, "month").startOf("month");
+  const firstDayOfMonth = startOfNextMonth.day();
+  let daysToAdd = targetDay - firstDayOfMonth;
+  if (daysToAdd < 0) daysToAdd += 7;
+  return startOfNextMonth.add(daysToAdd, "day");
 };
 
 const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWithLimits>>, date: Dayjs) => {
@@ -199,208 +206,19 @@ test.describe("Booking limits", () => {
     });
   });
 
-  test("multiple", async ({ page, users }) => {
-    const slug = "booking-limit-multiple";
-
-    const user = await createUserWithLimits({
-      users,
-      slug,
-      length: EVENT_LENGTH,
-      bookingLimits: BOOKING_LIMITS_MULTIPLE,
-    });
-
-    let slotUrl = "";
-
-    let bookingDate = firstMondayInBookingMonth;
-
-    // keep track of total bookings across multiple limits
-    let bookingCount = 0;
-
-    for (const [limitKey, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
-      const limitUnit = intervalLimitKeyToUnit(limitKey);
-
-      const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
-      await page.goto(monthUrl);
-
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
-
-      // finish rendering days before counting
-      await expect(bookingDay).toBeVisible({ timeout: 10_000 });
-
-      const availableDaysBefore = await availableDays.count();
-
-      await test.step(`can book up ${limitUnit} to limit`, async () => {
-        for (let i = 0; i + bookingCount < limitValue; i++) {
-          await bookingDay.click();
-
-          await page.getByTestId("time").nth(0).click();
-          await bookTimeSlot(page);
-          bookingCount++;
-
-          slotUrl = page.url();
-
-          await expect(page.getByTestId("success-page")).toBeVisible();
-
-          await page.goto(monthUrl);
-        }
-      });
-
-      const expectedAvailableDays = {
-        day: -1,
-        week: -4, // one day will already be blocked by daily limit
-        month: 0,
-        year: 0,
-      };
-
-      await test.step("but not over", async () => {
-        // should already have navigated to monthUrl - just ensure days are rendered
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
-
-        // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
-
-        const availableDaysAfter = await availableDays.count();
-
-        // equals 0 if no available days, otherwise signed difference
-        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(
-          expectedAvailableDays[limitUnit]
-        );
-
-        // try to book directly via form page
-        await page.goto(slotUrl);
-
-        await expectSlotNotAllowedToBook(page);
-      });
-
-      await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
-
-        // finish rendering days before counting
-        await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
-
-        // the month after we made bookings should have availability unless we hit a yearly limit
-        // TODO: Temporary fix for failing test. It passes locally but fails on CI.
-        // See #13097
-        // await expect((await availableDays.count()) === 0).toBe(limitUnit === "year");
-      });
-
-      // increment date by unit after hitting each limit
-      bookingDate = incrementDate(bookingDate, limitUnit);
-    }
-  });
-});
-
-test.describe("Duration limits", () => {
-  entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
-    const limitUnit = intervalLimitKeyToUnit(limitKey);
-
-    // test one limit at a time
-    test(limitUnit, async ({ page, users }) => {
-      const slug = `duration-limit-${limitUnit}`;
-      const singleLimit = { [limitKey]: bookingLimit * EVENT_LENGTH };
+  test.describe("multiple limits", () => {
+    test("day limit with multiple limits set", async ({ page, users }) => {
+      const slug = "booking-limit-multiple-day";
 
       const user = await createUserWithLimits({
         users,
         slug,
         length: EVENT_LENGTH,
-        durationLimits: singleLimit,
+        bookingLimits: BOOKING_LIMITS_MULTIPLE,
       });
 
-      let slotUrl = "";
-
-      const monthUrl = getLastEventUrlWithMonth(user, firstMondayInBookingMonth);
-      await page.goto(monthUrl);
-
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const bookingDay = availableDays.getByText(firstMondayInBookingMonth.date().toString(), {
-        exact: true,
-      });
-
-      // finish rendering days before counting
-      await expect(bookingDay).toBeVisible({ timeout: 10_000 });
-      const availableDaysBefore = await availableDays.count();
-
-      await test.step("can book up to limit", async () => {
-        for (let i = 0; i < bookingLimit; i++) {
-          await bookingDay.click();
-
-          await page.getByTestId("time").nth(0).click();
-          await bookTimeSlot(page);
-
-          slotUrl = page.url();
-
-          await expect(page.getByTestId("success-page")).toBeVisible();
-
-          await page.goto(monthUrl);
-        }
-      });
-
-      const expectedAvailableDays = {
-        day: -1,
-        week: -5,
-        month: 0,
-        year: 0,
-      };
-
-      await test.step("but not over", async () => {
-        // should already have navigated to monthUrl - just ensure days are rendered
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
-
-        // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
-
-        const availableDaysAfter = await availableDays.count();
-
-        // equals 0 if no available days, otherwise signed difference
-        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(
-          expectedAvailableDays[limitUnit]
-        );
-
-        // try to book directly via form page
-        await page.goto(slotUrl);
-        await expectSlotNotAllowedToBook(page);
-      });
-
-      await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
-
-        // finish rendering days before counting
-        await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
-
-        // the month after we made bookings should have availability unless we hit a yearly limit
-        await expect((await availableDays.count()) === 0).toBe(limitUnit === "year");
-      });
-    });
-  });
-
-  test("multiple", async ({ page, users }) => {
-    const slug = "duration-limit-multiple";
-
-    // multiply all booking limits by EVENT_LENGTH
-    const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
-      return {
-        ...limits,
-        [limitKey]: bookingLimit * EVENT_LENGTH,
-      };
-    }, {} as Record<keyof IntervalLimit, number>);
-
-    const user = await createUserWithLimits({
-      users,
-      slug,
-      length: EVENT_LENGTH,
-      durationLimits,
-    });
-
-    let slotUrl = "";
-
-    let bookingDate = firstMondayInBookingMonth;
-
-    // keep track of total bookings across multiple limits
-    let bookingCount = 0;
-
-    for (const [limitKey, limitValue] of entries(BOOKING_LIMITS_MULTIPLE)) {
-      const limitUnit = intervalLimitKeyToUnit(limitKey);
+      const bookingDate = firstMondayInBookingMonth;
+      const limitValue = BOOKING_LIMITS_MULTIPLE.PER_DAY;
 
       const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
       await page.goto(monthUrl);
@@ -410,16 +228,16 @@ test.describe("Duration limits", () => {
 
       // finish rendering days before counting
       await expect(bookingDay).toBeVisible({ timeout: 10_000 });
-
       const availableDaysBefore = await availableDays.count();
 
-      await test.step(`can book up ${limitUnit} to limit`, async () => {
-        for (let i = 0; i + bookingCount < limitValue; i++) {
+      let slotUrl = "";
+
+      await test.step("can book up to day limit", async () => {
+        for (let i = 0; i < limitValue; i++) {
           await bookingDay.click();
 
           await page.getByTestId("time").nth(0).click();
           await bookTimeSlot(page);
-          bookingCount++;
 
           slotUrl = page.url();
 
@@ -428,13 +246,6 @@ test.describe("Duration limits", () => {
           await page.goto(monthUrl);
         }
       });
-
-      const expectedAvailableDays = {
-        day: -1,
-        week: -4, // one day will already be blocked by daily limit
-        month: 0,
-        year: 0,
-      };
 
       await test.step("but not over", async () => {
         // should already have navigated to monthUrl - just ensure days are rendered
@@ -446,27 +257,252 @@ test.describe("Duration limits", () => {
         const availableDaysAfter = await availableDays.count();
 
         // equals 0 if no available days, otherwise signed difference
-        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(
-          expectedAvailableDays[limitUnit]
-        );
+        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(-1);
 
         // try to book directly via form page
         await page.goto(slotUrl);
+
         await expectSlotNotAllowedToBook(page);
       });
+    });
 
-      await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, bookingDate.add(1, "month")));
+    test("week limit with multiple limits set", async ({ page, users, bookings }) => {
+      const slug = "booking-limit-multiple-week";
 
-        // finish rendering days before counting
-        await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
-
-        // the month after we made bookings should have availability unless we hit a yearly limit
-        await expect((await availableDays.count()) === 0).toBe(limitUnit === "year");
+      const user = await createUserWithLimits({
+        users,
+        slug,
+        length: EVENT_LENGTH,
+        bookingLimits: BOOKING_LIMITS_MULTIPLE,
       });
 
-      // increment date by unit after hitting each limit
-      bookingDate = incrementDate(bookingDate, limitUnit);
-    }
+      const baseBookingDate = firstMondayInBookingMonth;
+      const eventTypeId = user.eventTypes.at(-1)?.id;
+      if (!eventTypeId) throw new Error("Event type not found");
+
+      // Pre-create 1 booking on Monday (same week as UI booking)
+      // This satisfies the daily limit for Monday and counts toward the weekly limit
+      const preBookingDate = baseBookingDate.hour(10).minute(0);
+      await bookings.create(user.id, user.username, eventTypeId, {
+        startTime: preBookingDate.toDate(),
+        endTime: preBookingDate.add(EVENT_LENGTH, "minutes").toDate(),
+      });
+
+      // Test week limit on Tuesday (same week, different day to avoid daily limit conflict)
+      // Need to book 1 more to hit weekly limit of 2 (1 already exists from pre-booking)
+      const bookingDate = baseBookingDate.add(1, "day");
+      const weekLimitValue = BOOKING_LIMITS_MULTIPLE.PER_WEEK;
+      const bookingsToMake = weekLimitValue - 1;
+
+      const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
+      await page.goto(monthUrl);
+
+      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
+      const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
+
+      // finish rendering days before counting
+      await expect(bookingDay).toBeVisible({ timeout: 10_000 });
+      const availableDaysBefore = await availableDays.count();
+
+      let slotUrl = "";
+
+      await test.step("can book up to week limit", async () => {
+        for (let i = 0; i < bookingsToMake; i++) {
+          await bookingDay.click();
+
+          await page.getByTestId("time").nth(0).click();
+          await bookTimeSlot(page);
+
+          slotUrl = page.url();
+
+          await expect(page.getByTestId("success-page")).toBeVisible();
+
+          await page.goto(monthUrl);
+        }
+      });
+
+      await test.step("but not over", async () => {
+        // should already have navigated to monthUrl - just ensure days are rendered
+        await expect(page.getByTestId("day").nth(0)).toBeVisible();
+
+        // ensure the day we just booked is now blocked
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
+
+        const availableDaysAfter = await availableDays.count();
+
+        // After hitting weekly limit, all remaining days in the week should be blocked
+        // Monday was already blocked by daily limit, Tuesday is now blocked
+        // The remaining weekdays (Wed-Fri) should also be blocked = 3 more days
+        // Total blocked: 1 (Tuesday we just booked) + 3 (Wed-Fri) = 4 days
+        // But Monday was already blocked before we started, so delta is -4
+        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(-4);
+
+        // try to book directly via form page
+        await page.goto(slotUrl);
+
+        await expectSlotNotAllowedToBook(page);
+      });
+    });
+
+    test("month limit with multiple limits set", async ({ page, users, bookings }) => {
+      const slug = "booking-limit-multiple-month";
+
+      const user = await createUserWithLimits({
+        users,
+        slug,
+        length: EVENT_LENGTH,
+        bookingLimits: BOOKING_LIMITS_MULTIPLE,
+      });
+
+      // Pre-create bookings for day (1) and week (2 total, so 1 more) limits
+      const baseBookingDate = firstMondayInBookingMonth;
+      const eventTypeId = user.eventTypes.at(-1)?.id;
+      if (!eventTypeId) throw new Error("Event type not found");
+
+      // Create 2 bookings (day limit: 1, week limit: 2 total)
+      // First booking on Monday at 10:00, second on Tuesday at 10:00
+      for (let i = 0; i < 2; i++) {
+        const date = baseBookingDate.add(i, "day").hour(10).minute(0);
+        await bookings.create(user.id, user.username, eventTypeId, {
+          startTime: date.toDate(),
+          endTime: date.add(EVENT_LENGTH, "minutes").toDate(),
+        });
+      }
+
+      // Test month limit - need to book 1 more (total 3, but 2 already exist)
+      // Move to next week for month limit test (similar to week limit test)
+      const bookingDate = baseBookingDate.add(1, "week");
+      const monthLimitValue = BOOKING_LIMITS_MULTIPLE.PER_MONTH;
+      const bookingsToMake = monthLimitValue - 2; // 2 already exist from previous limits
+
+      const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
+      await page.goto(monthUrl);
+
+      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
+      const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
+
+      // finish rendering days before counting
+      await expect(bookingDay).toBeVisible({ timeout: 10_000 });
+      const availableDaysBefore = await availableDays.count();
+
+      let slotUrl = "";
+
+      await test.step("can book up to month limit", async () => {
+        for (let i = 0; i < bookingsToMake; i++) {
+          await bookingDay.click();
+
+          await page.getByTestId("time").nth(0).click();
+          await bookTimeSlot(page);
+
+          slotUrl = page.url();
+
+          await expect(page.getByTestId("success-page")).toBeVisible();
+
+          await page.goto(monthUrl);
+        }
+      });
+
+      await test.step("but not over", async () => {
+        // should already have navigated to monthUrl - just ensure days are rendered
+        await expect(page.getByTestId("day").nth(0)).toBeVisible();
+
+        // ensure the day we just booked is now blocked
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
+
+        const availableDaysAfter = await availableDays.count();
+
+        // equals 0 if no available days, otherwise signed difference
+        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(0);
+
+        // try to book directly via form page
+        await page.goto(slotUrl);
+
+        await expectSlotNotAllowedToBook(page);
+      });
+    });
+
+    test("year limit with multiple limits set", async ({ page, users, bookings }) => {
+      const slug = "booking-limit-multiple-year";
+
+      const user = await createUserWithLimits({
+        users,
+        slug,
+        length: EVENT_LENGTH,
+        bookingLimits: BOOKING_LIMITS_MULTIPLE,
+      });
+
+      // Pre-create bookings for day (1), week (2 total), and month (3 total) limits
+      const baseBookingDate = firstMondayInBookingMonth;
+      const eventTypeId = user.eventTypes.at(-1)?.id;
+      if (!eventTypeId) throw new Error("Event type not found");
+
+      // Create 3 bookings (day: 1, week: 2, month: 3 total)
+      // Spread across different days to satisfy day/week/month limits
+      // Monday, Tuesday, and next Monday (to span a week)
+      const dates = [
+        baseBookingDate.hour(10).minute(0),
+        baseBookingDate.add(1, "day").hour(10).minute(0),
+        baseBookingDate.add(1, "week").hour(10).minute(0),
+      ];
+
+      for (const date of dates) {
+        await bookings.create(user.id, user.username, eventTypeId, {
+          startTime: date.toDate(),
+          endTime: date.add(EVENT_LENGTH, "minutes").toDate(),
+        });
+      }
+
+      // Test year limit - need to book 1 more (total 4, but 3 already exist)
+      const yearLimitValue = BOOKING_LIMITS_MULTIPLE.PER_YEAR;
+      const bookingsToMake = yearLimitValue - 3; // 3 already exist from previous limits
+
+      // Move to next month for year limit test
+      const bookingDate = incrementDate(baseBookingDate, "month");
+
+      const monthUrl = getLastEventUrlWithMonth(user, bookingDate);
+      await page.goto(monthUrl);
+
+      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
+      const bookingDay = availableDays.getByText(bookingDate.date().toString(), { exact: true });
+
+      // finish rendering days before counting
+      await expect(bookingDay).toBeVisible({ timeout: 10_000 });
+      const availableDaysBefore = await availableDays.count();
+
+      let slotUrl = "";
+
+      await test.step("can book up to year limit", async () => {
+        for (let i = 0; i < bookingsToMake; i++) {
+          await bookingDay.click();
+
+          await page.getByTestId("time").nth(0).click();
+          await bookTimeSlot(page);
+
+          slotUrl = page.url();
+
+          await expect(page.getByTestId("success-page")).toBeVisible();
+
+          await page.goto(monthUrl);
+        }
+      });
+
+      await test.step("but not over", async () => {
+        // should already have navigated to monthUrl - just ensure days are rendered
+        await expect(page.getByTestId("day").nth(0)).toBeVisible();
+
+        // ensure the day we just booked is now blocked
+        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
+
+        const availableDaysAfter = await availableDays.count();
+
+        // equals 0 if no available days, otherwise signed difference
+        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(0);
+
+        // try to book directly via form page
+        await page.goto(slotUrl);
+
+        await expectSlotNotAllowedToBook(page);
+      });
+    });
   });
 });

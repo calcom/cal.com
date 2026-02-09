@@ -1,10 +1,14 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -18,7 +22,7 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import type { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
+import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -30,7 +34,8 @@ export class EventTypesService_2024_06_14 {
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
-    private readonly schedulesRepository: SchedulesRepository_2024_06_11
+    private readonly schedulesRepository: SchedulesRepository_2024_06_11,
+    private readonly eventTypeAccessService: EventTypeAccessService
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
@@ -39,9 +44,11 @@ export class EventTypesService_2024_06_14 {
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,
       ctx: {
@@ -73,6 +80,31 @@ export class EventTypesService_2024_06_14 {
 
     return {
       ownerId: user.id,
+      ...eventType,
+    };
+  }
+
+  async getEventTypeByIdIfAuthorized(
+    authUser: ApiAuthGuardUser,
+    eventTypeId: number
+  ): Promise<DatabaseTeamEventType | ({ ownerId: number } & DatabaseEventType) | null> {
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithHosts(eventTypeId);
+
+    if (!eventType) {
+      return null;
+    }
+
+    const hasAccess = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+      authUser,
+      eventType as unknown as EventType
+    );
+
+    if (!hasAccess) {
+      return null;
+    }
+
+    return {
+      ownerId: eventType.userId ?? 0,
       ...eventType,
     };
   }
@@ -128,15 +160,16 @@ export class EventTypesService_2024_06_14 {
     orgSlug?: string;
     orgId?: number;
     authUser?: AuthOptionalUser;
+    sortCreatedAt?: SortOrderType;
   }) {
     const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
     if (!user) {
       return [];
     }
     if (params.authUser?.id !== user.id) {
-      return await this.getUserEventTypesPublic(user.id);
+      return await this.getUserEventTypesPublic(user.id, params.sortCreatedAt);
     }
-    return await this.getUserEventTypes(user.id);
+    return await this.getUserEventTypes(user.id, params.sortCreatedAt);
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
@@ -179,16 +212,16 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getUserEventTypes(userId: number) {
-    const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
+  async getUserEventTypes(userId: number, sortCreatedAt?: SortOrderType) {
+    const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId, sortCreatedAt);
 
     return eventTypes.map((eventType) => {
       return { ownerId: userId, ...eventType };
     });
   }
 
-  async getUserEventTypesPublic(userId: number) {
-    const eventTypes = await this.eventTypesRepository.getUserEventTypesPublic(userId);
+  async getUserEventTypesPublic(userId: number, sortCreatedAt?: SortOrderType) {
+    const eventTypes = await this.eventTypesRepository.getUserEventTypesPublic(userId, sortCreatedAt);
 
     return eventTypes.map((eventType) => {
       return { ownerId: userId, ...eventType };
@@ -205,7 +238,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14, authUser?: AuthOptionalUser) {
-    const { username, eventSlug, usernames, orgSlug, orgId } = queryParams;
+    const { username, eventSlug, usernames, orgSlug, orgId, sortCreatedAt } = queryParams;
     if (username && eventSlug) {
       const eventType = await this.getEventTypeByUsernameAndSlug({
         username,
@@ -223,12 +256,17 @@ export class EventTypesService_2024_06_14 {
         orgSlug,
         orgId,
         authUser,
+        sortCreatedAt,
       });
     }
 
     if (usernames) {
       const dynamicEventType = await this.getDynamicEventType(usernames, orgSlug, orgId);
       return [dynamicEventType];
+    }
+
+    if (authUser?.id) {
+      return await this.getUserEventTypes(authUser.id, sortCreatedAt);
     }
 
     return [];

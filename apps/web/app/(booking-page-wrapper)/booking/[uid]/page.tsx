@@ -16,13 +16,15 @@ import {
   type PageProps as ClientPageProps,
 } from "~/bookings/views/bookings-single-view.getServerSideProps";
 
+const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
+
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const { bookingInfo, eventType, recurringBookings, orgSlug } = await getData(
     buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
   );
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
 
-  return await _generateMetadata(
+  const metadata = await _generateMetadata(
     (t) =>
       t(`booking_${needsConfirmation ? "submitted" : "confirmed"}${recurringBookings ? "_recurring" : ""}`),
     (t) =>
@@ -31,9 +33,15 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     getOrgFullOrigin(orgSlug),
     `/booking/${(await params).uid}`
   );
-};
 
-const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+};
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);

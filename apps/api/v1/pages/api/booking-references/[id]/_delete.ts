@@ -37,7 +37,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
 export async function deleteHandler(req: NextApiRequest) {
   const { query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  await prisma.bookingReference.delete({ where: { id } });
+  await prisma.bookingReference.update({ where: { id }, data: { deleted: true } });
   return { message: `BookingReference with id: ${id} deleted` };
 }
 

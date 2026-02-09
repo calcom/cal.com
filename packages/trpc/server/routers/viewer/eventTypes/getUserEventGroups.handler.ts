@@ -1,7 +1,7 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -31,8 +31,8 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const user = ctx.user;
   const userProfile = user.profile;
 
-  // Validate profile exists
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  // Validate profile exists and user has access
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, user.id);
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }

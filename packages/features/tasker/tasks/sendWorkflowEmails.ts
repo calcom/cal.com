@@ -1,8 +1,15 @@
 import { z } from "zod";
 
-import { sendCustomWorkflowEmail } from "@calcom/emails";
+import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { prisma } from "@calcom/prisma";
 
-export const ZSendWorkflowEmailsSchema = z.object({
+export const ZSendWorkflowEmailsSchemaEager = z.object({
   to: z.array(z.string()),
   subject: z.string(),
   html: z.string(),
@@ -20,8 +27,55 @@ export const ZSendWorkflowEmailsSchema = z.object({
     .optional(),
 });
 
+const ZSendWorkflowEmailsSchemaLazy = z.object({
+  bookingUid: z.string(),
+  workflowReminderId: z.number(),
+});
+
+export const ZSendWorkflowEmailsSchema = z.union([
+  ZSendWorkflowEmailsSchemaEager,
+  ZSendWorkflowEmailsSchemaLazy,
+]);
+
 export async function sendWorkflowEmails(payload: string): Promise<void> {
   const mailData = ZSendWorkflowEmailsSchema.parse(JSON.parse(payload));
+
+  // Generate workflow body to send
+  if ("bookingUid" in mailData && "workflowReminderId" in mailData) {
+    const bookingRepository = new BookingRepository(prisma);
+    const booking = await bookingRepository.getBookingForCalEventBuilderFromUid(mailData.bookingUid);
+
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
+    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, {})).build();
+
+    if (!calendarEvent) {
+      throw new Error("Calendar event could not be built");
+    }
+
+    // Check if videoCallUrl exists in booking metadata and add it to evt.metadata
+    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
+    const metadata = bookingMetadata?.videoCallUrl
+    ? {
+      videoCallUrl: bookingMetadata.videoCallUrl,
+    }
+    : undefined;
+
+    const evtWithMetadata = { ...calendarEvent, metadata };
+
+    const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+    const bookingSeatRepository = new BookingSeatRepository(prisma);
+    const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
+
+    await emailWorkflowService.handleSendEmailWorkflowTask({
+      evt: evtWithMetadata,
+      workflowReminderId: mailData.workflowReminderId,
+    });
+
+    return;
+  }
 
   await Promise.all(
     mailData.to.map((to) =>

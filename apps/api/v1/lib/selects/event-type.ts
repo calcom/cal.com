@@ -57,7 +57,7 @@ export const eventTypeSelect = {
     },
   },
   owner: {
-    select: { username: true, id: true },
+    select: { username: true, id: true, timeZone: true },
   },
   children: {
     select: {

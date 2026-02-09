@@ -15,7 +15,7 @@ export default function Loading() {
           <SkeletonText className="h-5 w-32" />
         </div>
 
-        <div className="mb-6 space-y-2">
+        <div className="mb-6 stack-y-2">
           <SkeletonText className="h-7 w-3/4" />
           <SkeletonText className="h-7 w-1/2" />
         </div>

@@ -1,5 +1,5 @@
+import { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { LuckyUserService } from "@calcom/lib/server/getLuckyUser";
 
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "../di";
 import { moduleLoader as attributeRepositoryModuleLoader } from "./Attribute";

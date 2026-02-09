@@ -39,7 +39,7 @@ export default function DryRunSuccessful() {
   return (
     <div className="flex h-screen">
       <div className="bg-default m-auto rounded-md p-10 text-center">
-        <div className="bg-success mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+        <div className="bg-cal-success mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="check" className="h-6 w-6 text-green-600 dark:text-green-400" />
         </div>
         <h1 className="text-emphasis mb-4 text-2xl font-medium" data-testid="dry-run-success-msg">

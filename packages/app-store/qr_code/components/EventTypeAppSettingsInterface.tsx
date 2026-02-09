@@ -19,7 +19,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({ eventTyp
         <a download href={QR_URL} target="_blank" rel="noreferrer">
           <img
             className={classNames(
-              "hover:bg-muted border-default border transition hover:shadow-sm",
+              "hover:bg-cal-muted border-default border transition hover:shadow-sm",
               size >= 256 && "min-h-32"
             )}
             style={{ padding: size / 16, borderRadius: size / 20 }}

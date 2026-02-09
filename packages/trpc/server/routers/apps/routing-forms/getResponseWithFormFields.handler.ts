@@ -3,14 +3,14 @@ import type { z } from "zod";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
-import { canAccessEntity } from "@calcom/lib/entityPermissionUtils.server";
+import { canAccessEntity } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import type { ZFormByResponseIdInputSchema } from "./_router";
+import type { ZFormByResponseIdInputSchema } from "./getResponseWithFormFields.schema";
 
 type GetResponseWithFormFieldsOptions = {
   ctx: {
@@ -82,7 +82,7 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
     });
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");
   const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,

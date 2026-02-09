@@ -4,15 +4,24 @@
   "sideEffects": false,
   "version": "0.0.0",
   "main": "./index.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./types/*",
+        "./*"
+      ]
+    }
+  },
   "files": [
     "components.ts"
   ],
   "scripts": {
+    "build:types": "tsc --project tsconfig.build.json",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
-    "lint": "eslint .",
-    "lint:fix": "eslint .",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/app-store.json"
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "lint:report": "biome lint --reporter json . > ../../lint-results/app-store.json"
   },
   "dependencies": {
     "@calcom/dailyvideo": "workspace:*",
@@ -22,13 +31,18 @@
     "@calcom/office365video": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@calcom/zoomvideo": "workspace:*",
-    "lodash": "^4.17.21",
-    "qs-stringify": "^1.2.1",
-    "react-i18next": "^12.2.0",
-    "stripe": "^9.16.0"
+    "lodash": "4.17.23",
+    "qs-stringify": "1.2.1",
+    "react-i18next": "12.3.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "stripe": "^9.0.0 || ^15.0.0",
+    "zod": "^3.0.0"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
+    "@calcom/testing": "workspace:*",
     "@calcom/types": "workspace:*"
   }
 }

@@ -25,7 +25,7 @@ const session: Session = {
 
 vi.mock("@calcom/prisma", () => {
   return {
-    default: vi.fn(),
+    prisma: vi.fn(),
   };
 });
 

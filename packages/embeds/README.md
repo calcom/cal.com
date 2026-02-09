@@ -120,6 +120,7 @@ Cal.modal({
   calLink: "organization/event-type",
   config: {
     // Optional configuration
+    useSlotsViewOnSmallScreen: "true"
   }
 });
 ```
@@ -144,7 +145,8 @@ Cal.inline({
   config: {
     name: "John Doe",
     email: "john@example.com",
-    notes: "Initial discussion"
+    notes: "Initial discussion",
+    useSlotsViewOnSmallScreen: "true"
   }
 });
 ```

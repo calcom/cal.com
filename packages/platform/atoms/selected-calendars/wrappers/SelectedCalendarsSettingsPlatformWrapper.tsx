@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
@@ -9,7 +8,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { AppListCard } from "@calcom/ui/components/app-list-card";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
-import { CalendarSwitchComponent } from "@calcom/ui/components/calendar-switch";
+import { CalendarSwitchComponent, type ICalendarSwitchProps } from "@calcom/ui/components/calendar-switch";
 import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
@@ -161,7 +160,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                               )}>
                               {t("toggle_calendars_conflict")}
                             </p>
-                            <ul className="space-y-4 px-5 py-4">
+                            <ul className="stack-y-4 px-5 py-4">
                               {connectedCalendar.calendars?.map((cal) => {
                                 return (
                                   <PlatformCalendarSwitch
@@ -192,7 +191,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          !Boolean(connectedCalendar.delegationCredentialId) && (
+                          !connectedCalendar.delegationCredentialId && (
                             <div className="flex w-32 justify-end">
                               <PlatformDisconnectIntegration
                                 credentialId={connectedCalendar.credentialId}
@@ -277,7 +276,7 @@ const PlatformDisconnectIntegration = (props: {
         description: t("app_removed_successfully"),
       });
       setModalOpen(false);
-      onSuccess && onSuccess();
+      if (onSuccess) onSuccess();
     },
     onError: () => {
       toast({
@@ -290,7 +289,7 @@ const PlatformDisconnectIntegration = (props: {
   return (
     <DisconnectIntegrationComponent
       onDeletionConfirmation={async () => {
-        !props.isDryRun && setModalOpen(false);
+        if (!props.isDryRun) setModalOpen(false);
 
         if (props.isDryRun) {
           toast({
@@ -412,7 +411,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Google" })}
               loadingLabel={t("add_calendar_label", { calendar: "Google" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -425,7 +424,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Outlook" })}
               loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
           <div>
@@ -438,7 +437,7 @@ const PlatformAdditionalCalendarSelector = ({
               label={t("add_calendar_label", { calendar: "Apple" })}
               loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
               alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
-              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
+              className="not-disabled:hover:bg-subtle hover:text-default shadow-none! cursor-pointer border-none bg-inherit text-inherit md:rounded-md"
             />
           </div>
         </div>

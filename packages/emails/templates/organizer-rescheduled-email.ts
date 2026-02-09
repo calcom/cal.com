@@ -2,8 +2,8 @@ import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import { getReplyToHeader } from "@calcom/lib/getReplyToHeader";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
+import renderEmail from "../src/renderEmail";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {

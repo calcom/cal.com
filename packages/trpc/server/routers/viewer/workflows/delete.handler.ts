@@ -1,5 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -7,11 +9,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import {
-  isAuthorized,
-  removeSmsReminderFieldForEventTypes,
-  removeAIAgentCallPhoneNumberFieldForEventTypes,
-} from "./util";
+import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
 
 type DeleteOptions = {
   ctx: {
@@ -22,6 +20,7 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
+  const log = logger.getSubLogger({ prefix: ["workflows/deleteHandler"] });
 
   const workflowToDelete = await prisma.workflow.findUnique({
     where: {
@@ -54,6 +53,11 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
                   subscriptionStatus: true,
                 },
               },
+            },
+          },
+          inboundAgent: {
+            select: {
+              id: true,
             },
           },
         },
@@ -100,7 +104,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
               });
             }
           } catch (error) {
-            console.error(`Failed to handle phone number ${phoneNumber.phoneNumber}:`, error);
+            log.error(`Failed to handle phone number ${phoneNumber.phoneNumber}:`, error);
           }
         }
       }
@@ -113,8 +117,19 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
             teamId: workflowToDelete.teamId ?? undefined,
           });
         } catch (error) {
-          console.error(`Failed to delete agent ${step.agent.id}:`, error);
-          // Continue with deletion even if agent deletion fails
+          log.error(`Failed to delete agent ${step.agent.id}:`, error);
+        }
+      }
+
+      if (step.inboundAgent) {
+        try {
+          await aiPhoneService.deleteAgent({
+            id: step.inboundAgent.id,
+            userId: ctx.user.id,
+            teamId: workflowToDelete.teamId ?? undefined,
+          });
+        } catch (error) {
+          log.error(`Failed to delete inbound agent ${step.inboundAgent.id}:`, error);
         }
       }
     }
@@ -124,10 +139,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     where: {
       workflowStep: {
         workflowId: id,
-      },
-      scheduled: true,
-      NOT: {
-        referenceId: null,
       },
     },
   });

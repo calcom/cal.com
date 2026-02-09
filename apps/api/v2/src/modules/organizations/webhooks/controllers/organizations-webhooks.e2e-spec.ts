@@ -1,5 +1,16 @@
-import { bootstrap } from "@/app";
+import type { Team, Webhook } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -9,18 +20,6 @@ import {
   TeamWebhookOutputResponseDto,
   TeamWebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/team-webhook.output";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import type { Team, Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;
@@ -208,5 +207,100 @@ describe("WebhooksController (e2e)", () => {
     return request(app.getHttpServer())
       .delete(`/v2/organizations/${org.id}/webhooks/${otherWebhook.id}`)
       .expect(403);
+  });
+
+  describe("DELEGATION_CREDENTIAL_ERROR webhook trigger", () => {
+    let delegationWebhook: TeamWebhookOutputResponseDto["data"];
+
+    it("/organizations/:orgId/webhooks (POST) should create webhook with DELEGATION_CREDENTIAL_ERROR trigger", () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/webhooks`)
+        .send({
+          subscriberUrl: "https://example.com/delegation-errors",
+          triggers: ["DELEGATION_CREDENTIAL_ERROR"],
+          active: true,
+        } satisfies CreateWebhookInputDto)
+        .expect(201)
+        .then(async (res) => {
+          expect(res.body.status).toBe("success");
+          expect(res.body.data).toMatchObject({
+            id: expect.any(String),
+            subscriberUrl: "https://example.com/delegation-errors",
+            triggers: ["DELEGATION_CREDENTIAL_ERROR"],
+            active: true,
+            teamId: org.id,
+          });
+          delegationWebhook = res.body.data;
+        });
+    });
+
+    it("/organizations/:orgId/webhooks/:webhookId (GET) should retrieve webhook with DELEGATION_CREDENTIAL_ERROR trigger", () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/webhooks/${delegationWebhook.id}`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body.status).toBe("success");
+          expect(res.body.data).toMatchObject({
+            id: delegationWebhook.id,
+            subscriberUrl: "https://example.com/delegation-errors",
+            triggers: ["DELEGATION_CREDENTIAL_ERROR"],
+            active: true,
+            teamId: org.id,
+          });
+        });
+    });
+
+    it("/organizations/:orgId/webhooks/:webhookId (PATCH) should update webhook with DELEGATION_CREDENTIAL_ERROR trigger", () => {
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/webhooks/${delegationWebhook.id}`)
+        .send({
+          active: false,
+          subscriberUrl: "https://example.com/delegation-errors-updated",
+        } satisfies UpdateWebhookInputDto)
+        .expect(200)
+        .then((res) => {
+          expect(res.body.data.active).toBe(false);
+          expect(res.body.data.subscriberUrl).toBe("https://example.com/delegation-errors-updated");
+          expect(res.body.data.triggers).toEqual(["DELEGATION_CREDENTIAL_ERROR"]);
+        });
+    });
+
+    it("/organizations/:orgId/webhooks (POST) should allow combining DELEGATION_CREDENTIAL_ERROR with other triggers", () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/webhooks`)
+        .send({
+          subscriberUrl: "https://example.com/combined-webhook",
+          triggers: ["BOOKING_CREATED", "DELEGATION_CREDENTIAL_ERROR"],
+          active: true,
+        } satisfies CreateWebhookInputDto)
+        .expect(201)
+        .then(async (res) => {
+          expect(res.body.status).toBe("success");
+          expect(res.body.data).toMatchObject({
+            id: expect.any(String),
+            subscriberUrl: "https://example.com/combined-webhook",
+            triggers: expect.arrayContaining(["BOOKING_CREATED", "DELEGATION_CREDENTIAL_ERROR"]),
+            active: true,
+            teamId: org.id,
+          });
+          await request(app.getHttpServer())
+            .delete(`/v2/organizations/${org.id}/webhooks/${res.body.data.id}`)
+            .expect(200);
+        });
+    });
+
+    it("/organizations/:orgId/webhooks/:webhookId (DELETE) should delete webhook with DELEGATION_CREDENTIAL_ERROR trigger", () => {
+      return request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/webhooks/${delegationWebhook.id}`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body.status).toBe("success");
+          expect(res.body.data).toMatchObject({
+            id: delegationWebhook.id,
+            triggers: ["DELEGATION_CREDENTIAL_ERROR"],
+            teamId: org.id,
+          });
+        });
+    });
   });
 });
