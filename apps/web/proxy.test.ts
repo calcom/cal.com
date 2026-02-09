@@ -492,35 +492,42 @@ describe("Middleware Matcher Configuration", () => {
     expect(matcher).toContain("/:path*/embed");
   });
 
-  it("should include all POST_METHODS_ALLOWED_API_ROUTES entries", () => {
-    for (const route of POST_METHODS_ALLOWED_API_ROUTES) {
-      if (route.endsWith("/")) {
-        expect(matcher).toContain(`${route}:path*`);
-      } else {
-        expect(matcher).toContain(route);
-      }
-    }
-  });
-
-  it("should convert trailing-slash routes to wildcard patterns", () => {
-    const trailingSlashRoutes = POST_METHODS_ALLOWED_API_ROUTES.filter((r: string) => r.endsWith("/"));
-    for (const route of trailingSlashRoutes) {
-      expect(matcher).toContain(`${route}:path*`);
-      expect(matcher).not.toContain(route);
-    }
-  });
-
-  it("should keep exact routes without trailing slash unchanged", () => {
-    const exactRoutes = POST_METHODS_ALLOWED_API_ROUTES.filter(
-      (r: string) => !r.endsWith("/") && r.startsWith("/api/")
-    );
-    for (const route of exactRoutes) {
-      expect(matcher).toContain(route);
-    }
-  });
-
   it("should have no duplicate entries", () => {
     const uniqueEntries = new Set(matcher);
     expect(uniqueEntries.size).toBe(matcher.length);
+  });
+
+  it("should cover every POST_METHODS_ALLOWED_API_ROUTES route via exact match or wildcard", () => {
+    const wildcardPrefixes = matcher
+      .filter((entry) => entry.endsWith(":path*"))
+      .map((entry) => entry.replace(":path*", ""));
+
+    for (const route of POST_METHODS_ALLOWED_API_ROUTES) {
+      const matcherEntry = route.endsWith("/") ? `${route}:path*` : route;
+      const coveredByWildcard = wildcardPrefixes.some((prefix) => route.startsWith(prefix));
+      const coveredByExact = matcher.includes(matcherEntry);
+      expect(
+        coveredByWildcard || coveredByExact,
+        `POST route "${route}" is not covered by any matcher entry`
+      ).toBe(true);
+    }
+  });
+
+  it("should not contain API matcher entries without corresponding POST_METHODS_ALLOWED_API_ROUTES routes", () => {
+    const NON_API_ROUTES = ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed"];
+    const apiMatcherEntries = matcher.filter((entry) => !NON_API_ROUTES.includes(entry));
+
+    for (const entry of apiMatcherEntries) {
+      if (entry.endsWith(":path*")) {
+        const prefix = entry.replace(":path*", "");
+        const hasCoveredRoutes = POST_METHODS_ALLOWED_API_ROUTES.some((route) => route.startsWith(prefix));
+        expect(hasCoveredRoutes, `Matcher wildcard "${entry}" doesn't cover any POST route`).toBe(true);
+      } else {
+        expect(
+          POST_METHODS_ALLOWED_API_ROUTES,
+          `Matcher has "${entry}" but it's missing from POST_METHODS_ALLOWED_API_ROUTES`
+        ).toContain(entry);
+      }
+    }
   });
 });
