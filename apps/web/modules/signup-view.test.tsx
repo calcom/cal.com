@@ -1,4 +1,3 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -89,14 +88,12 @@ describe("Signup form validation mode", () => {
 
     const emailInput = screen.getByTestId("email-input");
 
-    // Type invalid, blur to trigger first validation
     await user.type(emailInput, "bad");
     fireEvent.blur(emailInput);
     await waitFor(() => {
       expect(screen.getByTestId("email-error")).toBeInTheDocument();
     });
 
-    // Now clear and type valid — error should disappear on change
     await user.clear(emailInput);
     await user.type(emailInput, "valid@email.com");
     await waitFor(() => {
