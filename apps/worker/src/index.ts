@@ -4,7 +4,8 @@ async function start() {
   // Import workers (side-effect imports)
   //as soon as they are imported in the entrypoint they start consuming the jobs enqueued
   await import("./workers/calendarSync.worker.js");
-  console.log("✅ Calendar sync worker started");
+  // responsible for health checks
+  console.log("Worker is up");
 }
 
 start().catch((err) => {
