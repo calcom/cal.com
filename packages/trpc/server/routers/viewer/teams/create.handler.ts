@@ -1,6 +1,5 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { sanitizeName } from "@calcom/lib/sanitizeName";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -49,10 +48,7 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug } = input;
-
-  // Sanitize team name as defense-in-depth security measure
-  const name = sanitizeName(input.name);
+  const { slug, name } = input;
 
   const isOrgChildTeam = !!user.profile?.organizationId;
 

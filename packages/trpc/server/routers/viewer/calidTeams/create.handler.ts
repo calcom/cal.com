@@ -1,4 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { sanitizeName } from "@calcom/lib/sanitizeName";
 import { prisma } from "@calcom/prisma";
 import { CalIdMembershipRole } from "@calcom/prisma/enums";
 
@@ -18,6 +19,8 @@ export const createCalidTeamHandler = async ({ ctx, input }: CreateTeamOptions) 
   const { user } = ctx;
   const { slug, name } = input;
 
+  const sanitizedName = sanitizeName(name);
+
   const existingTeam = await prisma.calIdTeam.findFirst({
     where: {
       slug: slug,
@@ -29,7 +32,7 @@ export const createCalidTeamHandler = async ({ ctx, input }: CreateTeamOptions) 
   const newTeam = await prisma.calIdTeam.create({
     data: {
       slug,
-      name,
+      name: sanitizedName,
       members: {
         create: {
           userId: user.id,
