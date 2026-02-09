@@ -555,16 +555,20 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
+  const getCustomSlug = (actionValue: string | undefined) => {
+    if (!actionValue) return "";
+    const isCustom = !eventOptions.find((eventOption) => eventOption.value === actionValue);
+    return isCustom ? actionValue.split("/").pop() ?? "" : "";
+  };
+
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
-    const isCustom =
-      !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+    if (isRouter(route)) return "";
+    return getCustomSlug(route.action.value);
   });
 
   const [customFallbackEventTypeSlug, setCustomFallbackEventTypeSlug] = useState<string>(() => {
-    if (isRouter(route) || !route.fallbackAction?.value) return "";
-    const isCustom = !eventOptions.find((eventOption) => eventOption.value === route.fallbackAction?.value);
-    return isCustom ? route.fallbackAction.value.split("/").pop() ?? "" : "";
+    if (isRouter(route)) return "";
+    return getCustomSlug(route.fallbackAction?.value);
   });
 
   useEnsureEventTypeIdInRedirectUrlAction({
