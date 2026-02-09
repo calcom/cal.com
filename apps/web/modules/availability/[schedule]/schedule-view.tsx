@@ -33,7 +33,7 @@ export const AvailabilitySettingsWebWrapper = ({
   const scheduleId = schedule.id;
   const { timeFormat } = me.data || { timeFormat: null };
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
-  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: () => void }>({});
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
@@ -90,7 +90,7 @@ export const AvailabilitySettingsWebWrapper = ({
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-      callbacksRef.current?.onError?.(err);
+      callbacksRef.current?.onError?.();
     },
   });
 
@@ -123,13 +123,16 @@ export const AvailabilitySettingsWebWrapper = ({
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
       handleSubmit={async ({ dateOverrides, ...values }) => {
-        if (scheduleId) {
-          await updateMutation.mutateAsync({
+        if (!values.name.trim()) {
+          showToast(t("schedule_name_cannot_be_empty"), "error");
+          return;
+        }
+        scheduleId &&
+          updateMutation.mutate({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
             ...values,
           });
-        }
       }}
       callbacksRef={callbacksRef}
       bulkUpdateModalProps={{
