@@ -3,6 +3,7 @@
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import { getOptInFeatureConfig, shouldDisplayFeatureAt } from "@calcom/features/feature-opt-in/config";
 import { trpc } from "@calcom/trpc/react";
+import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -59,6 +60,8 @@ function isFeatureOptedIn(featureId: string): boolean {
 }
 
 function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
+  const { data: session } = useSession();
+  const isImpersonating = !!session?.user?.impersonatedBy;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(() => isFeatureDismissed(featureId));
   const [isOptedIn, setIsOptedIn] = useState(() => isFeatureOptedIn(featureId));
@@ -161,6 +164,7 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   );
 
   const shouldShow = useMemo(() => {
+    if (isImpersonating) return false;
     if (isDismissed) return false;
     if (isOptedIn) return false;
     if (!featureConfig) return false;
@@ -169,7 +173,14 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     if (eligibilityQuery.isLoading) return false;
     if (!eligibilityQuery.data) return false;
     return eligibilityQuery.data.status === "can_opt_in";
-  }, [isDismissed, isOptedIn, featureConfig, eligibilityQuery.isLoading, eligibilityQuery.data]);
+  }, [
+    isImpersonating,
+    isDismissed,
+    isOptedIn,
+    featureConfig,
+    eligibilityQuery.isLoading,
+    eligibilityQuery.data,
+  ]);
 
   useEffect(() => {
     if (shouldShow && !hasBannerShownBeenTracked.current) {
