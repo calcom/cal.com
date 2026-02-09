@@ -455,18 +455,18 @@ export function BookingActionsDropdown({
         status={getBookingStatus()}
       />
       {isBookingFromRoutingForm && (
-        <>
-          <WrongAssignmentDialog
-            isOpenDialog={isOpenWrongAssignmentDialog}
-            setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-            booking={booking}
-          />
-          <RoutingTraceSheet
-            isOpen={isOpenRoutingTraceSheet}
-            setIsOpen={setIsOpenRoutingTraceSheet}
-            bookingUid={booking.uid}
-          />
-        </>
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          booking={booking}
+        />
+      )}
+      {booking.assignmentReasonSortedByCreatedAt.length > 0 && (
+        <RoutingTraceSheet
+          isOpen={isOpenRoutingTraceSheet}
+          setIsOpen={setIsOpenRoutingTraceSheet}
+          bookingUid={booking.uid}
+        />
       )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
