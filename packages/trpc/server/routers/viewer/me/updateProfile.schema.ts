@@ -15,15 +15,8 @@ export const updateUserMetadataAllowedKeys = z.object({
 
 export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
-  name: z
-    .string()
-    .max(FULL_NAME_LENGTH_MAX_LIMIT)
-    .regex(
-      /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/,
-      "Name can only contain letters, spaces, periods, hyphens, and apostrophes"
-    )
-    .trim()
-    .optional(),
+  name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
+
   email: z.string().optional(),
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),

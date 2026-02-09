@@ -10,6 +10,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { sanitizeName } from "@calcom/lib/sanitizeName";
 import { uploadHeader } from "@calcom/lib/server/avatar";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
@@ -47,6 +48,11 @@ export const calidUpdateProfileHandler = async ({ ctx, input }: CalIdUpdateProfi
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
+
+  // Sanitize name if provided
+  if (rest.name) {
+    rest.name = sanitizeName(rest.name);
+  }
 
   const data: Prisma.UserUpdateInput = {
     ...rest,

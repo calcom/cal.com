@@ -100,7 +100,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     await utils.viewer.me.invalidate();
     nextStep();
   };
-  const mutation = trpc.viewer.me.updateProfile.useMutation({
+  const mutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: onSuccess,
   });
 
