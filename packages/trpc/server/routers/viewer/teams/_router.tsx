@@ -1,5 +1,4 @@
 import type { NextApiRequest } from "next";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
@@ -22,6 +21,7 @@ import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
+import { ZListInvoicesInputSchema } from "./listInvoices.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZGetManagedEventUsersToReassignInputSchema } from "./managedEvents/getManagedEventUsersToReassign.schema";
 import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedEventManualReassign.schema";
@@ -227,6 +227,10 @@ export const viewerTeamsRouter = router({
   }),
   getSubscriptionStatus: authedProcedure.input(ZGetSubscriptionStatusInputSchema).query(async (opts) => {
     const { default: handler } = await import("./getSubscriptionStatus.handler");
+    return handler(opts);
+  }),
+  listInvoices: authedProcedure.input(ZListInvoicesInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listInvoices.handler");
     return handler(opts);
   }),
 });

@@ -489,7 +489,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
       form.setValue(
         `steps.${step.stepNumber - 1}.emailSubject`,
-        subjectWithAddedVariable
+        subjectWithAddedVariable,
+        { shouldDirty: true }
       );
     }
   };
@@ -623,15 +624,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isFormTrigger(currentTrigger);
                       const isNewFormTrigger = isFormTrigger(triggerValue);
 
-                      form.setValue("trigger", triggerValue);
+                      form.setValue("trigger", triggerValue, { shouldDirty: true });
 
                       // Reset activeOn when switching between form and non-form triggers
                       if (isCurrentFormTrigger !== isNewFormTrigger) {
-                        form.setValue("activeOn", []);
+                        form.setValue("activeOn", [], { shouldDirty: true });
                         if (setSelectedOptions) {
                           setSelectedOptions([]);
                         }
-                        form.setValue("selectAll", false);
+                        form.setValue("selectAll", false, { shouldDirty: true });
                       }
 
                       const newTimeSectionText = getTimeSectionText(
@@ -646,11 +647,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           triggerValue ===
                             WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                         ) {
-                          form.setValue("time", 5);
-                          form.setValue("timeUnit", TimeUnit.MINUTE);
+                          form.setValue("time", 5, { shouldDirty: true });
+                          form.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
                         } else {
-                          form.setValue("time", 24);
-                          form.setValue("timeUnit", TimeUnit.HOUR);
+                          form.setValue("time", 24, { shouldDirty: true });
+                          form.setValue("timeUnit", TimeUnit.HOUR, { shouldDirty: true });
                         }
                       } else {
                         setTimeSectionText(null);
@@ -670,7 +671,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   template: WorkflowTemplates.CUSTOM,
                                 }
                           );
-                          form.setValue("steps", updatedSteps);
+                          form.setValue("steps", updatedSteps, { shouldDirty: true });
                           setUpdateTemplate(!updateTemplate);
                         }
                       }
@@ -733,7 +734,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           : selectedOptions
                       }
                       setValue={(s: Option[]) => {
-                        form.setValue("activeOn", s);
+                        form.setValue("activeOn", s, { shouldDirty: true });
                       }}
                       countText={
                         isOrganization
@@ -765,7 +766,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange(e);
                           if (e.target.value) {
                             setSelectedOptions(allOptions);
-                            form.setValue("activeOn", allOptions);
+                            form.setValue("activeOn", allOptions, { shouldDirty: true });
                           }
                         }}
                         checked={value}
@@ -936,7 +937,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                         form.setValue(
                           `steps.${step.stepNumber - 1}.action`,
-                          val.value
+                          val.value,
+                          { shouldDirty: true }
                         );
                         setUpdateTemplate(!updateTemplate);
                       }
@@ -1348,7 +1350,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       onChange={(e) =>
                         form.setValue(
                           `steps.${step.stepNumber - 1}.numberRequired`,
-                          e.target.checked
+                          e.target.checked,
+                          { shouldDirty: true }
                         )
                       }
                     />
@@ -1532,7 +1535,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           field.onChange(value);
                           form.setValue(
                             `steps.${step.stepNumber - 1}.template`,
-                            value
+                            value,
+                            { shouldDirty: true }
                           );
                           setUpdateTemplate(!updateTemplate);
                         }
@@ -1628,7 +1632,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 setText={(text: string) => {
                   props.form.setValue(
                     `steps.${step.stepNumber - 1}.reminderBody`,
-                    text
+                    text,
+                    { shouldDirty: true }
                   );
                   props.form.clearErrors();
                 }}
@@ -1678,7 +1683,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(e) =>
                           form.setValue(
                             `steps.${step.stepNumber - 1}.includeCalendarEvent`,
-                            e.target.checked
+                            e.target.checked,
+                            { shouldDirty: true }
                           )
                         }
                       />
@@ -2113,7 +2119,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                       return updatedStep;
                     });
-                  form.setValue("steps", updatedSteps);
+                  form.setValue("steps", updatedSteps, { shouldDirty: true });
                   if (setReload) {
                     setReload(!reload);
                   }

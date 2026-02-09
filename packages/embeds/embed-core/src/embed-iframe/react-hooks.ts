@@ -3,7 +3,9 @@
  * All hooks defined in this file must be client side hooks and must not be executed in server side.
  * So, they should start with isBrowser check.
  */
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sdkActionManager } from "../sdk-event";
+import { useEmbedUiConfig, useIsEmbed } from "../embed-iframe";
 import { embedStore, getEventHasFired, setEventHasFired, getReloadInitiated, setReloadInitiated } from "./lib/embedStore";
 import { isBrowser, isPrerendering } from "./lib/utils";
 
@@ -114,3 +116,13 @@ export const useBookerEmbedEvents = ({
     }
 };
 
+export const useSlotsViewOnSmallScreen = () => {
+  const isEmbed = useIsEmbed();
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const embedUiConfig = useEmbedUiConfig();
+
+  if (!isBrowser || !isEmbed || !isMobile) return false;
+
+  return embedUiConfig.useSlotsViewOnSmallScreen ?? false;
+};
