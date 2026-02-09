@@ -79,9 +79,16 @@ export function NewScheduleButton({
             placeholder={t("default_schedule_name")}
             {...register("name", {
               setValueAs: (v) => (!v || v.trim() === "" ? null : v),
+              pattern:{
+                value: /^[a-zA-Z0-9\s&\-_'@.:,/]+$/,
+                message:t("invalid_characters_in_name"),
+              }
             })}
           />
+
+  
           <DialogFooter>
+
             <DialogClose />
             <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
