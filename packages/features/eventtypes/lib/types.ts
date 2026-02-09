@@ -195,6 +195,7 @@ export type FormValues = {
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
   enablePerHostLocations: boolean;
+  optionalTeamGuestIds: number[];
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
@@ -442,6 +443,7 @@ export type EventTypeUpdateInput = {
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
   enablePerHostLocations?: boolean;
+  optionalTeamGuestIds?: number[];
 };
 
 export type TabMap = {

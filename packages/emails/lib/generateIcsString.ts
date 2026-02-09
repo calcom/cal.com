@@ -62,7 +62,6 @@ const generateIcsString = ({
 
   // Taking care of recurrence rule
   let recurrenceRule: string | undefined = undefined;
-  const icsRole: ParticipationRole = "REQ-PARTICIPANT";
   if (event.recurringEvent?.count) {
     // ics appends "RRULE:" already, so removing it from RRule generated string
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
@@ -93,15 +92,15 @@ const generateIcsString = ({
         name: attendee.name,
         email: attendee.email,
         partstat,
-        role: icsRole,
+        role: (attendee.isOptional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT") as ParticipationRole,
         rsvp: true,
       })),
       ...(event.team?.members
-        ? event.team?.members.map((member: Person) => ({
+        ? event.team?.members.map((member) => ({
             name: member.name,
             email: member.email,
             partstat,
-            role: icsRole,
+            role: (member.isOptional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT") as ParticipationRole,
             rsvp: true,
           }))
         : []),

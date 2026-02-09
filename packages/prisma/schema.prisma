@@ -282,6 +282,7 @@ model EventType {
   bookingRequiresAuthentication Boolean @default(false)
   rrHostSubsetEnabled           Boolean @default(false)
   enablePerHostLocations        Boolean @default(false)
+  optionalTeamGuestIds          Int[]   @default([])
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt

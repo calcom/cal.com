@@ -128,6 +128,7 @@ const getEventTypesFromDBSelect = {
     },
   },
   enablePerHostLocations: true,
+  optionalTeamGuestIds: true,
   hosts: {
     select: {
       isFixed: true,

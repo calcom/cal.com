@@ -87,6 +87,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
 import {
   BookingStatus,
@@ -286,6 +287,7 @@ export const buildEventForTeamEventType = async ({
   organizerUser,
   schedulingType,
   team,
+  optionalTeamGuestIds,
 }: {
   existingEvent: Partial<CalendarEvent>;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
@@ -298,6 +300,7 @@ export const buildEventForTeamEventType = async ({
     id: number;
     name: string;
   } | null;
+  optionalTeamGuestIds?: number[];
 }) => {
   // not null assertion.
   if (!schedulingType) {
@@ -337,6 +340,38 @@ export const buildEventForTeamEventType = async ({
     });
 
   const teamMembers = await Promise.all(teamMemberPromises);
+
+  // Fetch optional team guests (team members invited as optional attendees)
+  if (optionalTeamGuestIds && optionalTeamGuestIds.length > 0) {
+    // Filter out users who are already hosts or the organizer
+    const existingMemberEmails = new Set([
+      organizerUser.email,
+      ...teamMembers.map((m) => m.email),
+    ]);
+
+    const optionalGuests = await prisma.user.findMany({
+      where: { id: { in: optionalTeamGuestIds } },
+      select: { id: true, name: true, email: true, timeZone: true, locale: true },
+    });
+
+    for (const guest of optionalGuests) {
+      if (!existingMemberEmails.has(guest.email)) {
+        teamMembers.push({
+          id: guest.id,
+          email: guest.email,
+          name: guest.name ?? "",
+          firstName: "",
+          lastName: "",
+          timeZone: guest.timeZone,
+          language: {
+            translate: await getTranslation(guest.locale ?? "en", "common"),
+            locale: guest.locale ?? "en",
+          },
+          isOptional: true,
+        });
+      }
+    }
+  }
 
   const updatedEvt = CalendarEventBuilder.fromEvent(evt)
     ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
@@ -1603,6 +1638,7 @@ async function handler(
       users,
       team: eventType.team,
       organizerUser,
+      optionalTeamGuestIds: eventType.optionalTeamGuestIds,
     });
 
     if (!teamEvt) {

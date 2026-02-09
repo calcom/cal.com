@@ -42,6 +42,7 @@ export type Person = {
   timeFormat?: TimeFormat;
   bookingSeat?: BookingSeat | null;
   phoneNumber?: string | null;
+  isOptional?: boolean;
 };
 
 export type TeamMember = {
@@ -51,6 +52,7 @@ export type TeamMember = {
   phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
+  isOptional?: boolean;
 };
 
 export type EventBusyDate = {

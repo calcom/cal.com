@@ -64,6 +64,7 @@ import {
   Select,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -1211,6 +1212,52 @@ export const EventAdvancedTab = ({
             data-testid="hide-organizer-email"
           />
         )}
+      />
+      <Controller
+        name="optionalTeamGuestIds"
+        render={({ field: { value, onChange } }) => {
+          const isEnabled = value && value.length > 0;
+          const teamMemberOptions =
+            eventType.team?.members
+              ?.filter((m) => m.accepted)
+              .map((m) => ({
+                value: m.user.id,
+                label: m.user.name || m.user.email,
+              })) ?? [];
+          const selectedValues = teamMemberOptions.filter((opt) => value?.includes(opt.value));
+          return (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                isEnabled && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
+              title={t("optional_team_guests")}
+              description={t("optional_team_guests_description")}
+              checked={isEnabled}
+              disabled={!team}
+              Badge={!team ? <UpgradeTeamsBadge /> : undefined}
+              onCheckedChange={(checked) => {
+                if (!checked) {
+                  onChange([]);
+                }
+              }}
+              data-testid="optional-team-guests-toggle">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <Select<{ value: number; label: string }, true>
+                  isMulti
+                  options={teamMemberOptions}
+                  value={selectedValues}
+                  onChange={(selected) => {
+                    onChange(selected ? selected.map((s) => s.value) : []);
+                  }}
+                />
+              </div>
+            </SettingsToggle>
+          );
+        }}
       />
       <Controller
         name="lockTimeZoneToggleOnBookingPage"

@@ -173,7 +173,12 @@ const injectScheduleAgent = (iCalString: string): string => {
 };
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  attendees.map((attendee) => ({
+    name: attendee.name,
+    email: attendee.email,
+    partstat: "NEEDS-ACTION",
+    role: attendee.isOptional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT",
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
