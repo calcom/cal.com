@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import ProtonCalendarService from "./CalendarService";
 
-// Local helper for testing
-const symmetricEncrypt = (text: string, key: string) => `encrypted:${text}`;
-
 // Mock @calcom/lib/crypto
-vi.mock("@calcom/lib/crypto", () => ({
-    symmetricEncrypt,
-    symmetricDecrypt: (text: string, key: string) => {
-        if (text.startsWith("encrypted:")) return text.replace("encrypted:", "");
-        return text;
-    }
-}));
+vi.mock("@calcom/lib/crypto", () => {
+    const symmetricEncrypt = (text: string, key: string) => `encrypted:${text}`;
+    return {
+        symmetricEncrypt,
+        symmetricDecrypt: (text: string, key: string) => {
+            if (text.startsWith("encrypted:")) return text.replace("encrypted:", "");
+            return text;
+        }
+    };
+});
 
 // Mock @calcom/dayjs
 import dayjs from "dayjs";
