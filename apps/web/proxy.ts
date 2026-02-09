@@ -138,11 +138,6 @@ const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
 
-  const routingFormRewriteResponse = routingForms.handleRewrite(url);
-  if (routingFormRewriteResponse) {
-    return responseWithHeaders({ url, res: routingFormRewriteResponse, req: reqWithEnrichedHeaders });
-  }
-
   if (url.pathname.startsWith("/api/auth/signup")) {
     const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
     // If is in maintenance mode, point the url pathname to the maintenance page
@@ -175,16 +170,6 @@ const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   return responseWithHeaders({ url, res, req: reqWithEnrichedHeaders });
-};
-
-const routingForms = {
-  handleRewrite: (url: URL) => {
-    // Don't 404 old routing_forms links
-    if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
-      return NextResponse.rewrite(url);
-    }
-  },
 };
 
 const embeds = {
