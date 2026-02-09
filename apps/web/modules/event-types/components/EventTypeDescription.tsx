@@ -6,7 +6,7 @@ import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/PriceIcon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -32,9 +32,9 @@ export const EventTypeDescription = ({
   eventType,
   className,
   shortenDescription,
-  isPublic,
+  isPublic: _isPublic,
 }: EventTypeDescriptionProps) => {
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
 
   const recurringEvent = useMemo(
     () => parseRecurringEvent(eventType.recurringEvent),
@@ -58,9 +58,9 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
             // eslint-disable-next-line react/no-danger
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient
             dangerouslySetInnerHTML={{
-              __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
+              __html: markdownToSafeHTMLClient(eventType.descriptionAsSafeHTML || ""),
             }}
           />
         )}
