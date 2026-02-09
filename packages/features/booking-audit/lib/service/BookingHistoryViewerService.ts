@@ -1,4 +1,4 @@
-import type { RoutingFormResponseRepositoryInterface } from "@calcom/lib/server/repository/RoutingFormResponseRepository.interface";
+import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
 
 import type { BookingAuditViewerService, DisplayBookingAuditLog } from "./BookingAuditViewerService";
 import { getFieldResponseByIdentifier } from "@calcom/features/routing-forms/lib/getFieldResponseByIdentifier";

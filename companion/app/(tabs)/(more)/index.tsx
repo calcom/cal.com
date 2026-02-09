@@ -1,12 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { Header } from "@/components/Header";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
 import { showErrorAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
+import { getColors } from "@/constants/colors";
 
 interface MoreMenuItem {
   name: string;
@@ -20,6 +29,9 @@ export default function More() {
   const { logout } = useAuth();
   const { clearCache } = useQueryContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   const performLogout = async () => {
     try {
@@ -88,67 +100,90 @@ export default function More() {
   ];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <Header />
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 90 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        <View
+          className="overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.name}
               onPress={item.onPress}
-              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA] ${
-                index < menuItems.length - 1 ? "border-b border-[#E5E5EA]" : ""
-              }`}
+              className={`flex-row items-center justify-between bg-white px-5 py-5 active:bg-[#F8F9FA]`}
+              style={{
+                backgroundColor: theme.backgroundSecondary,
+                borderBottomWidth: index < menuItems.length - 1 ? 1 : 0,
+                borderBottomColor: theme.border,
+              }}
             >
               <View className="flex-1 flex-row items-center">
-                <Ionicons name={item.icon} size={20} color="#333" />
-                <Text className="ml-3 text-base font-semibold text-[#333]">{item.name}</Text>
+                <Ionicons name={item.icon} size={20} color={theme.text} />
+                <Text className="ml-3 text-base font-semibold" style={{ color: theme.text }}>
+                  {item.name}
+                </Text>
               </View>
               {item.isExternal ? (
-                <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+                <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
               ) : (
-                <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
               )}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Delete Account Link */}
-        <View className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        <View
+          className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
           <TouchableOpacity
             onPress={() =>
               openInAppBrowser("https://app.cal.com/settings/my-account/profile", "Delete Account")
             }
             className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-red-50"
+            style={{ backgroundColor: theme.backgroundSecondary }}
           >
             <View className="flex-1 flex-row items-center">
-              <Ionicons name="trash-outline" size={20} color="#991B1B" />
-              <Text className="ml-3 text-base font-medium text-[#991B1B]">Delete Account</Text>
+              <Ionicons name="trash-outline" size={20} color={theme.destructive} />
+              <Text className="ml-3 text-base font-medium" style={{ color: theme.destructive }}>
+                Delete Account
+              </Text>
             </View>
-            <Ionicons name="open-outline" size={20} color="#C7C7CC" />
+            <Ionicons name="open-outline" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Sign Out Button */}
-        <View className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white">
+        <View
+          className="mt-4 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
           <TouchableOpacity
             onPress={handleSignOut}
             className="flex-row items-center justify-center bg-white px-5 py-4 active:bg-red-50"
+            style={{ backgroundColor: theme.backgroundSecondary }}
           >
-            <Ionicons name="log-out-outline" size={20} color="#800000" />
-            <Text className="ml-2 text-base font-medium text-[#800000]">Sign Out</Text>
+            <Ionicons name="log-out-outline" size={20} color={theme.destructive} />
+            <Text className="ml-2 text-base font-medium" style={{ color: theme.destructive }}>
+              Sign Out
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Footer Note */}
-        <Text className="mt-6 px-1 text-center text-xs text-gray-400">
+        <Text
+          className="mt-6 px-1 text-center text-xs text-gray-400"
+          style={{ color: theme.textMuted }}
+        >
           The companion app is an extension of the web application.{"\n"}
           For advanced features, visit{" "}
           <Text
-            className="text-gray-800"
+            style={{ color: theme.text }}
             onPress={() => openInAppBrowser("https://app.cal.com", "Cal.com")}
           >
             app.cal.com

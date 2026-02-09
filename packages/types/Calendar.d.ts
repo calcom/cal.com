@@ -316,7 +316,7 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDelegationCredentialSetup?(): Promise<boolean>;
+  testDelegationCredentialSetup?(): Promise<void>;
 }
 
 /**

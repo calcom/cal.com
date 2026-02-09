@@ -1,8 +1,8 @@
 import { FEATURE_OPT_IN_DI_TOKENS } from "@calcom/features/feature-opt-in/di/tokens";
 import { FeatureOptInService } from "@calcom/features/feature-opt-in/services/FeatureOptInService";
-import { moduleLoader as featureRepositoryModuleLoader } from "@calcom/features/flags/di/FeatureRepository.module";
-import { moduleLoader as teamFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/TeamFeatureRepository.module";
-import { moduleLoader as userFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/UserFeatureRepository.module";
+import { moduleLoader as cachedFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
+import { moduleLoader as cachedTeamFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedTeamFeatureRepository.module";
+import { moduleLoader as cachedUserFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedUserFeatureRepository.module";
 import type { Module } from "@evyweb/ioctopus";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "../di";
 
@@ -16,9 +16,9 @@ const loadModule: ReturnType<typeof bindModuleToClassOnToken> = bindModuleToClas
   token,
   classs: FeatureOptInService,
   depsMap: {
-    featureRepo: featureRepositoryModuleLoader,
-    teamFeatureRepo: teamFeatureRepositoryModuleLoader,
-    userFeatureRepo: userFeatureRepositoryModuleLoader,
+    featureRepo: cachedFeatureRepositoryModuleLoader,
+    teamFeatureRepo: cachedTeamFeatureRepositoryModuleLoader,
+    userFeatureRepo: cachedUserFeatureRepositoryModuleLoader,
   },
 });
 

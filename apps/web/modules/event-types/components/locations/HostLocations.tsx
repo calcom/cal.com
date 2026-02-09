@@ -15,7 +15,7 @@ import {
   isStaticLocationType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/components/phone-input";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";

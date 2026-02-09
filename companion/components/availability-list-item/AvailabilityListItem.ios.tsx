@@ -1,7 +1,7 @@
 import { Button, ContextMenu, Host, HStack, Image } from "@expo/ui/swift-ui";
 import { buttonStyle, frame } from "@expo/ui/swift-ui/modifiers";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import type { SFSymbols7_0 } from "sf-symbols-typescript";
 import type { AvailabilityListItemProps } from "./AvailabilityListItem";
 import { AvailabilitySlots, ScheduleName, TimeZoneRow } from "./AvailabilityListItemParts";
@@ -43,8 +43,17 @@ export const AvailabilityListItem = ({
     },
   ];
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   return (
-    <View className="border-b border-cal-border bg-cal-bg">
+    <View
+      style={{
+        backgroundColor: isDark ? "#000000" : "#FFFFFF",
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? "#4D4D4D" : "#E5E5EA",
+      }}
+    >
       {/* Native iOS Context Menu for long-press */}
       <Host matchContents>
         <ContextMenu

@@ -280,6 +280,9 @@ function BookingListItem(booking: BookingItemProps) {
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
   );
+  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
+    (state) => state.setIsOpenRoutingTraceSheet
+  );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
@@ -442,6 +445,36 @@ function BookingListItem(booking: BookingItemProps) {
                   eventTypeHosts={booking.eventType?.hosts}
                 />
               )}
+              {!isPending && (
+                <div className="sm:hidden">
+                  {(provider?.label ||
+                    (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
               {isCancelled && booking.rescheduled && (
                 <div className="mt-2 inline-block md:hidden">
                   <RequestSentMessage />
@@ -519,7 +552,7 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          isBookingFromRoutingForm ? () => setIsOpenWrongAssignmentDialog(true) : undefined
+          booking.assignmentReason.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
       {isBookingFromRoutingForm && (
