@@ -14,8 +14,7 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import ICAL from "ical.js";
-import dayjs from "dayjs";
+
 
 class ProtonCalendarService implements Calendar {
   private url: string = "";
