@@ -77,13 +77,6 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
-export function checkStaticFiles(pathname: string) {
-  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
-  if (pathname.startsWith("/_next") || hasFileExtension) {
-    return NextResponse.next();
-  }
-}
-
 // Vercel/Edge rejects non‑ASCII header values (see: https://github.com/vercel/next.js/issues/85631)
 const isAscii = (s: string) => {
   for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x7f) return false;
@@ -140,9 +133,6 @@ const shouldEnforceCsp = (url: URL) => {
 const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
-
-  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
-  if (isStaticFile) return isStaticFile;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
