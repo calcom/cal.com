@@ -28,7 +28,10 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const { t } = useLocale();
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
-  const { createTeam, isSubmitting } = useCreateTeam({ redirectBasePath: "/settings/teams/new" });
+  const { createTeam, isSubmitting } = useCreateTeam({
+    redirectBasePath: "/settings/teams/new",
+    isOnboarding: false
+  });
 
   const logoRef = useRef<HTMLInputElement>(null);
   const [teamName, setTeamName] = useState("");
