@@ -21,7 +21,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
@@ -42,7 +42,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { AssignmentReasonEnum, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+
+import assignmentReasonBadgeTitleMap from "@calcom/web/lib/booking/assignmentReasonBadgeTitleMap";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -55,6 +57,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -201,6 +204,7 @@ export default function Success(props: PageProps) {
   const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [isRoutingTraceSheetOpen, setIsRoutingTraceSheetOpen] = useState(false);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -764,6 +768,36 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {canViewHiddenData &&
+                          bookingInfo.assignmentReason &&
+                          bookingInfo.assignmentReason.length > 0 &&
+                          bookingInfo.assignmentReason[0].reasonEnum && (
+                            <>
+                              <div className="mt-9 font-medium">{t("assignment_reason")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
+                                <Badge
+                                  variant="gray"
+                                  className="mb-2 cursor-pointer hover:opacity-80"
+                                  onClick={() => setIsRoutingTraceSheetOpen(true)}>
+                                  {t(
+                                    assignmentReasonBadgeTitleMap(
+                                      bookingInfo.assignmentReason[0].reasonEnum as AssignmentReasonEnum
+                                    )
+                                  )}
+                                </Badge>
+                                {bookingInfo.assignmentReason[0].reasonString && (
+                                  <p className="text-muted wrap-break-word text-sm">
+                                    {bookingInfo.assignmentReason[0].reasonString}
+                                  </p>
+                                )}
+                                <RoutingTraceSheet
+                                  isOpen={isRoutingTraceSheetOpen}
+                                  setIsOpen={setIsRoutingTraceSheetOpen}
+                                  bookingUid={bookingInfo.uid}
+                                />
+                              </div>
+                            </>
+                          )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {

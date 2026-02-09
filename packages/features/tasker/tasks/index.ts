@@ -1,5 +1,4 @@
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-
 import type { TaskHandler, TaskTypes } from "../tasker";
 
 /**
@@ -33,7 +32,14 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   executeAIPhoneCall: () => import("./executeAIPhoneCall").then((module) => module.executeAIPhoneCall),
   sendAwaitingPaymentEmail: () =>
     import("./sendAwaitingPaymentEmail").then((module) => module.sendAwaitingPaymentEmail),
+  sendProrationInvoiceEmail: () =>
+    import("./sendProrationInvoiceEmail").then((module) => module.sendProrationInvoiceEmail),
+  sendProrationReminderEmail: () =>
+    import("./sendProrationReminderEmail").then((module) => module.sendProrationReminderEmail),
+  cancelProrationReminder: () =>
+    import("./cancelProrationReminder").then((module) => module.cancelProrationReminder),
   bookingAudit: () => import("./bookingAudit").then((module) => module.bookingAudit),
+  webhookDelivery: () => import("./webhookDelivery").then((module) => module.webhookDelivery),
 };
 
 export const tasksConfig = {
@@ -43,6 +49,10 @@ export const tasksConfig = {
   },
   executeAIPhoneCall: {
     maxAttempts: 1,
+  },
+  webhookDelivery: {
+    minRetryIntervalMins: IS_PRODUCTION ? 5 : 1,
+    maxAttempts: 3,
   },
 };
 export default tasks;

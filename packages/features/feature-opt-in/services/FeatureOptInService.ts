@@ -1,13 +1,16 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
+import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import {
   getOptInFeatureConfig,
   getOptInFeaturesForScope,
@@ -24,6 +27,24 @@ import type {
   ResolvedFeatureState,
   UserRoleContext,
 } from "./IFeatureOptInService";
+
+function teamFeatureToState(teamFeature: TeamFeaturesDto | undefined): FeatureState {
+  if (!teamFeature) return "inherit";
+  if (teamFeature.enabled) return "enabled";
+  return "disabled";
+}
+
+function userFeatureToState(userFeature: UserFeaturesDto | undefined): FeatureState {
+  if (!userFeature) return "inherit";
+  if (userFeature.enabled) return "enabled";
+  return "disabled";
+}
+
+interface IFeatureOptInServiceDeps {
+  featureRepo: IFeatureRepository;
+  teamFeatureRepo: ITeamFeatureRepository;
+  userFeatureRepo: IUserFeatureRepository;
+}
 
 type ListFeaturesForUserResult = {
   featureId: FeatureId;
@@ -52,9 +73,9 @@ type FeatureOptInEligibilityStatus =
   | "blocked"
   | "can_opt_in";
 
-function getOrgState(orgId: number | null, teamStatesById: Record<number, FeatureState>): FeatureState {
+function getOrgState(orgId: number | null, teamStatesById: Record<number, TeamFeaturesDto>): FeatureState {
   if (orgId !== null) {
-    return teamStatesById[orgId] ?? "inherit";
+    return teamFeatureToState(teamStatesById[orgId]);
   }
   return "inherit";
 }
@@ -75,11 +96,11 @@ function getTeamIdsToQuery(teamId: number, parentOrgId: number | null | undefine
 
 function getOrgStateForTeam(
   parentOrgId: number | null | undefined,
-  teamStates: Record<string, Record<number, FeatureState>>,
+  teamStates: Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>,
   slug: FeatureId
 ): FeatureState {
   if (parentOrgId) {
-    return teamStates[slug]?.[parentOrgId] ?? "inherit";
+    return teamFeatureToState(teamStates[slug]?.[parentOrgId]);
   }
   return "inherit";
 }
@@ -89,7 +110,7 @@ function getOrgStateForTeam(
  * Computes effective states based on global, org, team, and user settings.
  */
 export class FeatureOptInService implements IFeatureOptInService {
-  constructor(private featuresRepository: FeaturesRepository) {}
+  constructor(private deps: IFeatureOptInServiceDeps) {}
 
   /**
    * Core method: Resolve feature states for a user across all their teams.
@@ -125,11 +146,11 @@ export class FeatureOptInService implements IFeatureOptInService {
     }
 
     const [allFeatures, allTeamStates, userStates, userAutoOptIn, teamsAutoOptIn] = await Promise.all([
-      this.featuresRepository.getAllFeatures(),
-      this.featuresRepository.getTeamsFeatureStates({ teamIds: allTeamIds, featureIds }),
-      this.featuresRepository.getUserFeatureStates({ userId, featureIds }),
-      this.featuresRepository.getUserAutoOptIn(userId),
-      this.featuresRepository.getTeamsAutoOptIn(allTeamIds),
+      this.deps.featureRepo.findAll(),
+      this.deps.teamFeatureRepo.findByTeamIdsAndFeatureIds(allTeamIds, featureIds),
+      this.deps.userFeatureRepo.findByUserIdAndFeatureIds(userId, featureIds),
+      this.deps.userFeatureRepo.findAutoOptInByUserId(userId),
+      this.deps.teamFeatureRepo.findAutoOptInByTeamIds(allTeamIds),
     ]);
 
     const globalEnabledMap = new Map(allFeatures.map((feature) => [feature.slug, feature.enabled ?? false]));
@@ -157,8 +178,8 @@ export class FeatureOptInService implements IFeatureOptInService {
     orgId: number | null,
     teamIds: number[],
     globalEnabledMap: Map<string, boolean>,
-    allTeamStates: Record<string, Record<number, FeatureState>>,
-    userStates: Record<string, FeatureState>,
+    allTeamStates: Partial<Record<FeatureId, Record<number, TeamFeaturesDto>>>,
+    userStates: Partial<Record<FeatureId, UserFeaturesDto>>,
     teamsAutoOptIn: Record<number, boolean>,
     userAutoOptIn: boolean
   ): ResolvedFeatureState {
@@ -166,8 +187,8 @@ export class FeatureOptInService implements IFeatureOptInService {
     const teamStatesById = allTeamStates[featureId] ?? {};
 
     const orgState = getOrgState(orgId, teamStatesById);
-    const teamStates = teamIds.map((teamId) => teamStatesById[teamId] ?? "inherit");
-    const userState = userStates[featureId] ?? "inherit";
+    const teamStates = teamIds.map((teamId) => teamFeatureToState(teamStatesById[teamId]));
+    const userState = userFeatureToState(userStates[featureId]);
     const orgAutoOptIn = getOrgAutoOptIn(orgId, teamsAutoOptIn);
     const teamAutoOptIns = teamIds.map((teamId) => teamsAutoOptIn[teamId] ?? false);
 
@@ -206,23 +227,33 @@ export class FeatureOptInService implements IFeatureOptInService {
     };
   }
 
-  /**
-   * List all opt-in features with their states for a user across teams.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to "user".
-   */
-  async listFeaturesForUser(input: {
+  async resolveFeatureStates(input: {
     userId: number;
-    orgId: number | null;
-    teamIds: number[];
-  }): Promise<ListFeaturesForUserResult[]> {
-    const { userId, orgId, teamIds } = input;
-    const userScopedFeatures = getOptInFeaturesForScope("user");
-    const featureIds = userScopedFeatures.map((config) => config.slug);
+    featureIds: FeatureId[];
+  }): Promise<Record<string, ResolvedFeatureState>> {
+    const { userId, featureIds } = input;
+    const { orgId, teamIds } = await this.getUserOrgAndTeamIds(userId);
 
-    const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
+    return this.resolveFeatureStatesAcrossTeams({
       userId,
       orgId,
       teamIds,
+      featureIds,
+    });
+  }
+
+  /**
+   * List all opt-in features with their states for a user across teams.
+   * Only returns features that are in the allowlist, globally enabled, scoped to "user",
+   * and configured to be displayed in settings.
+   */
+  async listFeaturesForUser(input: { userId: number }): Promise<ListFeaturesForUserResult[]> {
+    const { userId } = input;
+    const userScopedFeatures = getOptInFeaturesForScope("user", "settings");
+    const featureIds = userScopedFeatures.map((config) => config.slug);
+
+    const resolvedStates = await this.resolveFeatureStates({
+      userId,
       featureIds,
     });
 
@@ -232,7 +263,8 @@ export class FeatureOptInService implements IFeatureOptInService {
   /**
    * List all opt-in features with their raw states for a team or organization.
    * Used for team/org admin settings page to configure feature opt-in.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to the specified scope.
+   * Only returns features that are in the allowlist, globally enabled, scoped to the specified scope,
+   * and configured to be displayed in settings.
    * If parentOrgId is provided, also returns the organization state for each feature.
    */
   async listFeaturesForTeam(input: {
@@ -242,20 +274,20 @@ export class FeatureOptInService implements IFeatureOptInService {
   }): Promise<ListFeaturesForTeamResult[]> {
     const { teamId, parentOrgId, scope = "team" } = input;
     const teamIdsToQuery = getTeamIdsToQuery(teamId, parentOrgId);
-    const scopedFeatures = getOptInFeaturesForScope(scope);
+    const scopedFeatures = getOptInFeaturesForScope(scope, "settings");
 
     const [allFeatures, teamStates] = await Promise.all([
-      this.featuresRepository.getAllFeatures(),
-      this.featuresRepository.getTeamsFeatureStates({
-        teamIds: teamIdsToQuery,
-        featureIds: scopedFeatures.map((config) => config.slug),
-      }),
+      this.deps.featureRepo.findAll(),
+      this.deps.teamFeatureRepo.findByTeamIdsAndFeatureIds(
+        teamIdsToQuery,
+        scopedFeatures.map((config) => config.slug)
+      ),
     ]);
 
     const results = scopedFeatures.map((config) => {
       const globalFeature = allFeatures.find((f) => f.slug === config.slug);
       const globalEnabled = globalFeature?.enabled ?? false;
-      const teamState = teamStates[config.slug]?.[teamId] ?? "inherit";
+      const teamState = teamFeatureToState(teamStates[config.slug]?.[teamId]);
       const orgState = getOrgStateForTeam(parentOrgId, teamStates, config.slug);
 
       return { featureId: config.slug, globalEnabled, teamState, orgState };
@@ -445,21 +477,15 @@ export class FeatureOptInService implements IFeatureOptInService {
     }
 
     if (state === "inherit") {
-      await this.featuresRepository.setUserFeatureState({ userId, featureId, state });
+      await this.deps.userFeatureRepo.delete(userId, featureId);
     } else {
       const { assignedBy } = input;
-      await this.featuresRepository.setUserFeatureState({
-        userId,
-        featureId,
-        state,
-        assignedBy: `user-${assignedBy}`,
-      });
+      await this.deps.userFeatureRepo.upsert(userId, featureId, state === "enabled", `user-${assignedBy}`);
     }
   }
 
   /**
    * Set team's feature state.
-   * Delegates to FeaturesRepository.setTeamFeatureState.
    * Throws an error if the feature is not scoped to the specified scope.
    */
   async setTeamFeatureState(
@@ -484,18 +510,14 @@ export class FeatureOptInService implements IFeatureOptInService {
     }
 
     if (state === "inherit") {
-      await this.featuresRepository.setTeamFeatureState({ teamId, featureId, state });
+      await this.deps.teamFeatureRepo.delete(teamId, featureId);
     } else {
       const { assignedBy } = input;
-      await this.featuresRepository.setTeamFeatureState({
-        teamId,
-        featureId,
-        state,
-        assignedBy: `user-${assignedBy}`,
-      });
+      await this.deps.teamFeatureRepo.upsert(teamId, featureId, state === "enabled", `user-${assignedBy}`);
     }
   }
 }
 
 export type { FeatureOptInEligibilityStatus };
-export type { UserRoleContext, FeatureOptInEligibilityResult } from "./IFeatureOptInService";
+export type { IFeatureOptInServiceDeps };
+export type { FeatureOptInEligibilityResult, UserRoleContext } from "./IFeatureOptInService";

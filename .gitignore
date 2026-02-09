@@ -113,3 +113,4 @@ specs/**/_drafts/
 
 # trigger.dev
 .trigger
+agents/devin-knowledge.json

@@ -40,6 +40,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
@@ -273,7 +274,15 @@ function BookingListItem(booking: BookingItemProps) {
 
   const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
   const setIsCancelDialogOpen = useBookingActionsStoreContext((state) => state.setIsCancelDialogOpen);
-
+  const isOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.isOpenWrongAssignmentDialog
+  );
+  const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
+    (state) => state.setIsOpenWrongAssignmentDialog
+  );
+  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
+    (state) => state.setIsOpenRoutingTraceSheet
+  );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
@@ -436,6 +445,36 @@ function BookingListItem(booking: BookingItemProps) {
                   eventTypeHosts={booking.eventType?.hosts}
                 />
               )}
+              {!isPending && (
+                <div className="sm:hidden">
+                  {(provider?.label ||
+                    (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
               {isCancelled && booking.rescheduled && (
                 <div className="mt-2 inline-block md:hidden">
                   <RequestSentMessage />
@@ -512,7 +551,22 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeFormat={userTimeFormat}
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
+        onAssignmentReasonClick={
+          booking.assignmentReason.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
+        }
       />
+      {isBookingFromRoutingForm && (
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
     </div>
   );
 }
@@ -525,6 +579,7 @@ const BookingItemBadges = ({
   userTimeFormat,
   userTimeZone,
   isRescheduled,
+  onAssignmentReasonClick,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
@@ -533,6 +588,7 @@ const BookingItemBadges = ({
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
   isRescheduled: boolean;
+  onAssignmentReasonClick?: () => void;
 }) => {
   const { t } = useLocale();
 
@@ -561,7 +617,10 @@ const BookingItemBadges = ({
         </Badge>
       )}
       {booking?.assignmentReason.length > 0 && (
-        <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+        <AssignmentReasonTooltip
+          assignmentReason={booking.assignmentReason[0]}
+          onClick={onAssignmentReasonClick}
+        />
       )}
       {booking.report && (
         <Tooltip
@@ -1092,12 +1151,21 @@ const DisplayAttendees = ({
   );
 };
 
-const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: AssignmentReason }) => {
+const AssignmentReasonTooltip = ({
+  assignmentReason,
+  onClick,
+}: {
+  assignmentReason: AssignmentReason;
+  onClick?: () => void;
+}) => {
   const { t } = useLocale();
   const badgeTitle = assignmentReasonBadgeTitleMap(assignmentReason.reasonEnum);
   return (
     <Tooltip content={<p>{assignmentReason.reasonString}</p>}>
-      <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+      <Badge
+        className={classNames("ltr:mr-2 rtl:ml-2", onClick && "cursor-pointer hover:opacity-80")}
+        variant="gray"
+        onClick={onClick}>
         {t(badgeTitle)}
       </Badge>
     </Tooltip>

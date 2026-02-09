@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
-
 import { MonthlyProrationService } from "../MonthlyProrationService";
 
 vi.mock("@calcom/prisma", () => ({
@@ -59,6 +59,7 @@ const mockTeamRepository = {
   getTeamWithBilling: vi.fn(),
   getAnnualTeamsWithSeatChanges: vi.fn(),
   updatePaidSeats: vi.fn(),
+  getTeamMemberCount: vi.fn(),
 };
 
 const mockProrationRepository = {
@@ -69,8 +70,9 @@ const mockProrationRepository = {
 
 const mockBillingService: IBillingProviderService = {
   createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
-  finalizeInvoice: vi.fn().mockResolvedValue(undefined),
+  finalizeInvoice: vi.fn().mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
   getSubscription: vi.fn().mockResolvedValue({
     items: [
       { id: "si_test_123", quantity: 1, price: { unit_amount: 12000, recurring: { interval: "year" } } },
@@ -98,6 +100,9 @@ const mockBillingService: IBillingProviderService = {
   getCustomer: vi.fn().mockResolvedValue(null),
   getSubscriptions: vi.fn().mockResolvedValue(null),
   updateCustomer: vi.fn().mockResolvedValue(undefined),
+  getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
+  hasDefaultPaymentMethod: vi.fn().mockResolvedValue(true),
+  voidInvoice: vi.fn().mockResolvedValue(undefined),
 } as IBillingProviderService;
 
 vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({
@@ -105,6 +110,7 @@ vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({
     getTeamWithBilling = mockTeamRepository.getTeamWithBilling;
     getAnnualTeamsWithSeatChanges = mockTeamRepository.getAnnualTeamsWithSeatChanges;
     updatePaidSeats = mockTeamRepository.updatePaidSeats;
+    getTeamMemberCount = mockTeamRepository.getTeamMemberCount;
   },
 }));
 
@@ -182,6 +188,7 @@ describe("MonthlyProrationService", () => {
         subscriptionId: "sub_123",
         subscriptionItemId: "si_123",
         membershipCount: 10,
+        prorationBehavior: "none",
       });
     });
 
@@ -236,6 +243,135 @@ describe("MonthlyProrationService", () => {
       expect(mockBillingService.createInvoiceItem).toHaveBeenCalled();
       expect(mockBillingService.createInvoice).toHaveBeenCalled();
       expect(mockBillingService.finalizeInvoice).toHaveBeenCalled();
+    });
+
+    it("should charge only for net additions when removals exist", async () => {
+      const subscriptionStart = new Date("2026-01-01");
+      const subscriptionEnd = new Date("2027-01-01");
+
+      const { SeatChangeTrackingService } = await import("../../seatTracking/SeatChangeTrackingService");
+      vi.spyOn(SeatChangeTrackingService.prototype, "getMonthlyChanges").mockResolvedValueOnce({
+        additions: 20,
+        removals: 10,
+        netChange: 10,
+      });
+      vi.spyOn(SeatChangeTrackingService.prototype, "markAsProcessed").mockResolvedValueOnce(10);
+
+      mockTeamRepository.getTeamWithBilling.mockResolvedValueOnce({
+        id: 1,
+        isOrganization: false,
+        memberCount: 120,
+        billing: {
+          id: "team-billing-999",
+          subscriptionId: "sub_999",
+          subscriptionItemId: "si_999",
+          customerId: "cus_999",
+          billingPeriod: "ANNUALLY",
+          pricePerSeat: 10000,
+          subscriptionStart,
+          subscriptionEnd,
+          paidSeats: 110,
+        },
+      });
+
+      mockProrationRepository.createProration.mockResolvedValueOnce({
+        id: "proration-999",
+        customerId: "cus_999",
+        proratedAmount: 25000,
+        netSeatIncrease: 10,
+        monthKey: "2026-01",
+        teamId: 1,
+        subscriptionId: "sub_999",
+        subscriptionItemId: "si_999",
+        seatsAtEnd: 120,
+      } as any);
+
+      mockProrationRepository.updateProrationStatus.mockResolvedValueOnce({
+        id: "proration-999",
+        status: "INVOICE_CREATED",
+      } as any);
+
+      await service.createProrationForTeam({
+        teamId: 1,
+        monthKey: "2026-01",
+      });
+
+      expect(mockProrationRepository.createProration).toHaveBeenCalledWith(
+        expect.objectContaining({
+          seatsAdded: 20,
+          seatsRemoved: 10,
+          netSeatIncrease: 10,
+          seatsAtStart: 110,
+          seatsAtEnd: 120,
+        })
+      );
+      expect(mockBillingService.createInvoiceItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subscriptionId: "sub_999",
+        })
+      );
+      expect(mockBillingService.createInvoice).toHaveBeenCalled();
+    });
+
+    it("should send invoice when no default payment method exists", async () => {
+      const subscriptionStart = new Date("2026-01-01");
+      const subscriptionEnd = new Date("2027-01-01");
+
+      const { SeatChangeTrackingService } = await import("../../seatTracking/SeatChangeTrackingService");
+      vi.spyOn(SeatChangeTrackingService.prototype, "markAsProcessed").mockResolvedValueOnce(2);
+      vi.mocked(mockBillingService.hasDefaultPaymentMethod).mockResolvedValueOnce(false);
+
+      mockTeamRepository.getTeamWithBilling.mockResolvedValueOnce({
+        id: 1,
+        isOrganization: false,
+        memberCount: 12,
+        billing: {
+          id: "team-billing-789",
+          subscriptionId: "sub_789",
+          subscriptionItemId: "si_789",
+          customerId: "cus_789",
+          billingPeriod: "ANNUALLY",
+          pricePerSeat: 10000,
+          subscriptionStart,
+          subscriptionEnd,
+          paidSeats: 10,
+        },
+      });
+
+      mockProrationRepository.createProration.mockResolvedValueOnce({
+        id: "proration-789",
+        customerId: "cus_789",
+        proratedAmount: 5000,
+        netSeatIncrease: 2,
+        monthKey: "2026-01",
+        teamId: 1,
+        subscriptionId: "sub_789",
+        subscriptionItemId: "si_789",
+        seatsAtEnd: 12,
+      } as any);
+
+      mockProrationRepository.updateProrationStatus.mockResolvedValueOnce({
+        id: "proration-789",
+        status: "PENDING",
+      } as any);
+
+      await service.createProrationForTeam({
+        teamId: 1,
+        monthKey: "2026-01",
+      });
+
+      expect(mockBillingService.createInvoice).toHaveBeenCalledWith({
+        customerId: "cus_789",
+        autoAdvance: true,
+        collectionMethod: "send_invoice",
+        subscriptionId: "sub_789",
+        metadata: buildMonthlyProrationMetadata({ prorationId: "proration-789" }),
+      });
+      expect(mockProrationRepository.updateProrationStatus).toHaveBeenCalledWith("proration-789", "PENDING", {
+        invoiceItemId: "ii_test_123",
+        invoiceId: "in_test_123",
+        invoiceUrl: "https://invoice.stripe.com/test",
+      });
     });
 
     it("should use organization billing for organizations", async () => {
@@ -309,7 +445,7 @@ describe("MonthlyProrationService", () => {
   });
 
   describe("handleProrationPaymentSuccess", () => {
-    it("should update proration status to CHARGED", async () => {
+    it("should update proration status to CHARGED using seatsAtEnd from proration record", async () => {
       mockProrationRepository.findById.mockResolvedValueOnce({
         id: "proration-123",
         status: "INVOICE_CREATED",
@@ -328,11 +464,14 @@ describe("MonthlyProrationService", () => {
       expect(mockProrationRepository.updateProrationStatus).toHaveBeenCalledWith("proration-123", "CHARGED", {
         chargedAt: expect.any(Date),
       });
+      // Should use seatsAtEnd from proration record, not current member count
       expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
         subscriptionId: "sub_123",
         subscriptionItemId: "si_123",
         membershipCount: 13,
+        prorationBehavior: "none",
       });
+      expect(mockTeamRepository.updatePaidSeats).toHaveBeenCalledWith(1, false, "billing-123", 13);
     });
   });
 

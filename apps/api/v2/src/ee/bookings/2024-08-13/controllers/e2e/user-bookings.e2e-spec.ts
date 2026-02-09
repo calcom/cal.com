@@ -515,7 +515,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
-              expect(data.metadata).toEqual(body.metadata);
+              expect(data.metadata).toEqual({...body.metadata, platformClientId: oAuthClient.id});
               createdBooking = data;
             } else {
               throw new Error(
@@ -2115,7 +2115,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
-              expect(data.metadata).toEqual(body.metadata);
+              expect(data.metadata).toEqual({...body.metadata, platformClientId: oAuthClient.id});
               createdBooking = data;
             } else {
               throw new Error(
@@ -2662,11 +2662,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("calendar events", () => {
+      // Type assertion to access private methods for test spying
+      const eventManagerProto = EventManager.prototype as unknown as Record<
+        "createAllCalendarEvents" | "createAllCRMEvents",
+        (...args: unknown[]) => Promise<unknown[]>
+      >;
+
       beforeEach(() => {
         jest.restoreAllMocks();
         jest
           .spyOn(EventManager.prototype, "create")
           .mockImplementation(() => Promise.resolve({ results: [], referencesToCreate: [] }));
+        jest
+          .spyOn(eventManagerProto, "createAllCalendarEvents")
+          .mockImplementation(() => Promise.resolve([]));
+        jest
+          .spyOn(eventManagerProto, "createAllCRMEvents")
+          .mockImplementation(() => Promise.resolve([]));
       });
 
       describe("platform oAuth client has calendar events enabled", () => {
@@ -2837,7 +2849,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 const data: BookingOutput_2024_08_13 = responseBody.data;
                 expect(data.id).toBeDefined();
                 expect(data.uid).toBeDefined();
-                expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                expect(eventManagerProto.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+                expect(eventManagerProto.createAllCRMEvents).toHaveBeenCalledTimes(0);
               } else {
                 throw new Error(
                   "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -2867,7 +2880,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();
-              expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+              expect(eventManagerProto.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+              expect(eventManagerProto.createAllCRMEvents).toHaveBeenCalledTimes(0);
             });
         });
 
@@ -2901,7 +2915,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   const data: BookingOutput_2024_08_13 = responseBody.data;
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
-                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                  expect(eventManagerProto.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+                  expect(eventManagerProto.createAllCRMEvents).toHaveBeenCalledTimes(0);
                   bookingThatRequiresConfirmationUid = data.uid;
                 } else {
                   throw new Error(
@@ -2926,7 +2941,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
                   const data: BookingOutput_2024_08_13 = responseBody.data;
                   expect(data.id).toBeDefined();
                   expect(data.uid).toBeDefined();
-                  expect(EventManager.prototype.create).toHaveBeenCalledTimes(0);
+                  expect(eventManagerProto.createAllCalendarEvents).toHaveBeenCalledTimes(0);
+                  expect(eventManagerProto.createAllCRMEvents).toHaveBeenCalledTimes(0);
                 } else {
                   throw new Error(
                     "Invalid response data - expected booking but received array of possibly recurring bookings"

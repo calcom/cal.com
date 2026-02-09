@@ -89,6 +89,7 @@ export type BookingInfo = {
   videoCallData?: {
     url?: string;
   };
+  platformClientId?: string | null;
 };
 
 export type WorkflowContextData =
@@ -123,9 +124,6 @@ export type WorkflowListType = PrismaWorkflow & {
       id: number;
       title: string;
       parentId: number | null;
-      _count: {
-        children: number;
-      };
     };
   }[];
   readOnly?: boolean;

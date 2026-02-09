@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
@@ -24,6 +24,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+import { Icon } from "@calcom/ui/components/icon";
 
 export type FormValues = {
   locale: {
@@ -204,8 +205,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   <Label className="text-emphasis mt-6">
                     <>{t("timezone")}</>
                   </Label>
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    <div className="w-full sm:w-1/2">
                       <TimezoneSelect
                         id="timezone"
                         value={value}
@@ -219,6 +220,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     </div>
                     {!watchedTzSchedules.length && (
                       <Button
+                        className="w-full sm:w-1/2"
                         color="secondary"
                         StartIcon="calendar"
                         onClick={() => setIsTZScheduleOpen(true)}
@@ -316,6 +318,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             />
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
+              <Icon name="info" className="mr-2" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller
@@ -413,7 +416,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
         />
         <TravelScheduleModal
           open={isTZScheduleOpen}
-          onOpenChange={() => setIsTZScheduleOpen(false)}
+          onOpenChange={setIsTZScheduleOpen}
           setValue={formMethods.setValue}
           existingSchedules={formMethods.getValues("travelSchedules") ?? []}
         />
