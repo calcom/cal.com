@@ -245,11 +245,11 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
   return reqWithCSP;
 }
 
-const MIDDLEWARE_ROUTES = ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed"];
+const PROXY_MATCHER_ROUTES = ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed"];
 
 export const config = {
   matcher: [
-    ...MIDDLEWARE_ROUTES,
+    ...PROXY_MATCHER_ROUTES,
     ...POST_METHODS_ALLOWED_API_ROUTES.map((route) => (route.endsWith("/") ? `${route}:path*` : route)),
   ],
 };
