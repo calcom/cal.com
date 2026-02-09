@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { GroupedBookingReport, BlocklistScope } from "../types";
+import type { GroupedBookingReport, BlocklistScope } from "@calcom/features/blocklist/types";
 
 interface FormData {
   blockType: WatchlistType;

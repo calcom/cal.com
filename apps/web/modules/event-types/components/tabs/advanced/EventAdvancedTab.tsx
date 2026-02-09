@@ -34,7 +34,7 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "./FormBuilder";
-import { BookerLayoutSelector } from "~/settings/components/BookerLayoutSelector";
+import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,

@@ -614,7 +614,7 @@ function FieldEditDialog({
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto">
+          <div className="h-auto max-h-[85vh]">
             <DialogHeader
               title={t("add_a_booking_question")}
               subtitle={

@@ -17,7 +17,7 @@ import {
 } from "@calcom/ui/components/sheet";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import type { BlocklistEntry, BlocklistEntryDetails, BlocklistScope } from "../types";
+import type { BlocklistEntry, BlocklistEntryDetails, BlocklistScope } from "@calcom/features/blocklist/types";
 
 export interface BlocklistEntryDetailsSheetProps<T extends BlocklistEntry> {
   scope: BlocklistScope;
