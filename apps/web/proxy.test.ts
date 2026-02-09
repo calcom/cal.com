@@ -6,7 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // We'll test the wrapped proxy as it would be used in production
-import proxy, { checkPostMethod } from "./proxy";
+import proxy, { checkPostMethod, POST_METHODS_ALLOWED_API_ROUTES } from "./proxy";
+import { config } from "./proxy";
 
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({
@@ -477,5 +478,49 @@ describe("Middleware Integration Tests", () => {
       const res = await callProxy(req);
       expect(res).toBeDefined();
     });
+  });
+});
+
+describe("Middleware Matcher Configuration", () => {
+  const matcher: string[] = config.matcher;
+
+  it("should include all core middleware routes", () => {
+    expect(matcher).toContain("/auth/login");
+    expect(matcher).toContain("/login");
+    expect(matcher).toContain("/apps/installed");
+    expect(matcher).toContain("/auth/logout");
+    expect(matcher).toContain("/:path*/embed");
+  });
+
+  it("should include all POST_METHODS_ALLOWED_API_ROUTES entries", () => {
+    for (const route of POST_METHODS_ALLOWED_API_ROUTES) {
+      if (route.endsWith("/")) {
+        expect(matcher).toContain(`${route}:path*`);
+      } else {
+        expect(matcher).toContain(route);
+      }
+    }
+  });
+
+  it("should convert trailing-slash routes to wildcard patterns", () => {
+    const trailingSlashRoutes = POST_METHODS_ALLOWED_API_ROUTES.filter((r: string) => r.endsWith("/"));
+    for (const route of trailingSlashRoutes) {
+      expect(matcher).toContain(`${route}:path*`);
+      expect(matcher).not.toContain(route);
+    }
+  });
+
+  it("should keep exact routes without trailing slash unchanged", () => {
+    const exactRoutes = POST_METHODS_ALLOWED_API_ROUTES.filter(
+      (r: string) => !r.endsWith("/") && r.startsWith("/api/")
+    );
+    for (const route of exactRoutes) {
+      expect(matcher).toContain(route);
+    }
+  });
+
+  it("should have no duplicate entries", () => {
+    const uniqueEntries = new Set(matcher);
+    expect(uniqueEntries.size).toBe(matcher.length);
   });
 });
