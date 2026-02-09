@@ -1743,10 +1743,18 @@ export const EventAdvanced = ({
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(!!value && "rounded-b-none")}
+            childrenClassName="lg:ml-0"
             title={t("show_busy_title")}
             description={t("show_busy_description")}
             checked={!!value}
-            onCheckedChange={onChange}
+            onCheckedChange={(enabled) => {
+              onChange(enabled);
+              if (!enabled) {
+                formMethods.setValue("metadata.showBusyPercent", undefined, { shouldDirty: true });
+                formMethods.setValue("metadata.showBusySlots", undefined, { shouldDirty: true });
+              }
+            }}
             fieldPermissions={fieldPermissions}
             fieldName="metadata.showBusy"
             lockedIcon={
@@ -1755,8 +1763,27 @@ export const EventAdvanced = ({
                 fieldPermissions={fieldPermissions}
                 t={t}
               />
-            }
-          />
+            }>
+            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <Controller
+                name="metadata.showBusyPercent"
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    className="w-full"
+                    placeholder={t("show_busy_percentage_placeholder")}
+                    value={value ? { value, label: `${value}%` } : null}
+                    onChange={(option) => {
+                      onChange(option?.value ?? undefined);
+                    }}
+                    options={[5, 10, 15, 25, 50, 75].map((percent) => ({
+                      value: percent,
+                      label: `${percent}%`,
+                    }))}
+                  />
+                )}
+              />
+            </div>
+          </SettingsToggle>
         )}
       />
 

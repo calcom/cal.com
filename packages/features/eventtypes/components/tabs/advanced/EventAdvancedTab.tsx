@@ -1428,12 +1428,39 @@ export const EventAdvancedTab = ({
           <SettingsToggle
             labelClassName={classNames("text-sm")}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              !!value && "rounded-b-none"
+            )}
             title={t("show_busy_title")}
             description={t("show_busy_description")}
             checked={!!value}
-            onCheckedChange={(e) => onChange(e)}
-          />
+            onCheckedChange={(enabled) => {
+              onChange(enabled);
+              if (!enabled) {
+                formMethods.setValue("metadata.showBusyPercent", undefined, { shouldDirty: true });
+                formMethods.setValue("metadata.showBusySlots", undefined, { shouldDirty: true });
+              }
+            }}
+            childrenClassName="lg:ml-0">
+            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <Controller
+                name="metadata.showBusyPercent"
+                render={({ field: { value, onChange } }) => (
+                  <SelectField
+                    className="w-full"
+                    placeholder={t("show_busy_percentage_placeholder")}
+                    value={value ? { value, label: `${value}%` } : undefined}
+                    onChange={(option) => onChange(option?.value)}
+                    options={[5, 10, 15, 25, 50, 75].map((percent) => ({
+                      value: percent,
+                      label: `${percent}%`,
+                    }))}
+                  />
+                )}
+              />
+            </div>
+          </SettingsToggle>
         )}
       />
 

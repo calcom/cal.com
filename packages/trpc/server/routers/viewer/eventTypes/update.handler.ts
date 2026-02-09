@@ -109,6 +109,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      metadata: true,
       maxActiveBookingsPerBooker: true,
       fieldTranslations: {
         select: {
@@ -214,6 +215,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
   }
 
+  const hasMetadataInInput = Object.prototype.hasOwnProperty.call(rest, "metadata");
+  const nextMetadata = hasMetadataInInput ? ((rest.metadata ?? null) as Prisma.InputJsonObject | null) : null;
+  const prevMetadata = (eventType.metadata ?? null) as Prisma.InputJsonObject | null;
+  const nextShowBusy = (nextMetadata as { showBusy?: boolean } | null)?.showBusy;
+  const nextShowBusyPercent = (nextMetadata as { showBusyPercent?: number } | null)?.showBusyPercent;
+  const prevShowBusy = (prevMetadata as { showBusy?: boolean } | null)?.showBusy;
+  const prevShowBusyPercent = (prevMetadata as { showBusyPercent?: number } | null)?.showBusyPercent;
+  const shouldResetShowBusySlots =
+    nextShowBusy !== true || prevShowBusy !== nextShowBusy || prevShowBusyPercent !== nextShowBusyPercent;
+
+  if (nextMetadata && shouldResetShowBusySlots) {
+    delete (nextMetadata as { showBusySlots?: unknown }).showBusySlots;
+  }
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
@@ -224,7 +239,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isRRWeightsEnabled,
     rrSegmentQueryValue:
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
-    metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    ...(hasMetadataInInput && {
+      metadata: nextMetadata === null ? Prisma.DbNull : nextMetadata,
+    }),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
