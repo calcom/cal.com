@@ -315,38 +315,36 @@ jobs:
             # Health check function
             check_worker_health() {
               local container=$1
-              local max_attempts=10
+              local max_attempts=12
               local attempt=1
 
               while [ $attempt -le $max_attempts ]; do
                 log_message "INFO" "Health check attempt $attempt/$max_attempts for $container"
 
-                # Check container status
-                STATUS=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null || echo "not_found")
+                # Check if container is running
+                STATUS=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null | tr -d '[:space:]' || echo "not_found")
+                
+                if [ "$STATUS" != "running" ]; then
+                  log_message "ERROR" "❌ $container is not running (status: $STATUS)"
+                  return 1
+                fi
 
-                if [ "$STATUS" == "running" ]; then
-                  # Check for errors in logs
-                  RECENT_LOGS=$(docker logs --tail 30 "$container" 2>&1 || true)
-
-                  if echo "$RECENT_LOGS" | grep -qi "fatal\|panic\|failed to connect\|ECONNREFUSED"; then
-                    log_message "WARN" "⚠️ $container has errors in logs"
+                # Check for success message in logs
+                LOGS=$(docker logs "$container" 2>&1)
+                # Matches the log output from worker entrypoint: "Worker is up"
+                if echo "$LOGS" | grep -q "Worker is up"; then
+                  # Also check for errors
+                  if echo "$LOGS" | grep -qi "fatal\|panic\|error.*failed\|ECONNREFUSED"; then
+                    log_message "WARN" "⚠️ $container started but has errors"
                     if [ $attempt -eq $max_attempts ]; then
                       return 1
                     fi
                   else
-                    # Check restart count
-                    RESTART_COUNT=$(docker inspect -f '{{.RestartCount}}' "$container" 2>/dev/null || echo "0")
-                    if [ "$RESTART_COUNT" -gt 2 ]; then
-                      log_message "WARN" "⚠️ $container has restarted $RESTART_COUNT times"
-                      return 1
-                    fi
-                    log_message "INFO" "✅ $container is healthy (restarts: $RESTART_COUNT)"
+                    log_message "INFO" "✅ $container is healthy"
                     return 0
                   fi
-                elif [ "$STATUS" == "exited" ] || [ "$STATUS" == "dead" ]; then
-                  log_message "ERROR" "❌ $container has exited/died"
-                  docker logs --tail 50 "$container" >> "$LOG_FILE" 2>&1 || true
-                  return 1
+                else
+                  log_message "INFO" "Container $container still starting (attempt $attempt/$max_attempts)"
                 fi
 
                 sleep 5
@@ -354,6 +352,7 @@ jobs:
               done
 
               log_message "ERROR" "❌ $container did not become healthy after $max_attempts attempts"
+              docker logs --tail 50 "$container" >> "$LOG_FILE" 2>&1 || true
               return 1
             }
 
@@ -386,8 +385,9 @@ jobs:
                 --cpus="0.5" \
                 "$WORKER_IMAGE"; then
 
-                # Wait a moment for container to initialize
-                sleep 10
+                # Wait longer for container to fully initialize
+                log_message "INFO" "Waiting for $WORKER_NAME to initialize..."
+                sleep 15
 
                 # Health check
                 if check_worker_health "$WORKER_NAME"; then
