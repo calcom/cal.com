@@ -250,11 +250,10 @@ jobs:
           key: ${{ env.EC2_SSH_KEY }}
           command_timeout: 600s # 10 minutes
           envs: AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_ACCOUNT_ID,WORKER_REPO_NAME,GIT_HASH,WORKER_REPLICAS
-          script_stop: true
+          script_stop: false
           script: |
             #!/bin/bash
-            set -e
-
+            
             LOG_FILE="/home/onehash/worker-deployment.log"
             : > "$LOG_FILE"
 
@@ -262,8 +261,7 @@ jobs:
               local level=$1
               local message=$2
               local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-              echo "[$timestamp][VPC][$level] $message" >> "$LOG_FILE"
-              echo "[$level] $message"
+              echo "[$timestamp][VPC][$level] $message" | tee -a "$LOG_FILE"
             }
 
             log_message "INFO" "==== WORKER DEPLOYMENT STARTED ===="
@@ -280,10 +278,8 @@ jobs:
 
             # Login to ECR
             log_message "INFO" "Logging into ECR..."
-            aws ecr get-login-password --region "$AWS_REGION" | \
-              docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-
-            if [ $? -ne 0 ]; then
+            if ! aws ecr get-login-password --region "$AWS_REGION" | \
+              docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"; then
               log_message "ERROR" "❌ Failed to login to ECR"
               exit 1
             fi
@@ -358,13 +354,15 @@ jobs:
 
             # Stop existing worker containers
             log_message "INFO" "Stopping existing worker containers..."
-            EXISTING_WORKERS=$(docker ps -a --filter "name=worker-" --format "{{.Names}}" | sort -V)
+            EXISTING_WORKERS=$(docker ps -a --filter "name=worker-" --format "{{.Names}}" | sort -V || echo "")
 
-            for container in $EXISTING_WORKERS; do
-              log_message "INFO" "Stopping $container..."
-              docker stop "$container" 2>/dev/null || true
-              docker rm -f "$container" 2>/dev/null || true
-            done
+            if [ -n "$EXISTING_WORKERS" ]; then
+              for container in $EXISTING_WORKERS; do
+                log_message "INFO" "Stopping $container..."
+                docker stop "$container" 2>/dev/null || true
+                docker rm -f "$container" 2>/dev/null || true
+              done
+            fi
             log_message "INFO" "✅ Existing workers stopped"
 
             # Start new worker containers
@@ -383,11 +381,10 @@ jobs:
                 --add-host=host.docker.internal:host-gateway \
                 --memory="512m" \
                 --cpus="0.5" \
-                "$WORKER_IMAGE"; then
+                "$WORKER_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
 
-                # Wait longer for container to fully initialize
-                log_message "INFO" "Waiting for $WORKER_NAME to initialize..."
-                sleep 15
+                log_message "INFO" "Container $WORKER_NAME created, waiting for initialization..."
+                sleep 5
 
                 # Health check
                 if check_worker_health "$WORKER_NAME"; then
@@ -396,8 +393,7 @@ jobs:
                 else
                   WORKERS_FAILED=$((WORKERS_FAILED + 1))
                   log_message "ERROR" "❌ $WORKER_NAME failed health check"
-                  docker logs --tail 100 "$WORKER_NAME" >> "$LOG_FILE" 2>&1 || true
-                  docker rm -f "$WORKER_NAME" 2>/dev/null || true
+                  # Keep the failed container for debugging, don't remove it
                 fi
               else
                 WORKERS_FAILED=$((WORKERS_FAILED + 1))
@@ -413,12 +409,11 @@ jobs:
 
             # List running workers
             log_message "INFO" "Running worker containers:"
-            docker ps --filter "name=worker-" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" >> "$LOG_FILE"
-            docker ps --filter "name=worker-" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}"
+            docker ps --filter "name=worker-" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | tee -a "$LOG_FILE"
 
             # Cleanup old images
             log_message "INFO" "Pruning old Docker images..."
-            docker image prune -af --filter "until=72h" || true
+            docker image prune -af --filter "until=72h" 2>&1 | tee -a "$LOG_FILE" || true
 
             # Final status
             if [ "$WORKERS_STARTED" -eq 0 ]; then
