@@ -21,7 +21,7 @@ import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store
 import {
   useEvent,
   useScheduleForEvent,
-} from "@calcom/features/bookings/Booker/utils/event";
+} from "@calcom/web/modules/schedules/hooks/useEvent";
 import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
