@@ -391,9 +391,9 @@ const handleMarkNoShow = async ({
       await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
-    if (noShowHost) {
-      await bookingRepository.updateNoShowHost({ bookingUid, noShowHost: true });
-      responsePayload.setNoShowHost(true);
+    if (noShowHost !== undefined) {
+      await bookingRepository.updateNoShowHost({ bookingUid, noShowHost });
+      responsePayload.setNoShowHost(noShowHost);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
