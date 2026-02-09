@@ -93,6 +93,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "apps", href: "/settings/admin/apps/calendar", icon: "blocks" },
         { name: "users", href: "/settings/admin/users", icon: "users" },
         { name: "Services", href: "/settings/admin/services", icon: "cloud" },
+        { name: "Background Jobs", href: "/settings/admin/jobs", icon: "workflow" },
         { name: "organizations", href: "/settings/admin/organizations", icon: "building" },
         { name: "lockedSMS", href: "/settings/admin/lockedSMS", icon: "smartphone" },
         { name: "oAuth", href: "/settings/admin/oAuth", icon: "key" },
@@ -599,6 +600,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   const { t } = useLocale();
   const router = useRouter();
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/settings"); // or dashboard / home
+    }
+  };
+
   return (
     <>
       <nav className="bg-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
@@ -609,7 +618,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
-            onClick={() => router.back()}>
+            onClick={() => handleBack()}>
             <Icon name="arrow-left" className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>

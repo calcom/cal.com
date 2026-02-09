@@ -6,11 +6,11 @@ import { ThirdPartyServiceList } from "~/settings/admin/ThirdPartyServiceList";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("feature_flags"),
-    (t) => t("admin_flags_description"),
+    (t) => t("third_party_services"),
+    (t) => t("third_party_services_description"),
     undefined,
     undefined,
-    "/settings/admin/flags"
+    "/settings/admin/services"
   );
 
 const Page = async () => {

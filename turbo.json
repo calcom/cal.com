@@ -72,6 +72,24 @@
     "deploy": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
+    },
+    "@calid/queue#build": {
+      "cache": true,
+      "outputs": ["dist/**"]
+    },
+
+    "@calid/worker#build": {
+      "dependsOn": ["@calid/queue#build"],
+      "outputs": ["dist/**"]
+    },
+
+    "@calid/worker#start": {
+      "cache": false,
+      "dependsOn": ["@calid/worker#build"]
+    },
+    "@calid/worker#dev": {
+      "cache": false,
+      "persistent": true
     }
   },
   "globalDependencies": ["yarn.lock"],
@@ -416,6 +434,7 @@
     "EXPOSE_SWAGGER_UI",
     "ICSMOBILE_TRANSACTION_AUTH_KEY",
     "ICSMOBILE_OTP_AUTH_KEY",
-    "ICSMOBILE_SENDERID"
+    "ICSMOBILE_SENDERID",
+    "REDIS_URL"
   ]
 }
