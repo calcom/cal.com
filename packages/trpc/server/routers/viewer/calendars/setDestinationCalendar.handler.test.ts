@@ -1,155 +1,166 @@
-import prisma from "../../../../../../tests/libs/__mocks__/prisma";
+import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
-import {
-  createBookingScenario,
-  TestData,
-  getOrganizer,
-  getScenarioData,
-  createOrganization,
-  createDelegationCredential,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe, it, vi, expect } from "vitest";
-
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
-import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
+import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../types";
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";
+
+type MockUser = {
+  id: number;
+  email: string;
+  userLevelSelectedCalendars: Array<{
+    integration: string;
+    externalId: string;
+    credentialId: number | null;
+    delegationCredentialId?: number | null;
+  }>;
+};
 
 vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
   getConnectedCalendars: vi.fn(),
   getCalendarCredentials: vi.fn().mockImplementation((creds) => creds),
 }));
 
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+}));
+
+vi.mock("@calcom/features/calendars/repositories/DestinationCalendarRepository", () => ({
+  DestinationCalendarRepository: {
+    upsert: vi.fn(),
+  },
+}));
+
+// Mock data helpers
+function createMockUser({
+  id,
+  email,
+  userLevelSelectedCalendars = [],
+}: {
+  id: number;
+  email: string;
+  userLevelSelectedCalendars?: Array<{
+    integration: string;
+    externalId: string;
+    credentialId: number | null;
+    delegationCredentialId?: number | null;
+  }>;
+}): MockUser {
+  return {
+    id,
+    email,
+    userLevelSelectedCalendars,
+  };
+}
+
+function createMockCredential({
+  id,
+  delegationCredentialId,
+}: {
+  id: number;
+  delegationCredentialId?: number;
+}) {
+  return {
+    id,
+    delegationCredentialId,
+    type: "google_calendar",
+    key: {},
+  };
+}
+
+function createMockConnectedCalendars({
+  calendars,
+}: {
+  calendars: Array<{
+    externalId: string;
+    integration: string;
+    readOnly: boolean;
+    primary?: boolean | null;
+    email: string;
+    credentialId?: number | null;
+    delegationCredentialId?: number | null;
+  }>;
+}) {
+  return {
+    connectedCalendars: [
+      {
+        calendars,
+      },
+    ],
+  };
+}
+
 describe("setDestinationCalendarHandler", () => {
-  setupAndTeardown();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
 
   it("should successfully set destination calendar with DelegationCredential credentials", async () => {
-    const org = await createOrganization({
-      name: "Test Org",
-      slug: "testorg",
-    });
-
-    const childTeam = {
-      id: 202,
-      name: "Team 1",
-      slug: "team-1",
-      parentId: org.id,
-    };
-
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
-      schedules: [TestData.schedules.IstWorkHours],
-      teams: [
-        {
-          membership: {
-            accepted: true,
-            role: MembershipRole.ADMIN,
-          },
-          team: {
-            id: org.id,
-            name: "Test Org",
-            slug: "testorg",
-          },
-        },
-        {
-          membership: {
-            accepted: true,
-            role: MembershipRole.ADMIN,
-          },
-          team: {
-            id: childTeam.id,
-            name: "Team 1",
-            slug: "team-1",
-            parentId: org.id,
-          },
-        },
-      ],
-    });
-
-    const delegationCredential = await createDelegationCredential(org.id);
-
-    const delegationCredentialId = delegationCredential.id;
+    const delegationCredentialId = 123;
     const testExternalId = "TEST@group.calendar.google.com";
+    const organizerEmail = "organizer@example.com";
+    const organizerId = 101;
 
-    // Mock the getConnectedCalendars response
-    (getConnectedCalendars as jest.Mock).mockResolvedValue({
-      connectedCalendars: [
+    // Create mock user
+    const mockUser = createMockUser({
+      id: organizerId,
+      email: organizerEmail,
+      userLevelSelectedCalendars: [
         {
-          calendars: [
-            {
-              externalId: organizer.email,
-              integration: "google_calendar",
-              readOnly: false,
-              primary: true,
-              email: organizer.email,
-              credentialId: -1,
-              delegationCredentialId: delegationCredentialId,
-            },
-            {
-              externalId: testExternalId,
-              integration: "google_calendar",
-              readOnly: false,
-              primary: null,
-              email: organizer.email,
-              credentialId: -1,
-              delegationCredentialId: delegationCredentialId,
-            },
-          ],
+          integration: "google_calendar",
+          externalId: testExternalId,
+          credentialId: null,
+          delegationCredentialId: delegationCredentialId,
         },
       ],
     });
 
-    await createBookingScenario(
-      getScenarioData(
+    // Mock credentials
+    const mockCredentials = [
+      createMockCredential({
+        id: -1,
+        delegationCredentialId,
+      }),
+    ];
+
+    // Mock connected calendars response
+    const mockConnectedCalendars = createMockConnectedCalendars({
+      calendars: [
         {
-          organizer,
-          eventTypes: [
-            {
-              id: 1,
-              teamId: childTeam.id,
-              schedulingType: SchedulingType.ROUND_ROBIN,
-              length: 30,
-              hosts: [
-                {
-                  userId: 101,
-                  isFixed: false,
-                },
-              ],
-            },
-          ],
-          selectedCalendars: [
-            {
-              integration: "google_calendar",
-              externalId: testExternalId,
-              credentialId: null,
-              delegationCredentialId: delegationCredentialId,
-            },
-          ],
+          externalId: organizerEmail,
+          integration: "google_calendar",
+          readOnly: false,
+          primary: true,
+          email: organizerEmail,
+          credentialId: -1,
+          delegationCredentialId: delegationCredentialId,
         },
-        org
-      )
-    );
+        {
+          externalId: testExternalId,
+          integration: "google_calendar",
+          readOnly: false,
+          primary: null,
+          email: organizerEmail,
+          credentialId: -1,
+          delegationCredentialId: delegationCredentialId,
+        },
+      ],
+    });
+
+    // Setup mocks
+    vi.mocked(getUsersCredentialsIncludeServiceAccountKey).mockResolvedValue(mockCredentials);
+    vi.mocked(getConnectedCalendars).mockResolvedValue(mockConnectedCalendars);
+    vi.mocked(DestinationCalendarRepository.upsert).mockResolvedValue({});
 
     const ctx = {
-      user: {
-        id: organizer.id,
-        email: organizer.email,
-        selectedCalendars: [
-          {
-            integration: "google_calendar",
-            externalId: testExternalId,
-            credentialId: null,
-            delegationCredentialId: delegationCredentialId,
-          },
-        ],
-      } as NonNullable<TrpcSessionUser>,
+      user: mockUser,
     };
 
     await setDestinationCalendarHandler({
@@ -160,36 +171,44 @@ describe("setDestinationCalendarHandler", () => {
       },
     });
 
-    // Verify the destination calendar was set correctly
-    const destinationCalendar = await prisma.destinationCalendar.findFirst({
-      where: {
-        userId: organizer.id,
-      },
-    });
-
-    expect(destinationCalendar).toEqual(
-      expect.objectContaining({
+    // Verify the destination calendar repository was called correctly
+    expect(DestinationCalendarRepository.upsert).toHaveBeenCalledWith({
+      where: { userId: organizerId },
+      update: {
         integration: "google_calendar",
         externalId: testExternalId,
-        credentialId: null,
+        primaryEmail: organizerEmail,
+        credentialId: -1,
         delegationCredentialId: delegationCredentialId,
-      })
-    );
+      },
+      create: {
+        userId: organizerId,
+        integration: "google_calendar",
+        externalId: testExternalId,
+        primaryEmail: organizerEmail,
+        credentialId: -1,
+        delegationCredentialId: delegationCredentialId,
+      },
+    });
   });
 
   it("should throw error when calendar is not found", async () => {
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
+    const organizerEmail = "organizer@example.com";
+    const organizerId = 101;
+
+    // Create mock user
+    const mockUser = createMockUser({
+      id: organizerId,
+      email: organizerEmail,
+      userLevelSelectedCalendars: [],
     });
 
+    // Mock empty credentials and calendars
+    vi.mocked(getUsersCredentialsIncludeServiceAccountKey).mockResolvedValue([]);
+    vi.mocked(getConnectedCalendars).mockResolvedValue({ connectedCalendars: [] });
+
     const ctx = {
-      user: {
-        id: organizer.id,
-        email: organizer.email,
-        selectedCalendars: [],
-      } as NonNullable<TrpcSessionUser>,
+      user: mockUser,
     };
 
     await expect(
@@ -198,7 +217,6 @@ describe("setDestinationCalendarHandler", () => {
         input: {
           integration: "google_calendar",
           externalId: "non-existent-calendar",
-          eventTypeId: null,
         },
       })
     ).rejects.toThrow(

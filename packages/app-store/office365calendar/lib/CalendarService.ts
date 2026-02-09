@@ -1,13 +1,10 @@
-import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
-import type { DefaultBodyType } from "msw";
-import { findIana } from "windows-iana";
-
 import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
-  CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -16,13 +13,16 @@ import type {
   Calendar,
   CalendarServiceEvent,
   EventBusyDate,
+  GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
-
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import type { Event, Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import type { DefaultBodyType } from "msw";
+import { findIana } from "windows-iana";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -53,7 +53,7 @@ interface BodyValue {
   start: { dateTime: string };
 }
 
-export default class Office365CalendarService implements Calendar {
+class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private log: typeof logger;
@@ -82,7 +82,7 @@ export default class Office365CalendarService implements Calendar {
 
         const { client_id, client_secret } = await this.getAuthCredentials(isDelegated);
 
-        const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+        const url = await this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
         const bodyParams = {
           scope: isDelegated
@@ -100,12 +100,12 @@ export default class Office365CalendarService implements Calendar {
           body: new URLSearchParams(bodyParams),
         });
       },
-      isTokenObjectUnusable: async function () {
+      isTokenObjectUnusable: async () => {
         // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
         // This is a placeholder for future implementation.
         return null;
       },
-      isAccessTokenUnusable: async function () {
+      isAccessTokenUnusable: async () => {
         // TODO: Implement this
         return null;
       },
@@ -123,12 +123,39 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
+  private async triggerDelegationCredentialError(error: Error): Promise<void> {
+    if (
+      this.credential.userId &&
+      this.credential.user &&
+      this.credential.appId &&
+      this.credential.delegatedToId
+    ) {
+      await triggerDelegationCredentialErrorWebhook({
+        error,
+        credential: {
+          id: this.credential.id,
+          type: this.credential.type,
+          appId: this.credential.appId,
+        },
+        user: {
+          id: this.credential.userId,
+          email: this.credential.user.email,
+        },
+        delegationCredentialId: this.credential.delegatedToId,
+      });
+    }
+  }
+
+  private async getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
     if (delegatedTo) {
       if (!tenantId) {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+        const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "Invalid DelegationCredential Settings: tenantId is missing"
         );
+
+        await this.triggerDelegationCredentialError(error);
+
+        throw error;
       }
       return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
     }
@@ -142,9 +169,13 @@ export default class Office365CalendarService implements Calendar {
       const client_secret = this.credential?.delegatedTo?.serviceAccountKey?.private_key;
 
       if (!client_id || !client_secret) {
-        throw new CalendarAppDelegationCredentialConfigurationError(
+        const error = new CalendarAppDelegationCredentialConfigurationError(
           "Delegation credential without clientId or Secret"
         );
+
+        await this.triggerDelegationCredentialError(error);
+
+        throw error;
       }
 
       return { client_id, client_secret };
@@ -160,15 +191,19 @@ export default class Office365CalendarService implements Calendar {
 
     if (!isDelegated) return;
 
-    const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+    const url = await this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
     const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
 
     if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
-      throw new CalendarAppDelegationCredentialConfigurationError(
+      const error = new CalendarAppDelegationCredentialConfigurationError(
         "Delegation credential without clientId or Secret"
       );
+
+      await this.triggerDelegationCredentialError(error);
+
+      throw error;
     }
     const loginResponse = await fetch(url, {
       method: "POST",
@@ -201,26 +236,31 @@ export default class Office365CalendarService implements Calendar {
       const parsedBody = await response.json();
 
       if (!parsedBody?.value?.[0]?.id) {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+        const error = new CalendarAppDelegationCredentialInvalidGrantError(
           "User might not exist in Microsoft Azure Active Directory"
         );
+
+        await this.triggerDelegationCredentialError(error);
+
+        throw error;
       }
       this.azureUserId = parsedBody.value[0].id;
     }
     return this.azureUserId;
   }
 
-  // It would error if the delegation credential is not set up correctly
-  async testDelegationCredentialSetup(): Promise<boolean> {
+  async testDelegationCredentialSetup(): Promise<void> {
     const delegationCredentialClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
-    const url = this.getAuthUrl(
+    const url = await this.getAuthUrl(
       Boolean(this.credential?.delegatedTo),
       this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
     );
 
     if (!delegationCredentialClientId || !delegationCredentialClientSecret) {
-      return false;
+      throw new CalendarAppDelegationCredentialConfigurationError(
+        "Delegation credential is missing client_id or client_secret"
+      );
     }
     const loginResponse = await fetch(url, {
       method: "POST",
@@ -233,7 +273,13 @@ export default class Office365CalendarService implements Calendar {
       }),
     });
     const parsedLoginResponse = await loginResponse.json();
-    return Boolean(parsedLoginResponse?.access_token);
+    if (!parsedLoginResponse?.access_token) {
+      const errorDescription =
+        parsedLoginResponse?.error_description || parsedLoginResponse?.error || "Unknown error";
+      throw new CalendarAppDelegationCredentialInvalidGrantError(
+        `Failed to obtain access token from Microsoft: ${errorDescription}`
+      );
+    }
   }
 
   async getUserEndpoint(): Promise<string> {
@@ -243,8 +289,8 @@ export default class Office365CalendarService implements Calendar {
 
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0]
+      ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0])
       : undefined;
     try {
       const eventsUrl = mainHostDestinationCalendar?.externalId
@@ -319,11 +365,8 @@ export default class Office365CalendarService implements Calendar {
     }
   }
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const dateFromParsed = new Date(dateFrom);
     const dateToParsed = new Date(dateTo);
 
@@ -331,7 +374,9 @@ export default class Office365CalendarService implements Calendar {
       dateFromParsed.toISOString()
     )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
 
-    const calendarSelectParams = "$select=showAs,start,end";
+    // Request maximum page size (999) to minimize pagination rounds
+    // Microsoft Graph allows up to 999 items per page for calendarView
+    const calendarSelectParams = "$select=showAs,start,end&$top=999";
 
     try {
       const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
@@ -375,7 +420,7 @@ export default class Office365CalendarService implements Calendar {
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
 
       return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
-    } catch (err) {
+    } catch {
       return Promise.reject([]);
     }
   }
@@ -462,8 +507,8 @@ export default class Office365CalendarService implements Calendar {
       organizer: {
         emailAddress: {
           address: event.destinationCalendar
-            ? event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
-              event.organizer.email
+            ? (event.destinationCalendar.find((cal) => cal.userId === event.organizer.id)?.externalId ??
+              event.organizer.email)
             : event.organizer.email,
           name: event.organizer.name,
         },
@@ -477,7 +522,7 @@ export default class Office365CalendarService implements Calendar {
           type: "required" as const,
         })),
         ...(event.team?.members
-          ? event.team?.members
+          ? event.team.members
               .filter((member) => member.email !== this.credential.user?.email)
               .map((member) => {
                 const destinationCalendar =
@@ -627,7 +672,7 @@ export default class Office365CalendarService implements Calendar {
     try {
       const parsedJson = JSON.parse(response);
       return parsedJson;
-    } catch (error) {
+    } catch {
       // Looking for html in body
       const openTag = '"body":<';
       const closeTag = "</html>";
@@ -677,7 +722,7 @@ export default class Office365CalendarService implements Calendar {
       let errorBody: string | object;
       try {
         errorBody = await response.json();
-      } catch (e) {
+      } catch {
         errorBody = await response.text();
       }
       this.log.error(
@@ -746,4 +791,14 @@ export default class Office365CalendarService implements Calendar {
       throw error;
     }
   }
+}
+
+/**
+ * Factory function that creates an Office365 Calendar service instance.
+ * This is exported instead of the class to prevent SDK types (like Microsoft Graph types)
+ * from leaking into the emitted .d.ts file, which would cause TypeScript to load
+ * all Microsoft Graph SDK declaration files when type-checking dependent packages.
+ */
+export default function BuildCalendarService(credential: CredentialForCalendarServiceWithTenantId): Calendar {
+  return new Office365CalendarService(credential);
 }

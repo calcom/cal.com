@@ -51,7 +51,7 @@ const passwordResetRequest = async (user: Pick<User, "email" | "name" | "locale"
   const t = await getTranslation(user.locale ?? "en", "common");
   await guardAgainstTooManyPasswordResets(email);
   const resetLink = await createPasswordReset(email);
-  const { sendPasswordResetEmail } = await import("@calcom/emails");
+  const { sendPasswordResetEmail } = await import("@calcom/emails/auth-email-service");
 
   // send email in user language
   await sendPasswordResetEmail({

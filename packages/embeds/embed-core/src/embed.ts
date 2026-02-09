@@ -1,34 +1,35 @@
 /// <reference types="../env" />
-import { FloatingButton } from "./FloatingButton/FloatingButton";
-import { Inline } from "./Inline/inline";
-import { ModalBox } from "./ModalBox/ModalBox";
-import { addAppCssVars } from "./addAppCssVars";
+
 import {
   EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
   EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
   EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
 } from "./constants";
+import css from "./embed.css?inline";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
-import css from "./embed.css";
+import { FloatingButton } from "./FloatingButton/FloatingButton";
+import { Inline } from "./Inline/inline";
 import { getScrollableAncestor } from "./lib/domUtils";
 import { getScrollByDistanceHandler } from "./lib/eventHandlers/scrollByDistanceEventHandler";
 import {
+  buildConfigWithPrerenderRelatedFields,
   fromEntriesWithDuplicateKeys,
-  isRouterPath,
   generateDataAttributes,
   getConfigProp,
+  isRouterPath,
   isSameBookingLink,
-  buildConfigWithPrerenderRelatedFields,
 } from "./lib/utils";
-import { SdkActionManager } from "./sdk-action-manager";
+import { ModalBox } from "./ModalBox/ModalBox";
 import type { EventData, EventDataMap } from "./sdk-action-manager";
+import { SdkActionManager } from "./sdk-action-manager";
 import tailwindCss from "./tailwindCss";
-import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig, ModalPrerenderOptions } from "./types";
+import type { EmbedPageType, ModalPrerenderOptions, PrefillAndIframeAttrsConfig, UiConfig } from "./types";
 import { getMaxHeightForModal } from "./ui-utils";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
 export type { PrefillAndIframeAttrsConfig } from "./types";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[] | undefined> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -39,8 +40,6 @@ export type Message = {
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
 const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
-// Add App CSS Vars as soon as possible so that tailwind classes can work instantly.
-addAppCssVars();
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
@@ -87,7 +86,7 @@ initializeGlobalCalProps();
 
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type ValidationSchemaPropType = string | Function;
 
 type ValidationSchema = {
@@ -234,6 +233,11 @@ export class Cal {
 
   api: CalApi;
 
+  /**
+   * Commands for which the queue persists across iframe resets
+   */
+  commandsPersistAcrossIframeResets: DoInIframeArg['method'][] = ["ui"];
+
   isPrerendering?: boolean;
 
   static actionsManagers: Record<Namespace, SdkActionManager>;
@@ -269,8 +273,7 @@ export class Cal {
       error(`Instruction ${method} not FOUND`);
     }
     try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore There can be any method which can have any number of arguments.
+      // @ts-expect-error There can be any method which can have any number of arguments.
       this.api[method](...args);
     } catch (e) {
       // Instead of throwing error, log and move forward in the queue
@@ -286,8 +289,7 @@ export class Cal {
 
     queue.splice(0);
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    /** @ts-ignore */ // We changed the definition of push here.
+    // @ts-expect-error We changed the definition of push here.
     queue.push = (instruction) => {
       this.processInstruction(instruction);
     };
@@ -366,15 +368,13 @@ export class Cal {
     }
 
     // Merge searchParams from config onto the URL which might have query params already
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    for (const [key, value] of searchParams) {
+    searchParams.forEach((value, key) => {
       urlInstance.searchParams.append(key, value);
-    }
+    });
 
-    // Very Important:Reset iframe ready flag, as iframe might load a fresh URL and we need to check when it is ready.
-    this.iframeReady = false;
-
+    // Very Important: Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check correctly when it is ready.
+    this.iframeReset();
+    
     if (iframe.src === urlInstance.toString()) {
       // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
       // This param has no other purpose except to ensure forced reload.
@@ -410,6 +410,18 @@ export class Cal {
         "*"
       );
     }
+  }
+
+  resetQueue() {
+    // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI configuration applied automatically
+    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => 
+      this.commandsPersistAcrossIframeResets.includes(doInIframeArg.method)
+    );
+  }
+
+  iframeReset() {
+    this.iframeReady = false;
+    this.resetQueue();
   }
 
   constructor(namespace: string, q: Queue) {
@@ -461,6 +473,7 @@ export class Cal {
       this.iframeDoQueue.forEach((doInIframeArg) => {
         this.doInIframe(doInIframeArg);
       });
+      this.resetQueue();
     });
 
     this.actionManager.on("__routeChanged", () => {
@@ -471,7 +484,6 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -481,9 +493,12 @@ export class Cal {
     this.actionManager.on("linkReady", () => {
       if (this.isPrerendering) {
         // Ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed could show-up without any user action
+        // linkReady event isn't received anyway by parent as it isn't whitelisted to be sent to parent but it is a safe guard
         return;
       }
-      this.iframe!.style.visibility = "";
+      if (this.iframe) {
+        this.iframe.style.visibility = "";
+      }
 
       // Removes the loader
       // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.
@@ -860,7 +875,7 @@ class CalApi {
 
     CalApi.initializedNamespaces.push(this.cal.namespace);
 
-    const { calOrigin: calOrigin, origin: origin, ...restConfig } = config;
+    const { calOrigin, origin, ...restConfig } = config;
 
     this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
 
@@ -1015,11 +1030,11 @@ class CalApi {
       el = existingEl as FloatingButton;
     }
     const dataset = el.dataset;
-    dataset["buttonText"] = buttonText;
-    dataset["hideButtonIcon"] = `${hideButtonIcon}`;
-    dataset["buttonPosition"] = `${buttonPosition}`;
-    dataset["buttonColor"] = `${buttonColor}`;
-    dataset["buttonTextColor"] = `${buttonTextColor}`;
+    dataset.buttonText = buttonText;
+    dataset.hideButtonIcon = `${hideButtonIcon}`;
+    dataset.buttonPosition = `${buttonPosition}`;
+    dataset.buttonColor = `${buttonColor}`;
+    dataset.buttonTextColor = `${buttonTextColor}`;
   }
 
   async modal({
@@ -1052,7 +1067,7 @@ class CalApi {
     const { embedConfig: previousEmbedConfig, embedRenderStartTime: previousEmbedRenderStartTime } =
       this.cal.getPreviousModalRenderStartVariables();
 
-    let enrichedConfig;
+    let enrichedConfig: PrefillAndIframeAttrsConfig;
     const configWithGuestKeyAndColorScheme = withColorScheme(
       Cal.ensureGuestKey({
         ...config,
@@ -1061,7 +1076,7 @@ class CalApi {
       containerEl
     );
 
-    let enrichedPrerenderOptions;
+    let enrichedPrerenderOptions: ModalPrerenderOptions | undefined;
     if (isPrerendering) {
       const preparationResult = this.cal.prepareForPrerender({
         calLink,
@@ -1184,6 +1199,9 @@ class CalApi {
             iframe: this.cal.iframe,
             config: enrichedConfig,
           });
+          // Send reloadInitiated message to iframe so it can track it
+          // Send it after loadInIframe so that new iframe can process it.
+          this.cal.doInIframe({ method: "__reloadInitiated", arg: {} });
         } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
           const paramsToAdd = fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries());
           this.cal.connect({
@@ -1295,6 +1313,32 @@ class CalApi {
   }) {
     this.cal.actionManager.off(action, callback);
   }
+
+  /**
+   * Closes modal-based embeds programmatically.
+   *
+   * @throws {Error} If called on an inline embed (only works for modal-based embeds)
+   *
+   * @example
+   * ```javascript
+   * // Close the modal after a successful booking
+   * cal("on", {
+   *   action: "bookingSuccessful",
+   *   callback: () => {
+   *     cal("closeModal");
+   *   }
+   * });
+   * ```
+   */
+  closeModal() {
+    if (this.cal.inlineEl && !this.cal.modalBox) {
+      throw new Error(
+        "closeModal() is only supported for modal-based embeds (ModalBox and FloatingButton). It cannot be used with inline embeds."
+      );
+    }
+    this.cal.actionManager.fire("__closeIframe", {});
+  }
+
   /**
    *
    * type is provided and prerenderIframe not set. We would assume prerenderIframe to be true
@@ -1401,16 +1445,33 @@ class CalApi {
     calOrigin?: string;
     options?: {
       /**
-       * Time in milliseconds after which the prerendered slots/availability should be considered stale and would be requested again when the modal is opened. This could slow down the booking page load by the time taken by slots loading request which shouldn't be too high
+       * Time in milliseconds after which the prerendered slots/availability should be considered stale and would be requested again when the modal is opened.
        *
-       * Default value is 1 min
+       * The threshold is measured from the time of the last prerender or modal API call (not from when the embed was first opened).
+       * **Important**: Each time the modal is opened, the timer resets. This means if you frequently close and reopen the modal
+       * (before the threshold is crossed), the slots will never be considered stale.
+       *
+       * When slots are considered stale, only the availability/slots are refetched (not a full iframe reload), which could
+       * slow down the booking page load by the time taken by the slots loading request.
+       *
+       * Default value is 1 min (60000 ms)
        */
       slotsStaleTimeMs?: number;
       /**
-       * Time in milliseconds after which the iframe would be forcefully reloaded when the modal is opened and thus booking page load could slow down drastically showing the skeleton loader in the meantime
-       * To avoid reaching this threshold, the user could prerender before this time is reached in usecases where prerender has been done long time ago.
+       * Time in milliseconds after which the iframe would be forcefully reloaded when the modal is opened.
        *
-       * Default value is 15 mins
+       * The threshold is measured from the time of the last prerender or modal API call (not from when the embed was first opened).
+       * **Important**: Each time the modal is opened, the timer resets. This means if you frequently close and reopen the modal
+       * (before the threshold is crossed), the iframe will never be forcefully reloaded.
+       *
+       * When this threshold is crossed, a full iframe reload occurs (not just a slots refetch), which causes the booking page
+       * load to slow down drastically, showing the skeleton loader in the meantime. This full reload also means that any form
+       * response data would be resubmitted.
+       *
+       * To avoid reaching this threshold, you could prerender again before this time is reached in usecases where prerender
+       * has been done a long time ago.
+       *
+       * Default value is 15 mins (900000 ms)
        */
       iframeForceReloadThresholdMs?: number;
     };
@@ -1438,6 +1499,7 @@ class CalApi {
         },
       },
     });
+
 
     this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }
@@ -1516,8 +1578,7 @@ window.addEventListener("message", (e) => {
   if (!actionManager) {
     throw new Error(`Unhandled Action ${parsedAction}`);
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   actionManager.fire(parsedAction.type, detail.data);
 });
 
@@ -1533,10 +1594,10 @@ document.addEventListener("click", (e) => {
   const namespace = calLinkEl.dataset.calNamespace;
   const configString = calLinkEl.dataset.calConfig || "";
   const calOrigin = calLinkEl.dataset.calOrigin || "";
-  let config;
+  let config: PrefillAndIframeAttrsConfig;
   try {
     config = JSON.parse(configString);
-  } catch (e) {
+  } catch {
     config = {};
   }
 
@@ -1557,7 +1618,7 @@ document.addEventListener("click", (e) => {
   });
 
   function getCalLinkEl(target: EventTarget | null) {
-    let calLinkEl;
+    let calLinkEl: HTMLElement | Element | undefined;
     if (!(target instanceof HTMLElement)) {
       return null;
     }
@@ -1596,7 +1657,7 @@ let currentColorScheme: string | null = null;
 })();
 
 function getEmbedApiFn(ns: string) {
-  let api;
+  let api: GlobalCalWithoutNs | GlobalCal;
   if (ns === DEFAULT_NAMESPACE) {
     api = globalCal;
   } else {

@@ -1,8 +1,10 @@
 import { checkBotId } from "botid/server";
-import type { IncomingHttpHeaders } from "http";
+import type { IncomingHttpHeaders } from "node:http";
 
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
@@ -34,7 +36,10 @@ export class BotDetectionService {
     }
 
     if (!Number.isInteger(eventTypeId) || eventTypeId <= 0) {
-      throw new Error(`Invalid eventTypeId: ${eventTypeId}. Must be a positive integer.`);
+      throw new ErrorWithCode(
+        ErrorCode.BadRequest,
+        `Invalid eventTypeId: ${eventTypeId}. Must be a positive integer.`
+      );
     }
 
     // Fetch only the teamId from the event type

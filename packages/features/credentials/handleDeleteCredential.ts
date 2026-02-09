@@ -8,7 +8,7 @@ import {
   eventTypeAppMetadataOptionalSchema,
 } from "@calcom/app-store/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -209,15 +209,21 @@ const handleDeleteCredential = async ({
             },
           });
 
-          // Assuming that all bookings under this eventType need to be paid
+          // Only cancel unpaid pending bookings that:
+          // 1. Are in the future (startTime > now) - don't cancel old bookings
+          // 2. Have failed payments associated with the payment app being deleted
           const unpaidBookings = await prisma.booking.findMany({
             where: {
               userId: userId,
               eventTypeId: eventType.id,
               status: "PENDING",
               paid: false,
+              startTime: {
+                gt: new Date(),
+              },
               payment: {
-                every: {
+                some: {
+                  appId: credential.appId,
                   success: false,
                 },
               },
@@ -236,6 +242,11 @@ const handleDeleteCredential = async ({
                   name: true,
                   destinationCalendar: true,
                   locale: true,
+                  profiles: {
+                    select: {
+                      organizationId: true,
+                    },
+                  },
                 },
               },
               location: true,
@@ -272,39 +283,47 @@ const handleDeleteCredential = async ({
             },
           });
 
+          const unpaidBookingsIds = unpaidBookings.map((booking) => booking.id);
+          const unpaidBookingsPaymentIds = unpaidBookings.flatMap((booking) =>
+            booking.payment.map((payment) => payment.id)
+          );
+          await prisma.booking.updateMany({
+            where: {
+              id: {
+                in: unpaidBookingsIds,
+              },
+            },
+            data: {
+              status: BookingStatus.CANCELLED,
+              cancellationReason: "Payment method removed",
+            },
+          });
+          for (const paymentId of unpaidBookingsPaymentIds) {
+            await deletePayment(paymentId, credential);
+          }
+          await prisma.payment.deleteMany({
+            where: {
+              id: {
+                in: unpaidBookingsPaymentIds,
+              },
+            },
+          });
+          await prisma.attendee.deleteMany({
+            where: {
+              bookingId: {
+                in: unpaidBookingsIds,
+              },
+            },
+          });
+          await prisma.bookingReference.updateMany({
+            where: {
+              bookingId: {
+                in: unpaidBookingsIds,
+              },
+            },
+            data: { deleted: true },
+          });
           for (const booking of unpaidBookings) {
-            await prisma.booking.update({
-              where: {
-                id: booking.id,
-              },
-              data: {
-                status: BookingStatus.CANCELLED,
-                cancellationReason: "Payment method removed",
-              },
-            });
-
-            for (const payment of booking.payment) {
-              await deletePayment(payment.id, credential);
-              await prisma.payment.delete({
-                where: {
-                  id: payment.id,
-                },
-              });
-            }
-
-            await prisma.attendee.deleteMany({
-              where: {
-                bookingId: booking.id,
-              },
-            });
-
-            await prisma.bookingReference.updateMany({
-              where: {
-                bookingId: booking.id,
-              },
-              data: { deleted: true },
-            });
-
             const attendeesListPromises = booking.attendees.map(async (attendee) => {
               return {
                 name: attendee.name,
@@ -357,6 +376,7 @@ const handleDeleteCredential = async ({
                       members: [],
                     }
                   : undefined,
+                organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
               },
               {
                 eventName: booking?.eventType?.eventName,
@@ -435,7 +455,7 @@ const handleDeleteCredential = async ({
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
     try {
-      const calendar = await getCalendar(buildNonDelegationCredential(credential));
+      const calendar = await getCalendar(buildNonDelegationCredential(credential), "slots");
 
       const calendars = await calendar?.listCalendars();
 

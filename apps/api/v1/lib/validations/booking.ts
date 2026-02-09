@@ -113,6 +113,12 @@ export const schemaBookingReadPublic = Booking.extend({
     )
     .optional(),
   responses: z.record(z.any()).nullable(),
+  // Override metadata to handle reassignment objects from Round Robin/Managed Events
+  // Safe to use z.any() here because:
+  // 1. API v1 POST only accepts z.record(z.string()) for metadata (user input restricted)
+  // 2. API v1 PATCH does not accept metadata changes at all
+  // 3. Complex metadata (objects) are only set by trusted internal features
+  metadata: z.record(z.any()).nullable(),
 }).pick({
   id: true,
   userId: true,
@@ -122,7 +128,7 @@ export const schemaBookingReadPublic = Booking.extend({
   title: true,
   startTime: true,
   endTime: true,
-  timeZone: true,
+  // Note: timeZone is not a field on Booking model - it's in nested attendees/user objects
   attendees: true,
   user: true,
   eventType: true,

@@ -3,15 +3,20 @@ import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import type { Workflow, WorkflowStep } from "@calcom/ee/workflows/lib/types";
+import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents, WorkflowType, WorkflowMethods } from "@calcom/prisma/enums";
+import type { TimeUnit } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
+import { CalendarEvent } from "@calcom/types/Calendar";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
@@ -86,10 +91,14 @@ export class WorkflowService {
     responses,
     form,
     responseId,
+    routedEventTypeId,
+    creditCheckFn,
   }: {
     responseId: number;
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+    routedEventTypeId: number | null;
+    creditCheckFn: CreditCheckFn;
     form: {
       id: string;
       userId: number;
@@ -131,9 +140,11 @@ export class WorkflowService {
       formData: {
         responses,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
+        routedEventTypeId,
       },
       hideBranding,
       workflows: workflowsToTrigger,
+      creditCheckFn,
     });
 
     const workflowsToSchedule: Workflow[] = [];
@@ -156,6 +167,7 @@ export class WorkflowService {
           responses,
           smsReminderNumber,
           hideBranding,
+          routedEventTypeId,
           form: {
             id: form.id,
             userId: form.userId,
@@ -230,5 +242,137 @@ export class WorkflowService {
       ...args,
       workflows: workflows.filter((workflow) => triggers.includes(workflow.trigger)),
     });
+  }
+
+  static async scheduleLazyEmailWorkflow({
+    workflowTriggerEvent,
+    workflowStepId,
+    workflow,
+    evt,
+    seatReferenceId,
+  }: {
+    // TODO: Expand this method to other workflow triggers
+    workflowTriggerEvent: "BEFORE_EVENT" | "AFTER_EVENT";
+    workflowStepId: number;
+    workflow: Pick<Workflow, "time" | "timeUnit">;
+    evt: Pick<CalendarEvent, "uid" | "startTime" | "endTime">;
+    seatReferenceId?: string;
+  }) {
+    const { uid: bookingUid } = evt;
+    const log = logger.getSubLogger({
+      prefix: [`[WorkflowService.scheduleLazyEmailReminder]: bookingUid ${bookingUid}`],
+    });
+
+    if (!bookingUid) {
+      log.error(`Missing bookingUid`);
+      return;
+    }
+
+    const scheduledDate = WorkflowService.processWorkflowScheduledDate({
+      time: workflow.time,
+      timeUnit: workflow.timeUnit,
+      workflowTriggerEvent,
+      evt,
+      ...(seatReferenceId && { seatReferenceId }),
+    });
+
+    if (!scheduledDate) {
+      log.error("No scheduled date processed");
+      return;
+    }
+
+    if (
+      workflowTriggerEvent === WorkflowTriggerEvents.BEFORE_EVENT &&
+      dayjs(scheduledDate).isBefore(dayjs())
+    ) {
+      log.debug(
+        `Skipping lazy email reminder for workflow step ${workflowStepId} - scheduled date ${scheduledDate} is in the past`
+      );
+      return;
+    }
+
+    let workflowReminder: { id: number | null; uuid: string | null };
+    try {
+      const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+      workflowReminder = await workflowReminderRepository.create({
+        bookingUid,
+        workflowStepId,
+        method: WorkflowMethods.EMAIL,
+        scheduledDate,
+        scheduled: true,
+        seatReferenceUid: seatReferenceId,
+      });
+    } catch (error) {
+      log.error(`Error creating workflowReminder: ${error}`);
+      return;
+    }
+
+    if (!workflowReminder.id || !workflowReminder.uuid) {
+      log.error(`WorkflowReminder does not contain uuid`);
+      return;
+    }
+
+    const taskerPayload = {
+      bookingUid,
+      workflowReminderId: workflowReminder.id,
+    };
+
+    await tasker.create("sendWorkflowEmails", taskerPayload, {
+      scheduledAt: scheduledDate,
+      referenceUid: workflowReminder.uuid,
+    });
+  }
+  static processWorkflowScheduledDate({
+    workflowTriggerEvent,
+    time,
+    timeUnit,
+    evt,
+  }: {
+    workflowTriggerEvent: WorkflowTriggerEvents;
+    time: number | null;
+    timeUnit: TimeUnit | null;
+    evt: Pick<CalendarEvent, "startTime" | "endTime">;
+  }) {
+    const { startTime, endTime } = evt;
+    const processedTimeUnit: timeUnitLowerCase | undefined =
+      timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+
+    let scheduledDate = null;
+
+    if (workflowTriggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+      scheduledDate =
+        time && processedTimeUnit ? dayjs(startTime).subtract(time, processedTimeUnit).toDate() : null;
+    } else if (workflowTriggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+      scheduledDate = time && processedTimeUnit ? dayjs(endTime).add(time, processedTimeUnit).toDate() : null;
+    }
+
+    return scheduledDate;
+  }
+
+  static generateCommonScheduleFunctionParams({
+    workflow,
+    workflowStep,
+    seatReferenceUid,
+    creditCheckFn,
+  }: {
+    workflow: Omit<Workflow, "steps">;
+    workflowStep: WorkflowStep;
+    seatReferenceUid: string | undefined;
+    creditCheckFn: CreditCheckFn;
+  }) {
+    return {
+      triggerEvent: workflow.trigger,
+      timeSpan: {
+        time: workflow.time,
+        timeUnit: workflow.timeUnit,
+      },
+      workflowStepId: workflowStep.id,
+      template: workflowStep.template,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
+      seatReferenceUid,
+      verifiedAt: workflowStep.verifiedAt || null,
+      creditCheckFn,
+    };
   }
 }

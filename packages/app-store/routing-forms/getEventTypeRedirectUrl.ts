@@ -58,6 +58,15 @@ export function getAbsoluteEventTypeRedirectUrl({
      * The origin for the team the form belongs to
      */
     teamOrigin: string;
+    /**
+     * The profile user who owns the form
+     */
+    user: {
+      /**
+       * Current username on the profile
+       */
+      username: string | null;
+    };
   };
   allURLSearchParams: URLSearchParams;
   isEmbed?: boolean;
@@ -77,14 +86,18 @@ export function getAbsoluteEventTypeRedirectUrl({
   if (teamSlugInRedirectUrl && form.nonOrgTeamslug) {
     const isEventTypeRedirectToOldTeamSlug = teamSlugInRedirectUrl === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
-      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;
     }
   }
 
   if (usernameInRedirectUrl && form.nonOrgUsername) {
-    const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
+    const hasSameProfileUsername = form.user?.username === form.nonOrgUsername;
+    const isEventTypeRedirectToOldUser =
+      !hasSameProfileUsername && usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
-      return `${WEBAPP_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
+      return `${WEBAPP_URL}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;
     }
   }
 
@@ -95,7 +108,8 @@ export function getAbsoluteEventTypeRedirectUrl({
     ? form.teamOrigin
     : form.userOrigin;
 
-  return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+  const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
+  return `${origin}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;
 }
 
 export function getAbsoluteEventTypeRedirectUrlWithEmbedSupport(

@@ -1,26 +1,32 @@
+/**
+ * PAGES ROUTER ONLY - Used exclusively by Next.js Pages Router (_app.tsx)
+ *
+ * Currently only serves the /router endpoint (routing forms redirect page).
+ * DO NOT add new features here - this file will be deprecated once we remove apps/web/pages.
+ *
+ * For App Router, use app-providers-app-dir.tsx instead.
+ */
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { EventCollectionProvider } from "next-collect/client";
 import { appWithTranslation } from "next-i18next";
 import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
-import dynamic from "next/dynamic";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
-import type { ParsedUrlQuery } from "querystring";
+import type { ParsedUrlQuery } from "node:querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 
-import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
+import DynamicHelpscoutProvider from "@calcom/web/modules/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/web/modules/ee/support/lib/intercom/providerDynamic";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
@@ -53,13 +59,6 @@ export type AppProps = Omit<
   /** Will be defined only is there was an error */
   err?: Error;
 };
-
-const PostHogPageView = dynamic(
-  () => import("@calcom/features/ee/event-tracking/lib/posthog/web/PostHogPageView"),
-  {
-    ssr: false,
-  }
-);
 
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
@@ -277,31 +276,30 @@ const AppProviders = (props: AppPropsWithChildren) => {
     (typeof props.Component.isBookingPage === "function"
       ? props.Component.isBookingPage({ router: props.router })
       : props.Component.isBookingPage) || isBookingPage;
+  const nuqsParams = useNuqsParams();
 
   const RemainingProviders = (
-    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <CustomI18nextProvider {...props}>
-        <TooltipProvider>
-          <CalcomThemeProvider
-            themeBasis={props.pageProps.themeBasis}
-            isThemeSupported={props.Component.isThemeSupported}
-            isBookingPage={props.Component.isBookingPage || isBookingPage}
-            router={props.router}>
-            <NuqsAdapter>
-              <FeatureFlagsProvider>
-                {_isBookingPage ? (
+    <CustomI18nextProvider {...props}>
+      <TooltipProvider>
+        <CalcomThemeProvider
+          themeBasis={props.pageProps.themeBasis}
+          isThemeSupported={props.Component.isThemeSupported}
+          isBookingPage={props.Component.isBookingPage || isBookingPage}
+          router={props.router}>
+          <NuqsAdapter {...nuqsParams}>
+            <FeatureFlagsProvider>
+              {_isBookingPage ? (
+                <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              ) : (
+                <DynamicIntercomProvider>
                   <OrgBrandProvider>{props.children}</OrgBrandProvider>
-                ) : (
-                  <DynamicIntercomProvider>
-                    <OrgBrandProvider>{props.children}</OrgBrandProvider>
-                  </DynamicIntercomProvider>
-                )}
-              </FeatureFlagsProvider>
-            </NuqsAdapter>
-          </CalcomThemeProvider>
-        </TooltipProvider>
-      </CustomI18nextProvider>
-    </EventCollectionProvider>
+                </DynamicIntercomProvider>
+              )}
+            </FeatureFlagsProvider>
+          </NuqsAdapter>
+        </CalcomThemeProvider>
+      </TooltipProvider>
+    </CustomI18nextProvider>
   );
 
   if (isBookingPage) {
@@ -310,12 +308,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   return (
     <>
-      <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>
-          <PostHogPageView />
-          {RemainingProviders}
-        </DynamicPostHogProvider>
-      </DynamicHelpscoutProvider>
+      <DynamicHelpscoutProvider>{RemainingProviders}</DynamicHelpscoutProvider>
     </>
   );
 };

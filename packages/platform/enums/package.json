@@ -17,7 +17,7 @@
   },
   "scripts": {
     "test": "jest ./tests",
-    "build": "rm -rf ./dist && tsc --build --force tsconfig.json",
+    "build": "npx rimraf dist && tsc --build --force tsconfig.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
   },

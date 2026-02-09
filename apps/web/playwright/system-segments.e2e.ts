@@ -1,7 +1,7 @@
-import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { addFilter, selectSegment, expectSegmentCleared, expectSegmentSelected } from "./filter-helpers";
+import { addFilter, expectSegmentCleared, expectSegmentSelected, selectSegment } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -46,7 +46,7 @@ test.describe("System Segments", () => {
 
       await navigateToBookings(page);
 
-      await page.getByTestId("filter-segment-select").click();
+      await page.getByTestId("filter-segment-select").first().click();
       await page
         .locator('[data-testid="filter-segment-select-content"] [role="menuitem"]')
         .filter({ hasText: "My Bookings" })

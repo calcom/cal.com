@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { AppFlags, TeamFeatures } from "./config";
+import type { AppFlags, FeatureId, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -14,12 +14,14 @@ interface CacheOptions {
  * Repository class for managing feature flags and feature access control.
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
+ *
+ * @deprecated
  */
 export class FeaturesRepository implements IFeaturesRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;
@@ -55,7 +57,7 @@ export class FeaturesRepository implements IFeaturesRepository {
   public async getFeatureFlagMap() {
     const flags = await this.getAllFeatures();
     return flags.reduce((acc, flag) => {
-      acc[flag.slug as keyof AppFlags] = flag.enabled;
+      acc[flag.slug as FeatureId] = flag.enabled;
       return acc;
     }, {} as AppFlags);
   }
@@ -65,16 +67,16 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @param teamId - The ID of the team to get features for
    * @returns Promise<{ [slug: string]: boolean } | null>
    */
-  public async getTeamFeatures(teamId: number) {
+  public async getEnabledTeamFeatures(teamId: number) {
     const result = await this.prismaClient.teamFeatures.findMany({
       where: {
         teamId,
+        enabled: true,
       },
-      include: {
+      select: {
         feature: {
           select: {
             slug: true,
-            enabled: true,
           },
         },
       },
@@ -96,7 +98,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @throws Error if the feature flag check fails
    */
   async checkIfFeatureIsEnabledGlobally(
-    slug: keyof AppFlags,
+    slug: FeatureId,
     _options: CacheOptions = { ttl: 5 * 60 * 1000 }
   ): Promise<boolean> {
     try {
@@ -110,8 +112,12 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
-   * Checks if a specific user has access to a feature.
-   * Checks both direct user feature assignments and team-based feature access.
+   * Checks if a specific user has access to a feature based on user and team assignments.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → feature is enabled
+   * - Row with enabled=false → feature is explicitly disabled (blocks inheritance)
+   * - No row → inherit from team/org level
+   *
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check
    * @returns Promise<boolean> - True if the user has access to the feature, false otherwise
@@ -124,18 +130,64 @@ export class FeaturesRepository implements IFeaturesRepository {
        * FIXME refactor when upgrading prismock
        * https://github.com/morintd/prismock/issues/592
        */
-      const userHasFeature = await this.prismaClient.userFeatures.findFirst({
+      const userFeature = await this.prismaClient.userFeatures.findFirst({
         where: {
           userId,
           featureId: slug,
         },
+        select: { enabled: true },
       });
-      if (userHasFeature) return true;
-      // If the user doesn't have the feature, check if they belong to a team with the feature.
+
+      // If user has an explicit setting, use it
+      if (userFeature) {
+        return userFeature.enabled;
+      }
+
+      // If no user-level setting, check if they belong to a team with the feature.
       // This also covers organizations, which are teams.
       const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeature(userId, slug);
-      if (userBelongsToTeamWithFeature) return true;
-      return false;
+      return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a specific user has access to a feature, ignoring hierarchical (parent) teams.
+   * Only checks direct user assignments and direct team memberships — does not traverse parents.
+   * Uses tri-state semantics:
+   * - Row with enabled=true → feature is enabled
+   * - Row with enabled=false → feature is explicitly disabled
+   * - No row → inherit from direct team memberships
+   *
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user has direct or same-level team access to the feature
+   * @throws Error if the feature access check fails
+   */
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      // Prismock limitation: findUnique may fail, use findFirst instead
+      const userFeature = await this.prismaClient.userFeatures.findFirst({
+        where: {
+          userId,
+          featureId: slug,
+        },
+        select: { enabled: true },
+      });
+
+      // If user has an explicit setting, use it
+      if (userFeature) {
+        return userFeature.enabled;
+      }
+
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureNonHierarchical(
+        userId,
+        slug
+      );
+
+      return userBelongsToTeamWithFeature;
     } catch (err) {
       captureException(err);
       throw err;
@@ -144,9 +196,10 @@ export class FeaturesRepository implements IFeaturesRepository {
 
   /**
    * Private helper method to check if a user belongs to any team that has access to a feature.
+   * Uses tri-state semantics: only treats as enabled if TeamFeatures row exists AND enabled=true.
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check
-   * @returns Promise<boolean> - True if the user belongs to a team with the feature, false otherwise
+   * @returns Promise<boolean> - True if the user belongs to a team with the feature enabled, false otherwise
    * @throws Error if the team feature check fails
    * @private
    */
@@ -158,7 +211,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           SELECT DISTINCT t.id, t."parentId",
             CASE WHEN EXISTS (
               SELECT 1 FROM "TeamFeatures" tf
-              WHERE tf."teamId" = t.id AND tf."featureId" = ${slug}
+              WHERE tf."teamId" = t.id AND tf."featureId" = ${slug} AND tf."enabled" = true
             ) THEN true ELSE false END as has_feature
           FROM "Team" t
           INNER JOIN "Membership" m ON m."teamId" = t.id
@@ -170,7 +223,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           SELECT DISTINCT p.id, p."parentId",
             CASE WHEN EXISTS (
               SELECT 1 FROM "TeamFeatures" tf
-              WHERE tf."teamId" = p.id AND tf."featureId" = ${slug}
+              WHERE tf."teamId" = p.id AND tf."featureId" = ${slug} AND tf."enabled" = true
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
           INNER JOIN TeamHierarchy c ON p.id = c."parentId"
@@ -191,31 +244,141 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
-   * Enables a feature for a specific team.
-   * @param teamId - The ID of the team to enable the feature for
-   * @param featureId - The feature identifier to enable
-   * @param assignedBy - The user or what assigned the feature
+   * Checks if a user belongs to any direct team that has access to a feature.
+   * This version ignores parent/child team relationships — no recursion or hierarchy traversal.
+   * Uses tri-state semantics: only treats as enabled if TeamFeatures row exists AND enabled=true.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user belongs to a team with the feature enabled (direct only)
+   * @throws Error if the query fails
+   * @private
+   */
+  private async checkIfUserBelongsToTeamWithFeatureNonHierarchical(userId: number, slug: string) {
+    try {
+      const query = Prisma.sql`
+        SELECT 1
+        FROM "Team" t
+        INNER JOIN "Membership" m ON m."teamId" = t.id
+        WHERE m."userId" = ${userId}
+          AND m.accepted = true
+          AND EXISTS (
+            SELECT 1
+            FROM "TeamFeatures" tf
+            WHERE tf."teamId" = t.id
+              AND tf."featureId" = ${slug}
+              AND tf."enabled" = true
+          )
+        LIMIT 1;
+      `;
+
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Updates a feature status for a specific user.
+   * Uses tri-state semantics:
+   * - 'enabled': creates/updates a row with enabled=true
+   * - 'disabled': creates/updates a row with enabled=false
+   * - 'inherit': deletes the row to inherit from team/org level
+   *
+   * @param input.userId - The ID of the user to update the feature for
+   * @param input.featureId - The feature identifier to update
+   * @param input.state - 'enabled' | 'disabled' | 'inherit'
+   * @param input.assignedBy - The user or what assigned the feature (required for enabled/disabled, not used for inherit)
+   * @returns Promise<void>
+   * @throws Error if the feature update fails
+   */
+  async setUserFeatureState(
+    input:
+      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { userId: number; featureId: FeatureId; state: "inherit" }
+  ): Promise<void> {
+    const { userId, featureId, state } = input;
+    try {
+      if (state === "enabled" || state === "disabled") {
+        const { assignedBy } = input;
+        await this.prismaClient.userFeatures.upsert({
+          where: {
+            userId_featureId: {
+              userId,
+              featureId,
+            },
+          },
+          create: {
+            userId,
+            featureId,
+            enabled: state === "enabled",
+            assignedBy,
+          },
+          update: {
+            enabled: state === "enabled",
+            assignedBy,
+          },
+        });
+      } else if (state === "inherit") {
+        await this.prismaClient.userFeatures.deleteMany({
+          where: {
+            userId,
+            featureId,
+          },
+        });
+      }
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Updates a feature status for a specific team.
+   * Uses tri-state semantics: creates/updates a row with enabled=true.
+   * @param input.teamId - The ID of the team to enable the feature for
+   * @param input.featureId - The feature identifier to enable
+   * @param input.state - 'enabled' | 'disabled' | 'inherit'
+   * @param input.assignedBy - The user or what assigned the feature (required for enabled/disabled, not used for inherit)
    * @returns Promise<void>
    * @throws Error if the feature enabling fails
    */
-  async enableFeatureForTeam(teamId: number, featureId: keyof AppFlags, assignedBy: string): Promise<void> {
+  async setTeamFeatureState(
+    input:
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { teamId: number; featureId: FeatureId; state: "inherit" }
+  ): Promise<void> {
+    const { teamId, featureId, state } = input;
     try {
-      await this.prismaClient.teamFeatures.upsert({
-        where: {
-          teamId_featureId: {
+      if (state === "enabled" || state === "disabled") {
+        const { assignedBy } = input;
+        await this.prismaClient.teamFeatures.upsert({
+          where: {
+            teamId_featureId: {
+              teamId,
+              featureId,
+            },
+          },
+          create: {
+            teamId,
+            featureId,
+            enabled: state === "enabled",
+            assignedBy,
+          },
+          update: {
+            enabled: state === "enabled",
+            assignedBy,
+          },
+        });
+      } else if (state === "inherit") {
+        await this.prismaClient.teamFeatures.deleteMany({
+          where: {
             teamId,
             featureId,
           },
-        },
-        create: {
-          teamId,
-          featureId,
-          assignedBy,
-        },
-        update: {},
-      });
-      // Clear cache when features are modified
-      this.clearCache();
+        });
+      }
     } catch (err) {
       captureException(err);
       throw err;
@@ -225,23 +388,26 @@ export class FeaturesRepository implements IFeaturesRepository {
   /**
    * Checks if a team or any of its ancestors has access to a specific feature.
    * Uses a recursive CTE raw SQL query for performance.
+   * Uses tri-state semantics: only treats as enabled if TeamFeatures row exists AND enabled=true.
+   *
    * @param teamId - The ID of the team to start the check from
    * @param featureId - The feature identifier to check
-   * @returns Promise<boolean> - True if the team or any ancestor has the feature, false otherwise
+   * @returns Promise<boolean> - True if the team or any ancestor has the feature enabled, false otherwise
    * @throws Error if the database query fails
    */
-  async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
+  async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {
     try {
-      // Early return if team has feature directly assigned
-      const teamHasFeature = await this.prismaClient.teamFeatures.findUnique({
+      // Early return if team has feature directly assigned with enabled=true
+      const teamFeature = await this.prismaClient.teamFeatures.findUnique({
         where: {
           teamId_featureId: {
             teamId,
             featureId,
           },
         },
+        select: { enabled: true },
       });
-      if (teamHasFeature) return true;
+      if (teamFeature) return teamFeature.enabled;
 
       const query = Prisma.sql`
         WITH RECURSIVE TeamHierarchy AS (
@@ -249,7 +415,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           SELECT id, "parentId",
             CASE WHEN EXISTS (
               SELECT 1 FROM "TeamFeatures" tf
-              WHERE tf."teamId" = id AND tf."featureId" = ${featureId}
+              WHERE tf."teamId" = id AND tf."featureId" = ${featureId} AND tf."enabled" = true
             ) THEN true ELSE false END as has_feature
           FROM "Team"
           WHERE id = ${teamId}
@@ -260,7 +426,7 @@ export class FeaturesRepository implements IFeaturesRepository {
           SELECT p.id, p."parentId",
             CASE WHEN EXISTS (
               SELECT 1 FROM "TeamFeatures" tf
-              WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId}
+              WHERE tf."teamId" = p.id AND tf."featureId" = ${featureId} AND tf."enabled" = true
             ) THEN true ELSE false END as has_feature
           FROM "Team" p
           INNER JOIN TeamHierarchy c ON p.id = c."parentId"
@@ -280,6 +446,29 @@ export class FeaturesRepository implements IFeaturesRepository {
         `Recursive feature check failed for team ${teamId}, feature ${featureId}:`,
         err instanceof Error ? err.message : err
       );
+      throw err;
+    }
+  }
+
+  async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
+    try {
+      // If globally disabled, treat as effectively disabled everywhere
+      const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(slug);
+      if (!isGloballyEnabled) return [];
+
+      // Only return teams where enabled=true (tri-state semantics)
+      const rows = await this.prismaClient.teamFeatures.findMany({
+        where: {
+          featureId: slug,
+          enabled: true,
+        },
+        select: { teamId: true },
+        orderBy: { teamId: "asc" },
+      });
+
+      return rows.map((r) => r.teamId);
+    } catch (err) {
+      captureException(err);
       throw err;
     }
   }

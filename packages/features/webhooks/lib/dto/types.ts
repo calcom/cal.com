@@ -1,6 +1,8 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
+
+import type { WebhookVersion } from "../interface/IWebhookRepository";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export interface BaseEventDTO {
@@ -48,9 +50,11 @@ export interface BookingCancelledDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    iCalSequence?: number | null;
   };
   cancelledBy?: string;
   cancellationReason?: string;
+  requestReschedule?: boolean;
 }
 
 export interface BookingRejectedDTO extends BaseEventDTO {
@@ -331,6 +335,12 @@ export interface AfterGuestsNoShowDTO extends BaseEventDTO {
   };
 }
 
+export interface DelegationCredentialErrorDTO
+  extends BaseEventDTO,
+    Pick<DelegationCredentialErrorPayloadType, "error" | "credential" | "user"> {
+  triggerEvent: typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+}
+
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
@@ -349,7 +359,8 @@ export type WebhookEventDTO =
   | MeetingEndedDTO
   | InstantMeetingDTO
   | AfterHostsNoShowDTO
-  | AfterGuestsNoShowDTO;
+  | AfterGuestsNoShowDTO
+  | DelegationCredentialErrorDTO;
 
 // Service layer interfaces
 export interface WebhookTriggerArgs {
@@ -395,6 +406,33 @@ export interface WebhookTriggerArgs {
   paymentData?: Record<string, unknown>;
 }
 
+/**
+ * Full webhook entity - used for CRUD operations and UI display
+ * Contains all fields needed for webhook management
+ */
+export interface Webhook {
+  id: string;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  appId: string | null;
+  secret: string | null;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  eventTypeId: number | null;
+  teamId: number | null;
+  userId: number | null;
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  version: WebhookVersion;
+  createdAt: Date;
+  platform: boolean;
+  platformOAuthClientId: string | null;
+}
+
+/**
+ * Webhook subscriber - minimal type for webhook delivery/payload sending
+ * Subset of Webhook with only fields needed for triggering webhooks
+ */
 export interface WebhookSubscriber {
   id: string;
   subscriberUrl: string;
@@ -404,6 +442,7 @@ export interface WebhookSubscriber {
   time?: number | null;
   timeUnit?: TimeUnit | null;
   eventTriggers: WebhookTriggerEvents[];
+  version: WebhookVersion;
 }
 
 export interface WebhookDeliveryResult {
@@ -413,6 +452,35 @@ export interface WebhookDeliveryResult {
   duration?: number;
   subscriberUrl: string;
   webhookId: string;
+}
+
+/**
+ * Payment data associated with webhook events
+ * Used when sending booking payment webhooks
+ */
+export interface PaymentData {
+  id: number;
+  fee: number;
+  currency: string;
+  success: boolean;
+  refunded: boolean;
+  externalId: string;
+  data: unknown;
+  appId: string | null;
+  bookingId: number;
+}
+
+/**
+ * Minimal webhook shape for URL reservation check
+ * Used to check if a subscriber URL is already in use within a scope
+ */
+export interface WebhookForReservationCheck {
+  id: string;
+  subscriberUrl: string;
+  teamId: number | null;
+  userId: number | null;
+  eventTypeId: number | null;
+  platform: boolean;
 }
 
 // Legacy types moved from sendPayload.ts for backward compatibility
@@ -482,6 +550,24 @@ export type OOOEntryPayloadType = {
   };
 };
 
+export type DelegationCredentialErrorPayloadType = {
+  error: {
+    type: string;
+    message: string;
+  };
+  credential: {
+    id: number;
+    type: string;
+    appId: string;
+    delegationCredentialId?: string;
+  };
+  user: {
+    id: number;
+    email: string;
+    organizationId?: number;
+  };
+};
+
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
@@ -498,6 +584,7 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: Record<string, unknown>;
+    requestReschedule?: boolean;
   };
 
 // dto/types.ts
@@ -511,3 +598,20 @@ export type BookingWebhookEventDTO =
   | BookingPaymentInitiatedDTO
   | BookingRejectedDTO
   | BookingNoShowDTO;
+
+/**
+ * Grouped webhooks for UI display with profile and permission metadata
+ */
+export interface WebhookGroup {
+  teamId?: number | null;
+  profile: {
+    slug: string | null;
+    name: string | null;
+    image?: string;
+  };
+  metadata?: {
+    canModify: boolean;
+    canDelete: boolean;
+  };
+  webhooks: Webhook[]; // Full webhook entities for UI display
+}

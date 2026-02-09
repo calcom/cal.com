@@ -4,12 +4,15 @@
   "globalEnv": [
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
+    "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
     "API_KEY_PREFIX",
     "ATOMS_E2E_API_URL",
     "ATOMS_E2E_OAUTH_CLIENT_ID",
     "ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED",
     "ATOMS_E2E_OAUTH_CLIENT_SECRET",
     "ATOMS_E2E_ORG_ID",
+    "AXIOM_TOKEN",
+    "AXIOM_DATASET",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
     "BASECAMP3_USER_AGENT",
@@ -29,7 +32,6 @@
     "CALCOM_TELEMETRY_DISABLED",
     "CALCOM_CREDENTIAL_SYNC_HEADER_NAME",
     "CALENDSO_ENCRYPTION_KEY",
-    "CALCOM_CREDENTIAL_SYNC_SECRET",
     "CI",
     "CLOSECOM_CLIENT_ID",
     "CLOSECOM_CLIENT_SECRET",
@@ -76,6 +78,7 @@
     "AVATARAPI_PASSWORD",
     "GIPHY_API_KEY",
     "GOOGLE_API_CREDENTIALS",
+    "GOOGLE_CALENDAR_API_KEY",
     "GOOGLE_LOGIN_ENABLED",
     "GOOGLE_WEBHOOK_TOKEN",
     "GOOGLE_WEBHOOK_URL",
@@ -84,7 +87,7 @@
     "HUBSPOT_CLIENT_SECRET",
     "IFFY_API_KEY",
     "INTEGRATION_TEST_MODE",
-    "INTERCOM_SECRET",
+    "INTEGRATION_TESTS",
     "INTERCOM_SECRET",
     "INSIGHTS_DATABASE_URL",
     "IP_BANLIST",
@@ -97,7 +100,6 @@
     "NEXT_PUBLIC_APP_NAME",
     "NEXT_PUBLIC_CALCOM_VERSION",
     "NEXT_PUBLIC_COMPANY_NAME",
-    "NEXT_PUBLIC_CONSOLE_URL",
     "NEXT_PUBLIC_LOGGER_LEVEL",
     "NEXT_PUBLIC_DISABLE_SIGNUP",
     "NEXT_PUBLIC_EMBED_LIB_URL",
@@ -105,6 +107,7 @@
     "NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID",
     "NEXT_PUBLIC_HOSTED_CAL_FEATURES",
     "NEXT_PUBLIC_IS_E2E",
+    "IS_E2E",
     "NEXT_PUBLIC_MINUTES_TO_BOOK",
     "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
     "NEXT_PUBLIC_SENDER_ID",
@@ -113,10 +116,8 @@
     "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
     "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
     "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
-    "NEXT_PUBLIC_STRIPE_PRICING_TABLE_PUBLISHABLE_KEY",
     "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
     "ORG_MONTHLY_CREDITS",
-    "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS",
     "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
     "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
     "NEXT_PUBLIC_TEAM_IMPERSONATION",
@@ -124,10 +125,7 @@
     "NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE",
     "NEXT_PUBLIC_CLOUDFLARE_SITEKEY",
     "NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER",
-    "NEXT_PUBLIC_VERCEL_ENV",
-    "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
-    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
     "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
     "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
     "NEXT_PUBLIC_WEBSITE_TERMS_URL",
@@ -143,8 +141,6 @@
     "PAYMENT_FEE_PERCENTAGE",
     "PLAYWRIGHT_HEADLESS",
     "PLAYWRIGHT_TEST_BASE_URL",
-    "PRISMA_FIELD_ENCRYPTION_KEY",
-    "PRISMA_GENERATE_DATAPROXY",
     "PROJECT_ID_VERCEL",
     "QUICK",
     "RAILWAY_STATIC_URL",
@@ -181,7 +177,8 @@
     "STRIPE_TEAM_MONTHLY_PRICE_ID",
     "STRIPE_TEAM_PRODUCT_ID",
     "STRIPE_ORG_MONTHLY_PRICE_ID",
-    "ORG_MONTHLY_CREDITS",
+    "STRIPE_ORG_PRODUCT_ID",
+    "STRIPE_ORG_TRIAL_DAYS",
     "TANDEM_BASE_URL",
     "TANDEM_CLIENT_ID",
     "TANDEM_CLIENT_SECRET",
@@ -214,16 +211,10 @@
     "ZOHOCRM_CLIENT_SECRET",
     "ZOOM_CLIENT_ID",
     "ZOOM_CLIENT_SECRET",
-    "REVERT_API_KEY",
-    "REVERT_API_URL",
-    "REVERT_PUBLIC_TOKEN",
     "RESEND_API_KEY",
     "LOCAL_TESTING_DOMAIN_VERCEL",
     "AUTH_BEARER_TOKEN_CLOUDFLARE",
     "CLOUDFLARE_ZONE_ID",
-    "NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY",
-    "NEXT_PUBLIC_CHAT_API_URL",
-    "NEXT_PUBLIC_DOCS_URL",
     "CLOUDFLARE_VERCEL_CNAME",
     "CLOUDFLARE_DNS",
     "EMBED_PUBLIC_EMBED_FINGER_PRINT",
@@ -239,7 +230,6 @@
     "NEXT_PUBLIC_QUICK_AVAILABILITY_ROLLOUT",
     "NEXT_PUBLIC_HEAD_SCRIPTS",
     "NEXT_PUBLIC_BODY_SCRIPTS",
-    "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
     "NEXT_PUBLIC_API_V2_ROOT_URL",
     "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
     "VAPID_PRIVATE_KEY",
@@ -249,7 +239,6 @@
     "CAL_VIDEO_MEETING_LINK_FOR_TESTING",
     "NEXT_PUBLIC_POSTHOG_KEY",
     "NEXT_PUBLIC_POSTHOG_HOST",
-    "VAPID_PRIVATE_KEY",
     "HUDDLE01_API_TOKEN",
     "LINGO_DOT_DEV_API_KEY",
     "DIRECTORY_IDS_TO_LOG",
@@ -278,7 +267,49 @@
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
     "ENTERPRISE_SLUGS",
     "PLATFORM_ENTERPRISE_SLUGS",
-    "USE_POOL"
+    "USE_POOL",
+    "TRIGGER_SECRET_KEY",
+    "TRIGGER_API_URL",
+    "TRIGGER_DEV_PROJECT_REF",
+    "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+    "TRIGGER_DEV_VERCEL_PROJECT_ID",
+    "TRIGGER_DEV_VERCEL_TEAM_ID",
+    "ENABLE_ASYNC_TASKER",
+    "GOOGLE_ADS_ENABLED",
+    "LINKEDIN_ADS_ENABLED",
+    "SEED_PLATFORM_OAUTH_CLIENT_ID",
+    "SEED_PLATFORM_OAUTH_CLIENT_SECRET",
+    "API_PORT",
+    "API_ENV",
+    "API_URL",
+    "DATABASE_WRITE_URL",
+    "JWT_SECRET",
+    "DOCS_URL",
+    "DATABASE_READ_URL",
+    "GET_LICENSE_KEY_URL",
+    "LOG_LEVEL",
+    "RATE_LIMIT_DEFAULT_TTL_MS",
+    "NEXTAUTH_SECRET_BACKUP",
+    "RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN",
+    "RATE_LIMIT_DEFAULT_LIMIT",
+    "RATE_LIMIT_DEFAULT_LIMIT_API_KEY",
+    "RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT",
+    "STRIPE_API_KEY",
+    "STRIPE_PRICE_ID_SCALE",
+    "STRIPE_PRICE_ID_ESSENTIALS_OVERAGE",
+    "REPLEXICA_API_KEY",
+    "SLOTS_WORKER_POOL_SIZE",
+    "STRIPE_PRICE_ID_STARTER",
+    "STRIPE_PRICE_ID_SCALE_OVERAGE",
+    "STRIPE_PRICE_ID_STARTER_OVERAGE",
+    "STRIPE_PRICE_ID_ESSENTIALS",
+    "WEB_APP_URL",
+    "REDIS_URL",
+    "ENABLE_SLOTS_WORKERS",
+    "B2_APPLICATION_KEY_ID",
+    "B2_APPLICATION_KEY",
+    "B2_BUCKET_ID",
+    "B2_BUCKET_NAME"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -306,11 +337,15 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-up"]
     },
+    "@calcom/app-store#build:types": {
+      "outputs": ["types/**"]
+    },
     "@calcom/trpc#build": {
+      "dependsOn": ["@calcom/prisma#post-install"],
       "outputs": ["./types"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "copy-app-store-static"],
       "outputs": [".next/**"],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
@@ -342,13 +377,16 @@
         "ORG_MONTHLY_CREDITS",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
         "STRIPE_ORG_PRODUCT_ID",
+        "STRIPE_ORG_TRIAL_DAYS",
         "NEXT_PUBLIC_API_V2_URL",
         "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
         "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
         "BUILD_STANDALONE",
         "NEXT_PUBLIC_API_HITPAY_PRODUCTION",
-        "NEXT_PUBLIC_API_HITPAY_SANDBOX"
-      ]
+        "NEXT_PUBLIC_API_HITPAY_SANDBOX",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/web#dx": {
       "cache": false,
@@ -358,11 +396,12 @@
       "cache": false,
       "dependsOn": []
     },
-    "@calcom/atoms#build": {
+    "@calcom/atoms#build-npm": {
       "outputs": ["dist/**", "globals.min.css"]
     },
     "@calcom/api-v2#build": {
       "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
       "env": [
         "NODE_ENV",
         "API_PORT",
@@ -370,8 +409,12 @@
         "DATABASE_WRITE_URL",
         "LOG_LEVEL",
         "NEXTAUTH_SECRET",
-        "USE_POOL"
-      ]
+        "USE_POOL",
+        "LOGGER_BRIDGE_LOG_LEVEL",
+        "REDIS_URL",
+        "TRIGGER_VERSION"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env.production"]
     },
     "@calcom/ai#build": {
       "env": [
@@ -438,8 +481,41 @@
       "cache": false,
       "outputs": ["dist/**", "build/**"]
     },
+    "@calcom/web#dev": {
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
     "dev": {
       "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "cache": false
+    },
+    "dev:trigger": {
+      "inputs": ["./.env"],
+      "env": ["TRIGGER_DEV_PROJECT_REF"],
+      "cache": false
+    },
+    "deploy:trigger:prod": {
+      "inputs": ["./.env"],
+      "env": [
+        "TRIGGER_DEV_PROJECT_REF",
+        "TRIGGER_API_URL",
+        "TRIGGER_SECRET_KEY",
+        "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+        "TRIGGER_DEV_VERCEL_PROJECT_ID",
+        "TRIGGER_DEV_VERCEL_TEAM_ID"
+      ],
+      "cache": false
+    },
+    "deploy:trigger:staging": {
+      "inputs": ["./.env"],
+      "env": [
+        "TRIGGER_DEV_PROJECT_REF",
+        "TRIGGER_API_URL",
+        "TRIGGER_SECRET_KEY",
+        "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+        "TRIGGER_DEV_VERCEL_PROJECT_ID",
+        "TRIGGER_DEV_VERCEL_TEAM_ID"
+      ],
       "cache": false
     },
     "dx": {
@@ -457,7 +533,10 @@
     },
     "post-install": {
       "dependsOn": [],
-      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
+      "outputs": [
+        "../../node_modules/@prisma/client/**",
+        "../../node_modules/@prisma/admin-client/**"
+      ],
       "inputs": ["./schema.prisma", "./prisma/schema.prisma"],
       "env": ["PRISMA_GENERATE_DATAPROXY"]
     },
@@ -498,7 +577,10 @@
         "../../packages/app-store/**/pages/**",
         "../../packages/app-store-cli/src/**"
       ],
-      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"]
+      "outputs": [
+        "../../packages/app-store/*.generated.ts",
+        "../../packages/app-store/*.generated.tsx"
+      ]
     },
     "@calcom/embed-react#type-check": {
       "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],

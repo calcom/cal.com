@@ -6,16 +6,19 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamService } from "./teamService";
 
-vi.mock("@calcom/features/ee/billing/teams", () => {
+// Mock the DI container
+vi.mock("@calcom/ee/billing/di/containers/Billing", () => {
   const mockUpdateQuantity = vi.fn().mockResolvedValue(undefined);
-  const mockTeamBilling = {
+  const mockTeamBillingService = {
     updateQuantity: mockUpdateQuantity,
   };
 
+  const mockFactory = {
+    findAndInitMany: vi.fn().mockResolvedValue([mockTeamBillingService]),
+  };
+
   return {
-    TeamBilling: {
-      findAndInitMany: vi.fn().mockResolvedValue([mockTeamBilling]),
-    },
+    getTeamBillingServiceFactory: vi.fn(() => mockFactory),
   };
 });
 
@@ -952,16 +955,18 @@ describe("TeamService.removeMembers Integration Tests", () => {
   });
 
   describe("Common Behaviors and Edge Cases", () => {
-    it("should call TeamBilling.updateQuantity for each team", async () => {
-      const { TeamBilling } = await import("@calcom/features/ee/billing/teams");
+    it("should call TeamBillingService.updateQuantity for each team", async () => {
+      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
 
       await TeamService.removeMembers({
         teamIds: [regularTeamTestData.team.id],
         userIds: [orgTestData.members[0].id, orgTestData.members[1].id],
       });
 
-      expect(TeamBilling.findAndInitMany).toHaveBeenCalledWith([regularTeamTestData.team.id]);
-      const mockInstances = await TeamBilling.findAndInitMany([regularTeamTestData.team.id]);
+      expect(getTeamBillingServiceFactory).toHaveBeenCalled();
+      const mockFactory = getTeamBillingServiceFactory();
+      expect(mockFactory.findAndInitMany).toHaveBeenCalledWith([regularTeamTestData.team.id]);
+      const mockInstances = await mockFactory.findAndInitMany([regularTeamTestData.team.id]);
       expect(mockInstances[0].updateQuantity).toHaveBeenCalled();
     });
 

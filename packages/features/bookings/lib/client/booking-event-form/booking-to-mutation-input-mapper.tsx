@@ -32,6 +32,7 @@ export type BookingOptions = {
   routingFormSearchParams?: RoutingFormSearchParams;
   isDryRunProp?: boolean;
   verificationCode?: string;
+  rrHostSubsetIds?: number[];
 };
 
 export const mapBookingToMutationInput = ({
@@ -56,6 +57,7 @@ export const mapBookingToMutationInput = ({
   routingFormSearchParams,
   isDryRunProp,
   verificationCode,
+  rrHostSubsetIds,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -64,8 +66,6 @@ export const mapBookingToMutationInput = ({
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
   const _isDryRun = isDryRunProp !== undefined ? isDryRunProp : isBookingDryRun(searchParams);
-  const _cacheParam = searchParams?.get("cal.cache");
-  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const dub_id = searchParams?.get("dub_id");
 
   return {
@@ -93,12 +93,12 @@ export const mapBookingToMutationInput = ({
     crmRecordId,
     orgSlug,
     routedTeamMemberIds,
+    rrHostSubsetIds,
     routingFormResponseId,
     skipContactOwner,
     // In case of rerouting, the form responses are actually the responses that we need to update.
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
     _isDryRun,
-    _shouldServeCache,
     dub_id,
     verificationCode,
   };

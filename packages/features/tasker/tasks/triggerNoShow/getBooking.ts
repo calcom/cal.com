@@ -19,11 +19,17 @@ export const getBooking = async (bookingId: number) => {
       eventTypeId: true,
       references: true,
       fromReschedule: true,
+      noShowHost: true,
       eventType: {
         select: {
           id: true,
           teamId: true,
           parentId: true,
+          calVideoSettings: {
+            select: {
+              requireEmailForGuests: true,
+            },
+          },
           hosts: {
             select: {
               userId: true,
@@ -45,6 +51,7 @@ export const getBooking = async (bookingId: number) => {
       user: {
         select: {
           id: true,
+          uuid: true,
           timeZone: true,
           email: true,
           name: true,

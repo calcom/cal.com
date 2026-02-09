@@ -1,50 +1,47 @@
-import type { GetServerSidePropsContext } from "next";
-
+import process from "node:process";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
-import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { getTrackingFromCookies, type TrackingData } from "@calcom/lib/tracking";
+import { prisma } from "@calcom/prisma";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
-import { asStringOrNull } from "@lib/asStringOrNull";
+const Params = z.object({
+  username: z.string().optional(),
+  email: z.string().optional(),
+  provider: z.string({ required_error: "File is not named sso/[provider]" }),
+});
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  // get query params and typecast them to string
-  // (would be even better to assert them instead of typecasting)
-  const providerParam = asStringOrNull(context.query.provider);
-  const emailParam = asStringOrNull(context.query.email);
-  const usernameParam = asStringOrNull(context.query.username);
+export const getServerSideProps = async ({ req, query }: GetServerSidePropsContext) => {
+  const { provider: providerParam, email: emailParam, username: usernameParam } = Params.parse(query);
 
   const successDestination = await OnboardingPathService.getGettingStartedPathWithParams(
-    prisma,
     usernameParam ? { username: usernameParam } : undefined
   );
 
-  if (!providerParam) {
-    throw new Error(`File is not named sso/[provider]`);
-  }
-
-  const { req } = context;
-
   const session = await getServerSession({ req });
 
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const { currentOrgDomain } = orgDomainConfig(req);
 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation
     if (usernameParam && session.user.email) {
       const availability = await checkUsername(usernameParam, currentOrgDomain);
       if (availability.available && availability.premium && IS_PREMIUM_USERNAME_ENABLED) {
+        const tracking = getTrackingFromCookies(req.cookies);
         const stripePremiumUrl = await getStripePremiumUsernameUrl({
           userId: session.user.id.toString(),
           userEmail: session.user.email,
           username: usernameParam,
           successDestination,
+          tracking,
         });
         if (stripePremiumUrl) {
           return {
@@ -112,6 +109,7 @@ type GetStripePremiumUsernameUrl = {
   userEmail: string;
   username: string;
   successDestination: string;
+  tracking?: TrackingData;
 };
 
 const getStripePremiumUsernameUrl = async ({
@@ -119,6 +117,7 @@ const getStripePremiumUsernameUrl = async ({
   userEmail,
   username,
   successDestination,
+  tracking,
 }: GetStripePremiumUsernameUrl): Promise<string | null> => {
   // @TODO: probably want to check if stripe user email already exists? or not
   const customer = await stripe.customers.create({
@@ -143,6 +142,14 @@ const getStripePremiumUsernameUrl = async ({
     allow_promotion_codes: true,
     metadata: {
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
   });
 

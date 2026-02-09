@@ -21,6 +21,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
+
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
   T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
@@ -404,7 +406,7 @@ export class InsightsBookingBaseService {
       parentId: options.orgId,
       select: { id: true },
     });
-    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
+    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
 
     // Get all users from the organization
     const userIdsFromOrg =
@@ -417,7 +419,7 @@ export class InsightsBookingBaseService {
     const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
 
     if (userIdsFromOrg.length > 0) {
-      const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
+      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
       conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
     }
 
@@ -483,8 +485,6 @@ export class InsightsBookingBaseService {
     offset?: number;
     timeZone: string;
   }) {
-    const DATE_FORMAT = "YYYY-MM-DD";
-    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -552,7 +552,7 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
-    // 2. Get all bookings with their attendees and seat references
+    // 2. Get all bookings with their attendees, seat references, and phone data
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -561,10 +561,12 @@ export class InsightsBookingBaseService {
       },
       select: {
         uid: true,
+        eventTypeId: true,
         attendees: {
           select: {
             name: true,
             email: true,
+            phoneNumber: true,
             noShow: true,
           },
         },
@@ -574,120 +576,23 @@ export class InsightsBookingBaseService {
               select: {
                 name: true,
                 email: true,
+                phoneNumber: true,
                 noShow: true,
               },
             },
           },
         },
+        responses: true,
+        eventType: {
+          select: {
+            bookingFields: true,
+          },
+        },
       },
     });
 
-    // 3. Create booking map with attendee data (matching original logic)
-    const bookingMap = new Map(
-      bookings.map((booking) => {
-        const attendeeList =
-          booking.seatsReferences.length > 0
-            ? booking.seatsReferences.map((ref) => ref.attendee)
-            : booking.attendees;
-
-        // List all no-show guests (name and email)
-        const noShowGuests =
-          attendeeList
-            .filter((attendee) => attendee?.noShow)
-            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-            .filter(Boolean) // remove null values
-            .join("; ") || null;
-        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
-
-        const formattedAttendees = attendeeList
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-          .filter(Boolean);
-
-        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
-      })
-    );
-
-    // 4. Calculate max attendees for dynamic columns
-    const maxAttendees = Math.max(
-      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
-      0
-    );
-
-    // 5. Create final booking map with attendee fields
-    const finalBookingMap = new Map(
-      Array.from(bookingMap.entries()).map(([uid, data]) => {
-        const attendeeFields: Record<string, string | null> = {};
-
-        for (let i = 1; i <= maxAttendees; i++) {
-          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
-        }
-
-        return [
-          uid,
-          {
-            noShowGuests: data.noShowGuests,
-            noShowGuestsCount: data.noShowGuestsCount,
-            ...attendeeFields,
-          },
-        ];
-      })
-    );
-
-    // 6. Combine booking data with attendee data and add ISO timestamp columns
-    const data = csvData.map((bookingTimeStatus) => {
-      const dateAndTime = {
-        createdAt: bookingTimeStatus.createdAt.toISOString(),
-        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
-        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
-        startTime: bookingTimeStatus.startTime.toISOString(),
-        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
-        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
-        endTime: bookingTimeStatus.endTime.toISOString(),
-        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
-        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
-      };
-
-      if (!bookingTimeStatus.uid) {
-        // should not be reached because we filtered above
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-        };
-      }
-
-      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
-
-      if (!attendeeData) {
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-        };
-      }
-
-      return {
-        ...bookingTimeStatus,
-        ...dateAndTime,
-        noShowGuests: attendeeData.noShowGuests,
-        noShowGuestsCount: attendeeData.noShowGuestsCount,
-        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
-      };
-    });
+    // 3. Transform bookings data for CSV export
+    const data = transformBookingsForCsv(csvData as BookingTimeStatusData[], bookings, timeZone);
 
     return { data, total: totalCount };
   }

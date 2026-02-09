@@ -9,7 +9,7 @@ import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib/albyCredent
 import type { IAlbySetupProps } from "@calcom/app-store/alby/pages/setup/_getServerSideProps";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
