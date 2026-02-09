@@ -33,7 +33,7 @@ import type {
   InputClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { FormBuilder } from "./FormBuilder";
+import { FormBuilder } from "@calcom/features/form-builder/components/FormBuilder";
 import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -385,26 +385,26 @@ const calendarComponents = {
         <div>
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
-                <div className="mt-4">
-                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    {!isPlatform && (
-                      <SelectedCalendarsSettingsWebWrapper
-                        eventTypeId={eventType.id}
-                        disabledScope={SelectedCalendarSettingsScope.User}
-                        disableConnectionModification={true}
-                        scope={selectedCalendarSettingsScope}
-                        destinationCalendarId={destinationCalendar?.externalId}
-                        setScope={(scope) => {
-                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                            shouldDirty: true,
-                          });
-                        }}
-                      />
-                    )}
-                  </Suspense>
-                </div>
-              )
+              <div className="mt-4">
+                <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
+                  {!isPlatform && (
+                    <SelectedCalendarsSettingsWebWrapper
+                      eventTypeId={eventType.id}
+                      disabledScope={SelectedCalendarSettingsScope.User}
+                      disableConnectionModification={true}
+                      scope={selectedCalendarSettingsScope}
+                      destinationCalendarId={destinationCalendar?.externalId}
+                      setScope={(scope) => {
+                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                  )}
+                </Suspense>
+              </div>
+            )
             : null}
         </div>
       </div>
@@ -434,7 +434,7 @@ export const EventAdvancedTab = ({
   const [lightModeError, setLightModeError] = useState(false);
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
     !!formMethods.getValues("multiplePrivateLinks") &&
-      formMethods.getValues("multiplePrivateLinks")?.length !== 0
+    formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
@@ -1079,10 +1079,10 @@ export const EventAdvancedTab = ({
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
-                  ? t("no_show_fee_doesnt_support_seats")
-                  : isRecurringEvent
-                  ? t("recurring_event_doesnt_support_seats")
-                  : undefined
+                    ? t("no_show_fee_doesnt_support_seats")
+                    : isRecurringEvent
+                      ? t("recurring_event_doesnt_support_seats")
+                      : undefined
               }
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported

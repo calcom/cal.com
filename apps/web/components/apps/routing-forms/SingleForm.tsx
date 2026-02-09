@@ -35,6 +35,7 @@ export type SingleFormComponentProps = {
     typeof getServerSidePropsForSingleFormView
   >["enrichedWithUserProfileForm"];
   permissions: inferSSRProps<typeof getServerSidePropsForSingleFormView>["permissions"];
+  preSubmit?: (data: RoutingFormWithResponseCount) => RoutingFormWithResponseCount;
 };
 
 const BREAKPOINTS = {
@@ -159,8 +160,9 @@ function SingleForm({
   } as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
+    const dataToSubmit = preSubmit ? preSubmit(data) : data;
     mutation.mutate({
-      ...data,
+      ...dataToSubmit,
     });
   };
 
