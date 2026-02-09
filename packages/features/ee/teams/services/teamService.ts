@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
@@ -11,9 +10,9 @@ import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/cr
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
-import logger from "@calcom/lib/logger";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
@@ -107,7 +106,7 @@ export class TeamService {
     if (!isOrgContext) {
       return teamInviteLink;
     }
-    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited();
     const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=${gettingStartedPath}`;
     return orgInviteLink;
   }
