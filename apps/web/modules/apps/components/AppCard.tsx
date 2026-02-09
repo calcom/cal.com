@@ -150,7 +150,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         <Tooltip
           content={markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
           side="bottom"
-          sideOffset={4}>
+          sideOffset={4}
+          className="max-w-xs whitespace-normal text-left font-normal">
           <p ref={descriptionRef} className="text-default mt-2 cursor-pointer text-sm line-clamp-3">
             {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
           </p>
