@@ -3,6 +3,7 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
+  ZSingleSelectFilterValue,
 } from "@calcom/features/data-table";
 
 export function useBookingFilters() {
@@ -13,6 +14,8 @@ export function useBookingFilters() {
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
   const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
+  const noShowValue = useFilterValue("noShow", ZSingleSelectFilterValue)?.data;
+  const noShow = noShowValue === "true" ? true : noShowValue === "false" ? false : undefined;
 
   return {
     eventTypeIds,
@@ -22,5 +25,6 @@ export function useBookingFilters() {
     attendeeName,
     attendeeEmail,
     bookingUid,
+    noShow,
   };
 }

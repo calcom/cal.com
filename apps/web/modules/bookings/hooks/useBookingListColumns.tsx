@@ -117,6 +117,18 @@ export function useBookingListColumns({
           },
         },
       }),
+      columnHelper.accessor((row) => row, {
+        id: "noShow",
+        header: t("no_show"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+      }),
       columnHelper.display({
         id: "customView",
         cell: (props) => {

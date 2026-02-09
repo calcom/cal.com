@@ -231,7 +231,7 @@ function BookingListInner({
 
 export function BookingListContainer(props: BookingListContainerProps) {
   const { limit, offset, setPageIndex } = useDataTable();
-  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
+  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid, noShow } =
     useBookingFilters();
 
   // Build query input once - shared between query and prefetching
@@ -247,6 +247,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
         attendeeName,
         attendeeEmail,
         bookingUid,
+        noShow,
         afterStartDate: dateRange?.startDate
           ? dayjs(dateRange?.startDate).startOf("day").toISOString()
           : undefined,
@@ -263,6 +264,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
       attendeeName,
       attendeeEmail,
       bookingUid,
+      noShow,
       dateRange,
     ]
   );
