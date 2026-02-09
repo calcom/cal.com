@@ -18,8 +18,12 @@ function isZodError(cause: unknown): cause is ZodError {
   return cause instanceof ZodError || (hasName(cause) && cause.name === "ZodError");
 }
 
+// Fallback to code check when instanceof fails due to different Prisma client instances
 function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequestError {
-  return cause instanceof Prisma.PrismaClientKnownRequestError;
+  return (
+    cause instanceof Prisma.PrismaClientKnownRequestError ||
+    (cause instanceof Error && "code" in cause && typeof cause.code === "string" && cause.code.startsWith("P"))
+  );
 }
 
 function parseZodErrorIssues(issues: ZodIssue[]): string {
@@ -147,6 +151,7 @@ export function getHttpStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.EventTypeNoHosts:
     case ErrorCode.RequestBodyInvalid:
     case ErrorCode.ChargeCardFailure:
+    case ErrorCode.CollectCardFailure:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:
@@ -201,3 +206,5 @@ function getServerErrorFromPrismaError(
   }
   return getHttpError({ statusCode: 400, cause, traceId, tracedData });
 }
+
+export { isPrismaError };

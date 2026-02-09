@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import MemberListItem from "@calcom/features/ee/organizations/pages/components/MemberListItem";
+import MemberListItem from "~/ee/organizations/components/MemberListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { CreationSource } from "@calcom/prisma/enums";

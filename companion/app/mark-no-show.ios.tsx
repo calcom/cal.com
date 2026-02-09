@@ -2,10 +2,12 @@ import { osName } from "expo-device";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getColors } from "@/constants/colors";
 import MarkNoShowScreenComponent from "@/components/screens/MarkNoShowScreen";
 import { type Booking, CalComAPIService } from "@/services/calcom";
+import { showErrorAlert } from "@/utils/alerts";
 
 interface Attendee {
   id?: number | string;
@@ -36,6 +38,9 @@ export default function MarkNoShowIOS() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   useEffect(() => {
     if (uid) {
@@ -57,13 +62,13 @@ export default function MarkNoShowIOS() {
           setAttendees(bookingAttendees);
         })
         .catch(() => {
-          Alert.alert("Error", "Failed to load booking details");
+          showErrorAlert("Error", "Failed to load booking details");
           router.back();
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
-      Alert.alert("Error", "Booking ID is missing");
+      showErrorAlert("Error", "Booking ID is missing");
       router.back();
     }
   }, [uid, router]);
@@ -81,7 +86,7 @@ export default function MarkNoShowIOS() {
           sheetAllowedDetents: [0.7, 1],
           sheetInitialDetentIndex: 0,
           contentStyle: {
-            backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+            backgroundColor: useGlassEffect ? "transparent" : theme.background,
           },
         }}
       />
@@ -99,14 +104,14 @@ export default function MarkNoShowIOS() {
       <View
         style={{
           flex: 1,
-          backgroundColor: useGlassEffect ? "transparent" : "#F2F2F7",
+          backgroundColor: useGlassEffect ? "transparent" : theme.background,
           paddingTop: 56,
           paddingBottom: insets.bottom,
         }}
       >
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={theme.text} />
           </View>
         ) : (
           <MarkNoShowScreenComponent

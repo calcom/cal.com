@@ -42,3 +42,4 @@ A visual demonstration is strongly recommended, for both the original and new ch
 - My code doesn't follow the style guidelines of this project
 - I haven't commented my code, particularly in hard-to-understand areas
 - I haven't checked if my changes generate no new warnings
+- My PR is too large (>500 lines or >10 files) and should be split into smaller PRs

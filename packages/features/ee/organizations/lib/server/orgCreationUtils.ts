@@ -1,4 +1,4 @@
-import { lookup } from "dns";
+import { lookup } from "node:dns";
 import { type TFunction } from "i18next";
 
 import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";

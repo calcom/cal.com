@@ -1,12 +1,13 @@
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { tenantPrefix } from "../../ee/sso/lib/saml";
 
-const log = logger.getSubLogger({ prefix: ["samlAccountLinking"] });
+const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({ prefix: ["samlAccountLinking"] });
 const SAML_NOT_AUTHORITATIVE_ERROR_URL = "/auth/error?error=saml-idp-not-authoritative";
 
 export function getTeamIdFromSamlTenant(tenant: string): number | null {
@@ -14,7 +15,10 @@ export function getTeamIdFromSamlTenant(tenant: string): number | null {
     return null;
   }
   const teamId = parseInt(tenant.replace(tenantPrefix, ""), 10);
-  return isNaN(teamId) ? null : teamId;
+  if (Number.isNaN(teamId)) {
+    return null;
+  }
+  return teamId;
 }
 
 /**
@@ -78,6 +82,15 @@ export async function validateSamlAccountConversion(
 
   const samlOrgTeamId = getTeamIdFromSamlTenant(samlTenant);
   if (!samlOrgTeamId) {
+    // For hosted Cal.com: tenant must be in "team-{id}" format for org SSO
+    // For self-hosted: allow non-org tenants (admin controls the setup)
+    if (HOSTED_CAL_FEATURES) {
+      log.warn(`Blocking ${conversionContext} conversion - invalid tenant format for hosted`, {
+        tenant: samlTenant,
+        emailDomain: email.split("@")[1],
+      });
+      return { allowed: false, errorUrl: SAML_NOT_AUTHORITATIVE_ERROR_URL };
+    }
     return { allowed: true };
   }
 

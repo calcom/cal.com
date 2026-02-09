@@ -1,10 +1,14 @@
+import {
+  DueInvoiceBanner,
+  type DueInvoiceBannerProps,
+} from "@calcom/web/modules/ee/billing/components/DueInvoiceBanner";
 import ImpersonatingBanner, {
   type ImpersonatingBannerProps,
-} from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
+} from "@calcom/web/modules/ee/impersonation/components/ImpersonatingBanner";
 import {
   OrgUpgradeBanner,
   type OrgUpgradeBannerProps,
-} from "@calcom/features/ee/organizations/components/OrgUpgradeBanner";
+} from "@calcom/web/modules/ee/organizations/components/OrgUpgradeBanner";
 import {
   TeamsUpgradeBanner,
   type TeamsUpgradeBannerProps,
@@ -31,6 +35,7 @@ type BannerTypeProps = {
   impersonationBanner: ImpersonatingBannerProps;
   calendarCredentialBanner: CalendarCredentialBannerProps;
   invalidAppCredentialBanners: InvalidAppCredentialBannersProps;
+  dueInvoiceBanner: DueInvoiceBannerProps;
 };
 
 type BannerType = keyof BannerTypeProps;
@@ -51,6 +56,7 @@ export const BannerComponent: BannerComponent = {
   invalidAppCredentialBanners: (props: InvalidAppCredentialBannersProps) => (
     <InvalidAppCredentialBanners {...props} />
   ),
+  dueInvoiceBanner: (props: DueInvoiceBannerProps) => <DueInvoiceBanner {...props} />,
 };
 
 interface BannerContainerProps {
@@ -80,6 +86,9 @@ export const BannerContainer: React.FC<BannerContainerProps> = ({ banners }) => 
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         } else if (key === "invalidAppCredentialBanners") {
+          const Banner = BannerComponent[key];
+          return <Banner data={banners[key]} key={key} />;
+        } else if (key === "dueInvoiceBanner") {
           const Banner = BannerComponent[key];
           return <Banner data={banners[key]} key={key} />;
         }

@@ -26,6 +26,7 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -50,6 +51,7 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
+import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.module";
 
 @Module({
   imports: [
@@ -71,6 +73,7 @@ import { Module } from "@nestjs/common";
     RegularBookingModule,
     RecurringBookingModule,
     InstantBookingModule,
+    BookingEventHandlerModule,
   ],
   providers: [
     TokensRepository,
@@ -103,6 +106,7 @@ import { Module } from "@nestjs/common";
     CalVideoOutputService,
     BookingPbacGuard,
     BookingLocationService_2024_08_13,
+    PrismaFeaturesRepository,
   ],
   controllers: [
     BookingsController_2024_08_13,

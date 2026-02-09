@@ -2,7 +2,8 @@ import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
-import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams } from "./IAuditActionService";
+import type { IAuditActionService, TranslationWithParams, GetDisplayTitleParams, GetDisplayJsonParams, BaseStoredAuditData } from "./IAuditActionService";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 
 /**
  * Created Audit Action Service
@@ -15,6 +16,9 @@ const fieldsSchemaV1 = z.object({
     startTime: z.number(),
     endTime: z.number(),
     status: z.nativeEnum(BookingStatus),
+    hostUserUuid: z.string().nullable(),
+    // Allowing it to be optional because most of the time(non-seated booking) it won't be there
+    seatReferenceUid: z.string().nullish(),
 });
 
 export class CreatedAuditActionService implements IAuditActionService {
@@ -58,8 +62,21 @@ export class CreatedAuditActionService implements IAuditActionService {
         return { isMigrated: false, latestData: validated };
     }
 
-    async getDisplayTitle(_: GetDisplayTitleParams): Promise<TranslationWithParams> {
-        return { key: "booking_audit_action.created" };
+    getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
+        const { fields } = this.parseStored(storedData);
+        return {
+            userUuids: fields.hostUserUuid ? [fields.hostUserUuid] : [],
+        };
+    }
+
+    async getDisplayTitle({ storedData, dbStore }: GetDisplayTitleParams): Promise<TranslationWithParams> {
+        const { fields } = this.parseStored(storedData);
+        const hostUser = fields.hostUserUuid ? dbStore.getUserByUuid(fields.hostUserUuid) : null;
+        const hostName = hostUser?.name || "Unknown";
+        if (fields.seatReferenceUid) {
+            return { key: "booking_audit_action.created_with_seat", params: { host: hostName } };
+        }
+        return { key: "booking_audit_action.created", params: { host: hostName } };
     }
 
     getDisplayJson({
@@ -73,6 +90,7 @@ export class CreatedAuditActionService implements IAuditActionService {
             startTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime, timeZone),
             endTime: AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime, timeZone),
             status: fields.status,
+            ...(fields.seatReferenceUid ? { seatReferenceUid: fields.seatReferenceUid } : {}),
         };
     }
 }
@@ -83,5 +101,6 @@ export type CreatedAuditDisplayData = {
     startTime: string;
     endTime: string;
     status: BookingStatus;
+    seatReferenceUid?: string;
 };
 

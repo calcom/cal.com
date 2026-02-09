@@ -47,6 +47,7 @@ export interface Booking {
   fromReschedule?: string;
   recurringEventId?: string;
   recurringBookingUid?: string;
+  requiresConfirmation?: boolean;
   smsReminderNumber?: string;
   location?: string;
   cancellationReason?: string;

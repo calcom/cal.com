@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 
 type OnboardingTeamsBrowserViewProps = {
-  teams: Array<{ name: string }>;
+  teams: Array<{ name: string; slug?: string | null; isMigrated?: boolean }>;
   organizationLogo?: string | null;
   organizationName?: string;
   organizationBanner?: string | null;
@@ -135,12 +136,29 @@ export const OnboardingTeamsBrowserView = ({
                           }
                         />
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <h3 className="text-subtle text-sm font-semibold leading-none">{team.name}</h3>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="text-subtle line-clamp-1 min-w-0 truncate text-sm font-semibold leading-none">
+                              {team.name}
+                            </h3>
+                            {team.isMigrated && (
+                              <Badge variant="green" className="shrink-0 text-xs">
+                                {t("migrating")}
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-muted text-xs font-medium leading-tight">
-                            {t("onboarding_teams_browser_view_team_description")}
+                            {team.slug && slug
+                              ? `${slug}.${subdomainSuffix()}/${team.slug}`
+                              : team.slug
+                                ? `${team.slug}.${subdomainSuffix()}`
+                                : t("onboarding_teams_browser_view_team_description")}
                           </p>
                         </div>
-                        <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                        {team.isMigrated ? (
+                          <Icon name="check" className="text-emphasis h-5 w-5" />
+                        ) : (
+                          <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                        )}
                       </div>
                     </div>
                   ))

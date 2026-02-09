@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import type { AppFlags, FeatureState, TeamFeatures } from "./config";
+import type { AppFlags, FeatureId, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
 interface CacheOptions {
@@ -14,12 +14,14 @@ interface CacheOptions {
  * Repository class for managing feature flags and feature access control.
  * Implements the IFeaturesRepository interface to provide feature flag functionality
  * for users, teams, and global application features.
+ *
+ * @deprecated
  */
 export class FeaturesRepository implements IFeaturesRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;
@@ -55,7 +57,7 @@ export class FeaturesRepository implements IFeaturesRepository {
   public async getFeatureFlagMap() {
     const flags = await this.getAllFeatures();
     return flags.reduce((acc, flag) => {
-      acc[flag.slug as keyof AppFlags] = flag.enabled;
+      acc[flag.slug as FeatureId] = flag.enabled;
       return acc;
     }, {} as AppFlags);
   }
@@ -96,7 +98,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @throws Error if the feature flag check fails
    */
   async checkIfFeatureIsEnabledGlobally(
-    slug: keyof AppFlags,
+    slug: FeatureId,
     _options: CacheOptions = { ttl: 5 * 60 * 1000 }
   ): Promise<boolean> {
     try {
@@ -278,23 +280,79 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Updates a feature status for a specific user.
+   * Uses tri-state semantics:
+   * - 'enabled': creates/updates a row with enabled=true
+   * - 'disabled': creates/updates a row with enabled=false
+   * - 'inherit': deletes the row to inherit from team/org level
+   *
+   * @param input.userId - The ID of the user to update the feature for
+   * @param input.featureId - The feature identifier to update
+   * @param input.state - 'enabled' | 'disabled' | 'inherit'
+   * @param input.assignedBy - The user or what assigned the feature (required for enabled/disabled, not used for inherit)
+   * @returns Promise<void>
+   * @throws Error if the feature update fails
+   */
+  async setUserFeatureState(
+    input:
+      | { userId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { userId: number; featureId: FeatureId; state: "inherit" }
+  ): Promise<void> {
+    const { userId, featureId, state } = input;
+    try {
+      if (state === "enabled" || state === "disabled") {
+        const { assignedBy } = input;
+        await this.prismaClient.userFeatures.upsert({
+          where: {
+            userId_featureId: {
+              userId,
+              featureId,
+            },
+          },
+          create: {
+            userId,
+            featureId,
+            enabled: state === "enabled",
+            assignedBy,
+          },
+          update: {
+            enabled: state === "enabled",
+            assignedBy,
+          },
+        });
+      } else if (state === "inherit") {
+        await this.prismaClient.userFeatures.deleteMany({
+          where: {
+            userId,
+            featureId,
+          },
+        });
+      }
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
    * Updates a feature status for a specific team.
    * Uses tri-state semantics: creates/updates a row with enabled=true.
-   * @param teamId - The ID of the team to enable the feature for
-   * @param featureId - The feature identifier to enable
-   * @param state - 'enabled' | 'disabled' | 'inherit'
-   * @param assignedBy - The user or what assigned the feature
+   * @param input.teamId - The ID of the team to enable the feature for
+   * @param input.featureId - The feature identifier to enable
+   * @param input.state - 'enabled' | 'disabled' | 'inherit'
+   * @param input.assignedBy - The user or what assigned the feature (required for enabled/disabled, not used for inherit)
    * @returns Promise<void>
    * @throws Error if the feature enabling fails
    */
   async setTeamFeatureState(
-    teamId: number,
-    featureId: keyof AppFlags,
-    state: FeatureState,
-    assignedBy: string
+    input:
+      | { teamId: number; featureId: FeatureId; state: "enabled" | "disabled"; assignedBy: string }
+      | { teamId: number; featureId: FeatureId; state: "inherit" }
   ): Promise<void> {
+    const { teamId, featureId, state } = input;
     try {
       if (state === "enabled" || state === "disabled") {
+        const { assignedBy } = input;
         await this.prismaClient.teamFeatures.upsert({
           where: {
             teamId_featureId: {
@@ -321,8 +379,6 @@ export class FeaturesRepository implements IFeaturesRepository {
           },
         });
       }
-      // Clear cache when features are modified
-      this.clearCache();
     } catch (err) {
       captureException(err);
       throw err;
@@ -339,7 +395,7 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<boolean> - True if the team or any ancestor has the feature enabled, false otherwise
    * @throws Error if the database query fails
    */
-  async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags): Promise<boolean> {
+  async checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean> {
     try {
       // Early return if team has feature directly assigned with enabled=true
       const teamFeature = await this.prismaClient.teamFeatures.findUnique({
@@ -394,7 +450,7 @@ export class FeaturesRepository implements IFeaturesRepository {
     }
   }
 
-  async getTeamsWithFeatureEnabled(slug: keyof AppFlags): Promise<number[]> {
+  async getTeamsWithFeatureEnabled(slug: FeatureId): Promise<number[]> {
     try {
       // If globally disabled, treat as effectively disabled everywhere
       const isGloballyEnabled = await this.checkIfFeatureIsEnabledGlobally(slug);

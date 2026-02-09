@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.server.json",
+  "compilerOptions": {
+    "disableSourceOfProjectReferenceRedirect": true
+  },
+  "references": [{ "path": "../app-store/tsconfig.build.json" }]
+}
