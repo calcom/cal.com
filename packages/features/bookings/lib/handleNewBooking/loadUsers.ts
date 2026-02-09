@@ -36,6 +36,7 @@ export const loadUsers = async ({
   isPlatform,
   routedTeamMemberIds,
   contactOwnerEmail,
+  dynamicFixedHostUsernames,
 }: {
   eventType: EventType;
   dynamicUserList: string[];
@@ -44,6 +45,7 @@ export const loadUsers = async ({
   hostname: string;
   forcedSlug: string | undefined;
   isPlatform: boolean;
+  dynamicFixedHostUsernames?: string[] | null;
 }) => {
   try {
     const { currentOrgDomain } = getOrgDomainConfig({
@@ -60,6 +62,7 @@ export const loadUsers = async ({
       users,
       routedTeamMemberIds,
       contactOwnerEmail,
+      dynamicFixedHostUsernames,
     });
 
     if (routedUsers.length) {

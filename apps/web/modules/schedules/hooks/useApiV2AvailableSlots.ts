@@ -27,6 +27,7 @@ export const useApiV2AvailableSlots = ({
       rest.routedTeamMemberIds,
       rest.skipContactOwner,
       rest.teamMemberEmail,
+      rest.dynamicFixedHostUsernames,
       rest.embedConnectVersion ?? false,
     ],
     queryFn: () => {

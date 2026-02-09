@@ -157,9 +157,13 @@ const FixedHosts = ({
   customClassNames?: FixedHostsCustomClassNames;
 }) => {
   const { t } = useLocale();
-  const { getValues, setValue } = useFormContext<FormValues>();
+  const { getValues, setValue, control } = useFormContext<FormValues>();
 
   const hasActiveFixedHosts = isRoundRobinEvent && getValues("hosts").some((host) => host.isFixed);
+  const dynamicFixedHostsEnabled = useWatch({
+    control,
+    name: "dynamicFixedHostsEnabled",
+  });
 
   const [isDisabled, setIsDisabled] = useState(hasActiveFixedHosts);
 
@@ -194,6 +198,13 @@ const FixedHosts = ({
       setIsDisabled(checked);
     },
     [getValues, setValue]
+  );
+
+  const handleDynamicFixedHostsToggle = useCallback(
+    (checked: boolean) => {
+      setValue("dynamicFixedHostsEnabled", checked, { shouldDirty: true });
+    },
+    [setValue]
   );
 
   return (
@@ -246,6 +257,16 @@ const FixedHosts = ({
           onCheckedChange={handleFixedHostsToggle}
           childrenClassName={classNames("lg:ml-0", customClassNames?.children)}>
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
+            <div className="border-subtle border-b pb-4">
+              <SettingsToggle
+                title={t("dynamic_fixed_hosts")}
+                description={t("dynamic_fixed_hosts_description")}
+                checked={!!dynamicFixedHostsEnabled}
+                labelClassName={classNames("text-sm", customClassNames?.label)}
+                descriptionClassName={classNames("text-sm text-subtle", customClassNames?.description)}
+                onCheckedChange={handleDynamicFixedHostsToggle}
+              />
+            </div>
             <AddMembersWithSwitch
               data-testid="fixed-hosts-select"
               groupId={null}

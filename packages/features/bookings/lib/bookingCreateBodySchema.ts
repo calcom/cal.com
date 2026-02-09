@@ -29,6 +29,7 @@ export const bookingCreateBodySchema = z.object({
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
   rrHostSubsetIds: z.array(z.number()).nullish(),
+  dynamicFixedHostUsernames: z.array(z.string()).nullish(),
   crmAppSlug: z.string().nullish().optional(),
   cfToken: z.string().nullish().optional(),
 

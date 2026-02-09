@@ -226,6 +226,18 @@ export class GetAvailableSlotsInput_2024_04_15 {
   }) */
   @ApiHideProperty()
   rrHostSubsetIds?: number[];
+
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((username: string) => username.trim());
+    }
+    return value;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  @ApiHideProperty()
+  dynamicFixedHostUsernames?: string[];
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {

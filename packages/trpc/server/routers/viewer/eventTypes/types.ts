@@ -202,6 +202,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     restrictionScheduleId: z.number().int().nullable().optional(),
     bookingRequiresAuthentication: z.boolean().optional(),
     rrHostSubsetEnabled: z.boolean().optional(),
+    dynamicFixedHostsEnabled: z.boolean().optional(),
     createdAt: z.coerce.date().nullable().optional(),
     updatedAt: z.coerce.date().nullable().optional(),
 

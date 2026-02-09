@@ -619,6 +619,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       hideOrganizerEmail: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
+      dynamicFixedHostsEnabled: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
@@ -935,6 +936,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       hideOrganizerEmail: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
+      dynamicFixedHostsEnabled: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
@@ -1353,6 +1355,7 @@ export class EventTypeRepository implements IEventTypesRepository {
         restrictionScheduleId: true,
         useBookerTimezone: true,
         rrHostSubsetEnabled: true,
+        dynamicFixedHostsEnabled: true,
         hostGroups: {
           select: {
             id: true,

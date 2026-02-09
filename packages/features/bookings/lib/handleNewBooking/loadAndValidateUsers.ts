@@ -54,6 +54,7 @@ type EventType = Pick<
   | "teamId"
   | "includeNoShowInRRCalculation"
   | "rrHostSubsetEnabled"
+  | "dynamicFixedHostsEnabled"
 >;
 
 type InputProps = {
@@ -69,6 +70,7 @@ type InputProps = {
   hostname: string | undefined;
   forcedSlug: string | undefined;
   rrHostSubsetIds?: number[];
+  dynamicFixedHostUsernames?: string[];
 };
 
 const _loadAndValidateUsers = async ({
@@ -84,11 +86,17 @@ const _loadAndValidateUsers = async ({
   hostname,
   forcedSlug,
   rrHostSubsetIds,
+  dynamicFixedHostUsernames,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
   fixedUsers: UsersWithDelegationCredentials;
 }> => {
+  const dynamicFixedHostUsernamesToUse =
+    eventType.dynamicFixedHostsEnabled && eventType.schedulingType === SchedulingType.ROUND_ROBIN
+      ? dynamicFixedHostUsernames
+      : undefined;
+
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -97,6 +105,7 @@ const _loadAndValidateUsers = async ({
     isPlatform,
     routedTeamMemberIds,
     contactOwnerEmail,
+    dynamicFixedHostUsernames: dynamicFixedHostUsernamesToUse,
   });
 
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
@@ -173,6 +182,7 @@ const _loadAndValidateUsers = async ({
       contactOwnerEmail,
       routingFormResponse,
       rrHostSubsetIds,
+      dynamicFixedHostUsernames: dynamicFixedHostUsernamesToUse,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {

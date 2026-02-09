@@ -109,6 +109,18 @@ export class GetAvailableSlotsInput_2024_09_04 {
   }) */
   @ApiHideProperty()
   rrHostSubsetIds?: number[];
+
+  @Transform(({ value }) => {
+    if (typeof value === "string") {
+      return value.split(",").map((username: string) => username.trim());
+    }
+    return value;
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  @ApiHideProperty()
+  dynamicFixedHostUsernames?: string[];
 }
 
 export const ById_2024_09_04_type = "byEventTypeId";

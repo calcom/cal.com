@@ -35,6 +35,8 @@ import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -1145,15 +1147,26 @@ export class AvailableSlotsService {
         queuedFormResponseId,
       });
     }
-    const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
-      await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
-        eventType,
-        rescheduleUid: input.rescheduleUid ?? null,
-        routedTeamMemberIds,
-        contactOwnerEmail,
-        routingFormResponse,
-        rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
-      });
+    let qualifiedRRHosts;
+    let allFallbackRRHosts;
+    let fixedHosts;
+    try {
+      ({ qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
+        await this.dependencies.qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+          eventType,
+          rescheduleUid: input.rescheduleUid ?? null,
+          routedTeamMemberIds,
+          contactOwnerEmail,
+          routingFormResponse,
+          rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
+          dynamicFixedHostUsernames: input.dynamicFixedHostUsernames ?? undefined,
+        }));
+    } catch (error) {
+      if (error instanceof ErrorWithCode && error.code === ErrorCode.RequestBodyInvalid) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: error.message });
+      }
+      throw error;
+    }
 
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
 

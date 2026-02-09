@@ -154,6 +154,7 @@ const commons = {
   createdAt: null,
   updatedAt: null,
   rrHostSubsetEnabled: false,
+  dynamicFixedHostsEnabled: false,
   enablePerHostLocations: false,
   redirectUrlOnNoRoutingFormResponse: null,
 };

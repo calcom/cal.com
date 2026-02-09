@@ -5,6 +5,7 @@ import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { getDynamicFixedHostUsernamesFromSearchParams } from "@calcom/lib/bookings/getDynamicFixedHostUsernamesFromSearchParams";
 import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
@@ -79,6 +80,9 @@ export const useSchedule = ({
   const routedTeamMemberIds = searchParams
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
     : null;
+  const dynamicFixedHostUsernames = searchParams
+    ? getDynamicFixedHostUsernamesFromSearchParams(new URLSearchParams(searchParams.toString()))
+    : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
@@ -111,6 +115,7 @@ export const useSchedule = ({
     orgSlug,
     teamMemberEmail,
     routedTeamMemberIds,
+    dynamicFixedHostUsernames: dynamicFixedHostUsernames ?? undefined,
     skipContactOwner,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,

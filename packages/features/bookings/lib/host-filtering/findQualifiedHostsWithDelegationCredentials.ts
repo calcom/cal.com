@@ -5,6 +5,8 @@ import {
   getNormalizedHostsWithDelegationCredentials,
 } from "@calcom/features/users/lib/getRoutedUsers";
 import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -54,6 +56,34 @@ const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isF
   return host.isFixed;
 };
 
+const resolveDynamicFixedHostIds = <T extends { user: { id: number; username?: string | null } }>(
+  hosts: Host<T>[],
+  dynamicFixedHostUsernames: string[] | undefined,
+  isEnabled: boolean
+) => {
+  if (!isEnabled || !dynamicFixedHostUsernames?.length) {
+    return [];
+  }
+
+  const normalizedUsernames = new Set(
+    dynamicFixedHostUsernames.map((username) => username.trim().toLowerCase()).filter(Boolean)
+  );
+  if (!normalizedUsernames.size) {
+    return [];
+  }
+
+  const matchedHosts = hosts.filter((host) => {
+    const username = host.user.username;
+    return username ? normalizedUsernames.has(username.toLowerCase()) : false;
+  });
+
+  if (matchedHosts.length !== normalizedUsernames.size) {
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "dynamic_fixed_hosts_invalid");
+  }
+
+  return matchedHosts.map((host) => host.user.id);
+};
+
 const isWithinRRHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
   host: T,
   rrHostSubsetIds: number[],
@@ -89,6 +119,7 @@ export class QualifiedHostsService {
     contactOwnerEmail,
     routingFormResponse,
     rrHostSubsetIds,
+    dynamicFixedHostUsernames,
   }: {
     eventType: {
       id: number;
@@ -100,12 +131,14 @@ export class QualifiedHostsService {
       rescheduleWithSameRoundRobinHost: boolean;
       includeNoShowInRRCalculation: boolean;
       rrHostSubsetEnabled?: boolean;
+      dynamicFixedHostsEnabled?: boolean;
     } & EventType;
     rescheduleUid: string | null;
     routedTeamMemberIds: number[];
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
     rrHostSubsetIds?: number[];
+    dynamicFixedHostUsernames?: string[];
   }): Promise<{
     qualifiedRRHosts: {
       isFixed: boolean;
@@ -141,18 +174,29 @@ export class QualifiedHostsService {
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    const fixedHosts = normalizedHosts.filter(isFixedHost).filter((host) =>
-      isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
-        rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
-        schedulingType: eventType.schedulingType ?? undefined,
-      })
+    const dynamicFixedHostIds = resolveDynamicFixedHostIds(
+      normalizedHosts,
+      dynamicFixedHostUsernames,
+      eventType.dynamicFixedHostsEnabled === true &&
+        eventType.schedulingType === SchedulingType.ROUND_ROBIN
     );
-    const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost).filter((host) =>
-      isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
-        rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
-        schedulingType: eventType.schedulingType ?? undefined,
-      })
-    );
+    const dynamicFixedHostIdSet = new Set(dynamicFixedHostIds);
+    const fixedHosts = normalizedHosts
+      .filter((host) => isFixedHost(host) || dynamicFixedHostIdSet.has(host.user.id))
+      .filter((host) =>
+        isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
+          rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
+          schedulingType: eventType.schedulingType ?? undefined,
+        })
+      );
+    const roundRobinHosts = normalizedHosts
+      .filter((host) => isRoundRobinHost(host) && !dynamicFixedHostIdSet.has(host.user.id))
+      .filter((host) =>
+        isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
+          rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
+          schedulingType: eventType.schedulingType ?? undefined,
+        })
+      );
 
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(

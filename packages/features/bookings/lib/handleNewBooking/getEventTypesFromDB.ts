@@ -194,6 +194,7 @@ const getEventTypesFromDBSelect = {
     },
   },
   rrHostSubsetEnabled: true,
+  dynamicFixedHostsEnabled: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   autoTranslateInstantMeetingTitleEnabled: true,
 } satisfies Prisma.EventTypeSelect;

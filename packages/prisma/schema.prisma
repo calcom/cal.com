@@ -281,6 +281,7 @@ model EventType {
 
   bookingRequiresAuthentication Boolean @default(false)
   rrHostSubsetEnabled           Boolean @default(false)
+  dynamicFixedHostsEnabled      Boolean @default(false)
   enablePerHostLocations        Boolean @default(false)
 
   createdAt DateTime? @default(now())

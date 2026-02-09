@@ -12,15 +12,17 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
 
 export const getRoutedUsersWithContactOwnerAndFixedUsers = <
-  T extends { id: number; isFixed?: boolean; email: string }
+  T extends { id: number; isFixed?: boolean; email: string; username?: string | null }
 >({
   routedTeamMemberIds,
   users,
   contactOwnerEmail,
+  dynamicFixedHostUsernames,
 }: {
   routedTeamMemberIds: number[] | null;
   users: T[];
   contactOwnerEmail: string | null;
+  dynamicFixedHostUsernames?: string[] | null;
 }) => {
   // We don't want to enter a scenario where we have no team members to be booked
   // So, let's just fallback to regular flow if no routedTeamMemberIds are provided
@@ -28,12 +30,20 @@ export const getRoutedUsersWithContactOwnerAndFixedUsers = <
     return users;
   }
 
+  const dynamicFixedHosts = new Set(
+    (dynamicFixedHostUsernames ?? []).map((username) => username.trim().toLowerCase()).filter(Boolean)
+  );
+
   log.debug(
     "filtering users as per routedTeamMemberIds",
     safeStringify({ routedTeamMemberIds, contactOwnerEmail })
   );
   return users.filter(
-    (user) => routedTeamMemberIds.includes(user.id) || user.isFixed || user.email === contactOwnerEmail
+    (user) =>
+      routedTeamMemberIds.includes(user.id) ||
+      user.isFixed ||
+      user.email === contactOwnerEmail ||
+      (user.username && dynamicFixedHosts.has(user.username.toLowerCase()))
   );
 };
 

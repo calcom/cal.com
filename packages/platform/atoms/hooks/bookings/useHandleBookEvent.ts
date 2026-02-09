@@ -7,6 +7,7 @@ import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { getDynamicFixedHostUsernamesFromSearchParams } from "@calcom/lib/bookings/getDynamicFixedHostUsernamesFromSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { showToast } from "@calcom/ui/components/toast";
@@ -71,6 +72,9 @@ export const useHandleBookEvent = ({
     showToast(errorMessage, "error");
   };
   const searchParams = useSearchParams();
+  const dynamicFixedHostUsernames = searchParams
+    ? getDynamicFixedHostUsernamesFromSearchParams(new URLSearchParams(searchParams.toString()))
+    : null;
 
   const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
@@ -118,6 +122,7 @@ export const useHandleBookEvent = ({
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
         rrHostSubsetIds,
+        dynamicFixedHostUsernames: dynamicFixedHostUsernames ?? undefined,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

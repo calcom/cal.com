@@ -195,6 +195,7 @@ export type FormValues = {
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
   enablePerHostLocations: boolean;
+  dynamicFixedHostsEnabled: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
@@ -425,6 +426,7 @@ export type EventTypeUpdateInput = {
   restrictionScheduleId?: number | null;
   bookingRequiresAuthentication?: boolean;
   rrHostSubsetEnabled?: boolean;
+  dynamicFixedHostsEnabled?: boolean;
   createdAt?: Date | null;
   updatedAt?: Date | null;
 

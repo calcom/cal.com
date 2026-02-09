@@ -661,6 +661,7 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     rrHostSubsetIds,
+    dynamicFixedHostUsernames,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -908,20 +909,31 @@ async function handler(
     });
   }
 
-  const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
-    hostname,
-    forcedSlug,
-    isPlatform: isPlatformBooking,
-    eventType,
-    eventTypeId,
-    dynamicUserList,
-    logger: tracingLogger,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
-    contactOwnerEmail,
-    rescheduleUid: reqBody.rescheduleUid || null,
-    routingFormResponse,
-    rrHostSubsetIds: rrHostSubsetIds ?? undefined,
-  });
+  let qualifiedRRUsers;
+  let additionalFallbackRRUsers;
+  let fixedUsers;
+  try {
+    ({ qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
+      hostname,
+      forcedSlug,
+      isPlatform: isPlatformBooking,
+      eventType,
+      eventTypeId,
+      dynamicUserList,
+      logger: tracingLogger,
+      routedTeamMemberIds: routedTeamMemberIds ?? null,
+      contactOwnerEmail,
+      rescheduleUid: reqBody.rescheduleUid || null,
+      routingFormResponse,
+      rrHostSubsetIds: rrHostSubsetIds ?? undefined,
+      dynamicFixedHostUsernames: dynamicFixedHostUsernames ?? undefined,
+    }));
+  } catch (error) {
+    if (error instanceof ErrorWithCode && error.code === ErrorCode.RequestBodyInvalid) {
+      throw new HttpError({ statusCode: 400, message: error.message });
+    }
+    throw error;
+  }
 
   // We filter out users but ensure allHostUsers remain same.
   let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];

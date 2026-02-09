@@ -127,6 +127,7 @@ export const useEventTypeForm = ({
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
       rrSegmentQueryValue: eventType.rrSegmentQueryValue,
+      dynamicFixedHostsEnabled: eventType.dynamicFixedHostsEnabled ?? false,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
         enabled: eventType.aiPhoneCallConfig?.enabled,
