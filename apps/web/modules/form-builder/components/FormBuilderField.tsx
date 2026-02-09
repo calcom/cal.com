@@ -11,14 +11,14 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { Components, isValidValueProp } from "./Components";
-import { fieldTypesConfigMap } from "./fieldTypes";
-import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "./schema";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import type { fieldsSchema } from "@calcom/features/form-builder/schema";
 import {
   useShouldBeDisabledDueToPrefill,
   getFieldNameFromErrorMessage,
-} from "./useShouldBeDisabledDueToPrefill";
-import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
+} from "@calcom/features/form-builder/useShouldBeDisabledDueToPrefill";
+import { getTranslatedConfig as getTranslatedVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 
 // helper to render markdown label safely
 const renderLabel = (field: Partial<RhfFormField>) => {
