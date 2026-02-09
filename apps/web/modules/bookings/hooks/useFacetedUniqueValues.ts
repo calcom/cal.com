@@ -55,6 +55,10 @@ export function useFacetedUniqueValues({
               }))
               .filter((option): option is { label: string; value: number } => Boolean(option.label))
           );
+        } else if (columnId === "noShow") {
+          return convertFacetedValuesToMap([
+            { label: "Yes", value: "true" },
+          ]);
         }
         return new Map<FacetedValue, number>();
       },
