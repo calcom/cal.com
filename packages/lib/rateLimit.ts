@@ -8,7 +8,7 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 export { type RatelimitResponse };
 
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "forcedSlowMode" | "common" | "ai" | "sms" | "smsMonth";
+  rateLimitingType?: "core" | "instantMeeting" | "forcedSlowMode" | "common" | "ai" | "sms" | "smsMonth";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -59,6 +59,14 @@ export function rateLimiter() {
       namespace: "forcedSlowMode",
       limit: 1,
       duration: "30s",
+      timeout,
+      onError,
+    }),
+    instantMeeting: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "instantMeeting",
+      limit: 1,
+      duration: "10m",
       timeout,
       onError,
     }),
