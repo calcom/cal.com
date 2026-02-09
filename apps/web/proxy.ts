@@ -1,14 +1,13 @@
+import process from "node:process";
+import { getCspHeader, getCspNonce } from "@lib/csp";
 import { get } from "@vercel/edge-config";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getCspHeader, getCspNonce } from "@lib/csp";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-  } catch {
+  } catch (error) {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
@@ -78,6 +77,13 @@ export function checkPostMethod(req: NextRequest) {
   return null;
 }
 
+export function checkStaticFiles(pathname: string) {
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  if (pathname.startsWith("/_next") || hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 // Vercel/Edge rejects non‑ASCII header values (see: https://github.com/vercel/next.js/issues/85631)
 const isAscii = (s: string) => {
   for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x7f) return false;
@@ -132,8 +138,11 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  // const postCheckResult = checkPostMethod(req);
-  // if (postCheckResult) return postCheckResult;
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
@@ -247,7 +256,7 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
+  matcher: ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed", "/api/auth/signup"],
 };
 
 export default proxy;
