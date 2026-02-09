@@ -82,6 +82,9 @@ test.describe("Booking with Seats", () => {
       { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
     await page.goto(`/booking/${booking.uid}?cancel=true`);
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
+
     await expect(page.locator("[text=Cancel]")).toHaveCount(0, { timeout: 0 });
 
     // expect login text to be in the page, not data-testid
@@ -124,7 +127,7 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
@@ -161,9 +164,13 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(
       `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
     );
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
 
     await submitAndWaitForResponse(page, "/api/cancel", {
-      action: () => page.locator('[data-testid="confirm_cancel"]').click(),
+      action: async () => {
+        await page.locator('[data-testid="confirm_cancel"]').click();
+      },
     });
 
     const oldBooking = await prisma.booking.findFirst({
@@ -321,6 +328,8 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
 
     // No attendees should be displayed only the one that it's cancelling
     const notFoundSecondAttendee = await page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
@@ -337,10 +346,11 @@ test.describe("Reschedule for booking with seats", () => {
         id: bookingWithEventType?.eventTypeId || -1,
       },
     });
-
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
 
     // Now attendees should be displayed
     const foundSecondAttendee = await page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');
@@ -365,6 +375,8 @@ test.describe("Reschedule for booking with seats", () => {
     const getBooking = await booking.self();
 
     await page.goto(`/booking/${booking.uid}`);
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
     await expect(page.locator('[data-testid="reschedule"]')).toHaveCount(0, { timeout: 0 });
 
     // expect login text to be in the page, not data-testid
