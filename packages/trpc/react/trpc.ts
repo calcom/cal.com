@@ -30,7 +30,7 @@ const resolveEndpoint = (links: any) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
     const parts = ctx.op.path.split(".");
-    let endpoint;
+    let endpoint: keyof typeof links;
     let path = "";
     if (parts.length == 2) {
       endpoint = parts[0] as keyof typeof links;

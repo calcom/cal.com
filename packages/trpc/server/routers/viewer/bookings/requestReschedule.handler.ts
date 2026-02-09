@@ -166,6 +166,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    iCalSequence: (bookingToReschedule.iCalSequence ?? 0) + 1,
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
@@ -274,7 +275,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     cancelledBy: user.email,
     eventTypeId: bookingToReschedule.eventTypeId,
     length: bookingToReschedule.eventType?.length ?? null,
-    iCalSequence: (bookingToReschedule.iCalSequence ?? 0) + 1,
+    iCalSequence: builder.calendarEvent.iCalSequence,
     eventTitle: bookingToReschedule.eventType?.title ?? null,
     requestReschedule: true,
   });

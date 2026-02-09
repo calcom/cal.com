@@ -26,15 +26,15 @@ export const CreditBalanceLimitReachedEmail = (
 
   if (team) {
     return (
-      <V2BaseEmailHtml subject={user.t("action_required_out_of_credits", { teamName: team.name })}>
+      <V2BaseEmailHtml subject={user.t("action_required_out_of_credits", { teamName: team.name, interpolation: { escapeValue: false } })}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <> {user.t("hi_user_name", { name: user.name })},</>
+          <> {user.t("hi_user_name", { name: user.name, interpolation: { escapeValue: false } })},</>
         </p>
         <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
           <>
             {isCalAi
-              ? user.t("cal_ai_credit_limit_reached_message", { teamName: team.name })
-              : user.t("credit_limit_reached_message", { teamName: team.name })}
+              ? user.t("cal_ai_credit_limit_reached_message", { teamName: team.name, interpolation: { escapeValue: false } })
+              : user.t("credit_limit_reached_message", { teamName: team.name, interpolation: { escapeValue: false } })}
           </>
         </p>
         <div style={{ textAlign: "center", marginTop: "24px" }}>
@@ -51,7 +51,7 @@ export const CreditBalanceLimitReachedEmail = (
   return (
     <V2BaseEmailHtml subject={user.t("action_required_user_out_of_credits")}>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <> {user.t("hi_user_name", { name: user.name })},</>
+        <> {user.t("hi_user_name", { name: user.name, interpolation: { escapeValue: false } })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "20px" }}>
         <>

@@ -4,15 +4,16 @@
  * iOS Settings style with grouped input rows and section headers.
  */
 
-import { Ionicons } from "@expo/vector-icons";
 import type React from "react";
 import { useState } from "react";
-import { Platform, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import { AddLocationTrigger, LocationsList } from "@/components/LocationsList";
 import type { LocationItem, LocationOptionGroup } from "@/types/locations";
 import { createLocationItemFromOption } from "@/utils/locationHelpers";
 import { slugify } from "@/utils/slugify";
-import { BasicsTabIOSPicker } from "./BasicsTabIOSPicker";
+import { NavigationRow, SettingRow, SettingsGroup } from "../SettingsUI";
+import { getColors } from "@/constants/colors";
+import { useColorScheme } from "react-native";
 
 interface BasicsTabProps {
   eventTitle: string;
@@ -40,38 +41,7 @@ interface BasicsTabProps {
   bookingUrl?: string;
 }
 
-// Section header
-function SectionHeader({ title, rightElement }: { title: string; rightElement?: React.ReactNode }) {
-  return (
-    <View className="flex-row items-center justify-between mb-2 px-4">
-      <Text
-        className="text-[13px] uppercase tracking-wide text-[#6D6D72]"
-        style={{ letterSpacing: 0.5 }}
-      >
-        {title}
-      </Text>
-      {rightElement}
-    </View>
-  );
-}
-
-// Settings group container
-function SettingsGroup({
-  children,
-  header,
-  headerRight,
-}: {
-  children: React.ReactNode;
-  header?: string;
-  headerRight?: React.ReactNode;
-}) {
-  return (
-    <View>
-      {header ? <SectionHeader title={header} rightElement={headerRight} /> : null}
-      <View className="overflow-hidden rounded-[14px] bg-white">{children}</View>
-    </View>
-  );
-}
+// Local components removed in favor of SettingsUI
 
 // Input row with label
 function InputRow({
@@ -95,21 +65,31 @@ function InputRow({
   isFirst?: boolean;
   isLast?: boolean;
 }) {
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
   return (
-    <View className="bg-white pl-4">
+    <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
       <View
-        className={`pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""} ${
-          isFirst ? "pt-4 pb-3" : isLast ? "pt-3 pb-4" : "py-3"
-        }`}
+        className={`pr-4 ${isFirst ? "pt-4 pb-3" : isLast ? "pt-3 pb-4" : "py-3"}`}
+        style={{
+          borderBottomWidth: !isLast ? 1 : 0,
+          borderBottomColor: theme.borderSubtle,
+        }}
       >
-        <Text className="mb-2 text-[13px] text-[#6D6D72]">{label}</Text>
+        <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+          {label}
+        </Text>
         <TextInput
-          className="rounded-lg bg-[#F2F2F7] px-3 py-2 text-[17px] text-black"
-          style={multiline ? { height: 80, textAlignVertical: "top" } : undefined}
+          className="rounded-lg px-3 py-2 text-[17px]"
+          style={{
+            backgroundColor: theme.backgroundMuted,
+            color: theme.text,
+            ...(multiline ? { height: 80, textAlignVertical: "top" } : undefined),
+          }}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor="#A3A3A3"
           multiline={multiline}
           numberOfLines={numberOfLines}
           keyboardType={keyboardType}
@@ -119,109 +99,12 @@ function InputRow({
   );
 }
 
-// Navigation row with value and chevron
-function NavigationRow({
-  title,
-  value,
-  onPress,
-  isFirst = false,
-  isLast = false,
-  options,
-  onSelect,
-}: {
-  title: string;
-  value?: string;
-  onPress: () => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-  options?: string[];
-  onSelect?: (value: string) => void;
-}) {
-  const height = isFirst || isLast ? 52 : 44;
-  return (
-    <View className="bg-white pl-4" style={{ height }}>
-      <View
-        className={`flex-1 flex-row items-center justify-between pr-4 ${
-          !isLast ? "border-b border-[#E5E5E5]" : ""
-        }`}
-        style={{ height }}
-      >
-        <Text className="text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View className="flex-row items-center">
-          {Platform.OS === "ios" && options && onSelect ? (
-            <>
-              {value ? (
-                <Text className="mr-2 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : null}
-              <BasicsTabIOSPicker
-                options={options}
-                selectedValue={value || ""}
-                onSelect={onSelect}
-              />
-            </>
-          ) : (
-            <TouchableOpacity
-              className="flex-row items-center"
-              onPress={onPress}
-              activeOpacity={0.5}
-            >
-              {value ? (
-                <Text className="mr-1 text-[17px] text-[#8E8E93]" numberOfLines={1}>
-                  {value}
-                </Text>
-              ) : null}
-              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// Toggle row
-function SettingRow({
-  title,
-  value,
-  onValueChange,
-  isFirst = false,
-  isLast = false,
-}: {
-  title: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-  isFirst?: boolean;
-  isLast?: boolean;
-}) {
-  const height = isFirst || isLast ? 52 : 44;
-  return (
-    <View className="bg-white pl-4">
-      <View
-        className={`flex-row items-center pr-4 ${!isLast ? "border-b border-[#E5E5E5]" : ""}`}
-        style={{ height, flexDirection: "row", alignItems: "center" }}
-      >
-        <Text className="flex-1 text-[17px] text-black" style={{ fontWeight: "400" }}>
-          {title}
-        </Text>
-        <View style={{ alignSelf: "center", justifyContent: "center" }}>
-          <Switch
-            value={value}
-            onValueChange={onValueChange}
-            trackColor={{ false: "#E9E9EA", true: "#000000" }}
-            thumbColor={Platform.OS !== "ios" ? "#FFFFFF" : undefined}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
+// NavigationRow and SettingRow removed in favor of SettingsUI
 
 export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const colorScheme = useColorScheme();
+  const theme = getColors(colorScheme === "dark");
 
   const onSelectLocation = (value: string, label: string) => {
     const newLocation = createLocationItemFromOption(value, label);
@@ -249,11 +132,19 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
           numberOfLines={4}
         />
         {/* URL Input */}
-        <View className="bg-white pl-4">
+        <View className="bg-white pl-4" style={{ backgroundColor: theme.backgroundSecondary }}>
           <View className="pr-4 pt-3 pb-4">
-            <Text className="mb-2 text-[13px] text-[#6D6D72]">URL</Text>
-            <View className="flex-row items-center overflow-hidden rounded-lg bg-[#F2F2F7]">
-              <Text className="bg-[#E5E5EA] px-3 py-2 text-[15px] text-[#666]">
+            <Text className="mb-2 text-[13px]" style={{ color: theme.textSecondary }}>
+              URL
+            </Text>
+            <View
+              className="flex-row items-center overflow-hidden rounded-lg"
+              style={{ backgroundColor: theme.backgroundMuted }}
+            >
+              <Text
+                className="px-3 py-2 text-[15px]"
+                style={{ backgroundColor: theme.backgroundEmphasis, color: theme.textSecondary }}
+              >
                 {(() => {
                   // Parse bookingUrl to get domain prefix (e.g., "i.cal.com/" or "cal.com/username/")
                   if (props.bookingUrl) {
@@ -276,11 +167,12 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                 })()}
               </Text>
               <TextInput
-                className="flex-1 px-3 py-2 text-[17px] text-black"
+                className="flex-1 px-3 py-2 text-[17px]"
+                style={{ color: theme.text }}
                 value={props.eventSlug}
                 onChangeText={(text) => props.setEventSlug(slugify(text, true))}
                 placeholder="event-slug"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor="#A3A3A3"
               />
             </View>
           </View>
@@ -290,22 +182,30 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
       {/* Duration */}
       <SettingsGroup header="Duration">
         {!props.allowMultipleDurations ? (
-          <View className="bg-white pl-4" style={{ height: 52 }}>
+          <View
+            className="bg-white pl-4"
+            style={{ height: 52, backgroundColor: theme.backgroundSecondary }}
+          >
             <View
-              className="flex-row items-center justify-between border-b border-[#E5E5E5] pr-4"
-              style={{ height: 52 }}
+              className="flex-row items-center justify-between pr-4"
+              style={{ height: 52, borderBottomWidth: 1, borderBottomColor: theme.borderSubtle }}
             >
-              <Text className="text-[17px] text-black">Duration</Text>
+              <Text className="text-[17px]" style={{ color: theme.text }}>
+                Duration
+              </Text>
               <View className="flex-row items-center gap-2">
                 <TextInput
-                  className="w-16 rounded-lg bg-[#F2F2F7] px-2 py-1.5 text-center text-[15px] text-black"
+                  className="w-16 rounded-lg px-2 py-1.5 text-center text-[15px]"
+                  style={{ backgroundColor: theme.backgroundMuted, color: theme.text }}
                   value={props.eventDuration}
                   onChangeText={props.setEventDuration}
                   placeholder="30"
-                  placeholderTextColor="#8E8E93"
+                  placeholderTextColor="#A3A3A3"
                   keyboardType="numeric"
                 />
-                <Text className="text-[15px] text-[#6D6D72]">minutes</Text>
+                <Text className="text-[15px]" style={{ color: theme.textSecondary }}>
+                  minutes
+                </Text>
               </View>
             </View>
           </View>
@@ -326,7 +226,7 @@ export const BasicsTab: React.FC<BasicsTabProps> = (props) => {
                 title="Default duration"
                 value={props.defaultDuration || "Select"}
                 onPress={() => props.setShowDefaultDurationDropdown(true)}
-                options={props.selectedDurations}
+                options={props.selectedDurations.map((d) => ({ label: d, value: d }))}
                 onSelect={props.setDefaultDuration}
               />
             ) : null}

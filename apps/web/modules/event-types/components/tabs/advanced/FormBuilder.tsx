@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { LearnMoreLink } from "@calcom/web/modules/event-types/components/LearnMoreLink";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -614,7 +614,7 @@ function FieldEditDialog({
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto">
+          <div className="h-auto max-h-[85vh]">
             <DialogHeader
               title={t("add_a_booking_question")}
               subtitle={
@@ -891,6 +891,7 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   if (!fieldTypeConfigVariants || !variantsConfig) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient
         <span
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
@@ -908,9 +909,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
     );
   }
-  const label =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
-  return <span>{t(label)}</span>;
+  const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
+  const firstField = variantData?.fields?.[0];
+  const label = firstField?.label?.trim() ? firstField.label : "";
+  const firstFieldName = firstField?.name;
+  const defaultLabelFromTypeConfig =
+    fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
+      firstFieldName as keyof (typeof fieldTypeConfigVariants)[typeof variant]["fieldsMap"]
+    ]?.defaultLabel || "";
+  return <span>{t(label || defaultLabelFromTypeConfig)}</span>;
 }
 
 function VariantSelector() {

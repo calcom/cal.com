@@ -617,6 +617,81 @@ describe("CalendarEventBuilder", () => {
     }
   });
 
+  it("should create an event with assignment reason", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withAssignmentReason({
+        category: "routed",
+        details: "Language: English, Region: US",
+      })
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.assignmentReason).toEqual({
+        category: "routed",
+        details: "Language: English, Region: US",
+      });
+    }
+  });
+
+  it("should create an event with assignment reason without details", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withAssignmentReason({
+        category: "reassigned",
+        details: null,
+      })
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.assignmentReason).toEqual({
+        category: "reassigned",
+        details: null,
+      });
+    }
+  });
+
+  it("should create an event with null assignment reason", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withAssignmentReason(null)
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.assignmentReason).toBeNull();
+    }
+  });
+
   it("should create a complete calendar event with all properties", () => {
     const event = new CalendarEventBuilder()
       .withBasicDetails({

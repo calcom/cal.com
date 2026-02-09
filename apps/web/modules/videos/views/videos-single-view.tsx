@@ -1,15 +1,12 @@
 "use client";
 
-import type { DailyCall } from "@daily-co/daily-js";
-import DailyIframe from "@daily-co/daily-js";
-import { DailyProvider } from "@daily-co/daily-react";
-import { useDailyEvent } from "@daily-co/daily-react";
-import { useState, useEffect, useRef, useCallback } from "react";
-
 import dayjs from "@calcom/dayjs";
-import { WEBSITE_URL } from "@calcom/lib/constants";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
+import {
+  RECORDING_DEFAULT_ICON,
+  TRANSCRIPTION_STOPPED_ICON,
+  WEBAPP_URL,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,9 +17,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-
+import type { DailyCall } from "@daily-co/daily-js";
+import DailyIframe from "@daily-co/daily-js";
+import { DailyProvider, useDailyEvent } from "@daily-co/daily-react";
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
-
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
@@ -69,8 +68,8 @@ export default function JoinCall(props: PageProps) {
         callFrame = DailyIframe.createFrame({
           theme: {
             colors: {
-              accent: "#FFF",
-              accentText: "#111111",
+              accent: "#292929",
+              accentText: "#FFF",
               background: "#111111",
               backgroundAccent: "#111111",
               baseText: "#FFF",
@@ -608,6 +607,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             <>
               <h3>{t("description")}:</h3>
 
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
               <div
                 className="prose-sm prose prose-invert"
                 dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}

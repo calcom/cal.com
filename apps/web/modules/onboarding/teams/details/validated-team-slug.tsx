@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import classNames from "@calcom/ui/classNames";
@@ -21,6 +22,7 @@ type ValidatedTeamSlugProps = {
 
 export function ValidatedTeamSlug({ value, onChange, onValidationChange }: ValidatedTeamSlugProps) {
   const { t } = useLocale();
+  const orgBranding = useOrgBranding();
   const [validationState, setValidationState] = useState<ValidationState>("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [_isPending, startTransition] = useTransition();
@@ -83,7 +85,9 @@ export function ValidatedTeamSlug({ value, onChange, onValidationChange }: Valid
     }
   };
 
-  const urlPrefix = `${WEBAPP_URL}/team/`;
+  const urlPrefix = orgBranding
+    ? `${orgBranding.fullDomain.replace("https://", "").replace("http://", "")}/`
+    : `${subdomainSuffix()}/team/`;
 
   return (
     <div className="flex w-full flex-col gap-1.5">

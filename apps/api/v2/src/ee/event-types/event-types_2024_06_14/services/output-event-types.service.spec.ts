@@ -82,6 +82,59 @@ describe("OutputEventTypesService_2024_06_14", () => {
       expect(result).toBe("https://acme.cal.com/owner1/30min");
     });
 
+    it("should use cal.com for non-managed users in platform orgs", () => {
+      const user = {
+        id: 1,
+        name: "Test User",
+        username: "platform-user", // Public username
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organizationId: 1,
+        organization: { slug: "platform-org-slug" },
+        movedToProfile: null,
+        profiles: [
+          {
+            id: 100,
+            username: "platform-user-generated-id", // Platform-generated username
+            organizationId: 1,
+            organization: { id: 1, slug: "platform-org-slug", isPlatform: true },
+          },
+        ],
+      };
+      const slug = "secret";
+
+      const result = service.buildBookingUrl(user, slug);
+
+      // Should use user.username (platform-user), not profile.username (platform-user-generated-id)
+      expect(result).toBe("https://cal.com/platform-user/secret");
+    });
+
+    it("should return empty string for managed users", () => {
+      const user = {
+        id: 1,
+        name: "Managed User",
+        username: "managed-user-abc123",
+        isPlatformManaged: true,
+        avatarUrl: null,
+        brandColor: null,
+        darkBrandColor: null,
+        weekStart: "Monday",
+        metadata: {},
+        organizationId: 1,
+        organization: { slug: "platform-org" },
+        movedToProfile: null,
+        profiles: [],
+      };
+      const slug = "30min";
+
+      const result = service.buildBookingUrl(user, slug);
+
+      expect(result).toBe("");
+    });
+
     it("should fall back to user username when profile has no username", () => {
       const user = {
         id: 1,

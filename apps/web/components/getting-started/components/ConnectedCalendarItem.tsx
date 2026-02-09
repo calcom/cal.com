@@ -1,4 +1,4 @@
-import { UserCalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
+import { UserCalendarSwitch } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 
 interface IConnectedCalendarItem {
   name: string;
@@ -6,7 +6,7 @@ interface IConnectedCalendarItem {
   externalId?: string;
   integrationType: string;
   calendars?: {
-    primary: true | null;
+    primary: boolean | null;
     isSelected: boolean;
     credentialId: number;
     name?: string | undefined;
@@ -18,7 +18,7 @@ interface IConnectedCalendarItem {
   }[];
 }
 
-const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
+const ConnectedCalendarItem = (prop: IConnectedCalendarItem): JSX.Element => {
   const { name, logo, externalId, calendars, integrationType } = prop;
 
   return (
@@ -26,7 +26,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
       <div className="flex flex-row items-center p-4">
         <img src={logo} alt={name} className="m-1 h-8 w-8" />
         <div className="mx-4">
-          <p className="font-sans text-sm font-bold leading-5">
+          <p className="font-bold font-sans text-sm leading-5">
             {name}
             {/* Temporarily removed till we use it on another place */}
             {/* <span className="mx-1 rounded-[4px] bg-cal-success py-[2px] px-[6px] font-sans text-xs font-medium text-green-600">
@@ -36,7 +36,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
           <div className="fle-row flex">
             <span
               title={externalId}
-              className="max-w-44 text-subtle mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-sm">
+              className="mt-1 max-w-44 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-sm text-subtle">
               {externalId}{" "}
             </span>
           </div>
@@ -49,7 +49,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
           {t("edit")}
         </Button> */}
       </div>
-      <div className="border-subtle h-px w-full border-b" />
+      <div className="h-px w-full border-subtle border-b" />
       <div>
         <ul className="p-4">
           {calendars?.map((calendar, i) => (

@@ -12,6 +12,15 @@ import type { FeatureState } from "@calcom/features/flags/config";
 export type OptInFeaturePolicy = "permissive" | "strict";
 
 /**
+ * Scope that determines at which levels a feature can be configured.
+ *
+ * - `org`: Feature can be configured at the organization level
+ * - `team`: Feature can be configured at the team level
+ * - `user`: Feature can be configured at the user level
+ */
+export type OptInFeatureScope = "org" | "team" | "user";
+
+/**
  * Normalized feature representation used across all scopes (user, team, org).
  */
 export interface NormalizedFeature {

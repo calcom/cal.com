@@ -7,7 +7,8 @@
  */
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
+
 import { showErrorAlert } from "@/utils/alerts";
 
 // Default Cal.com web URL - can be overridden for self-hosted instances
@@ -23,6 +24,41 @@ function getCalWebUrl(): string {
 }
 
 /**
+ * Appends ?standalone=true to Cal.com URLs on iOS.
+ * This hides navigation elements when pages are opened in the in-app browser,
+ * which is required for Apple App Store compliance.
+ *
+ * @param url - The URL to process
+ * @returns The URL with standalone=true appended if it's a Cal.com URL on iOS
+ */
+function appendStandaloneParam(url: string): string {
+  // Only apply to iOS
+  if (Platform.OS !== "ios") {
+    return url;
+  }
+
+  try {
+    const urlObj = new URL(url);
+
+    // Only apply to app.cal.com URLs
+    if (urlObj.hostname !== "app.cal.com") {
+      return url;
+    }
+
+    // Don't add if already present
+    if (urlObj.searchParams.has("standalone")) {
+      return url;
+    }
+
+    urlObj.searchParams.set("standalone", "true");
+    return urlObj.toString();
+  } catch {
+    // If URL parsing fails, return original
+    return url;
+  }
+}
+
+/**
  * Open a booking detail page in the web browser.
  * This is used for actions that require the full web experience.
  *
@@ -30,7 +66,7 @@ function getCalWebUrl(): string {
  */
 export async function openBookingInWeb(bookingUid: string): Promise<void> {
   const webUrl = getCalWebUrl();
-  const url = `${webUrl}/booking/${bookingUid}`;
+  const url = appendStandaloneParam(`${webUrl}/booking/${bookingUid}`);
 
   try {
     await WebBrowser.openBrowserAsync(url, {
@@ -86,9 +122,9 @@ export async function openReschedulePage(
   rescheduleUid?: string
 ): Promise<void> {
   const webUrl = getCalWebUrl();
-  const url = rescheduleUid
-    ? `${webUrl}/reschedule/${rescheduleUid}`
-    : `${webUrl}/booking/${bookingUid}`;
+  const url = appendStandaloneParam(
+    rescheduleUid ? `${webUrl}/reschedule/${rescheduleUid}` : `${webUrl}/booking/${bookingUid}`
+  );
 
   try {
     await WebBrowser.openBrowserAsync(url, {
@@ -112,7 +148,7 @@ export async function openReschedulePage(
  */
 export async function openCancelBookingInWeb(bookingUid: string): Promise<void> {
   const webUrl = getCalWebUrl();
-  const url = `${webUrl}/booking/${bookingUid}`;
+  const url = appendStandaloneParam(`${webUrl}/booking/${bookingUid}`);
 
   try {
     await WebBrowser.openBrowserAsync(url, {

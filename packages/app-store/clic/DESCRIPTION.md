@@ -1,9 +1,9 @@
 ---
 items:
-  - preview.png
-  - previewcheckins.png
-  - previewcontacts.png
-  - previewcreation.png
+  - 1.jpg
+  - 2.jpg
+  - 3.jpg
+  - 4.jpg
 ---
 
 {DESCRIPTION}
