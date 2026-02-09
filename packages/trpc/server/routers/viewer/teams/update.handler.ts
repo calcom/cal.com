@@ -4,6 +4,7 @@ import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
+import { sanitizeName } from "@calcom/lib/sanitizeName";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
@@ -54,8 +55,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
   }
 
+  // Sanitize team name if provided
+  const sanitizedName = input.name ? sanitizeName(input.name) : undefined;
+
   const data: Prisma.TeamUpdateArgs["data"] = {
-    name: input.name,
+    name: sanitizedName,
     bio: input.bio,
     hideBranding: input.hideBranding,
     isPrivate: input.isPrivate,

@@ -36,7 +36,7 @@ const regex = new RegExp("^[a-zA-Z0-9.-]*$");
 
 const teamProfileSchema = z.object({
   id: z.number(),
-  name: z.string(),
+  name: z.string().regex(/^[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/, "Invalid team name"),
   slug: z
     .string()
     .regex(regex, {

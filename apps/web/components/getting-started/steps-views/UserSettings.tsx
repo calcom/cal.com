@@ -39,7 +39,8 @@ const UserSettings = (props: IUserSettingsProps) => {
       .min(1)
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
-      }),
+      })
+      .regex(/^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/, "Invalid name"),
   });
 
   const defaultValues = {
