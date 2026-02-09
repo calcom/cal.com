@@ -26,6 +26,7 @@ on:
       - 'packages/types/**'
       - 'packages/prisma/**'
       - 'packages/lib/**'
+      - '.github/workflows/worker-deploy.yml'
   workflow_dispatch:
     inputs:
       branch:
