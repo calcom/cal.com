@@ -1,18 +1,17 @@
 name: Build, Push Worker Image, Deploy to EC2
 
 on:
-  push:
-    branches:
-      - build
-      - 401-unified-calendar-view
-    # paths:
-    #   - 'apps/worker/**'
-    #   - 'packages/queue/**'
-    #   # Shared packages that workers depend on
-    #   - 'packages/tsconfig/**'
-    #   - 'packages/types/**'
-    #   - 'packages/prisma/**'
-    #   - 'packages/lib/**'
+  # push:
+  #   branches:
+  #     - build
+  #   paths:
+  #     - 'apps/worker/**'
+  #     - 'packages/queue/**'
+  #     # Shared packages that workers depend on
+  #     - 'packages/tsconfig/**'
+  #     - 'packages/types/**'
+  #     - 'packages/prisma/**'
+  #     - 'packages/lib/**'
   pull_request:
     types:
       - closed
@@ -48,7 +47,7 @@ concurrency:
 
 jobs:
   build-push-deploy-worker:
-    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/build' || github.ref == 'refs/heads/401-unified-calendar-view'
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/build'
     runs-on: ubuntu-latest
 
     steps:
