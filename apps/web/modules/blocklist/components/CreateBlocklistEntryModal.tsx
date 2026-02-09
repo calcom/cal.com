@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { Input, Label, TextArea, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { BlocklistScope, CreateBlocklistEntryFormData } from "../types";
+import type { BlocklistScope, CreateBlocklistEntryFormData } from "@calcom/features/blocklist/types";
 
 export interface CreateBlocklistEntryModalProps {
   isOpen: boolean;

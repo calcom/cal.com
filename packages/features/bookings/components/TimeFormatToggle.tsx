@@ -17,6 +17,7 @@ export const TimeFormatToggle = ({ customClassName }: { customClassName?: string
       }}
       defaultValue={timeFormat}
       value={timeFormat}
+      aria-label={t("time_format")}
       options={[
         { value: TimeFormat.TWELVE_HOUR, label: t("12_hour_short") },
         { value: TimeFormat.TWENTY_FOUR_HOUR, label: t("24_hour_short") },

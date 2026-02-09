@@ -128,13 +128,13 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               control={control}
               name={name}
               disabled={disabled}
+              copyButton={!disabled ? CopyButton : undefined}
               classNames={{
                 dayRanges: classNames?.dayRanges,
                 timeRangeField: classNames?.timeRangeField,
                 timePicker: classNames?.timePicker,
               }}
             />
-            {!disabled && <div className="block">{CopyButton}</div>}
           </div>
         )}
       </>
@@ -241,6 +241,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels,
   userTimeFormat,
   classNames,
+  copyButton,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
@@ -248,6 +249,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
   classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField" | "timePicker">;
+  copyButton?: React.ReactNode;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -302,7 +304,8 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && (
+            {index === 0 && copyButton && <div className="block">{copyButton}</div>}
+            {fields.length > 1 && (
               <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
             )}
           </div>
