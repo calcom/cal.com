@@ -1,4 +1,4 @@
- import { defineWorkspace } from "vitest/config";
+import { defineWorkspace } from "vitest/config";
 
 // Vitest 4.0 no longer allows custom CLI flags, so we use environment variables instead
 // eslint-disable-next-line turbo/no-undeclared-env-vars
