@@ -34,7 +34,12 @@ export function createWorkflowPageFixture(page: Page) {
 
     await page.locator("#trigger-select").click();
     await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
-    await selectEventType("30 min");
+
+    if (isTeam) {
+      await page.getByText(/Apply to all team/i).first().click();
+    } else {
+      await selectEventType("30 min");
+    }
 
     const workflow = await saveWorkflow();
 
