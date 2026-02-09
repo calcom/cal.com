@@ -112,7 +112,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
   return (
     <>
       <div
-        className="animate-fade-in border-muted rounded-b-lg border-t bg-gray-50"
+        className="animate-fade-in bg-default border-default rounded-b-lg border-t"
         onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 lg:gap-8">
           <div className="space-y-4">
