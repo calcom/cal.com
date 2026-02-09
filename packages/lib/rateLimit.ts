@@ -8,7 +8,15 @@ const log = logger.getSubLogger({ prefix: ["RateLimit"] });
 export { type RatelimitResponse };
 
 export type RateLimitHelper = {
-  rateLimitingType?: "core" | "instantMeeting" | "forcedSlowMode" | "common" | "ai" | "sms" | "smsMonth";
+  rateLimitingType?:
+    | "core"
+    | "forcedSlowMode"
+    | "common"
+    | "api"
+    | "ai"
+    | "sms"
+    | "smsMonth"
+    | "instantMeeting";
   identifier: string;
   opts?: LimitOptions;
   /**
@@ -17,6 +25,8 @@ export type RateLimitHelper = {
    **/
   onRateLimiterResponse?: (response: RatelimitResponse) => void;
 };
+
+export const API_KEY_RATE_LIMIT = 30;
 
 let warned = false;
 
@@ -54,14 +64,6 @@ export function rateLimiter() {
       timeout,
       onError,
     }),
-    forcedSlowMode: new Ratelimit({
-      rootKey: UNKEY_ROOT_KEY,
-      namespace: "forcedSlowMode",
-      limit: 1,
-      duration: "30s",
-      timeout,
-      onError,
-    }),
     instantMeeting: new Ratelimit({
       rootKey: UNKEY_ROOT_KEY,
       namespace: "instantMeeting",
@@ -74,6 +76,22 @@ export function rateLimiter() {
       rootKey: UNKEY_ROOT_KEY,
       namespace: "common",
       limit: 200,
+      duration: "60s",
+      timeout,
+      onError,
+    }),
+    forcedSlowMode: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "forcedSlowMode",
+      limit: 1,
+      duration: "30s",
+      timeout,
+      onError,
+    }),
+    api: new Ratelimit({
+      rootKey: UNKEY_ROOT_KEY,
+      namespace: "api",
+      limit: API_KEY_RATE_LIMIT,
       duration: "60s",
       timeout,
       onError,
