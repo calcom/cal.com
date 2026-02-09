@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import LegacyPage from "~/ee/organizations/profile";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 

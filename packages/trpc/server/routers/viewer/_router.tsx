@@ -1,5 +1,4 @@
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
-
 import { router } from "../../trpc";
 import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
@@ -9,13 +8,13 @@ import { adminRouter } from "./admin/_router";
 import { aiVoiceAgentRouter } from "./aiVoiceAgent/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
-import { attributesRouter } from "./attributes/_router";
 import { attributeSyncRouter } from "./attribute-sync/_router";
+import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
-import { calVideoRouter } from "./calVideo/_router";
 import { calendarsRouter } from "./calendars/_router";
+import { calVideoRouter } from "./calVideo/_router";
 import { credentialsRouter } from "./credentials/_router";
 import { creditsRouter } from "./credits/_router";
 import { delegationCredentialRouter } from "./delegationCredential/_router";
@@ -24,6 +23,7 @@ import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
 import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
 import { featureOptInRouter } from "./featureOptIn/_router";
+import { feedbackRouter } from "./feedback/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { holidaysRouter } from "./holidays/_router";
@@ -79,6 +79,7 @@ export const viewerRouter = router({
   appRoutingForms: app_RoutingForms,
   features: featureFlagRouter,
   featureOptIn: featureOptInRouter,
+  feedback: feedbackRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,
   googleWorkspace: googleWorkspaceRouter,
