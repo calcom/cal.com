@@ -14,7 +14,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Checkbox } from "@calcom/ui/components/form";
 
-import type { GroupedBookingReport, BlocklistScope } from "../types";
+import type { GroupedBookingReport, BlocklistScope } from "@calcom/features/blocklist/types";
 
 interface UsePendingReportsColumnsProps<T extends GroupedBookingReport> {
   t: (key: string) => string;

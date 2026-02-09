@@ -1,4 +1,3 @@
-export * from "./types";
 export * from "./components/CreateBlocklistEntryModal";
 export * from "./components/BlockedEntriesTable";
 export * from "./components/BlockedEntriesColumns";
