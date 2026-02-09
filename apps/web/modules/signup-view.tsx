@@ -202,7 +202,7 @@ export default function Signup({
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: prepopulateFormValues satisfies FormValues,
-    mode: "onChange",
+    mode: "onTouched",
   });
   const {
     register,
@@ -434,7 +434,7 @@ export default function Signup({
                 </p>
               )}
               {IS_CALCOM && (
-                <div className="mt-4">
+                <div className="mt-12">
                   <SelectField
                     label={t("data_region")}
                     value={{
@@ -487,7 +487,7 @@ export default function Signup({
 
             {/* Form Container */}
             {displayEmailForm && (
-              <div className="mt-12">
+              <div className="mt-6">
                 <Form
                   className="flex flex-col gap-4"
                   form={formMethods}
@@ -647,101 +647,111 @@ export default function Signup({
                 </Form>
               </div>
             )}
-                        {!displayEmailForm && (
-                          <div className="mt-12">
-                            {/* Upper Row */}
-                            <div className="mt-6 flex flex-col gap-3">
-                              <>
-                                {isGoogleLoginEnabled ? (
-                                  <Button
-                                    color="primary"
-                                    loading={isGoogleLoading}
-                                    disabled={isMicrosoftLoading}
-                                    CustomStartIcon={
-                                      <img
-                                        className="text-subtle mr-2 h-4 w-4"
-                                        src="/google-icon-colored.svg"
-                                        alt="Continue with Google Icon"
-                                      />
-                                    }
-                                    className="w-full justify-center rounded-md text-center"
-                                    data-testid="continue-with-google-button"
-                                    onClick={() => handleOAuthClick("google")}>
-                                    {t("continue_with_google")}
-                                  </Button>
-                                ) : null}
-                                {isOutlookLoginEnabled ? (
-                                  <Button
-                                    color="primary"
-                                    loading={isMicrosoftLoading}
-                                    disabled={isGoogleLoading}
-                                    CustomStartIcon={
-                                      <img
-                                        className="text-subtle mr-2 h-4 w-4"
-                                        src="/microsoft-logo.svg"
-                                        alt="Continue with Microsoft Icon"
-                                      />
-                                    }
-                                    className="w-full justify-center rounded-md text-center"
-                                    data-testid="continue-with-microsoft-button"
-                                    onClick={() => handleOAuthClick("microsoft")}>
-                                    {t("continue_with_microsoft")}
-                                  </Button>
-                                ) : null}
-                              </>
-                            </div>
-
-                            {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
-                              <div className="mt-6">
-                                <div className="relative flex items-center">
-                                  <div className="border-subtle grow border-t" />
-                                  <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
-                                    {t("or").toLocaleLowerCase()}
-                                  </span>
-                                  <div className="border-subtle grow border-t" />
-                                </div>
-                              </div>
+            {!displayEmailForm && (
+              <div className="mt-8 flex flex-col gap-6">
+                {/* Upper Row */}
+                <div className="flex flex-col gap-3">
+                  {isGoogleLoginEnabled && (
+                    <Button
+                      color="primary"
+                      loading={isGoogleLoading}
+                      disabled={isMicrosoftLoading}
+                      CustomStartIcon={
+                        <>
+                          {/* eslint-disable @next/next/no-img-element */}
+                          <img
+                            className={classNames(
+                              "text-subtle  mr-2 h-4 w-4",
+                              premiumUsername && "opacity-50"
                             )}
+                            src="/google-icon-colored.svg"
+                            alt="Continue with Google Icon"
+                          />
+                        </>
+                      }
+                      className={classNames("w-full justify-center rounded-md text-center")}
+                      data-testid="continue-with-google-button"
+                      onClick={() => handleOAuthClick("google")}>
+                      {t("continue_with_google")}
+                    </Button>
+                  )}
+                  {isOutlookLoginEnabled && (
+                    <Button
+                      color="primary"
+                      loading={isMicrosoftLoading}
+                      disabled={isGoogleLoading}
+                      CustomStartIcon={
+                        <>
+                          {/* eslint-disable @next/next/no-img-element */}
+                          <img
+                            className={classNames(
+                              "text-subtle  mr-2 h-4 w-4",
+                              premiumUsername && "opacity-50"
+                            )}
+                            src="/microsoft-logo.svg"
+                            alt="Continue with Microsoft Icon"
+                          />
+                        </>
+                      }
+                      className={classNames("w-full justify-center rounded-md text-center")}
+                      data-testid="continue-with-microsoft-button"
+                      onClick={() => handleOAuthClick("microsoft")}>
+                      {t("continue_with_microsoft")}
+                    </Button>
+                  )}
+                </div>
 
-                            {/* Lower Row */}
-                            <div className="mt-6 flex flex-col gap-2">
-                              <Button
-                                color="secondary"
-                                disabled={isGoogleLoading || isMicrosoftLoading}
-                                className={classNames("w-full justify-center rounded-md text-center")}
-                                onClick={() => {
-                                  posthog.capture("signup_email_button_clicked", {
-                                    has_token: !!token,
-                                    is_org_invite: isOrgInviteByLink,
-                                    org_slug: orgSlug,
-                                  });
-                                  setDisplayEmailForm(true);
-                                  setIsSamlSignup(false);
-                                }}
-                                data-testid="continue-with-email-button">
-                                {t("continue_with_email")}
-                              </Button>
-                              {isSAMLLoginEnabled && (
-                                <Button
-                                  data-testid="continue-with-saml-button"
-                                  color="minimal"
-                                  disabled={isGoogleLoading || isMicrosoftLoading}
-                                  className={classNames("w-full justify-center rounded-md text-center")}
-                                  onClick={() => {
-                                    posthog.capture("signup_saml_button_clicked", {
-                                      has_token: !!token,
-                                      is_org_invite: isOrgInviteByLink,
-                                      org_slug: orgSlug,
-                                    });
-                                    setDisplayEmailForm(true);
-                                    setIsSamlSignup(true);
-                                  }}>
-                                  {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                {(isGoogleLoginEnabled || isOutlookLoginEnabled) && (
+                  <div>
+                    <div className="relative flex items-center">
+                      <div className="border-subtle grow border-t" />
+                      <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
+                        {t("or").toLocaleLowerCase()}
+                      </span>
+                      <div className="border-subtle grow border-t" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Lower Row */}
+                <div className="flex flex-col gap-2">
+                  <Button
+                    color="secondary"
+                    disabled={isGoogleLoading || isMicrosoftLoading}
+                    className={classNames("w-full justify-center rounded-md text-center")}
+                    onClick={() => {
+                      posthog.capture("signup_email_button_clicked", {
+                        has_token: !!token,
+                        is_org_invite: isOrgInviteByLink,
+                        org_slug: orgSlug,
+                      });
+                      setDisplayEmailForm(true);
+                      setIsSamlSignup(false);
+                    }}
+                    data-testid="continue-with-email-button">
+                    {t("continue_with_email")}
+                  </Button>
+                  {isSAMLLoginEnabled && (
+                    <Button
+                      data-testid="continue-with-saml-button"
+                      color="minimal"
+                      disabled={isGoogleLoading || isMicrosoftLoading}
+                      className={classNames("w-full justify-center rounded-md text-center")}
+                      onClick={() => {
+                        posthog.capture("signup_saml_button_clicked", {
+                          has_token: !!token,
+                          is_org_invite: isOrgInviteByLink,
+                          org_slug: orgSlug,
+                        });
+                        setDisplayEmailForm(true);
+                        setIsSamlSignup(true);
+                      }}>
+                      {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Already have an account & T&C */}
             <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
