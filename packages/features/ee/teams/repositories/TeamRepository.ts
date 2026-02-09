@@ -709,4 +709,38 @@ export class TeamRepository {
       },
     });
   }
+
+  async hasActiveSubscription({ teamId }: { teamId: number }) {
+    const team = await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: { metadata: true },
+    });
+
+    if (!team) return false;
+
+    const metadata = teamMetadataSchema.parse(team.metadata);
+    return !!(metadata?.subscriptionId || metadata?.paymentId);
+  }
+
+  async findOrgTeamsWithActiveSubscriptions({ orgId }: { orgId: number }) {
+    const teams = await this.prismaClient.team.findMany({
+      where: {
+        OR: [
+          { id: orgId },
+          { parentId: orgId },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+      },
+    });
+
+    return teams.filter((team) => {
+      const metadata = teamMetadataSchema.parse(team.metadata);
+      return !!(metadata?.subscriptionId || metadata?.paymentId);
+    });
+  }
 }

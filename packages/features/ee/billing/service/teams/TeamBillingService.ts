@@ -72,13 +72,30 @@ export class TeamBillingService implements ITeamBillingService {
   async cancel() {
     try {
       const { subscriptionId } = this.team.metadata;
-      log.info(`Cancelling subscription ${subscriptionId} for team ${this.team.id}`);
-      if (!subscriptionId) throw Error("missing subscriptionId");
+      log.info(`Cancelling subscription ${subscriptionId} for team ${this.team.id}`, safeStringify({ 
+        teamId: this.team.id, 
+        isOrganization: this.team.isOrganization,
+        subscriptionId 
+      }));
+      
+      if (!subscriptionId) {
+        log.warn(`No subscriptionId found for team ${this.team.id}, skipping cancellation`);
+        await this.downgrade();
+        return;
+      }
+      
       await this.billingProviderService.handleSubscriptionCancel(subscriptionId);
       await this.downgrade();
-      log.info(`Cancelled subscription ${subscriptionId} for team ${this.team.id}`);
+      
+      log.info(`Successfully cancelled subscription ${subscriptionId} for team ${this.team.id}`);
     } catch (error) {
+      log.error(`Failed to cancel subscription for team ${this.team.id}`, safeStringify({ 
+        error, 
+        teamId: this.team.id,
+        subscriptionId: this.team.metadata.subscriptionId 
+      }));
       this.logErrorFromUnknown(error);
+      throw error;
     }
   }
   // New teams are published on creation, this is for backwards compatibility
@@ -136,10 +153,43 @@ export class TeamBillingService implements ITeamBillingService {
         subscriptionId: undefined,
         subscriptionItemId: undefined,
       });
-      await prisma.team.update({ where: { id: this.team.id }, data: { metadata } });
-      log.info(`Downgraded team ${this.team.id}`);
+
+      await prisma.$transaction(async (tx) => {
+        await tx.team.update({ where: { id: this.team.id }, data: { metadata } });
+
+        if (this.team.isOrganization) {
+          const childTeams = await tx.team.findMany({
+            where: { parentId: this.team.id },
+            select: { id: true, metadata: true },
+          });
+
+          for (const childTeam of childTeams) {
+            const childMetadata = teamPaymentMetadataSchema.parse(childTeam.metadata || {});
+            const { mergeMetadata: mergeChildMetadata } = getMetadataHelpers(
+              teamPaymentMetadataSchema,
+              childMetadata
+            );
+            const cleanedChildMetadata = mergeChildMetadata({
+              paymentId: undefined,
+              subscriptionId: undefined,
+              subscriptionItemId: undefined,
+            });
+
+            await tx.team.update({
+              where: { id: childTeam.id },
+              data: { metadata: cleanedChildMetadata },
+            });
+          }
+
+          log.info(`Downgraded organization ${this.team.id} and ${childTeams.length} child teams`);
+        } else {
+          log.info(`Downgraded team ${this.team.id}`);
+        }
+      });
     } catch (error) {
+      log.error(`Failed to downgrade team ${this.team.id}`, safeStringify({ error, teamId: this.team.id }));
       this.logErrorFromUnknown(error);
+      throw error;
     }
   }
   async updateQuantity() {

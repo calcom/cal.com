@@ -549,4 +549,52 @@ export class OrganizationRepository {
       },
     });
   }
+
+  async downgradeOrganization({ id }: { id: number }) {
+    return await this.prismaClient.$transaction(async (tx) => {
+      const org = await tx.team.findUnique({
+        where: { id, isOrganization: true },
+        select: { metadata: true },
+      });
+
+      if (!org) {
+        throw new Error(`Organization ${id} not found`);
+      }
+
+      const metadata = teamMetadataSchema.parse(org.metadata);
+      const cleanedMetadata = {
+        ...metadata,
+        paymentId: undefined,
+        subscriptionId: undefined,
+        subscriptionItemId: undefined,
+      };
+
+      await tx.team.update({
+        where: { id },
+        data: { metadata: cleanedMetadata },
+      });
+
+      const childTeams = await tx.team.findMany({
+        where: { parentId: id },
+        select: { id: true, metadata: true },
+      });
+
+      for (const childTeam of childTeams) {
+        const childMetadata = teamMetadataSchema.parse(childTeam.metadata || {});
+        const cleanedChildMetadata = {
+          ...childMetadata,
+          paymentId: undefined,
+          subscriptionId: undefined,
+          subscriptionItemId: undefined,
+        };
+
+        await tx.team.update({
+          where: { id: childTeam.id },
+          data: { metadata: cleanedChildMetadata },
+        });
+      }
+
+      return { updatedOrg: true, childTeamsUpdated: childTeams.length };
+    });
+  }
 }

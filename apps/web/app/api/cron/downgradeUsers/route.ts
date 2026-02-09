@@ -33,6 +33,8 @@ async function postHandler(request: NextRequest) {
         metadata: true,
         isOrganization: true,
         parentId: true,
+        slug: true,
+        name: true,
       },
       skip: pageNumber * pageSize,
       take: pageSize,
@@ -45,7 +47,17 @@ async function postHandler(request: NextRequest) {
     const teamBillingFactory = getTeamBillingServiceFactory();
     const teamsBilling = teamBillingFactory.initMany(teams);
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
-    await Promise.allSettled(teamBillingPromises);
+    const results = await Promise.allSettled(teamBillingPromises);
+
+    const failures = results.filter((result) => result.status === "rejected");
+    if (failures.length > 0) {
+      console.error(`Failed to update ${failures.length}/${teams.length} teams in page ${pageNumber}`);
+      failures.forEach((failure, index) => {
+        if (failure.status === "rejected") {
+          console.error(`Team ${teams[index].id} (${teams[index].slug}): ${failure.reason}`);
+        }
+      });
+    }
 
     pageNumber++;
   }
