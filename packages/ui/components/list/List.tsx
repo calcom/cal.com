@@ -122,7 +122,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         </div>
       </Link>
       {/* On mobile, place actions at the top-right; on larger screens keep inline on the right */}
-      <div className="flex flex-col items-end justify-start gap-2 sm:flex-row sm:items-center sm:gap-2 sm:static sm:mt-0 sm:w-auto sm:pl-4 w-auto absolute right-5  top-3 z-10">
+      <div className="flex flex-col items-end justify-start gap-2 w-auto absolute right-5 top-3 z-10 sm:flex-row sm:items-center sm:static sm:mt-0 sm:pl-4">
         {actions}
       </div>
     </li>
