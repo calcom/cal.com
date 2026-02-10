@@ -24,6 +24,18 @@ describe("isPasswordValid", () => {
     });
   });
 
+  describe("minimum length boundary", () => {
+    it("accepts a 7-character password (>= 7 threshold)", () => {
+      // "Abcdef1" is exactly 7 characters
+      expect(isPasswordValid("Abcdef1")).toBe(true);
+    });
+
+    it("rejects a 6-character password (below >= 7 threshold)", () => {
+      // "Abcde1" is exactly 6 characters
+      expect(isPasswordValid("Abcde1")).toBe(false);
+    });
+  });
+
   describe("Unicode uppercase and lowercase recognition", () => {
     it("accepts Unicode uppercase as the capital requirement (German sharp-S uppercase)", () => {
       // U+1E9E LATIN CAPITAL LETTER SHARP S — classified as \p{Lu}
@@ -56,6 +68,24 @@ describe("isPasswordValid", () => {
     });
   });
 
+  describe("edge cases", () => {
+    it("rejects an empty string", () => {
+      expect(isPasswordValid("")).toBe(false);
+    });
+
+    it("rejects a single character", () => {
+      expect(isPasswordValid("A")).toBe(false);
+    });
+
+    it("rejects Unicode letters without a digit", () => {
+      expect(isPasswordValid("Ωαβγδεζη")).toBe(false);
+    });
+
+    it("rejects digits only", () => {
+      expect(isPasswordValid("1234567")).toBe(false);
+    });
+  });
+
   describe("breakdown mode", () => {
     it("returns breakdown object with caplow, num, min", () => {
       const result = isPasswordValid("Abcdefg1", true);
@@ -74,13 +104,15 @@ describe("isPasswordValid", () => {
   });
 
   describe("strict mode", () => {
-    it("requires more than 14 characters in strict mode", () => {
+    it("accepts 15-character password in strict mode (above > 14 threshold)", () => {
+      // "Abcdefghijklmn1" is exactly 15 characters
       const result = isPasswordValid("Abcdefghijklmn1", true, true);
       expect(result).toEqual({ caplow: true, num: true, min: true, admin_min: true });
     });
 
-    it("fails admin_min when 14 characters or fewer in strict mode", () => {
-      const result = isPasswordValid("Abcdefghijk1", true, true);
+    it("rejects 14-character password in strict mode (at > 14 boundary)", () => {
+      // "Abcdefghijklm1" is exactly 14 characters — fails because > 14 is required
+      const result = isPasswordValid("Abcdefghijklm1", true, true);
       expect(result).toEqual({ caplow: true, num: true, min: false, admin_min: false });
     });
   });
