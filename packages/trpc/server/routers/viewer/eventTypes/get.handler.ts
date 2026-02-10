@@ -1,4 +1,4 @@
-// Cache bust: workflows.activeOn.eventType no longer includes _count.children
+// Cache bust: added redirectUrlOnNoRoutingFormResponse to eventType
 import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 

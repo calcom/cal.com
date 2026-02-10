@@ -1,13 +1,12 @@
 import { TeamService } from "@calcom/platform-libraries";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
+import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { OrganizationMembershipOutput } from "@/modules/organizations/memberships/outputs/organization-membership.output";
-import { UsersRepository } from "@/modules/users/users.repository";
-import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
-import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
 
 export const PLATFORM_USER_BEING_ADDED_TO_REGULAR_ORG_ERROR = `Can't add user to organization - the user is platform managed user but organization is not because organization probably was not created using OAuth credentials.`;
 export const REGULAR_USER_BEING_ADDED_TO_PLATFORM_ORG_ERROR = `Can't add user to organization - the user is not platform managed user but organization is platform managed. Both have to be created using OAuth credentials.`;
@@ -19,7 +18,6 @@ export class OrganizationsMembershipService {
     private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
     private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService,
     private readonly oAuthClientsRepository: OAuthClientRepository,
-    private readonly usersRepository: UsersRepository,
     private readonly delegationCredentialService: OrganizationsDelegationCredentialService
   ) {}
 
@@ -127,15 +125,12 @@ export class OrganizationsMembershipService {
     await this.canUserBeAddedToOrg(data.userId, organizationId);
     const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
 
-    if (this.delegationCredentialService && this.usersRepository) {
-      const user = await this.usersRepository.findById(data.userId);
-      if (user?.email) {
-        await this.delegationCredentialService.ensureDefaultCalendarsForUser(
-          organizationId,
-          data.userId,
-          user.email
-        );
-      }
+    if (membership.user.email) {
+      await this.delegationCredentialService.ensureDefaultCalendarsForUser(
+        organizationId,
+        data.userId,
+        membership.user.email
+      );
     }
 
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
