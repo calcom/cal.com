@@ -28,6 +28,7 @@ export const REDIRECT_APPS = [
   "telli",
   "vimcal",
   "wordpress",
+  "x",
   "zapier",
 ] as const;
 export type RedirectApp = (typeof REDIRECT_APPS)[number];

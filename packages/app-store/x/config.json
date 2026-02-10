@@ -1,0 +1,20 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "X",
+  "slug": "x",
+  "type": "x_other",
+  "logo": "icon.svg",
+  "url": "https://x.com/calcom",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Follow Cal.com on X (formerly Twitter) for the latest updates, tips, and news about scheduling.",
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app",
+  "isOAuth": false,
+  "externalLink": {
+    "url": "https://x.com/calcom",
+    "newTab": true
+  }
+}
