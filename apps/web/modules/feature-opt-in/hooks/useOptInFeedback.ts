@@ -1,6 +1,7 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import { isENVDev } from "@calcom/lib/env";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -44,7 +45,7 @@ function useOptInFeedback(featureId: string, featureConfig: OptInFeatureConfig |
   }, [featureId]);
 
   useEffect(() => {
-    if (isImpersonating) return;
+    if (isImpersonating && !isENVDev) return;
     if (!featureConfig?.formbricks) return;
 
     // Don't trigger if already triggered this session

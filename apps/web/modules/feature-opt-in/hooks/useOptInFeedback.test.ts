@@ -8,6 +8,13 @@ vi.mock("next-auth/react", () => ({
   useSession: () => mockUseSession(),
 }));
 
+const mockEnv = vi.hoisted(() => ({ isENVDev: false }));
+vi.mock("@calcom/lib/env", () => ({
+  get isENVDev() {
+    return mockEnv.isENVDev;
+  },
+}));
+
 vi.mock("../lib/feature-opt-in-storage", () => ({
   getFeatureOptInTimestamp: vi.fn(() => Date.now() - 10 * 24 * 60 * 60 * 1000),
   isFeatureFeedbackShown: vi.fn(() => false),
@@ -48,7 +55,8 @@ describe("useOptInFeedback", () => {
     expect(result.current.showFeedbackDialog).toBe(true);
   });
 
-  it("does not show feedback dialog when user is impersonated", () => {
+  it("does not show feedback dialog when user is impersonated in production", () => {
+    mockEnv.isENVDev = false;
     mockUseSession.mockReturnValue({
       data: { user: { impersonatedBy: { id: 999, email: "admin@cal.com" } } },
     });
@@ -60,6 +68,21 @@ describe("useOptInFeedback", () => {
     });
 
     expect(result.current.showFeedbackDialog).toBe(false);
+  });
+
+  it("shows feedback dialog when user is impersonated in development", () => {
+    mockEnv.isENVDev = true;
+    mockUseSession.mockReturnValue({
+      data: { user: { impersonatedBy: { id: 999, email: "admin@cal.com" } } },
+    });
+
+    const { result } = renderHook(() => useOptInFeedback("bookings-v3", featureConfig));
+
+    act(() => {
+      vi.advanceTimersByTime(6000);
+    });
+
+    expect(result.current.showFeedbackDialog).toBe(true);
   });
 
   it("shows feedback dialog when session has no impersonation", () => {
