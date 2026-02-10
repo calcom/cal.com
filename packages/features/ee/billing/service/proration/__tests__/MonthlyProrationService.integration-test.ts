@@ -5,6 +5,7 @@ import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
@@ -25,10 +26,14 @@ function getTestDates() {
 }
 
 const mockBillingService: IBillingProviderService = {
-  createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  createInvoiceItem: vi
+    .fn()
+    .mockResolvedValue({ invoiceItemId: "ii_test_123" }),
   deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
-  finalizeInvoice: vi.fn().mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
+  finalizeInvoice: vi
+    .fn()
+    .mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
   getSubscription: vi.fn().mockResolvedValue({
     items: [
       {
@@ -49,8 +54,12 @@ const mockBillingService: IBillingProviderService = {
   handleSubscriptionCancel: vi.fn().mockResolvedValue(undefined),
   handleSubscriptionCreation: vi.fn().mockResolvedValue(undefined),
   handleEndTrial: vi.fn().mockResolvedValue(undefined),
-  createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
-  createPaymentIntent: vi.fn().mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
+  createCustomer: vi
+    .fn()
+    .mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
+  createPaymentIntent: vi
+    .fn()
+    .mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
   createSubscriptionCheckout: vi.fn().mockResolvedValue({
     checkoutUrl: "https://checkout.test",
     sessionId: "cs_test_123",
@@ -149,7 +158,10 @@ describe("MonthlyProrationService Integration Tests", () => {
   });
 
   it("should process end-to-end proration for annual team with seat additions", async () => {
-    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const prorationService = new MonthlyProrationService(
+      undefined,
+      mockBillingService
+    );
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(7);
 
@@ -219,12 +231,17 @@ describe("MonthlyProrationService Integration Tests", () => {
     });
 
     expect(seatChanges).toHaveLength(2);
-    expect(seatChanges.every((sc) => sc.processedInProrationId === proration?.id)).toBe(true);
+    expect(
+      seatChanges.every((sc) => sc.processedInProrationId === proration?.id)
+    ).toBe(true);
   });
 
   it("should create a $0 proration for team with no net change", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const prorationService = new MonthlyProrationService(
+      undefined,
+      mockBillingService
+    );
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -327,14 +344,21 @@ describe("MonthlyProrationService Integration Tests", () => {
       monthKey,
     });
 
-    const filteredResults = results.filter((r) => [testTeam.id, testTeam2.id].includes(r.teamId));
+    const filteredResults = results.filter((r) =>
+      [testTeam.id, testTeam2.id].includes(r.teamId)
+    );
     expect(filteredResults).toHaveLength(2);
-    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(true);
+    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(
+      true
+    );
   });
 
   it("should handle payment success callback", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const prorationService = new MonthlyProrationService(
+      undefined,
+      mockBillingService
+    );
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -363,7 +387,10 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should handle payment failure callback", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const prorationService = new MonthlyProrationService(
+      undefined,
+      mockBillingService
+    );
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -395,7 +422,10 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should call handleSubscriptionUpdate when updating subscription quantity", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
+    const prorationService = new MonthlyProrationService(
+      undefined,
+      mockBillingService
+    );
 
     // Reset the mock to track calls
     vi.mocked(mockBillingService.handleSubscriptionUpdate).mockClear();
@@ -430,9 +460,14 @@ describe("MonthlyProrationService Integration Tests", () => {
     const seatTracker = new SeatChangeTrackingService();
     const failingBillingService = {
       ...mockBillingService,
-      handleSubscriptionUpdate: vi.fn().mockRejectedValue(new Error("Subscription not found")),
+      handleSubscriptionUpdate: vi
+        .fn()
+        .mockRejectedValue(new Error("Subscription not found")),
     };
-    const prorationService = new MonthlyProrationService(undefined, failingBillingService);
+    const prorationService = new MonthlyProrationService(
+      undefined,
+      failingBillingService
+    );
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
@@ -448,8 +483,8 @@ describe("MonthlyProrationService Integration Tests", () => {
     });
 
     // Should throw when trying to update subscription
-    await expect(prorationService.handleProrationPaymentSuccess(proration!.id)).rejects.toThrow(
-      "Subscription not found"
-    );
+    await expect(
+      prorationService.handleProrationPaymentSuccess(proration!.id)
+    ).rejects.toThrow("Subscription not found");
   });
 });

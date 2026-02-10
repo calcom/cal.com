@@ -158,24 +158,26 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     // For existing users create membership for team and org if needed
     await prisma.membership.createMany({
       data: [
-        ...users.flatMap((user) => {
-          return [
-            {
-              createdAt: new Date(),
-              userId: user.id,
-              teamId: group.teamId,
-              role: MembershipRole.MEMBER,
-              accepted: true,
-            },
-            {
-              createdAt: new Date(),
-              userId: user.id,
-              teamId: organizationId,
-              role: MembershipRole.MEMBER,
-              accepted: true,
-            },
-          ];
-        }),
+        ...users
+          .map((user) => {
+            return [
+              {
+                createdAt: new Date(),
+                userId: user.id,
+                teamId: group.teamId,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+              {
+                createdAt: new Date(),
+                userId: user.id,
+                teamId: organizationId,
+                role: MembershipRole.MEMBER,
+                accepted: true,
+              },
+            ];
+          })
+          .flat(),
       ],
       skipDuplicates: true,
     });
