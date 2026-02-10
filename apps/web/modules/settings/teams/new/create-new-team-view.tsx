@@ -165,6 +165,7 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
               <div className="flex w-full flex-col gap-1.5">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
                 <TextField
+                  noLabel
                   name="name"
                   data-testid="team-name-input"
                   value={teamName}
