@@ -493,6 +493,16 @@ if (IS_OUTLOOK_LOGIN_ENABLED) {
           prompt: "consent",
         },
       },
+      // Azure AD returns base64-encoded picture data (~9KB) that bloats the JWT cookie.
+      // we exclude it here and fetch the profile photo separately via Microsoft Graph API.
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: null,
+        };
+      },
     })
   );
 }
@@ -657,15 +667,12 @@ export const getOptions = ({
           orgRole = membership?.role;
         }
 
-        // Don't spread ...token here - it may contain large OAuth tokens (access_token, refresh_token, id_token)
-        // that bloat the JWT cookie. Only include the specific fields we need.
-        return {
-          sub: token.sub,
+        const autoMergeJwt = {
+          ...token,
           ...existingUserWithoutTeamsField,
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
-          impersonatedBy: token.impersonatedBy,
           orgAwareUsername: profileOrg ? profile.username : existingUser.username,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
@@ -683,6 +690,7 @@ export const getOptions = ({
                 }
               : null,
         } as JWT;
+        return autoMergeJwt;
       };
       if (!user) {
         return await autoMergeIdentities();
@@ -882,10 +890,8 @@ export const getOptions = ({
           "callbacks:jwt:accountType:oauth:existingUser",
           safeStringify({ userId: existingUser.id, upId: profileResult.upId })
         );
-        // Don't spread ...token here - it may contain large OAuth tokens (access_token, refresh_token, id_token)
-        // that bloat the JWT cookie. Only include the specific fields we need.
-        return {
-          sub: token.sub,
+        const finalJwt = {
+          ...token,
           upId: profileResult.upId,
           profileId: profileResult.id ?? token.profileId ?? null,
           id: existingUser.id,
@@ -894,12 +900,11 @@ export const getOptions = ({
           email: existingUser.email,
           avatarUrl: existingUser.avatarUrl,
           role: existingUser.role,
-          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
-          org: token?.org,
-          orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
         } as JWT;
+
+        return finalJwt;
       }
 
       if (account.type === "email") {
