@@ -1,20 +1,42 @@
 "use client";
 
+import { useState } from "react";
+
 import dayjs from "@calcom/dayjs";
 import { DomainIcon } from "@calcom/features/routing-trace/components/DomainIcon";
 import { getDomainLabel } from "@calcom/features/routing-trace/presenters/getDomainLabel";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@calcom/ui/components/sheet";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog";
 
 interface RoutingTraceSheetProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   bookingUid: string;
+  /** Props for showing the report button. If not provided, report button is hidden */
+  reportContext?: {
+    routingReason: string | null;
+    guestEmail: string;
+    hostEmail: string;
+    hostName: string | null;
+    teamId: number | null;
+    hasExistingReport: boolean;
+  };
 }
 
-export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTraceSheetProps) {
+export function RoutingTraceSheet({
+  isOpen,
+  setIsOpen,
+  bookingUid,
+  reportContext,
+}: RoutingTraceSheetProps) {
   const { t } = useLocale();
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const showReportButton = !!reportContext;
 
   const { data, isLoading } = trpc.viewer.bookings.getRoutingTrace.useQuery(
     { bookingUid },
@@ -25,12 +47,51 @@ export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTrac
   );
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>{t("routing_trace")}</SheetTitle>
-        </SheetHeader>
-        <SheetBody>
+    <>
+      {reportContext && (
+        <WrongAssignmentDialog
+          isOpenDialog={isReportDialogOpen}
+          setIsOpenDialog={setIsReportDialogOpen}
+          bookingUid={bookingUid}
+          routingReason={reportContext.routingReason}
+          guestEmail={reportContext.guestEmail}
+          hostEmail={reportContext.hostEmail}
+          hostName={reportContext.hostName}
+          teamId={reportContext.teamId}
+        />
+      )}
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent>
+          <SheetHeader showCloseButton={!showReportButton}>
+            {showReportButton ? (
+              <div className="flex w-full items-center justify-between">
+                <SheetTitle>{t("routing_trace")}</SheetTitle>
+                <div className="flex items-center gap-2">
+                  <Tooltip
+                    content={reportContext.hasExistingReport ? t("wrong_assignment_already_reported") : ""}>
+                    <Button
+                      color="secondary"
+                      size="sm"
+                      StartIcon="flag"
+                      disabled={reportContext.hasExistingReport}
+                      onClick={() => setIsReportDialogOpen(true)}>
+                      {t("report")}
+                    </Button>
+                  </Tooltip>
+                  <Button
+                    variant="icon"
+                    StartIcon="x"
+                    color="minimal"
+                    className="aspect-square p-1"
+                    onClick={() => setIsOpen(false)}
+                  />
+                </div>
+              </div>
+            ) : (
+              <SheetTitle>{t("routing_trace")}</SheetTitle>
+            )}
+          </SheetHeader>
+          <SheetBody>
           {isLoading && (
             <div className="flex flex-col gap-4 py-2">
               {[1, 2, 3].map((i) => (
@@ -78,8 +139,9 @@ export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTrac
               })}
             </div>
           )}
-        </SheetBody>
-      </SheetContent>
-    </Sheet>
+          </SheetBody>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
