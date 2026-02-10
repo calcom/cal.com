@@ -108,7 +108,7 @@ export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 export { getCalendarLinks } from "@calcom/features/bookings/lib/getCalendarLinks";
 export { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
-export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+export { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/trpc/server/routers/viewer/attributes/findTeamMembersMatchingAttributeLogic.schema";

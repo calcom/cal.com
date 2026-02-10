@@ -7,7 +7,7 @@ import { DataTableProvider, ColumnFilterType, type FilterableColumn } from "@cal
 import { DataTableFilters, DateRangeFilter } from "~/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
 import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,
   BookingKPICards,

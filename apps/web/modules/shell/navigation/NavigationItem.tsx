@@ -264,6 +264,7 @@ export const NavigationItem: React.FC<{
         </div>
       )}
     </Fragment>
+
   );
 };
 
@@ -312,6 +313,19 @@ export const MobileNavigationMoreItem: React.FC<{
   if (!shouldDisplayNavigationItem) return null;
 
   const hasChildren = item.child && item.child.length > 0;
+  const isActionItem = !item.href && item.onClick;
+
+  const itemContent = (
+    <>
+      <span className="text-default flex items-center font-semibold ">
+        {item.icon && (
+          <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+        )}
+        {isLocaleReady ? t(item.name) : <SkeletonText />}
+      </span>
+      {!isActionItem && <Icon name="arrow-right" className="text-subtle h-5 w-5" />}
+    </>
+  );
 
   return (
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
@@ -351,16 +365,20 @@ export const MobileNavigationMoreItem: React.FC<{
               )}
             </div>
           </div>
+
         </>
+      ) : isActionItem ? (
+        <button
+          onClick={item.onClick}
+          className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
+          {itemContent}
+        </button>
       ) : (
-        <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
-          <span className="text-default flex items-center font-semibold ">
-            {item.icon && (
-              <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
-            )}
-            {isLocaleReady ? t(item.name) : <SkeletonText />}
-          </span>
-          <Icon name="arrow-right" className="text-subtle h-5 w-5" />
+        <Link
+          href={item.href}
+          target={item.target}
+          className="hover:bg-subtle flex items-center justify-between p-5 transition">
+          {itemContent}
         </Link>
       )}
     </li>

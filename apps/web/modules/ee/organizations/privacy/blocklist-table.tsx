@@ -9,7 +9,7 @@ import {
   PendingReportsBadge,
   PendingReportsTable,
   type SortByOption,
-} from "@calcom/features/blocklist";
+} from "@calcom/web/modules/blocklist";
 import { useDataTable } from "@calcom/features/data-table";
 import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

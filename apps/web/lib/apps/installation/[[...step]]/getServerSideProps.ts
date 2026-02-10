@@ -358,9 +358,10 @@ const getInitialStep = (
   parsedStepParam: string | undefined,
   hasTeams: boolean,
   showEventTypesStep: boolean,
-  parsedAppSlug: string
+  parsedAppSlug: string,
+  isOAuth: boolean
 ): { step: string | undefined; redirect?: RedirectResult } => {
-  if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP && showEventTypesStep) {
+  if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP && showEventTypesStep && !isOAuth) {
     return {
       step: parsedStepParam,
       redirect: {
@@ -373,7 +374,7 @@ const getInitialStep = (
     if (hasTeams) {
       step = AppOnboardingSteps.ACCOUNTS_STEP;
     } else {
-      step = AppOnboardingSteps.EVENT_TYPES_STEP;
+      step = isOAuth ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
     }
   }
   return { step };
@@ -445,7 +446,7 @@ const getCredential = async (
   parsedAppSlug: string
 ): Promise<{ credentialId: number | null; redirect?: RedirectResult }> => {
   let credentialId = getCredentialId(parsedTeamIdParam, appInstalls, user.id);
-  if (!credentialId && !user.teams.length && initialStep === AppOnboardingSteps.EVENT_TYPES_STEP) {
+  if (!credentialId && !user.teams.length && initialStep === AppOnboardingSteps.EVENT_TYPES_STEP && !appMetadata.isOAuth) {
     credentialId = await handleAutoInstall(user, appMetadata, parsedAppSlug);
     if (!credentialId)
       return { credentialId: null, redirect: { redirect: { permanent: false, destination: "/apps" } } };
@@ -509,9 +510,13 @@ export const getServerSideProps = async (
     parsedStepParam,
     !!userTeams.length,
     showEventTypesStep,
-    parsedAppSlug
+    parsedAppSlug,
+    !!appMetadataFinal.isOAuth
   );
   if (stepRedirect) return stepRedirect;
+  if (!initialStep) {
+    return { redirect: { permanent: false, destination: "/apps" } };
+  }
 
   let initialStepValidated: (typeof STEPS)[number];
   try {

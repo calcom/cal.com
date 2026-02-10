@@ -251,6 +251,27 @@
       }
     },
     {
+      "includes": [
+        "packages/lib/**/*repository*.{ts,tsx,js,jsx}",
+        "packages/lib/**/*Repository*.{ts,tsx,js,jsx}",
+        "packages/lib/**/repository/**/*.{ts,tsx,js,jsx}",
+        "packages/lib/**/repositories/**/*.{ts,tsx,js,jsx}"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": {
+              "level": "error",
+              "options": {
+                "match": "REPOSITORY-FILES-NOT-ALLOWED-IN-PACKAGES-LIB[.](.+)",
+                "filenameCases": ["camelCase"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["packages/app-store/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {

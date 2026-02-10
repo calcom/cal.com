@@ -1360,6 +1360,7 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([formId, createdAt])
   @@index([routedToBookingUid])
 }
 
