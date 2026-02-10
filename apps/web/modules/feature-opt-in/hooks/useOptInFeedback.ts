@@ -31,10 +31,7 @@ export interface OptInFeedbackState {
  * Hook to manage feedback dialog display after a user opts into a feature.
  * Shows a custom feedback dialog after a configurable delay (waitAfterDays).
  */
-function useOptInFeedback(
-  featureId: string,
-  featureConfig: OptInFeatureConfig | null
-): OptInFeedbackState {
+function useOptInFeedback(featureId: string, featureConfig: OptInFeatureConfig | null): OptInFeedbackState {
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const hasTriggeredRef = useRef(false);
 

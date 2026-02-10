@@ -446,7 +446,12 @@ const getCredential = async (
   parsedAppSlug: string
 ): Promise<{ credentialId: number | null; redirect?: RedirectResult }> => {
   let credentialId = getCredentialId(parsedTeamIdParam, appInstalls, user.id);
-  if (!credentialId && !user.teams.length && initialStep === AppOnboardingSteps.EVENT_TYPES_STEP && !appMetadata.isOAuth) {
+  if (
+    !credentialId &&
+    !user.teams.length &&
+    initialStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
+    !appMetadata.isOAuth
+  ) {
     credentialId = await handleAutoInstall(user, appMetadata, parsedAppSlug);
     if (!credentialId)
       return { credentialId: null, redirect: { redirect: { permanent: false, destination: "/apps" } } };

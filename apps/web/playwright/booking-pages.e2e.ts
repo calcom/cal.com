@@ -782,7 +782,6 @@ test.describe("Past booking cancellation", () => {
 
 test.describe("Optional Email Field Validation", () => {
   test("should validate format if input is provided, but allow empty submission", async ({ page, users }) => {
-   
     const user = await users.create({
       eventTypes: [
         {
@@ -792,11 +791,11 @@ test.describe("Optional Email Field Validation", () => {
           bookingFields: [
             { name: "name", type: "name", required: true },
             { name: "email", type: "email", required: true },
-            { 
-              name: "altEmail", 
-              type: "email", 
-              required: false, 
-              label: "Alternate Email"
+            {
+              name: "altEmail",
+              type: "email",
+              required: false,
+              label: "Alternate Email",
             },
           ],
         },
@@ -806,29 +805,29 @@ test.describe("Optional Email Field Validation", () => {
     await page.goto(`/${user.username}/test-event`);
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await page.locator('input[name="name"]').fill('Test Booker');
-    await page.locator('input[name="email"]').fill('booker@example.com');
+    await page.locator('input[name="name"]').fill("Test Booker");
+    await page.locator('input[name="email"]').fill("booker@example.com");
 
     const optionalField = page.getByLabel(/Alternate Email/i);
-    
-    // Visibility 
+
+    // Visibility
     await expect(optionalField).toBeVisible();
 
     // Trigger validation error
-    await optionalField.fill('not-an-email');
+    await optionalField.fill("not-an-email");
     await page.click('[data-testid="confirm-book-button"]');
 
     // Verify form didn't submit
     await expect(page).not.toHaveURL(/.*isSuccessBookingPage=true.*/);
 
     // Verify empty submission is allowed
-    await optionalField.fill(''); 
-    
+    await optionalField.fill("");
+
     // Click the button to submit
     await page.click('[data-testid="confirm-book-button"]');
 
     // Verify it reached the end
     await expect(page).toHaveURL(/.*isSuccessBookingPage=true.*/, { timeout: 15000 });
-    await expect(page.getByTestId('success-page')).toBeVisible();
+    await expect(page.getByTestId("success-page")).toBeVisible();
   });
 });

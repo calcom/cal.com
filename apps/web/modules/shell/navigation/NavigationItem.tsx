@@ -264,7 +264,6 @@ export const NavigationItem: React.FC<{
         </div>
       )}
     </Fragment>
-
   );
 };
 
@@ -365,7 +364,6 @@ export const MobileNavigationMoreItem: React.FC<{
               )}
             </div>
           </div>
-
         </>
       ) : isActionItem ? (
         <button

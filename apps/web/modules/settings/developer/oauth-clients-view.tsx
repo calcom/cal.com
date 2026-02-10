@@ -143,7 +143,8 @@ const OAuthClientsView = () => {
             className="rounded-b-lg rounded-t-none border-t-0"
             buttonRaw={newOAuthClientButton}
           />
-        )}</div>
+        )}
+      </div>
 
       {submittedClient ? (
         <OAuthClientPreviewDialog
