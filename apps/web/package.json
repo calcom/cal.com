@@ -45,7 +45,7 @@
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
     "@calid/features": "*",
-    "@calid/queue": "workspace:^",
+    "@calid/queue": "*",
     "@daily-co/daily-js": "^0.76.0",
     "@daily-co/daily-react": "^0.22.0",
     "@dub/analytics": "^0.0.27",

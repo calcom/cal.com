@@ -14,9 +14,11 @@ let queues: {
 async function getQueues() {
   if (!queues) {
     const { getCalendarSyncQueue } = await import("@calid/queue");
+    const calendarSyncQueue = getCalendarSyncQueue();
+    await calendarSyncQueue.waitUntilReady();
     queues = [
       {
-        queue: getCalendarSyncQueue(),
+        queue: calendarSyncQueue,
         displayName: "Calendar Sync Queue",
         type: "bullmq",
       },
@@ -26,12 +28,17 @@ async function getQueues() {
 }
 
 async function handler(req: Request) {
-  return fetchRequestHandler({
-    endpoint: "/api/queuedash",
-    req,
-    router: appRouter,
-    createContext: async () => ({ queues: await getQueues() } as never),
-  });
+  try {
+    return fetchRequestHandler({
+      endpoint: "/api/queuedash",
+      req,
+      router: appRouter,
+      createContext: async () => ({ queues: await getQueues() } as never),
+    });
+  } catch (error) {
+    console.error("QueueDash handler error:", error);
+    return new Response(JSON.stringify({ error: String(error) }), { status: 500 });
+  }
 }
 
 export { handler as GET, handler as POST };

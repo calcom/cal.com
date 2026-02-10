@@ -4284,7 +4284,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@calid/features": "*"
-    "@calid/queue": "workspace:^"
+    "@calid/queue": "*"
     "@daily-co/daily-js": ^0.76.0
     "@daily-co/daily-react": ^0.22.0
     "@dub/analytics": ^0.0.27
@@ -4609,7 +4609,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calid/queue@workspace:^, @calid/queue@workspace:packages/queue":
+"@calid/queue@*, @calid/queue@workspace:^, @calid/queue@workspace:packages/queue":
   version: 0.0.0-use.local
   resolution: "@calid/queue@workspace:packages/queue"
   dependencies:
