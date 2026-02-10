@@ -8,7 +8,7 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -184,6 +184,7 @@ export const BookEventForm = ({
             <ServerTrans
               t={t}
               i18nKey="signing_up_terms"
+              values={{ appName: APP_NAME }}
               components={[
                 <Link
                   className="text-emphasis hover:underline"
@@ -206,7 +207,7 @@ export const BookEventForm = ({
 
         {isPlatformBookerEmbed && (
           <div className="text-subtle my-3 w-full text-xs">
-            {t("proceeding_agreement")}{" "}
+            {t("proceeding_agreement", { appName: APP_NAME })}{" "}
             <Link
               className="text-emphasis hover:underline"
               key="terms"
