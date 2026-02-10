@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+import type { ActiveUserBillingService } from "../../../active-user/services/ActiveUserBillingService";
+import type { ITeamBillingDataRepository } from "../../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import type { HighWaterMarkService } from "../../highWaterMark/HighWaterMarkService";
 import type { MonthlyProrationService } from "../../proration/MonthlyProrationService";
 import type { HighWaterMarkRepository } from "../../../repository/highWaterMark/HighWaterMarkRepository";
+import { ActiveUserBillingStrategy } from "../ActiveUserBillingStrategy";
 import { HighWaterMarkStrategy } from "../HighWaterMarkStrategy";
 import { ImmediateUpdateStrategy } from "../ImmediateUpdateStrategy";
 import type { SeatChangeContext, StripeInvoiceData } from "../ISeatBillingStrategy";
@@ -19,6 +22,7 @@ const mockContext: SeatChangeContext = {
 function createMockBillingProviderService(): IBillingProviderService {
   return {
     handleSubscriptionUpdate: vi.fn(),
+    getSubscription: vi.fn().mockResolvedValue(null),
   } as unknown as IBillingProviderService;
 }
 
@@ -282,5 +286,144 @@ describe("MonthlyProrationStrategy", () => {
 
     expect(result).toEqual({ handled: false });
     expect(prorationService.handleProrationPaymentFailure).not.toHaveBeenCalled();
+  });
+});
+
+function createMockActiveUserBillingService(): ActiveUserBillingService {
+  return {
+    getActiveUserCountForOrg: vi.fn().mockResolvedValue(0),
+    getActiveUserCountForPlatformOrg: vi.fn().mockResolvedValue(0),
+  } as unknown as ActiveUserBillingService;
+}
+
+function createMockTeamBillingDataRepository(): ITeamBillingDataRepository {
+  return {
+    find: vi.fn(),
+    findBySubscriptionId: vi.fn().mockResolvedValue(null),
+    findMany: vi.fn(),
+  };
+}
+
+describe("ActiveUserBillingStrategy", () => {
+  function createStrategy() {
+    const activeUserService = createMockActiveUserBillingService();
+    const billingProvider = createMockBillingProviderService();
+    const teamBillingDataRepo = createMockTeamBillingDataRepository();
+    const strategy = new ActiveUserBillingStrategy({
+      activeUserBillingService: activeUserService,
+      billingProviderService: billingProvider,
+      teamBillingDataRepository: teamBillingDataRepo,
+    });
+    return { strategy, activeUserService, billingProvider, teamBillingDataRepo };
+  }
+
+  it("onSeatChange is a no-op", async () => {
+    const { strategy } = createStrategy();
+    await expect(strategy.onSeatChange(mockContext)).resolves.toBeUndefined();
+  });
+
+  it("counts active users and updates Stripe on onInvoiceUpcoming", async () => {
+    const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue({
+      items: [{ id: "si_456", quantity: 5, price: { unit_amount: 1500, recurring: { interval: "month" } } }],
+      customer: "cus_123",
+      status: "active",
+      current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
+      current_period_end: Math.floor(new Date("2025-07-01").getTime() / 1000),
+      trial_end: null,
+    });
+
+    vi.mocked(activeUserService.getActiveUserCountForOrg).mockResolvedValue(7);
+
+    const result = await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(result).toEqual({ applied: true });
+    expect(activeUserService.getActiveUserCountForOrg).toHaveBeenCalledWith(
+      42,
+      new Date("2025-06-01"),
+      new Date("2025-07-01")
+    );
+    expect(billingProvider.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: "sub_123",
+      subscriptionItemId: "si_456",
+      membershipCount: 7,
+      prorationBehavior: "none",
+    });
+  });
+
+  it("returns applied: false when team not found", async () => {
+    const { strategy, teamBillingDataRepo } = createStrategy();
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue(null);
+
+    const result = await strategy.onInvoiceUpcoming("sub_unknown");
+
+    expect(result).toEqual({ applied: false });
+  });
+
+  it("returns applied: false when subscription not found", async () => {
+    const { strategy, teamBillingDataRepo, billingProvider } = createStrategy();
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue(null);
+
+    const result = await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(result).toEqual({ applied: false });
+  });
+
+  it("returns applied: false when subscription has no items", async () => {
+    const { strategy, teamBillingDataRepo, billingProvider } = createStrategy();
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue({
+      items: [],
+      customer: "cus_123",
+      status: "active",
+      current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
+      current_period_end: Math.floor(new Date("2025-07-01").getTime() / 1000),
+      trial_end: null,
+    });
+
+    const result = await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(result).toEqual({ applied: false });
+  });
+
+  it("returns no-op for onRenewalPaid (inherited from base)", async () => {
+    const { strategy } = createStrategy();
+    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({ reset: false });
+  });
+
+  it("returns no-op for onPaymentSucceeded (inherited from base)", async () => {
+    const { strategy } = createStrategy();
+    const invoice: StripeInvoiceData = { lines: { data: [] } };
+    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({ handled: false });
+  });
+
+  it("returns no-op for onPaymentFailed (inherited from base)", async () => {
+    const { strategy } = createStrategy();
+    const invoice: StripeInvoiceData = { lines: { data: [] } };
+    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({ handled: false });
   });
 });

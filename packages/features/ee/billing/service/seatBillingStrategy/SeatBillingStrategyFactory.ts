@@ -1,12 +1,14 @@
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 
+import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import type { HighWaterMarkService } from "../highWaterMark/HighWaterMarkService";
 import type { MonthlyProrationService } from "../proration/MonthlyProrationService";
+import { ActiveUserBillingStrategy } from "./ActiveUserBillingStrategy";
 import { HighWaterMarkStrategy } from "./HighWaterMarkStrategy";
 import { ImmediateUpdateStrategy } from "./ImmediateUpdateStrategy";
 import type { ISeatBillingStrategy } from "./ISeatBillingStrategy";
@@ -22,11 +24,13 @@ export interface ISeatBillingStrategyFactoryDeps {
   highWaterMarkService: HighWaterMarkService;
   monthlyProrationService: MonthlyProrationService;
   teamBillingDataRepository: ITeamBillingDataRepository;
+  activeUserBillingService: ActiveUserBillingService;
 }
 
 export class SeatBillingStrategyFactory {
   private readonly prorationStrategy: ISeatBillingStrategy;
   private readonly hwmStrategy: ISeatBillingStrategy;
+  private readonly activeUserStrategy: ISeatBillingStrategy;
   private readonly fallback: ISeatBillingStrategy;
 
   constructor(private readonly deps: ISeatBillingStrategyFactoryDeps) {
@@ -38,6 +42,11 @@ export class SeatBillingStrategyFactory {
       highWaterMarkRepository: deps.highWaterMarkRepository,
       highWaterMarkService: deps.highWaterMarkService,
     });
+    this.activeUserStrategy = new ActiveUserBillingStrategy({
+      activeUserBillingService: deps.activeUserBillingService,
+      billingProviderService: deps.billingProviderService,
+      teamBillingDataRepository: deps.teamBillingDataRepository,
+    });
   }
 
   async createByTeamId(teamId: number): Promise<ISeatBillingStrategy> {
@@ -46,6 +55,13 @@ export class SeatBillingStrategyFactory {
     );
 
     if (!info.isInTrial && info.subscriptionStart) {
+      if (info.billingMode === "ACTIVE_USERS") {
+        const enabled =
+          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
+            "active-user-billing"
+          );
+        if (enabled) return this.activeUserStrategy;
+      }
       if (info.billingPeriod === "ANNUALLY") {
         const enabled =
           await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(

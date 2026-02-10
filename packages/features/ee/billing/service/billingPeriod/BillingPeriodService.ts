@@ -5,13 +5,14 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { BillingPeriod } from "@calcom/prisma/enums";
+import type { BillingMode, BillingPeriod } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
 
 const log = logger.getSubLogger({ prefix: ["BillingPeriodService"] });
 
 export interface BillingPeriodInfo {
   billingPeriod: BillingPeriod | null;
+  billingMode: BillingMode | null;
   subscriptionStart: Date | null;
   subscriptionEnd: Date | null;
   trialEnd: Date | null;
@@ -93,6 +94,7 @@ export class BillingPeriodService {
           select: {
             id: true,
             billingPeriod: true,
+            billingMode: true,
             subscriptionStart: true,
             subscriptionEnd: true,
             subscriptionTrialEnd: true,
@@ -105,6 +107,7 @@ export class BillingPeriodService {
           select: {
             id: true,
             billingPeriod: true,
+            billingMode: true,
             subscriptionStart: true,
             subscriptionEnd: true,
             subscriptionTrialEnd: true,
@@ -124,6 +127,7 @@ export class BillingPeriodService {
     if (!billing) {
       return {
         billingPeriod: null,
+        billingMode: null,
         subscriptionStart: null,
         subscriptionEnd: null,
         trialEnd: null,
@@ -162,6 +166,7 @@ export class BillingPeriodService {
 
         return {
           billingPeriod,
+          billingMode: billing.billingMode,
           subscriptionStart: billing.subscriptionStart,
           subscriptionEnd: billing.subscriptionEnd,
           trialEnd: billing.subscriptionTrialEnd,
@@ -179,6 +184,7 @@ export class BillingPeriodService {
 
     return {
       billingPeriod: billing.billingPeriod,
+      billingMode: billing.billingMode,
       subscriptionStart: billing.subscriptionStart,
       subscriptionEnd: billing.subscriptionEnd,
       trialEnd: billing.subscriptionTrialEnd,
