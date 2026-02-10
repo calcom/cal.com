@@ -1,7 +1,7 @@
 "use client";
 
 import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -169,8 +169,8 @@ export function CalendarListContainer({
         })}
         description={t(`no_category_apps_description_calendar`)}
         buttonRaw={
-          <Button color="secondary" data-testid="connect-calendar-apps" href="/apps/categories/calendar">
-            {t(`connect_calendar_apps`)}
+          <Button EndIcon="external-link" color="secondary" data-testid="connect-calendar-apps" href="/apps/categories/calendar">
+            {t("connect_your_first_calendar")}
           </Button>
         }
       />

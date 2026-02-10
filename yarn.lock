@@ -1918,15 +1918,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/amie@workspace:packages/app-store/amie":
-  version: 0.0.0-use.local
-  resolution: "@calcom/amie@workspace:packages/app-store/amie"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/api-proxy@workspace:apps/api":
   version: 0.0.0-use.local
   resolution: "@calcom/api-proxy@workspace:apps/api"
@@ -2156,24 +2147,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/autocheckin@workspace:packages/app-store/autocheckin":
-  version: 0.0.0-use.local
-  resolution: "@calcom/autocheckin@workspace:packages/app-store/autocheckin"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/baa-for-hipaa@workspace:packages/app-store/baa-for-hipaa":
-  version: 0.0.0-use.local
-  resolution: "@calcom/baa-for-hipaa@workspace:packages/app-store/baa-for-hipaa"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/base@workspace:packages/platform/examples/base":
   version: 0.0.0-use.local
   resolution: "@calcom/base@workspace:packages/platform/examples/base"
@@ -2200,15 +2173,6 @@ __metadata:
 "@calcom/basecamp3@workspace:packages/app-store/basecamp3":
   version: 0.0.0-use.local
   resolution: "@calcom/basecamp3@workspace:packages/app-store/basecamp3"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/bolna@workspace:packages/app-store/bolna":
-  version: 0.0.0-use.local
-  resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -2248,24 +2212,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/chatbase@workspace:packages/app-store/chatbase":
-  version: 0.0.0-use.local
-  resolution: "@calcom/chatbase@workspace:packages/app-store/chatbase"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/clic@workspace:packages/app-store/clic":
-  version: 0.0.0-use.local
-  resolution: "@calcom/clic@workspace:packages/app-store/clic"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/closecom@workspace:packages/app-store/closecom":
   version: 0.0.0-use.local
   resolution: "@calcom/closecom@workspace:packages/app-store/closecom"
@@ -2286,15 +2232,6 @@ __metadata:
     tailwindcss-radix: "npm:4.0.2"
     tw-animate-css: "npm:1.4.0"
     typescript: "npm:5.9.3"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/cron@workspace:packages/app-store/cron":
-  version: 0.0.0-use.local
-  resolution: "@calcom/cron@workspace:packages/app-store/cron"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -2328,15 +2265,6 @@ __metadata:
 "@calcom/debugging@workspace:packages/debugging":
   version: 0.0.0-use.local
   resolution: "@calcom/debugging@workspace:packages/debugging"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/deel@workspace:packages/app-store/deel":
-  version: 0.0.0-use.local
-  resolution: "@calcom/deel@workspace:packages/app-store/deel"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -2410,15 +2338,6 @@ __metadata:
 "@calcom/element-call@workspace:packages/app-store/element-call":
   version: 0.0.0-use.local
   resolution: "@calcom/element-call@workspace:packages/app-store/element-call"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/elevenlabs@workspace:packages/app-store/elevenlabs":
-  version: 0.0.0-use.local
-  resolution: "@calcom/elevenlabs@workspace:packages/app-store/elevenlabs"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -2645,24 +2564,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/fonio-ai@workspace:packages/app-store/fonio-ai":
-  version: 0.0.0-use.local
-  resolution: "@calcom/fonio-ai@workspace:packages/app-store/fonio-ai"
-  dependencies:
-    "@calcom/lib": "npm:*"
-    "@calcom/types": "npm:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/framer@workspace:packages/app-store/framer":
-  version: 0.0.0-use.local
-  resolution: "@calcom/framer@workspace:packages/app-store/framer"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/ga4@workspace:packages/app-store/ga4":
   version: 0.0.0-use.local
   resolution: "@calcom/ga4@workspace:packages/app-store/ga4"
@@ -2696,24 +2597,6 @@ __metadata:
   resolution: "@calcom/googlevideo@workspace:packages/app-store/googlevideo"
   dependencies:
     "@calcom/prisma": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/granola@workspace:packages/app-store/granola":
-  version: 0.0.0-use.local
-  resolution: "@calcom/granola@workspace:packages/app-store/granola"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/greetmate-ai@workspace:packages/app-store/greetmate-ai":
-  version: 0.0.0-use.local
-  resolution: "@calcom/greetmate-ai@workspace:packages/app-store/greetmate-ai"
-  dependencies:
-    "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
   languageName: unknown
   linkType: soft
@@ -2837,7 +2720,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/lib@npm:*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
+"@calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
@@ -2847,8 +2730,8 @@ __metadata:
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
     "@faker-js/faker": "npm:7.6.0"
-    "@formbricks/api": "npm:1.7.0"
-    "@formbricks/js": "npm:2.1.0"
+    "@formbricks/api": "npm:3.0.0"
+    "@formbricks/js": "npm:4.3.0"
     "@sendgrid/client": "npm:7.7.0"
     "@unkey/ratelimit": "npm:2.1.3"
     "@vercel/og": "npm:0.6.3"
@@ -2856,6 +2739,7 @@ __metadata:
     i18next: "npm:23.2.3"
     ical.js: "npm:1.5.0"
     ics: "npm:2.37.0"
+    ipaddr.js: "npm:2.3.0"
     jimp: "npm:0.16.1"
     lingo.dev: "npm:0.117.14"
     rrule: "npm:2.7.1"
@@ -2864,15 +2748,6 @@ __metadata:
     tslog: "npm:4.9.2"
     typescript: "npm:5.9.3"
     uuid: "npm:8.3.2"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/lindy@workspace:packages/app-store/lindy":
-  version: 0.0.0-use.local
-  resolution: "@calcom/lindy@workspace:packages/app-store/lindy"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -2913,15 +2788,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/millis-ai@workspace:packages/app-store/millis-ai":
-  version: 0.0.0-use.local
-  resolution: "@calcom/millis-ai@workspace:packages/app-store/millis-ai"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/mirotalk@workspace:packages/app-store/mirotalk":
   version: 0.0.0-use.local
   resolution: "@calcom/mirotalk@workspace:packages/app-store/mirotalk"
@@ -2934,24 +2800,6 @@ __metadata:
 "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app":
   version: 0.0.0-use.local
   resolution: "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/monobot@workspace:packages/app-store/monobot":
-  version: 0.0.0-use.local
-  resolution: "@calcom/monobot@workspace:packages/app-store/monobot"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/n8n@workspace:packages/app-store/n8n":
-  version: 0.0.0-use.local
-  resolution: "@calcom/n8n@workspace:packages/app-store/n8n"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -3001,15 +2849,6 @@ __metadata:
 "@calcom/ping@workspace:packages/app-store/ping":
   version: 0.0.0-use.local
   resolution: "@calcom/ping@workspace:packages/app-store/ping"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/pipedream@workspace:packages/app-store/pipedream":
-  version: 0.0.0-use.local
-  resolution: "@calcom/pipedream@workspace:packages/app-store/pipedream"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -3127,24 +2966,6 @@ __metadata:
 "@calcom/qr_code@workspace:packages/app-store/qr_code":
   version: 0.0.0-use.local
   resolution: "@calcom/qr_code@workspace:packages/app-store/qr_code"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/raycast@workspace:packages/app-store/raycast":
-  version: 0.0.0-use.local
-  resolution: "@calcom/raycast@workspace:packages/app-store/raycast"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/retell-ai@workspace:packages/app-store/retell-ai":
-  version: 0.0.0-use.local
-  resolution: "@calcom/retell-ai@workspace:packages/app-store/retell-ai"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -3285,15 +3106,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/synthflow@workspace:packages/app-store/synthflow":
-  version: 0.0.0-use.local
-  resolution: "@calcom/synthflow@workspace:packages/app-store/synthflow"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/tandemvideo@workspace:packages/app-store/tandemvideo":
   version: 0.0.0-use.local
   resolution: "@calcom/tandemvideo@workspace:packages/app-store/tandemvideo"
@@ -3307,15 +3119,6 @@ __metadata:
 "@calcom/telegram@workspace:packages/app-store/telegram":
   version: 0.0.0-use.local
   resolution: "@calcom/telegram@workspace:packages/app-store/telegram"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/telli@workspace:packages/app-store/telli":
-  version: 0.0.0-use.local
-  resolution: "@calcom/telli@workspace:packages/app-store/telli"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -3340,6 +3143,7 @@ __metadata:
   resolution: "@calcom/trpc@workspace:packages/trpc"
   dependencies:
     "@biomejs/biome": "npm:2.3.10"
+    "@formbricks/api": "npm:3.0.0"
     "@tanstack/react-query": "npm:5.17.19"
     "@trpc/client": "npm:11.0.0-next-beta.222"
     "@trpc/next": "npm:11.0.0-next-beta.222"
@@ -3377,7 +3181,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/types@npm:*, @calcom/types@workspace:*, @calcom/types@workspace:packages/types":
+"@calcom/types@workspace:*, @calcom/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@calcom/types@workspace:packages/types"
   dependencies:
@@ -3450,15 +3254,6 @@ __metadata:
 "@calcom/umami@workspace:packages/app-store/umami":
   version: 0.0.0-use.local
   resolution: "@calcom/umami@workspace:packages/app-store/umami"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/vimcal@workspace:packages/app-store/vimcal":
-  version: 0.0.0-use.local
-  resolution: "@calcom/vimcal@workspace:packages/app-store/vimcal"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -3676,15 +3471,6 @@ __metadata:
 "@calcom/whereby@workspace:packages/app-store/whereby":
   version: 0.0.0-use.local
   resolution: "@calcom/whereby@workspace:packages/app-store/whereby"
-  dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/types": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
-"@calcom/wordpress@workspace:packages/app-store/wordpress":
-  version: 0.0.0-use.local
-  resolution: "@calcom/wordpress@workspace:packages/app-store/wordpress"
   dependencies:
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
@@ -5208,17 +4994,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@formbricks/api@npm:1.7.0":
-  version: 1.7.0
-  resolution: "@formbricks/api@npm:1.7.0"
-  checksum: 10/0f45372b12da4893ac9b75d71a94658420f75dd79e20af32315a33c45d6d4b5bfbeb33c7fb9816b677a3b9d7d105ce5130963d5f15fb7ebd2425d4ec8fb01982
+"@formbricks/api@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@formbricks/api@npm:3.0.0"
+  checksum: 10/d20cde3e904eaf62b3886dabfdcd8b51b7018f146325def413ba4c788ad3a5c8fc3be6e0931199b3ab8ba21ba0cd3e2aa2eaae874623fa17c43178d1269ee87a
   languageName: node
   linkType: hard
 
-"@formbricks/js@npm:2.1.0":
-  version: 2.1.0
-  resolution: "@formbricks/js@npm:2.1.0"
-  checksum: 10/037743c4d4558e1ee434b283646244f6f594ea0ea6c61533ceb2fc987d0b6260fa45234801309c847af5a9745e1691785a5094f3743e54f3b2ec9c2fb5ccd30e
+"@formbricks/js@npm:4.3.0":
+  version: 4.3.0
+  resolution: "@formbricks/js@npm:4.3.0"
+  checksum: 10/9ab7e85963f03f095c4c7edd14670258afe5c1c9010137a8bf33fb09bed96a68ff6449e5949b4ea8dccce2c33d02cdd7c426034e422b675df28d6750ebdd8b84
   languageName: node
   linkType: hard
 
@@ -6718,12 +6504,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@isaacs/brace-expansion@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@isaacs/brace-expansion@npm:5.0.0"
+"@isaacs/brace-expansion@npm:5.0.1":
+  version: 5.0.1
+  resolution: "@isaacs/brace-expansion@npm:5.0.1"
   dependencies:
     "@isaacs/balanced-match": "npm:^4.0.1"
-  checksum: 10/cf3b7f206aff12128214a1df764ac8cdbc517c110db85249b945282407e3dfc5c6e66286383a7c9391a059fc8e6e6a8ca82262fc9d2590bd615376141fbebd2d
+  checksum: 10/aec226065bc4285436a27379e08cc35bf94ef59f5098ac1c026495c9ba4ab33d851964082d3648d56d63eb90f2642867bd15a3e1b810b98beb1a8c14efce6a94
   languageName: node
   linkType: hard
 
@@ -25483,6 +25269,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ipaddr.js@npm:2.3.0":
+  version: 2.3.0
+  resolution: "ipaddr.js@npm:2.3.0"
+  checksum: 10/be3d01bc2e20fc2dc5349b489ea40883954b816ce3e57aa48ad943d4e7c4ace501f28a7a15bde4b96b6b97d0fbb28d599ff2f87399f3cda7bd728889402eed3b
+  languageName: node
+  linkType: hard
+
 "is-absolute@npm:^1.0.0":
   version: 1.0.0
   resolution: "is-absolute@npm:1.0.0"
@@ -36972,16 +36765,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:7.5.4":
-  version: 7.5.4
-  resolution: "tar@npm:7.5.4"
+"tar@npm:7.5.7":
+  version: 7.5.7
+  resolution: "tar@npm:7.5.7"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10/c6a2b93a1417220de5ac613eb87b46a75e85817952b8198b5b98b26158276134267a348d9d579332cc59188e5131215fc3831022e5b06d43ccbbf10eef5daee3
+  checksum: 10/0d6938dd32fe5c0f17c8098d92bd9889ee0ed9d11f12381b8146b6e8c87bb5aa49feec7abc42463f0597503d8e89e4c4c0b42bff1a5a38444e918b4878b7fd21
   languageName: node
   linkType: hard
 

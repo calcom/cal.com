@@ -158,13 +158,13 @@ const setInstantCooldownNow = (eventTypeId?: number | null) => {
 const storeInLocalStorage = ({
   eventTypeId,
   expiryTime,
-  bookingId,
+  bookingUid,
 }: {
   eventTypeId: number;
   expiryTime: Date;
-  bookingId: number;
+  bookingUid: string;
 }) => {
-  const value = JSON.stringify({ eventTypeId, expiryTime, bookingId });
+  const value = JSON.stringify({ eventTypeId, expiryTime, bookingUid });
   localStorage.setItem(STORAGE_KEY, value);
 };
 
@@ -194,7 +194,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
-  const bookingId = parseInt(getQueryParam("bookingId") ?? "0");
+  const bookingUid = getQueryParam("bookingUid") ?? "";
 
   useEffect(() => {
     if (!isInstantMeeting) return;
@@ -213,7 +213,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
 
       if (parsedInstantBookingInfo) {
         setExpiryTime(parsedInstantBookingInfo.expiryTime);
-        updateQueryParam("bookingId", parsedInstantBookingInfo.bookingId);
+        updateQueryParam("bookingUid", parsedInstantBookingInfo.bookingUid);
       }
     }
   }, [eventTypeId, isInstantMeeting]);
@@ -222,10 +222,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
 
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
-      bookingId: bookingId,
+      bookingUid: bookingUid,
     },
     {
-      enabled: !!bookingId,
+      enabled: !!bookingUid && isInstantMeeting,
       refetchInterval: 2000,
       refetchIntervalInBackground: true,
     }
@@ -234,7 +234,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
 
-      if (!data || !data.booking) return;
+      if (!data || !data.booking || !isInstantMeeting) return;
       try {
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
@@ -249,7 +249,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
-    [_instantBooking.data]
+    [_instantBooking.data, isInstantMeeting]
   );
 
   const createBookingMutation = useMutation({
@@ -421,12 +421,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         storeInLocalStorage({
           eventTypeId,
           expiryTime: responseData.expires,
-          bookingId: responseData.bookingId,
+          bookingUid: responseData.bookingUid,
         });
         setInstantCooldownNow(eventTypeId);
       }
 
-      updateQueryParam("bookingId", responseData.bookingId);
+      updateQueryParam("bookingUid", responseData.bookingUid);
       setExpiryTime(responseData.expires);
     },
     onError: (err) => {
