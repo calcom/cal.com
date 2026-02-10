@@ -88,6 +88,7 @@ export type LayoutProps = {
   smallHeading?: boolean;
   isPlatformUser?: boolean;
   disableSticky?: boolean;
+  topAlignedHeading?: boolean;
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -140,8 +141,9 @@ export function ShellMain(props: LayoutProps) {
         <div
           style={headerStyle}
           className={classNames(
-            "bg-default mb-0 flex items-center md:mb-6 md:mt-0",
+            "bg-default mb-0 flex md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
+            props.topAlignedHeading ? "items-start" : "items-center",
             !props.disableSticky && "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] md:pt-3 md:pb-2 md:pl-5 md:left-14 lg:left-56 lg:w-[calc(100%-14rem)]"
           )}>
           {!!props.backPath && (
@@ -160,7 +162,11 @@ export function ShellMain(props: LayoutProps) {
           )}
           {props.heading && (
             <header
-              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
+              className={classNames(
+                props.large && "py-8",
+                "flex w-full max-w-full truncate",
+                props.topAlignedHeading ? "items-start" : "items-center"
+              )}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
                 className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
