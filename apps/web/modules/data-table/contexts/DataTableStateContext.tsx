@@ -16,9 +16,9 @@ import {
   pageSizeParser,
   searchTermParser,
   DEFAULT_PAGE_SIZE,
-} from "../lib/parsers";
-import type { ActiveFilters, SegmentIdentifier } from "../lib/types";
-import { CTA_CONTAINER_CLASS_NAME } from "../lib/utils";
+} from "@calcom/features/data-table/lib/parsers";
+import type { ActiveFilters, SegmentIdentifier } from "@calcom/features/data-table/lib/types";
+import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 
 export type ActiveFiltersValidator = (filters: ActiveFilters) => ActiveFilters;
 

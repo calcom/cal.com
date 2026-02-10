@@ -7,9 +7,9 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { DataTable, DataTableToolbar } from "~/data-table/components";
-import { useDataTable } from "@calcom/features/data-table/hooks";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -9,12 +9,9 @@ import {
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
-import {
-  DataTableProvider,
-  ColumnFilterType,
-  convertFacetedValuesToMap,
-  useDataTable,
-} from "@calcom/features/data-table";
+import { ColumnFilterType, convertFacetedValuesToMap } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import {
   DataTableWrapper,
   DataTableToolbar,

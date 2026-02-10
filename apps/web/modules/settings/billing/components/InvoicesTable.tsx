@@ -6,13 +6,9 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import {
-  DataTableProvider,
-  ColumnFilterType,
-  useFilterValue,
-  ZDateRangeFilterValue,
-  type FilterableColumn,
-} from "@calcom/features/data-table";
+import { ColumnFilterType, ZDateRangeFilterValue, type FilterableColumn } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
