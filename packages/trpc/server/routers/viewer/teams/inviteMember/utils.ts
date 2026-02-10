@@ -1,3 +1,4 @@
+import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import {
   createMemberships,
