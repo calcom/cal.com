@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { useFeatureOptInBanner } from "../../feature-opt-in/hooks/useFeatureOptInBanner";
 import { BookingListContainer } from "../components/BookingListContainer";
+import { useActiveFiltersValidator } from "../hooks/useActiveFiltersValidator";
 import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
@@ -60,9 +61,16 @@ function useSystemSegments(userId?: number) {
 export default function Bookings(props: BookingsProps) {
   const pathname = usePathname();
   const systemSegments = useSystemSegments(props.userId);
+  const validateActiveFilters = useActiveFiltersValidator({
+    canReadOthersBookings: props.permissions.canReadOthersBookings,
+  });
   if (!pathname) return null;
   return (
-    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} systemSegments={systemSegments}>
+    <DataTableProvider
+      tableIdentifier={pathname}
+      useSegments={useSegments}
+      systemSegments={systemSegments}
+      validateActiveFilters={validateActiveFilters}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );

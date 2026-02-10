@@ -1,253 +1,27 @@
-import { z } from "zod";
-
-import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
-import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
-import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type {
-  CustomInputSchema,
-  EventTypeMetadata,
-  IntervalLimit,
-  EventTypeLocation,
-} from "@calcom/prisma/zod-utils";
+  AiPhoneCallConfig,
+  CalVideoSettings,
+  ChildInput,
+  DestinationCalendarInput,
+  EventTypeUpdateInput,
+  HashedLinkInput,
+  HostGroupInput,
+  HostInput,
+} from "@calcom/features/eventtypes/lib/types";
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
-  rrSegmentQueryValueSchema,
-  eventTypeLocations,
-  recurringEventType,
-  intervalLimitsType,
   eventTypeBookingFields,
   eventTypeColor,
+  eventTypeLocations,
+  intervalLimitsType,
+  recurringEventType,
+  rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
-
-// ============================================================================
-// EXPLICIT TYPE DEFINITIONS
-// ============================================================================
-// These explicit types prevent TypeScript from having to infer complex types
-// through chains of .extend(), .partial(), .merge() etc. This significantly
-// reduces type-checking time by giving TypeScript the answer directly.
-// ============================================================================
-
-type HashedLinkInput = {
-  link: string;
-  expiresAt?: Date | null;
-  maxUsageCount?: number | null;
-  usageCount?: number | null;
-};
-
-type AiPhoneCallConfig = {
-  generalPrompt: string;
-  enabled: boolean;
-  beginMessage: string | null;
-  yourPhoneNumber: string;
-  numberToCall: string;
-  guestName?: string | null;
-  guestEmail?: string | null;
-  guestCompany?: string | null;
-  templateType: TemplateType;
-};
-
-type CalVideoSettings = {
-  disableRecordingForGuests?: boolean | null;
-  disableRecordingForOrganizer?: boolean | null;
-  enableAutomaticTranscription?: boolean | null;
-  enableAutomaticRecordingForOrganizer?: boolean | null;
-  disableTranscriptionForGuests?: boolean | null;
-  disableTranscriptionForOrganizer?: boolean | null;
-  redirectUrlOnExit?: string | null;
-  requireEmailForGuests?: boolean | null;
-} | null;
-
-type HostLocationInput = {
-  id?: string;
-  userId: number;
-  eventTypeId: number;
-  type: string;
-  credentialId?: number | null;
-  link?: string | null;
-  address?: string | null;
-  phoneNumber?: string | null;
-};
-
-type HostInput = {
-  userId: number;
-  profileId?: number | null;
-  isFixed?: boolean;
-  priority?: number | null;
-  weight?: number | null;
-  scheduleId?: number | null;
-  groupId?: string | null;
-  location?: HostLocationInput | null;
-};
-
-type HostGroupInput = {
-  id: string;
-  name: string;
-};
-
-type ChildInput = {
-  owner: {
-    id: number;
-    name: string;
-    email: string;
-    eventTypeSlugs: string[];
-  };
-  hidden: boolean;
-};
-
-type DestinationCalendarInput = {
-  integration: string;
-  externalId: string;
-} | null;
-
-type RecurringEventInput = {
-  dtstart?: Date;
-  interval: number;
-  count: number;
-  freq: number;
-  until?: Date;
-  tzid?: string;
-} | null;
-
-type EventTypeColorInput = {
-  lightEventTypeColor: string;
-  darkEventTypeColor: string;
-} | null;
-
-/**
- * Booking field type - minimal type definition for fields that need to be accessed.
- * Only includes properties that are actually read in server code.
- * Does NOT use an index signature to maintain compatibility with API v2 DTO classes.
- */
-type BookingFieldInput = {
-  name: string;
-  hidden?: boolean;
-  required?: boolean;
-  type?: string;
-};
-
-/**
- * RR Segment query value - using index signature for complex RAQB structure.
- * The values need to be indexable (string keys) for downstream usage.
- */
-type RRSegmentQueryValueInput = {
-  [key: string]: unknown;
-} | null;
-
-/**
- * Explicit type definition for event type update input.
- *
- * This type is defined explicitly rather than using z.infer<> on a complex
- * schema chain to significantly reduce TypeScript type-checking time.
- * The schema still validates all fields at runtime.
- *
- * All fields are optional (from .partial()) except `id` which is required.
- */
-export type TUpdateInputSchema = {
-  // Required field
-  id: number;
-
-  // Fields from EventTypeSchema (all optional due to .partial())
-  periodType?: PeriodType;
-  schedulingType?: SchedulingType | null;
-  title?: string;
-  slug?: string;
-  description?: string | null;
-  interfaceLanguage?: string | null;
-  position?: number;
-  locations?: EventTypeLocation[] | null;
-  length?: number;
-  offsetStart?: number;
-  hidden?: boolean;
-  userId?: number | null;
-  profileId?: number | null;
-  teamId?: number | null;
-  useEventLevelSelectedCalendars?: boolean;
-  eventName?: string | null;
-  parentId?: number | null;
-  bookingFields?: BookingFieldInput[] | null;
-  timeZone?: string | null;
-  periodStartDate?: Date | null;
-  periodEndDate?: Date | null;
-  periodDays?: number | null;
-  periodCountCalendarDays?: boolean | null;
-  lockTimeZoneToggleOnBookingPage?: boolean;
-  lockedTimeZone?: string | null;
-  requiresConfirmation?: boolean;
-  requiresConfirmationWillBlockSlot?: boolean;
-  requiresConfirmationForFreeEmail?: boolean;
-  requiresBookerEmailVerification?: boolean;
-  canSendCalVideoTranscriptionEmails?: boolean;
-  autoTranslateDescriptionEnabled?: boolean;
-  autoTranslateInstantMeetingTitleEnabled?: boolean;
-  recurringEvent?: RecurringEventInput;
-  disableGuests?: boolean;
-  hideCalendarNotes?: boolean;
-  hideCalendarEventDetails?: boolean;
-  minimumBookingNotice?: number;
-  beforeEventBuffer?: number;
-  afterEventBuffer?: number;
-  seatsPerTimeSlot?: number | null;
-  onlyShowFirstAvailableSlot?: boolean;
-  showOptimizedSlots?: boolean | null;
-  disableCancelling?: boolean | null;
-  disableRescheduling?: boolean | null;
-  minimumRescheduleNotice?: number | null;
-  seatsShowAttendees?: boolean | null;
-  seatsShowAvailabilityCount?: boolean | null;
-  scheduleId?: number | null;
-  allowReschedulingCancelledBookings?: boolean | null;
-  price?: number;
-  currency?: string;
-  slotInterval?: number | null;
-  metadata?: EventTypeMetadata;
-  successRedirectUrl?: string | null;
-  forwardParamsSuccessRedirect?: boolean | null;
-  redirectUrlOnNoRoutingFormResponse?: string | null;
-  bookingLimits?: IntervalLimit | null;
-  durationLimits?: IntervalLimit | null;
-  isInstantEvent?: boolean;
-  instantMeetingExpiryTimeOffsetInSeconds?: number;
-  instantMeetingScheduleId?: number | null;
-  instantMeetingParameters?: string[];
-  assignAllTeamMembers?: boolean;
-  assignRRMembersUsingSegment?: boolean;
-  rrSegmentQueryValue?: RRSegmentQueryValueInput;
-  useEventTypeDestinationCalendarEmail?: boolean;
-  isRRWeightsEnabled?: boolean;
-  maxLeadThreshold?: number | null;
-  includeNoShowInRRCalculation?: boolean;
-  allowReschedulingPastBookings?: boolean;
-  hideOrganizerEmail?: boolean;
-  maxActiveBookingsPerBooker?: number | null;
-  maxActiveBookingPerBookerOfferReschedule?: boolean;
-  customReplyToEmail?: string | null;
-  eventTypeColor?: EventTypeColorInput;
-  rescheduleWithSameRoundRobinHost?: boolean;
-  secondaryEmailId?: number | null;
-  useBookerTimezone?: boolean;
-  restrictionScheduleId?: number | null;
-  bookingRequiresAuthentication?: boolean;
-  rrHostSubsetEnabled?: boolean;
-  createdAt?: Date | null;
-  updatedAt?: Date | null;
-
-  // Extended fields (all optional due to .partial())
-  aiPhoneCallConfig?: AiPhoneCallConfig;
-  calVideoSettings?: CalVideoSettings;
-  calAiPhoneScript?: string;
-  customInputs?: CustomInputSchema[];
-  destinationCalendar?: DestinationCalendarInput;
-  users?: number[];
-  children?: ChildInput[];
-  hosts?: HostInput[];
-  schedule?: number | null;
-  instantMeetingSchedule?: number | null;
-  multiplePrivateLinks?: (string | HashedLinkInput)[];
-  hostGroups?: HostGroupInput[];
-  enablePerHostLocations?: boolean;
-};
+import { z } from "zod";
+export type TUpdateInputSchema = EventTypeUpdateInput;
 
 // ============================================================================
 // ZOD SCHEMAS

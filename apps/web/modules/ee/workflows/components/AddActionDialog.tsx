@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/components/phone-input";
 import { WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import { onlyLettersNumbersSpaces } from "@calcom/features/ee/workflows/lib/schema";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
@@ -59,7 +59,7 @@ type AddActionFormValues = {
   numberRequired?: boolean;
   senderId?: string;
   senderName?: string;
-}; 
+};
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();

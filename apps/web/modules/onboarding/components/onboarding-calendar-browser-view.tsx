@@ -75,7 +75,7 @@ export const OnboardingCalendarBrowserView = () => {
         onEmptyCellClick: () => {},
         onDateChange: () => {},
         showTimezone: true,
-      } satisfies CalendarComponentProps),
+      }) satisfies CalendarComponentProps,
     [startDate, endDate, events, hours]
   );
 

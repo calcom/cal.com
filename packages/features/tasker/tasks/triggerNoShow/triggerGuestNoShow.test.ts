@@ -33,6 +33,12 @@ vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () 
   }),
 }));
 
+vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
+  getFeaturesRepository: vi.fn().mockReturnValue({
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+  }),
+}));
+
 const timeout = process.env.CI ? 5000 : 20000;
 
 const EMPTY_MEETING_SESSIONS = {
@@ -57,6 +63,7 @@ type ExpectNoShowAuditParams = {
       };
     }>;
   };
+  isBookingAuditEnabled: boolean;
 };
 
 function expectNoShowAuditToBeDone(expected: ExpectNoShowAuditParams): void {
@@ -240,6 +247,7 @@ describe("Trigger Guest No Show:", () => {
             { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
           ],
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -442,6 +450,7 @@ describe("Trigger Guest No Show:", () => {
             { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
           ],
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -683,6 +692,7 @@ describe("Trigger Guest No Show:", () => {
             { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
           ],
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout

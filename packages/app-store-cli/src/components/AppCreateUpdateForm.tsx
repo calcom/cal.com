@@ -4,6 +4,7 @@ import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import { useEffect, useState } from "react";
+import { APP_CATEGORIES } from "../constants";
 import { BaseAppFork, generateAppFiles, getAppDirPath, getSlugFromAppName } from "../core";
 import { getApp } from "../utils/getApp";
 import Templates from "../utils/templates";
@@ -83,18 +84,7 @@ export const AppForm = ({
       name: "category",
       type: "select",
 
-      // TODO: Refactor and reuse getAppCategories or type as Record<AppCategories,> to enforce consistency
-      options: [
-        // Manually sorted alphabetically
-        { label: "Analytics", value: "analytics" },
-        { label: "AI & Automation", value: "automation" },
-        { label: "Calendar", value: "calendar" },
-        { label: "Conferencing", value: "conferencing" },
-        { label: "CRM", value: "crm" },
-        { label: "Messaging", value: "messaging" },
-        { label: "Payment", value: "payment" },
-        { label: "Other", value: "other" },
-      ],
+      options: [...APP_CATEGORIES],
       defaultValue: "",
       explainer: "This is how apps are categorized in App Store.",
     },

@@ -5,7 +5,7 @@ import classNames from "@calcom/ui/classNames";
 import { LargeCalendar } from "./LargeCalendar";
 import { TroubleshooterHeader } from "./TroubleshooterHeader";
 import { TroubleshooterSidebar } from "./TroubleshooterSidebar";
-import { useInitalizeTroubleshooterStore } from  "@calcom/features/troubleshooter/store";
+import { useInitalizeTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import type { TroubleshooterProps } from "@calcom/features/troubleshooter/types";
 
 const extraDaysConfig = {

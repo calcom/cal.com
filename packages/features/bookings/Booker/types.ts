@@ -1,8 +1,4 @@
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
-import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { IntlSupportedTimeZones } from "@calcom/lib/timeZones";
-import type { EventBusyDate } from "@calcom/types/Calendar";
-import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 import type React from "react";
 import type { GetBookingType } from "../lib/get-booking";
 

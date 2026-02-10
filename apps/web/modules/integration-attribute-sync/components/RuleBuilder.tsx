@@ -64,7 +64,9 @@ const ConditionComponent = ({
 }: ConditionComponentProps) => {
   const { t } = useLocale();
   const conditionTypeOptions = getConditionTypeOptions(t);
-  const conditionTypeOption = conditionTypeOptions.find((opt: { value: ConditionIdentifierEnum; label: string }) => opt.value === condition.identifier);
+  const conditionTypeOption = conditionTypeOptions.find(
+    (opt: { value: ConditionIdentifierEnum; label: string }) => opt.value === condition.identifier
+  );
 
   const handleTypeChange = (newType: { value: ConditionIdentifierEnum; label: string } | null) => {
     if (!newType) return;
@@ -127,7 +129,9 @@ interface TeamConditionFieldsProps {
 const TeamConditionFields = ({ condition, onChange, teamOptions, isLoading }: TeamConditionFieldsProps) => {
   const { t } = useLocale();
   const teamOperatorOptions = getTeamOperatorOptions(t);
-  const operatorOption = teamOperatorOptions.find((opt: { value: ConditionOperatorEnum; label: string }) => opt.value === condition.operator);
+  const operatorOption = teamOperatorOptions.find(
+    (opt: { value: ConditionOperatorEnum; label: string }) => opt.value === condition.operator
+  );
   const isMulti = isArrayOperator(condition.operator);
 
   const selectedTeams = isMulti
@@ -222,7 +226,9 @@ const AttributeConditionFields = ({
     ? getOperatorOptionsForAttributeType(selectedAttribute.type, t)
     : [];
 
-  const operatorOption = operatorOptions.find((opt: { value: ConditionOperatorEnum; label: string }) => opt.value === condition.operator);
+  const operatorOption = operatorOptions.find(
+    (opt: { value: ConditionOperatorEnum; label: string }) => opt.value === condition.operator
+  );
 
   const handleAttributeChange = (selected: { value: string; label: string } | null) => {
     if (!selected) return;
@@ -309,7 +315,9 @@ const AttributeConditionFields = ({
         }));
 
         const selectedValues = isMulti
-          ? valueOptions.filter((opt: { value: string; label: string }) => condition.value.includes(opt.value))
+          ? valueOptions.filter((opt: { value: string; label: string }) =>
+              condition.value.includes(opt.value)
+            )
           : valueOptions.find((opt: { value: string; label: string }) => condition.value[0] === opt.value);
 
         return (
@@ -402,7 +410,9 @@ export const RuleBuilder = ({
 }: RuleBuilderProps) => {
   const { t } = useLocale();
   const parentOperatorOptions = getParentOperatorOptions(t);
-  const parentOperatorOption = parentOperatorOptions.find((opt: { value: RuleOperatorEnum; label: string }) => opt.value === value.operator);
+  const parentOperatorOption = parentOperatorOptions.find(
+    (opt: { value: RuleOperatorEnum; label: string }) => opt.value === value.operator
+  );
   const isLoading = isLoadingTeams || isLoadingAttributes;
 
   const handleOperatorChange = (newOperator: { value: RuleOperatorEnum; label: string } | null) => {
@@ -442,7 +452,9 @@ export const RuleBuilder = ({
         <div className="border-subtle rounded-lg border p-1">
           <Icon name="filter" className="text-subtle h-4 w-4" />
         </div>
-        <span className="text-emphasis ml-2 text-sm font-medium">{t("attribute_sync_user_filter_rules")}</span>
+        <span className="text-emphasis ml-2 text-sm font-medium">
+          {t("attribute_sync_user_filter_rules")}
+        </span>
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2 px-2">
@@ -460,9 +472,7 @@ export const RuleBuilder = ({
 
       <div className="bg-muted mt-2 space-y-2 rounded-xl p-2">
         {value.conditions.length === 0 ? (
-          <div className="text-subtle py-6 text-center text-sm">
-            {t("attribute_sync_no_conditions")}
-          </div>
+          <div className="text-subtle py-6 text-center text-sm">{t("attribute_sync_no_conditions")}</div>
         ) : (
           value.conditions.map((condition: TAttributeSyncRuleCondition, index: number) => {
             const conditionWithId = ensureConditionHasId(condition);

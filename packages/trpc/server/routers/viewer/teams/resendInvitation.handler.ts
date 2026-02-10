@@ -3,7 +3,7 @@ import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboardin
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
+import { VerificationTokenRepository } from "@calcom/app-store/stripepayment/lib/repositories/VerificationTokenRepository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
