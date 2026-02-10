@@ -295,10 +295,10 @@ export const BookEventForm = ({
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
-                  ? isPaidEvent
-                    ? t("pay_and_book")
-                    : t("confirm")
-                  : t("verify_email_button")}
+                    ? isPaidEvent
+                      ? t("pay_and_book")
+                      : t("confirm")
+                    : t("verify_email_button")}
               </Button>
             </>
           )}

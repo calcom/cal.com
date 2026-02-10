@@ -38,12 +38,15 @@ const ServerPage = async () => {
   const categoryQuery = appStore.map(({ categories }) => ({
     categories: categories || [],
   }));
-  const categories = categoryQuery.reduce((c, app) => {
-    for (const category of app.categories) {
-      c[category] = c[category] ? c[category] + 1 : 1;
-    }
-    return c;
-  }, {} as Record<string, number>);
+  const categories = categoryQuery.reduce(
+    (c, app) => {
+      for (const category of app.categories) {
+        c[category] = c[category] ? c[category] + 1 : 1;
+      }
+      return c;
+    },
+    {} as Record<string, number>
+  );
 
   const props = {
     categories: Object.entries(categories)

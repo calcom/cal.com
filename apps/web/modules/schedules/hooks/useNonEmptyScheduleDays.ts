@@ -8,7 +8,11 @@ const getNonEmptyScheduleDays = (slots?: Slots) => {
   const nonEmptyDays: string[] = [];
 
   Object.keys(slots).forEach((date) => {
-    if (slots[date].some((slot) => !(slot?.away && !slot.toUser && !slot.showNotePublicly) && slots[date].length > 0)) {
+    if (
+      slots[date].some(
+        (slot) => !(slot?.away && !slot.toUser && !slot.showNotePublicly) && slots[date].length > 0
+      )
+    ) {
       nonEmptyDays.push(date);
     }
   });

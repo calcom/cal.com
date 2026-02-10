@@ -41,13 +41,7 @@ type CreditRowProps = {
   className?: string;
 };
 
-const CreditRow = ({
-  label,
-  value,
-  isBold = false,
-  underline,
-  className = "",
-}: CreditRowProps) => {
+const CreditRow = ({ label, value, isBold = false, underline, className = "" }: CreditRowProps) => {
   const numberFormatter = new Intl.NumberFormat();
   return (
     <div
@@ -56,25 +50,16 @@ const CreditRow = ({
         underline === "dashed"
           ? "border-subtle border-b border-dashed"
           : underline === "solid"
-          ? "border-subtle border-b border-solid"
-          : "mt-1",
+            ? "border-subtle border-b border-solid"
+            : "mt-1",
         className
-      )}
-    >
+      )}>
       <span
-        className={classNames(
-          "text-sm",
-          isBold ? "font-semibold" : "font-medium leading-tight text-subtle"
-        )}
-      >
+        className={classNames("text-sm", isBold ? "font-semibold" : "font-medium leading-tight text-subtle")}>
         {label}
       </span>
       <span
-        className={classNames(
-          `text-sm`,
-          isBold ? "font-semibold" : "font-medium leading-tight text-subtle"
-        )}
-      >
+        className={classNames(`text-sm`, isBold ? "font-semibold" : "font-medium leading-tight text-subtle")}>
         {numberFormatter.format(value)}
       </span>
     </div>
@@ -87,10 +72,7 @@ const getMonthOptions = (): MonthOption[] => {
 
   let date = dayjs.utc();
   let count = 0;
-  while (
-    (date.isAfter(minDate) || date.isSame(minDate, "month")) &&
-    count < 12
-  ) {
+  while ((date.isAfter(minDate) || date.isSame(minDate, "month")) && count < 12) {
     const startDate = date.startOf("month");
     const endDate = date.endOf("month");
     options.push({
@@ -113,12 +95,9 @@ export default function BillingCredits() {
   const session = useSession();
   const orgBranding = useOrgBranding();
   const monthOptions = useMemo(() => getMonthOptions(), []);
-  const [selectedMonth, setSelectedMonth] = useState<MonthOption>(
-    monthOptions[0]
-  );
+  const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [showMemberInvitationModal, setShowMemberInvitationModal] =
-    useState(false);
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const utils = trpc.useUtils();
 
   const {
@@ -136,31 +115,24 @@ export default function BillingCredits() {
   const teamId: number | undefined = Number.isFinite(parsedTeamId)
     ? parsedTeamId
     : typeof orgId === "number"
-    ? orgId
-    : undefined;
+      ? orgId
+      : undefined;
 
   const tokens = (pathname ?? "").split("/").filter(Boolean);
   const settingsIndex = tokens.indexOf("settings");
   const isOrgScopedPath =
-    settingsIndex >= 0 &&
-    ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
+    settingsIndex >= 0 && ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
 
-  const shouldRender =
-    IS_SMS_CREDITS_ENABLED &&
-    !(orgId && !isOrgScopedPath && !orgBranding?.slug);
+  const shouldRender = IS_SMS_CREDITS_ENABLED && !(orgId && !isOrgScopedPath && !orgBranding?.slug);
 
-  const { data: creditsData, isLoading } =
-    trpc.viewer.credits.getAllCredits.useQuery(
-      { teamId },
-      { enabled: shouldRender }
-    );
-
-  const { data: teamPlanData } = trpc.viewer.teams.hasTeamPlan.useQuery(
-    undefined,
-    {
-      enabled: shouldRender && !teamId,
-    }
+  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery(
+    { teamId },
+    { enabled: shouldRender }
   );
+
+  const { data: teamPlanData } = trpc.viewer.teams.hasTeamPlan.useQuery(undefined, {
+    enabled: shouldRender && !teamId,
+  });
   const isUserInTeam = teamPlanData?.hasTeamPlan ?? false;
 
   if (!shouldRender) return null;
@@ -185,9 +157,7 @@ export default function BillingCredits() {
         endDate: selectedMonth.endDate,
       });
       if (result?.csvData) {
-        const filename = `credit-expense-log-${selectedMonth.value
-          .toLowerCase()
-          .replace(" ", "-")}.csv`;
+        const filename = `credit-expense-log-${selectedMonth.value.toLowerCase().replace(" ", "-")}.csv`;
         downloadAsCsv(result.csvData, filename);
       } else {
         showToast(t("error_downloading_expense_log"), "error");
@@ -214,20 +184,15 @@ export default function BillingCredits() {
   const totalCredits = creditsData.credits.totalMonthlyCredits ?? 0;
   const totalUsed = creditsData.credits.totalCreditsUsedThisMonth ?? 0;
 
-  const teamCreditsPercentageUsed =
-    totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
+  const teamCreditsPercentageUsed = totalCredits > 0 ? (totalUsed / totalCredits) * 100 : 0;
   const numberFormatter = new Intl.NumberFormat();
 
   return (
     <>
       <div className="p-1 mt-5 rounded-xl border bg-cal-muted border-muted">
         <div className="flex flex-col gap-1 px-4 py-5">
-          <h2 className="text-base font-semibold leading-none text-default">
-            {t("credits")}
-          </h2>
-          <p className="text-sm font-medium leading-tight text-subtle">
-            {t("view_and_manage_credits")}
-          </p>
+          <h2 className="text-base font-semibold leading-none text-default">{t("credits")}</h2>
+          <p className="text-sm font-medium leading-tight text-subtle">{t("view_and_manage_credits")}</p>
         </div>
         <div className="bg-default border-muted flex w-full rounded-[10px] border px-5 py-4">
           <div className="w-full">
@@ -240,33 +205,20 @@ export default function BillingCredits() {
                     isBold={true}
                     underline="dashed"
                   />
-                  <CreditRow
-                    label={t("credits_used")}
-                    value={totalUsed}
-                    underline="solid"
-                  />
+                  <CreditRow label={t("credits_used")} value={totalUsed} underline="solid" />
                   <CreditRow
                     label={t("total_credits_remaining")}
                     value={creditsData.credits.totalRemainingMonthlyCredits}
                   />
                   <div className="mt-4">
-                    <ProgressBar
-                      color="green"
-                      percentageValue={100 - teamCreditsPercentageUsed}
-                    />
+                    <ProgressBar color="green" percentageValue={100 - teamCreditsPercentageUsed} />
                   </div>
                   {/*750 credits per tip*/}
                   <div className="flex flex-1 justify-between items-center mt-4">
                     <p className="text-sm font-medium leading-tight text-subtle">
-                      {orgSlug
-                        ? t("credits_per_tip_org")
-                        : t("credits_per_tip_teams")}
+                      {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
                     </p>
-                    <Button
-                      onClick={() => setShowMemberInvitationModal(true)}
-                      size="sm"
-                      color="secondary"
-                    >
+                    <Button onClick={() => setShowMemberInvitationModal(true)} size="sm" color="secondary">
                       {t("add_members_no_ellipsis")}
                     </Button>
                   </div>
@@ -290,12 +242,8 @@ export default function BillingCredits() {
                   <Label>{t("additional_credits")}</Label>
                   <div className="flex gap-1 items-center mb-2">
                     <p className="text-sm font-semibold leading-none">
-                      <span className="font-medium text-subtle">
-                        {t("current_balance")}
-                      </span>{" "}
-                      {numberFormatter.format(
-                        creditsData.credits.additionalCredits
-                      )}
+                      <span className="font-medium text-subtle">{t("current_balance")}</span>{" "}
+                      {numberFormatter.format(creditsData.credits.additionalCredits)}
                     </p>
                     <Tooltip content={t("view_additional_credits_expense_tip")}>
                       <Icon name="info" className="w-3 h-3 text-emphasis" />
@@ -304,10 +252,7 @@ export default function BillingCredits() {
                 </div>
                 {/* Users who are part of a team cannot buy personal credits */}
                 {teamId || !isUserInTeam ? (
-                  <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="flex gap-2 items-center w-full"
-                  >
+                  <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2 items-center w-full">
                     <TextField
                       required
                       type="number"
@@ -322,9 +267,7 @@ export default function BillingCredits() {
                       label=""
                       containerClassName="w-full -mt-1"
                       size="sm"
-                      onChange={(e) =>
-                        setValue("quantity", Number(e.target.value))
-                      }
+                      onChange={(e) => setValue("quantity", Number(e.target.value))}
                       min={50}
                       addOnSuffix={<>{t("credits")}</>}
                     />
@@ -333,17 +276,12 @@ export default function BillingCredits() {
                       target="_blank"
                       size="sm"
                       type="submit"
-                      data-testid="buy-credits"
-                    >
+                      data-testid="buy-credits">
                       {t("buy")}
                     </Button>
                   </form>
                 ) : null}
-                {errors.quantity && (
-                  <InputError
-                    message={errors.quantity.message ?? t("invalid_input")}
-                  />
-                )}
+                {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
               </div>
             </div>
             <div className="-mx-5 mt-5">
@@ -367,12 +305,7 @@ export default function BillingCredits() {
                 </div>
               </div>
               <div className="mt-auto">
-                <Button
-                  onClick={handleDownload}
-                  loading={isDownloading}
-                  color="secondary"
-                  size="sm"
-                >
+                <Button onClick={handleDownload} loading={isDownloading} color="secondary" size="sm">
                   {t("download")}
                 </Button>
               </div>

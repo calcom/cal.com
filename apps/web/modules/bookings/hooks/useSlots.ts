@@ -140,9 +140,12 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   useEffect(() => {
     handleReserveSlot();
 
-    const interval = setInterval(() => {
-      handleReserveSlot();
-    }, parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000);
+    const interval = setInterval(
+      () => {
+        handleReserveSlot();
+      },
+      parseInt(MINUTES_TO_BOOK) * 60 * 1000 - 2000
+    );
 
     return () => {
       handleRemoveSlot();

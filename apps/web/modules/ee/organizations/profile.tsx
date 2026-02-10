@@ -25,10 +25,7 @@ import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import {
-  BannerUploader,
-  ImageUploader,
-} from "@calcom/ui/components/image-uploader";
+import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 // if I include this in the above barrel import, I get a runtime error that the component is not exported.
 import { OrgBanner } from "@calcom/ui/components/organization-banner";
 import {
@@ -136,8 +133,7 @@ const OrgProfileView = ({
     calVideoLogo: currentOrganisation?.calVideoLogo || "",
     slug:
       currentOrganisation?.slug ||
-      ((currentOrganisation?.metadata as Prisma.JsonObject)
-        ?.requestedSlug as string) ||
+      ((currentOrganisation?.metadata as Prisma.JsonObject)?.requestedSlug as string) ||
       "",
   };
 
@@ -153,12 +149,8 @@ const OrgProfileView = ({
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="grow">
               <div>
-                <Label className="text-emphasis">
-                  {t("organization_name")}
-                </Label>
-                <p className="text-default text-sm">
-                  {currentOrganisation?.name}
-                </p>
+                <Label className="text-emphasis">{t("organization_name")}</Label>
+                <p className="text-default text-sm">{currentOrganisation?.name}</p>
               </div>
               {!isBioEmpty && (
                 <>
@@ -179,8 +171,7 @@ const OrgProfileView = ({
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");
-                }}
-              >
+                }}>
                 {t("copy_link_org")}
               </LinkIconButton>
             </div>
@@ -205,10 +196,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
   const mutation = trpc.viewer.organizations.update.useMutation({
     onError: (err) => {
       // Handle JSON parsing errors from body size limit exceeded
-      if (
-        err.message.includes("Unexpected token") &&
-        err.message.includes("Body excee")
-      ) {
+      if (err.message.includes("Unexpected token") && err.message.includes("Body excee")) {
         showToast(t("converted_image_size_limit_exceed"), "error");
         return;
       }
@@ -258,8 +246,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         };
 
         mutation.mutate(variables);
-      }}
-    >
+      }}>
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         <div className="grid grid-cols-2 gap-8">
           <Controller
@@ -272,10 +259,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <Avatar
                     data-testid="profile-upload-logo"
                     alt={form.getValues("name")}
-                    imageSrc={getPlaceholderAvatar(
-                      value,
-                      form.getValues("name")
-                    )}
+                    imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                     size="lg"
                   />
                   <div>
@@ -285,10 +269,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
                         handleAvatarChange={onChange}
-                        imageSrc={getPlaceholderAvatar(
-                          value,
-                          form.getValues("name")
-                        )}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                         triggerButtonColor="secondary"
                       />
                       {showRemoveLogoButton && (
@@ -312,9 +293,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <Avatar
                     alt="calVideoLogo"
                     imageSrc={value}
-                    fallback={
-                      <Icon name="plus" className="text-subtle h-6 w-6" />
-                    }
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     size="lg"
                   />
                   <div>
@@ -325,9 +304,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         buttonMsg={t("upload_cal_video_logo")}
                         handleAvatarChange={onChange}
                         imageSrc={value || undefined}
-                        uploadInstruction={t(
-                          "cal_video_logo_upload_instruction"
-                        )}
+                        uploadInstruction={t("cal_video_logo_upload_instruction")}
                         triggerButtonColor="secondary"
                         testId="cal-video-logo"
                       />
@@ -360,9 +337,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                     fallback={
                       !value ? (
                         <div className="flex flex-col items-center gap-3">
-                          <p className="text-muted text-sm">
-                            {t("no_target", { target: "banner" })}
-                          </p>
+                          <p className="text-muted text-sm">{t("no_target", { target: "banner" })}</p>
                           <div className="hidden">
                             <BannerUploader
                               height={500}
@@ -477,8 +452,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                       size="sm"
                       type="button"
                       aria-label="copy organization id"
-                      onClick={() => handleCopy(value.toString())}
-                    >
+                      onClick={() => handleCopy(value.toString())}>
                       <Icon name="copy" className="ml-1 h-4 w-4" />
                     </Button>
                   </Tooltip>
@@ -491,9 +465,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           <Label>{t("about")}</Label>
           <Editor
             getText={() => md.render(form.getValues("bio") || "")}
-            setText={(value: string) =>
-              form.setValue("bio", turndown(value), { shouldDirty: true })
-            }
+            setText={(value: string) => form.setValue("bio", turndown(value), { shouldDirty: true })}
             excludedToolbarItems={["blockType"]}
             disableLists
             firstRender={firstRender}
@@ -509,8 +481,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           color="primary"
           type="submit"
           loading={mutation.isPending}
-          disabled={isDisabled}
-        >
+          disabled={isDisabled}>
           {t("update")}
         </Button>
       </SectionBottomActions>

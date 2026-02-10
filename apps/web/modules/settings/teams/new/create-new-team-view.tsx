@@ -30,7 +30,7 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
   const { createTeam, isSubmitting } = useCreateTeam({
     redirectBasePath: "/settings/teams/new",
-    isOnboarding: false
+    isOnboarding: false,
   });
 
   const logoRef = useRef<HTMLInputElement>(null);

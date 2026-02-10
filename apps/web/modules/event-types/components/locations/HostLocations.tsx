@@ -314,9 +314,15 @@ const HostLocationRow = ({
   return (
     <>
       <div className="border-subtle flex items-center gap-3 border-b px-3 py-3 last:border-b-0">
-        <Avatar size="sm" imageSrc={hostData?.avatarUrl || undefined} alt={hostData?.name || `${t("user")} ${host.userId}`} />
+        <Avatar
+          size="sm"
+          imageSrc={hostData?.avatarUrl || undefined}
+          alt={hostData?.name || `${t("user")} ${host.userId}`}
+        />
         <div className="min-w-0 flex-1">
-          <div className="text-emphasis truncate text-sm font-medium">{hostData?.name || `${t("user")} ${host.userId}`}</div>
+          <div className="text-emphasis truncate text-sm font-medium">
+            {hostData?.name || `${t("user")} ${host.userId}`}
+          </div>
           {hostData?.email && <div className="text-subtle truncate text-xs">{hostData.email}</div>}
         </div>
         <div className="flex items-center gap-2">
@@ -363,7 +369,10 @@ const HostLocationRow = ({
         locationOption={pendingLocationOption}
         onSave={(inputValue) => {
           if (!pendingLocationOption) return;
-          onLocationChange(host.userId, buildHostLocation(host.userId, eventTypeId, pendingLocationOption, hostData, inputValue));
+          onLocationChange(
+            host.userId,
+            buildHostLocation(host.userId, eventTypeId, pendingLocationOption, hostData, inputValue)
+          );
           setPendingLocationOption(null);
         }}
         title="set_location"

@@ -59,7 +59,8 @@ describe("FormBuilderField", () => {
 });
 
 const component = {
-  getFieldInput: ({ label }: { label: string }) => screen.getByRole("textbox", { name: label }) as HTMLInputElement,
+  getFieldInput: ({ label }: { label: string }) =>
+    screen.getByRole("textbox", { name: label }) as HTMLInputElement,
   fillFieldInput: ({ label, value }: { label: string; value: string }) => {
     fireEvent.change(component.getFieldInput({ label }), { target: { value } });
   },

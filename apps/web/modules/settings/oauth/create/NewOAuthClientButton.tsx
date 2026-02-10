@@ -13,7 +13,13 @@ export const NewOAuthClientButton = ({
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon="plus" size="sm" variant="fab" data-testid={dataTestId} onClick={onClick}>
+    <Button
+      color="secondary"
+      StartIcon="plus"
+      size="sm"
+      variant="fab"
+      data-testid={dataTestId}
+      onClick={onClick}>
       {t("new")}
     </Button>
   );

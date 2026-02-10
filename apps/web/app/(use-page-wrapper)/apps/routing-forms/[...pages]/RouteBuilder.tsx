@@ -972,7 +972,7 @@ const buildState = <
   | {
     queryValue: AttributesQueryValue;
     config: AttributesQueryBuilderConfigWithRaqbFields;
-  }
+  },
 >({
   queryValue,
   config,
