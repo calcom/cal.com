@@ -206,7 +206,7 @@ function BookingDetailsSheetInner({
       .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
-  const reason = booking.assignmentReasonSortedByCreatedAt?.[0];
+  const reason = booking.assignmentReasonSortedByCreatedAt?.[booking.assignmentReasonSortedByCreatedAt.length - 1];
   const reasonTitle = reason && assignmentReasonBadgeTitleMap(reason.reasonEnum);
 
   return (
@@ -589,8 +589,8 @@ function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
     return null;
   }
 
-  // we fetch only one assignment reason.
-  const reason = booking.assignmentReasonSortedByCreatedAt[0];
+  const reason =
+    booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1];
   if (!reason.reasonString) {
     return null;
   }
