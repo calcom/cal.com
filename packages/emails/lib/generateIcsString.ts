@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { getRichDescription, getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -71,7 +72,7 @@ const generateIcsString = ({
     .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
   const icsEvent = createEvent({
-    uid: event.iCalUID || event.uid || "",
+    uid: event.iCalUID || event.uid || randomUUID(),
     sequence: event.iCalSequence || 0,
     start: toICalDateArray(event.startTime),
     end: toICalDateArray(event.endTime),

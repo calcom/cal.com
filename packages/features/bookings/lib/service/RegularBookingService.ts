@@ -352,6 +352,7 @@ export const buildEventForTeamEventType = async ({
       const optionalGuestUsers = await prisma.user.findMany({
         where: {
           id: { in: uniqueOptionalGuestIds },
+          NOT: { email: organizerUser.email },
           teams: {
             some: {
               teamId: team.id,
