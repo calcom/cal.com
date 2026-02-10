@@ -27,9 +27,8 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "email-verification"
-  );
+  const emailVerificationEnabled =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
@@ -202,22 +201,25 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       ...props,
       token,
-      prepopulateFormValues: !isOrgInviteByLink && isValidEmail
-        ? {
-            email: verificationToken.identifier,
-            username: isOrganizationOrATeamInOrganization
-              ? getOrgUsernameFromEmail(
-                  verificationToken.identifier,
-                  (isOrganization
-                    ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
-                    : parentOrgSettings?.orgAutoAcceptEmail) || ""
-                )
-              : slugify(username),
-          }
-        : null,
+      prepopulateFormValues:
+        !isOrgInviteByLink && isValidEmail
+          ? {
+              email: verificationToken.identifier,
+              username: isOrganizationOrATeamInOrganization
+                ? getOrgUsernameFromEmail(
+                    verificationToken.identifier,
+                    (isOrganization
+                      ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
+                      : parentOrgSettings?.orgAutoAcceptEmail) || ""
+                  )
+                : slugify(username),
+            }
+          : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
+        ? (tokenTeam?.organizationSettings?.orgAutoAcceptEmail ??
+          parentOrgSettings?.orgAutoAcceptEmail ??
+          null)
         : null,
     },
   };

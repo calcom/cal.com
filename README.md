@@ -671,7 +671,7 @@ Certain versions may have trouble creating a user if the field `metadata` is emp
 
 ##### CLIENT_FETCH_ERROR
 
-If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefore needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
 
 ```
 docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]

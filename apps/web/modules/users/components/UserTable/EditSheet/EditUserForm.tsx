@@ -302,9 +302,9 @@ function AttributesList(props: { selectedUserId: number }) {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
     return attribute
       ? attribute.options.map((option) => ({
-        value: option.id,
-        label: option.value,
-      }))
+          value: option.id,
+          label: option.value,
+        }))
       : [];
   };
 
@@ -406,17 +406,17 @@ function AttributesList(props: { selectedUserId: number }) {
                           const updatedOptions =
                             attr.type === "MULTI_SELECT"
                               ? valueAsArray.map((v) => ({
-                                label: v.label,
-                                value: v.value,
-                                weight: v.weight || 100,
-                              }))
+                                  label: v.label,
+                                  value: v.value,
+                                  weight: v.weight || 100,
+                                }))
                               : [
-                                {
-                                  label: valueAsArray[0].label,
-                                  value: valueAsArray[0].value,
-                                  weight: valueAsArray[0].weight || 100,
-                                },
-                              ];
+                                  {
+                                    label: valueAsArray[0].label,
+                                    value: valueAsArray[0].value,
+                                    weight: valueAsArray[0].weight || 100,
+                                  },
+                                ];
 
                           field.onChange({
                             id: attr.id,
@@ -487,7 +487,7 @@ function getOptionsEnsuringNotOwnedByCalcomNotRemoved<
   TOptionAlreadySet extends {
     value?: string | number | undefined;
     createdByDSyncId?: string | null | undefined;
-  }
+  },
 >({
   earlierOptions,
   updatedOptions,

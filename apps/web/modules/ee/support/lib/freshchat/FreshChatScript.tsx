@@ -11,9 +11,8 @@ declare global {
   }
 }
 
- 
 const host = process.env.NEXT_PUBLIC_FRESHCHAT_HOST;
- 
+
 const token = process.env.NEXT_PUBLIC_FRESHCHAT_TOKEN;
 
 export const isFreshChatEnabled =
