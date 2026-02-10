@@ -1,9 +1,9 @@
+import { createMemberships } from "@calcom/features/ee/teams/lib/inviteMemberUtils";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { createMemberships } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";

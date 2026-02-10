@@ -29,7 +29,10 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
 
   const store = useOnboardingStore();
   const { setTeamInvites, teamDetails, setTeamId, teamId, resetOnboardingPreservingPlan } = store;
-  const { isSubmitting } = useCreateTeam({ redirectBasePath: "/settings/teams/new" });
+  const { isSubmitting } = useCreateTeam({
+    redirectBasePath: "/settings/teams/new",
+    isOnboarding: false
+  });
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
 
   // Read teamId from query params and store it (from payment callback)

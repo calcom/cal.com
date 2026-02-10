@@ -1,4 +1,5 @@
 import z from "zod";
+import type { GetPublicEventInput } from "@calcom/features/eventtypes/repositories/EventRepository";
 
 // Note: fromRedirectOfNonOrgLink has .default(false), so input has it optional but output has it required
 
@@ -10,13 +11,7 @@ export type TEventInputSchemaInput = {
   fromRedirectOfNonOrgLink?: boolean;
 };
 
-export type TEventInputSchema = {
-  username: string;
-  eventSlug: string;
-  isTeamEvent?: boolean;
-  org: string | null;
-  fromRedirectOfNonOrgLink: boolean;
-};
+export type TEventInputSchema = GetPublicEventInput;
 
 export const ZEventInputSchema: z.ZodType<TEventInputSchema, z.ZodTypeDef, TEventInputSchemaInput> = z.object({
   username: z.string(),
