@@ -56,6 +56,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
+
     bio: input.bio,
     hideBranding: input.hideBranding,
     isPrivate: input.isPrivate,

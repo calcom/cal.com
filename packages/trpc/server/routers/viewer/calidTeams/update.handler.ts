@@ -4,6 +4,7 @@ import { checkIntervalLimitOrder } from "@calid/features/lib/intervalLimit";
 import type { Prisma } from "@prisma/client";
 
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { sanitizeName } from "@calcom/lib/sanitizeName";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
@@ -177,7 +178,7 @@ export const updateCalidTeamHandler = async ({ ctx, input }: UpdateOptions) => {
   const updatedCalIdTeam = await prisma.calIdTeam.update({
     where: { id: id },
     data: {
-      name: name,
+      name: name ? sanitizeName(name) : undefined,
       slug: slug,
       metadata: processedMetadata,
       logoUrl: logoUrl,

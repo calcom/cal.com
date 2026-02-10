@@ -49,6 +49,7 @@ const generateCheckoutSession = async ({
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
   const { slug, name } = input;
+
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org

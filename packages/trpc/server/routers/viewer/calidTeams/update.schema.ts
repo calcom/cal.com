@@ -6,7 +6,10 @@ import slugify from "@calcom/lib/slugify";
 
 export const ZUpdateCalidTeamSchema = z.object({
   id: z.number(),
-  name: z.string().optional(),
+  name: z
+    .string()
+    .regex(/^[a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/, "Invalid team name")
+    .optional(),
   slug: z
     .string()
     .transform((val) => slugify(val.trim()))

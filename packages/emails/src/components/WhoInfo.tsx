@@ -10,9 +10,20 @@ export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" 
   const displayEmail = !isSmsCalEmail(email);
   const formattedPhoneNumber = !!phoneNumber ? `${phoneNumber} ` : "";
 
+  // Escape HTML entities to prevent injection in email templates
+  let safeName = name
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+  // Break auto-linking by inserting zero-width space after periods
+  // This prevents email clients from converting "domain.com" into clickable links
+  safeName = safeName.replace(/\./g, ".\u200B");
+
   return (
     <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
-      {name} - {role} {formattedPhoneNumber}
+      {safeName} - {role} {formattedPhoneNumber}
       {displayEmail && (
         <span style={{ color: "#4B5563" }}>
           <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
