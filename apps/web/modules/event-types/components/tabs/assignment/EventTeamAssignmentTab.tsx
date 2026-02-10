@@ -1,3 +1,8 @@
+import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -20,12 +25,7 @@ import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/e
 import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
-import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -731,13 +731,7 @@ const Hosts = ({
   );
 };
 
-const OptionalGuestTeamMembers = ({
-  teamMembers,
-  teamId,
-}: {
-  teamMembers: TeamMember[];
-  teamId: number;
-}) => {
+const OptionalGuestTeamMembers = ({ teamMembers }: { teamMembers: TeamMember[] }) => {
   const { t } = useLocale();
   const { control } = useFormContext<FormValues>();
 
@@ -777,12 +771,11 @@ const OptionalGuestTeamMembers = ({
                   Option: (props) => {
                     const { data, innerRef, innerProps } = props;
                     return (
-                      <div ref={innerRef} {...innerProps} className="flex cursor-pointer items-center p-2 hover:bg-gray-100">
-                        <img
-                          src={data.avatar}
-                          alt={data.label}
-                          className="mr-2 h-6 w-6 rounded-full"
-                        />
+                      <div
+                        ref={innerRef}
+                        {...innerProps}
+                        className="flex cursor-pointer items-center p-2 hover:bg-gray-100">
+                        <img src={data.avatar} alt={data.label} className="mr-2 h-6 w-6 rounded-full" />
                         <span>{data.label}</span>
                       </div>
                     );
@@ -1016,7 +1009,7 @@ export const EventTeamAssignmentTab = ({
             customClassNames={customClassNames?.hosts}
             hideFixedHostsForCollective={hideFixedHostsForCollective}
           />
-          <OptionalGuestTeamMembers teamMembers={teamMembersOptions} teamId={team.id} />
+          <OptionalGuestTeamMembers teamMembers={teamMembersOptions} />
         </>
       )}
       {team && isManagedEventType && (

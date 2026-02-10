@@ -65,4 +65,5 @@ export const eventTypeSelect = {
       userId: true,
     },
   },
+  optionalGuestTeamMemberIds: true,
 } satisfies Prisma.EventTypeSelect;

@@ -10,8 +10,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect } from "@calcom/prisma/selects/user";
 import {
-  EventTypeMetaDataSchema,
   customInputSchema,
+  EventTypeMetaDataSchema,
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 
@@ -196,6 +196,7 @@ const getEventTypesFromDBSelect = {
   rrHostSubsetEnabled: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   autoTranslateInstantMeetingTitleEnabled: true,
+  optionalGuestTeamMemberIds: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

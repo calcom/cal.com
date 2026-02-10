@@ -82,6 +82,7 @@ export const eventTypeSelect = {
   customReplyToEmail: true,
   restrictionScheduleId: true,
   useBookerTimezone: true,
+  optionalGuestTeamMemberIds: true,
   instantMeetingSchedule: {
     select: {
       id: true,

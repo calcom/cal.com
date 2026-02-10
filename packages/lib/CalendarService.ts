@@ -1,5 +1,22 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
+
+import process from "node:process";
+import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import type {
+  Person as AttendeeInCalendarEvent,
+  Calendar,
+  CalendarEvent,
+  CalendarEventType,
+  CalendarServiceEvent,
+  EventBusyDate,
+  GetAvailabilityParams,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  TeamMember,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -14,23 +31,6 @@ import {
   updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
-import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
-import type {
-  Calendar,
-  CalendarServiceEvent,
-  CalendarEvent,
-  CalendarEventType,
-  EventBusyDate,
-  GetAvailabilityParams,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  TeamMember,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
@@ -178,7 +178,7 @@ const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Atte
     email: attendee.email,
     partstat: "NEEDS-ACTION",
     // Mark as optional in ICS if the optional flag is set
-    role: (attendee as TeamMember).optional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT",
+    role: "optional" in attendee && attendee.optional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT",
   }));
 
 export default abstract class BaseCalendarService implements Calendar {
@@ -249,8 +249,8 @@ export default abstract class BaseCalendarService implements Calendar {
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
       const mainHostDestinationCalendar = event.destinationCalendar
-        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
+        ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0])
         : undefined;
 
       // We create the event directly on iCal
@@ -701,10 +701,7 @@ export default abstract class BaseCalendarService implements Calendar {
       (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
         promise.status === "fulfilled"
     );
-    const flatResult = fulfilledPromises
-      .map((promise) => promise.value)
-      .flat()
-      .filter((obj) => obj !== null);
+    const flatResult = fulfilledPromises.flatMap((promise) => promise.value).filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }
 
