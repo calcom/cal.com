@@ -1,43 +1,34 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
-import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
-import type { UseFormReturn } from "react-hook-form";
-import { Toaster } from "sonner";
-
 import { buildEmptyQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils.client";
 import { raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
-import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
 import { RoutingSkeleton } from "@calcom/app-store/routing-forms/components/_components/RoutingSkeleton";
+import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import {
-  withRaqbSettingsAndWidgets,
   ConfigFor,
+  withRaqbSettingsAndWidgets,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
-import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
 import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
 import getEventTypeAppMetadata from "@calcom/app-store/routing-forms/lib/getEventTypeAppMetadata";
 import {
-  getQueryBuilderConfigForFormFields,
-  getQueryBuilderConfigForAttributes,
-  type FormFieldsQueryBuilderConfigWithRaqbFields,
   type AttributesQueryBuilderConfigWithRaqbFields,
+  type FormFieldsQueryBuilderConfigWithRaqbFields,
+  getQueryBuilderConfigForAttributes,
+  getQueryBuilderConfigForFormFields,
   isDynamicOperandField,
 } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
 import type {
+  Attribute,
+  AttributeRoutingConfig,
+  EditFormRoute,
   GlobalRoute,
   LocalRoute,
+  RoutingFormWithResponseCount,
   SerializableRoute,
-  Attribute,
-  EditFormRoute,
-  AttributeRoutingConfig,
 } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -52,15 +43,25 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  SelectWithValidation as Select,
+  SelectField,
+  Switch,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import Link from "next/link";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { BuilderProps, Config, ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
+import type { UseFormReturn } from "react-hook-form";
+import { Toaster } from "sonner";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
@@ -271,9 +272,9 @@ const WeightedAttributesSelector = ({
 
       attributesWithWeightsEnabled = attributes
         ? attributes.filter(
-          (attribute) =>
-            attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
-        )
+            (attribute) =>
+              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+          )
         : [];
     }
   }
@@ -348,9 +349,9 @@ type RouteActionSelectorProps = {
   onEventTypeChange?: (action: LocalRoute["action"]) => void;
   eventTypeOptions: { label: string; value: string; eventTypeId: number }[];
   selectedEventTypeOption:
-  | { label: string; value: string; eventTypeId: number }
-  | { label: string; value: "custom"; eventTypeId: 0 }
-  | undefined;
+    | { label: string; value: string; eventTypeId: number }
+    | { label: string; value: "custom"; eventTypeId: 0 }
+    | undefined;
   disabled?: boolean;
   className?: string;
   showCustomEventTypeInput?: boolean;
@@ -462,11 +463,11 @@ const RouteActionSelector = ({
               value={selectedEventTypeOption}
             />
             {showCustomEventTypeInput &&
-              eventTypeOptions.length !== 0 &&
-              action.value !== "" &&
-              (action.value === "custom" ||
-                !eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
-                customEventTypeSlug.length) ? (
+            eventTypeOptions.length !== 0 &&
+            action.value !== "" &&
+            (action.value === "custom" ||
+              !eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
+              customEventTypeSlug.length) ? (
               <>
                 <TextField
                   disabled={disabled}
@@ -488,8 +489,8 @@ const RouteActionSelector = ({
                   <p className="text-subtle text-xs">
                     {fieldIdentifiers.length
                       ? t("field_identifiers_as_variables_with_example", {
-                        variable: `{${fieldIdentifiers[0]}}`,
-                      })
+                          variable: `{${fieldIdentifiers[0]}}`,
+                        })
                       : t("field_identifiers_as_variables")}
                   </p>
                 </div>
@@ -558,7 +559,7 @@ const Route = ({
   const getCustomSlug = (actionValue: string | undefined) => {
     if (!actionValue) return "";
     const isCustom = !eventOptions.find((eventOption) => eventOption.value === actionValue);
-    return isCustom ? actionValue.split("/").pop() ?? "" : "";
+    return isCustom ? (actionValue.split("/").pop() ?? "") : "";
   };
 
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
@@ -676,20 +677,20 @@ const Route = ({
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
       ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
-        eventOptions
-      )
+          eventOptions
+        )
       : [];
 
   const eventTypeRedirectUrlSelectedOption =
     eventOptions.length !== 0 && route.action.value !== ""
       ? eventOptions.find(
-        (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
-      ) || {
-        label: t("custom"),
-        value: "custom",
-        eventTypeId: 0,
-        isRRWeightsEnabled: false,
-      }
+          (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
+        ) || {
+          label: t("custom"),
+          value: "custom",
+          eventTypeId: 0,
+          isRRWeightsEnabled: false,
+        }
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
@@ -720,9 +721,9 @@ const Route = ({
 
   const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
     ? withRaqbSettingsAndWidgets({
-      config: attributesQueryBuilderConfig,
-      configFor: ConfigFor.Attributes,
-    })
+        config: attributesQueryBuilderConfig,
+        configFor: ConfigFor.Attributes,
+      })
     : null;
 
   const attributesQueryBuilder =
@@ -731,7 +732,7 @@ const Route = ({
       <div>
         {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
-          "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+        "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
           <div className="mt-4 px-2.5">
             <DynamicAppComponent
               componentMap={routingFormAppComponents}
@@ -743,9 +744,7 @@ const Route = ({
           </div>
         ) : null}
 
-        <div
-          className="cal-query-builder-container mt-4"
-          data-testid="attributes-query-builder">
+        <div className="cal-query-builder-container mt-4" data-testid="attributes-query-builder">
           <div className="ml-2 flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="user-check" className="text-subtle h-4 w-4" />
@@ -856,12 +855,12 @@ const Route = ({
         route.isFallback
           ? null
           : {
-            check: () => routes.length !== 1,
-            fn: () => {
-              const newRoutes = routes.filter((r) => r.id !== route.id);
-              setRoutes(newRoutes);
-            },
-          }
+              check: () => routes.length !== 1,
+              fn: () => {
+                const newRoutes = routes.filter((r) => r.id !== route.id);
+                setRoutes(newRoutes);
+              },
+            }
       }>
       <div
         className={classNames(
@@ -880,16 +879,15 @@ const Route = ({
                   // Check if fallbackAction has a valid event type (eventTypeId or non-empty value)
                   const hasValidFallbackEventType =
                     route.fallbackAction?.eventTypeId || route.fallbackAction?.value;
-                  const fallbackAction =
-                    hasValidFallbackEventType
-                      ? route.fallbackAction
-                      : newAction.type === RouteActionType.EventTypeRedirectUrl
-                        ? {
+                  const fallbackAction = hasValidFallbackEventType
+                    ? route.fallbackAction
+                    : newAction.type === RouteActionType.EventTypeRedirectUrl
+                      ? {
                           type: newAction.type,
                           value: newAction.value,
                           eventTypeId: newAction.eventTypeId,
                         }
-                        : undefined;
+                      : undefined;
                   setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                   setCustomEventTypeSlug("");
                 }}
@@ -920,16 +918,15 @@ const Route = ({
                       // Check if fallbackAction has a valid event type (eventTypeId or non-empty value)
                       const hasValidFallbackEventType =
                         route.fallbackAction?.eventTypeId || route.fallbackAction?.value;
-                      const fallbackAction =
-                        hasValidFallbackEventType
-                          ? route.fallbackAction
-                          : newAction.type === RouteActionType.EventTypeRedirectUrl
-                            ? {
+                      const fallbackAction = hasValidFallbackEventType
+                        ? route.fallbackAction
+                        : newAction.type === RouteActionType.EventTypeRedirectUrl
+                          ? {
                               type: newAction.type,
                               value: newAction.value,
                               eventTypeId: newAction.eventTypeId,
                             }
-                            : undefined;
+                          : undefined;
                       setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
                       setCustomEventTypeSlug("");
                     }}
@@ -948,7 +945,6 @@ const Route = ({
               </div>
             )}
 
-
             <WeightedAttributesSelector
               attributes={attributes}
               route={route}
@@ -965,14 +961,14 @@ const Route = ({
 
 const buildState = <
   T extends
-  | {
-    queryValue: FormFieldsQueryValue;
-    config: FormFieldsQueryBuilderConfigWithRaqbFields;
-  }
-  | {
-    queryValue: AttributesQueryValue;
-    config: AttributesQueryBuilderConfigWithRaqbFields;
-  },
+    | {
+        queryValue: FormFieldsQueryValue;
+        config: FormFieldsQueryBuilderConfigWithRaqbFields;
+      }
+    | {
+        queryValue: AttributesQueryValue;
+        config: AttributesQueryBuilderConfigWithRaqbFields;
+      },
 >({
   queryValue,
   config,
@@ -993,17 +989,17 @@ const deserializeRoute = ({
   const attributesQueryBuilderState =
     route.attributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
-        queryValue: route.attributesQueryValue,
-        config: attributesQueryBuilderConfig,
-      })
+          queryValue: route.attributesQueryValue,
+          config: attributesQueryBuilderConfig,
+        })
       : null;
 
   const fallbackAttributesQueryBuilderState =
     route.fallbackAttributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
-        queryValue: route.fallbackAttributesQueryValue,
-        config: attributesQueryBuilderConfig,
-      })
+          queryValue: route.fallbackAttributesQueryValue,
+          config: attributesQueryBuilderConfig,
+        })
       : null;
 
   return {
@@ -1092,10 +1088,10 @@ function useRoutes({
           route.fallbackAction ??
           (route.action?.type === RouteActionType.EventTypeRedirectUrl
             ? {
-              type: route.action.type,
-              value: route.action.value,
-              eventTypeId: route.action.eventTypeId,
-            }
+                type: route.action.type,
+                value: route.action.value,
+                eventTypeId: route.action.eventTypeId,
+              }
             : undefined);
         return {
           id: route.id,
@@ -1134,10 +1130,10 @@ const useCreateRoute = ({
     const fallbackAction =
       newEmptyRoute.action?.type === RouteActionType.EventTypeRedirectUrl
         ? {
-          type: newEmptyRoute.action.type,
-          value: newEmptyRoute.action.value,
-          eventTypeId: newEmptyRoute.action.eventTypeId,
-        }
+            type: newEmptyRoute.action.type,
+            value: newEmptyRoute.action.value,
+            eventTypeId: newEmptyRoute.action.eventTypeId,
+          }
         : undefined;
     const newRoutes = [
       ...routes,
@@ -1151,16 +1147,16 @@ const useCreateRoute = ({
         attributesQueryBuilderState:
           attributesQueryBuilderConfig && newEmptyRoute.attributesQueryValue
             ? buildState({
-              queryValue: newEmptyRoute.attributesQueryValue,
-              config: attributesQueryBuilderConfig,
-            })
+                queryValue: newEmptyRoute.attributesQueryValue,
+                config: attributesQueryBuilderConfig,
+              })
             : null,
         fallbackAttributesQueryBuilderState:
           attributesQueryBuilderConfig && newEmptyRoute.fallbackAttributesQueryValue
             ? buildState({
-              queryValue: newEmptyRoute.fallbackAttributesQueryValue,
-              config: attributesQueryBuilderConfig,
-            })
+                queryValue: newEmptyRoute.fallbackAttributesQueryValue,
+                config: attributesQueryBuilderConfig,
+              })
             : null,
       },
     ];
@@ -1189,9 +1185,9 @@ const Routes = ({
   const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
-      attributes: attributes,
-      dynamicOperandFields: hookForm.getValues().fields,
-    })
+        attributes: attributes,
+        dynamicOperandFields: hookForm.getValues().fields,
+      })
     : null;
 
   const { routes, setRoutes } = useRoutes({
