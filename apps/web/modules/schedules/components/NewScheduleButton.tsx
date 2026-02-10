@@ -80,7 +80,7 @@ export function NewScheduleButton({
             {...register("name", {
               setValueAs: (v) => (!v || v.trim() === "" ? null : v),
               pattern:{
-                value: /^[a-zA-Z0-9\s&\-_'@.:,/]+$/,
+                value: /^[\p{L}\p{M}\p{N}\s&\-_'’@.:,/]+$/u,
                 message:t("invalid_characters_in_name"),
               }
             })}
