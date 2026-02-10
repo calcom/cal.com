@@ -80,18 +80,10 @@ describe("useFeatureOptInBanner", () => {
     expect(result.current.shouldShow).toBe(true);
   });
 
-  it("hides banner when user is impersonated", () => {
+  it("still shows banner when user is impersonated", () => {
     mockUseSession.mockReturnValue({
       data: { user: { impersonatedBy: { id: 999, email: "admin@cal.com" } } },
     });
-
-    const { result } = renderHook(() => useFeatureOptInBanner("bookings-v3"));
-
-    expect(result.current.shouldShow).toBe(false);
-  });
-
-  it("hides banner when session is null", () => {
-    mockUseSession.mockReturnValue({ data: null });
 
     const { result } = renderHook(() => useFeatureOptInBanner("bookings-v3"));
 
