@@ -1579,16 +1579,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="mb-6">
                   <div className="flex items-center">
                     <Label
+                      data-testid="email-subject-label"
                       className={classNames(
                         "flex-none",
-                        props.readOnly || isFormTrigger(trigger)
+                        props.readOnly || isFormTrigger(trigger) || !hasPaidPlan
                           ? "mb-2"
                           : "mb-0"
                       )}
                     >
                       {t("email_subject")}
                     </Label>
-                    {!props.readOnly && !isFormTrigger(trigger) && (
+                    {!props.readOnly && !isFormTrigger(trigger) && hasPaidPlan && (
                       <div className="grow text-right">
                         <AddVariablesDropdown
                           addVariable={addVariableEmailSubject}
@@ -1603,7 +1604,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       refEmailSubject.current = e;
                     }}
                     rows={2}
-                    disabled={props.readOnly || !hasActiveTeamPlan}
+                    disabled={props.readOnly || !hasPaidPlan}
                     className="my-0 focus:ring-transparent"
                     required
                     {...restEmailSubjectForm}
@@ -1638,9 +1639,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   props.form.clearErrors();
                 }}
                 variables={
-                  !isFormTrigger(trigger) ? DYNAMIC_TEXT_VARIABLES : undefined
+                  !isFormTrigger(trigger) && hasPaidPlan ? DYNAMIC_TEXT_VARIABLES : undefined
                 }
-                addVariableButtonTop={isSMSAction(step.action)}
+                addVariableButtonTop={isSMSAction(step.action) && hasPaidPlan}
                 height="200px"
                 updateTemplate={updateTemplate}
                 firstRender={firstRender}
@@ -1648,7 +1649,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 editable={
                   !props.readOnly &&
                   !isWhatsappAction(step.action) &&
-                  (hasActiveTeamPlan || isSMSAction(step.action))
+                  hasPaidPlan
                 }
                 excludedToolbarItems={
                   !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
