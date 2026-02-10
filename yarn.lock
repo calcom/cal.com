@@ -4614,6 +4614,7 @@ __metadata:
   resolution: "@calid/queue@workspace:packages/queue"
   dependencies:
     bullmq: ^5.67.2
+    dotenv: ^17.2.4
     ioredis: ^5.9.2
     typescript: ^5.9.3
   languageName: unknown
@@ -27378,6 +27379,13 @@ __metadata:
   version: 16.6.1
   resolution: "dotenv@npm:16.6.1"
   checksum: e8bd63c9a37f57934f7938a9cf35de698097fadf980cb6edb61d33b3e424ceccfe4d10f37130b904a973b9038627c2646a3365a904b4406514ea94d7f1816b69
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.4":
+  version: 17.2.4
+  resolution: "dotenv@npm:17.2.4"
+  checksum: 177cb42d328ac70be3c1f1434593914fc3e4719d8d074a890906ca610afae1e0488c623e68aa8f532192e8f687bc9e9e144de7b66fb79b6d20437bbd993059a8
   languageName: node
   linkType: hard
 

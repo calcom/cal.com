@@ -183,8 +183,7 @@ const nextConfig = {
     "handlebars", // Externalize to avoid webpack parsing Node-only entry
     "@boxyhq/saml-jackson",
     "jose", // Dependency of @boxyhq/saml-jackson
-    "encoding"
-
+    "encoding",
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage

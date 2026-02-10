@@ -1,5 +1,5 @@
 import { CALENDAR_SYNC_QUEUE } from "@calid/queue";
-import { redisConnection } from "@calid/queue";
+import { getRedisOptions } from "@calid/queue";
 import type { CalendarSyncJob } from "@calid/queue/types";
 import { Worker } from "bullmq";
 
@@ -11,7 +11,7 @@ export const calendarSyncWorker = new Worker<CalendarSyncJob>(
     await processCalendarSync(job);
   },
   {
-    connection: redisConnection,
+    connection: getRedisOptions(),
     concurrency: 5,
     lockDuration: 10 * 60 * 1000, // 10 min
   }

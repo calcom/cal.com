@@ -1,12 +1,12 @@
 import { Queue } from "bullmq";
 
-import { redisConnection } from "../redis";
+import { getRedisOptions } from "../redis";
 
 export const CALENDAR_SYNC_QUEUE = "calendar-sync";
 
 export function getCalendarSyncQueue() {
   return new Queue(CALENDAR_SYNC_QUEUE, {
-    connection: redisConnection,
+    connection: getRedisOptions(),
     defaultJobOptions: {
       attempts: 5,
       backoff: {

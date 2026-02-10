@@ -12,7 +12,7 @@
       "outputs": ["node_modules/.prisma/client/**"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["@calcom/prisma#generate-schemas"],
+      "dependsOn": ["@calcom/prisma#generate-schemas", "@calid/queue#build"],
       "outputs": [".next/**"]
     },
     "@calcom/prisma#db-deploy": {

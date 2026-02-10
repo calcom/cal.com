@@ -1,12 +1,14 @@
 import type { RedisOptions } from "bullmq";
 import IORedis from "ioredis";
 
-const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
+declare global {
+  // eslint-disable-next-line no-var
+  var __redisConnection: IORedis | undefined;
+}
 
 function parseRedisUrl(url: string): RedisOptions {
   try {
     const parsed = new URL(url);
-
     return {
       host: parsed.hostname,
       port: parseInt(parsed.port) || 6379,
@@ -22,13 +24,19 @@ function parseRedisUrl(url: string): RedisOptions {
   }
 }
 
-export const redisConnection: RedisOptions = parseRedisUrl(REDIS_URL);
+export function getRedisOptions(): RedisOptions {
+  const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
+  return parseRedisUrl(REDIS_URL);
+}
 
-let client: IORedis | null = null;
-
-export function getRedisClient() {
-  if (!client) {
-    client = new IORedis(redisConnection);
+export function getRedisConnection(): IORedis {
+  if (!global.__redisConnection) {
+    console.log("Creating new Redis connection ");
+    global.__redisConnection = new IORedis(getRedisOptions());
+    global.__redisConnection.on("error", (err) => {
+      console.error("Redis connection error:", err);
+    });
   }
-  return client;
+  console.log("Reusing existing Redis connection");
+  return global.__redisConnection;
 }
