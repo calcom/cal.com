@@ -70,8 +70,8 @@ export const DateRangeFilter = ({
     forceCustomOnly
       ? CUSTOM_PRESET
       : filterValue?.data.preset
-      ? compatiblePresets.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
-      : DEFAULT_PRESET
+        ? (compatiblePresets.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET)
+        : DEFAULT_PRESET
   );
 
   const convertTimestamp = useCallback(
@@ -201,8 +201,8 @@ export const DateRangeFilter = ({
                 range === "past"
                   ? currentDate.subtract(2, "year").toDate()
                   : range === "future"
-                  ? currentDate.toDate()
-                  : null
+                    ? currentDate.toDate()
+                    : null
               }
               maxDate={range === "past" ? currentDate.toDate() : undefined}
               disabled={false}

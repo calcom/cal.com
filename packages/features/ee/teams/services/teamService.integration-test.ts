@@ -967,7 +967,7 @@ describe("TeamService.removeMembers Integration Tests", () => {
       const mockFactory = getTeamBillingServiceFactory();
       expect(mockFactory.findAndInitMany).toHaveBeenCalledWith([regularTeamTestData.team.id]);
       const mockInstances = await mockFactory.findAndInitMany([regularTeamTestData.team.id]);
-      expect(mockInstances[0].updateQuantity).toHaveBeenCalled();
+      expect(mockInstances[0].updateQuantity).toHaveBeenCalledWith("removal");
     });
 
     it("should throw error when membership doesn't exist", async () => {

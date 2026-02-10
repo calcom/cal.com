@@ -12,12 +12,16 @@ const getPrimaryCalendarMock = vi.fn();
 vi.mock("@calcom/app-store/googlecalendar/lib/CalendarService", () => {
   return {
     __esModule: true,
-    createGoogleCalendarServiceWithGoogleType: vi.fn().mockImplementation(function() { return {
-      getPrimaryCalendar: getPrimaryCalendarMock,
-    }; }),
-    default: vi.fn().mockImplementation(function() { return {
-      getPrimaryCalendar: getPrimaryCalendarMock,
-    }; }),
+    createGoogleCalendarServiceWithGoogleType: vi.fn().mockImplementation(function () {
+      return {
+        getPrimaryCalendar: getPrimaryCalendarMock,
+      };
+    }),
+    default: vi.fn().mockImplementation(function () {
+      return {
+        getPrimaryCalendar: getPrimaryCalendarMock,
+      };
+    }),
   };
 });
 

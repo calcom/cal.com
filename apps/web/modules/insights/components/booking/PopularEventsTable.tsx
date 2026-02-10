@@ -10,13 +10,16 @@ export const PopularEventsTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.popularEvents.useQuery(insightsBookingParams, {
-    staleTime: 180000,
-    refetchOnWindowFocus: false,
-    trpc: {
-      context: { skipBatch: true },
-    },
-  });
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.popularEvents.useQuery(
+    insightsBookingParams,
+    {
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   return (
     <ChartCard title={t("popular_events")} isPending={isPending} isError={isError}>

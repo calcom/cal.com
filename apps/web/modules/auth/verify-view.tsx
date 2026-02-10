@@ -176,8 +176,8 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
             {hasPaymentFailed
               ? t("your_payment_failed")
               : isPremiumUsername
-              ? t("payment_successful")
-              : t("check_your_inbox")}
+                ? t("payment_successful")
+                : t("check_your_inbox")}
           </h3>
           {hasPaymentFailed && <p className="my-6">{t("account_created_premium_not_reserved")}</p>}
           <p className="text-muted dark:text-subtle text-base font-normal">

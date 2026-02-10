@@ -1,13 +1,13 @@
+import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { emailSchema } from "@calcom/lib/emailSchema";
+import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
+import prisma from "@calcom/prisma";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
-import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { emailSchema } from "@calcom/lib/emailSchema";
-import prisma from "@calcom/prisma";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
@@ -17,15 +17,11 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "email is required" }, { status: 400 });
   }
 
-  // fallback to email if ip is not present
-  let ip = (req.headers.get("x-real-ip") as string) ?? email.data;
-
+  let ip = getIP(req) ?? email.data;
   const forwardedFor = req.headers.get("x-forwarded-for") as string;
   if (!ip && forwardedFor) {
     ip = forwardedFor?.split(",").at(0) ?? email.data;
   }
-
-  // 10 requests per minute
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",

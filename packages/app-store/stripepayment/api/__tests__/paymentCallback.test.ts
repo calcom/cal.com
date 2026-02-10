@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import sendVerificationRequest from "@calcom/features/auth/lib/sendVerificationRequest";
 import { HttpError } from "@calcom/lib/http-error";
-import { VerificationTokenService } from "@calcom/lib/server/service/VerificationTokenService";
+import { VerificationTokenService } from "../../lib/VerificationTokenService";
 import { prisma } from "@calcom/prisma";
 
 import { getCustomerAndCheckoutSession } from "../../lib/getCustomerAndCheckoutSession";
@@ -20,7 +20,7 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("../../lib/getCustomerAndCheckoutSession");
 vi.mock("@calcom/features/auth/lib/sendVerificationRequest");
-vi.mock("@calcom/lib/server/service/VerificationTokenService", () => ({
+vi.mock("../../lib/VerificationTokenService", () => ({
   VerificationTokenService: {
     create: vi.fn(),
   },

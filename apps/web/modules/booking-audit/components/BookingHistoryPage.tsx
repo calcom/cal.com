@@ -3,7 +3,7 @@
 import { BookingHistory } from "./BookingHistory";
 
 interface BookingHistoryPageProps {
-    bookingUid: string;
+  bookingUid: string;
 }
 
 /**
@@ -11,5 +11,5 @@ interface BookingHistoryPageProps {
  * Adds page-specific styling and layout for the booking history view
  */
 export function BookingHistoryPage({ bookingUid }: BookingHistoryPageProps) {
-    return <BookingHistory bookingUid={bookingUid} />;
+  return <BookingHistory bookingUid={bookingUid} />;
 }
