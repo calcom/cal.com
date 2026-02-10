@@ -36,7 +36,8 @@ export function getRedisConnection(): IORedis {
     global.__redisConnection.on("error", (err) => {
       console.error("Redis connection error:", err);
     });
+  } else {
+    console.log("Reusing existing Redis connection");
   }
-  console.log("Reusing existing Redis connection");
   return global.__redisConnection;
 }

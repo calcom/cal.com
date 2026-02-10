@@ -17,4 +17,5 @@ export async function processCalendarSync(job: Job<CalendarSyncJob>) {
   }
 
   job.log("Sync completed");
+  console.log("Sync completed");
 }
