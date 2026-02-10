@@ -70,6 +70,10 @@ const EventAdvancedTab = dynamic(() =>
   import("./tabs/advanced/EventAdvancedWebWrapper").then((mod) => mod)
 );
 
+const EventPrivacyTab = dynamic(() =>
+  import("./tabs/privacy/EventPrivacyWebWrapper").then((mod) => mod)
+);
+
 const EventInstantTab = dynamic(() =>
   import("./tabs/instant/EventInstantTab").then((mod) => mod.EventInstantTab)
 );
@@ -270,6 +274,7 @@ const EventTypeWeb = ({
         orgId={orgBranding?.id ?? null}
       />
     ),
+    privacy: <EventPrivacyTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: (
@@ -316,6 +321,7 @@ const EventTypeWeb = ({
         EventTeamAssignmentTab,
         EventLimitsTab,
         EventAdvancedTab,
+        EventPrivacyTab,
         EventInstantTab,
         EventRecurringTab,
         EventAppsTab,
@@ -347,6 +353,7 @@ const EventTypeWeb = ({
         "team",
         "limits",
         "advanced",
+        "privacy",
         "instant",
         "recurring",
         "apps",

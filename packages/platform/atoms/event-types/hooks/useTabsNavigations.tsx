@@ -213,6 +213,13 @@ function getNavigation({
       "data-testid": "event_advanced_tab_title",
     },
     {
+      name: t("event_privacy_tab_title"),
+      href: `/event-types/${id}?tabName=privacy`,
+      icon: "lock",
+      info: t(`event_privacy_tab_description`),
+      "data-testid": "event_privacy_tab_title",
+    },
+    {
       name: t("apps"),
       href: `/event-types/${id}?tabName=apps`,
       icon: "grid-3x3",

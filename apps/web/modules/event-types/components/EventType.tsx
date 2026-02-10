@@ -36,6 +36,7 @@ const tabs = [
   "team",
   "limits",
   "advanced",
+  "privacy",
   "instant",
   "recurring",
   "apps",
