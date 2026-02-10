@@ -1240,7 +1240,9 @@ export const EventAdvancedTab = ({
               disabled={!team}
               Badge={!team ? <UpgradeTeamsBadge /> : undefined}
               onCheckedChange={(checked) => {
-                if (!checked) {
+                if (checked) {
+                  onChange(teamMemberOptions.map((opt) => opt.value));
+                } else {
                   onChange([]);
                 }
               }}
