@@ -773,6 +773,52 @@ function FieldEditDialog({
                       />
                     )}
 
+                    {formFieldType === "date" && (
+                      <>
+                        <div className="mt-6">
+                          <Controller
+                            name="dateFormat"
+                            control={fieldForm.control}
+                            render={({ field: { value, onChange } }) => (
+                              <SelectField
+                                label="Date Format"
+                                value={
+                                  value
+                                    ? {
+                                      value,
+                                      label:
+                                        value === "yyyy-MM-dd"
+                                          ? "yyyy-MM-dd (ISO)"
+                                          : value,
+                                    }
+                                    : { value: "yyyy-MM-dd", label: "yyyy-MM-dd (ISO)" }
+                                }
+                                options={[
+                                  { value: "yyyy-MM-dd", label: "yyyy-MM-dd (ISO)" },
+                                  { value: "dd/MM/yyyy", label: "dd/MM/yyyy" },
+                                  { value: "MM/dd/yyyy", label: "MM/dd/yyyy" },
+                                  { value: "dd.MM.yyyy", label: "dd.MM.yyyy" },
+                                ]}
+                                onChange={(option) => onChange(option?.value)}
+                              />
+                            )}
+                          />
+                        </div>
+                        <InputField
+                          {...fieldForm.register("minDate")}
+                          containerClassName="mt-6"
+                          label="Minimum Date"
+                          placeholder="2024-01-01 or today+7d"
+                        />
+                        <InputField
+                          {...fieldForm.register("maxDate")}
+                          containerClassName="mt-6"
+                          label="Maximum Date"
+                          placeholder="2024-12-31 or today+30d"
+                        />
+                      </>
+                    )}
+
                     <div className="mt-6">
                       <Controller
                         name="required"
@@ -1008,7 +1054,7 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];

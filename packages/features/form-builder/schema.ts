@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { z } from "zod";
 
 import { fieldSchema, fieldTypeEnum, variantsConfigSchema, type FieldType } from "@calcom/prisma/zod-utils";
@@ -34,6 +35,7 @@ export const fieldTypeConfigSchema = z
       "boolean",
       "objectiveWithInput",
       "variants",
+      "date",
     ]),
     // It is the config that can tweak what an existing or a new field shows in the App UI or booker UI.
     variantsConfig: z
@@ -256,6 +258,51 @@ export const fieldTypesSchemaMap: Partial<
         code: z.ZodIssueCode.custom,
         message: m("url_validation_error"),
       });
+    },
+  },
+  date: {
+    preprocess: ({ response }) => {
+      return response;
+    },
+    superRefine: ({ field, response, ctx, m }) => {
+      const value = dayjs(response);
+      if (!value.isValid()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_date") });
+        return;
+      }
+
+      const parseDateLimit = (limit: string) => {
+        if (limit === "today") return dayjs();
+        const regex = /^today([+-])(\d+)d$/;
+        const match = limit.match(regex);
+        if (match) {
+          const sign = match[1];
+          const amount = parseInt(match[2], 10);
+          if (sign === "+") return dayjs().add(amount, "day");
+          return dayjs().subtract(amount, "day");
+        }
+        return dayjs(limit);
+      };
+
+      if (field.minDate) {
+        const min = parseDateLimit(field.minDate);
+        if (value.isBefore(min, "day")) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${m("date_too_early")} ${min.format("YYYY-MM-DD")}`,
+          });
+        }
+      }
+
+      if (field.maxDate) {
+        const max = parseDateLimit(field.maxDate);
+        if (value.isAfter(max, "day")) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${m("date_too_late")} ${max.format("YYYY-MM-DD")}`,
+          });
+        }
+      }
     },
   },
 };

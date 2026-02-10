@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
@@ -41,24 +42,24 @@ type RhfFormField = RhfFormFields[number];
 
 type ValueProps =
   | {
-      value: string[];
-      setValue: (value: string[]) => void;
-    }
+    value: string[];
+    setValue: (value: string[]) => void;
+  }
   | {
+    value: string;
+    setValue: (value: string) => void;
+  }
+  | {
+    value: {
       value: string;
-      setValue: (value: string) => void;
-    }
-  | {
-      value: {
-        value: string;
-        optionValue: string;
-      };
-      setValue: (value: { value: string; optionValue: string }) => void;
-    }
-  | {
-      value: boolean;
-      setValue: (value: boolean) => void;
+      optionValue: string;
     };
+    setValue: (value: { value: string; optionValue: string }) => void;
+  }
+  | {
+    value: boolean;
+    setValue: (value: boolean) => void;
+  };
 
 export const FormBuilderField = ({
   field,
@@ -168,18 +169,18 @@ const WithLabel = ({
       {noLabel
         ? null
         : field.type !== "boolean" &&
-          field.type !== "multiemail" &&
-          field.label && (
-            <div className="mb-2 flex items-center">
-              <Label className="mb-0! flex items-center" htmlFor={htmlFor}>
-                {renderLabel(field)}
-                <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
-                  {!readOnly && field.required ? "*" : ""}
-                </span>
-                {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
-              </Label>
-            </div>
-          )}
+        field.type !== "multiemail" &&
+        field.label && (
+          <div className="mb-2 flex items-center">
+            <Label className="mb-0! flex items-center" htmlFor={htmlFor}>
+              {renderLabel(field)}
+              <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
+                {!readOnly && field.required ? "*" : ""}
+              </span>
+              {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
+            </Label>
+          </div>
+        )}
       {children}
       {field.name === "smsReminderNumber" && (
         <div className="text-sm text-gray-500">{t("sms_workflow_consent")}</div>
@@ -299,6 +300,38 @@ export const ComponentForField = ({
           value={value as boolean}
           setValue={setValue as (arg: typeof value) => void}
           placeholder={field.placeholder}
+        />
+      </WithLabel>
+    );
+  }
+
+  if (componentConfig.propsType === "date") {
+    const parseDateLimit = (limit: string) => {
+      if (limit === "today") return dayjs();
+      const regex = /^today([+-])(\d+)d$/;
+      const match = limit.match(regex);
+      if (match) {
+        const sign = match[1];
+        const amount = parseInt(match[2], 10);
+        if (sign === "+") return dayjs().add(amount, "day");
+        return dayjs().subtract(amount, "day");
+      }
+      return dayjs(limit);
+    };
+    const minDate = field.minDate ? parseDateLimit(field.minDate).toISOString() : undefined;
+    const maxDate = field.maxDate ? parseDateLimit(field.maxDate).toISOString() : undefined;
+
+    return (
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
+        <componentConfig.factory
+          name={field.name}
+          label={field.label}
+          readOnly={readOnly}
+          value={value as string}
+          setValue={setValue as (arg: typeof value) => void}
+          placeholder={field.placeholder}
+          minDate={minDate}
+          maxDate={maxDate}
         />
       </WithLabel>
     );
