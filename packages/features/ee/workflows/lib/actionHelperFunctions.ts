@@ -39,7 +39,9 @@ export function isCalAIAction(action: WorkflowActions) {
   return action === WorkflowActions.CAL_AI_PHONE_CALL;
 }
 
-export function isEmailAction(action: WorkflowActions) {
+export function isEmailAction(
+  action: WorkflowActions
+): action is Extract<WorkflowActions, "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"> {
   return (
     action === WorkflowActions.EMAIL_ADDRESS ||
     action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -141,6 +143,29 @@ export function getTemplateBodyForAction({
   // If not a whatsapp action then it's an email action
   const templateFunction = getEmailTemplateFunction(template);
   return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailBody;
+}
+
+export function getTemplateSubjectForAction({
+  action,
+  locale,
+  t,
+  template,
+  timeFormat,
+}: {
+  action: WorkflowActions;
+  locale: string;
+  t: TFunction;
+  template: WorkflowTemplates;
+  timeFormat: TimeFormat;
+}): string | null {
+  // SMS and WhatsApp don't have subjects
+  if (isSMSAction(action) || isWhatsappAction(action)) {
+    return null;
+  }
+
+  // For email actions, get the subject from the template
+  const templateFunction = getEmailTemplateFunction(template);
+  return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailSubject;
 }
 
 export function isFormTrigger(trigger: WorkflowTriggerEvents) {

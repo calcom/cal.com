@@ -4,6 +4,8 @@ import classNames from "classnames";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -18,6 +20,21 @@ type OnboardingBrowserViewProps = {
   teamSlug?: string;
 };
 
+const getDisplayUrl = (
+  orgSlug: string | null | undefined,
+  username: string | null | undefined,
+  teamSlug: string | undefined
+): string => {
+  if (orgSlug) {
+    return teamSlug !== undefined
+      ? `${orgSlug}.${subdomainSuffix()}/team/${teamSlug || ""}`
+      : `${orgSlug}.${subdomainSuffix()}/${username || ""}`;
+  }
+
+  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
+  return teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+};
+
 export const OnboardingBrowserView = ({
   avatar,
   name,
@@ -27,9 +44,9 @@ export const OnboardingBrowserView = ({
 }: OnboardingBrowserViewProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
-  const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl =
-    teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
+  const orgBranding = useOrgBranding();
+
+  const displayUrl = getDisplayUrl(orgBranding?.slug, username, teamSlug);
 
   // Animation variants for entry and exit
   const containerVariants = {
@@ -117,12 +134,14 @@ export const OnboardingBrowserView = ({
             {/* Profile Header */}
             <div className="border-subtle flex flex-col gap-4 border-b p-4">
               <div className="flex flex-col items-start gap-4">
-                <Avatar
-                  size="lg"
-                  imageSrc={avatar || undefined}
-                  alt={name || ""}
-                  className="border-2 border-white"
-                />
+                {avatar && (
+                  <Avatar
+                    size="lg"
+                    imageSrc={avatar}
+                    alt={name || ""}
+                    className="border-2 border-white"
+                  />
+                )}
                 <div className="flex w-full flex-col gap-2">
                   <h2 className="text-emphasis w-full truncate text-xl font-semibold leading-tight">
                     {name || t("your_name")}

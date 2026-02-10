@@ -1,24 +1,23 @@
+import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/platform-constants";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsEnum,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  ValidateNested,
+} from "class-validator";
 import { Editable } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/editable";
 import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
 import { Frequency } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/frequency";
 import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import {
-  IsString,
-  IsBoolean,
-  IsOptional,
-  ValidateNested,
-  Min,
-  Max,
-  IsInt,
-  IsEnum,
-  IsArray,
-  IsDate,
-  IsNumber,
-} from "class-validator";
-
-import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/platform-constants";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
@@ -408,13 +407,19 @@ export class UpdateEventTypeInput_2024_04_15 {
   @IsInt()
   @Min(0)
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity.",
+  })
   beforeEventBuffer?: number;
 
   @IsInt()
   @Min(0)
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment.",
+  })
   afterEventBuffer?: number;
 
   @IsInt()

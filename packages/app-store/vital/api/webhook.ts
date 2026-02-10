@@ -3,9 +3,9 @@ import queue from "queue";
 
 import dayjs from "@calcom/dayjs";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -100,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return;
           }
 
-          if (!event.data.hasOwnProperty(parameterFilter)) {
+          if (!Object.prototype.hasOwnProperty.call(event.data, parameterFilter)) {
             res.status(500).json({ message: "Selected param not available" });
             return;
           }
@@ -141,7 +141,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 );
               }
               await q.start();
-            } catch (error) {
+            } catch {
               throw new Error("Failed to reschedule bookings");
             }
           }
@@ -155,11 +155,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return res.status(200).json({ body: req.body });
   } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+    const err = getServerErrorFromUnknown(_err);
     console.error(`Webhook Error: ${err.message}`);
-    res.status(err.statusCode ?? 500).send({
+    res.status(err.statusCode).send({
       message: err.message,
-      stack: IS_PRODUCTION ? undefined : err.stack,
+      stack: IS_PRODUCTION ? undefined : err.cause?.stack,
     });
     return;
   }

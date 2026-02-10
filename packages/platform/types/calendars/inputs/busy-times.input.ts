@@ -1,10 +1,45 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { Transform } from "class-transformer";
-import { IsNumber, IsString, IsArray, ValidateNested, IsDateString, IsOptional, ValidatorConstraint, ValidatorConstraintInterface, Validate } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform, Type } from "class-transformer";
+import {
+  IsArray,
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  registerDecorator,
+  ValidateNested,
+  type ValidationArguments,
+  type ValidationOptions,
+} from "class-validator";
+
+import { normalizeTimezone } from "../../utils/normalizeTimezone";
+
+function ValidateTimezoneRequired(
+  validationOptions?: ValidationOptions
+): (target: new (...args: unknown[]) => unknown) => void {
+  return (target: new (...args: unknown[]) => unknown) => {
+    registerDecorator({
+      name: "validateTimezoneRequired",
+      target: target as new (...args: unknown[]) => unknown,
+      propertyName: "timeZone",
+      options: validationOptions,
+      constraints: [],
+      validator: {
+        validate(_: unknown, args: ValidationArguments): boolean {
+          const obj = args.object as CalendarBusyTimesInput;
+          return !!obj.timeZone || !!obj.loggedInUsersTz;
+        },
+        defaultMessage(): string {
+          return "Either timeZone or loggedInUsersTz must be provided";
+        },
+      },
+    });
+  };
+}
 
 export class Calendar {
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @Transform(({ value }: { value: string }) => value && parseInt(value, 10))
   @IsNumber()
   @ApiProperty()
   credentialId!: number;
@@ -14,18 +49,7 @@ export class Calendar {
   externalId!: string;
 }
 
-@ValidatorConstraint({ name: "TimezoneRequired", async: false })
-export class TimezoneRequiredValidator implements ValidatorConstraintInterface {
-  validate(value: any) {
-    return !!value.timeZone || !!value.loggedInUsersTz;
-  }
-
-  defaultMessage() {
-    return "Either timeZone or loggedInUsersTz must be provided";
-  }
-}
-
-@Validate(TimezoneRequiredValidator)
+@ValidateTimezoneRequired()
 export class CalendarBusyTimesInput {
   @ApiProperty({
     required: false,
@@ -37,13 +61,15 @@ export class CalendarBusyTimesInput {
   @IsString()
   loggedInUsersTz?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     required: false,
     description: "The timezone for the busy times query represented as a string",
     example: "America/New_York",
   })
   @IsOptional()
   @IsString()
+  @IsTimeZone()
+  @Transform(({ value }) => normalizeTimezone(value))
   timeZone?: string;
 
   @ApiProperty({

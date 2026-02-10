@@ -1,16 +1,20 @@
 import dayjs from "@calcom/dayjs";
-import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
+import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TTriggerNoShowPayloadSchema, TWebhook } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type OriginalRescheduledBooking =
@@ -28,19 +32,24 @@ type ParticipantsWithEmail = (Participants[number] & { email?: string; isLoggedI
 export function sendWebhookPayload(
   webhook: Webhook,
   triggerEvent: WebhookTriggerEvents,
-  booking: Booking,
+  booking: Booking & { guests?: Booking["attendees"] },
   maxStartTime: number,
   participants: ParticipantsWithEmail,
   originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
-): Promise<any> {
+): Promise<{ ok: boolean; status: number } | void> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
   return sendGenericWebhookPayload({
     secretKey: webhook.secret,
     triggerEvent,
     createdAt: new Date().toISOString(),
-    webhook,
+    webhook: {
+      subscriberUrl: webhook.subscriberUrl,
+      appId: webhook.appId,
+      payloadTemplate: webhook.payloadTemplate,
+      version: webhook.version,
+    },
     data: {
       title: booking.title,
       bookingId: booking.id,
@@ -50,6 +59,12 @@ export function sendWebhookPayload(
       endTime: booking.endTime,
       participants,
       ...(hostEmail ? { hostEmail } : {}),
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+        ? { noShowHost: booking.noShowHost }
+        : {}),
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW && booking.guests
+        ? { guests: booking.guests }
+        : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
@@ -129,11 +144,74 @@ export async function getParticipantsWithEmail(
 
 export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
 
+export const fireNoShowUpdatedEvent = async ({
+  booking,
+  noShowHostAudit,
+  attendeesNoShowAudit,
+}: {
+  booking: {
+    id: number;
+    uid: string;
+    user?: { id: number; uuid: string } | null;
+    eventType?: { teamId?: number | null; parent?: { teamId?: number | null } | null } | null;
+  };
+  noShowHostAudit?: { old: boolean | null; new: boolean | null };
+  attendeesNoShowAudit?: NoShowUpdatedAuditData["attendeesNoShow"];
+}): Promise<void> => {
+  const hasHostNoShow = noShowHostAudit && noShowHostAudit.new !== null;
+  const hasAttendeesNoShow = attendeesNoShowAudit && attendeesNoShowAudit.length > 0;
+
+  if (!hasHostNoShow && !hasAttendeesNoShow) {
+    return;
+  }
+
+  const hostUserUuid = booking.user?.uuid;
+  if (hasHostNoShow && !hostUserUuid) {
+    log.warn("Host no-show audit skipped: booking.user.uuid is undefined", { bookingUid: booking.uid });
+  }
+
+  try {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.user?.id,
+      teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    });
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      // This action is taken by the scheduled tasker job, so we use the system actor
+      actor: makeSystemActor(),
+      organizationId: orgId ?? null,
+      source: "SYSTEM",
+      auditData: {
+        ...(hasHostNoShow && noShowHostAudit.new !== null && hostUserUuid
+          ? {
+              host: {
+                userUuid: hostUserUuid,
+                noShow: { old: noShowHostAudit.old, new: noShowHostAudit.new },
+              },
+            }
+          : {}),
+        ...(hasAttendeesNoShow ? { attendeesNoShow: attendeesNoShowAudit } : {}),
+      },
+      isBookingAuditEnabled,
+    });
+  } catch (error) {
+    log.error("Error logging audit for automatic no-show", error);
+  }
+};
+
 export const prepareNoShowTrigger = async (
   payload: string
 ): Promise<{
   booking: Booking;
   webhook: TWebhook;
+  hosts: Host[];
   hostsThatDidntJoinTheCall: Host[];
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
@@ -228,6 +306,7 @@ export const prepareNoShowTrigger = async (
   }
 
   return {
+    hosts,
     hostsThatDidntJoinTheCall,
     hostsThatJoinedTheCall,
     booking,

@@ -239,7 +239,7 @@ test.describe("authorized user sees correct translations (de)", async () => {
 
       {
         const locator = page.getByText("Event Types", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -252,13 +252,13 @@ test.describe("authorized user sees correct translations (de)", async () => {
       await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
       {
-        const locator = page.getByRole("heading", { name: "Buchungen", exact: true });
+        const locator = page.locator("h2", { hasText: "Es gibt noch keine bevorstehende Buchungen" });
         await expect(locator).toHaveCount(1);
       }
 
       {
-        const locator = page.getByText("Bookings", { exact: true });
-        await expect(locator).toHaveCount(0);
+        const locator = page.getByText("No upcoming bookings", { exact: true });
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -271,13 +271,13 @@ test.describe("authorized user sees correct translations (de)", async () => {
       await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
       {
-        const locator = page.getByRole("heading", { name: "Buchungen", exact: true });
+        const locator = page.locator("h2", { hasText: "Es gibt noch keine bevorstehende Buchungen" });
         await expect(locator).toHaveCount(1);
       }
 
       {
-        const locator = page.getByText("Bookings", { exact: true });
-        await expect(locator).toHaveCount(0);
+        const locator = page.getByText("No upcoming bookings", { exact: true });
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
   });
@@ -311,7 +311,7 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
 
       {
         const locator = page.getByText("Event Types", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -324,13 +324,13 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
       await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
       {
-        const locator = page.getByRole("heading", { name: "Reservas", exact: true });
+        const locator = page.locator("h2", { hasText: "Ainda não tem reservas próximos" });
         await expect(locator).toHaveCount(1);
       }
 
       {
         const locator = page.getByText("Bookings", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -343,13 +343,13 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
       await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
       {
-        const locator = page.getByRole("heading", { name: "Reservas", exact: true });
+        const locator = page.locator("h2", { hasText: "Ainda não tem reservas próximos" });
         await expect(locator).toHaveCount(1);
       }
 
       {
         const locator = page.getByText("Bookings", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
   });
@@ -383,7 +383,7 @@ test.describe("authorized user sees correct translations (ar)", async () => {
 
       {
         const locator = page.getByText("Event Types", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -396,13 +396,13 @@ test.describe("authorized user sees correct translations (ar)", async () => {
       await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
 
       {
-        const locator = page.getByRole("heading", { name: "عمليات الحجز", exact: true });
+        const locator = page.locator("h2", { hasText: "لا توجد عمليات حجز القادم" });
         await expect(locator).toHaveCount(1);
       }
 
       {
         const locator = page.getByText("Bookings", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -415,13 +415,13 @@ test.describe("authorized user sees correct translations (ar)", async () => {
       await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
 
       {
-        const locator = page.getByRole("heading", { name: "عمليات الحجز", exact: true });
+        const locator = page.locator("h2", { hasText: "لا توجد عمليات حجز القادم" });
         await expect(locator).toHaveCount(1);
       }
 
       {
         const locator = page.getByText("Bookings", { exact: true });
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
   });
@@ -463,7 +463,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
 
       {
         const locator = page.getByText("Allgemein", { exact: true }); // "general"
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -482,7 +482,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
 
       {
         const locator = page.getByText("Allgemein", { exact: true }); // "general"
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
   });
@@ -522,7 +522,7 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
 
       {
         const locator = page.getByText("Allgemein", { exact: true }); // "general"
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
 
@@ -541,7 +541,7 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
 
       {
         const locator = page.getByText("Allgemein", { exact: true }); // "general"
-        await expect(locator).toHaveCount(0);
+        await expect(locator).toHaveCount(0, { timeout: 0 });
       }
     });
   });

@@ -22,7 +22,7 @@ describe("RemoveMemberServiceFactory", () => {
       checkIfTeamHasFeature: vi.fn(),
     };
 
-    vi.mocked(FeaturesRepository).mockImplementation(() => mockFeaturesRepository as any);
+    vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
   });
 
   describe("Service Creation", () => {

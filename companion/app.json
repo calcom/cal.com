@@ -1,0 +1,119 @@
+{
+  "expo": {
+    "name": "Calcom",
+    "slug": "calcom-companion",
+    "scheme": "calcom",
+    "version": "1.0.3",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "appleTeamId": "ADWKXDJV75",
+      "deploymentTarget": "18.0",
+      "bundleIdentifier": "com.cal.companion",
+      "userInterfaceStyle": "automatic",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.default-data-protection": "NSFileProtectionComplete",
+        "com.apple.security.application-groups": ["group.com.cal.companion"]
+      },
+      "icon": "./assets/cal-logo.icon"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.calcom.companion",
+      "softwareKeyboardLayoutMode": "pan",
+      "usesCleartextTraffic": false,
+      "userInterfaceStyle": "automatic"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f5e97f6f-1e95-44ac-bfa4-f737ef90f198"
+      }
+    },
+    "owner": "calcoms-organization",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200
+        }
+      ],
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "colorAccent": {
+                "light": "#000000"
+              },
+              "textColorPrimary": {
+                "light": "#000000"
+              }
+            },
+            "timePicker": {
+              "background": {
+                "light": "#ffffff"
+              },
+              "numbersBackgroundColor": {
+                "light": "#ffffff"
+              },
+              "headerBackground": {
+                "light": "#000000"
+              },
+              "numbersSelectorColor": {
+                "light": "#000000"
+              }
+            }
+          }
+        }
+      ],
+      "@bacons/apple-targets",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "UpcomingBookingsWidget",
+              "label": "Upcoming Bookings",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "description": "View your upcoming Cal.com bookings",
+              "previewImage": "./assets/icon.png",
+              "resizeMode": "horizontal|vertical",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2
+            }
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

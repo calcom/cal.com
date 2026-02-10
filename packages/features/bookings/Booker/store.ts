@@ -3,48 +3,270 @@
 import { useEffect } from "react";
 import { createWithEqualityFn } from "zustand/traditional";
 
-
-
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-
-
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
+import {
+  updateQueryParam,
+  getQueryParam,
+  removeQueryParam,
+} from "./utils/query-param";
 
 const _iso_3166_1_alpha_2_codes = [
-  "ad", "ae", "af", "ag", "ai", "al", "am", "ao", "aq", "ar", "as", "at", "au", "aw", "ax", "az",
-  "ba", "bb", "bd", "be", "bf", "bg", "bh", "bi", "bj", "bl", "bm", "bn", "bo", "bq", "br", "bs", "bt", "bv", "bw", "by", "bz",
-  "ca", "cc", "cd", "cf", "cg", "ch", "ci", "ck", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cw", "cx", "cy", "cz",
-  "de", "dj", "dk", "dm", "do", "dz",
-  "ec", "ee", "eg", "eh", "er", "es", "et",
-  "fi", "fj", "fk", "fm", "fo", "fr",
-  "ga", "gb", "gd", "ge", "gf", "gg", "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy",
-  "hk", "hm", "hn", "hr", "ht", "hu",
-  "id", "ie", "il", "im", "in", "io", "iq", "ir", "is", "it",
-  "je", "jm", "jo", "jp",
-  "ke", "kg", "kh", "ki", "km", "kn", "kp", "kr", "kw", "ky", "kz",
-  "la", "lb", "lc", "li", "lk", "lr", "ls", "lt", "lu", "lv", "ly",
-  "ma", "mc", "md", "me", "mf", "mg", "mh", "mk", "ml", "mm", "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz",
-  "na", "nc", "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz",
+  "ad",
+  "ae",
+  "af",
+  "ag",
+  "ai",
+  "al",
+  "am",
+  "ao",
+  "aq",
+  "ar",
+  "as",
+  "at",
+  "au",
+  "aw",
+  "ax",
+  "az",
+  "ba",
+  "bb",
+  "bd",
+  "be",
+  "bf",
+  "bg",
+  "bh",
+  "bi",
+  "bj",
+  "bl",
+  "bm",
+  "bn",
+  "bo",
+  "bq",
+  "br",
+  "bs",
+  "bt",
+  "bv",
+  "bw",
+  "by",
+  "bz",
+  "ca",
+  "cc",
+  "cd",
+  "cf",
+  "cg",
+  "ch",
+  "ci",
+  "ck",
+  "cl",
+  "cm",
+  "cn",
+  "co",
+  "cr",
+  "cu",
+  "cv",
+  "cw",
+  "cx",
+  "cy",
+  "cz",
+  "de",
+  "dj",
+  "dk",
+  "dm",
+  "do",
+  "dz",
+  "ec",
+  "ee",
+  "eg",
+  "eh",
+  "er",
+  "es",
+  "et",
+  "fi",
+  "fj",
+  "fk",
+  "fm",
+  "fo",
+  "fr",
+  "ga",
+  "gb",
+  "gd",
+  "ge",
+  "gf",
+  "gg",
+  "gh",
+  "gi",
+  "gl",
+  "gm",
+  "gn",
+  "gp",
+  "gq",
+  "gr",
+  "gs",
+  "gt",
+  "gu",
+  "gw",
+  "gy",
+  "hk",
+  "hm",
+  "hn",
+  "hr",
+  "ht",
+  "hu",
+  "id",
+  "ie",
+  "il",
+  "im",
+  "in",
+  "io",
+  "iq",
+  "ir",
+  "is",
+  "it",
+  "je",
+  "jm",
+  "jo",
+  "jp",
+  "ke",
+  "kg",
+  "kh",
+  "ki",
+  "km",
+  "kn",
+  "kp",
+  "kr",
+  "kw",
+  "ky",
+  "kz",
+  "la",
+  "lb",
+  "lc",
+  "li",
+  "lk",
+  "lr",
+  "ls",
+  "lt",
+  "lu",
+  "lv",
+  "ly",
+  "ma",
+  "mc",
+  "md",
+  "me",
+  "mf",
+  "mg",
+  "mh",
+  "mk",
+  "ml",
+  "mm",
+  "mn",
+  "mo",
+  "mp",
+  "mq",
+  "mr",
+  "ms",
+  "mt",
+  "mu",
+  "mv",
+  "mw",
+  "mx",
+  "my",
+  "mz",
+  "na",
+  "nc",
+  "ne",
+  "nf",
+  "ng",
+  "ni",
+  "nl",
+  "no",
+  "np",
+  "nr",
+  "nu",
+  "nz",
   "om",
-  "pa", "pe", "pf", "pg", "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw", "py",
+  "pa",
+  "pe",
+  "pf",
+  "pg",
+  "ph",
+  "pk",
+  "pl",
+  "pm",
+  "pn",
+  "pr",
+  "ps",
+  "pt",
+  "pw",
+  "py",
   "qa",
-  "re", "ro", "rs", "ru", "rw",
-  "sa", "sb", "sc", "sd", "se", "sg", "sh", "si", "sj", "sk", "sl", "sm", "sn", "so", "sr", "ss", "st", "sv", "sx", "sy",
-  "tc", "td", "tf", "tg", "th", "tj", "tk", "tl", "tm", "tn", "to", "tr", "tt", "tv", "tw", "tz",
-  "ua", "ug", "um", "us", "uy", "uz",
-  "va", "vc", "ve", "vg", "vi", "vn", "vu",
-  "wf", "ws",
-  "ye", "yt",
-  "za", "zm", "zw"
+  "re",
+  "ro",
+  "rs",
+  "ru",
+  "rw",
+  "sa",
+  "sb",
+  "sc",
+  "sd",
+  "se",
+  "sg",
+  "sh",
+  "si",
+  "sj",
+  "sk",
+  "sl",
+  "sm",
+  "sn",
+  "so",
+  "sr",
+  "ss",
+  "st",
+  "sv",
+  "sx",
+  "sy",
+  "tc",
+  "td",
+  "tf",
+  "tg",
+  "th",
+  "tj",
+  "tk",
+  "tl",
+  "tm",
+  "tn",
+  "to",
+  "tr",
+  "tt",
+  "tv",
+  "tw",
+  "tz",
+  "ua",
+  "ug",
+  "um",
+  "us",
+  "uy",
+  "uz",
+  "va",
+  "vc",
+  "ve",
+  "vg",
+  "vi",
+  "vn",
+  "vu",
+  "wf",
+  "ws",
+  "ye",
+  "yt",
+  "za",
+  "zm",
+  "zw",
 ] as const;
 
-export type CountryCode = typeof _iso_3166_1_alpha_2_codes[number];
-
+export type CountryCode = (typeof _iso_3166_1_alpha_2_codes)[number];
 
 /**
  * Arguments passed into store initializer, containing
@@ -135,7 +357,9 @@ export type BookerStore = {
    * Multiple Selected Dates and Times
    */
   selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } } | null;
-  setSelectedDatesAndTimes: (selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } }) => void;
+  setSelectedDatesAndTimes: (selectedDatesAndTimes: {
+    [key: string]: { [key: string]: string[] };
+  }) => void;
   /**
    * Multiple duration configuration
    */
@@ -215,6 +439,11 @@ export type BookerStore = {
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
   defaultPhoneCountry?: CountryCode | null;
+  /**
+   * Whether the two-step slot selection modal/dialog is visible
+   */
+  isSlotSelectionModalVisible: boolean;
+  setIsSlotSelectionModalVisible: (visible: boolean) => void;
 };
 
 /**
@@ -228,7 +457,10 @@ export const createBookerStore = () =>
     setLayout: (layout: BookerLayout) => {
       // If we switch to a large layout and don't have a date selected yet,
       // we selected it here, so week title is rendered properly.
-      if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
+      if (
+        ["week_view", "column_view"].includes(layout) &&
+        !get().selectedDate
+      ) {
         set({ selectedDate: dayjs().format("YYYY-MM-DD") });
       }
       if (!get().isPlatform || get().allowUpdatingUrlParams) {
@@ -237,7 +469,11 @@ export const createBookerStore = () =>
       return set({ layout });
     },
     selectedDate: getQueryParam("date") || null,
-    setSelectedDate: ({ date: selectedDate, omitUpdatingParams = false, preventMonthSwitching = false }) => {
+    setSelectedDate: ({
+      date: selectedDate,
+      omitUpdatingParams = false,
+      preventMonthSwitching = false,
+    }) => {
       // unset selected date
       if (!selectedDate) {
         removeQueryParam("date");
@@ -247,15 +483,24 @@ export const createBookerStore = () =>
       const currentSelection = dayjs(get().selectedDate);
       const newSelection = dayjs(selectedDate);
       set({ selectedDate });
-      if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
+      if (
+        !omitUpdatingParams &&
+        (!get().isPlatform || get().allowUpdatingUrlParams)
+      ) {
         updateQueryParam("date", selectedDate ?? "");
       }
 
       // Setting month make sure small calendar in fullscreen layouts also updates.
       // preventMonthSwitching is true in monthly view
-      if (!preventMonthSwitching && newSelection.month() !== currentSelection.month()) {
+      if (
+        !preventMonthSwitching &&
+        newSelection.month() !== currentSelection.month()
+      ) {
         set({ month: newSelection.format("YYYY-MM") });
-        if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
+        if (
+          !omitUpdatingParams &&
+          (!get().isPlatform || get().allowUpdatingUrlParams)
+        ) {
           updateQueryParam("month", newSelection.format("YYYY-MM"));
         }
       }
@@ -316,7 +561,8 @@ export const createBookerStore = () =>
       }
       get().setSelectedDate({ date: null });
     },
-    dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
+    dayCount:
+      BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
     setDayCount: (dayCount: number | null) => {
       set({ dayCount });
     },
@@ -398,7 +644,9 @@ export const createBookerStore = () =>
         // Preselect today's date in week / column view, since they use this to show the week title.
         selectedDate:
           selectedDateInStore ||
-          (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
+          (["week_view", "column_view"].includes(layout)
+            ? dayjs().format("YYYY-MM-DD")
+            : null),
         teamMemberEmail,
         crmOwnerRecordType,
         crmAppSlug,
@@ -459,14 +707,24 @@ export const createBookerStore = () =>
       set({ rescheduleUid });
     },
     recurringEventCount: null,
-    setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-    recurringEventCountQueryParam: Number(getQueryParam("recurringEventCount")) || null,
-    setRecurringEventCountQueryParam: (recurringEventCountQueryParam: number | null) => {
+    setRecurringEventCount: (recurringEventCount: number | null) =>
+      set({ recurringEventCount }),
+    recurringEventCountQueryParam:
+      Number(getQueryParam("recurringEventCount")) || null,
+    setRecurringEventCountQueryParam: (
+      recurringEventCountQueryParam: number | null
+    ) => {
       // Guard: only update state if value is valid (not NaN or null)
-      if (recurringEventCountQueryParam !== null && !isNaN(recurringEventCountQueryParam)) {
+      if (
+        recurringEventCountQueryParam !== null &&
+        !isNaN(recurringEventCountQueryParam)
+      ) {
         set({ recurringEventCountQueryParam });
         if (!get().isPlatform || get().allowUpdatingUrlParams) {
-          updateQueryParam("recurringEventCount", recurringEventCountQueryParam);
+          updateQueryParam(
+            "recurringEventCount",
+            recurringEventCountQueryParam
+          );
         }
       }
       // If invalid, don't update state or URL - just ignore the call
@@ -496,6 +754,12 @@ export const createBookerStore = () =>
     isPlatform: false,
     allowUpdatingUrlParams: true,
     defaultPhoneCountry: null,
+    isSlotSelectionModalVisible: false,
+    setIsSlotSelectionModalVisible: (
+      isSlotSelectionModalVisible: boolean
+    ) => {
+      set({ isSlotSelectionModalVisible });
+    },
   }));
 
 /**

@@ -1,7 +1,6 @@
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
+import { setShowNewOrgModalFlag } from "@calcom/web/modules/ee/organizations/hooks/useWelcomeModal";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -10,7 +9,6 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const flags = useFlagMap();
@@ -26,32 +24,65 @@ export const useSubmitOnboarding = () => {
     setError(null);
 
     try {
-      const { selectedPlan, organizationDetails, organizationBrand, teams, inviteRole, resetOnboarding } =
-        store;
+      const {
+        selectedPlan,
+        organizationDetails,
+        organizationBrand,
+        teams,
+        inviteRole,
+        resetOnboarding,
+        migratedMembers,
+      } = store;
 
       if (selectedPlan !== "organization") {
         throw new Error("Only organization plan is currently supported");
       }
 
-      // Prepare teams data
       const teamsData = teams
         .filter((team) => team.name.trim().length > 0)
         .map((team) => ({
-          id: -1, // New team
+          id: team.id,
           name: team.name,
-          isBeingMigrated: false,
-          slug: null,
+          isBeingMigrated: team.isBeingMigrated,
+          slug: team.slug,
         }));
 
-      // Prepare invites data
       const invitedMembersData = invitesToSubmit
         .filter((invite) => invite.email.trim().length > 0)
-        .map((invite) => ({
-          email: invite.email,
-          teamName: invite.team,
-          teamId: -1,
-          role: inviteRole,
-        }));
+        .map((invite) => {
+          // If invite has a team name, try to find the team ID (for migrated teams)
+          let teamId: number | undefined = undefined;
+          let teamName: string | undefined = undefined;
+
+          if (invite.team && invite.team.trim().length > 0) {
+            const matchingTeam = teams.find(
+              (team) => team.name.toLowerCase() === invite.team.toLowerCase()
+            );
+            if (matchingTeam?.isBeingMigrated && matchingTeam.id !== -1) {
+              // Use team ID for migrated teams
+              teamId = matchingTeam.id;
+            } else {
+              // Use team name for new teams (will be matched after creation)
+              teamName = invite.team;
+              teamId = -1;
+            }
+          }
+
+          return {
+            email: invite.email,
+            teamName,
+            teamId,
+            role: inviteRole,
+          };
+        });
+
+      const migratedMembersData = migratedMembers.map((member) => ({
+        email: member.email,
+        teamId: member.teamId,
+        role: member.role,
+      }));
+
+      const allInvitedMembers = [...invitedMembersData, ...migratedMembersData];
 
       const result = await intentToCreateOrg.mutateAsync({
         name: organizationDetails.name,
@@ -66,7 +97,7 @@ export const useSubmitOnboarding = () => {
         isPlatform: false,
         creationSource: CreationSource.WEBAPP,
         teams: teamsData,
-        invitedMembers: invitedMembersData,
+        invitedMembers: allInvitedMembers,
       });
 
       // If there's a checkout URL, redirect to Stripe (billing enabled flow)
@@ -78,9 +109,19 @@ export const useSubmitOnboarding = () => {
       // No checkout URL means billing is disabled (self-hosted flow)
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
-      // Set flag to show welcome modal after personal onboarding redirect
+      // Set flag to show welcome modal after redirect
       setShowNewOrgModalFlag();
-      skipToPersonal(resetOnboarding);
+      
+      // Check if this is a migration flow (user has already completed onboarding)
+      const hasMigratedTeams = teams.some((team) => team.isBeingMigrated);
+      if (hasMigratedTeams) {
+        // Migration flow - user already completed onboarding, redirect to event-types
+        resetOnboarding();
+        window.location.href = "/event-types?newOrganizationModal=true";
+      } else {
+        // Regular flow - redirect to personal onboarding
+        skipToPersonal(resetOnboarding);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
       setError(errorMessage);
@@ -94,7 +135,9 @@ export const useSubmitOnboarding = () => {
   const skipToPersonal = (resetOnboarding: () => void) => {
     resetOnboarding();
     const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/personal/settings" : "/getting-started";
-    router.push(gettingStartedPath);
+    // Use window.location.href for a full page reload to ensure JWT callback runs
+    // without trigger="update", which will call autoMergeIdentities() and fetch org data
+    window.location.href = gettingStartedPath;
   };
 
   return {

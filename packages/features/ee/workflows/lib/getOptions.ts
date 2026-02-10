@@ -31,7 +31,14 @@ export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
   });
 }
 
-export function getWorkflowTriggerOptions(t: TFunction, hasPaidPlan: boolean = false) {
+type PlanState = {
+  hasPaidPlan?: boolean;
+  hasActiveTeamPlan?: boolean;
+  isTrial?: boolean;
+};
+
+export function getWorkflowTriggerOptions(t: TFunction, planState: PlanState = {}) {
+  const { hasPaidPlan = false, hasActiveTeamPlan, isTrial } = planState;
   // TODO: remove this after workflows are supported
   const filterdWorkflowTriggerEvents = WORKFLOW_TRIGGER_EVENTS.filter(
     (event) =>
@@ -44,37 +51,42 @@ export function getWorkflowTriggerOptions(t: TFunction, hasPaidPlan: boolean = f
     const isFormSubmittedTrigger =
       triggerEvent === WorkflowTriggerEvents.FORM_SUBMITTED ||
       triggerEvent === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT;
+    const needsTeamsUpgrade = !hasPaidPlan && isFormSubmittedTrigger;
 
     return {
       label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1),
       value: triggerEvent,
-      needsTeamsUpgrade: !hasPaidPlan && isFormSubmittedTrigger,
+      needsTeamsUpgrade,
+      upgradeTeamsBadgeProps: needsTeamsUpgrade ? { hasPaidPlan, hasActiveTeamPlan, isTrial } : undefined,
     };
   });
 }
 
 function convertToTemplateOptions(
   t: TFunction,
-  hasPaidPlan: boolean,
+  planState: PlanState,
   templates: readonly WorkflowTemplates[]
 ) {
+  const { hasPaidPlan = false, hasActiveTeamPlan, isTrial } = planState;
   return templates.map((template) => {
+    const needsTeamsUpgrade = !hasPaidPlan && template === WorkflowTemplates.CUSTOM;
     return {
       label: t(`${template.toLowerCase()}`),
       value: template,
-      needsTeamsUpgrade: !hasPaidPlan && template === WorkflowTemplates.CUSTOM,
-    } as { label: string; value: any; needsTeamsUpgrade: boolean };
+      needsTeamsUpgrade,
+      upgradeTeamsBadgeProps: needsTeamsUpgrade ? { hasPaidPlan, hasActiveTeamPlan, isTrial } : undefined,
+    } as { label: string; value: WorkflowTemplates; needsTeamsUpgrade: boolean; upgradeTeamsBadgeProps?: PlanState };
   });
 }
 
 export function getWorkflowTemplateOptions(
   t: TFunction,
   action: WorkflowActions | undefined,
-  hasPaidPlan: boolean,
+  planState: PlanState,
   trigger: WorkflowTriggerEvents
 ) {
   if (isFormTrigger(trigger)) {
-    return convertToTemplateOptions(t, hasPaidPlan, [WorkflowTemplates.CUSTOM]);
+    return convertToTemplateOptions(t, planState, [WorkflowTemplates.CUSTOM]);
   }
 
   const TEMPLATES =
@@ -84,5 +96,5 @@ export function getWorkflowTemplateOptions(
       ? ATTENDEE_WORKFLOW_TEMPLATES
       : BASIC_WORKFLOW_TEMPLATES;
 
-  return convertToTemplateOptions(t, hasPaidPlan, TEMPLATES);
+  return convertToTemplateOptions(t, planState, TEMPLATES);
 }

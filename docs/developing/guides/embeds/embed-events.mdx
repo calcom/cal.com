@@ -2,49 +2,14 @@
 title: Embed Events
 ---
 
-## Actions
+<Info>
+For comprehensive documentation on embed events including usage examples and all available events, please refer to the [Cal.com Help Center - Embed Events](https://cal.com/help/embedding/embed-events).
+</Info>
 
-You can listen to an action that occurs in embedded cal link as follows. You can think of them as DOM events. We are avoiding the term "events" to not confuse it with Cal Events.
-
-```js
-<script>
-  Cal("on", {
-    action: "ANY_ACTION_NAME",
-    callback: (e)=>{
-      // `data` is properties for the event.
-      // `type` is the name of the action(You can also call it type of the action.) This would be same as "ANY_ACTION_NAME" except when ANY_ACTION_NAME="*" which listens to all the events.
-      // `namespace` tells you the Cal namespace for which the event is fired/
-      const {data, type, namespace} = e.detail;
-    }
-  })
-</script>
-```
-
-## Following are the list of supported actions.
-
-<Info>Event payloads may evolve over time. For the most reliable integration, you can listen to `action: "*"` to receive all events and inspect `e.detail.type` and `e.detail.data` at runtime.</Info>
-
-### Public Events
-
-These events are intended for external use and provide information about user interactions and booking lifecycle.
-
-| Action                     | Description                                                                                           | Properties                                                                                                                       |
-|----------------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| eventTypeSelected          | When user chooses an event-type from the listing.                                                     | `eventType: object` // Event Type that has been selected                                                                         |
-| bookingSuccessfulV2        | When a booking is successfully created. It might not be confirmed.                                    | `uid: string` // Booking unique identifier <br /> `title: string` // Booking title <br /> `startTime: string` // Booking start time <br /> `endTime: string` // Booking end time <br /> `eventTypeId: number` // Event type ID <br /> `status: string` // Booking status <br /> `paymentRequired: boolean` // Whether payment is required <br /> `isRecurring: boolean` // Whether this is a recurring booking <br /> `allBookings: array` // For recurring bookings, array of all booking times <br /> `videoCallUrl: string` // Video call URL if available |
-| rescheduleBookingSuccessfulV2 | When a booking is successfully rescheduled.                                                           | Same properties as `bookingSuccessfulV2`                                                                                           |
-| dryRunBookingSuccessfulV2    | When a dry run booking is successfully created (test mode).                                           | Same properties as `bookingSuccessfulV2` (without `uid`)                                                                           |
-| dryRunRescheduleBookingSuccessfulV2 | When a dry run reschedule is successful (test mode).                                           | Same properties as `bookingSuccessfulV2` (without `uid`)                                                                           |
-| bookingCancelled           | When a booking is cancelled.                                                                          | `booking: object` // Booking details including cancellationReason <br /> `organizer: object` // Organizer details (name, email, timeZone) <br /> `eventType: object` // Event type details |
-| availabilityLoaded         | When availability slots are successfully loaded.                                                      | `eventId: number` // Event type ID <br /> `eventSlug: string` // Event type slug                                                |
-| routed                     | When a routing form routes to an action (event type, external URL, or custom page).                  | `actionType: string` // Type of action: "customPageMessage", "externalRedirectUrl", or "eventTypeRedirectUrl" <br /> `actionValue: string` // The value/URL of the action |
-| navigatedToBooker          | When user navigates to the booker interface.                                                          | None                                                                                                                             |
-| linkReady                  | Tells that the link is ready to be shown now.                                                         | None                                                                                                                             |
-| linkFailed                 | Fired if link fails to load.                                                                          | `code: string` // Error Code <br /> `msg: string` // Human Readable message <br /> `data: object` // More details to debug the error (includes url) |
-
-### Internal Events
+## Internal Events
 
 These events are used internally by the embed system for communication between the iframe and parent window. They are prefixed with `__` and are not intended for external use.
+
 | Action               | Description                                                                                           | Properties                                                                                                                       |
 |----------------------|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | __iframeReady        | Fired when the embedded iframe is ready to communicate with parent snippet.                           | `isPrerendering: boolean` // Whether the iframe is in prerender mode                                                             |

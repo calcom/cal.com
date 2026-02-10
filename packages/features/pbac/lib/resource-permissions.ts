@@ -1,10 +1,11 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
-import type { Resource, CustomAction } from "../domain/types/permission-registry";
-import { CrudAction } from "../domain/types/permission-registry";
+import type { CustomAction } from "../domain/types/permission-registry";
+import { CrudAction, Resource } from "../domain/types/permission-registry";
 import { PermissionCheckService } from "../services/permission-check.service";
 
 interface RoleMapping {
@@ -140,3 +141,73 @@ export const getSpecificPermissions = async ({
 
   return permissions;
 };
+
+export async function getRoutingFormPermissions({
+  userId,
+  formUserId,
+  formTeamId,
+  formTeamParentId,
+}: {
+  userId: number;
+  formUserId: number;
+  formTeamId: number | null;
+  formTeamParentId: number | null;
+}): Promise<ResourcePermissions | null> {
+  if (!formTeamId) {
+    if (formUserId !== userId) {
+      return null;
+    }
+
+    return {
+      canCreate: true,
+      canRead: true,
+      canEdit: true,
+      canDelete: true,
+    };
+  }
+
+  const membershipRepository = new MembershipRepository();
+  const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
+    userId,
+    teamId: formTeamId,
+  });
+
+  let isParentOrgAdmin = false;
+  if (!membership && formTeamParentId) {
+    const parentOrgMembership = await MembershipRepository.getAdminOrOwnerMembership(
+      userId,
+      formTeamParentId
+    );
+    isParentOrgAdmin = !!parentOrgMembership;
+  }
+
+  if (!membership && !isParentOrgAdmin) {
+    return null;
+  }
+
+  if (!membership && isParentOrgAdmin) {
+    return {
+      canCreate: true,
+      canRead: true,
+      canEdit: true,
+      canDelete: true,
+    };
+  }
+
+  if (membership) {
+    return await getResourcePermissions({
+      userId,
+      teamId: formTeamId,
+      resource: Resource.RoutingForm,
+      userRole: membership.role,
+      fallbackRoles: {
+        read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
+        create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      },
+    });
+  }
+
+  return null;
+}

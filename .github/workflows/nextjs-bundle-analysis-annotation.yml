@@ -12,13 +12,13 @@ permissions:
 jobs:
   annotate:
     if: always()
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build
       - name: Download base branch bundle stats
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         if: success()
         with:
           workflow: nextjs-bundle-analysis.yml

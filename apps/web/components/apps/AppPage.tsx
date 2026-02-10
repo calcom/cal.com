@@ -8,13 +8,13 @@ import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
-import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import DisconnectIntegration from "@calcom/web/modules/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -145,9 +145,9 @@ export const AppPage = ({
     useGrouping: false,
   }).format(price);
 
-  const [existingCredentials, setExistingCredentials] = useState<
-    NonNullable<typeof appDbQuery.data>["credentials"]
-  >([]);
+  type Credentials = RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
+
+  const [existingCredentials, setExistingCredentials] = useState<Credentials>([]);
 
   /**
    * Marks whether the app is installed for all possible teams and the user.
@@ -184,8 +184,7 @@ export const AppPage = ({
     enabled: !!dependencies,
   });
 
-  const disableInstall =
-    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+  const disableInstall = dependencyData.data ? dependencyData.data.some((dependency) => !dependency.installed) : false;
 
   // const disableInstall = requiresGCal && !gCalInstalled.data;
 
@@ -197,6 +196,7 @@ export const AppPage = ({
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only once on mount
   }, []);
 
   const installOrDisconnectAppButton = () => {
@@ -315,6 +315,7 @@ export const AppPage = ({
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- external app screenshots with unknown dimensions
                 <img
                   key={descriptionItem}
                   src={descriptionItem}
@@ -336,6 +337,7 @@ export const AppPage = ({
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element -- external app logo with unknown dimensions */}
               <img
                 className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
                 src={logo}

@@ -1,20 +1,23 @@
-/* eslint-disable no-undef */
 // vite.config.ts
+
+import path, { dirname, resolve } from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { resolve } from "path";
-import path from "path";
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const usePool = process.env.USE_POOL ?? "true";
+
+console.log("Platform libraries usePool", usePool);
+
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
   define: {
-    "process.env.USE_POOL": `"true"`,
+    "process.env.USE_POOL": JSON.stringify(usePool),
   },
   esbuild: {
     target: "node18",
@@ -39,6 +42,9 @@ export default defineConfig({
         organizations: resolve(__dirname, "./organizations.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
         pbac: resolve(__dirname, "./pbac.ts"),
+        errors: resolve(__dirname, "./errors.ts"),
+        calendars: resolve(__dirname, "./calendars.ts"),
+        tasker: resolve(__dirname, "./tasker.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",
