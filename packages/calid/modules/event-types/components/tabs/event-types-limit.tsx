@@ -920,6 +920,12 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
         }
         formMethods.setValue("periodType", PeriodType.ROLLING, { shouldDirty: true });
       } else {
+        // Clear saved range when turning off so next enable requires new selection
+        formMethods.setValue(
+          "periodDates",
+          { startDate: undefined, endDate: undefined },
+          { shouldDirty: true }
+        );
         // Reset periodDays to default when toggling OFF
         const defaultPeriodDays = formMethods.formState.defaultValues?.periodDays;
         formMethods.setValue("periodDays", defaultPeriodDays, { shouldDirty: true });
