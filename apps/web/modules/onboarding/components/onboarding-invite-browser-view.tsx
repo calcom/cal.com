@@ -207,22 +207,12 @@ export const OnboardingInviteBrowserView = ({
                   {/* Organization Avatar - Overlaying the banner */}
                   {useOrganizationInvites && avatar && (
                     <div className="absolute -bottom-6 left-4">
-                      <Avatar
-                        size="lg"
-                        imageSrc={avatar}
-                        alt={displayName}
-                        className="h-12 w-12 border"
-                      />
+                      <Avatar size="lg" imageSrc={avatar} alt={displayName} className="h-12 w-12 border" />
                     </div>
                   )}
                   {!useOrganizationInvites && organizationBrand.banner && avatar && (
                     <div className="absolute -bottom-6 left-4">
-                      <Avatar
-                        size="lg"
-                        imageSrc={avatar}
-                        alt={displayName}
-                        className="h-12 w-12 border"
-                      />
+                      <Avatar size="lg" imageSrc={avatar} alt={displayName} className="h-12 w-12 border" />
                     </div>
                   )}
                 </div>

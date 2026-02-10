@@ -16,7 +16,14 @@ import turndown from "@calcom/lib/turndownService";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField, Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
+import {
+  CheckboxField,
+  Label,
+  Select,
+  SettingsToggle,
+  TextAreaField,
+  TextField,
+} from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -144,10 +151,10 @@ export const EventSetupTab = (
                 <Editor
                   getText={() => md.render(formMethods.getValues("description") || "")}
                   setText={(value: string) => {
-                  // Clean up non-breaking spaces
-                  const cleanedValue = value.replace(/&nbsp;/g, ' ');
-                  const markdownValue = turndown(cleanedValue);
-                  formMethods.setValue("description", markdownValue, { shouldDirty: true });
+                    // Clean up non-breaking spaces
+                    const cleanedValue = value.replace(/&nbsp;/g, " ");
+                    const markdownValue = turndown(cleanedValue);
+                    formMethods.setValue("description", markdownValue, { shouldDirty: true });
                   }}
                   excludedToolbarItems={["blockType"]}
                   placeholder={t("quick_video_meeting")}

@@ -31,7 +31,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   const { setTeamInvites, teamDetails, setTeamId, teamId, resetOnboardingPreservingPlan } = store;
   const { isSubmitting } = useCreateTeam({
     redirectBasePath: "/settings/teams/new",
-    isOnboarding: false
+    isOnboarding: false,
   });
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
 

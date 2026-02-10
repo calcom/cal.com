@@ -237,7 +237,15 @@ export function shouldShowIndividualReportButton(context: BookingActionContext):
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isAttendee, isCancelled, isRejected } = context;
+  const {
+    booking,
+    isBookingInPast,
+    isDisabledRescheduling,
+    isDisabledCancelling,
+    isAttendee,
+    isCancelled,
+    isRejected,
+  } = context;
 
   switch (actionId) {
     case "reschedule":
