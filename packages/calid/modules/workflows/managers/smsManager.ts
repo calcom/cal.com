@@ -194,7 +194,11 @@ const generateMessageContent = (
     const senderName =
       actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name;
     // const eventTitle = eventDetails.title;
-    const eventTitle = `${eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title)}`;
+    const eventTitle = wordTruncate(
+      (eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title))
+        .trim()
+        .replace(/"/g, "")
+    );
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
@@ -207,7 +211,7 @@ const generateMessageContent = (
       defaultTemplate,
       recipientName.split(" ")[0],
       senderName.split(" ")[0],
-      wordTruncate(eventTitle.trim().replace(/"/g, "")),
+      eventTitle,
       formattedDate,
       formattedTime,
       localizedRecipientTimezone
