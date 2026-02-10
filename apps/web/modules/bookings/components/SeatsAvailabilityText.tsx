@@ -39,12 +39,12 @@ export const SeatsAvailabilityText = ({
             count: availableSeats,
           })}`
         : isNearlyFull
-        ? t("seats_nearly_full")
-        : isHalfFull
-        ? t("seats_half_full")
-        : t("seats_available", {
-            count: availableSeats,
-          })}
+          ? t("seats_nearly_full")
+          : isHalfFull
+            ? t("seats_half_full")
+            : t("seats_available", {
+                count: availableSeats,
+              })}
     </span>
   );
 };

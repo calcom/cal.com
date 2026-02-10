@@ -88,8 +88,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
 
       setSelectedCredential(
         credentialOptions
-          ? credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
-              selectedCredential
+          ? (credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
+              selectedCredential)
           : selectedCredential
       );
     }
@@ -128,17 +128,17 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                   <div className="bg-default mt-2 rounded-xl px-2 py-2">
                     <Label>Credential to use</Label>
                     <Select
-                    size="sm"
-                    options={credentialOptions}
-                    value={selectedCredential}
-                    onChange={(option) => {
-                      if (!option) {
-                        return;
-                      }
-                      setSelectedCredential(option);
-                    }}
-                  />
-                </div>
+                      size="sm"
+                      options={credentialOptions}
+                      value={selectedCredential}
+                      onChange={(option) => {
+                        if (!option) {
+                          return;
+                        }
+                        setSelectedCredential(option);
+                      }}
+                    />
+                  </div>
                 </>
               )}
 

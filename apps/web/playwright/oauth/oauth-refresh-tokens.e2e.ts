@@ -1,4 +1,3 @@
-
 import { expect } from "@playwright/test";
 import { randomBytes } from "node:crypto";
 
@@ -68,7 +67,7 @@ test.describe("OAuth - refresh tokens", () => {
     });
 
     expect(refreshResponse.status()).toBe(401);
-    
+
     const refreshJson = await refreshResponse.json();
     expect(refreshJson.error).toBe("unauthorized_client");
   });

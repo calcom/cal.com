@@ -166,10 +166,7 @@ export const useSchedule = ({
     });
 
     if (teamScheduleV2.isSuccess && eventId && eventSlug) {
-      sdkActionManager?.fire(
-        "availabilityLoaded",
-        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-      );
+      sdkActionManager?.fire("availabilityLoaded", getAvailabilityLoadedEventPayload({ eventId, eventSlug }));
     }
 
     return {
@@ -189,10 +186,7 @@ export const useSchedule = ({
   });
 
   if (schedule.isSuccess && eventId && eventSlug) {
-    sdkActionManager?.fire(
-      "availabilityLoaded",
-      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-    );
+    sdkActionManager?.fire("availabilityLoaded", getAvailabilityLoadedEventPayload({ eventId, eventSlug }));
   }
 
   return {

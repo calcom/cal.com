@@ -347,7 +347,6 @@ const DeleteUserDialog = ({
   onClose: () => void;
 }) => {
   return (
-     
     <Dialog name="delete-user" open={!!user} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title="Delete User"
