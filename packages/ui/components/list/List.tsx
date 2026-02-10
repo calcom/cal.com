@@ -89,7 +89,6 @@ export function ListLinkItem(props: ListLinkItemProps) {
     <li
       data-testid="list-link-item"
       className={classNames(
-        // Mobile: stack content vertically to look like a card; larger screens keep previous alignment
         "group relative w-full flex flex-col items-start justify-between p-5 pb-4 sm:flex-row sm:items-center",
         className,
         disabled ? "hover:bg-cal-muted" : ""
@@ -99,8 +98,6 @@ export function ListLinkItem(props: ListLinkItemProps) {
         passHref
         href={href}
         className={classNames(
-          // Ensure the link block takes full width on mobile so badges/actions can drop below
-          // Add padding-right so absolute actions don't overlap text on mobile
           "text-default grow truncate text-sm w-full pr-24 sm:pr-0",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}
@@ -121,7 +118,6 @@ export function ListLinkItem(props: ListLinkItemProps) {
           {children}
         </div>
       </Link>
-      {/* On mobile, place actions at the top-right; on larger screens keep inline on the right */}
       <div className="flex flex-col items-end justify-start gap-2 w-auto absolute right-5 top-3 z-10 sm:flex-row sm:items-center sm:static sm:mt-0 sm:pl-4">
         {actions}
       </div>
