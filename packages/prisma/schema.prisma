@@ -498,6 +498,7 @@ model User {
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
   reportedBookings               BookingReport[]               @relation("ReportedBy")
+  wrongAssignmentReports         WrongAssignmentReport[]       @relation("WrongAssignmentReportedBy")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -624,6 +625,7 @@ model Team {
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
   bookingReports         BookingReport[]
+  wrongAssignmentReports WrongAssignmentReport[]
 
   features TeamFeatures[]
 
@@ -923,6 +925,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  wrongAssignmentReports       WrongAssignmentReport[]
   routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
@@ -1332,6 +1335,7 @@ model App_RoutingForms_Form {
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
   workflows                WorkflowsOnRoutingForms[]
+  wrongAssignmentReports   WrongAssignmentReport[]
 
   @@index([userId])
   @@index([disabled])
@@ -2552,6 +2556,36 @@ model BookingReport {
   @@index([watchlistId])
   @@index([globalWatchlistId])
   @@index([systemStatus])
+  @@index([createdAt])
+}
+
+enum WrongAssignmentReportStatus {
+  PENDING // Initial state - awaiting review
+  REVIEWED // Admin has seen it
+  RESOLVED // Corrective action taken
+  DISMISSED // Admin decided no action needed
+}
+
+model WrongAssignmentReport {
+  id              String                      @id @default(uuid()) @db.Uuid
+  bookingUid      String                      @unique
+  booking         Booking                     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  reportedById    Int?
+  reportedBy      User?                       @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  correctAssignee String?
+  additionalNotes String
+  teamId          Int?
+  team            Team?                       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  routingFormId   String?
+  routingForm     App_RoutingForms_Form?      @relation(fields: [routingFormId], references: [id], onDelete: SetNull)
+  status          WrongAssignmentReportStatus @default(PENDING)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@index([reportedById])
+  @@index([teamId])
+  @@index([routingFormId])
+  @@index([status])
   @@index([createdAt])
 }
 

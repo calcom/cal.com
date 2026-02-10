@@ -66,7 +66,7 @@ type Component =
           name?: string;
           required?: boolean;
           translatedDefaultLabel?: string;
-        }
+        },
       >(
         props: TProps
       ) => JSX.Element;
@@ -79,7 +79,7 @@ type Component =
           variants: z.infer<typeof variantsConfigSchema>["variants"];
           value: Record<string, string> | string | undefined;
           setValue: (value: string | Record<string, string>) => void;
-        }
+        },
       >(
         props: TProps
       ) => JSX.Element;
@@ -179,8 +179,8 @@ export const Components: Record<FieldType, Component> = {
                 variantField.name === "firstName"
                   ? "given-name"
                   : variantField.name === "lastName"
-                  ? "family-name"
-                  : undefined
+                    ? "family-name"
+                    : undefined
               }
               onChange={(e) => onChange(variantField.name, e.target.value)}
             />
@@ -465,7 +465,7 @@ export const Components: Record<FieldType, Component> = {
                       <span className="text-emphasis me-2 ms-2 text-sm">
                         {option.value === "somewhereElse"
                           ? t("somewhere_else")
-                          : getCleanLabel(option.label) ?? ""}
+                          : (getCleanLabel(option.label) ?? "")}
                       </span>
                       <span>
                         {option.value === "phone" && (
