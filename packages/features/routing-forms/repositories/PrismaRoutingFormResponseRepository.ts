@@ -15,6 +15,10 @@ export class PrismaRoutingFormResponseRepository implements RoutingFormResponseR
         form: {
           select: {
             fields: true,
+            name: true,
+            description: true,
+            userId: true,
+            teamId: true,
           },
         },
       },

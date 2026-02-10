@@ -5,8 +5,8 @@ import { getFieldWithOptions } from "@calcom/app-store/routing-forms/lib/selectO
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { zodFields } from "@calcom/app-store/routing-forms/zod";
 import { canAccessEntity } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
+import { PrismaRoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -25,21 +25,8 @@ async function getFormResponseDisplayHandler({ ctx, input }: GetFormResponseDisp
   const { formResponseId } = input;
   const translate = await getTranslation(user.locale ?? "en", "common");
 
-  const formResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-    where: { id: formResponseId },
-    select: {
-      response: true,
-      form: {
-        select: {
-          name: true,
-          description: true,
-          fields: true,
-          userId: true,
-          teamId: true,
-        },
-      },
-    },
-  });
+  const routingFormResponseRepository = new PrismaRoutingFormResponseRepository();
+  const formResponse = await routingFormResponseRepository.findByIdIncludeForm(formResponseId);
 
   if (!formResponse) {
     throw new TRPCError({

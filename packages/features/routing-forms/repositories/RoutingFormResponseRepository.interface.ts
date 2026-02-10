@@ -3,7 +3,12 @@ import type { App_RoutingForms_Form, App_RoutingForms_FormResponse } from "@calc
 export interface RoutingFormResponseRepositoryInterface {
   findByIdIncludeForm(
     id: number
-  ): Promise<(App_RoutingForms_FormResponse & { form: { fields: App_RoutingForms_Form["fields"] } }) | null>;
+  ): Promise<
+    | (App_RoutingForms_FormResponse & {
+        form: Pick<App_RoutingForms_Form, "fields" | "name" | "description" | "userId" | "teamId">;
+      })
+    | null
+  >;
 
   findByBookingUidIncludeForm(
     bookingUid: string
