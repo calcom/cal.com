@@ -244,8 +244,12 @@ describe("getBookings - integration", () => {
       skip: 0,
     });
 
-    expect(resultUser1.totalCount).toBeGreaterThanOrEqual(4);
-    expect(resultUser1.bookings.length).toBe(resultUser1.totalCount);
+    const expectedBookingIds = [booking1.id, booking2.id, booking3.id, booking4.id];
+    const returnedIds = resultUser1.bookings.map((b) => b.id);
+    for (const id of expectedBookingIds) {
+      expect(returnedIds).toContain(id);
+    }
+    expect(resultUser1.totalCount).toBe(resultUser1.bookings.length);
   });
 
   it("should count booking4 exactly once in totalCount even though it matches multiple union branches", async () => {
