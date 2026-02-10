@@ -1,3 +1,4 @@
+// Canonical implementation — also duplicated in packages/prisma/zod-utils.ts (keep in sync)
 export function isPasswordValid(password: string): boolean;
 export function isPasswordValid(
   password: string,

@@ -38,6 +38,8 @@ const getValidRhfFieldName = (fieldName: string) => {
   return fieldName.replace(/[^a-zA-Z0-9-_]/g, "-");
 };
 
+// Duplicated from packages/lib/auth/isPasswordValid.ts — keep in sync
+// Cannot import directly due to circular dependency (lib -> prisma -> lib)
 function isPasswordValid(password: string): boolean;
 function isPasswordValid(
   password: string,
