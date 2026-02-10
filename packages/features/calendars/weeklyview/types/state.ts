@@ -59,6 +59,7 @@ type TimeRangeExtended = TimeRange & {
   emoji?: string;
   notes?: string | null;
   showNotePublicly?: boolean;
+  preferred?: boolean;
 };
 
 export type CalendarAvailableTimeslots = {

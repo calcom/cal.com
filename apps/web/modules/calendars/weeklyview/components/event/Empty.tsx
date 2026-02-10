@@ -125,6 +125,7 @@ export function AvailableCellsForDay({ timezone, availableSlots, day, startHour 
           key={index}
           timeSlot={dayjs(slot.slot.start).tz(timezone)}
           topOffsetMinutes={slot.topOffsetMinutes}
+          preferred={slot.slot.preferred}
         />
       ))}
     </>
@@ -135,9 +136,10 @@ type CellProps = {
   isDisabled?: boolean;
   topOffsetMinutes?: number;
   timeSlot: Dayjs;
+  preferred?: boolean;
 };
 
-function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
+function Cell({ isDisabled, topOffsetMinutes, timeSlot, preferred }: CellProps) {
   const { timeFormat } = useTimePreferences();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
@@ -153,7 +155,8 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       className={classNames(
         "group flex w-[calc(100%-1px)] items-center justify-center",
         isDisabled && "pointer-events-none",
-        !isDisabled && "bg-default dark:bg-cal-muted",
+        !isDisabled && !preferred && "bg-default dark:bg-cal-muted",
+        !isDisabled && preferred && "bg-success/20 dark:bg-success/10",
         topOffsetMinutes && "absolute"
       )}
       data-disabled={isDisabled}

@@ -15,6 +15,7 @@ import type { Slot } from "~/schedules/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -184,6 +185,11 @@ const SlotItem = ({
               />
             )}
             {computedDateWithUsersTimezone.format(timeFormat)}
+            {slot.preferred && (
+              <Badge variant="green" size="sm">
+                {t("preferred")}
+              </Badge>
+            )}
           </div>
           {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
           {hasTimeSlots && !bookingFull && (

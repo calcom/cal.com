@@ -32,6 +32,7 @@ import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNo
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter-blocked-hosts.controller";
+import { binarySearchRangeIndex } from "@calcom/lib/binarySearch";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
@@ -80,6 +81,7 @@ export interface IGetAvailableSlots {
       reason?: string | undefined;
       emoji?: string | undefined;
       showNotePublicly?: boolean | undefined;
+      preferred?: boolean | undefined;
     }[]
   >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,6 +156,120 @@ function withSlotsCache(
     log.info("[CACHE MISS] Available slots", { cacheKey, ttl });
     return result;
   };
+}
+
+type SlotRecord = Record<string, { time: string; [key: string]: unknown }[]>;
+
+interface ManualPreferredRange {
+  day: number;
+  startTime: string;
+  endTime: string;
+}
+
+interface HighlightPreferredTimesConfig {
+  mode: "auto" | "manual";
+  auto?: { preferTimeOfDay?: "morning" | "afternoon"; batchMeetings?: boolean };
+  manual?: { ranges: ManualPreferredRange[] };
+}
+
+function parseHHMM(hhmm: string): { hours: number; minutes: number } {
+  const [h, m] = hhmm.split(":");
+  return { hours: parseInt(h, 10), minutes: parseInt(m, 10) };
+}
+
+export function applyPreferredFlagToSlots({
+  slots,
+  config,
+  timeZone,
+  eventLength,
+  busyTimes,
+}: {
+  slots: SlotRecord;
+  config: HighlightPreferredTimesConfig;
+  timeZone: string;
+  eventLength: number;
+  busyTimes?: { start: string | Date; end: string | Date }[];
+}): SlotRecord {
+  let manualRanges: ManualPreferredRange[] | null = null;
+  if (config.mode === "manual" && config.manual?.ranges && config.manual.ranges.length > 0) {
+    manualRanges = config.manual.ranges;
+  }
+
+  let sortedBusyEnds: number[] | null = null;
+  let sortedBusyStarts: number[] | null = null;
+  if (config.mode === "auto" && config.auto?.batchMeetings && busyTimes && busyTimes.length > 0) {
+    const sorted = busyTimes
+      .map((b) => ({ startMs: new Date(b.start).getTime(), endMs: new Date(b.end).getTime() }))
+      .sort((a, b) => a.startMs - b.startMs);
+    const merged: { startMs: number; endMs: number }[] = [];
+    let current = sorted[0];
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].startMs <= current.endMs) {
+        current = { startMs: current.startMs, endMs: Math.max(current.endMs, sorted[i].endMs) };
+      } else {
+        merged.push(current);
+        current = sorted[i];
+      }
+    }
+    merged.push(current);
+    sortedBusyStarts = merged.map((b) => b.startMs);
+    sortedBusyEnds = merged.map((b) => b.endMs);
+  }
+
+  const eventLengthMs = eventLength * 60_000;
+
+  const result: SlotRecord = {};
+  for (const [date, dateSlots] of Object.entries(slots)) {
+    result[date] = dateSlots.map((slot) => {
+      if (config.mode === "auto") {
+        let timeOfDayPreferred: boolean | null = null;
+        if (config.auto?.preferTimeOfDay) {
+          const slotHour = dayjs.utc(slot.time).tz(timeZone).hour();
+          const isMorning = slotHour < 12;
+          timeOfDayPreferred = config.auto.preferTimeOfDay === "morning" ? isMorning : !isMorning;
+        }
+
+        let batchPreferred: boolean | null = null;
+        if (sortedBusyStarts && sortedBusyEnds) {
+          const slotStartMs = dayjs.utc(slot.time).valueOf();
+          const slotEndMs = slotStartMs + eventLengthMs;
+          const idx = binarySearchRangeIndex(sortedBusyStarts, slotEndMs);
+          batchPreferred = idx >= 0 && sortedBusyEnds[idx] >= slotStartMs;
+        }
+
+        if (timeOfDayPreferred === null && batchPreferred === null) {
+          return slot;
+        }
+        const preferred =
+          timeOfDayPreferred !== null && batchPreferred !== null
+            ? timeOfDayPreferred && batchPreferred
+            : ((timeOfDayPreferred ?? batchPreferred) as boolean);
+
+        return { ...slot, preferred };
+      }
+      if (config.mode === "manual" && manualRanges) {
+        const slotInTz = dayjs.utc(slot.time).tz(timeZone);
+        const slotDay = slotInTz.day();
+        const slotMinutes = slotInTz.hour() * 60 + slotInTz.minute();
+        const slotEndMinutes = slotMinutes + eventLength;
+        let preferred = false;
+        for (const range of manualRanges) {
+          if (range.day !== slotDay) continue;
+          const { hours: sh, minutes: sm } = parseHHMM(range.startTime);
+          const { hours: eh, minutes: em } = parseHHMM(range.endTime);
+          const rangeStartMin = sh * 60 + sm;
+          const rangeEndMin = eh * 60 + em;
+          if (slotMinutes >= rangeStartMin && slotEndMinutes <= rangeEndMin) {
+            preferred = true;
+            break;
+          }
+        }
+        return { ...slot, preferred };
+      }
+      return slot;
+    });
+  }
+  return result;
 }
 
 export class AvailableSlotsService {
@@ -1307,7 +1423,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone ?? "UTC";
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
@@ -1574,6 +1690,25 @@ export class AvailableSlotsService {
       endTime: input.endTime,
       timeZone: input.timeZone,
     });
+
+    const preferredTimesConfig = eventType.metadata?.highlightPreferredTimes;
+    if (preferredTimesConfig) {
+      const eventLength = input.duration || eventType.length;
+      const allBusyTimes =
+        preferredTimesConfig.mode === "auto" && preferredTimesConfig.auto?.batchMeetings
+          ? allUsersAvailability.flatMap((u) => u.busy)
+          : undefined;
+      const updatedSlots = applyPreferredFlagToSlots({
+        slots: filteredSlotsMappedToDate,
+        config: preferredTimesConfig,
+        timeZone: input.timeZone ?? "UTC",
+        eventLength,
+        busyTimes: allBusyTimes,
+      });
+      for (const [date, slots] of Object.entries(updatedSlots)) {
+        filteredSlotsMappedToDate[date] = slots;
+      }
+    }
 
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(filteredSlotsMappedToDate).length && input.usernameList?.length === 1) {
