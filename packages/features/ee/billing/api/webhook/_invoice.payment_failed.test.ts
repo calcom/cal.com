@@ -40,10 +40,7 @@ describe("invoice.payment_failed webhook", () => {
 
     expect(getPaymentIntentFailureReason).toHaveBeenCalledWith("pi_123");
     expect(createBySubscriptionId).toHaveBeenCalledWith("sub_123");
-    expect(onPaymentFailed).toHaveBeenCalledWith(
-      { lines: data.object.lines },
-      "card_declined"
-    );
+    expect(onPaymentFailed).toHaveBeenCalledWith({ lines: data.object.lines }, "card_declined");
     expect(result).toEqual({ success: true, handled: true });
   });
 
@@ -82,10 +79,7 @@ describe("invoice.payment_failed webhook", () => {
     const result = await handler(data);
 
     expect(getPaymentIntentFailureReason).not.toHaveBeenCalled();
-    expect(onPaymentFailed).toHaveBeenCalledWith(
-      { lines: data.object.lines },
-      "open"
-    );
+    expect(onPaymentFailed).toHaveBeenCalledWith({ lines: data.object.lines }, "open");
     expect(result).toEqual({ success: true, handled: true });
   });
 });
