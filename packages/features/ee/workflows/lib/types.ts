@@ -89,6 +89,7 @@ export type BookingInfo = {
   videoCallData?: {
     url?: string;
   };
+  platformClientId?: string | null;
 };
 
 export type WorkflowContextData =
