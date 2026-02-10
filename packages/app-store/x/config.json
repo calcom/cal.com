@@ -6,15 +6,17 @@
   "logo": "icon.svg",
   "url": "https://x.com/calcom",
   "variant": "other",
-  "categories": ["other"],
+  "categories": [
+    "other"
+  ],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Follow Cal.com on X (formerly Twitter) for the latest updates, tips, and news about scheduling.",
+  "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app",
-  "isOAuth": false,
   "externalLink": {
     "url": "https://x.com/calcom",
     "newTab": true
-  }
+  },
+  "__template": "link-as-an-app"
 }
