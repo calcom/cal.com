@@ -470,14 +470,8 @@ export function BookingActionsDropdown({
             isOpen={isOpenRoutingTraceSheet}
             setIsOpen={setIsOpenRoutingTraceSheet}
             bookingUid={booking.uid}
-            reportContext={{
-              routingReason: booking.assignmentReason[0]?.reasonString ?? null,
-              guestEmail: booking.attendees[0]?.email ?? "",
-              hostEmail: booking.user?.email ?? "",
-              hostName: booking.user?.name ?? null,
-              teamId: booking.eventType?.team?.id ?? null,
-              hasExistingReport: !!booking.report,
-            }}
+            onReport={() => setIsOpenWrongAssignmentDialog(true)}
+            hasExistingReport={!!booking.report}
           />
         </>
       )}
