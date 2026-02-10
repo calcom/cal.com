@@ -280,6 +280,9 @@ function BookingListItem(booking: BookingItemProps) {
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
   );
+  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
+    (state) => state.setIsOpenRoutingTraceSheet
+  );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
@@ -549,7 +552,7 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          isBookingFromRoutingForm ? () => setIsOpenWrongAssignmentDialog(true) : undefined
+          booking.assignmentReason.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
       {isBookingFromRoutingForm && (
