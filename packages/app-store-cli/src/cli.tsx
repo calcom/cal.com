@@ -6,6 +6,7 @@ import { VALID_CATEGORY_VALUES } from "./constants";
 import { BaseAppFork, generateAppFiles, getSlugFromAppName } from "./core";
 import type { SupportedCommands } from "./types";
 import Templates from "./utils/templates";
+import { validateCreateAppFlags } from "./validateCreateAppFlags";
 
 const cli = meow(
   `
@@ -105,28 +106,17 @@ const { name: appName, description, category, publisher, email, externalLinkUrl 
 
 if (isCreateCommand && appName && description && category) {
   const templateFlag = cli.flags.template || "";
-  if (!templateFlag) {
-    console.error(
-      `--template is required in non-interactive mode. Available templates: ${Templates.map((t) => t.value).join(", ")}`
-    );
-    process.exit(1);
-  }
+  const validTemplateValues = Templates.map((t) => t.value);
 
-  const validTemplate = Templates.find((t) => t.value === templateFlag);
-  if (!validTemplate) {
-    console.error(
-      `Invalid template: ${templateFlag}. Available templates: ${Templates.map((t) => t.value).join(", ")}`
-    );
-    process.exit(1);
-  }
+  const validationError = validateCreateAppFlags({
+    template: templateFlag,
+    category,
+    externalLinkUrl,
+    validTemplateValues,
+  });
 
-  if (!VALID_CATEGORY_VALUES.includes(category)) {
-    console.error(`Invalid category: ${category}. Available categories: ${VALID_CATEGORY_VALUES.join(", ")}`);
-    process.exit(1);
-  }
-
-  if (templateFlag === "link-as-an-app" && !externalLinkUrl) {
-    console.error("--external-link-url is required when using the link-as-an-app template.");
+  if (validationError) {
+    console.error(validationError);
     process.exit(1);
   }
 
