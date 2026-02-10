@@ -1,19 +1,13 @@
+import process from "node:process";
+import { getCspHeader, getCspNonce } from "@lib/csp";
 import { get } from "@vercel/edge-config";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import getIP from "@calcom/lib/getIP";
-import { HttpError } from "@calcom/lib/http-error";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
-
-import { getCspHeader, getCspNonce } from "@lib/csp";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
-  } catch {
+  } catch (error) {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
@@ -137,30 +131,12 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  const requestorIp = getIP(req);
-  try {
-    await checkRateLimitAndThrowError({
-      rateLimitingType: "common",
-      identifier: piiHasher.hash(`${req.nextUrl.pathname}-${requestorIp}`),
-    });
-  } catch (error) {
-    if (error instanceof HttpError) {
-      return new NextResponse(error.message, { status: error.statusCode });
-    }
-    throw error;
-  }
-
-  // const postCheckResult = checkPostMethod(req);
-  // if (postCheckResult) return postCheckResult;
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
 
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
-
-  const routingFormRewriteResponse = routingForms.handleRewrite(url);
-  if (routingFormRewriteResponse) {
-    return responseWithHeaders({ url, res: routingFormRewriteResponse, req: reqWithEnrichedHeaders });
-  }
 
   if (url.pathname.startsWith("/api/auth/signup")) {
     const isSignupDisabled = await safeGet<boolean>("isSignupDisabled");
@@ -194,16 +170,6 @@ const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   return responseWithHeaders({ url, res, req: reqWithEnrichedHeaders });
-};
-
-const routingForms = {
-  handleRewrite: (url: URL) => {
-    // Don't 404 old routing_forms links
-    if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
-      return NextResponse.rewrite(url);
-    }
-  },
 };
 
 const embeds = {
@@ -265,7 +231,51 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  matcher: ["/((?!_next(?:/|$)|static(?:/|$)|public(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).*)"],
+  matcher: [
+    "/auth/login",
+    "/login",
+    "/apps/installed",
+    "/auth/logout",
+    "/:path*/embed",
+    "/api/auth/forgot-password",
+    "/api/auth/oauth/me",
+    "/api/auth/oauth/refreshToken",
+    "/api/auth/oauth/token",
+    "/api/auth/reset-password",
+    "/api/auth/saml/callback",
+    "/api/auth/saml/token",
+    "/api/auth/setup",
+    "/api/auth/signup",
+    "/api/auth/two-factor/totp/disable",
+    "/api/auth/two-factor/totp/enable",
+    "/api/auth/two-factor/totp/setup",
+    "/api/auth/session",
+    "/api/availability/calendar",
+    "/api/cancel",
+    "/api/cron/:path*",
+    "/api/get-inbound-dynamic-variables",
+    "/api/integrations/:path*",
+    "/api/recorded-daily-video",
+    "/api/router",
+    "/api/routing-forms/queued-response",
+    "/api/scim/v2.0/:path*",
+    "/api/support/conversation",
+    "/api/sync/helpscout",
+    "/api/twilio/webhook",
+    "/api/username",
+    "/api/verify-booking-token",
+    "/api/video/guest-session",
+    "/api/webhook/app-credential",
+    "/api/webhooks/calendar-subscription/:path*",
+    "/api/webhooks/retell-ai",
+    "/api/workflows/sms/user-response",
+    "/api/trpc/:path*",
+    "/api/auth/callback/:path*",
+    "/api/book/event",
+    "/api/book/instant-event",
+    "/api/book/recurring-event",
+    "/availability",
+  ],
 };
 
 export default proxy;

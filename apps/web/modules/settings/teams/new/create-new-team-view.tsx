@@ -28,7 +28,10 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const { t } = useLocale();
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
-  const { createTeam, isSubmitting } = useCreateTeam({ redirectBasePath: "/settings/teams/new" });
+  const { createTeam, isSubmitting } = useCreateTeam({
+    redirectBasePath: "/settings/teams/new",
+    isOnboarding: false
+  });
 
   const logoRef = useRef<HTMLInputElement>(null);
   const [teamName, setTeamName] = useState("");
@@ -165,6 +168,7 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
               <div className="flex w-full flex-col gap-1.5">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
                 <TextField
+                  noLabel
                   name="name"
                   data-testid="team-name-input"
                   value={teamName}

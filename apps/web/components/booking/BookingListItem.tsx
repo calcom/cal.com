@@ -552,7 +552,7 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          booking.assignmentReason.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
+          booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
       {isBookingFromRoutingForm && (

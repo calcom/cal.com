@@ -2181,6 +2181,11 @@ export class BookingRepository implements IBookingRepository {
             createdAt: "asc" as const,
           },
         },
+        routedFromRoutingFormReponse: {
+          select: {
+            formId: true,
+          },
+        },
       },
     });
   }

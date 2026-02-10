@@ -7,12 +7,22 @@ import { reportWrongAssignmentHandler } from "./reportWrongAssignment.handler";
 
 const mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason = vi.fn();
 const mockDoesUserIdHaveAccessToBooking = vi.fn();
+const mockExistsByBookingUid = vi.fn();
+const mockCreateReport = vi.fn();
 
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => {
   return {
     BookingRepository: class MockBookingRepository {
       findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason =
         mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason;
+    },
+  };
+});
+vi.mock("@calcom/features/bookings/repositories/WrongAssignmentReportRepository", () => {
+  return {
+    WrongAssignmentReportRepository: class MockWrongAssignmentReportRepository {
+      existsByBookingUid = mockExistsByBookingUid;
+      createReport = mockCreateReport;
     },
   };
 });
@@ -27,6 +37,14 @@ vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/prisma", () => ({
   default: {},
+}));
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn().mockResolvedValue((key: string) => {
+    const translations: Record<string, string> = {
+      wrong_assignment_already_reported: "A wrong assignment report has already been submitted for this booking",
+    };
+    return translations[key] || key;
+  }),
 }));
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -74,10 +92,13 @@ describe("reportWrongAssignmentHandler", () => {
     },
     attendees: [{ email: "guest@example.com" }],
     assignmentReason: [{ reasonString: "Matched by round-robin" }],
+    routedFromRoutingFormReponse: null,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockExistsByBookingUid.mockResolvedValue(false);
+    mockCreateReport.mockResolvedValue({ id: "report-uuid-123" });
     vi.mocked(getWebhooks).mockResolvedValue([]);
     vi.mocked(sendGenericWebhookPayload).mockResolvedValue({ ok: true, status: 200 });
     mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
@@ -145,6 +166,27 @@ describe("reportWrongAssignmentHandler", () => {
         userId: mockUser.id,
         bookingUid: mockInput.bookingUid,
       });
+    });
+
+    it("should throw BAD_REQUEST when a report already exists for the booking", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
+      mockExistsByBookingUid.mockResolvedValue(true);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "Duplicate report",
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "A wrong assignment report has already been submitted for this booking",
+      });
+
+      expect(mockCreateReport).not.toHaveBeenCalled();
     });
   });
 
@@ -271,6 +313,104 @@ describe("reportWrongAssignmentHandler", () => {
         input: mockInput,
       });
 
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("database persistence", () => {
+    it("should persist report to database with all fields", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
+
+      await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          correctAssignee: "correct@example.com",
+          additionalNotes: "This booking should have gone to the sales team",
+        },
+      });
+
+      expect(mockCreateReport).toHaveBeenCalledWith({
+        bookingUid: "test-booking-uid",
+        reportedById: mockUser.id,
+        correctAssignee: "correct@example.com",
+        additionalNotes: "This booking should have gone to the sales team",
+        teamId: mockBooking.eventType.team.id,
+        routingFormId: null,
+      });
+    });
+
+    it("should persist report with null optional fields", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
+        ...mockBooking,
+        eventType: null,
+      });
+
+      await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          additionalNotes: "Wrong person",
+        },
+      });
+
+      expect(mockCreateReport).toHaveBeenCalledWith({
+        bookingUid: "test-booking-uid",
+        reportedById: mockUser.id,
+        correctAssignee: null,
+        additionalNotes: "Wrong person",
+        teamId: null,
+        routingFormId: null,
+      });
+    });
+
+    it("should return reportId in response", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
+
+      const result = await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          additionalNotes: "Notes",
+        },
+      });
+
+      expect(result.reportId).toBe("report-uuid-123");
+    });
+
+    it("should throw if database write fails", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
+      mockCreateReport.mockRejectedValue(new Error("Database error"));
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "Notes",
+          },
+        })
+      ).rejects.toThrow("Database error");
+    });
+
+    it("should persist report even when webhooks fail", async () => {
+      mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
+      vi.mocked(getWebhooks).mockRejectedValue(new Error("Webhook service down"));
+
+      const result = await reportWrongAssignmentHandler({
+        ctx: { user: mockUser },
+        input: {
+          bookingUid: "test-booking-uid",
+          additionalNotes: "Notes",
+        },
+      });
+
+      expect(mockCreateReport).toHaveBeenCalled();
       expect(result.success).toBe(true);
     });
   });
