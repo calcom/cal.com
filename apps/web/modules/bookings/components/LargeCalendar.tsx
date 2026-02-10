@@ -2,14 +2,14 @@ import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useOverlayCalendarStore } from "@calcom/features/bookings/Booker/components/OverlayCalendar/store";
 
@@ -45,7 +45,7 @@ export const LargeCalendar = ({
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  useEffect(() => { }, [displayOverlay]);
+  useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
     if (!overlayEvents || !displayOverlay) return [];

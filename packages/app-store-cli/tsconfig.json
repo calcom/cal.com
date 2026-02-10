@@ -2,7 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "module": "commonjs",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "esModuleInterop": true,
     "outDir": "dist",
     "noEmitOnError": false,

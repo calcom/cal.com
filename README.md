@@ -384,6 +384,50 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
    ```
 
 1. Enjoy the new version.
+
+## AI-Assisted Development
+
+This repository includes configuration for AI coding assistants. All AI configuration lives in the `agents/` directory as a single source of truth.
+
+### Structure
+
+```
+agents/
+├── rules/           # Modular engineering rules
+├── skills/          # Reusable skills/prompts
+├── commands.md      # Command reference
+└── knowledge-base.md # Domain knowledge
+
+AGENTS.md            # Main agent instructions
+```
+
+### Tool Configuration
+
+We use symlinks to share configuration across tools:
+
+```
+.claude/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+
+.cursor/
+├── rules -> ../agents/rules
+└── skills -> ../agents/skills
+```
+
+### Using Other Tools
+
+If you prefer other AI tools (Windsurf, Goose, OpenCode, etc.), you can create your own dot folders and exclude them from git:
+
+```bash
+# Add to .git/info/exclude (local only, not committed)
+.windsurf/
+.goose/
+.opencode/
+```
+
+This keeps the repository clean while allowing personal tool preferences.
+
 <!-- DEPLOYMENT -->
 
 ## Deployment
@@ -627,7 +671,7 @@ Certain versions may have trouble creating a user if the field `metadata` is emp
 
 ##### CLIENT_FETCH_ERROR
 
-If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefore needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
 
 ```
 docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]

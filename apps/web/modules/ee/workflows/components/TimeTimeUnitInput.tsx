@@ -51,10 +51,13 @@ export const TimeTimeUnitInput = (props: Props) => {
   const form = useFormContext();
 
   const { t } = useLocale();
-  const timeUnitOptions = TIME_UNITS.reduce((acc, option) => {
-    acc[option] = t(`${option.toLowerCase()}_timeUnit`);
-    return acc;
-  }, {} as { [x: string]: string });
+  const timeUnitOptions = TIME_UNITS.reduce(
+    (acc, option) => {
+      acc[option] = t(`${option.toLowerCase()}_timeUnit`);
+      return acc;
+    },
+    {} as { [x: string]: string }
+  );
   return (
     <div className="flex">
       <div className="grow">

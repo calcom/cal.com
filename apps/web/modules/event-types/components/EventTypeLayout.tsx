@@ -2,7 +2,10 @@ import { useMemo, useState, Suspense } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/web/modules/embed/components/EventTypeEmbed";
+import {
+  EventTypeEmbedButton,
+  EventTypeEmbedDialog,
+} from "@calcom/web/modules/embed/components/EventTypeEmbed";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -85,11 +88,13 @@ function EventTypeSingleLayout({
     formMethods,
   });
   const EventTypeTabs = tabsNavigation;
-  const permalink = `${bookerUrl}/${team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
-    }/${eventType.slug}`;
+  const permalink = `${bookerUrl}/${
+    team ? `${!team.parentId ? "team/" : ""}${team.slug}` : formMethods.getValues("users")[0].username
+  }/${eventType.slug}`;
 
-  const embedLink = `${team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
-    }/${formMethods.getValues("slug")}`;
+  const embedLink = `${
+    team ? `team/${team.slug}` : formMethods.getValues("users")[0].username
+  }/${formMethods.getValues("slug")}`;
   const isManagedEvent = formMethods.getValues("schedulingType") === SchedulingType.MANAGED ? "_managed" : "";
 
   const [Shell] = useMemo(() => {
@@ -135,7 +140,7 @@ function EventTypeSingleLayout({
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
                   }
                   side="bottom">
-                  <div className="self-center rounded-md p-2">
+                  <div className="self-center rounded-md">
                     <Switch
                       id="hiddenSwitch"
                       disabled={eventTypesLockedByOrg}

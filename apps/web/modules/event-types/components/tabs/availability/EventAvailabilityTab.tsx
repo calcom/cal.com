@@ -479,15 +479,17 @@ const EventTypeSchedule = ({
 
   if (schedulesQueryData.length === 0) {
     return (
-        <EmptyScreen
-          Icon="clock"
-          headline={t("create_availability_schedule")}
-          description={t("no_schedules_created_yet")}
-          className="w-full"
-          buttonRaw={<Button href="/availability" StartIcon="plus">
+      <EmptyScreen
+        Icon="clock"
+        headline={t("create_availability_schedule")}
+        description={t("no_schedules_created_yet")}
+        className="w-full"
+        buttonRaw={
+          <Button href="/availability" StartIcon="plus">
             {t("create")}
-          </Button>}
-        />
+          </Button>
+        }
+      />
     );
   }
 
