@@ -784,7 +784,7 @@ const Route = ({
     (route.action?.eventTypeId || route.action?.value);
 
   const matchingMembersFallbackRoute =
-    hasValidEventTypeSelected && isTeamForm && isOrganization ? (
+    hasValidEventTypeSelected && isTeamForm ? (
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
@@ -807,34 +807,36 @@ const Route = ({
             t={t}
           />
         </div>
-        <div className="mt-4">
-          {route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl &&
-            route.fallbackAttributesQueryBuilderState &&
-            attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
-              <div>
-                <div className="ml-2 flex items-center gap-0.5">
-                  <div className="border-subtle rounded-lg border p-1">
-                    <Icon name="user-check" className="text-subtle h-4 w-4" />
+        {isOrganization && (
+          <div className="mt-4">
+            {route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl &&
+              route.fallbackAttributesQueryBuilderState &&
+              attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+                <div>
+                  <div className="ml-2 flex items-center gap-0.5">
+                    <div className="border-subtle rounded-lg border p-1">
+                      <Icon name="user-check" className="text-subtle h-4 w-4" />
+                    </div>
+                    <span className="text-emphasis ml-2 text-sm font-medium">
+                      {t("connect_with_specific_team_members")}
+                    </span>
                   </div>
-                  <span className="text-emphasis ml-2 text-sm font-medium">
-                    {t("connect_with_specific_team_members")}
-                  </span>
+                  <Query
+                    {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+                    value={route.fallbackAttributesQueryBuilderState.tree}
+                    onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                      onChangeFallbackTeamMembersQuery(
+                        route,
+                        immutableTree,
+                        attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                      );
+                    }}
+                    renderBuilder={renderBuilder}
+                  />
                 </div>
-                <Query
-                  {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
-                  value={route.fallbackAttributesQueryBuilderState.tree}
-                  onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                    onChangeFallbackTeamMembersQuery(
-                      route,
-                      immutableTree,
-                      attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                    );
-                  }}
-                  renderBuilder={renderBuilder}
-                />
-              </div>
-            )}
-        </div>
+              )}
+          </div>
+        )}
       </div>
     ) : null;
 
