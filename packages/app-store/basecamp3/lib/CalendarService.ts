@@ -1,3 +1,4 @@
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -89,7 +90,7 @@ export default class BasecampCalendarService implements Calendar {
       hour12: true,
       minute: "numeric",
     });
-    const baseString = `<div>Event title: ${event.title}<br/>Date and time: ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on Cal ID: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="https://app.cal.com/booking/${event.uid}">https://app.cal.com/booking/${event.uid}</a> `;
+    const baseString = `<div>Event title: ${event.title}<br/>Date and time: ${date}, ${startTime} - ${endTime} ${timeZone}<br/>View on ${APP_NAME}: <a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="${WEBSITE_URL}/booking/${event.uid}">${WEBSITE_URL}/booking/${event.uid}</a> `;
     const guestString = `<br/>Guests: ${event.attendees.reduce((acc, attendee) => {
       return `${acc}<br/><a target=\"_blank\" rel=\"noreferrer\" class=\"autolinked\" data-behavior=\"truncate\" href=\"mailto:${attendee.email}\">${attendee.email}</a>`;
     }, "")}`;
@@ -116,7 +117,7 @@ export default class BasecampCalendarService implements Calendar {
           },
           body: JSON.stringify({
             description,
-            summary: `Cal.com: ${event.title}`,
+            summary: `${APP_NAME}: ${event.title}`,
             starts_at: new Date(event.startTime).toISOString(),
             ends_at: new Date(event.endTime).toISOString(),
           }),
@@ -159,7 +160,7 @@ export default class BasecampCalendarService implements Calendar {
           },
           body: JSON.stringify({
             description,
-            summary: `Cal.com: ${event.title}`,
+            summary: `${APP_NAME}: ${event.title}`,
             starts_at: new Date(event.startTime).toISOString(),
             ends_at: new Date(event.endTime).toISOString(),
           }),
@@ -186,12 +187,15 @@ export default class BasecampCalendarService implements Calendar {
     try {
       const auth = await this.auth;
       await auth.configureToken();
+      // Basecamp requires User-Agent - get at request time in case constructor .then() hasn't run
+      const { user_agent } = await getAppKeysFromSlug("basecamp3");
+      const userAgent = (user_agent as string)?.trim();
       const deletedEventResponse = await fetch(
         `https://3.basecampapi.com/${this.userId}/buckets/${this.projectId}/recordings/${uid}/status/trashed.json`,
         {
           method: "PUT",
           headers: {
-            "User-Agent": this.userAgent,
+            "User-Agent": userAgent,
             Authorization: `Bearer ${this.accessToken}`,
             "Content-Type": "application/json",
           },
