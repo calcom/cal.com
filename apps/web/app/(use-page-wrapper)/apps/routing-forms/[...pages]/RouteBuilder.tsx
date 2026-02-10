@@ -784,7 +784,7 @@ const Route = ({
     (route.action?.eventTypeId || route.action?.value);
 
   const matchingMembersFallbackRoute =
-    hasValidEventTypeSelected && isTeamForm ? (
+    hasValidEventTypeSelected && isTeamForm && isOrganization ? (
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
