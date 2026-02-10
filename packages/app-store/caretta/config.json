@@ -3,12 +3,10 @@
   "name": "Caretta",
   "slug": "caretta",
   "type": "caretta_automation",
-  "logo": "icon.svg",
+  "logo": "icon.jpeg",
   "url": "https://www.caretta.so/",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "Cal.com, Inc.",
   "email": "pavlos@caretta.so",
   "description": "Realtime Sales AI",
