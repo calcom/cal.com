@@ -439,7 +439,7 @@ export async function getBookings({
     (
       await kysely
         .selectFrom(queryUnion.as("union_subquery"))
-        .select(({ fn }) => fn.countAll().as("bookingCount"))
+        .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
         .executeTakeFirst()
     )?.bookingCount ?? 0
   );
