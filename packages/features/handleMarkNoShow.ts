@@ -26,8 +26,34 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
-import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import type { TFunction } from "i18next";
+import { z } from "zod";
+
+export const ZNoShowInputSchema = z
+  .object({
+    bookingUid: z.string(),
+    attendees: z
+      .array(
+        z.object({
+          email: z.string(),
+          noShow: z.boolean(),
+        })
+      )
+      .optional(),
+    noShowHost: z.boolean().optional(),
+  })
+  .refine(
+    (data) => {
+      return (data.attendees && data.attendees.length > 0) || data.noShowHost !== undefined;
+    },
+    {
+      message: "At least one of 'attendees' or 'noShowHost' must be provided",
+      path: ["attendees", "noShowHost"],
+    }
+  );
+
+export type TNoShowInputSchema = z.infer<typeof ZNoShowInputSchema>;
+
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
@@ -391,9 +417,9 @@ const handleMarkNoShow = async ({
       await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
-    if (noShowHost) {
-      await bookingRepository.updateNoShowHost({ bookingUid, noShowHost: true });
-      responsePayload.setNoShowHost(true);
+    if (noShowHost !== undefined) {
+      await bookingRepository.updateNoShowHost({ bookingUid, noShowHost });
+      responsePayload.setNoShowHost(noShowHost);
       responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
