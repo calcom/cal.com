@@ -732,6 +732,7 @@ export default function Signup({
                   <ServerTrans
                     t={t}
                     i18nKey="signing_up_terms"
+                    values={{ appName: APP_NAME }}
                     components={[
                       <Link
                         className="text-emphasis hover:underline"
