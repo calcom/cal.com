@@ -1,7 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { PrismaClient } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WrongAssignmentReportRepository } from "./WrongAssignmentReportRepository";
 
 describe("WrongAssignmentReportRepository", () => {
@@ -65,6 +63,7 @@ describe("WrongAssignmentReportRepository", () => {
         correctAssignee: "correct@example.com",
         additionalNotes: "This booking was assigned incorrectly",
         teamId: 5,
+        routingFormId: "routing-form-123",
       };
 
       const mockCreatedReport = { id: "report-uuid-123" };
@@ -86,6 +85,7 @@ describe("WrongAssignmentReportRepository", () => {
         correctAssignee: null,
         additionalNotes: "Wrong person",
         teamId: null,
+        routingFormId: null,
       };
 
       const mockCreatedReport = { id: "report-uuid-456" };
@@ -107,6 +107,7 @@ describe("WrongAssignmentReportRepository", () => {
         correctAssignee: "someone@example.com",
         additionalNotes: "",
         teamId: 10,
+        routingFormId: "routing-form-456",
       };
 
       const mockCreatedReport = { id: "report-uuid-789" };
@@ -128,6 +129,7 @@ describe("WrongAssignmentReportRepository", () => {
         correctAssignee: null,
         additionalNotes: "Notes",
         teamId: null,
+        routingFormId: null,
       };
 
       mockPrisma.wrongAssignmentReport.create.mockRejectedValue(new Error("Database connection failed"));
@@ -142,6 +144,7 @@ describe("WrongAssignmentReportRepository", () => {
         correctAssignee: null,
         additionalNotes: "Notes",
         teamId: null,
+        routingFormId: null,
       };
 
       mockPrisma.wrongAssignmentReport.create.mockRejectedValue(

@@ -1,6 +1,7 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import type { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { validateWebhookUrl } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 
 @Injectable()
@@ -8,6 +9,8 @@ export class TeamEventTypeWebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
   async createTeamEventTypeWebhook(eventTypeId: number, body: PipedInputWebhookType) {
+    validateWebhookUrl(body.subscriberUrl);
+
     if (body.eventTriggers.includes(WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR)) {
       throw new BadRequestException(
         "DELEGATION_CREDENTIAL_ERROR trigger is only available for organization webhooks"

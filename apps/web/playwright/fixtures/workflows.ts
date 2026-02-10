@@ -31,11 +31,16 @@ export function createWorkflowPageFixture(page: Page) {
     if (name) {
       await fillNameInput(name);
     }
-    if (trigger) {
-      await page.locator("#trigger-select").click();
-      await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
+
+    await page.locator("#trigger-select").click();
+    await page.getByTestId(`select-option-${trigger ?? WorkflowTriggerEvents.BEFORE_EVENT}`).click();
+
+    if (isTeam) {
+      await page.getByText(/Apply to all team/i).first().click();
+    } else {
       await selectEventType("30 min");
     }
+
     const workflow = await saveWorkflow();
 
     for (const step of workflow.steps) {
@@ -50,7 +55,7 @@ export function createWorkflowPageFixture(page: Page) {
 
   const saveWorkflow = async () => {
     const submitPromise = page.waitForResponse("/api/trpc/workflows/update?batch=1");
-    const saveButton = await page.getByTestId("save-workflow");
+    const saveButton = page.getByTestId("save-workflow");
     await saveButton.click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
@@ -67,8 +72,9 @@ export function createWorkflowPageFixture(page: Page) {
 
   const fillNameInput = async (name: string) => {
     await page.getByTestId("edit-workflow-name-button").click();
-    await page.getByTestId("workflow-name").fill(name);
-    await page.keyboard.press("Enter");
+    const nameInput = page.getByTestId("workflow-name");
+    await nameInput.fill(name);
+    await nameInput.blur();
   };
 
   const editSelectedWorkflow = async (name: string) => {

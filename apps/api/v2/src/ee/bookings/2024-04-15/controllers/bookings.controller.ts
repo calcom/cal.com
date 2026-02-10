@@ -14,7 +14,7 @@ import {
   handleCancelBooking,
   handleMarkNoShow,
 } from "@calcom/platform-libraries";
-import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import { type InstantBookingCreateResult, makeUserActor } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, HttpError } from "@calcom/platform-libraries/errors";
 import type { ApiResponse } from "@calcom/platform-types";
 import {
@@ -314,7 +314,8 @@ export class BookingsController_2024_04_15 {
         attendees: body.attendees,
         noShowHost: body.noShowHost,
         userId: user.id,
-        userUuid: user.uuid,
+        actor: makeUserActor(user.uuid),
+        actionSource: "API_V2",
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
@@ -597,7 +598,7 @@ export class BookingsController_2024_04_15 {
 
     const oAuthParams = oAuthClientId
       ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
-      : DEFAULT_PLATFORM_PARAMS;
+      : undefined;
     this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
       requestId,
       ownerId: userId,
@@ -608,8 +609,12 @@ export class BookingsController_2024_04_15 {
     Object.assign(clone, { userId, userUuid, ...oAuthParams, platformBookingLocation });
     clone.body = {
       ...clone.body,
-      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      noEmail: oAuthParams === undefined ? false : !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
+      metadata: {
+        ...(clone.body.metadata || {}),
+        ...(oAuthClientId && { platformClientId: oAuthClientId }),
+      },
     };
     if (oAuthClientId) {
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);

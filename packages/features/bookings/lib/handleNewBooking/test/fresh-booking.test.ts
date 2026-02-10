@@ -13,6 +13,7 @@ import {
   createBookingScenario,
   getDate,
   getGoogleCalendarCredential,
+  getGoogleMeetCredential,
   getAppleCalendarCredential,
   TestData,
   getOrganizer,
@@ -1336,6 +1337,191 @@ describe("handleNewBooking", () => {
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: "http://mock-zoomvideo.example.com",
           });
+        },
+        timeout
+      );
+
+      test(
+        `should fallback to Cal Video when organizer's default conferencing app is Google Meet but destination calendar is NOT Google Calendar`,
+        async ({ emails }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleMeetCredential()],
+            selectedCalendars: [TestData.selectedCalendars.office365],
+            destinationCalendar: {
+              integration: "office365_calendar",
+              externalId: "organizer@outlook.com",
+            },
+            metadata: {
+              defaultConferencingApp: {
+                appSlug: "google-meet",
+              },
+            },
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-meet"], TestData.apps["daily-video"], TestData.apps["office365-calendar"]],
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: "http://mock-dailyvideo.example.com/meeting-1",
+            },
+          });
+
+          await createBookingScenario(scenarioData);
+
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
+
+          // Should fallback to Cal Video instead of Google Meet
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
+        },
+        timeout
+      );
+
+      test(
+        `should use Google Meet when organizer's default conferencing app is Google Meet and destination calendar IS Google Calendar`,
+        async ({ emails }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getGoogleMeetCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: "google_calendar",
+              externalId: "organizer@google-calendar.com",
+            },
+            metadata: {
+              defaultConferencingApp: {
+                appSlug: "google-meet",
+              },
+            },
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["google-meet"], TestData.apps["daily-video"]],
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "googlevideo",
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              id: "GOOGLE_CALENDAR_EVENT_ID",
+              uid: "MOCK_ID",
+              appSpecificData: {
+                googleCalendar: {
+                  hangoutLink: "https://meet.google.com/test-meeting",
+                },
+              },
+            },
+          });
+
+          await createBookingScenario(scenarioData);
+
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
+
+          // Should use Google Meet since Google Calendar is the destination calendar
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.GoogleMeet,
+            })
+          );
         },
         timeout
       );
