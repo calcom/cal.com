@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
+import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 
 test("Should display Google Login button", async ({ page }) => {
   // eslint-disable-next-line playwright/no-skipped-test

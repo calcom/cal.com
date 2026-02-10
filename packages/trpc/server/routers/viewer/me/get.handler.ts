@@ -9,6 +9,13 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { Session } from "next-auth";
 import type { TGetInputSchema } from "./get.schema";
 
+const getNextAuthProviderName = (identityProvider: string): string => {
+  if (identityProvider === "AZUREAD") {
+    return "azure-ad";
+  }
+  return identityProvider.toLowerCase();
+};
+
 type MeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -58,15 +65,6 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
 
   let identityProviderEmail = "";
   if (user.identityProviderId) {
-    // map IdentityProvider enum to NextAuth provider id
-    // NextAuth uses "azure-ad" but the enum is "AZUREAD"
-    const getNextAuthProviderName = (identityProvider: string): string => {
-      if (identityProvider === IdentityProvider.AZUREAD) {
-        return "azure-ad";
-      }
-      return identityProvider.toLowerCase();
-    };
-
     const account = await prisma.account.findUnique({
       where: {
         provider_providerAccountId: {

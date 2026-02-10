@@ -55,7 +55,7 @@ import type { Account, AuthOptions, Profile, Session, User } from "next-auth";
 import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
-import type { Provider } from "next-auth/providers";
+import type { Provider } from "next-auth/providers/index";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
@@ -1272,10 +1272,12 @@ export const getOptions = ({
             (idP === IdentityProvider.SAML || idP === IdentityProvider.GOOGLE)
           ) {
             // Verify SAML IdP is authoritative before converting account
-            const samlTenant = getSamlTenant();
-            const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
-            if (!validation.allowed) {
-              return validation.errorUrl;
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = getSamlTenant();
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "AzureAD→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
             }
 
             await prisma.user.update({
