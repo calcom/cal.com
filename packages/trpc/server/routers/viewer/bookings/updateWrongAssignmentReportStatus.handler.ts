@@ -1,4 +1,5 @@
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -38,18 +39,10 @@ export const updateWrongAssignmentReportStatusHandler = async ({
     });
   }
 
-  const membership = await prisma.membership.findFirst({
-    where: {
-      userId: user.id,
-      teamId: report.teamId,
-      accepted: true,
-    },
-    select: {
-      role: true,
-    },
-  });
+  const membershipRepository = new MembershipRepository();
+  const hasMembership = await membershipRepository.hasMembership({ userId: user.id, teamId: report.teamId });
 
-  if (!membership) {
+  if (!hasMembership) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You don't have access to this team",

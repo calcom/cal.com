@@ -1,6 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 
-import { prisma } from "@calcom/prisma";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import prisma from "@calcom/prisma";
 
 import InsightsWrongRoutingPage from "~/insights/views/insights-wrong-routing-view";
 
@@ -18,12 +19,8 @@ export const generateMetadata = async () =>
 export default async function Page() {
   const session = await checkInsightsPagePermission();
 
-  const { timeZone } = await prisma.user.findUniqueOrThrow({
-    where: { id: session?.user.id ?? -1 },
-    select: {
-      timeZone: true,
-    },
-  });
+  const userRepository = new UserRepository(prisma);
+  const user = await userRepository.getTimeZoneAndDefaultScheduleId({ userId: session?.user.id ?? -1 });
 
-  return <InsightsWrongRoutingPage timeZone={timeZone} />;
+  return <InsightsWrongRoutingPage timeZone={user?.timeZone ?? "UTC"} />;
 }

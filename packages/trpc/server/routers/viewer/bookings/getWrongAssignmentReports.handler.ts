@@ -1,4 +1,6 @@
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -18,18 +20,10 @@ export const getWrongAssignmentReportsHandler = async ({ ctx, input }: GetWrongA
   const { user } = ctx;
   const { teamId, isAll, status, routingFormId, reportedById, limit, offset } = input;
 
-  const membership = await prisma.membership.findFirst({
-    where: {
-      userId: user.id,
-      teamId,
-      accepted: true,
-    },
-    select: {
-      role: true,
-    },
-  });
+  const membershipRepository = new MembershipRepository();
+  const hasMembership = await membershipRepository.hasMembership({ userId: user.id, teamId });
 
-  if (!membership) {
+  if (!hasMembership) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You don't have access to this team",
@@ -43,10 +37,8 @@ export const getWrongAssignmentReportsHandler = async ({ ctx, input }: GetWrongA
 
   if (isAll) {
     // Org-level view: include the org itself and all child teams
-    const childTeams = await prisma.team.findMany({
-      where: { parentId: teamId },
-      select: { id: true },
-    });
+    const teamRepository = new TeamRepository(prisma);
+    const childTeams = await teamRepository.findAllByParentId({ parentId: teamId, select: { id: true } });
     teamIds = [teamId, ...childTeams.map((t) => t.id)];
   } else {
     teamIds = [teamId];
