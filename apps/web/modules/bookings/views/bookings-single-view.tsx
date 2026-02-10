@@ -64,6 +64,7 @@ import {
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -210,6 +211,7 @@ export default function Success(props: PageProps) {
   const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [isRoutingTraceSheetOpen, setIsRoutingTraceSheetOpen] = useState(false);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -780,7 +782,10 @@ export default function Success(props: PageProps) {
                             <>
                               <div className="mt-9 font-medium">{t("assignment_reason")}</div>
                               <div className="col-span-2 mb-2 mt-9">
-                                <Badge variant="gray" className="mb-2">
+                                <Badge
+                                  variant="gray"
+                                  className="mb-2 cursor-pointer hover:opacity-80"
+                                  onClick={() => setIsRoutingTraceSheetOpen(true)}>
                                   {t(
                                     assignmentReasonBadgeTitleMap(
                                       bookingInfo.assignmentReason[0].reasonEnum as AssignmentReasonEnum
@@ -792,6 +797,11 @@ export default function Success(props: PageProps) {
                                     {bookingInfo.assignmentReason[0].reasonString}
                                   </p>
                                 )}
+                                <RoutingTraceSheet
+                                  isOpen={isRoutingTraceSheetOpen}
+                                  setIsOpen={setIsRoutingTraceSheetOpen}
+                                  bookingUid={bookingInfo.uid}
+                                />
                               </div>
                             </>
                           )}

@@ -23,7 +23,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import CalVideoSettings from "./CalVideoSettings";
 import DefaultLocationSettings from "./DefaultLocationSettings";
-import LocationInput from "@calcom/features/eventtypes/components/locations/LocationInput";
+import LocationInput from "./LocationInput";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];

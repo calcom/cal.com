@@ -234,7 +234,14 @@ const LayoutToggle = ({
   // the layout can be toggled via props in the booker atom
   if (isPlatform) return null;
 
-  return <ToggleGroup onValueChange={onLayoutToggle} defaultValue={layout} options={layoutOptions} />;
+  return (
+    <ToggleGroup
+      onValueChange={onLayoutToggle}
+      defaultValue={layout}
+      aria-label={t("layout")}
+      options={layoutOptions}
+    />
+  );
 };
 
 const LayoutToggleWithData = ({

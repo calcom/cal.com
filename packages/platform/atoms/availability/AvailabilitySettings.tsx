@@ -405,6 +405,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     return (
       <Shell
         headerClassName={cn(customClassNames?.containerClassName)}
+        disableSticky
+        topAlignedHeading
         backPath={backPath}
         title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
         heading={

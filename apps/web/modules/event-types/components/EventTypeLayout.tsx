@@ -135,7 +135,7 @@ function EventTypeSingleLayout({
                     formMethods.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")
                   }
                   side="bottom">
-                  <div className="self-center rounded-md p-2">
+                  <div className="self-center rounded-md">
                     <Switch
                       id="hiddenSwitch"
                       disabled={eventTypesLockedByOrg}

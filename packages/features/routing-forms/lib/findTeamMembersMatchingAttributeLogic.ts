@@ -1,6 +1,9 @@
 import { acrossQueryValueCompatiblity, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
-import { getAttributesAssignmentData } from "@calcom/features/attributes/lib/getAttributes";
+import {
+  extractAttributeIdsFromQueryValue,
+  getAttributesAssignmentData,
+} from "@calcom/features/attributes/lib/getAttributes";
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
@@ -435,9 +438,19 @@ async function runFallbackAttributeLogic(data: RunAttributeLogicData, options: R
   };
 }
 
-export async function getAttributesForLogic({ teamId, orgId }: { teamId: number; orgId: number }) {
+export async function getAttributesForLogic({
+  teamId,
+  orgId,
+  attributeIds,
+}: {
+  teamId: number;
+  orgId: number;
+  /** If provided, only fetch attribute assignments for these attribute IDs.
+   * This significantly improves performance when only a few attributes are needed. */
+  attributeIds?: string[];
+}) {
   const [result, ttAttributes] = await asyncPerf(async () => {
-    return getAttributesAssignmentData({ teamId, orgId });
+    return getAttributesAssignmentData({ teamId, orgId, attributeIds });
   });
 
   return {
@@ -482,6 +495,9 @@ export async function findTeamMembersMatchingAttributeLogic(
     routeIsFallback,
   } = data;
 
+  // Extract attribute IDs from the routing rules to only fetch necessary data
+  const attributeIds = extractAttributeIdsFromQueryValue(attributesQueryValue, fallbackAttributesQueryValue);
+
   const {
     attributesOfTheOrg,
     teamMembersWithAttributeOptionValuePerAttribute,
@@ -489,6 +505,8 @@ export async function findTeamMembersMatchingAttributeLogic(
   } = await getAttributesForLogic({
     teamId,
     orgId,
+    // Only pass attributeIds if we found some - otherwise fetch all (backwards compatible)
+    attributeIds: attributeIds.length > 0 ? attributeIds : undefined,
   });
 
   const runAttributeLogicOptions = {
