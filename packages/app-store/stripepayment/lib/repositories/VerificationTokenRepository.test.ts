@@ -2,7 +2,7 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import type { VerificationToken } from "@calcom/prisma/client";
 
-import { VerificationTokenRepository } from "../verificationToken";
+import { VerificationTokenRepository } from "./VerificationTokenRepository";
 
 vi.mock("@calcom/prisma", () => ({
   default: {

@@ -6,7 +6,7 @@ import type {
   TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";
 import { AddressInput } from "@calcom/ui/components/address";
@@ -18,8 +18,8 @@ import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
-import { propsTypes } from "./propsTypes";
-import { preprocessNameFieldDataWithVariant } from "./utils";
+import { propsTypes } from "@calcom/features/form-builder/propsTypes";
+import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
   boolean: (val) => typeof val === "boolean",

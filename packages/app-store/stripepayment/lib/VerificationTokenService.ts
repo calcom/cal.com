@@ -1,6 +1,6 @@
 import { randomBytes, createHash } from "node:crypto";
 
-import { VerificationTokenRepository } from "../repository/verificationToken";
+import { VerificationTokenRepository } from "./repositories/VerificationTokenRepository";
 
 export class VerificationTokenService {
   static async create({ identifier, expires }: { identifier: string; expires: Date }) {
