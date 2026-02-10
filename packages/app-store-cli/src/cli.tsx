@@ -2,6 +2,7 @@
 import { render } from "ink";
 import meow from "meow";
 import App from "./App";
+import { VALID_CATEGORY_VALUES } from "./constants";
 import { BaseAppFork, generateAppFiles, getSlugFromAppName } from "./core";
 import type { SupportedCommands } from "./types";
 import Templates from "./utils/templates";
@@ -11,13 +12,13 @@ const cli = meow(
 	Usage
 	  $ 'app-store create' or 'app-store create-template' - Creates a new app or template    
     Options
-		[--template -t]  Template to use.
-		[--name -n]  App name (non-interactive mode).
-		[--description -d]  App description (non-interactive mode).
-		[--category -c]  App category: analytics, automation, calendar, conferencing, crm, messaging, payment, other (non-interactive mode).
-		[--publisher -p]  Publisher name (non-interactive mode, default: "Your Name").
-		[--email -e]  Publisher email (non-interactive mode, default: "email@example.com").
-		[--external-link-url]  External link URL for link-as-an-app template (non-interactive mode).
+		[--template -t]  (required in non-interactive mode) Template to use: ${Templates.map((t) => t.value).join(", ")}.
+		[--name -n]  (required) App name. Providing --name, --description, --category, and --template activates non-interactive mode.
+		[--description -d]  (required) App description.
+		[--category -c]  (required) App category: ${VALID_CATEGORY_VALUES.join(", ")}.
+		[--publisher -p]  Publisher name (default: "Your Name").
+		[--email -e]  Publisher email (default: "email@example.com").
+		[--external-link-url]  (required for link-as-an-app template) External link URL.
     
 
     $ 'app-store edit' or 'app-store edit-template' - Edit the App  or Template identified by slug
@@ -104,26 +105,28 @@ const { name: appName, description, category, publisher, email, externalLinkUrl 
 
 if (isCreateCommand && appName && description && category) {
   const templateFlag = cli.flags.template || "";
+  if (!templateFlag) {
+    console.error(
+      `--template is required in non-interactive mode. Available templates: ${Templates.map((t) => t.value).join(", ")}`
+    );
+    process.exit(1);
+  }
+
   const validTemplate = Templates.find((t) => t.value === templateFlag);
-  if (templateFlag && !validTemplate) {
+  if (!validTemplate) {
     console.error(
       `Invalid template: ${templateFlag}. Available templates: ${Templates.map((t) => t.value).join(", ")}`
     );
     process.exit(1);
   }
 
-  const validCategories = [
-    "analytics",
-    "automation",
-    "calendar",
-    "conferencing",
-    "crm",
-    "messaging",
-    "payment",
-    "other",
-  ];
-  if (!validCategories.includes(category)) {
-    console.error(`Invalid category: ${category}. Available categories: ${validCategories.join(", ")}`);
+  if (!VALID_CATEGORY_VALUES.includes(category)) {
+    console.error(`Invalid category: ${category}. Available categories: ${VALID_CATEGORY_VALUES.join(", ")}`);
+    process.exit(1);
+  }
+
+  if (templateFlag === "link-as-an-app" && !externalLinkUrl) {
+    console.error("--external-link-url is required when using the link-as-an-app template.");
     process.exit(1);
   }
 

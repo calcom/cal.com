@@ -1,6 +1,6 @@
 # Non-Interactive CLI Sample Commands
 
-The `app-store create` command supports a non-interactive mode when `--name`, `--description`, and `--category` flags are all provided. This bypasses the interactive prompts and creates the app directly.
+The `app-store create` command supports a non-interactive mode when `--name`, `--description`, `--category`, and `--template` flags are all provided. This bypasses the interactive prompts and creates the app directly.
 
 ## Available Categories
 
@@ -97,16 +97,16 @@ yarn app-store create \
   --email "support@cal.com"
 ```
 
-## Optional Flags
+## Flags Reference
 
-| Flag | Alias | Description | Default |
-|------|-------|-------------|---------|
-| `--name` | `-n` | App name (required) | - |
-| `--description` | `-d` | App description (required) | - |
-| `--category` | `-c` | App category (required) | - |
-| `--template` | `-t` | Base template to use | `""` (prompted interactively) |
-| `--publisher` | `-p` | Publisher name | `"Your Name"` |
-| `--email` | `-e` | Publisher email | `"email@example.com"` |
-| `--external-link-url` | - | Redirect URL (for `link-as-an-app` template) | - |
+| Flag | Alias | Description | Required |
+|------|-------|-------------|----------|
+| `--name` | `-n` | App name | Yes |
+| `--description` | `-d` | App description | Yes |
+| `--category` | `-c` | App category | Yes |
+| `--template` | `-t` | Base template to use | Yes |
+| `--publisher` | `-p` | Publisher name | No (default: `"Your Name"`) |
+| `--email` | `-e` | Publisher email | No (default: `"email@example.com"`) |
+| `--external-link-url` | - | Redirect URL | Yes (for `link-as-an-app` template) |
 
-If `--name`, `--description`, or `--category` are omitted, the CLI falls back to interactive mode.
+If `--name`, `--description`, `--category`, or `--template` are omitted, the CLI falls back to interactive mode.
