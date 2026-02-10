@@ -36,10 +36,7 @@ const RoundRobinSettings = ({ team }: RoundRobinSettingsProps) => {
     },
   });
 
-  const [watchedResetInterval, watchedTimestampBasis] = form.watch([
-    "rrResetInterval",
-    "rrTimestampBasis",
-  ]);
+  const [watchedResetInterval, watchedTimestampBasis] = form.watch(["rrResetInterval", "rrTimestampBasis"]);
   const hasChanges =
     watchedResetInterval !== initialResetInterval || watchedTimestampBasis !== initialTimestampBasis;
 
