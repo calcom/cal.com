@@ -13,6 +13,7 @@ import {
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
@@ -272,6 +273,11 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUserId,
@@ -536,6 +542,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       organizationId: orgId ?? null,
       operationId,
       source: actionSource,
+      isBookingAuditEnabled,
     });
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
@@ -570,6 +577,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
           new: BookingStatus.CANCELLED,
         },
       },
+      isBookingAuditEnabled,
     });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {

@@ -14,7 +14,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Checkbox } from "@calcom/ui/components/form";
 
-import type { BlocklistEntry, BlocklistScope } from "../types";
+import type { BlocklistEntry, BlocklistScope } from "@calcom/features/blocklist/types";
 
 interface UseBlockedEntriesColumnsProps<T extends BlocklistEntry> {
   t: (key: string) => string;
