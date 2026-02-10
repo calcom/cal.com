@@ -1,25 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import ProtonCalendarService from "./CalendarService";
 
-// Mock @calcom/lib/crypto
-vi.mock("@calcom/lib/crypto", () => {
-    const symmetricEncrypt = (text: string, key: string) => `encrypted:${text}`;
-    return {
-        symmetricEncrypt,
-        symmetricDecrypt: (text: string, key: string) => {
-            if (text.startsWith("encrypted:")) return text.replace("encrypted:", "");
-            return text;
-        }
-    };
+// Hoist dayjs so it can be referenced inside vi.mock factories
+const { hoistedDayjs } = vi.hoisted(() => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const djs = require("dayjs");
+    const isBetween = require("dayjs/plugin/isBetween");
+    djs.extend(isBetween);
+    return { hoistedDayjs: djs };
 });
 
-// Mock @calcom/dayjs
-import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-dayjs.extend(isBetween);
+// Mock @calcom/lib/crypto
+vi.mock("@calcom/lib/crypto", () => ({
+    symmetricEncrypt: (text: string, _key: string) => `encrypted:${text}`,
+    symmetricDecrypt: (text: string, _key: string) => {
+        if (text.startsWith("encrypted:")) return text.replace("encrypted:", "");
+        return text;
+    },
+}));
 
+// Mock @calcom/dayjs
 vi.mock("@calcom/dayjs", () => ({
-    default: dayjs
+    default: hoistedDayjs,
 }));
 
 // Mock logger
@@ -28,8 +29,10 @@ vi.mock("@calcom/lib/logger", () => ({
         error: vi.fn(),
         warn: vi.fn(),
         info: vi.fn(),
-    }
+    },
 }));
+
+import ProtonCalendarService from "./CalendarService";
 
 // Mock environment variables
 vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-key-123");
@@ -50,13 +53,14 @@ SUMMARY:Test Event
 END:VEVENT
 END:VCALENDAR`;
 
+    // Inline the encrypt logic to avoid referencing the hoisted mock
     const mockCredential = {
         id: 1,
         appId: "proton-calendar",
         type: "proton_calendar",
         userId: 1,
         teamId: null,
-        key: symmetricEncrypt(JSON.stringify({ url: "https://proton.me/calendar/ics/123" }), "test-key-123"),
+        key: `encrypted:${JSON.stringify({ url: "https://proton.me/calendar/ics/123" })}`,
         invalid: false,
     };
 
