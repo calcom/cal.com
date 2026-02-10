@@ -1,6 +1,8 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import { isENVDev } from "@calcom/lib/env";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getFeatureOptInTimestamp,
@@ -32,6 +34,8 @@ export interface OptInFeedbackState {
  * Shows a custom feedback dialog after a configurable delay (waitAfterDays).
  */
 function useOptInFeedback(featureId: string, featureConfig: OptInFeatureConfig | null): OptInFeedbackState {
+  const { data: session } = useSession();
+  const isImpersonating = !!session?.user?.impersonatedBy;
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const hasTriggeredRef = useRef(false);
 
@@ -41,6 +45,7 @@ function useOptInFeedback(featureId: string, featureConfig: OptInFeatureConfig |
   }, [featureId]);
 
   useEffect(() => {
+    if (isImpersonating && !isENVDev) return;
     if (!featureConfig?.formbricks) return;
 
     // Don't trigger if already triggered this session
@@ -74,7 +79,7 @@ function useOptInFeedback(featureId: string, featureConfig: OptInFeatureConfig |
     // Show after page load delay to let the page finish loading
     const timer = setTimeout(triggerFeedback, PAGE_LOAD_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [featureId, featureConfig]);
+  }, [featureId, featureConfig, isImpersonating]);
 
   const feedbackDialogProps = featureConfig?.formbricks?.surveyId
     ? {

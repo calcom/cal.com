@@ -840,6 +840,7 @@
   "report_wrong_assignment": "Report wrong assignment",
   "wrong_assignment": "Wrong Assignment",
   "wrong_assignment_reported": "Wrong assignment reported successfully",
+  "wrong_assignment_already_reported": "A wrong assignment report has already been submitted for this booking.",
   "routing_reason": "Routing Reason",
   "no_routing_reason": "No routing reason available",
   "who_booked_it": "Who booked it?",

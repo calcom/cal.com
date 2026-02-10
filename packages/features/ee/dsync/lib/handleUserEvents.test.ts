@@ -21,7 +21,7 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/utils", () => ({
+vi.mock("@calcom/features/ee/teams/lib/inviteMemberUtils", () => ({
   getTeamOrThrow: vi.fn(),
   sendExistingUserTeamInviteEmails: vi.fn(),
   sendSignupToOrganizationEmail: vi.fn(),
@@ -112,7 +112,7 @@ describe("handleUserEvents", () => {
       slug: organizationSlug,
     });
 
-    const { getTeamOrThrow } = await import("@calcom/trpc/server/routers/viewer/teams/inviteMember/utils");
+    const { getTeamOrThrow } = await import("@calcom/features/ee/teams/lib/inviteMemberUtils");
     vi.mocked(getTeamOrThrow).mockResolvedValue({
       id: organizationId,
       name: organizationName,
@@ -299,7 +299,7 @@ describe("handleUserEvents", () => {
 
       const inviteExistingUserToOrg = (await import("./users/inviteExistingUserToOrg")).default;
       const sendExistingUserTeamInviteEmails = (
-        await import("@calcom/trpc/server/routers/viewer/teams/inviteMember/utils")
+        await import("@calcom/features/ee/teams/lib/inviteMemberUtils")
       ).sendExistingUserTeamInviteEmails;
 
       await handleUserEvents(event, organizationId);
@@ -419,7 +419,7 @@ describe("handleUserEvents", () => {
         },
       };
 
-      const { getTeamOrThrow } = await import("@calcom/trpc/server/routers/viewer/teams/inviteMember/utils");
+      const { getTeamOrThrow } = await import("@calcom/features/ee/teams/lib/inviteMemberUtils");
       vi.mocked(getTeamOrThrow).mockResolvedValue(
         null as unknown as Awaited<ReturnType<typeof getTeamOrThrow>>
       );
