@@ -149,7 +149,7 @@ if (isCreateCommand && appName && description && category) {
         console.log(`External Link: ${externalLinkUrl}`);
       }
       console.log(
-        `\nNext Step: Enable the app from http://localhost:3000/settings/admin/apps as admin user (Email: admin@example.com, Pass: ADMINadmin2022!)`
+        `\nNext Step: Enable the app from http://localhost:3000/settings/admin/apps as an admin user.`
       );
     } catch (error) {
       console.error("Failed to create app:", error);
