@@ -61,48 +61,48 @@ SheetOverlay.displayName = "SheetOverlay";
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitives.Content>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content>
->(({ className, ...props }, forwardedRef) => {
-  return (
-    <SheetPortal>
-      <SheetOverlay>
-        <SheetPrimitives.Content
-          ref={forwardedRef}
-          className={classNames(
-            // base
-            "fixed inset-x-0 inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:inset-x-auto sm:right-2 sm:max-w-lg sm:p-6",
-            // "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:p-6 p-4 shadow-lg rounded-xl border ",
-            // border color
-            "border-subtle",
-            // background color
-            "bg-default",
-            // transition
-            "data-[state=closed]:animate-SheetSlideRightAndFade data-[state=open]:animate-SheetSlideLeftAndFade",
-            className
-          )}
-          {...props}
-        />
-      </SheetOverlay>
-    </SheetPortal>
+  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content> & {
+    hideOverlay?: boolean;
+  }
+>(({ className, hideOverlay = false, ...props }, forwardedRef) => {
+  const content = (
+    <SheetPrimitives.Content
+      ref={forwardedRef}
+      className={classNames(
+        // base
+        "fixed inset-x-0 inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:inset-x-auto sm:right-2 sm:max-w-lg sm:p-6",
+        // "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:p-6 p-4 shadow-lg rounded-xl border ",
+        // border color
+        "border-subtle",
+        // background color
+        "bg-default",
+        // transition
+        "data-[state=closed]:animate-SheetSlideRightAndFade data-[state=open]:animate-SheetSlideLeftAndFade",
+        // Increase z-index when no overlay to ensure it's above other content
+        hideOverlay && "z-50",
+        className
+      )}
+      {...props}
+    />
   );
+
+  return <SheetPortal>{hideOverlay ? content : <SheetOverlay>{content}</SheetOverlay>}</SheetPortal>;
 });
 
 SheetContent.displayName = "SheetContent";
 
 const SheetHeader = React.forwardRef<
   HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean; rightContent?: React.ReactNode }
->(({ children, className, showCloseButton = true, rightContent, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean }
+>(({ children, className, showCloseButton = true, ...props }, ref) => {
   return (
     <div ref={ref} className="flex items-start justify-between gap-x-4 pb-2" {...props}>
       <div className={classNames("mt-1 flex flex-col gap-y-1", className)}>{children}</div>
-      {rightContent !== undefined
-        ? rightContent
-        : showCloseButton && (
-            <SheetPrimitives.Close asChild>
-              <Button variant="icon" StartIcon="x" color="minimal" className="aspect-square p-1" />
-            </SheetPrimitives.Close>
-          )}
+      {showCloseButton && (
+        <SheetPrimitives.Close asChild>
+          <Button variant="icon" StartIcon="x" color="minimal" className="aspect-square p-1" />
+        </SheetPrimitives.Close>
+      )}
     </div>
   );
 });

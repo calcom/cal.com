@@ -7,12 +7,13 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 
 import {
   createBookingScenario,
   getDate,
   getGoogleCalendarCredential,
+  getGoogleMeetCredential,
   getAppleCalendarCredential,
   TestData,
   getOrganizer,
@@ -25,12 +26,11 @@ import {
   getStripeAppCredential,
   MockError,
   mockPaymentApp,
-  mockPaymentSuccessWebhookFromStripe,
   mockCalendar,
   mockCalendarToCrashOnCreateEvent,
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectWorkflowToBeTriggered,
   expectWorkflowToBeNotTriggered,
@@ -45,25 +45,56 @@ import {
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
   expectBookingTrackingToBeInDatabase,
-} from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { testWithAndWithoutOrg } from "@calcom/testing/lib/bookingScenario/test";
 
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
+import type Stripe from "stripe";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import type { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+
+const log = logger.getSubLogger({ prefix: ["[fresh-booking.test]"] });
+
+function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntentId: string }) {
+  return {
+    id: null,
+    data: {
+      object: {
+        id: paymentIntentId,
+      },
+    },
+  } as unknown as Stripe.Event;
+}
+
+async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
+  let webhookResponse = null;
+  try {
+    const traceContext = distributedTracing.createTrace("test_stripe_webhook");
+    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }), traceContext);
+  } catch (e) {
+    log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
+    webhookResponse = e as HttpError;
+  }
+  return { webhookResponse };
+}
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -1306,6 +1337,191 @@ describe("handleNewBooking", () => {
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: "http://mock-zoomvideo.example.com",
           });
+        },
+        timeout
+      );
+
+      test(
+        `should fallback to Cal Video when organizer's default conferencing app is Google Meet but destination calendar is NOT Google Calendar`,
+        async ({ emails }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleMeetCredential()],
+            selectedCalendars: [TestData.selectedCalendars.office365],
+            destinationCalendar: {
+              integration: "office365_calendar",
+              externalId: "organizer@outlook.com",
+            },
+            metadata: {
+              defaultConferencingApp: {
+                appSlug: "google-meet",
+              },
+            },
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-meet"], TestData.apps["daily-video"], TestData.apps["office365-calendar"]],
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: "http://mock-dailyvideo.example.com/meeting-1",
+            },
+          });
+
+          await createBookingScenario(scenarioData);
+
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
+
+          // Should fallback to Cal Video instead of Google Meet
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.CalVideo,
+            })
+          );
+        },
+        timeout
+      );
+
+      test(
+        `should use Google Meet when organizer's default conferencing app is Google Meet and destination calendar IS Google Calendar`,
+        async ({ emails }) => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getGoogleMeetCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: "google_calendar",
+              externalId: "organizer@google-calendar.com",
+            },
+            metadata: {
+              defaultConferencingApp: {
+                appSlug: "google-meet",
+              },
+            },
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"], TestData.apps["google-meet"], TestData.apps["daily-video"]],
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "googlevideo",
+          });
+
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              id: "GOOGLE_CALENDAR_EVENT_ID",
+              uid: "MOCK_ID",
+              appSpecificData: {
+                googleCalendar: {
+                  hangoutLink: "https://meet.google.com/test-meeting",
+                },
+              },
+            },
+          });
+
+          await createBookingScenario(scenarioData);
+
+          const mockedBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockedBookingData,
+          });
+
+          // Should use Google Meet since Google Calendar is the destination calendar
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              location: BookingLocations.GoogleMeet,
+            })
+          );
         },
         timeout
       );

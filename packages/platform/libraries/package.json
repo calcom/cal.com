@@ -13,20 +13,26 @@
     "build:watch": "yarn vite build --watch",
     "watch-lru-fix": "watch -n 1 'sed -i'' -e \"s/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g\" ./dist/index.cjs'",
     "build:dev": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
-    "local": "node scripts/local.js && rm -rf dist && yarn build:dev && cd ../../.. && yarn",
-    "publish-npm": "yarn && node scripts/prepublish.js && rm -rf dist && yarn build && npm publish --access public && node scripts/postpublish.js"
+    "local": "node scripts/local.js && npx rimraf dist && yarn build:dev && cd ../../.. && yarn",
+    "publish-npm": "yarn && node scripts/prepublish.js && npx rimraf dist && yarn build && npm publish --access public && node scripts/postpublish.js"
   },
   "dependencies": {
     "@calcom/features": "workspace:*",
     "@calcom/lib": "workspace:*"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "stripe": "^9.0.0 || ^15.0.0",
+    "zod": "^3.0.0"
+  },
   "devDependencies": {
-    "@types/node": "^20.3.1",
-    "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.9.0-beta",
-    "vite": "^5.0.12",
-    "vite-plugin-dts": "^3.7.2",
-    "vite-plugin-environment": "^1.1.3"
+    "@types/node": "20.17.23",
+    "@vitejs/plugin-react": "5.1.2",
+    "typescript": "5.9.3",
+    "vite": "6.4.1",
+    "vite-plugin-dts": "4.5.4",
+    "vite-plugin-environment": "1.1.3"
   },
   "exports": {
     "./workflows": {
@@ -93,6 +99,21 @@
       "import": "./dist/pbac.js",
       "require": "./dist/pbac.cjs",
       "types": "./dist/pbac.d.ts"
+    },
+    "./errors": {
+      "import": "./dist/errors.js",
+      "require": "./dist/errors.cjs",
+      "types": "./dist/errors.d.ts"
+    },
+    "./calendars": {
+      "import": "./dist/calendars.js",
+      "require": "./dist/calendars.cjs",
+      "types": "./dist/calendars.d.ts"
+    },
+    "./tasker": {
+      "import": "./dist/tasker.js",
+      "require": "./dist/tasker.cjs",
+      "types": "./dist/tasker.d.ts"
     }
   },
   "typesVersions": {
@@ -132,6 +153,15 @@
       ],
       "pbac": [
         "dist/pbac.d.ts"
+      ],
+      "errors": [
+        "dist/errors.d.ts"
+      ],
+      "calendars": [
+        "dist/calendars.d.ts"
+      ],
+      "tasker": [
+        "dist/tasker.d.ts"
       ]
     }
   }

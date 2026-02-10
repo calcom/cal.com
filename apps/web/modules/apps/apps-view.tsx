@@ -3,10 +3,10 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import { AllApps } from "@calcom/features/apps/components/AllApps";
-import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
-import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
-import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
+import { AllApps } from "@calcom/web/modules/apps/components/AllApps";
+import { AppStoreCategories } from "@calcom/web/modules/apps/components/Categories";
+import { PopularAppsSlider } from "@calcom/web/modules/apps/components/PopularAppsSlider";
+import { RecentAppsSlider } from "@calcom/web/modules/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload } from "@calcom/types/App";

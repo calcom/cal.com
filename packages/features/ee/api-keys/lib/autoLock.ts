@@ -23,6 +23,7 @@ interface HandleAutoLockInput {
 export enum LockReason {
   RATE_LIMIT = "Auto-locking user due to rate limit exceeded",
   SPAM_WORKFLOW_BODY = "Auto-locking user due to spam detected in workflow body",
+  MALICIOUS_URL_IN_WORKFLOW = "Auto-locking user due to malicious URL detected in workflow",
 }
 
 const log = logger.getSubLogger({ prefix: ["[autoLock]"] });
@@ -131,7 +132,7 @@ export async function lockUser(identifierType: string, identifier: string, lockR
         },
       });
       break;
-    case "apiKey":
+    case "apiKey": {
       const hashedApiKey = hashAPIKey(identifier);
       const apiKey = await prisma.apiKey.findUnique({
         where: { hashedKey: hashedApiKey },
@@ -160,6 +161,7 @@ export async function lockUser(identifierType: string, identifier: string, lockR
         },
       });
       break;
+    }
     // Leaving SMS here but it is handled differently via checkRateLimitForSMS that auto locks
     case "SMS":
       break;

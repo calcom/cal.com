@@ -17,7 +17,7 @@ export const generateMetadata = async () => {
 };
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  // cookie will be cleared in `/apps/web/middleware.ts`
+  // cookie will be cleared in `/apps/web/proxy.ts`
   const h = await headers();
   const context = buildLegacyCtx(h, await cookies(), await params, await searchParams);
 

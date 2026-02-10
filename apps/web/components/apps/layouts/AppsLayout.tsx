@@ -2,9 +2,10 @@ import { useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React from "react";
 
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+
+import Shell from "~/shell/Shell";
 
 type AppsLayoutProps = {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...
   const router = useRouter();
 
   return (
-    <Shell {...rest} actions={actions?.("block")}>
+    <Shell {...rest} disableSticky={true} actions={actions?.("block")}>
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (

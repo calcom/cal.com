@@ -1,20 +1,14 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { createContext } from "@calcom/trpc/server/createContext";
-import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_router";
-import { createCallerFactory } from "@calcom/trpc/server/trpc";
-import type { UserProfile } from "@calcom/types/UserProfile";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
+import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import { TRPCError } from "@trpc/server";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -36,30 +30,7 @@ const decryptedSchema = z.object({
   platformBookingUrl: z.string().optional(),
 });
 
-// Move the sessionGetter function outside the GET function
-const createSessionGetter = (userId: number) => async () => {
-  return {
-    user: {
-      id: userId,
-      username: "" /* Not used in this context */,
-      role: UserPermissionRole.USER,
-      /* Not used in this context */
-      profile: {
-        id: null,
-        organizationId: null,
-        organization: null,
-        username: "",
-        upId: "",
-      } satisfies UserProfile,
-    },
-    upId: "",
-    hasValidLicense: true,
-    expires: "" /* Not used in this context */,
-  };
-};
-
 async function handler(request: NextRequest) {
-  const url = new URL(request.url);
   const searchParams = request.nextUrl.searchParams;
 
   const { action, token, reason } = querySchema.parse(Object.fromEntries(searchParams.entries()));
@@ -83,47 +54,56 @@ async function handler(request: NextRequest) {
 
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: userId },
+    select: {
+      id: true,
+      uuid: true,
+      email: true,
+      username: true,
+      role: true,
+      destinationCalendar: true,
+    },
   });
 
-  // Use the factory function instead of declaring inside the block
-  const sessionGetter = createSessionGetter(userId);
-
   try {
-    /** @see https://trpc.io/docs/server-side-calls */
-    // Create a legacy request object for compatibility
-    const legacyReq = buildLegacyRequest(await headers(), await cookies());
-    const res = {} as any; // Response is still mocked as it's not used in this context
-
-    const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
-    const createCaller = createCallerFactory(bookingsRouter);
-    const caller = createCaller({
-      ...ctx,
-      req: legacyReq,
-      res,
-      user: { ...user, locale: user?.locale ?? "en" },
-    });
-
-    await caller.confirm({
-      bookingId: booking.id,
-      recurringEventId: booking.recurringEventId || undefined,
-      confirmed: action === DirectAction.ACCEPT,
-      reason,
-      platformClientParams: platformClientId
-        ? {
-            platformClientId,
-            platformRescheduleUrl,
-            platformCancelUrl,
-            platformBookingUrl,
-          }
-        : undefined,
+    await confirmHandler({
+      ctx: {
+        user: {
+          id: user.id,
+          uuid: user.uuid,
+          email: user.email,
+          username: user.username ?? "",
+          role: user.role,
+          destinationCalendar: user.destinationCalendar ?? null,
+        },
+        traceContext: distributedTracing.createTrace("confirm_booking_magic_link"),
+      },
+      input: {
+        bookingId: booking.id,
+        recurringEventId: booking.recurringEventId || undefined,
+        confirmed: action === DirectAction.ACCEPT,
+        reason,
+        emailsEnabled: true,
+        platformClientParams: platformClientId
+          ? {
+              platformClientId,
+              platformRescheduleUrl,
+              platformCancelUrl,
+              platformBookingUrl,
+            }
+          : undefined,
+        actionSource: "MAGIC_LINK",
+        actor: makeUserActor(user.uuid),
+      },
     });
   } catch (e) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
-    return NextResponse.redirect(`${url.origin}/booking/${bookingUid}?error=${encodeURIComponent(message)}`);
+    return NextResponse.redirect(
+      new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, request.url)
+    );
   }
 
-  return NextResponse.redirect(`${url.origin}/booking/${bookingUid}`);
+  return NextResponse.redirect(new URL(`/booking/${bookingUid}`, request.url));
 }
 
 export const GET = defaultResponderForAppDir(handler);

@@ -24,7 +24,7 @@ describe("removeMemberHandler", () => {
       success: true,
       remaining: 99,
       limit: 100,
-      reset: new Date().getTime() + 60 * 1000,
+      reset: Date.now() + 60 * 1000,
     });
     vi.mocked(RemoveMemberServiceFactory.create).mockResolvedValue(mockService);
     vi.mocked(mockService.checkRemovePermissions).mockResolvedValue({
@@ -43,7 +43,7 @@ describe("removeMemberHandler", () => {
       };
 
       await removeMemberHandler({
-        ctx: { user: { id: userId } },
+        ctx: { user: { id: userId, organizationId: null } },
         input,
       });
 
@@ -63,7 +63,7 @@ describe("removeMemberHandler", () => {
 
       await expect(
         removeMemberHandler({
-          ctx: { user: { id: 1 } },
+          ctx: { user: { id: 1, organizationId: null } },
           input,
         })
       ).rejects.toThrow(
@@ -87,7 +87,7 @@ describe("removeMemberHandler", () => {
       mockService.checkRemovePermissions = vi.fn().mockResolvedValue({ hasPermission: true });
 
       await removeMemberHandler({
-        ctx: { user: { id: 1 } },
+        ctx: { user: { id: 1, organizationId: null } },
         input,
       });
 
@@ -99,6 +99,7 @@ describe("removeMemberHandler", () => {
     it("should pass org admin status to permission check", async () => {
       const userId = 1;
       const isOrgAdmin = true;
+      const organizationId = 10;
       const input = {
         teamIds: [1],
         memberIds: [2],
@@ -111,7 +112,8 @@ describe("removeMemberHandler", () => {
         ctx: {
           user: {
             id: userId,
-            organization: { isOrgAdmin },
+            organizationId,
+            organization: { id: organizationId, isOrgAdmin },
           },
         },
         input,
@@ -120,6 +122,7 @@ describe("removeMemberHandler", () => {
       expect(mockService.checkRemovePermissions).toHaveBeenCalledWith({
         userId,
         isOrgAdmin,
+        organizationId,
         memberIds: input.memberIds,
         teamIds: input.teamIds,
         isOrg: input.isOrg,
@@ -137,13 +140,14 @@ describe("removeMemberHandler", () => {
       mockService.checkRemovePermissions = vi.fn().mockResolvedValue({ hasPermission: true });
 
       await removeMemberHandler({
-        ctx: { user: { id: userId } },
+        ctx: { user: { id: userId, organizationId: null } },
         input,
       });
 
       expect(mockService.checkRemovePermissions).toHaveBeenCalledWith(
         expect.objectContaining({
           isOrgAdmin: false,
+          organizationId: null,
         })
       );
     });
@@ -159,7 +163,7 @@ describe("removeMemberHandler", () => {
 
       await expect(
         removeMemberHandler({
-          ctx: { user: { id: 1 } },
+          ctx: { user: { id: 1, organizationId: null } },
           input,
         })
       ).rejects.toThrow(
@@ -177,6 +181,7 @@ describe("removeMemberHandler", () => {
     it("should complete full removal flow when user has permission", async () => {
       const userId = 1;
       const isOrgAdmin = false;
+      const organizationId = null;
       const input = {
         teamIds: [1, 2],
         memberIds: [3, 4],
@@ -196,7 +201,7 @@ describe("removeMemberHandler", () => {
       mockService.removeMembers = vi.fn().mockResolvedValue(undefined);
 
       await removeMemberHandler({
-        ctx: { user: { id: userId } },
+        ctx: { user: { id: userId, organizationId } },
         input,
       });
 
@@ -204,6 +209,7 @@ describe("removeMemberHandler", () => {
       expect(mockService.checkRemovePermissions).toHaveBeenCalledWith({
         userId,
         isOrgAdmin,
+        organizationId,
         memberIds: input.memberIds,
         teamIds: input.teamIds,
         isOrg: input.isOrg,
@@ -213,6 +219,7 @@ describe("removeMemberHandler", () => {
         {
           userId,
           isOrgAdmin,
+          organizationId,
           memberIds: input.memberIds,
           teamIds: input.teamIds,
           isOrg: input.isOrg,
@@ -223,11 +230,12 @@ describe("removeMemberHandler", () => {
       expect(mockService.removeMembers).toHaveBeenCalledWith(input.memberIds, input.teamIds, input.isOrg);
     });
 
-    it("should handle org admin removing members from teams they are not part of", async () => {
+    it("should handle org admin removing members from teams within their organization", async () => {
       const userId = 1;
       const isOrgAdmin = true;
+      const organizationId = 50;
       const input = {
-        teamIds: [100, 200], // Teams the org admin is not part of
+        teamIds: [100, 200], // Teams within the org admin's organization
         memberIds: [3, 4],
         isOrg: true,
       };
@@ -242,7 +250,8 @@ describe("removeMemberHandler", () => {
         ctx: {
           user: {
             id: userId,
-            organization: { isOrgAdmin },
+            organizationId,
+            organization: { id: organizationId, isOrgAdmin },
           },
         },
         input,
@@ -251,6 +260,7 @@ describe("removeMemberHandler", () => {
       expect(mockService.checkRemovePermissions).toHaveBeenCalledWith({
         userId,
         isOrgAdmin: true,
+        organizationId,
         memberIds: input.memberIds,
         teamIds: input.teamIds,
         isOrg: input.isOrg,
@@ -275,7 +285,7 @@ describe("removeMemberHandler", () => {
 
       await expect(
         removeMemberHandler({
-          ctx: { user: { id: 1 } },
+          ctx: { user: { id: 1, organizationId: null } },
           input,
         })
       ).rejects.toThrow(
@@ -299,7 +309,7 @@ describe("removeMemberHandler", () => {
 
       await expect(
         removeMemberHandler({
-          ctx: { user: { id: 1 } },
+          ctx: { user: { id: 1, organizationId: null } },
           input,
         })
       ).rejects.toThrow("Database error");

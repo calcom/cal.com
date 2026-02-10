@@ -1,6 +1,6 @@
 import viteBaseConfig from "../vite.config";
 
-const path = require("path");
+const path = require("node:path");
 const { defineConfig } = require("vite");
 
 module.exports = defineConfig({

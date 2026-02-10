@@ -1,4 +1,4 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
@@ -33,12 +33,6 @@ vi.mock("@calcom/app-store/stripepayment/lib/customer", () => {
     getStripeCustomerIdFromUserId: function () {
       return "CUSTOMER_ID";
     },
-  };
-});
-
-vi.mock("@calcom/lib/constant", () => {
-  return {
-    MINIMUM_NUMBER_OF_ORG_SEATS: 30,
   };
 });
 
@@ -336,19 +330,19 @@ describe("purchaseTeamOrOrgSubscription", () => {
 
 describe("updateQuantitySubscriptionFromStripe", () => {
   describe("For an organization", () => {
-    it("should not update subscription when team members are less than metadata.orgSeats", async () => {
+    it("should update subscription based on actual member count (orgSeats no longer enforced)", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
       const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
       const FAKE_SUB_ID = "FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
-      const consoleInfoSpy = vi.spyOn(console, "info");
+      const membersInTeam = 2;
 
       const organization = await createOrgWithMembersAndPaymentData({
         paymentId: FAKE_PAYMENT_ID,
         subscriptionId: FAKE_SUB_ID,
         subscriptionItemId: FAKE_SUBITEM_ID,
-        membersInTeam: 2,
-        orgSeats: 5,
+        membersInTeam,
+        orgSeats: 5, // Even though orgSeats is 5, we should update to actual member count (2)
       });
 
       mockStripeCheckoutSessionRetrieve(
@@ -375,11 +369,14 @@ describe("updateQuantitySubscriptionFromStripe", () => {
       const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
 
       await updateQuantitySubscriptionFromStripe(organization.id);
-      // Ensure that we reached the flow we are expecting to
-      expect(consoleInfoSpy.mock.calls[0][0]).toContain("has less members");
 
-      // orgSeats is more than the current number of members - So, no update in stripe
-      expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
+      // Should update subscription to actual member count, regardless of orgSeats
+      expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(
+        FAKE_SUB_ID,
+        expect.objectContaining({
+          items: [{ quantity: membersInTeam, id: FAKE_SUBITEM_ID }],
+        })
+      );
     });
 
     it("should update subscription when team members are more than metadata.orgSeats", async () => {
@@ -432,13 +429,12 @@ describe("updateQuantitySubscriptionFromStripe", () => {
       });
     });
 
-    it("should not update subscription when team members are less than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
+    it("should update subscription regardless of member count", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
       const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
       const FAKE_SUB_ID = "FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
-      const membersInTeam = 2;
-      const consoleInfoSpy = vi.spyOn(console, "info");
+      const membersInTeam = 2; // Even with just 2 members, should update
 
       const organization = await createOrgWithMembersAndPaymentData({
         paymentId: FAKE_PAYMENT_ID,
@@ -472,13 +468,16 @@ describe("updateQuantitySubscriptionFromStripe", () => {
       const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
 
       await updateQuantitySubscriptionFromStripe(organization.id);
-      // Ensure that we reached the flow we are expecting to
-      expect(consoleInfoSpy.mock.calls[0][0]).toContain("has less members");
-      // orgSeats is more than the current number of members - So, no update in stripe
-      expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
+      // Should update subscription even with low member count (no minimum enforcement)
+      expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(
+        FAKE_SUB_ID,
+        expect.objectContaining({
+          items: [{ quantity: membersInTeam, id: FAKE_SUBITEM_ID }],
+        })
+      );
     });
 
-    it("should update subscription when team members are more than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
+    it("should update subscription when team members count changes (no minimum enforcement)", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
       const FAKE_SUB_ID = "FAKE_SUB_ID";
       const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";

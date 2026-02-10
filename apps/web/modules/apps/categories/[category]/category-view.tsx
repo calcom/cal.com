@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 
-import { AppCard } from "@calcom/features/apps/components/AppCard";
-import Shell from "@calcom/features/shell/Shell";
+import { AppCard } from "@calcom/web/modules/apps/components/AppCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
+
+import Shell from "~/shell/Shell";
 
 export default function Apps({ apps, category }: CategoryDataProps) {
   const { t, isLocaleReady } = useLocale();

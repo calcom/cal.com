@@ -1,4 +1,9 @@
-import type { EventPayloadType, OOOEntryPayloadType, BookingNoShowUpdatedPayload } from "../dto/types";
+import type {
+  EventPayloadType,
+  OOOEntryPayloadType,
+  BookingNoShowUpdatedPayload,
+  DelegationCredentialErrorPayloadType,
+} from "../dto/types";
 
 export interface FormSubmittedPayload {
   formId: string;
@@ -90,5 +95,6 @@ export interface WebhookPayload {
     | RecordingPayload
     | MeetingPayload
     | InstantMeetingPayload
-    | NoShowWebhookPayload;
+    | NoShowWebhookPayload
+    | DelegationCredentialErrorPayloadType;
 }
