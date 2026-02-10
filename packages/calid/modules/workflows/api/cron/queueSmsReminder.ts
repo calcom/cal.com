@@ -11,6 +11,7 @@ import * as smsService from "../..//providers/messaging/dispatcher";
 import { WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE } from "../../managers/smsManager";
 import type { SendSmsResponse } from "../../providers/messaging/config/type";
 import { getSenderId } from "../../utils/getSenderId";
+import wordTruncate from "../../utils/getTruncatedString";
 import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
 import { select } from "../../utils/getWorkflows";
 
@@ -94,7 +95,11 @@ const processNotificationQueue = async (): Promise<number> => {
             ? notification.booking.user?.name || ""
             : targetAttendee.name;
 
-        const eventTitle = notification.booking.eventType?.title || "";
+        //To prevent template variable length constraints, we are truncating event title to 40 characters and removing any double quotes to avoid breaking the message format. This is done to ensure that the most important information is conveyed within the SMS character limits.
+        const eventTitle = wordTruncate(
+          (notification.booking.eventType?.title ?? "").trim().replace(/"/g, "")
+        );
+
         const eventMoment = dayjs(notification.booking.startTime)
           .tz(participantTimeZone || "UTC")
           .locale(participantLocale || "en");
@@ -104,7 +109,7 @@ const processNotificationQueue = async (): Promise<number> => {
 
         messageText = defaultTemplate
           .replace(/\{\{1\}\}/g, recipientName.split(" ")[0])
-          .replace(/\{\{2\}\}/g, eventTitle.trim().replace(/"/g, ""))
+          .replace(/\{\{2\}\}/g, eventTitle)
           .replace(/\{\{3\}\}/g, senderName.split(" ")[0])
           .replace(/\{\{4\}\}/g, formattedDate)
           .replace(/\{\{5\}\}/g, formattedTime)

@@ -8,7 +8,6 @@ import { stringToDayjs } from "@calcom/lib/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
@@ -168,17 +167,17 @@ const _getBusyTimes = async (params: {
     return aggregate;
   }, []);
 
-  logger.debug(
-    `Busy Time from Cal Bookings ${JSON.stringify({
-      busyTimes,
-      bookings: bookings?.map((booking) => getPiiFreeBooking(booking)),
-      numCredentials: credentials?.length,
-    })}`
-  );
+  // logger.debug(
+  //   `Busy Time from Cal Bookings ${JSON.stringify({
+  //     busyTimes,
+  //     bookings: bookings?.map((booking) => getPiiFreeBooking(booking)),
+  //     numCredentials: credentials?.length,
+  //   })}`
+  // );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
-    const startConnectedCalendarsGet = performance.now();
+    // const startConnectedCalendarsGet = performance.now();
 
     const calendarBusyTimesQuery = await getBusyCalendarTimes(
       credentials,
@@ -198,18 +197,18 @@ const _getBusyTimes = async (params: {
     }
 
     const calendarBusyTimes = calendarBusyTimesQuery.data;
-    const endConnectedCalendarsGet = performance.now();
-    logger.debug(
-      `Connected Calendars get took ${
-        endConnectedCalendarsGet - startConnectedCalendarsGet
-      } ms for user ${username}`,
-      JSON.stringify({
-        eventTypeId,
-        startTimeDate,
-        endTimeDate,
-        calendarBusyTimes,
-      })
-    );
+    // const endConnectedCalendarsGet = performance.now();
+    // logger.debug(
+    //   `Connected Calendars get took ${
+    //     endConnectedCalendarsGet - startConnectedCalendarsGet
+    //   } ms for user ${username}`,
+    //   JSON.stringify({
+    //     eventTypeId,
+    //     startTimeDate,
+    //     endTimeDate,
+    //     calendarBusyTimes,
+    //   })
+    // );
 
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
@@ -254,12 +253,12 @@ const _getBusyTimes = async (params: {
     busyTimes.push(...videoBusyTimes);
     */
   }
-  logger.debug(
-    "getBusyTimes:",
-    JSON.stringify({
-      allBusyTimes: busyTimes,
-    })
-  );
+  // logger.debug(
+  //   "getBusyTimes:",
+  //   JSON.stringify({
+  //     allBusyTimes: busyTimes,
+  //   })
+  // );
   return busyTimes;
 };
 
