@@ -142,7 +142,7 @@ export function ShellMain(props: LayoutProps) {
           className={classNames(
             "bg-default mb-0 flex items-center md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            !props.disableSticky && "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] md:pt-3 md:pb-2 md:pl-5 md:left-14 lg:left-56 lg:w-[calc(100%-14rem)]"
+            !props.disableSticky && "sticky top-0 z-10 md:fixed md:w-[calc(100%-3.5rem)] md:pt-3 md:pb-2 md:pl-5 md:pr-5 md:left-14 lg:left-56 lg:w-[calc(100%-14rem)]"
           )}>
           {!!props.backPath && (
             <Button
@@ -185,7 +185,7 @@ export function ShellMain(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
+                      : "pwa:bottom-[max(7rem,calc(5rem+env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}

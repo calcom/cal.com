@@ -497,7 +497,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               <>
                 <VerticalDivider className="hidden sm:inline" />
                 <DeleteDialogButton
-                  buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
+                  buttonClassName={cn("hidden sm:inline", customClassNames?.deleteButtonClassname)}
                   disabled={schedule.isLastSchedule}
                   isPending={isDeleting}
                   handleDelete={handleDelete}
