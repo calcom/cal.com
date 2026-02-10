@@ -8,7 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { VerificationTokenService } from "@calcom/lib/server/service/VerificationTokenService";
+import { VerificationTokenService } from "../lib/VerificationTokenService";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 

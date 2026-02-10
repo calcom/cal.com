@@ -7,7 +7,7 @@ import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { PrismaTrackingRepository } from "@calcom/lib/server/repository/PrismaTrackingRepository";
+import { PrismaTrackingRepository } from "@calcom/features/bookings/repositories/PrismaTrackingRepository";
 import prisma from "@calcom/prisma";
 import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -560,12 +560,18 @@ class HubspotCalendarService implements CRM {
 
     const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      const properties: Record<string, string> = {
+        firstname,
+        lastname,
+        email: attendee.email,
+      };
+      
+      if (attendee.phone) {
+        properties.phone = attendee.phone;
+      }
+      
       return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
+        properties,
       };
     });
     const createdContacts = await Promise.all(

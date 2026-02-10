@@ -25,13 +25,21 @@ const eventTypeDisableAttendeeEmail = (metadata?: EventTypeMetadata) => {
   return !!metadata?.disableStandardEmails?.all?.attendee;
 };
 
-export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerPaymentRefundFailedEmail = async (
+  calEvent: CalendarEvent
+) => {
   const emailsToSend: Promise<unknown>[] = [];
-  emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent })));
+  emailsToSend.push(
+    sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent }))
+  );
 
   if (calEvent.team?.members) {
     for (const teamMember of calEvent.team.members) {
-      emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent, teamMember })));
+      emailsToSend.push(
+        sendEmail(
+          () => new OrganizerPaymentRefundFailedEmail({ calEvent, teamMember })
+        )
+      );
     }
   }
 
@@ -75,7 +83,15 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
 
     for (const admin of team.adminAndOwners) {
       emailsToSend.push(
-        sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team, creditFor }))
+        sendEmail(
+          () =>
+            new CreditBalanceLowWarningEmail({
+              user: admin,
+              balance,
+              team,
+              creditFor,
+            })
+        )
       );
     }
 
@@ -83,7 +99,9 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
   }
 
   if (user) {
-    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance, creditFor }));
+    await sendEmail(
+      () => new CreditBalanceLowWarningEmail({ user, balance, creditFor })
+    );
   }
 };
 
@@ -117,14 +135,19 @@ export const sendCreditBalanceLimitReachedEmails = async ({
 
     for (const admin of team.adminAndOwners) {
       emailsToSend.push(
-        sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team, creditFor }))
+        sendEmail(
+          () =>
+            new CreditBalanceLimitReachedEmail({ user: admin, team, creditFor })
+        )
       );
     }
     await Promise.all(emailsToSend);
   }
 
   if (user) {
-    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user, creditFor }));
+    await sendEmail(
+      () => new CreditBalanceLimitReachedEmail({ user, creditFor })
+    );
   }
 };
 

@@ -1,17 +1,15 @@
 "use client";
 
 import { ColumnFilterType, DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
-import FeatureOptInBannerWrapper from "@calcom/features/feature-opt-in/components/FeatureOptInBannerWrapper";
+import { useSegments } from "~/data-table/hooks/useSegments";
+import FeatureOptInBannerWrapper from "~/feature-opt-in/components/FeatureOptInBannerWrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-
 import { useFeatureOptInBanner } from "../../feature-opt-in/hooks/useFeatureOptInBanner";
 import { BookingListContainer } from "../components/BookingListContainer";
-import { useBookingsShellHeadingVisibility } from "../hooks/useBookingsShellHeadingVisibility";
 import { useBookingsView } from "../hooks/useBookingsView";
 import type { validStatuses } from "../lib/validStatuses";
 
@@ -73,8 +71,6 @@ export default function Bookings(props: BookingsProps) {
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
   const optInBanner = useFeatureOptInBanner("bookings-v3");
-
-  useBookingsShellHeadingVisibility({ visible: view === "list" });
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>
