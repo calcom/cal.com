@@ -171,15 +171,99 @@ const LocationInputDialog = ({
   );
 };
 
+const checkAppInstalledForHost = (locationValue: string, hostData?: HostWithLocationOptions): boolean => {
+  if (isStaticLocationType(locationValue)) return true;
+  if (isCalVideoLocation(locationValue)) return true;
+  if (!hostData) return true;
+
+  const appSlug = getAppSlugFromLocationType(locationValue);
+  if (!appSlug) return true;
+
+  return hostData.installedApps.some((app) => app.appId === appSlug || app.type === locationValue);
+};
+
+const annotateOptionsForHost = (
+  locationOptions: TLocationOptions,
+  hostData: HostWithLocationOptions | undefined,
+  notInstalledLabel: string
+): TLocationOptions => {
+  if (!hostData) return locationOptions;
+
+  return locationOptions.map((group) => ({
+    ...group,
+    options: group.options.map((opt) => {
+      if (checkAppInstalledForHost(opt.value, hostData)) return opt;
+      return { ...opt, label: `${opt.label} (${notInstalledLabel})` };
+    }),
+  }));
+};
+
+const findHostCredential = (hostData: HostWithLocationOptions | undefined, locationValue: string) => {
+  return hostData?.installedApps.find(
+    (app) => app.appId === getAppSlugFromLocationType(locationValue) || app.type === locationValue
+  );
+};
+
+const buildHostLocation = (
+  userId: number,
+  eventTypeId: number,
+  locationOption: LocationOption,
+  hostData: HostWithLocationOptions | undefined,
+  inputValue?: string
+): HostLocation => {
+  const eventLocationType = getEventLocationType(locationOption.value);
+  const credential = findHostCredential(hostData, locationOption.value);
+
+  const location: HostLocation = {
+    userId,
+    eventTypeId,
+    type: locationOption.value,
+    credentialId: credential?.credentialId ?? null,
+  };
+
+  if (eventLocationType?.organizerInputType === "text") {
+    if (eventLocationType.defaultValueVariable === "link") {
+      location.link = inputValue;
+    } else if (eventLocationType.defaultValueVariable === "address") {
+      location.address = inputValue;
+    }
+  } else if (eventLocationType?.organizerInputType === "phone") {
+    location.phoneNumber = inputValue;
+  }
+
+  return location;
+};
+
+const getSelectedOption = (
+  currentLocation: HostLocation | null | undefined,
+  hostData: HostWithLocationOptions | undefined,
+  options: TLocationOptions
+): LocationOption | undefined => {
+  if (currentLocation) {
+    return getLocationFromOptions(currentLocation.type, options);
+  }
+
+  if (hostData?.defaultConferencingApp?.appSlug) {
+    const locationType = getAppFromSlug(hostData.defaultConferencingApp.appSlug)?.appData?.location?.type;
+    if (locationType) {
+      return getLocationFromOptions(locationType, options);
+    }
+  }
+
+  return getLocationFromOptions("integrations:daily", options);
+};
+
 const HostLocationRow = ({
   host,
   hostData,
   locationOptions,
+  eventTypeId,
   onLocationChange,
 }: {
   host: Host;
   hostData?: HostWithLocationOptions;
   locationOptions: TLocationOptions;
+  eventTypeId: number;
   onLocationChange: (userId: number, location: HostLocation | null) => void;
 }) => {
   const { t } = useLocale();
@@ -188,127 +272,51 @@ const HostLocationRow = ({
 
   const currentLocation = host.location;
 
-  const selectedOption = useMemo(() => {
-    if (currentLocation) {
-      return getLocationFromOptions(currentLocation.type, locationOptions);
-    }
-
-    if (hostData?.defaultConferencingApp?.appSlug) {
-      const locationType = getAppFromSlug(hostData.defaultConferencingApp.appSlug)?.appData?.location?.type;
-      if (locationType) {
-        return getLocationFromOptions(locationType, locationOptions);
-      }
-    }
-
-    return getLocationFromOptions("integrations:daily", locationOptions);
-  }, [currentLocation, hostData, locationOptions]);
-
   const hasAppInstalled = useMemo(() => {
     if (!currentLocation?.type) return true;
-    if (isStaticLocationType(currentLocation.type)) return true;
-    if (isCalVideoLocation(currentLocation.type)) return true;
-    if (!hostData) return true;
-
-    const appSlug = getAppSlugFromLocationType(currentLocation.type);
-    if (!appSlug) return true;
-
-    return hostData.installedApps.some((app) => app.appId === appSlug || app.type === currentLocation.type);
+    return checkAppInstalledForHost(currentLocation.type, hostData);
   }, [currentLocation, hostData]);
 
-  const displayName = hostData?.name || `${t("user")} ${host.userId}`;
-  const avatarUrl = hostData?.avatarUrl || undefined;
+  const hostAnnotatedOptions = useMemo(
+    () => annotateOptionsForHost(locationOptions, hostData, t("app_not_installed")),
+    [locationOptions, hostData, t]
+  );
+
+  const selectedOption = useMemo(
+    () => getSelectedOption(currentLocation, hostData, locationOptions),
+    [currentLocation, hostData, locationOptions]
+  );
 
   const currentLocationEventType = currentLocation ? getEventLocationType(currentLocation.type) : null;
   const hasOrganizerInput = !!currentLocationEventType?.organizerInputType;
 
   const currentLocationValue = useMemo(() => {
     if (!currentLocation || !currentLocationEventType) return "";
-    if (currentLocationEventType.defaultValueVariable === "link") {
-      return currentLocation.link || "";
-    }
-    if (currentLocationEventType.defaultValueVariable === "address") {
-      return currentLocation.address || "";
-    }
-    if (currentLocationEventType.organizerInputType === "phone") {
-      return currentLocation.phoneNumber || "";
-    }
+    if (currentLocationEventType.defaultValueVariable === "link") return currentLocation.link || "";
+    if (currentLocationEventType.defaultValueVariable === "address") return currentLocation.address || "";
+    if (currentLocationEventType.organizerInputType === "phone") return currentLocation.phoneNumber || "";
     return "";
   }, [currentLocation, currentLocationEventType]);
-
-  const handleEditClick = () => {
-    if (selectedOption) {
-      setPendingLocationOption(selectedOption);
-      setIsDialogOpen(true);
-    }
-  };
 
   const handleLocationSelect = (option: LocationOption | null) => {
     if (!option) {
       onLocationChange(host.userId, null);
       return;
     }
-
-    const eventLocationType = getEventLocationType(option.value);
-
-    if (eventLocationType?.organizerInputType) {
+    if (getEventLocationType(option.value)?.organizerInputType) {
       setPendingLocationOption(option);
       setIsDialogOpen(true);
       return;
     }
-
-    const credential = hostData?.installedApps.find(
-      (app) => app.appId === getAppSlugFromLocationType(option.value) || app.type === option.value
-    );
-    onLocationChange(host.userId, {
-      userId: host.userId,
-      eventTypeId: 0,
-      type: option.value,
-      credentialId: credential?.credentialId ?? null,
-    });
-  };
-
-  const handleDialogSave = (inputValue: string) => {
-    if (!pendingLocationOption) return;
-
-    const eventLocationType = getEventLocationType(pendingLocationOption.value);
-    const credential = hostData?.installedApps.find(
-      (app) =>
-        app.appId === getAppSlugFromLocationType(pendingLocationOption.value) ||
-        app.type === pendingLocationOption.value
-    );
-
-    const location: HostLocation = {
-      userId: host.userId,
-      eventTypeId: 0,
-      type: pendingLocationOption.value,
-      credentialId: credential?.credentialId ?? null,
-    };
-
-    if (eventLocationType?.organizerInputType === "text") {
-      if (eventLocationType.defaultValueVariable === "link") {
-        location.link = inputValue;
-      } else if (eventLocationType.defaultValueVariable === "address") {
-        location.address = inputValue;
-      }
-    } else if (eventLocationType?.organizerInputType === "phone") {
-      location.phoneNumber = inputValue;
-    }
-
-    onLocationChange(host.userId, location);
-    setPendingLocationOption(null);
-  };
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setPendingLocationOption(null);
+    onLocationChange(host.userId, buildHostLocation(host.userId, eventTypeId, option, hostData));
   };
 
   return (
     <>
       <div className="border-subtle flex items-center gap-3 border-b px-3 py-3 last:border-b-0">
-        <Avatar size="sm" imageSrc={avatarUrl} alt={displayName} />
+        <Avatar size="sm" imageSrc={hostData?.avatarUrl || undefined} alt={hostData?.name || `${t("user")} ${host.userId}`} />
         <div className="min-w-0 flex-1">
-          <div className="text-emphasis truncate text-sm font-medium">{displayName}</div>
+          <div className="text-emphasis truncate text-sm font-medium">{hostData?.name || `${t("user")} ${host.userId}`}</div>
           {hostData?.email && <div className="text-subtle truncate text-xs">{hostData.email}</div>}
         </div>
         <div className="flex items-center gap-2">
@@ -320,7 +328,7 @@ const HostLocationRow = ({
           )}
           <LocationSelect
             placeholder={t("select_location")}
-            options={locationOptions}
+            options={hostAnnotatedOptions}
             value={selectedOption}
             isSearchable={false}
             className="w-72 text-sm"
@@ -332,15 +340,32 @@ const HostLocationRow = ({
             onChange={handleLocationSelect}
           />
           {hasOrganizerInput && currentLocation && (
-            <Button color="minimal" type="button" StartIcon="pencil" onClick={handleEditClick} />
+            <Button
+              color="minimal"
+              type="button"
+              StartIcon="pencil"
+              onClick={() => {
+                if (selectedOption) {
+                  setPendingLocationOption(selectedOption);
+                  setIsDialogOpen(true);
+                }
+              }}
+            />
           )}
         </div>
       </div>
       <LocationInputDialog
         isOpen={isDialogOpen}
-        onClose={handleDialogClose}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setPendingLocationOption(null);
+        }}
         locationOption={pendingLocationOption}
-        onSave={handleDialogSave}
+        onSave={(inputValue) => {
+          if (!pendingLocationOption) return;
+          onLocationChange(host.userId, buildHostLocation(host.userId, eventTypeId, pendingLocationOption, hostData, inputValue));
+          setPendingLocationOption(null);
+        }}
         title="set_location"
         saveButtonText="save"
         initialValue={
@@ -572,33 +597,33 @@ const useFetchMoreOnScroll = (
   }, [handleScroll, containerRef]);
 };
 
-const mergeLocationOptionsWithHostApps = (
+const buildFullLocationOptions = (
   locationOptions: TLocationOptions,
-  hostsWithApps: HostWithLocationOptions[],
   t: (key: string) => string
 ): TLocationOptions => {
-  if (hostsWithApps.length === 0) return locationOptions;
-
   const existingValues = new Set<string>();
   locationOptions.forEach((group) => {
     group.options.forEach((opt) => existingValues.add(opt.value));
   });
 
-  const hostAppsOptions: TLocationOptions[number]["options"] = [];
-  hostsWithApps.forEach((host) => {
-    host.installedApps.forEach((app) => {
-      if (app.locationOption && !existingValues.has(app.locationOption.value)) {
-        existingValues.add(app.locationOption.value);
-        hostAppsOptions.push({
-          value: app.locationOption.value,
-          label: app.locationOption.label,
-          icon: app.locationOption.icon,
-        });
-      }
-    });
-  });
+  const additionalOptions: TLocationOptions[number]["options"] = [];
+  for (const app of Object.values(appStoreMetadata)) {
+    const locationData = app.appData?.location;
+    if (!locationData || existingValues.has(locationData.type)) continue;
 
-  if (hostAppsOptions.length === 0) return locationOptions;
+    const locationType = getEventLocationType(locationData.type);
+    if (locationType?.attendeeInputType) continue;
+
+    existingValues.add(locationData.type);
+    const translated = t(locationData.label);
+    additionalOptions.push({
+      value: locationData.type,
+      label: translated !== locationData.label ? translated : locationData.label || app.name,
+      icon: app.logo,
+    });
+  }
+
+  if (additionalOptions.length === 0) return locationOptions;
 
   const conferencingGroup = locationOptions.find(
     (g) => g.label.toLowerCase().includes("conferencing") || g.label.toLowerCase().includes("video")
@@ -607,19 +632,20 @@ const mergeLocationOptionsWithHostApps = (
   if (conferencingGroup) {
     return locationOptions.map((group) => {
       if (group === conferencingGroup) {
-        return { ...group, options: [...group.options, ...hostAppsOptions] };
+        return { ...group, options: [...group.options, ...additionalOptions] };
       }
       return group;
     });
   }
 
-  return [...locationOptions, { label: t("conferencing"), options: hostAppsOptions }];
+  return [...locationOptions, { label: t("conferencing"), options: additionalOptions }];
 };
 
 type HostListProps = {
   hosts: Host[];
   hostDataMap: Map<number, HostWithLocationOptions>;
   locationOptions: TLocationOptions;
+  eventTypeId: number;
   onLocationChange: (userId: number, location: HostLocation | null) => void;
   containerRef: React.RefObject<HTMLDivElement>;
   isLoading: boolean;
@@ -631,6 +657,7 @@ const HostList = ({
   hosts,
   hostDataMap,
   locationOptions,
+  eventTypeId,
   onLocationChange,
   containerRef,
   isLoading,
@@ -663,6 +690,7 @@ const HostList = ({
                 host={host}
                 hostData={hostDataMap.get(host.userId)}
                 locationOptions={locationOptions}
+                eventTypeId={eventTypeId}
                 onLocationChange={onLocationChange}
               />
             ))}
@@ -692,19 +720,29 @@ const useHostLocationsData = (eventTypeId: number, enabled: boolean, locationOpt
 
   const hostsWithApps = useMemo(() => data?.pages.flatMap((page) => page.hosts) ?? [], [data]);
   const hostDataMap = useMemo(() => new Map(hostsWithApps.map((h) => [h.userId, h])), [hostsWithApps]);
-  const mergedLocationOptions = useMemo(() => {
-    const merged = mergeLocationOptionsWithHostApps(locationOptions, hostsWithApps, t);
-    return filterOutBookerInputLocations(merged);
-  }, [locationOptions, hostsWithApps, t]);
+  const fullLocationOptions = useMemo(() => {
+    const full = buildFullLocationOptions(locationOptions, t);
+    return filterOutBookerInputLocations(full);
+  }, [locationOptions, t]);
 
   useFetchMoreOnScroll(containerRef, hasNextPage, isFetchingNextPage, fetchNextPage);
 
-  return { hostDataMap, mergedLocationOptions, containerRef, isLoading, isFetchingNextPage };
+  return { hostDataMap, fullLocationOptions, containerRef, isLoading, isFetchingNextPage };
+};
+
+const normalizeHostLocation = (host: Host, eventTypeId: number): Host => {
+  if (!host.location) return host;
+  if (host.location.userId && host.location.eventTypeId) return host;
+  return {
+    ...host,
+    location: { ...host.location, userId: host.userId, eventTypeId },
+  };
 };
 
 const useHostLocationHandlers = (
   formMethods: ReturnType<typeof useFormContext<FormValues>>,
-  hosts: Host[]
+  hosts: Host[],
+  eventTypeId: number
 ) => {
   const handleToggle = (checked: boolean) => {
     formMethods.setValue("enablePerHostLocations", checked, { shouldDirty: true });
@@ -720,7 +758,7 @@ const useHostLocationHandlers = (
   const handleLocationChange = (userId: number, location: HostLocation | null) => {
     formMethods.setValue(
       "hosts",
-      hosts.map((h) => (h.userId === userId ? { ...h, location } : h)),
+      hosts.map((h) => normalizeHostLocation(h.userId === userId ? { ...h, location } : h, eventTypeId)),
       { shouldDirty: true }
     );
   };
@@ -795,9 +833,9 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
   const hosts = formMethods.watch("hosts");
 
-  const { hostDataMap, mergedLocationOptions, containerRef, isLoading, isFetchingNextPage } =
+  const { hostDataMap, fullLocationOptions, containerRef, isLoading, isFetchingNextPage } =
     useHostLocationsData(eventTypeId, enablePerHostLocations, locationOptions);
-  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts);
+  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts, eventTypeId);
   const { handleMassApply, isPending } = useMassApplyMutation(eventTypeId, formMethods, hosts, () =>
     setIsMassApplyDialogOpen(false)
   );
@@ -819,7 +857,8 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
           <HostList
             hosts={hosts}
             hostDataMap={hostDataMap}
-            locationOptions={mergedLocationOptions}
+            locationOptions={fullLocationOptions}
+            eventTypeId={eventTypeId}
             onLocationChange={handleLocationChange}
             containerRef={containerRef}
             isLoading={isLoading}
