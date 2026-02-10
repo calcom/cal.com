@@ -149,18 +149,10 @@ export default class EventManager {
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
-    // This includes all calendar-related apps, traditional calendars such as Google Calendar
+    // All calendar-related apps: traditional (Google, Outlook, etc.) and other_calendar (Basecamp, SendGrid, etc.).
     this.calendarCredentials = appCredentials
-      .filter(
-        // Backwards compatibility until CRM manager is implemented
-        (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
-      )
-      // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      // This sorting is mostly applicable for fallback which happens when there is no explicit destinationCalendar set.
-      // That could be true for really old accounts but not for new
+      .filter((cred) => cred.type.endsWith("_calendar"))
       .sort(latestCredentialFirst)
-      // Keep Delegation Credentials first so because those credentials never expire and are preferred.
-      // Also, those credentials have consistent permission for all the members avoiding the scenario where user doesn't give all permissions
       .sort(delegatedCredentialFirst);
 
     this.videoCredentials = appCredentials
@@ -169,9 +161,8 @@ export default class EventManager {
       // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
       // We also don't have updatedAt or createdAt dates on credentials so this is the best we can do
       .sort(latestCredentialFirst);
-    this.crmCredentials = appCredentials.filter(
-      (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
-    );
+
+    this.crmCredentials = appCredentials.filter((cred) => cred.type.endsWith("_crm"));
 
     this.appOptions = eventTypeAppMetadata;
   }
@@ -780,7 +771,8 @@ export default class EventManager {
     const allPromises: Promise<unknown>[] = [];
 
     for (const reference of bookingReferences) {
-      if (reference.type.includes("_calendar") && !reference.type.includes("other_calendar")) {
+      // All calendar types (including other_calendar) use the calendar delete path
+      if (reference.type.includes("_calendar")) {
         calendarReferences.push(reference);
         allPromises.push(
           this.deleteCalendarEventForBookingReference({
@@ -803,13 +795,12 @@ export default class EventManager {
         );
       }
 
-      if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
+      if (reference.type.includes("_crm")) {
         crmReferences.push(reference);
         allPromises.push(
           this.deleteCRMEvent({
             reference,
             event,
-            // isRecurringInstanceCancellation,
           })
         );
       }
@@ -1010,13 +1001,19 @@ export default class EventManager {
       await fallbackToFirstCalendarInTheList();
     }
 
-    // Taking care of non-traditional calendar integrations
+    // Other-calendar integrations (Basecamp, SendGrid, etc.): only when enabled for this event type, and one per app to avoid duplicate refs in Apps Status
+    const otherCalendarCreds = this.calendarCredentials.filter(
+      (cred) =>
+        cred.type.includes("other_calendar") && this.appOptions && cred.appId && cred.appId in this.appOptions
+    );
+    const seenAppIds = new Set<string>();
+    const oneCredPerApp = otherCalendarCreds.filter((cred) => {
+      if (!cred.appId || seenAppIds.has(cred.appId)) return false;
+      seenAppIds.add(cred.appId);
+      return true;
+    });
     createdEvents = createdEvents.concat(
-      await Promise.all(
-        this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
-          .map(async (cred) => await createEvent(cred, event))
-      )
+      await Promise.all(oneCredPerApp.map((cred) => createEvent(cred, event)))
     );
 
     return createdEvents;
@@ -1126,9 +1123,10 @@ export default class EventManager {
       if (calendarReference.length === 0) {
         return [];
       }
-      // process all calendar references
+      // Process main calendar references only; other_calendar (Basecamp, etc.) are handled below to avoid duplicate results
+      const mainCalendarRefs = calendarReference.filter((ref) => !ref.type.includes("other_calendar"));
       let result = [];
-      for (const reference of calendarReference) {
+      for (const reference of mainCalendarRefs) {
         const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = reference;
         let calenderExternalId: string | null = null;
         if (bookingExternalCalendarId) {
@@ -1191,34 +1189,40 @@ export default class EventManager {
         }
       }
 
-      // Taking care of non-traditional calendar integrations
+      // Other-calendar: one update per app so we only add one result (and one ref) per app when references are rebuilt
+      const otherCalCreds = this.calendarCredentials.filter((cred) => cred.type.includes("other_calendar"));
+      const seenAppIdsUpdate = new Set<string>();
+      const oneCredPerAppUpdate = otherCalCreds.filter((cred) => {
+        if (!cred.appId || seenAppIdsUpdate.has(cred.appId)) return false;
+        seenAppIdsUpdate.add(cred.appId);
+        return true;
+      });
       result = result.concat(
-        this.calendarCredentials
-          .filter((cred) => cred.type.includes("other_calendar"))
-          .map(async (cred) => {
-            const calendarReference = booking.references.find((ref) => ref.type === cred.type);
+        oneCredPerAppUpdate.map(async (cred) => {
+          const calendarReference = booking.references.find(
+            (ref) => ref.type === cred.type && ref.credentialId === cred.id
+          );
 
-            if (!calendarReference) {
-              return {
-                appName: cred.appId || "",
-                type: cred.type,
-                success: false,
-                uid: "",
-                originalEvent: event,
-                credentialId: cred.id,
-              };
-            }
-            const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
-              calendarReference;
-            //  Pass the isRecurringInstanceReschedule flag to updateEvent
-            return await updateEvent(
-              cred,
-              event,
-              bookingRefUid ?? null,
-              bookingExternalCalendarId ?? null,
-              isRecurringInstanceReschedule
-            );
-          })
+          if (!calendarReference) {
+            return {
+              appName: cred.appId || "",
+              type: cred.type,
+              success: false,
+              uid: "",
+              originalEvent: event,
+              credentialId: cred.id,
+            };
+          }
+          const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
+            calendarReference;
+          return await updateEvent(
+            cred,
+            event,
+            bookingRefUid ?? null,
+            bookingExternalCalendarId ?? null,
+            isRecurringInstanceReschedule
+          );
+        })
       );
 
       return Promise.all(result);
