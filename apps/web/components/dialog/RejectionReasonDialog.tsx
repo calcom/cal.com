@@ -140,7 +140,7 @@ export function RejectionReasonDialog({
           />
         </div>
 
-        <DialogFooter>
+        <DialogFooter noSticky>
           <DialogClose color="secondary" />
           <Button disabled={isPending} data-testid="rejection-confirm" onClick={handleConfirm}>
             {t("rejection_confirmation")}

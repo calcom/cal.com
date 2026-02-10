@@ -8,7 +8,11 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  WEBSITE_PRIVACY_POLICY_URL,
+  WEBSITE_TERMS_URL,
+} from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -20,7 +24,10 @@ import { Form } from "@calcom/ui/components/form";
 import { formatEventFromTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
-import type { IUseBookingErrors, IUseBookingLoadingStates } from "../../hooks/useBookings";
+import type {
+  IUseBookingErrors,
+  IUseBookingLoadingStates,
+} from "../../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
@@ -68,7 +75,10 @@ export const BookEventForm = ({
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+    data?: Pick<
+      BookerEvent,
+      "price" | "currency" | "metadata" | "bookingFields" | "locations"
+    > | null;
   };
 }) => {
   const eventType = eventQuery.data;
@@ -76,7 +86,9 @@ export const BookEventForm = ({
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const username = useBookerStoreContext((state) => state.username);
-  const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
+  const isInstantMeeting = useBookerStoreContext(
+    (state) => state.isInstantMeeting
+  );
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const { timeFormat, timezone } = useBookerTime();
 
@@ -86,7 +98,11 @@ export const BookEventForm = ({
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
-    return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+    return (
+      eventType?.price > 0 &&
+      !Number.isNaN(paymentAppData.price) &&
+      paymentAppData.price > 0
+    );
   }, [eventType]);
 
   const paymentCurrency = useMemo(() => {
@@ -94,7 +110,8 @@ export const BookEventForm = ({
     return getPaymentAppData(eventType)?.currency || "USD";
   }, [eventType]);
 
-  if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
+  if (eventQuery.isError)
+    return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
     return (
@@ -115,9 +132,9 @@ export const BookEventForm = ({
   const watchedCfToken = bookingForm.watch("cfToken");
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col h-full">
       <Form
-        className="flex h-full flex-col"
+        className="flex flex-col h-full"
         onChange={() => {
           // Form data is saved in store. This way when user navigates back to
           // still change the timeslot, and comes back to the form, all their values
@@ -127,7 +144,8 @@ export const BookEventForm = ({
         }}
         form={bookingForm}
         handleSubmit={onSubmit}
-        noValidate>
+        noValidate
+      >
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}
@@ -169,7 +187,8 @@ export const BookEventForm = ({
                       key="please-select-a-new-time-button"
                       type="button"
                       className="underline"
-                      onClick={onCancel}>
+                      onClick={onCancel}
+                    >
                       Please select a new time
                     </button>,
                   ]}
@@ -180,23 +199,26 @@ export const BookEventForm = ({
         ) : null}
 
         {!isPlatform && (
-          <div className="text-subtle my-3 w-full text-xs">
+          <div className="my-3 w-full text-xs text-subtle">
             <ServerTrans
               t={t}
               i18nKey="signing_up_terms"
+              values={{ appName: APP_NAME }}
               components={[
                 <Link
                   className="text-emphasis hover:underline"
                   key="terms"
                   href={`${WEBSITE_TERMS_URL}`}
-                  target="_blank">
+                  target="_blank"
+                >
                   Terms
                 </Link>,
                 <Link
                   className="text-emphasis hover:underline"
                   key="privacy"
                   href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-                  target="_blank">
+                  target="_blank"
+                >
                   Privacy Policy.
                 </Link>,
               ]}
@@ -205,13 +227,14 @@ export const BookEventForm = ({
         )}
 
         {isPlatformBookerEmbed && (
-          <div className="text-subtle my-3 w-full text-xs">
+          <div className="my-3 w-full text-xs text-subtle">
             {t("proceeding_agreement")}{" "}
             <Link
               className="text-emphasis hover:underline"
               key="terms"
               href={`${WEBSITE_TERMS_URL}`}
-              target="_blank">
+              target="_blank"
+            >
               {t("terms")}
             </Link>{" "}
             {t("and")}{" "}
@@ -219,15 +242,20 @@ export const BookEventForm = ({
               className="text-emphasis hover:underline"
               key="privacy"
               href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-              target="_blank">
+              target="_blank"
+            >
               {t("privacy_policy")}
             </Link>
             .
           </div>
         )}
-        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+        <div className="flex justify-end mt-auto space-x-2 modalsticky rtl:space-x-reverse">
           {isInstantMeeting ? (
-            <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
+            <Button
+              type="submit"
+              color="primary"
+              loading={loadingStates.creatingInstantBooking}
+            >
               {isPaidEvent ? t("pay_and_book") : t("confirm")}
             </Button>
           ) : (
@@ -238,7 +266,8 @@ export const BookEventForm = ({
                   type="button"
                   onClick={onCancel}
                   data-testid="back"
-                  className={classNames?.backButton}>
+                  className={classNames?.backButton}
+                >
                   {t("back")}
                 </Button>
               )}
@@ -247,7 +276,9 @@ export const BookEventForm = ({
                 type="submit"
                 color="primary"
                 disabled={
-                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                  (!!shouldRenderCaptcha && !watchedCfToken) ||
+                  isTimeslotUnavailable ||
+                  confirmButtonDisabled
                 }
                 loading={
                   loadingStates.creatingBooking ||
@@ -256,8 +287,11 @@ export const BookEventForm = ({
                 }
                 className={classNames?.confirmButton}
                 data-testid={
-                  rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
-                }>
+                  rescheduleUid && bookingData
+                    ? "confirm-reschedule-button"
+                    : "confirm-book-button"
+                }
+              >
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
@@ -318,15 +352,19 @@ const getError = ({
   }
 
   const messageKey =
-    error.message === ErrorCode.BookerLimitExceeded ? "booker_upcoming_limit_reached" : error.message;
+    error.message === ErrorCode.BookerLimitExceeded
+      ? "booker_upcoming_limit_reached"
+      : error.message;
 
   return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(messageKey, { date, count })}
       {error.data?.traceId && (
-        <div className="text-subtle mt-2 text-xs">
+        <div className="mt-2 text-xs text-subtle">
           <span className="font-medium">{t("trace_reference_id")}:</span>
-          <code className="ml-1 select-all break-all font-mono">{error.data.traceId}</code>
+          <code className="ml-1 font-mono break-all select-all">
+            {error.data.traceId}
+          </code>
         </div>
       )}
     </>

@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";

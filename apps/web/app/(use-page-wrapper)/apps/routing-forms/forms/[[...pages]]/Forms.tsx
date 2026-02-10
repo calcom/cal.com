@@ -8,8 +8,8 @@ import { useFormContext } from "react-hook-form";
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { FilterResults } from "~/filters/components/FilterResults";
+import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -159,8 +159,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
           plan="team"
-          title={t("teams_plan_required")}
-          description={t("routing_forms_are_a_great_way")}
+          title={t("routing_that_grows_with_you")}
+          description={t("routing_forms_upgrade_description")}
           features={features}
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
@@ -168,7 +168,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
             <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
+                  {t("get_started")}
                 </Button>
                 <Button color="minimal" href="https://cal.com/routing" target="_blank">
                   {t("learn_more")}

@@ -3,6 +3,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -64,6 +65,7 @@ async function fireRejectionEvent({
   actionSource,
   rejectedBookings,
   rejectionReason,
+  isBookingAuditEnabled,
   tracingLogger,
 }: {
   actor: Actor;
@@ -74,6 +76,7 @@ async function fireRejectionEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
 }): Promise<void> {
   try {
@@ -92,6 +95,7 @@ async function fireRejectionEvent({
         organizationId,
         operationId,
         source: actionSource,
+        isBookingAuditEnabled,
       });
     } else if (rejectedBookings.length === 1) {
       const booking = rejectedBookings[0];
@@ -104,6 +108,7 @@ async function fireRejectionEvent({
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
         source: actionSource,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -161,6 +166,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           hideCalendarEventDetails: true,
           disableGuests: true,
           customReplyToEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           metadata: true,
           locations: true,
           team: {
@@ -358,6 +365,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -537,12 +546,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       teamId,
     });
 
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
     await fireRejectionEvent({
       actor,
       actionSource,
       organizationId: orgId ?? null,
       rejectionReason: rejectionReason ?? null,
       rejectedBookings,
+      isBookingAuditEnabled,
       tracingLogger: log,
     });
 

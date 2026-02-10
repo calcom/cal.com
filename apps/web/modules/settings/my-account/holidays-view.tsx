@@ -3,7 +3,7 @@
 import { memo, useMemo, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";

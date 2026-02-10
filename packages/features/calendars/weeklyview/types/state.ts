@@ -1,6 +1,5 @@
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
-
 import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
 
@@ -158,6 +157,11 @@ export type CalendarState = {
    * Selected booking UID to highlight the corresponding event
    */
   selectedBookingUid?: string | null;
+  /**
+   * Update the current time indicator when the page is refocused
+   * @default false
+   */
+  updateCurrentTimeOnFocus?: boolean;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

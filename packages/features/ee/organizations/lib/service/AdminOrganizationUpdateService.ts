@@ -5,8 +5,17 @@ import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-import type { TAdminUpdate } from "@calcom/trpc/server/routers/viewer/organizations/adminUpdate.schema";
+import { orgSettingsSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
+
+export const ZAdminUpdate = z.object({
+  id: z.number(),
+  name: z.string().optional(),
+  slug: z.string().nullish(),
+  organizationSettings: orgSettingsSchema.unwrap().optional(),
+});
+
+export type TAdminUpdate = z.infer<typeof ZAdminUpdate>;
 
 type AdminOrganizationUpdateServiceDeps = {
   prismaClient: PrismaClient;

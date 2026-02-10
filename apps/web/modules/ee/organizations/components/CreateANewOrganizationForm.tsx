@@ -1,12 +1,7 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -16,13 +11,14 @@ import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, TextField, ToggleGroup } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
-
 import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
+import { useRouter } from "next/navigation";
+import type { SessionContextValue } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 function extractDomainFromEmail(email: string) {
   const match = email.match(/^(?:.*?:\/\/)?.*?([\w-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[/?#:]|$)/);
@@ -52,6 +48,11 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
 
+  // For non-admin users, always use the current session email to prevent stale cached email issues.
+  // This handles the case where a user changes their email in settings and returns to org creation.
+  const effectiveOrgOwnerEmail = !isAdmin ? defaultOrgOwnerEmail : orgOwnerEmail || defaultOrgOwnerEmail;
+  const userHasCompanyEmail = isAdmin || isCompanyEmail(effectiveOrgOwnerEmail);
+
   const newOrganizationFormMethods = useForm<{
     name: string;
     seats: number | null;
@@ -62,9 +63,9 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   }>({
     defaultValues: {
       billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
-      slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
-      orgOwnerEmail: orgOwnerEmail || defaultOrgOwnerEmail,
-      name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
+      slug: slug ?? (!isAdmin ? deriveSlugFromEmail(effectiveOrgOwnerEmail) : undefined),
+      orgOwnerEmail: effectiveOrgOwnerEmail,
+      name: name ?? (!isAdmin ? deriveOrgNameFromEmail(effectiveOrgOwnerEmail) : undefined),
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,
     },
@@ -111,6 +112,24 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   });
 
   const needToCreateOnboarding = !onboardingId;
+
+  if (!userHasCompanyEmail) {
+    return (
+      <div className="stack-y-5">
+        <Alert
+          severity="warning"
+          title={t("use_company_email_to_create_an_organization")}
+          message={t("update_email_organization_description")}
+          actions={
+            <Button href="/settings/my-account/profile" color="secondary" className="mt-2">
+              {t("update_email_address")}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <>
       <Form

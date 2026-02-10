@@ -1,3 +1,20 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { UpdateEventTypeReturn } from "@calcom/platform-libraries/event-types";
+import { listWithTeamHandler, PublicEventType } from "@calcom/platform-libraries/event-types";
+import { ApiResponse } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+  UseGuards,
+  VERSION_NEUTRAL,
+  Version,
+} from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
@@ -16,24 +33,6 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  UseGuards,
-  Version,
-  VERSION_NEUTRAL,
-  Patch,
-  Body,
-  Query,
-} from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { UpdateEventTypeReturn } from "@calcom/platform-libraries/event-types";
-import { PublicEventType } from "@calcom/platform-libraries/event-types";
-import { ApiResponse } from "@calcom/platform-types";
 
 /*
 Event-types endpoints for atoms, split from AtomsController for clarity and maintainability.
@@ -48,6 +47,17 @@ These endpoints should not be recommended for use by third party and are exclude
 @DocsExcludeController(true)
 export class AtomsEventTypesController {
   constructor(private readonly eventTypesService: EventTypesAtomService) {}
+
+  @Get("/event-types/list-with-team")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  async listEventTypesWithTeam(@GetUser() user: UserWithProfile): Promise<ApiResponse<unknown>> {
+    const eventTypes = await listWithTeamHandler({ ctx: { user } });
+    return {
+      status: SUCCESS_STATUS,
+      data: eventTypes,
+    };
+  }
 
   @Get("/event-types/:eventSlug/public")
   async getPublicEventType(

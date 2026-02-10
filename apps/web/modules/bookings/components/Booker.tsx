@@ -20,7 +20,7 @@ import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookin
 import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import {
   CLOUDFLARE_SITE_ID,
@@ -45,12 +45,12 @@ import { DatePicker } from "./DatePicker";
 import { DryRunMessage } from "./DryRunMessage";
 import { EventMeta } from "./EventMeta";
 import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
-import { Header } from "./Header";
+import { Header } from "@calcom/features/bookings/components/Header";
 import { InstantBooking } from "./InstantBooking";
 import { LargeCalendar } from "./LargeCalendar";
 import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
-import { BookerSection } from "./Section";
+import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { SlotSelectionModalHeader } from "./SlotSelectionModalHeader";
 import { NotFound } from "./Unavailable";
 import { VerifyCodeDialog } from "./VerifyCodeDialog";
