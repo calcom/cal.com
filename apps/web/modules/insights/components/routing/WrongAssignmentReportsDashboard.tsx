@@ -1,8 +1,5 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useState, useMemo } from "react";
-
 import { useDataTable, useFilterValue, ZSingleSelectFilterValue } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
@@ -18,21 +15,22 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
-import {
-  DataTableWrapper,
-  DataTableFilters,
-  DataTableSkeleton,
-} from "@calcom/web/modules/data-table/components";
-
 import { RoutingFormResponseSheet } from "@calcom/web/components/booking/RoutingFormResponseSheet";
 import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
-import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
+import {
+  DataTableFilters,
+  DataTableSkeleton,
+  DataTableWrapper,
+} from "@calcom/web/modules/data-table/components";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
-import { useWrongAssignmentFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useWrongAssignmentFacetedUniqueValues";
 import {
   useWrongAssignmentColumns,
   type WrongAssignmentReportRow,
 } from "@calcom/web/modules/insights/hooks/useWrongAssignmentColumns";
+import { useWrongAssignmentFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useWrongAssignmentFacetedUniqueValues";
+import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useCallback, useMemo, useState } from "react";
+import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 
 type TabType = "pending" | "reviewed";
 
@@ -45,12 +43,8 @@ export function WrongAssignmentReportsDashboard() {
 
   const { sorting, limit, offset } = useDataTable();
 
-  const routingFormId = useFilterValue("routingFormId", ZSingleSelectFilterValue)?.data as
-    | string
-    | undefined;
-  const reportedById = useFilterValue("reportedById", ZSingleSelectFilterValue)?.data as
-    | number
-    | undefined;
+  const routingFormId = useFilterValue("routingFormId", ZSingleSelectFilterValue)?.data as string | undefined;
+  const reportedById = useFilterValue("reportedById", ZSingleSelectFilterValue)?.data as number | undefined;
 
   const utils = trpc.useUtils();
 
@@ -79,9 +73,12 @@ export function WrongAssignmentReportsDashboard() {
     },
   });
 
-  const handleStatusChange = (reportId: string, newStatus: WrongAssignmentReportStatus) => {
-    updateStatusMutation.mutate({ reportId, status: newStatus });
-  };
+  const handleStatusChange = useCallback(
+    (reportId: string, newStatus: WrongAssignmentReportStatus) => {
+      updateStatusMutation.mutate({ reportId, status: newStatus });
+    },
+    [updateStatusMutation]
+  );
 
   const getFacetedUniqueValues = useWrongAssignmentFacetedUniqueValues({
     userId,
@@ -137,9 +134,7 @@ export function WrongAssignmentReportsDashboard() {
                     <DropdownItem
                       type="button"
                       StartIcon="rotate-ccw"
-                      onClick={() =>
-                        handleStatusChange(report.id, WrongAssignmentReportStatus.PENDING)
-                      }>
+                      onClick={() => handleStatusChange(report.id, WrongAssignmentReportStatus.PENDING)}>
                       {t("reopen")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -149,9 +144,7 @@ export function WrongAssignmentReportsDashboard() {
                     <DropdownItem
                       type="button"
                       StartIcon="check"
-                      onClick={() =>
-                        handleStatusChange(report.id, WrongAssignmentReportStatus.REVIEWED)
-                      }>
+                      onClick={() => handleStatusChange(report.id, WrongAssignmentReportStatus.REVIEWED)}>
                       {t("mark_as_reviewed")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -161,9 +154,7 @@ export function WrongAssignmentReportsDashboard() {
                     <DropdownItem
                       type="button"
                       StartIcon="check-check"
-                      onClick={() =>
-                        handleStatusChange(report.id, WrongAssignmentReportStatus.RESOLVED)
-                      }>
+                      onClick={() => handleStatusChange(report.id, WrongAssignmentReportStatus.RESOLVED)}>
                       {t("mark_as_resolved")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -173,9 +164,7 @@ export function WrongAssignmentReportsDashboard() {
                     <DropdownItem
                       type="button"
                       StartIcon="x"
-                      onClick={() =>
-                        handleStatusChange(report.id, WrongAssignmentReportStatus.DISMISSED)
-                      }>
+                      onClick={() => handleStatusChange(report.id, WrongAssignmentReportStatus.DISMISSED)}>
                       {t("dismiss")}
                     </DropdownItem>
                   </DropdownMenuItem>
