@@ -124,7 +124,12 @@ async function main() {
   if (args.includes("--all")) {
     process.exit(await seedAll(args.includes("--cleanup")));
   }
-  if (args.includes("--cleanup") && !args.includes("--hwm") && !args.includes("--proration") && !args.includes("--all")) {
+  if (
+    args.includes("--cleanup") &&
+    !args.includes("--hwm") &&
+    !args.includes("--proration") &&
+    !args.includes("--all")
+  ) {
     process.exit(await cleanupAll());
   }
 

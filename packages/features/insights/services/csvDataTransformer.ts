@@ -90,9 +90,7 @@ export function isSystemField(fieldName: string): boolean {
   return SystemField.safeParse(fieldName).success;
 }
 
-export function getPhoneFieldsForSeatedEvent(
-  bookingFields: unknown
-): BookingFieldInfo[] | null {
+export function getPhoneFieldsForSeatedEvent(bookingFields: unknown): BookingFieldInfo[] | null {
   const parsed = eventTypeBookingFields.safeParse(bookingFields);
   if (!parsed.success) return null;
 
@@ -188,10 +186,7 @@ export function processBookingAttendees(
 
 export function processBookingsForCsv(bookings: BookingWithAttendees[]): ProcessBookingsResult {
   const phoneFieldsCache = new Map<number, BookingFieldInfo[]>();
-  const allFieldsCache = new Map<
-    number,
-    { fields: BookingFieldInfo[]; phoneFieldNames: Set<string> }
-  >();
+  const allFieldsCache = new Map<number, { fields: BookingFieldInfo[]; phoneFieldNames: Set<string> }>();
   const allBookingQuestionLabels = new Set<string>();
   let maxAttendees = 0;
   const bookingMap = new Map<string, ProcessedBookingData>();
@@ -231,12 +226,7 @@ export function processBookingsForCsv(bookings: BookingWithAttendees[]): Process
       }
     }
 
-    const processedData = processBookingAttendees(
-      booking,
-      bookingFields,
-      phoneFieldNames,
-      isSeatedEvent
-    );
+    const processedData = processBookingAttendees(booking, bookingFields, phoneFieldNames, isSeatedEvent);
 
     if (processedData.attendeeList.length > maxAttendees) {
       maxAttendees = processedData.attendeeList.length;
