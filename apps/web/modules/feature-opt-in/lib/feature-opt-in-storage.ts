@@ -5,6 +5,7 @@ import { z } from "zod";
 
 const DISMISSED_STORAGE_KEY = "feature-opt-in-dismissed";
 const OPTED_IN_STORAGE_KEY = "feature-opt-in-enabled";
+const FEEDBACK_SHOWN_STORAGE_KEY = "feature-opt-in-feedback-shown";
 
 const booleanFeaturesMapSchema: z.ZodSchema<Record<string, boolean>> = z.record(z.string(), z.boolean());
 const timestampFeaturesMapSchema: z.ZodSchema<Record<string, number>> = z.record(z.string(), z.number());
@@ -80,9 +81,19 @@ function setFeatureOptedIn(featureId: string): void {
   setTimestampFeatureInMap(OPTED_IN_STORAGE_KEY, featureId, Date.now());
 }
 
+function isFeatureFeedbackShown(featureId: string): boolean {
+  return isBooleanFeatureInMap(FEEDBACK_SHOWN_STORAGE_KEY, featureId);
+}
+
+function setFeatureFeedbackShown(featureId: string): void {
+  setBooleanFeatureInMap(FEEDBACK_SHOWN_STORAGE_KEY, featureId, true);
+}
+
 export {
   getFeatureOptInTimestamp,
   isFeatureDismissed,
+  isFeatureFeedbackShown,
   setFeatureDismissed,
   setFeatureOptedIn,
+  setFeatureFeedbackShown,
 };
