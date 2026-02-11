@@ -1,6 +1,5 @@
 import { randomBytes } from "node:crypto";
 
-
 import type { PrismaClient } from "@calcom/prisma";
 import type { OAuthClientStatus } from "@calcom/prisma/enums";
 

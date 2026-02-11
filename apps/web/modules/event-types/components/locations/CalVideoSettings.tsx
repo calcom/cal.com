@@ -170,7 +170,12 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
             />
 
             <TextField
-              label={<div className="flex gap-1 items-center">{t("redirect_url")}<InfoBadge content={t("enter_redirect_url_on_exit_description")} /></div>}
+              label={
+                <div className="flex gap-1 items-center">
+                  {t("redirect_url")}
+                  <InfoBadge content={t("enter_redirect_url_on_exit_description")} />
+                </div>
+              }
               defaultValue={calVideoSettings?.redirectUrlOnExit || ""}
               data-testid="calVideoSettings.redirectUrlOnExit"
               containerClassName="mt-4"

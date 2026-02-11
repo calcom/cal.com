@@ -137,6 +137,8 @@ describe("getBookings - PBAC Permission Checks", () => {
       where: vi.fn(() => mockQueryBuilder),
       innerJoin: vi.fn(() => mockQueryBuilder),
       union: vi.fn(() => mockQueryBuilder),
+      unionAll: vi.fn(() => mockQueryBuilder),
+      distinct: vi.fn(() => mockQueryBuilder),
       as: vi.fn(() => mockQueryBuilder),
       $if: vi.fn(() => mockQueryBuilder),
       orderBy: vi.fn(() => mockQueryBuilder),
@@ -150,10 +152,11 @@ describe("getBookings - PBAC Permission Checks", () => {
     return {
       selectFrom: vi.fn(() => mockQueryBuilder),
       executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
-    } as unknown as Kysely<DB>;
+      _mockQueryBuilder: mockQueryBuilder,
+    } as unknown as Kysely<DB> & { _mockQueryBuilder: typeof mockQueryBuilder };
   };
 
-  let mockKysely: Kysely<DB>;
+  let mockKysely: ReturnType<typeof createMockKysely>;
 
   const mockGetTeamIdsWithPermission = vi.fn();
 
@@ -178,7 +181,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       await getBookings({
         user: mockUser,
         prisma: mockPrisma,
-        kysely: mockKysely,
+        kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
         filters: {
           userIds: [2],
@@ -210,6 +213,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         where: vi.fn(() => mockQueryBuilder),
         innerJoin: vi.fn(() => mockQueryBuilder),
         union: vi.fn(() => mockQueryBuilder),
+        unionAll: vi.fn(() => mockQueryBuilder),
         as: vi.fn(() => ({
           select: vi.fn(() => ({
             selectAll: vi.fn(() => ({
@@ -226,14 +230,14 @@ describe("getBookings - PBAC Permission Checks", () => {
         })),
       };
 
-      mockKysely.selectFrom = vi.fn(() => mockQueryBuilder as any);
-      mockKysely.executeQuery = vi.fn().mockResolvedValue({ rows: [] });
+      (mockKysely as any).selectFrom = vi.fn(() => mockQueryBuilder as any);
+      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({ rows: [] });
 
       await expect(
         getBookings({
           user: mockUser,
           prisma: mockPrisma,
-          kysely: mockKysely,
+          kysely: mockKysely as unknown as Kysely<DB>,
           bookingListingByStatus: ["upcoming"],
           filters: {
             userIds: [4], // User 4 is not in team 1
@@ -267,7 +271,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         getBookings({
           user: mockUser,
           prisma: mockPrisma,
-          kysely: mockKysely,
+          kysely: mockKysely as unknown as Kysely<DB>,
           bookingListingByStatus: ["upcoming"],
           filters: {
             userIds: [1], // Own user ID
@@ -289,7 +293,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         getBookings({
           user: mockUser,
           prisma: mockPrisma,
-          kysely: mockKysely,
+          kysely: mockKysely as unknown as Kysely<DB>,
           bookingListingByStatus: ["upcoming"],
           filters: {
             userIds: [2],
@@ -323,7 +327,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         getBookings({
           user: mockUser,
           prisma: mockPrisma,
-          kysely: mockKysely,
+          kysely: mockKysely as unknown as Kysely<DB>,
           bookingListingByStatus: ["upcoming"],
           filters: {
             userIds: [2, 3],
@@ -344,7 +348,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       await getBookings({
         user: mockUser,
         prisma: mockPrisma,
-        kysely: mockKysely,
+        kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
         filters: {},
         take: 10,
@@ -354,7 +358,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       // PERFORMANCE: With the optimization, we no longer call $queryRaw to fetch event type IDs.
       // Instead, we use subqueries directly in the SQL to avoid materializing large arrays.
       // The query is built using Kysely and executed via executeQuery.
-      expect(mockKysely.executeQuery).toHaveBeenCalled();
+      expect((mockKysely as any).executeQuery).toHaveBeenCalled();
     });
   });
 
@@ -371,7 +375,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       await getBookings({
         user: mockUser,
         prisma: mockPrisma,
-        kysely: mockKysely,
+        kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
         filters: {
           userIds: [2], // When userIds filter is provided, we need to validate permissions
@@ -394,7 +398,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       await getBookings({
         user: mockUser,
         prisma: mockPrisma,
-        kysely: mockKysely,
+        kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
         filters: {}, // No userIds filter
         take: 10,
@@ -405,6 +409,70 @@ describe("getBookings - PBAC Permission Checks", () => {
       // The query uses subqueries instead of materializing all user IDs/emails.
       // user.findMany should NOT be called for getUserIdsFromTeamIds
       expect(mockPrisma.user.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("UNION ALL with DISTINCT query optimization", () => {
+    it("should use unionAll instead of union for combining booking queries", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      // Verify unionAll is used (UNION ALL) instead of union (UNION)
+      // This is the performance optimization: UNION ALL avoids an implicit DISTINCT
+      // at each union step, deferring deduplication to the outer SELECT DISTINCT
+      expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
+    });
+
+    it("should apply DISTINCT on the outer select from union subquery", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      // Verify distinct() is called on the outer query to deduplicate
+      // results from UNION ALL
+      expect(mockKysely._mockQueryBuilder.distinct).toHaveBeenCalled();
+    });
+
+    it("should use count with distinct for totalCount calculation", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      // The count query uses fn.count("union_subquery.id").distinct()
+      // instead of fn.countAll() to ensure duplicates from UNION ALL
+      // are not counted multiple times
+      expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
     });
   });
 });
