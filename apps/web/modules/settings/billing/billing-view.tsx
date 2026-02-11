@@ -10,6 +10,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { ActiveUserBreakdown } from "~/settings/billing/components/ActiveUserBreakdown";
 import BillingCredits from "~/settings/billing/components/BillingCredits";
 import { InvoicesTable } from "~/settings/billing/components/InvoicesTable";
 
@@ -146,6 +147,7 @@ const BillingView = () => {
         </div>
       </div>
       <BillingCredits />
+      <ActiveUserBreakdown />
       <InvoicesTable />
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>

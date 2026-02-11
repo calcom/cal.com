@@ -49,6 +49,31 @@ export class ActiveUserBillingRepository {
   }
 
   /**
+   * Get member details (id, email, name) for a regular organization.
+   * Used by the breakdown UI to display per-member active status.
+   */
+  async getOrgMemberDetailsByOrgId(
+    orgId: number
+  ): Promise<{ id: number; email: string; name: string | null }[]> {
+    return this.prismaClient.user.findMany({
+      distinct: ["email"],
+      where: {
+        teams: {
+          some: {
+            teamId: orgId,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+  }
+
+  /**
    * Find platform-managed users (by email) who hosted at least one booking in the given period.
    * Filters on isPlatformManaged to match only platform org users.
    */
@@ -110,6 +135,84 @@ export class ActiveUserBillingRepository {
       },
       select: {
         email: true,
+      },
+    });
+  }
+
+  /**
+   * Get bookings where a user was the host in the given period.
+   */
+  async getBookingsByHostUserId(
+    userId: number,
+    periodStart: Date,
+    periodEnd: Date
+  ): Promise<
+    Array<{
+      id: number;
+      uid: string;
+      title: string;
+      startTime: Date;
+      endTime: Date;
+      attendees: Array<{ email: string; name: string | null }>;
+    }>
+  > {
+    return this.prismaClient.booking.findMany({
+      where: {
+        userId,
+        startTime: { gte: periodStart, lte: periodEnd },
+      },
+      orderBy: { startTime: "desc" },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        attendees: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Get bookings where a user was an attendee in the given period.
+   */
+  async getBookingsByAttendeeEmail(
+    email: string,
+    periodStart: Date,
+    periodEnd: Date
+  ): Promise<
+    Array<{
+      id: number;
+      uid: string;
+      title: string;
+      startTime: Date;
+      endTime: Date;
+      user: { name: string | null; email: string } | null;
+    }>
+  > {
+    return this.prismaClient.booking.findMany({
+      where: {
+        attendees: { some: { email } },
+        startTime: { gte: periodStart, lte: periodEnd },
+      },
+      orderBy: { startTime: "desc" },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
       },
     });
   }
