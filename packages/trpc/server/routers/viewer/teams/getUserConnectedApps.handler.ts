@@ -28,7 +28,12 @@ const credentialSelect = {
   },
 } satisfies Prisma.CredentialSelect;
 
-type Credential = Prisma.CredentialGetPayload<{ select: typeof credentialSelect }>;
+// Explicit type to avoid Prisma.CredentialGetPayload conditional types leaking into .d.ts files
+type Credential = {
+  userId: number | null;
+  app: { slug: string; categories: AppCategories[] } | null;
+  destinationCalendars: { externalId: string }[];
+};
 
 type Apps = {
   name: string | null;

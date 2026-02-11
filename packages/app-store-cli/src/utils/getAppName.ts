@@ -1,5 +1,4 @@
-import path from "path";
-
+import path from "node:path";
 import { APP_STORE_PATH } from "../constants";
 
 export function getAppName(candidatePath) {

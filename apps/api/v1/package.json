@@ -10,18 +10,19 @@
     "build": "next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "PORT=3003 next dev",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "start": "PORT=3003 next start",
     "docker-start-api": "PORT=80 next start",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit"
   },
   "devDependencies": {
-    "@calcom/eslint-config": "workspace:*",
+    "@calcom/testing": "workspace:*",
     "@calcom/tsconfig": "workspace:*",
     "@calcom/types": "workspace:*",
-    "node-mocks-http": "^1.11.0"
+    "node-mocks-http": "1.16.2",
+    "typescript": "5.9.3"
   },
   "dependencies": {
     "@calcom/app-store": "workspace:*",
@@ -31,18 +32,17 @@
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@calcom/trpc": "workspace:*",
-    "@prisma/nextjs-monorepo-workaround-plugin": "^6.16.1",
-    "@sentry/nextjs": "^9.15.0",
-    "bcryptjs": "^2.4.3",
-    "memory-cache": "^0.2.0",
-    "next": "^15.4.5",
-    "next-api-middleware": "^1.0.1",
-    "next-axiom": "^0.17.0",
-    "next-swagger-doc": "^0.3.6",
-    "next-validations": "^0.2.0",
-    "typescript": "^5.9.0-beta",
-    "tzdata": "^1.0.30",
-    "uuid": "^8.3.2",
-    "zod": "^3.22.4"
+    "@prisma/nextjs-monorepo-workaround-plugin": "6.16.1",
+    "@sentry/nextjs": "10.33.0",
+    "bcryptjs": "2.4.3",
+    "memory-cache": "0.2.0",
+    "next": "16.1.5",
+    "next-api-middleware": "1.0.1",
+    "next-axiom": "0.17.0",
+    "next-swagger-doc": "0.3.6",
+    "next-validations": "0.2.1",
+    "tzdata": "1.0.40",
+    "uuid": "8.3.2",
+    "zod": "3.25.76"
   }
 }

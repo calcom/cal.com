@@ -1,6 +1,9 @@
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { CalVideoLocationType, type LocationObject } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { HostLocationRepository } from "@calcom/features/host/repositories/HostLocationRepository";
+import type { PrismaClient } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type GetOrganizerDefaultConferencingAppLocationParams = {
@@ -84,6 +87,28 @@ type GetLocationDetailsFromTypeResult = {
    * The conference credential ID if present in the location configuration
    */
   conferenceCredentialId: number | null;
+};
+
+type HostLocation = {
+  type: string;
+  credentialId: number | null;
+  link: string | null;
+  address: string | null;
+  phoneNumber: string | null;
+};
+
+type GetPerHostLocationParams = {
+  hostLocation: HostLocation;
+  allCredentials: { id: number; type: string }[];
+  eventTypeId: number;
+  userId: number;
+  prismaClient: PrismaClient;
+};
+
+type GetPerHostLocationResult = {
+  locationBodyString: string;
+  organizerDefaultLocationUrl: string | null;
+  perHostCredentialId: number | undefined;
 };
 
 export class BookingLocationService {
@@ -243,5 +268,101 @@ export class BookingLocationService {
     );
 
     return { bookingLocation, conferenceCredentialId: conferenceCredentialId ?? null };
+  }
+
+  /**
+   * Resolves the location for a per-host custom location in round-robin events.
+   *
+   * Handles different location types:
+   * - Credential-based apps (Zoom, Teams, etc.) - Uses the host's stored credential
+   * - Cal Video - No credential needed
+   * - Static links - Returns the stored link
+   * - In-person - Returns the stored address
+   * - Phone locations - Returns the stored phone number or type
+   * - Unknown apps - Attempts to find and link a credential, falls back to Cal Video
+   */
+  static async getPerHostLocation({
+    hostLocation,
+    allCredentials,
+    eventTypeId,
+    userId,
+    prismaClient,
+  }: GetPerHostLocationParams): Promise<GetPerHostLocationResult> {
+    if (hostLocation.credentialId) {
+      return {
+        locationBodyString: hostLocation.type,
+        organizerDefaultLocationUrl: null,
+        perHostCredentialId: hostLocation.credentialId,
+      };
+    }
+
+    if (hostLocation.type === CalVideoLocationType) {
+      return {
+        locationBodyString: hostLocation.type,
+        organizerDefaultLocationUrl: null,
+        perHostCredentialId: undefined,
+      };
+    }
+
+    if (hostLocation.link) {
+      return {
+        locationBodyString: hostLocation.link,
+        organizerDefaultLocationUrl: hostLocation.link,
+        perHostCredentialId: undefined,
+      };
+    }
+
+    if (hostLocation.type === "inPerson") {
+      return {
+        locationBodyString: hostLocation.address || hostLocation.type,
+        organizerDefaultLocationUrl: null,
+        perHostCredentialId: undefined,
+      };
+    }
+
+    if (hostLocation.type === "userPhone") {
+      return {
+        locationBodyString: hostLocation.phoneNumber || hostLocation.type,
+        organizerDefaultLocationUrl: null,
+        perHostCredentialId: undefined,
+      };
+    }
+
+    if (hostLocation.type === "attendeeInPerson" || hostLocation.type === "phone") {
+      return {
+        locationBodyString: hostLocation.type,
+        organizerDefaultLocationUrl: null,
+        perHostCredentialId: undefined,
+      };
+    }
+
+    const appMetaForLocation = Object.values(appStoreMetadata).find(
+      (app) => app.appData?.location?.type === hostLocation.type
+    );
+
+    if (appMetaForLocation) {
+      const matchingCredential = allCredentials.find((cred) => cred.type === appMetaForLocation.type);
+
+      if (matchingCredential) {
+        const hostLocationRepository = new HostLocationRepository(prismaClient);
+        await hostLocationRepository.linkCredential({
+          userId,
+          eventTypeId,
+          credentialId: matchingCredential.id,
+        });
+
+        return {
+          locationBodyString: hostLocation.type,
+          organizerDefaultLocationUrl: null,
+          perHostCredentialId: matchingCredential.id,
+        };
+      }
+    }
+
+    return {
+      locationBodyString: CalVideoLocationType,
+      organizerDefaultLocationUrl: null,
+      perHostCredentialId: undefined,
+    };
   }
 }

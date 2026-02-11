@@ -12,8 +12,8 @@ import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
-import type { FormSubmissionData, WorkflowContextData } from "./reminderScheduler";
-import type { BookingInfo } from "./smsReminderManager";
+import type { BookingInfo, FormSubmissionData } from "../types";
+import type { WorkflowContextData } from "./reminderScheduler";
 
 type timeUnitLowerCase = "day" | "hour" | "minute";
 
@@ -400,7 +400,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
   if (userId) {
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",
-      identifier: `ai-phone-call:${userId}`,
+      identifier: `executeAIPhoneCall:${userId}`,
     });
   }
 

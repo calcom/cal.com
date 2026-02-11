@@ -22,7 +22,7 @@ export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmail
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `addSecondaryEmail.${user.id}`,
+    identifier: `addSecondaryEmail:${user.id}`,
   });
 
   const existingPrimaryEmail = await prisma.user.findUnique({

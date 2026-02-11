@@ -6,6 +6,7 @@ import type { NextRequest } from "next/server";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
@@ -24,6 +25,11 @@ async function postHandler(req: NextRequest) {
     console.error("Session is missing a user id.");
     return NextResponse.json({ error: ErrorCode.InternalServerError }, { status: 500 });
   }
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `api:totp-enable:${session.user.id}`,
+  });
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) {

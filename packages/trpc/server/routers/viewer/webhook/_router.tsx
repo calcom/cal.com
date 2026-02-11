@@ -1,3 +1,5 @@
+import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
+
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -22,7 +24,7 @@ const UNSTABLE_HANDLER_CACHE: WebhookRouterHandlerCache = {};
 export const webhookRouter = router({
   list: createWebhookPbacProcedure("webhook.read")
     .input(ZListInputSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx, input }): Promise<Webhook[]> => {
       if (!UNSTABLE_HANDLER_CACHE.list) {
         UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
       }
@@ -131,7 +133,7 @@ export const webhookRouter = router({
     }),
 
   getByViewer: createWebhookPbacProcedure("webhook.read", ["ADMIN", "OWNER", "MEMBER"]).query(
-    async ({ ctx }) => {
+    async ({ ctx }): Promise<import("./getByViewer.handler").WebhooksByViewer> => {
       if (!UNSTABLE_HANDLER_CACHE.getByViewer) {
         UNSTABLE_HANDLER_CACHE.getByViewer = await import("./getByViewer.handler").then(
           (mod) => mod.getByViewerHandler

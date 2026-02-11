@@ -1,11 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
-import { BookingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/BookingPayloadBuilder";
-import { FormPayloadBuilder } from "@calcom/features/webhooks/lib/factory/FormPayloadBuilder";
-import { InstantMeetingBuilder } from "@calcom/features/webhooks/lib/factory/InstantMeetingBuilder";
-import { MeetingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/MeetingPayloadBuilder";
-import { OOOPayloadBuilder } from "@calcom/features/webhooks/lib/factory/OOOPayloadBuilder";
-import { RecordingPayloadBuilder } from "@calcom/features/webhooks/lib/factory/RecordingPayloadBuilder";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { UsersRepository } from "@calcom/features/users/users.repository";
+import { createPayloadBuilderFactory } from "@calcom/features/webhooks/lib/factory/versioned/registry";
 import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import { BookingWebhookService } from "@calcom/features/webhooks/lib/service/BookingWebhookService";
 import { FormWebhookService } from "@calcom/features/webhooks/lib/service/FormWebhookService";
@@ -14,14 +9,28 @@ import { RecordingWebhookService } from "@calcom/features/webhooks/lib/service/R
 import { WebhookNotificationHandler } from "@calcom/features/webhooks/lib/service/WebhookNotificationHandler";
 import { WebhookNotifier } from "@calcom/features/webhooks/lib/service/WebhookNotifier";
 import { WebhookService } from "@calcom/features/webhooks/lib/service/WebhookService";
-
+import { createModule } from "@evyweb/ioctopus";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
+import { DI_TOKENS } from "../../tokens";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
-export const webhookModule = createModule();
+const webhookModule = createModule();
 
-// Bind repository
-webhookModule.bind(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY).toClass(WebhookRepository);
+// Bind cross-table repositories (used by WebhookRepository)
+webhookModule
+  .bind(WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY)
+  .toClass(EventTypeRepository, [DI_TOKENS.PRISMA_CLIENT]);
+
+webhookModule.bind(WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY).toClass(UsersRepository, []);
+
+// Bind webhook repository with dependencies (Repository Pattern compliance)
+webhookModule
+  .bind(WEBHOOK_TOKENS.WEBHOOK_REPOSITORY)
+  .toClass(WebhookRepository, [
+    DI_TOKENS.PRISMA_CLIENT,
+    WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY,
+    WEBHOOK_TOKENS.WEBHOOK_USER_REPOSITORY,
+  ]);
 
 // Bind services
 webhookModule
@@ -54,25 +63,15 @@ webhookModule
     SHARED_TOKENS.LOGGER,
   ]);
 
-// Bind payload builders
-webhookModule.bind(WEBHOOK_TOKENS.BOOKING_PAYLOAD_BUILDER).toClass(BookingPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.FORM_PAYLOAD_BUILDER).toClass(FormPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.OOO_PAYLOAD_BUILDER).toClass(OOOPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.RECORDING_PAYLOAD_BUILDER).toClass(RecordingPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.MEETING_PAYLOAD_BUILDER).toClass(MeetingPayloadBuilder);
-webhookModule.bind(WEBHOOK_TOKENS.INSTANT_MEETING_BUILDER).toClass(InstantMeetingBuilder);
+// Bind payload builder factory (composition root for versioning)
+webhookModule.bind(WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY).toFactory(() => createPayloadBuilderFactory());
 
-// Bind notification handler
+// Bind notification handler with factory
 webhookModule
   .bind(WEBHOOK_TOKENS.WEBHOOK_NOTIFICATION_HANDLER)
   .toClass(WebhookNotificationHandler, [
     WEBHOOK_TOKENS.WEBHOOK_SERVICE,
-    WEBHOOK_TOKENS.BOOKING_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.FORM_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.OOO_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.RECORDING_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.MEETING_PAYLOAD_BUILDER,
-    WEBHOOK_TOKENS.INSTANT_MEETING_BUILDER,
+    WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY,
     SHARED_TOKENS.LOGGER,
   ]);
 
@@ -80,3 +79,5 @@ webhookModule
 webhookModule
   .bind(WEBHOOK_TOKENS.WEBHOOK_NOTIFIER)
   .toClass(WebhookNotifier, [WEBHOOK_TOKENS.WEBHOOK_NOTIFICATION_HANDLER, SHARED_TOKENS.LOGGER]);
+
+export { webhookModule };

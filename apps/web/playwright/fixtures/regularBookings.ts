@@ -124,7 +124,7 @@ export function createBookingPageFixture(page: Page) {
     },
     checkBufferTime: async () => {
       const minutes = (await localize("en"))("minutes");
-      const fieldPlaceholder = page.getByPlaceholder("0");
+      const fieldPlaceholder = page.getByPlaceholder("0").first();
 
       await page
         .locator("div")

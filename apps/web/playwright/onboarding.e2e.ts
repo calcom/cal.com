@@ -21,23 +21,27 @@ test.describe("Onboarding", () => {
       // tests whether the user makes it to /getting-started
       // after login with completedOnboarding false
       await page.waitForURL("/getting-started");
-      await expect(page.locator('text="Connect your calendar"')).toBeVisible(); // Fix race condition
+      await expect(page.locator('text="Connect your calendar"').first()).toBeVisible(); // Fix race condition
 
       await test.step("step 1 - User Settings", async () => {
+        const onboarding = page.getByTestId("onboarding");
+        const form = onboarding.locator("form").first();
+        const submitButton = form.getByTestId("connect-calendar-button");
+
         // Check required fields
-        await page.locator("button[type=submit]").click();
+        await submitButton.click();
         await expect(page.locator("data-testid=required")).toBeVisible();
 
         // happy path
-        await page.locator("input[name=username]").fill("new user onboarding");
-        await page.locator("input[name=name]").fill("new user 2");
-        await page.locator("input[role=combobox]").click();
+        await form.locator("input[name=username]").fill("new user onboarding");
+        await form.getByLabel("Full name").fill("new user 2");
+        await form.locator("input[role=combobox]").click();
         await page
           .locator("*")
           .filter({ hasText: /^Europe\/London/ })
           .first()
           .click();
-        await page.locator("button[type=submit]").click();
+        await submitButton.click();
 
         await expect(page).toHaveURL(/.*connected-calendar/);
 
@@ -71,7 +75,10 @@ test.describe("Onboarding", () => {
       });
 
       await test.step("step 5- User Profile", async () => {
-        await page.locator("button[type=submit]").click();
+        const onboarding = page.getByTestId("onboarding");
+        const form = onboarding.locator("form").first();
+        const submitButton = form.getByRole("button", { name: "Finish setup and get started" });
+        await submitButton.click();
         // should redirect to /event-types after onboarding
         await page.waitForURL("/event-types");
 

@@ -15,7 +15,6 @@ import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -38,6 +37,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
+import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
@@ -364,7 +364,7 @@ const ProfileView = ({ user }: Props) => {
             <DialogFooter showDivider>
               <DialogClose />
               <Button
-                color="primary"
+                color="destructive"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}
                 loading={deleteMeMutation.isPending}>
@@ -528,7 +528,9 @@ const ProfileForm = ({
       .trim()
       .min(1, t("you_need_to_add_a_name"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
-        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+        message: t("max_limit_allowed_hint", {
+          limit: FULL_NAME_LENGTH_MAX_LIMIT,
+        }),
       }),
     email: emailSchema.toLowerCase(),
     bio: z.string(),
@@ -642,7 +644,7 @@ const ProfileForm = ({
 
                       {showRemoveAvatarButton && (
                         <Button
-                          color="destructive"
+                          color="minimal"
                           onClick={() => {
                             onChange(null);
                           }}>
@@ -707,7 +709,9 @@ const ProfileForm = ({
           <Editor
             getText={() => md.render(formMethods.getValues("bio") || "")}
             setText={(value: string) => {
-              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+              formMethods.setValue("bio", turndown(value), {
+                shouldDirty: true,
+              });
             }}
             excludedToolbarItems={["blockType"]}
             disableLists
@@ -719,7 +723,7 @@ const ProfileForm = ({
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">
             <Label>{t("attributes")}</Label>
-            <div className="flex flex-col stack-y-4">
+            <div className="stack-y-4 flex flex-col">
               {usersAttributes.map((attribute, index) => (
                 <>
                   <DisplayInfo

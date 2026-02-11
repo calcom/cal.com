@@ -1,8 +1,8 @@
 import { canAccessOrganization } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 const userCanCreateTeamGroupMapping = async (
   user: NonNullable<TrpcSessionUser>,
@@ -10,18 +10,12 @@ const userCanCreateTeamGroupMapping = async (
   teamId?: number
 ) => {
   if (!organizationId) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Could not find organization id",
-    });
+    throw new ErrorWithCode(ErrorCode.BadRequest, "Could not find organization id");
   }
 
   const { message, access } = await canAccessOrganization(user, organizationId);
   if (!access) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message,
-    });
+    throw new ErrorWithCode(ErrorCode.BadRequest, message);
   }
 
   if (teamId) {
@@ -36,10 +30,7 @@ const userCanCreateTeamGroupMapping = async (
     });
 
     if (!orgTeam) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Could not find team",
-      });
+      throw new ErrorWithCode(ErrorCode.BadRequest, "Could not find team");
     }
   }
 

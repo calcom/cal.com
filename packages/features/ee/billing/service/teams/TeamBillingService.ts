@@ -1,8 +1,6 @@
-import type { z } from "zod";
-
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
@@ -10,18 +8,19 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
-// import billing from "../..";
+import type { z } from "zod";
 import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
-import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import type { SeatChangeType } from "../seatBillingStrategy/ISeatBillingStrategy";
+import type { SeatBillingStrategyFactory } from "../seatBillingStrategy/SeatBillingStrategyFactory";
 import {
-  TeamBillingPublishResponseStatus,
   type ITeamBillingService,
   type TeamBillingInput,
+  TeamBillingPublishResponseStatus,
 } from "./ITeamBillingService";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
@@ -35,22 +34,26 @@ export class TeamBillingService implements ITeamBillingService {
   private billingProviderService: IBillingProviderService;
   private billingRepository: IBillingRepository;
   private teamBillingDataRepository: ITeamBillingDataRepository;
+  private seatBillingStrategyFactory: SeatBillingStrategyFactory;
 
   constructor({
     team,
     billingProviderService,
     teamBillingDataRepository,
     billingRepository,
+    seatBillingStrategyFactory,
   }: {
     team: TeamBillingInput;
     billingProviderService: IBillingProviderService;
     teamBillingDataRepository: ITeamBillingDataRepository;
     billingRepository: IBillingRepository;
+    seatBillingStrategyFactory: SeatBillingStrategyFactory;
   }) {
     this.team = team;
     this.billingProviderService = billingProviderService;
     this.teamBillingDataRepository = teamBillingDataRepository;
     this.billingRepository = billingRepository;
+    this.seatBillingStrategyFactory = seatBillingStrategyFactory;
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
@@ -142,7 +145,7 @@ export class TeamBillingService implements ITeamBillingService {
       this.logErrorFromUnknown(error);
     }
   }
-  async updateQuantity() {
+  async updateQuantity(changeType: SeatChangeType) {
     try {
       await this.getOrgIfNeeded();
       const { id: teamId, metadata, isOrganization } = this.team;
@@ -161,25 +164,20 @@ export class TeamBillingService implements ITeamBillingService {
       if (!url && !isOrganization) return;
 
       // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
-      const { subscriptionId, subscriptionItemId, orgSeats } = metadata;
-      // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
-      // We can't go below this quantity for subscription
-      const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
+      const { subscriptionId, subscriptionItemId } = metadata;
       const membershipCount = await prisma.membership.count({ where: { teamId } });
-      if (isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
-        log.info(
-          `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
-        );
-        return;
-      }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
-      await this.billingProviderService.handleSubscriptionUpdate({
+
+      const strategy = await this.seatBillingStrategyFactory.createByTeamId(teamId);
+      await strategy.onSeatChange({
+        teamId,
         subscriptionId,
         subscriptionItemId,
         membershipCount,
+        changeType,
       });
-      log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
+      log.info(`Seat change processed for team ${teamId} (${membershipCount} seats).`);
     } catch (error) {
       this.logErrorFromUnknown(error);
     }
@@ -230,6 +228,6 @@ export class TeamBillingService implements ITeamBillingService {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-await this.billingRepository.create(args);
+    await this.billingRepository.create(args);
   }
 }
