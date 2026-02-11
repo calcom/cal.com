@@ -1,10 +1,11 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { triggerToast } from "@calid/features/ui/components/toast";
+
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
 import { Switch } from "@calcom/ui/components/form";
 import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/components/list";
 import { List } from "@calcom/ui/components/list";
-import { showToast } from "@calcom/ui/components/toast";
 
 export const FlagAdminList = () => {
   const [data] = trpc.viewer.features.list.useSuspenseQuery();
@@ -16,7 +17,9 @@ export const FlagAdminList = () => {
             <ListItemTitle component="h3">
               {flag.slug}
               &nbsp;&nbsp;
-              <Badge variant="green">{flag.type?.replace("_", " ")}</Badge>
+              <Badge variant="success" size="sm">
+                {flag.type?.replace("_", " ")}
+              </Badge>
             </ListItemTitle>
             <ListItemText component="p">{flag.description}</ListItemText>
           </div>
@@ -38,7 +41,7 @@ const FlagToggle = (props: { flag: Flag }) => {
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.admin.toggleFeatureFlag.useMutation({
     onSuccess: () => {
-      showToast("Flags successfully updated", "success");
+      triggerToast("Flags successfully updated", "success");
       utils.viewer.features.list.invalidate();
       utils.viewer.features.map.invalidate();
     },
