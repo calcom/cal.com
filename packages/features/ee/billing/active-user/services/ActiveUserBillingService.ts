@@ -124,11 +124,11 @@ export class ActiveUserBillingService {
 
     const activeUsers: ActiveUsersBreakdown["activeUsers"] = [];
 
-    for (const email of activeHostEmails) {
+    for (const email of Array.from(activeHostEmails)) {
       const m = memberByEmail.get(email);
       if (m) activeUsers.push({ id: m.id, email: m.email, name: m.name, activeAs: "host" });
     }
-    for (const email of activeAttendeeEmails) {
+    for (const email of Array.from(activeAttendeeEmails)) {
       const m = memberByEmail.get(email);
       if (m) activeUsers.push({ id: m.id, email: m.email, name: m.name, activeAs: "attendee" });
     }
