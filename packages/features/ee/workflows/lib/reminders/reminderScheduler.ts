@@ -217,8 +217,7 @@ const processWorkflowStep = async (
     if (credential == null) return;
 
     const key = credential.key as { baseUrl: string, topic: string, username?: string, password?: string };
-    console.log({key});
-    console.log("Inside reminder scheduler");
+
       await ntfyPublisher({
         baseUrl: key.baseUrl,
         topic: key.topic,

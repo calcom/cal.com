@@ -33,8 +33,6 @@ export default function AppSettings() {
     return <div>No credential found</div>;
   }
 
-  console.log({data});
-
   return (
     <div className="stack-y-4 px-4 pb-4 pt-4 text-sm">
       <TextField

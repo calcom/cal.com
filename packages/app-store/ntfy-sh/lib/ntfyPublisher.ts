@@ -13,8 +13,7 @@ export async function ntfyPublisher(params: NtfyPublisherParams) {
 
     const authHeader = (params.username && params.password) ? 
         `Basic ${btoa(`${params.username}:${params.password}`)}` : undefined;
-    console.log("sending request to ntfy");
-    console.log({url, params, authHeader});
+
     return await fetch(url.toString(), {
         method: "POST",
         headers: {
