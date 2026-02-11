@@ -17,6 +17,10 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import {
+  findOptionByEmail,
+  getValidUniqueEmails,
+} from "@calcom/features/eventtypes/components/checkedTeamSelectEmailUtils";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -28,6 +32,8 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  email?: string;
+  isEmailInvite?: boolean;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -66,17 +72,70 @@ export const CheckedTeamSelect = ({
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
 
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
+  const [inputValue, setInputValue] = useState("");
+  const [inviteOptions, setInviteOptions] = useState<CheckedSelectOption[]>([]);
 
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
+  const optionsWithInvites = [...options, ...inviteOptions];
+
+  const isAlreadySelected = (option: CheckedSelectOption) =>
+    valueFromGroup.some((selectedOption) => selectedOption.value === option.value);
+
+  const isOptionDisabled = (option: CheckedSelectOption) => {
+    if (option.disabled) return true;
+    return props.isOptionDisabled ? props.isOptionDisabled(option, valueFromGroup) : false;
+  };
 
   const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
     const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
 
     const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
     props.onChange(newValueAllGroups);
+  };
+
+  const handleInviteInput = () => {
+    const validEmails = getValidUniqueEmails(inputValue);
+
+    if (!validEmails.length) return;
+
+    const nextSelectedOptions = [...valueFromGroup];
+    const nextInviteOptions: CheckedSelectOption[] = [];
+
+    for (const token of validEmails) {
+      const existingOption = findOptionByEmail(optionsWithInvites, token);
+      if (existingOption) {
+        if (!isAlreadySelected(existingOption) && !isOptionDisabled(existingOption)) {
+          nextSelectedOptions.push(existingOption);
+        }
+        continue;
+      }
+
+      const inviteOption: CheckedSelectOption = {
+        value: `invite:${token}`,
+        label: `${token} (${t("invite")})`,
+        avatar: "",
+        email: token,
+        isEmailInvite: true,
+        groupId,
+      };
+
+      nextInviteOptions.push(inviteOption);
+      nextSelectedOptions.push(inviteOption);
+    }
+
+    if (nextInviteOptions.length) {
+      setInviteOptions((previousInviteOptions) => {
+        const allInvites = [...previousInviteOptions, ...nextInviteOptions];
+        const dedupedInvites = new Map(allInvites.map((option) => [option.value, option]));
+        return [...dedupedInvites.values()];
+      });
+    }
+
+    setInputValue("");
+    handleSelectChange(nextSelectedOptions);
   };
 
   return (
@@ -86,9 +145,23 @@ export const CheckedTeamSelect = ({
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
-        options={options}
+        options={optionsWithInvites}
         value={valueFromGroup}
         onChange={handleSelectChange}
+        onInputChange={(nextInputValue, meta) => {
+          if (meta.action === "input-change") {
+            setInputValue(nextInputValue);
+          }
+          props.onInputChange?.(nextInputValue, meta);
+        }}
+        onKeyDown={(event) => {
+          if ((event.key === "Enter" || event.key === ",") && inputValue.trim().length > 0) {
+            event.preventDefault();
+            handleInviteInput();
+          }
+          props.onKeyDown?.(event);
+        }}
+        isOptionDisabled={isOptionDisabled}
         isMulti
         className={customClassNames?.hostsSelect?.select}
         innerClassNames={{
