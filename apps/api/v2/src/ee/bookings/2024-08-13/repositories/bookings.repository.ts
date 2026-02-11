@@ -1,12 +1,14 @@
+import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
-import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class BookingsRepository_2024_08_13 {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getById(id: number) {
     return this.dbRead.prisma.booking.findUnique({
@@ -214,6 +216,29 @@ export class BookingsRepository_2024_08_13 {
       },
       data: body,
       select: { uid: true },
+    });
+  }
+
+  async getByUidWithEventTypeAndHosts(bookingUid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      include: {
+        attendees: true,
+        user: true,
+        eventType: {
+          include: {
+            hosts: {
+              include: {
+                user: true,
+              },
+            },
+            team: true,
+            owner: true,
+          },
+        },
+      },
     });
   }
 }

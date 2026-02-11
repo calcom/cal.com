@@ -22,6 +22,7 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleBookingInputPipe,
   RescheduleSeatedBookingInput_2024_08_13,
+  UpdateBookingHostsInput_2024_08_13,
 } from "@calcom/platform-types";
 import {
   Body,
@@ -55,6 +56,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { UpdateBookingHostsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-booking-hosts.output";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
@@ -598,6 +600,44 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: sessions,
+    };
+  }
+
+  @Post("/:bookingUid/hosts")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Update booking hosts",
+    description: `Update the hosts for a booking by adding or removing hosts. When hosts are added, they receive booking confirmation emails/SMS. When hosts are removed, they receive cancellation emails/SMS.
+
+    You can identify hosts by either userId or name (username). For each host change, specify an action ("add" or "remove").
+
+    Example request:
+    \`\`\`json
+    {
+      "hosts": [
+        { "action": "add", "userId": 10 },
+        { "action": "remove", "userId": 5 },
+        { "action": "add", "name": "john-doe" }
+      ]
+    }
+    \`\`\`
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
+  })
+  async updateBookingHosts(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: UpdateBookingHostsInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<UpdateBookingHostsOutput_2024_08_13> {
+    const booking = await this.bookingsService.updateBookingHosts(bookingUid, body, user);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
     };
   }
 }

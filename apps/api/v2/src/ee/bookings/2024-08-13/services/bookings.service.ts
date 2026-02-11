@@ -1,12 +1,15 @@
 import {
   confirmBookingHandler,
   getAllUserBookings,
+  getBookerBaseUrl,
   getCalendarLinks,
   getTranslation,
   handleCancelBooking,
   handleMarkNoShow,
   roundRobinManualReassignment,
   roundRobinReassignment,
+  sendReassignedScheduledEmailsAndSMS,
+  sendRoundRobinCancelledEmailsAndSMS,
 } from "@calcom/platform-libraries";
 import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
@@ -24,6 +27,7 @@ import {
   ReassignToUserBookingInput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   RescheduleBookingInput,
+  UpdateBookingHostsInput_2024_08_13,
 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Team, User } from "@calcom/prisma/client";
@@ -1311,5 +1315,228 @@ export class BookingsService_2024_08_13 {
       // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
+  }
+
+  async updateBookingHosts(
+    bookingUid: string,
+    body: UpdateBookingHostsInput_2024_08_13,
+    user: ApiAuthGuardUser
+  ): Promise<BookingOutput_2024_08_13> {
+    const booking = await this.bookingsRepository.getByUidWithEventTypeAndHosts(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    if (!booking.eventType) {
+      throw new BadRequestException(`Booking with uid=${bookingUid} has no associated event type`);
+    }
+
+    const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(user, booking.eventType);
+
+    if (!isAllowed) {
+      throw new ForbiddenException(
+        "You do not have permission to update hosts for this booking. Only event type owners, hosts, team admins or organization admins can update hosts."
+      );
+    }
+
+    if (body.hosts.length === 0) {
+      throw new BadRequestException("At least one host action is required");
+    }
+
+    const metadata = (booking.metadata as Record<string, unknown>) || {};
+    const currentAssignedHostIds: number[] = Array.isArray(metadata.assignedHostIds)
+      ? (metadata.assignedHostIds as number[])
+      : [];
+    const hostsToAdd: number[] = [];
+    const hostsToRemove: number[] = [];
+
+    for (const hostAction of body.hosts) {
+      if (!hostAction.userId && !hostAction.name) {
+        throw new BadRequestException("Each host action must specify either userId or name");
+      }
+
+      let userId: number;
+
+      if (hostAction.userId) {
+        userId = hostAction.userId;
+      } else if (hostAction.name) {
+        const userByName = await this.usersRepository.findByUsername(hostAction.name);
+        if (!userByName) {
+          throw new NotFoundException(`User with username '${hostAction.name}' was not found`);
+        }
+        userId = userByName.id;
+      } else {
+        throw new BadRequestException("Either userId or name must be provided for each host action");
+      }
+
+      const isValidHost = booking.eventType.hosts.some((host) => host.userId === userId);
+      if (!isValidHost) {
+        throw new BadRequestException(
+          `User with id=${userId} is not a valid host for this event type. Only users who are configured as hosts of the event type can be added to bookings.`
+        );
+      }
+
+      if (hostAction.action === "add") {
+        if (hostsToAdd.includes(userId)) {
+          throw new BadRequestException(`User with id=${userId} is specified multiple times in add actions`);
+        }
+        if (currentAssignedHostIds.includes(userId)) {
+          throw new BadRequestException(
+            `User with id=${userId} is already assigned as a host to this booking`
+          );
+        }
+        hostsToAdd.push(userId);
+      } else if (hostAction.action === "remove") {
+        if (hostsToRemove.includes(userId)) {
+          throw new BadRequestException(
+            `User with id=${userId} is specified multiple times in remove actions`
+          );
+        }
+        if (!currentAssignedHostIds.includes(userId)) {
+          throw new BadRequestException(
+            `User with id=${userId} is not currently assigned as a host to this booking`
+          );
+        }
+        hostsToRemove.push(userId);
+      }
+    }
+
+    const overlap = hostsToAdd.filter((id) => hostsToRemove.includes(id));
+    if (overlap.length > 0) {
+      throw new BadRequestException(
+        `User(s) with id(s) [${overlap.join(", ")}] cannot be both added and removed in the same request`
+      );
+    }
+
+    const newAssignedHostIds = currentAssignedHostIds
+      .filter((id) => !hostsToRemove.includes(id))
+      .concat(hostsToAdd);
+
+    const updatedMetadata = {
+      ...metadata,
+      assignedHostIds: newAssignedHostIds,
+    };
+
+    await this.bookingsRepository.updateBooking(bookingUid, {
+      metadata: updatedMetadata,
+    });
+
+    const platformClientParams = booking.eventTypeId
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
+    if (emailsEnabled && (hostsToAdd.length > 0 || hostsToRemove.length > 0)) {
+      await this.sendHostUpdateNotifications({
+        booking,
+        hostsToAdd,
+        hostsToRemove,
+        eventTypeMetadata: booking.eventType.metadata,
+      });
+    }
+
+    const updatedBooking = await this.bookingsRepository.getByUidWithEventTypeAndHosts(bookingUid);
+    if (!updatedBooking) {
+      throw new NotFoundException(`Updated booking with uid=${bookingUid} was not found after update`);
+    }
+
+    return this.outputService.getOutputBooking(updatedBooking);
+  }
+
+  private async sendHostUpdateNotifications({
+    booking,
+    hostsToAdd,
+    hostsToRemove,
+    eventTypeMetadata,
+  }: {
+    booking: Awaited<ReturnType<BookingsRepository_2024_08_13["getByUidWithEventTypeAndHosts"]>>;
+    hostsToAdd: number[];
+    hostsToRemove: number[];
+    eventTypeMetadata: unknown;
+  }): Promise<void> {
+    if (!booking) return;
+
+    const bookerUrl = booking.eventType?.team
+      ? await getBookerBaseUrl(booking.eventType.team.parentId)
+      : null;
+
+    const organizerUser = booking.user;
+    if (!organizerUser) return;
+
+    const organizerT = await getTranslation(organizerUser.locale ?? "en", "common");
+
+    const baseCalEvent = {
+      bookerUrl: bookerUrl || "",
+      title: booking.title,
+      type: booking.eventType?.slug || "event",
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      location: booking.location || "",
+      uid: booking.uid,
+      organizer: {
+        id: organizerUser.id,
+        email: organizerUser.email,
+        name: organizerUser.name || "",
+        timeZone: organizerUser.timeZone,
+        language: { translate: organizerT, locale: organizerUser.locale ?? "en" },
+      },
+      attendees: booking.attendees.map((attendee) => ({
+        id: attendee.id,
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        language: { translate: organizerT, locale: attendee.locale ?? "en" },
+      })),
+    };
+
+    if (hostsToAdd.length > 0) {
+      const addedHosts = booking.eventType?.hosts
+        .filter((host) => hostsToAdd.includes(host.userId))
+        .map((host) => host.user);
+
+      if (addedHosts && addedHosts.length > 0) {
+        const addedHostsAsPersons = await Promise.all(
+          addedHosts.map(async (host) => ({
+            id: host.id,
+            email: host.email,
+            name: host.name || "",
+            timeZone: host.timeZone,
+            language: {
+              translate: await getTranslation(host.locale ?? "en", "common"),
+              locale: host.locale ?? "en",
+            },
+          }))
+        );
+
+        await sendReassignedScheduledEmailsAndSMS({
+          calEvent: baseCalEvent,
+          members: addedHostsAsPersons,
+        });
+      }
+    }
+
+    if (hostsToRemove.length > 0) {
+      const removedHosts = booking.eventType?.hosts
+        .filter((host) => hostsToRemove.includes(host.userId))
+        .map((host) => host.user);
+
+      if (removedHosts && removedHosts.length > 0) {
+        const removedHostsAsPersons = await Promise.all(
+          removedHosts.map(async (host) => ({
+            id: host.id,
+            email: host.email,
+            name: host.name || "",
+            timeZone: host.timeZone,
+            language: {
+              translate: await getTranslation(host.locale ?? "en", "common"),
+              locale: host.locale ?? "en",
+            },
+          }))
+        );
+
+        await sendRoundRobinCancelledEmailsAndSMS(baseCalEvent, removedHostsAsPersons);
+      }
+    }
   }
 }

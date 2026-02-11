@@ -105,8 +105,13 @@ export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
+export {
+  sendReassignedScheduledEmailsAndSMS,
+  sendRoundRobinCancelledEmailsAndSMS,
+} from "@calcom/emails/email-manager";
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 export { getCalendarLinks } from "@calcom/features/bookings/lib/getCalendarLinks";
+export { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 export { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 export { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";

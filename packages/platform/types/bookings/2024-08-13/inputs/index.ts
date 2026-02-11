@@ -12,3 +12,4 @@ export * from "./validators/validate-metadata";
 export * from "./add-guests.input";
 export * from "./update-location.input";
 export * from "./location.input";
+export * from "./update-booking-hosts.input";
