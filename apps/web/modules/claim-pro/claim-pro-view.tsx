@@ -232,13 +232,6 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               style={{
                 boxShadow: "0 18px 40px rgba(10,10,20,0.18)",
               }}>
-              {claimSubmittedForYear >= 1 && (
-                <span
-                  className="absolute right-4 top-4 cursor-pointer text-sm text-blue-600 underline hover:text-blue-700"
-                  onClick={() => setShowStepsDialog(true)}>
-                  How to?
-                </span>
-              )}
               <div
                 className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
                   yearClaimed >= 1 ? "bg-green-100" : "bg-blue-100"
@@ -291,7 +284,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
 
           <div className="group relative h-80 w-full">
             <div
-              className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
+              className={`bg-default border-default relative flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
                 yearClaimed < 1 || yearClaimed >= 2
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
@@ -299,6 +292,13 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               style={{
                 boxShadow: "0 18px 40px rgba(10,10,20,0.18)",
               }}>
+              {yearClaimed >= 1 && yearClaimed < 2 && (
+                <span
+                  className="absolute right-4 top-4 cursor-pointer text-sm text-blue-600 underline hover:text-blue-700"
+                  onClick={() => setShowStepsDialog(true)}>
+                  How to?
+                </span>
+              )}
               <div
                 className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
                   yearClaimed >= 2 ? "bg-green-100" : "bg-blue-100"
