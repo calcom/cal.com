@@ -89,4 +89,17 @@ describe("useFeatureOptInBanner", () => {
 
     expect(result.current.shouldShow).toBe(true);
   });
+
+  it("calls onOptInSuccess callback when markOptedIn is invoked", () => {
+    mockUseSession.mockReturnValue({ data: { user: {} } });
+    const onOptInSuccess = vi.fn();
+
+    const { result } = renderHook(() =>
+      useFeatureOptInBanner("bookings-v3", { onOptInSuccess })
+    );
+
+    result.current.markOptedIn();
+
+    expect(onOptInSuccess).toHaveBeenCalledOnce();
+  });
 });
