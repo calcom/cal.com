@@ -531,6 +531,21 @@ export class OrganizationRepository {
     return org?.organizationSettings ?? null;
   }
 
+  async findPendingChildTeamMemberships({ orgId, userId }: { orgId: number; userId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: {
+        userId,
+        accepted: false,
+        team: {
+          parentId: orgId,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
+
   async findPlatformOrgByUserId(userId: number) {
     return this.prismaClient.team.findFirst({
       where: {

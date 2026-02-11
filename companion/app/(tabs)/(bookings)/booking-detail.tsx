@@ -1,8 +1,8 @@
-import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Platform, Text, View, useColorScheme } from "react-native";
+import { Platform, Text, useColorScheme, View } from "react-native";
 import { AppPressable } from "@/components/AppPressable";
 import { HeaderButtonWrapper } from "@/components/HeaderButtonWrapper";
 import { BookingDetailScreen } from "@/components/screens/BookingDetailScreen";
@@ -16,10 +16,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBookingByUid } from "@/hooks/useBookings";
-import type { Booking } from "@/services/calcom";
 import { showErrorAlert, showInfoAlert, showSuccessAlert } from "@/utils/alerts";
 import { type BookingActionsResult, getBookingActions } from "@/utils/booking-actions";
-import { openInAppBrowser } from "@/utils/browser";
+import { getMeetingUrl } from "@/utils/booking";
+import { openInDefaultBrowser } from "@/utils/browser";
 
 // Empty actions result for when no booking is loaded
 const EMPTY_ACTIONS: BookingActionsResult = {
@@ -31,22 +31,6 @@ const EMPTY_ACTIONS: BookingActionsResult = {
   viewRecordings: { visible: false, enabled: false },
   meetingSessionDetails: { visible: false, enabled: false },
   markNoShow: { visible: false, enabled: false },
-};
-
-const getMeetingUrl = (booking: Booking | null): string | null => {
-  if (!booking) return null;
-
-  const videoCallUrl = booking.responses?.videoCallUrl;
-  if (typeof videoCallUrl === "string" && videoCallUrl.startsWith("http")) {
-    return videoCallUrl;
-  }
-
-  const location = booking.location;
-  if (typeof location === "string" && location.startsWith("http")) {
-    return location;
-  }
-
-  return null;
 };
 
 // Type for action handlers exposed by BookingDetailScreen
@@ -280,7 +264,7 @@ export default function BookingDetail() {
 
   const handleJoinMeeting = useCallback(() => {
     if (meetingUrl) {
-      openInAppBrowser(meetingUrl, "meeting link");
+      openInDefaultBrowser(meetingUrl, "meeting link");
     }
   }, [meetingUrl]);
 

@@ -1,5 +1,6 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { CreationSource, SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
@@ -156,6 +157,7 @@ export const handleNewRecurringBooking = async function (
 export interface IRecurringBookingServiceDependencies {
   regularBookingService: RegularBookingService;
   bookingEventHandler: BookingEventHandlerService;
+  featuresRepository: FeaturesRepository;
 }
 
 /**
@@ -198,6 +200,10 @@ export class RecurringBookingService implements IBookingService {
       const bookerAttendeeId = bookerAttendee?.id;
       const bookerName = bookerAttendee?.name || "";
       const bookerEmail = bookerAttendee?.email || "";
+
+      const isBookingAuditEnabled = eventOrganizationId
+        ? await this.deps.featuresRepository.checkIfTeamHasFeature(eventOrganizationId, "booking-audit")
+        : false;
 
       const rescheduledByAttendeeId = firstCreatedBooking.attendees?.find(
         (attendee) => attendee.email === rescheduledBy
@@ -255,6 +261,7 @@ export class RecurringBookingService implements IBookingService {
             organizationId: eventOrganizationId,
             operationId,
             source: actionSource,
+            isBookingAuditEnabled,
           });
         }
       } else {
@@ -271,6 +278,7 @@ export class RecurringBookingService implements IBookingService {
             organizationId: eventOrganizationId,
             operationId,
             source: actionSource,
+            isBookingAuditEnabled,
           });
         }
       }

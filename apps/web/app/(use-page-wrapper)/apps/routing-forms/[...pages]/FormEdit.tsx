@@ -93,8 +93,7 @@ function Field({
               }
             : null
         }
-        deleteField={router ? null : deleteField}
-      >
+        deleteField={router ? null : deleteField}>
         <FormCardBody>
           <div className="mb-3 w-full">
             <TextField
@@ -114,17 +113,12 @@ function Field({
                 hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, {
                   shouldDirty: true,
                 });
-                const currentIdentifier = hookForm.getValues(
-                  `${hookFieldNamespace}.identifier`
-                );
+                const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
                 // Only auto-update identifier if it was auto-generated from the previous label
                 // This preserves manual identifier changes
                 const isIdentifierGeneratedFromPreviousLabel =
                   currentIdentifier === getFieldIdentifier(previousLabel).toLowerCase();
-                if (
-                  !currentIdentifier ||
-                  isIdentifierGeneratedFromPreviousLabel
-                ) {
+                if (!currentIdentifier || isIdentifierGeneratedFromPreviousLabel) {
                   hookForm.setValue(
                     `${hookFieldNamespace}.identifier`,
                     getFieldIdentifier(newLabel).toLowerCase(),
@@ -142,19 +136,11 @@ function Field({
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
-              value={
-                identifier ||
-                routerField?.identifier ||
-                label ||
-                routerField?.label ||
-                ""
-              }
+              value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(
-                  `${hookFieldNamespace}.identifier`,
-                  e.target.value.toLowerCase(),
-                  { shouldDirty: true }
-                );
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value.toLowerCase(), {
+                  shouldDirty: true,
+                });
               }}
             />
           </div>
@@ -164,9 +150,7 @@ function Field({
               control={hookForm.control}
               defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
-                const defaultValue = FieldTypes.find(
-                  (fieldType) => fieldType.value === value
-                );
+                const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 if (disableTypeChange) {
                   return (
                     <div className="data-testid-field-type">
@@ -179,15 +163,9 @@ function Field({
                           className={classNames(
                             "h-8 w-full justify-between text-left text-sm",
                             !!router && "bg-subtle cursor-not-allowed"
-                          )}
-                        >
-                          <span className="text-default">
-                            {defaultValue?.label || "Select field type"}
-                          </span>
-                          <Icon
-                            name="chevron-down"
-                            className="text-default h-4 w-4"
-                          />
+                          )}>
+                          <span className="text-default">{defaultValue?.label || "Select field type"}</span>
+                          <Icon name="chevron-down" className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
                     </div>
@@ -304,9 +282,7 @@ const FormEdit = ({
     <div className="w-full py-4 lg:py-8">
       <div ref={animationRef} className="flex w-full flex-col rounded-md">
         {hookFormFields.map((field, key) => {
-          const existingField = Boolean(
-            (form.fields || []).find((f) => f.id === field.id)
-          );
+          const existingField = Boolean((form.fields || []).find((f) => f.id === field.id));
           const hasFormResponses = (form._count?.responses ?? 0) > 0;
           return (
             <Field
@@ -343,13 +319,7 @@ const FormEdit = ({
       </div>
       {hookFormFields.length ? (
         <div className={classNames("flex")}>
-          <Button
-            data-testid="add-field"
-            type="button"
-            StartIcon="plus"
-            color="secondary"
-            onClick={addField}
-          >
+          <Button data-testid="add-field" type="button" StartIcon="plus" color="secondary" onClick={addField}>
             Add question
           </Button>
         </div>
@@ -389,12 +359,7 @@ const FormEdit = ({
             Fields are the form fields that the booker would see.
           </p>
         </div>
-        <Button
-          data-testid="add-field"
-          onClick={addField}
-          StartIcon="plus"
-          className="mt-6"
-        >
+        <Button data-testid="add-field" onClick={addField} StartIcon="plus" className="mt-6">
           Add question
         </Button>
       </div>
@@ -414,9 +379,7 @@ export default function FormEditPage({
         {...props}
         appUrl={appUrl}
         permissions={permissions}
-        Page={({ hookForm, form }) => (
-          <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />
-        )}
+        Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
       />
     </>
   );
