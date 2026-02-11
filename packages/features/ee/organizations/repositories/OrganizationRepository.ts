@@ -549,4 +549,19 @@ export class OrganizationRepository {
       },
     });
   }
+
+  async findPendingChildTeamMemberships({ orgId, userId }: { orgId: number; userId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: {
+        userId,
+        accepted: false,
+        team: {
+          parentId: orgId,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
 }
