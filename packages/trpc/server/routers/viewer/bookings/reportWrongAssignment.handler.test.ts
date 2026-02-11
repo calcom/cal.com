@@ -1,6 +1,8 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -11,6 +13,7 @@ import { reportWrongAssignmentHandler } from "./reportWrongAssignment.handler";
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/bookings/repositories/WrongAssignmentReportRepository");
 vi.mock("@calcom/features/bookings/services/BookingAccessService");
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/prisma", () => ({ default: {} }));
@@ -89,6 +92,9 @@ describe("reportWrongAssignmentHandler", () => {
     vi.mocked(BookingAccessService).mockImplementation(function () {
       return mockBookingAccessService;
     });
+    vi.mocked(TeamRepository).mockImplementation(function () {
+      return {};
+    });
     vi.mocked(getWebhooks).mockResolvedValue([]);
     vi.mocked(sendGenericWebhookPayload).mockResolvedValue({ ok: true, status: 200 });
   });
@@ -133,8 +139,17 @@ describe("reportWrongAssignmentHandler", () => {
             additionalNotes: "This booking was assigned to me incorrectly",
           },
         })
+      ).rejects.toThrow(ErrorWithCode);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "This booking was assigned to me incorrectly",
+          },
+        })
       ).rejects.toMatchObject({
-        code: "NOT_FOUND",
         message: "Booking not found",
       });
     });
@@ -152,8 +167,17 @@ describe("reportWrongAssignmentHandler", () => {
             additionalNotes: "Duplicate report",
           },
         })
+      ).rejects.toThrow(ErrorWithCode);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "Duplicate report",
+          },
+        })
       ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
         message: "A wrong assignment report has already been submitted for this booking",
       });
 

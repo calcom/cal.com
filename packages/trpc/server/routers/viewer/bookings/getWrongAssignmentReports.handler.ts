@@ -1,4 +1,6 @@
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
+import { WrongAssignmentReportService } from "@calcom/features/bookings/services/WrongAssignmentReportService";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma from "@calcom/prisma";
 
@@ -10,34 +12,19 @@ type GetWrongAssignmentReportsOptions = {
 };
 
 export const getWrongAssignmentReportsHandler = async ({ input }: GetWrongAssignmentReportsOptions) => {
-  const { teamId, isAll, status, routingFormId, reportedById, limit, offset } = input;
-
-  const repo = new WrongAssignmentReportRepository(prisma);
-  const statuses = statusToEnumMap[status];
-
-  let teamIds: number[];
-
-  if (isAll) {
-    // Org-level view: include the org itself and all child teams
-    const teamRepository = new TeamRepository(prisma);
-    const childTeams = await teamRepository.findAllByParentId({ parentId: teamId, select: { id: true } });
-    teamIds = [teamId, ...childTeams.map((t) => t.id)];
-  } else {
-    teamIds = [teamId];
-  }
-
-  const { reports, totalCount } = await repo.findByTeamIdsAndStatuses({
-    teamIds,
-    statuses: [...statuses],
-    routingFormId: routingFormId ?? undefined,
-    reportedById: reportedById ?? undefined,
-    limit,
-    offset,
+  const service = new WrongAssignmentReportService({
+    bookingRepo: new BookingRepository(prisma),
+    wrongAssignmentReportRepo: new WrongAssignmentReportRepository(prisma),
+    teamRepo: new TeamRepository(prisma),
   });
 
-  return {
-    reports,
-    totalCount,
-    hasMore: offset + reports.length < totalCount,
-  };
+  return service.listReports({
+    teamId: input.teamId,
+    isAll: input.isAll,
+    statuses: [...statusToEnumMap[input.status]],
+    routingFormId: input.routingFormId ?? undefined,
+    reportedById: input.reportedById ?? undefined,
+    limit: input.limit,
+    offset: input.offset,
+  });
 };
