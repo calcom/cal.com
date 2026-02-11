@@ -458,11 +458,12 @@ describe("Middleware Matcher Configuration", () => {
 
   it("should include all core middleware routes", () => {
     expect(matcher).toContain("/auth/login");
-    expect(matcher).toContain("/login");
-    expect(matcher).toContain("/apps/installed");
     expect(matcher).toContain("/auth/logout");
-    expect(matcher).toContain("/:path*/embed");
+    expect(matcher).toContain("/api/auth/signup");
+    expect(matcher).toContain("/apps/installed");
     expect(matcher).toContain("/availability");
+    expect(matcher).toContain("/login");
+    expect(matcher).toContain("/:path*/embed");
   });
 
   it("should have no duplicate entries", () => {
@@ -478,11 +479,12 @@ describe("Middleware Matcher Configuration", () => {
   it("should only contain the expected reduced route set", () => {
     expect(matcher).toEqual([
       "/auth/login",
-      "/login",
+      "/api/auth/signup",
       "/apps/installed",
       "/auth/logout",
-      "/:path*/embed",
       "/availability",
+      "/login",
+      "/:path*/embed",
     ]);
   });
 });
