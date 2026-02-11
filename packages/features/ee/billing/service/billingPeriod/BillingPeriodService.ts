@@ -137,28 +137,32 @@ export class BillingPeriodService {
       };
     }
 
-    if (!billing.billingPeriod && billing.subscriptionId) {
+    const periodIsStale =
+      billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
+    const needsSync = (!billing.billingPeriod || periodIsStale) && billing.subscriptionId;
+
+    if (needsSync) {
       log.info(
-        `Backfilling missing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
+        `Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
       );
 
       try {
         const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
-        const { billingPeriod, pricePerSeat, paidSeats } =
+        const { billingPeriod, pricePerSeat, paidSeats, subscriptionStart, subscriptionEnd } =
           extractBillingDataFromStripeSubscription(subscription);
 
+        const updateData = {
+          billingPeriod,
+          pricePerSeat: pricePerSeat ?? null,
+          paidSeats: paidSeats ?? null,
+          subscriptionStart: subscriptionStart ?? null,
+          subscriptionEnd: subscriptionEnd ?? null,
+        };
+
         if (isOrganization) {
-          await this.repository.updateOrganizationBillingPeriod(billing.id, {
-            billingPeriod,
-            pricePerSeat: pricePerSeat ?? null,
-            paidSeats: paidSeats ?? null,
-          });
+          await this.repository.updateOrganizationBillingPeriod(billing.id, updateData);
         } else {
-          await this.repository.updateTeamBillingPeriod(billing.id, {
-            billingPeriod,
-            pricePerSeat: pricePerSeat ?? null,
-            paidSeats: paidSeats ?? null,
-          });
+          await this.repository.updateTeamBillingPeriod(billing.id, updateData);
         }
 
         const now = new Date();
@@ -167,8 +171,8 @@ export class BillingPeriodService {
         return {
           billingPeriod,
           billingMode: billing.billingMode,
-          subscriptionStart: billing.subscriptionStart,
-          subscriptionEnd: billing.subscriptionEnd,
+          subscriptionStart: subscriptionStart ?? null,
+          subscriptionEnd: subscriptionEnd ?? null,
           trialEnd: billing.subscriptionTrialEnd,
           isInTrial,
           pricePerSeat: pricePerSeat ?? null,

@@ -272,12 +272,74 @@ async function seed(): Promise<SeedResult> {
     });
   }
 
-  // Billing period: current month
+  // Billing period: defaults to current calendar month, overridden by Stripe below
   const now = new Date();
-  const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  let periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  let periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
 
-  // Create bookings to produce exactly 30 active users:
+  // Stripe setup (before bookings so we know the actual billing period)
+  let stripeCustomerId = `cus_fake_aub_${Date.now()}`;
+  let stripeSubscriptionId = `sub_fake_aub_${Date.now()}`;
+  let stripeSubscriptionItemId = `si_fake_aub_${Date.now()}`;
+  let pricePerSeatCents = ORG_PRICE_PER_SEAT_CENTS;
+
+  if (stripe) {
+    if (!STRIPE_ORG_MONTHLY_PRICE_ID) {
+      throw new Error("STRIPE_ORG_MONTHLY_PRICE_ID is required when running with Stripe");
+    }
+
+    console.log("\nCreating Stripe resources...");
+    const price = await stripe.prices.retrieve(STRIPE_ORG_MONTHLY_PRICE_ID);
+    pricePerSeatCents = price.unit_amount || ORG_PRICE_PER_SEAT_CENTS;
+    const product =
+      typeof price.product === "string"
+        ? await stripe.products.retrieve(price.product)
+        : (price.product as Stripe.Product);
+
+    const testClock = await stripe.testHelpers.testClocks.create({
+      frozen_time: Math.floor(Date.now() / 1000),
+      name: "AUB Test - Active User Billing",
+    });
+    console.log(`  Test clock: ${testClock.id}`);
+
+    const customer = await stripe.customers.create({
+      email: ORG_ADMIN_EMAIL,
+      name: "AUB Test Org",
+      test_clock: testClock.id,
+      metadata: { testData: "true", calTeamId: org.id.toString() },
+    });
+
+    const pm = await stripe.paymentMethods.create({ type: "card", card: { token: "tok_visa" } });
+    await stripe.paymentMethods.attach(pm.id, { customer: customer.id });
+    await stripe.customers.update(customer.id, {
+      invoice_settings: { default_payment_method: pm.id },
+    });
+
+    const totalMembers = 1 + members.length;
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: price.id, quantity: totalMembers }],
+      metadata: { testData: "true", teamId: org.id.toString() },
+    });
+
+    stripeCustomerId = customer.id;
+    stripeSubscriptionId = subscription.id;
+    stripeSubscriptionItemId = subscription.items.data[0].id;
+
+    // Use Stripe's actual billing period so bookings align with what Stripe bills for
+    periodStart = new Date(subscription.current_period_start * 1000);
+    periodEnd = new Date(subscription.current_period_end * 1000);
+
+    console.log(`  Customer: ${customer.id}`);
+    console.log(`  Subscription: ${subscription.id} (${totalMembers} seats)`);
+    console.log(`  Product: ${product.id} (${product.name})`);
+    console.log(`  Stripe period: ${periodStart.toISOString()} - ${periodEnd.toISOString()}`);
+    console.log(
+      `  Test clock URL: https://dashboard.stripe.com/test/test-clocks/${testClock.id}`
+    );
+  }
+
+  // Create bookings within the billing period to produce exactly 30 active users:
   //
   //   Admin          -> hosts 2 bookings in period             (ACTIVE as host)   [1]
   //   Members 1-19   -> each hosts 1 booking in period         (ACTIVE as host)   [19]
@@ -288,7 +350,7 @@ async function seed(): Promise<SeedResult> {
   // Total active = 1 admin host + 19 member hosts + 10 attendees = 30
   // Total inactive = 1 out-of-range host + 69 idle = 70
 
-  console.log("Creating bookings...");
+  console.log(`Creating bookings in period ${periodStart.toISOString()} - ${periodEnd.toISOString()}...`);
   const bookingIds: number[] = [];
 
   async function createBooking(
@@ -360,63 +422,6 @@ async function seed(): Promise<SeedResult> {
     .slice(ACTIVE_HOSTS - 1, ACTIVE_HOSTS - 1 + ACTIVE_ATTENDEES_ONLY)
     .map((m) => m.email);
   const expectedInactive = members.slice(ACTIVE_HOSTS - 1 + ACTIVE_ATTENDEES_ONLY).map((m) => m.email);
-
-  // Stripe setup
-  let stripeCustomerId = `cus_fake_aub_${Date.now()}`;
-  let stripeSubscriptionId = `sub_fake_aub_${Date.now()}`;
-  let stripeSubscriptionItemId = `si_fake_aub_${Date.now()}`;
-  let pricePerSeatCents = ORG_PRICE_PER_SEAT_CENTS;
-
-  if (stripe) {
-    if (!STRIPE_ORG_MONTHLY_PRICE_ID) {
-      throw new Error("STRIPE_ORG_MONTHLY_PRICE_ID is required when running with Stripe");
-    }
-
-    console.log("\nCreating Stripe resources...");
-    const price = await stripe.prices.retrieve(STRIPE_ORG_MONTHLY_PRICE_ID);
-    pricePerSeatCents = price.unit_amount || ORG_PRICE_PER_SEAT_CENTS;
-    const product =
-      typeof price.product === "string"
-        ? await stripe.products.retrieve(price.product)
-        : (price.product as Stripe.Product);
-
-    const testClock = await stripe.testHelpers.testClocks.create({
-      frozen_time: Math.floor(Date.now() / 1000),
-      name: "AUB Test - Active User Billing",
-    });
-    console.log(`  Test clock: ${testClock.id}`);
-
-    const customer = await stripe.customers.create({
-      email: ORG_ADMIN_EMAIL,
-      name: "AUB Test Org",
-      test_clock: testClock.id,
-      metadata: { testData: "true", calTeamId: org.id.toString() },
-    });
-
-    const pm = await stripe.paymentMethods.create({ type: "card", card: { token: "tok_visa" } });
-    await stripe.paymentMethods.attach(pm.id, { customer: customer.id });
-    await stripe.customers.update(customer.id, {
-      invoice_settings: { default_payment_method: pm.id },
-    });
-
-    const totalMembers = 1 + members.length;
-    const subscription = await stripe.subscriptions.create({
-      customer: customer.id,
-      items: [{ price: price.id, quantity: totalMembers }],
-      metadata: { testData: "true", teamId: org.id.toString() },
-    });
-
-    stripeCustomerId = customer.id;
-    stripeSubscriptionId = subscription.id;
-    stripeSubscriptionItemId = subscription.items.data[0].id;
-
-    console.log(`  Customer: ${customer.id}`);
-    console.log(`  Subscription: ${subscription.id} (${totalMembers} seats)`);
-    console.log(`  Product: ${product.id} (${product.name})`);
-    console.log(
-      `  Test clock URL: https://dashboard.stripe.com/test/test-clocks/${testClock.id}`
-    );
-  }
 
   // Create OrganizationBilling with ACTIVE_USERS mode
   const totalMembers = 1 + members.length;
