@@ -64,6 +64,6 @@ export function useFacetedUniqueValues({
         }
         return new Map<FacetedValue, number>();
       },
-    [eventTypes, teams, members, canReadOthersBookings, currentUser]
+    [eventTypes, teams, members, canReadOthersBookings, currentUser, t]
   );
 }
