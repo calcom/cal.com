@@ -41,32 +41,28 @@ function SystemBlocklistContent() {
 
   const utils = trpc.useUtils();
 
-  const { data: blockedData, isPending: isBlockedPending } =
-    trpc.viewer.admin.watchlist.list.useQuery(
-      { limit, offset, searchTerm },
-      { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
-    );
+  const { data: blockedData, isPending: isBlockedPending } = trpc.viewer.admin.watchlist.list.useQuery(
+    { limit, offset, searchTerm },
+    { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
+  );
 
-  const { data: reportsData, isPending: isReportsPending } =
-    trpc.viewer.admin.watchlist.listReports.useQuery(
-      {
-        limit,
-        offset,
-        searchTerm,
-        sortBy,
-        systemFilters: { systemStatus: ["PENDING"] },
-      },
-      { placeholderData: keepPreviousData, enabled: activeView === "pending" }
-    );
+  const { data: reportsData, isPending: isReportsPending } = trpc.viewer.admin.watchlist.listReports.useQuery(
+    {
+      limit,
+      offset,
+      searchTerm,
+      sortBy,
+      systemFilters: { systemStatus: ["PENDING"] },
+    },
+    { placeholderData: keepPreviousData, enabled: activeView === "pending" }
+  );
 
-  const { data: pendingReportsCount } =
-    trpc.viewer.admin.watchlist.pendingReportsCount.useQuery();
+  const { data: pendingReportsCount } = trpc.viewer.admin.watchlist.pendingReportsCount.useQuery();
 
-  const { data: entryDetails, isLoading: isDetailsLoading } =
-    trpc.viewer.admin.watchlist.getDetails.useQuery(
-      { id: selectedEntryId ?? "" },
-      { enabled: !!selectedEntryId }
-    );
+  const { data: entryDetails, isLoading: isDetailsLoading } = trpc.viewer.admin.watchlist.getDetails.useQuery(
+    { id: selectedEntryId ?? "" },
+    { enabled: !!selectedEntryId }
+  );
 
   const createEntry = trpc.viewer.admin.watchlist.create.useMutation({
     onSuccess: async () => {
@@ -90,19 +86,17 @@ function SystemBlocklistContent() {
     },
   });
 
-  const addToWatchlist = trpc.viewer.admin.watchlist.addToWatchlist.useMutation(
-    {
-      onSuccess: async () => {
-        await utils.viewer.admin.watchlist.listReports.invalidate();
-        await utils.viewer.admin.watchlist.list.invalidate();
-        await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
-        showToast(t("system_blocklist_entry_created"), "success");
-      },
-      onError: (error) => {
-        showToast(error.message, "error");
-      },
-    }
-  );
+  const addToWatchlist = trpc.viewer.admin.watchlist.addToWatchlist.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.admin.watchlist.listReports.invalidate();
+      await utils.viewer.admin.watchlist.list.invalidate();
+      await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
+      showToast(t("system_blocklist_entry_created"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   const dismissReport = trpc.viewer.admin.watchlist.dismissReport.useMutation({
     onSuccess: async () => {
@@ -168,11 +162,7 @@ function SystemBlocklistContent() {
         </div>
         <div className="flex items-center gap-2">
           {activeView === "blocked" && (
-            <Button
-              color="primary"
-              StartIcon="plus"
-              onClick={() => setShowCreateModal(true)}
-            >
+            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
           )}
@@ -195,10 +185,7 @@ function SystemBlocklistContent() {
           onSelectEntry={setSelectedEntryId}
           enableRowSelection
           renderBulkActions={(selectedEntries, clearSelection) => (
-            <BulkDeleteBlocklistEntries
-              entries={selectedEntries}
-              onRemove={clearSelection}
-            />
+            <BulkDeleteBlocklistEntries entries={selectedEntries} onRemove={clearSelection} />
           )}
         />
       ) : (
@@ -208,20 +195,13 @@ function SystemBlocklistContent() {
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
           limit={limit}
-          onAddToBlocklist={(email, type, onSuccess) =>
-            addToWatchlist.mutate({ email, type }, { onSuccess })
-          }
-          onDismiss={(email, onSuccess) =>
-            dismissReport.mutate({ email }, { onSuccess })
-          }
+          onAddToBlocklist={(email, type, onSuccess) => addToWatchlist.mutate({ email, type }, { onSuccess })}
+          onDismiss={(email, onSuccess) => dismissReport.mutate({ email }, { onSuccess })}
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
           enableRowSelection
           renderBulkActions={(selectedReports, clearSelection) => (
-            <BulkDismissReports
-              reports={selectedReports}
-              onRemove={clearSelection}
-            />
+            <BulkDismissReports reports={selectedReports} onRemove={clearSelection} />
           )}
         />
       )}

@@ -7,8 +7,6 @@ import type {
   CurrentSeats,
   EventType,
   GetAvailabilityUser,
-  IFromUser,
-  IToUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
@@ -59,6 +57,8 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
@@ -67,36 +67,9 @@ type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabi
   credentials: CredentialForCalendarService[];
 };
 
-export interface IGetAvailableSlots {
-  slots: Record<
-    string,
-    {
-      time: string;
-      attendees?: number | undefined;
-      bookingUid?: string | undefined;
-      away?: boolean | undefined;
-      fromUser?: IFromUser | undefined;
-      toUser?: IToUser | undefined;
-      reason?: string | undefined;
-      emoji?: string | undefined;
-      showNotePublicly?: boolean | undefined;
-    }[]
-  >;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  troubleshooter?: any;
-}
-
 export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
 >;
-
-/**
- * Minimal capability interface for looking up a user's organization membership.
- * Used as a fallback when org context can't be determined from request or eventType.
- */
-export interface OrgMembershipLookup {
-  findFirstOrganizationIdForUser(args: { userId: number }): Promise<number | null>;
-}
 
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;

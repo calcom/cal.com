@@ -4,12 +4,11 @@ import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
 import type { SWHMap } from "./__handler";
 import handler from "./_invoice.payment_succeeded";
 
-const handleProrationPaymentSuccess = vi.fn();
+const onPaymentSucceeded = vi.fn().mockResolvedValue({ handled: true });
+const createBySubscriptionId = vi.fn().mockResolvedValue({ onPaymentSucceeded });
 
-vi.mock("../../service/proration/MonthlyProrationService", () => ({
-  MonthlyProrationService: class {
-    handleProrationPaymentSuccess = handleProrationPaymentSuccess;
-  },
+vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
+  getSeatBillingStrategyFactory: () => ({ createBySubscriptionId }),
 }));
 
 describe("invoice.payment_succeeded webhook", () => {
@@ -20,6 +19,7 @@ describe("invoice.payment_succeeded webhook", () => {
   it("marks proration as charged when line item is present", async () => {
     const data = {
       object: {
+        subscription: "sub_123",
         lines: {
           data: [
             {
@@ -32,19 +32,21 @@ describe("invoice.payment_succeeded webhook", () => {
 
     const result = await handler(data);
 
-    expect(handleProrationPaymentSuccess).toHaveBeenCalledWith("pr_123");
-    expect(result).toEqual({ success: true });
+    expect(createBySubscriptionId).toHaveBeenCalledWith("sub_123");
+    expect(onPaymentSucceeded).toHaveBeenCalledWith({
+      lines: data.object.lines,
+    });
+    expect(result).toEqual({ success: true, handled: true });
   });
 
-  it("skips when no proration line item exists", async () => {
+  it("skips when no subscription on invoice", async () => {
     const data = {
       object: {
+        subscription: null,
         lines: {
           data: [
             {
-              metadata: {
-                type: "other",
-              },
+              metadata: { type: "other" },
             },
           ],
         },
@@ -53,7 +55,24 @@ describe("invoice.payment_succeeded webhook", () => {
 
     const result = await handler(data);
 
-    expect(handleProrationPaymentSuccess).not.toHaveBeenCalled();
-    expect(result).toEqual({ success: true, message: "no proration line items in invoice" });
+    expect(createBySubscriptionId).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: true, message: "not a subscription invoice" });
+  });
+
+  it("returns handled=false when strategy does not handle the invoice", async () => {
+    onPaymentSucceeded.mockResolvedValueOnce({ handled: false });
+
+    const data = {
+      object: {
+        subscription: "sub_456",
+        lines: {
+          data: [{ metadata: { type: "other" } }],
+        },
+      },
+    } as unknown as SWHMap["invoice.payment_succeeded"]["data"];
+
+    const result = await handler(data);
+
+    expect(result).toEqual({ success: true, handled: false });
   });
 });

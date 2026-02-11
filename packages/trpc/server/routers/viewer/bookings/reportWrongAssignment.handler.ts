@@ -1,9 +1,12 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -24,7 +27,9 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const { user } = ctx;
   const { bookingUid, correctAssignee, additionalNotes } = input;
 
+  const t = await getTranslation(user.locale ?? "en", "common");
   const bookingRepo = new BookingRepository(prisma);
+  const wrongAssignmentReportRepo = new WrongAssignmentReportRepository(prisma);
   const bookingAccessService = new BookingAccessService(prisma);
 
   const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
@@ -49,6 +54,36 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const guestEmail = booking.attendees[0]?.email || "";
   const hostEmail = booking.user?.email || "";
   const hostName = booking.user?.name || null;
+  const routingFormId = booking.routedFromRoutingFormReponse?.formId || null;
+
+  const alreadyReported = await wrongAssignmentReportRepo.existsByBookingUid(booking.uid);
+
+  if (alreadyReported) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: t("wrong_assignment_already_reported"),
+    });
+  }
+
+  let report: { id: string };
+  try {
+    report = await wrongAssignmentReportRepo.createReport({
+      bookingUid: booking.uid,
+      reportedById: user.id,
+      correctAssignee: correctAssignee || null,
+      additionalNotes,
+      teamId,
+      routingFormId,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: t("wrong_assignment_already_reported"),
+      });
+    }
+    throw error;
+  }
 
   const webhookPayload = {
     booking: {
@@ -118,5 +153,6 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   return {
     success: true,
     message: "Wrong assignment reported successfully",
+    reportId: report.id,
   };
 };
