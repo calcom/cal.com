@@ -105,7 +105,6 @@ describe("Select Widgets", () => {
 describe("NumberWidget", () => {
   const originalNavigatorLanguage = navigator.language;
 
-  // fn to set navigator language dynamically for testing
   function setNavigatorLanguage(lang: string) {
     Object.defineProperty(window.navigator, "language", {
       value: lang,
@@ -113,7 +112,6 @@ describe("NumberWidget", () => {
     });
   }
 
-  // reset to original navigator lanaguage after each test
   afterEach(() => {
     setNavigatorLanguage(originalNavigatorLanguage);
   });
@@ -148,10 +146,7 @@ describe("NumberWidget", () => {
 
     fireEvent.change(input, { target: { value: "1.234,56" } });
 
-    // Internal value sent to parent is normalized (standard numeric format)
     expect(setValue).toHaveBeenLastCalledWith("1234.56");
-
-    // Display remains localized
     expect((input as HTMLInputElement).value).toBe("1.234,56");
   });
 
@@ -193,9 +188,7 @@ describe("NumberWidget", () => {
 
     fireEvent.change(input, { target: { value: "1.234,56,78" } });
 
-    // The widget removes subsequent decimal separators; normalized should have one dot
     expect(setValue).toHaveBeenLastCalledWith("1234.5678");
-    // UI should also show only one decimal separator
     expect((input as HTMLInputElement).value).toBe("1.234,5678");
   });
 
@@ -209,7 +202,6 @@ describe("NumberWidget", () => {
 
     fireEvent.change(input, { target: { value: "12-34.5" } });
 
-    // Only a leading minus is allowed; internal ones are removed
     expect(setValue).toHaveBeenLastCalledWith("1234.5");
   });
 
@@ -217,14 +209,11 @@ describe("NumberWidget", () => {
     setNavigatorLanguage("en-US");
     const setValue = vi.fn();
 
-    // Start with empty value
     render(<NumberWidget value="" setValue={setValue} />);
     const input = screen.getByRole("textbox");
 
-    // User types "1234."
     fireEvent.change(input, { target: { value: "1234." } });
 
-    // Should keep the raw value with trailing decimal (no formatting applied)
     expect((input as HTMLInputElement).value).toBe("1234.");
     expect(setValue).toHaveBeenLastCalledWith("1234.");
   });
@@ -239,7 +228,6 @@ describe("NumberWidget", () => {
     fireEvent.change(input, { target: { value: "-" } });
 
     expect(setValue).toHaveBeenLastCalledWith("-");
-    // Should display the minus sign as typed
     expect((input as HTMLInputElement).value).toBe("-");
   });
 
@@ -251,19 +239,15 @@ describe("NumberWidget", () => {
       groupSafeForTyping?: boolean;
     };
 
-    // Utility: checks whether a locale is actually supported in this runtime
     function isLocaleSupported(locale: string): boolean {
       try {
         const resolved = new Intl.NumberFormat(locale).resolvedOptions().locale;
-        // Check for exact match (case-insensitive)
         return resolved.toLowerCase() === locale.toLowerCase();
       } catch {
         return false; // Invalid or unsupported locale
       }
     }
 
-    // fr-FR, ru-RU, and pl-PL use a non-breaking space as the group separator.
-    // Since users typically don't type that Unicode character, these locales are marked as not groupSafeForTyping.
     const locales: LocaleCase[] = [
       { locale: "en-US", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "es-ES", decimal: ",", group: ".", groupSafeForTyping: true },
@@ -276,7 +260,6 @@ describe("NumberWidget", () => {
       { locale: "nl-NL", decimal: ",", group: ".", groupSafeForTyping: true },
       { locale: "pl-PL", decimal: "," },
       { locale: "zh-CN", decimal: ".", group: ",", groupSafeForTyping: true },
-      // { locale: "ar", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "hi-IN", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "ko-KR", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "tr-TR", decimal: ",", group: ".", groupSafeForTyping: true },
@@ -398,11 +381,7 @@ describe("NumberWidget", () => {
       expect((input as HTMLInputElement).value).toBe("123.456.789.012.345");
     });
 
-    it.skip("handles 15 digits WITH decimals (precision issues)", () => {
-      // Intentionally skipped - JavaScript Number has precision limits.
-      // Testing 15 integer digits + decimals would exceed safe integer range
-      // and cause floating point precision issues.
-    });
+    it.skip("handles 15 digits WITH decimals (precision issues)", () => {});
   });
 
   describe("15 significant digit limit", () => {
@@ -422,7 +401,6 @@ describe("NumberWidget", () => {
       render(<NumberWidget value="1234567890123456" setValue={setValue} />);
       const input = screen.getByRole("textbox");
 
-      // Should display truncated to 15 digits
       expect((input as HTMLInputElement).value).toBe("123,456,789,012,345");
     });
 
@@ -432,7 +410,6 @@ describe("NumberWidget", () => {
       render(<NumberWidget value="123456789012345678" setValue={setValue} />);
       const input = screen.getByRole("textbox");
 
-      // Should display truncated to 15 digits
       expect((input as HTMLInputElement).value).toBe("123,456,789,012,345");
     });
 
@@ -519,7 +496,6 @@ describe("NumberWidget", () => {
       const input = screen.getByRole("textbox");
       expect((input as HTMLInputElement).value).toBe("1,234.56");
 
-      // Parent resets value
       rerender(<NumberWidget value="" setValue={setValue} />);
 
       expect((input as HTMLInputElement).value).toBe("");
@@ -533,7 +509,6 @@ describe("NumberWidget", () => {
       let input = screen.getByRole("textbox");
       expect((input as HTMLInputElement).value).toBe("100");
 
-      // Parent changes value to different number
       rerender(<NumberWidget value="9999.99" setValue={setValue} />);
 
       input = screen.getByRole("textbox");
@@ -548,7 +523,6 @@ describe("NumberWidget", () => {
       let input = screen.getByRole("textbox");
       expect((input as HTMLInputElement).value).toBe("1,234");
 
-      // Parent changes value to zero
       rerender(<NumberWidget value="0" setValue={setValue} />);
 
       input = screen.getByRole("textbox");
@@ -561,12 +535,10 @@ describe("NumberWidget", () => {
       render(<NumberWidget value="" setValue={setValue} />);
       const input = screen.getByRole("textbox");
 
-      // User types "-0"
       fireEvent.change(input, { target: { value: "-0" } });
       expect((input as HTMLInputElement).value).toBe("-0");
       expect(setValue).toHaveBeenLastCalledWith("-0");
 
-      // User continues typing ".5"
       fireEvent.change(input, { target: { value: "-0.5" } });
       expect((input as HTMLInputElement).value).toBe("-0.5");
       expect(setValue).toHaveBeenLastCalledWith("-0.5");
@@ -620,11 +592,9 @@ describe("NumberWidget", () => {
 
       const input = screen.getByRole("textbox");
 
-      // Type "123."
       fireEvent.change(input, { target: { value: "123." } });
       expect((input as HTMLInputElement).value).toBe("123.");
 
-      // Complete with "5"
       fireEvent.change(input, { target: { value: "123.5" } });
       expect((input as HTMLInputElement).value).toBe("123.5");
     });
@@ -661,7 +631,6 @@ describe("NumberWidget", () => {
       let input = screen.getByRole("textbox");
       expect((input as HTMLInputElement).value).toBe("1,234.56");
 
-      // Switch locale
       setNavigatorLanguage("de-DE");
       rerender(<NumberWidget value="1234.56" setValue={setValue} />);
 
