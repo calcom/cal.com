@@ -44,11 +44,13 @@ export type BookingWithAttendees = {
   eventType: {
     bookingFields: unknown;
   } | null;
-  utm_source: string | null;
-  utm_medium: string | null;
-  utm_campaign: string | null;
-  utm_term: string | null;
-  utm_content: string | null;
+  tracking: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
 };
 
 export type ProcessedBookingData = {
@@ -288,11 +290,11 @@ export function getUtmDataForBooking(
   booking: BookingWithAttendees | undefined
 ): Record<string, string> {
   return {
-    utm_source: booking?.utm_source || "",
-    utm_medium: booking?.utm_medium || "",
-    utm_campaign: booking?.utm_campaign || "",
-    utm_term: booking?.utm_term || "",
-    utm_content: booking?.utm_content || "",
+    utm_source: booking?.tracking?.utm_source || "",
+    utm_medium: booking?.tracking?.utm_medium || "",
+    utm_campaign: booking?.tracking?.utm_campaign || "",
+    utm_term: booking?.tracking?.utm_term || "",
+    utm_content: booking?.tracking?.utm_content || "",
   };
 }
 

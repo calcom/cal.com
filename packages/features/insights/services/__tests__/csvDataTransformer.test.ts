@@ -213,11 +213,7 @@ describe("csvDataTransformer", () => {
       seatsReferences: [],
       responses: {},
       eventType: { bookingFields: [] },
-      utm_source: null,
-      utm_medium: null,
-      utm_campaign: null,
-      utm_term: null,
-      utm_content: null,
+      tracking: null,
       ...overrides,
     });
 
@@ -371,11 +367,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
         {
           uid: "booking-2",
@@ -388,11 +380,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
       ];
 
@@ -413,11 +401,7 @@ describe("csvDataTransformer", () => {
           eventType: {
             bookingFields: [{ name: "company", type: "text", label: "Company" }],
           },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
         {
           uid: "booking-2",
@@ -428,11 +412,7 @@ describe("csvDataTransformer", () => {
           eventType: {
             bookingFields: [{ name: "department", type: "text", label: "Department" }],
           },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
       ];
 
@@ -464,11 +444,7 @@ describe("csvDataTransformer", () => {
               { name: "customPhone", type: "phone", label: "Contact Phone" },
             ],
           },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
         {
           uid: "seated-booking",
@@ -487,11 +463,7 @@ describe("csvDataTransformer", () => {
               { name: "dietaryRestrictions", type: "text", label: "Dietary Restrictions" },
             ],
           },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
       ];
 
@@ -725,11 +697,13 @@ describe("csvDataTransformer", () => {
               { name: "timeline", type: "text", label: "Timeline" },
             ],
           },
-          utm_source: "google",
-          utm_medium: "cpc",
-          utm_campaign: "spring-sale",
-          utm_term: "scheduling",
-          utm_content: "banner-ad",
+          tracking: {
+            utm_source: "google",
+            utm_medium: "cpc",
+            utm_campaign: "spring-sale",
+            utm_term: "scheduling",
+            utm_content: "banner-ad",
+          },
         },
         {
           uid: "booking-2",
@@ -748,11 +722,7 @@ describe("csvDataTransformer", () => {
               { name: "emergencyContact", type: "phone", label: "Emergency Contact" },
             ],
           },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
       ];
 
@@ -799,11 +769,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
       ];
 
@@ -858,11 +824,13 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
-          utm_source: "google",
-          utm_medium: "cpc",
-          utm_campaign: "spring-sale",
-          utm_term: "scheduling",
-          utm_content: "banner-ad",
+          tracking: {
+            utm_source: "google",
+            utm_medium: "cpc",
+            utm_campaign: "spring-sale",
+            utm_term: "scheduling",
+            utm_content: "banner-ad",
+          },
         },
         {
           uid: "booking-no-utm",
@@ -871,11 +839,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
-          utm_source: null,
-          utm_medium: null,
-          utm_campaign: null,
-          utm_term: null,
-          utm_content: null,
+          tracking: null,
         },
       ];
 
@@ -904,11 +868,13 @@ describe("csvDataTransformer", () => {
         seatsReferences: [],
         responses: {},
         eventType: null,
-        utm_source: "google",
-        utm_medium: "cpc",
-        utm_campaign: "spring-sale",
-        utm_term: "scheduling",
-        utm_content: "banner-ad",
+        tracking: {
+          utm_source: "google",
+          utm_medium: "cpc",
+          utm_campaign: "spring-sale",
+          utm_term: "scheduling",
+          utm_content: "banner-ad",
+        },
       };
 
       expect(getUtmDataForBooking(booking)).toEqual({
@@ -928,11 +894,7 @@ describe("csvDataTransformer", () => {
         seatsReferences: [],
         responses: {},
         eventType: null,
-        utm_source: null,
-        utm_medium: null,
-        utm_campaign: null,
-        utm_term: null,
-        utm_content: null,
+        tracking: null,
       };
 
       expect(getUtmDataForBooking(booking)).toEqual({
