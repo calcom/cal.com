@@ -1,25 +1,13 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import {
-  DataTableProvider,
   ColumnFilterType,
+  DataTableProvider,
   useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -33,10 +21,25 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  DataTableFilters,
+  DataTableSegment,
+  DataTableToolbar,
+  DataTableWrapper,
+} from "~/data-table/components";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
-import type { BookingRedirectForm } from "./types";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
+import type { BookingRedirectForm } from "./types";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -76,18 +79,21 @@ export default function OutOfOfficeEntriesList({
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
+      borderInShellHeader={true}
       CTA={
         <div className="flex gap-2">
           <OutOfOfficeToggleGroup />
           <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" onClick={onOpenCreateDialog} />
         </div>
       }>
-      <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
-        <OutOfOfficeEntriesListContent
-          onOpenCreateDialog={onOpenCreateDialog}
-          onOpenEditDialog={onOpenEditDialog}
-        />
-      </DataTableProvider>
+      <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
+        <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
+          <OutOfOfficeEntriesListContent
+            onOpenCreateDialog={onOpenCreateDialog}
+            onOpenEditDialog={onOpenEditDialog}
+          />
+        </DataTableProvider>
+      </div>
     </SettingsHeader>
   );
 }
@@ -131,7 +137,7 @@ function OutOfOfficeEntriesListContent({
   const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
-      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
+      isPending || isFetching ? new Array(5).fill(null) : (data?.pages?.flatMap((page) => page.rows) ?? []),
     [data, isPending, isFetching]
   ) as OutOfOfficeEntry[];
 
@@ -169,7 +175,7 @@ function OutOfOfficeEntriesListContent({
             columnHelper.display({
               id: "member",
               header: `Member`,
-              size: 300,
+              size: 220,
               cell: ({ row }) => {
                 if (!row.original || !row.original.user || isPending || isFetching) {
                   return <SkeletonText className="h-8 w-full" />;
@@ -211,47 +217,45 @@ function OutOfOfficeEntriesListContent({
       columnHelper.display({
         id: "outOfOffice",
         header: `${t("out_of_office")} (${totalRowCount})`,
-        size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
+        size: 570,
         cell: ({ row }) => {
           const item = row.original;
           return (
             <>
               {row.original && !isPending && !isFetching ? (
                 <div
-                  className="flex flex-row justify-between p-2"
+                  className="flex flex-row items-center gap-3 py-2"
                   data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
-                  <div className="flex flex-row items-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
-                      {item?.reason?.emoji || "🏝️"}
-                    </div>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-50">
+                    {item?.reason?.emoji || "🏝️"}
+                  </div>
 
-                    <div className="ml-2 flex flex-col">
-                      <p className="px-2 font-bold">
-                        {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
-                      </p>
-                      <p className="px-2">
-                        {item.toUser?.username ? (
-                          <ServerTrans
-                            t={t}
-                            i18nKey="ooo_forwarding_to"
-                            values={{
-                              username: item.toUser?.username,
-                            }}
-                            components={[<span key="ooo-username" className="text-subtle font-bold" />]}
-                          />
-                        ) : (
-                          <>{t("ooo_not_forwarding")}</>
-                        )}
-                      </p>
-                      {item.notes && (
-                        <p className="px-2">
-                          <span className="text-subtle">{t("notes")}: </span>
-                          <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
-                            {item.notes}
-                          </span>
-                        </p>
+                  <div className="flex flex-col">
+                    <p className="font-bold">
+                      {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+                    </p>
+                    <p>
+                      {item.toUser?.username ? (
+                        <ServerTrans
+                          t={t}
+                          i18nKey="ooo_forwarding_to"
+                          values={{
+                            username: item.toUser?.username,
+                          }}
+                          components={[<span key="ooo-username" className="text-subtle font-bold" />]}
+                        />
+                      ) : (
+                        <>{t("ooo_not_forwarding")}</>
                       )}
-                    </div>
+                    </p>
+                    {item.notes && (
+                      <p>
+                        <span className="text-subtle">{t("notes")}: </span>
+                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+                          {item.notes}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -340,7 +344,15 @@ function OutOfOfficeEntriesListContent({
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t, deleteOutOfOfficeEntryMutation, totalRowCount]);
+  }, [
+    selectedTab,
+    isPending,
+    isFetching,
+    onOpenEditDialog,
+    t,
+    deleteOutOfOfficeEntryMutation,
+    totalRowCount,
+  ]);
 
   const table = useReactTable({
     data: flatData,
@@ -385,8 +397,14 @@ function OutOfOfficeEntriesListContent({
         }
         EmptyView={
           <EmptyScreen
-            className="mt-6"
-            headline={searchTerm ? t("no_result_found_for", {searchTerm}) : selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+            className="mt-2"
+            headline={
+              searchTerm
+                ? t("no_result_found_for", { searchTerm })
+                : selectedTab === OutOfOfficeTab.TEAM
+                  ? t("ooo_team_empty_title")
+                  : t("ooo_empty_title")
+            }
             description={
               selectedTab === OutOfOfficeTab.TEAM
                 ? t("ooo_team_empty_description")
