@@ -43,9 +43,16 @@ export function calculatePeriodLimits({
   _skipRollingWindowCheck,
 }: Pick<
   EventType,
-  "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 > & {
-  allDatesWithBookabilityStatusInBookerTz: Record<string, { isBookable: boolean }> | null;
+  allDatesWithBookabilityStatusInBookerTz: Record<
+    string,
+    { isBookable: boolean }
+  > | null;
   eventUtcOffset: number;
   bookerUtcOffset: number;
   _skipRollingWindowCheck?: boolean;
@@ -177,11 +184,17 @@ export function getRollingWindowEndDate({
    */
   startDateInBookerTz: dayjs.Dayjs;
   daysNeeded: number;
-  allDatesWithBookabilityStatusInBookerTz: Record<string, { isBookable: boolean }>;
+  allDatesWithBookabilityStatusInBookerTz: Record<
+    string,
+    { isBookable: boolean }
+  >;
   countNonBusinessDays: boolean | null;
 }) {
   const log = logger.getSubLogger({ prefix: ["getRollingWindowEndDate"] });
-  log.debug("called:", safeStringify({ startDay: startDateInBookerTz.format(), daysNeeded }));
+  log.debug(
+    "called:",
+    safeStringify({ startDay: startDateInBookerTz.format(), daysNeeded })
+  );
   let counter = 1;
   let rollingEndDay: ReturnType<typeof startDateInBookerTz.startOf> | undefined;
   const startOfStartDayInEventTz = startDateInBookerTz.startOf("day");
@@ -200,7 +213,9 @@ export function getRollingWindowEndDate({
 
     const onlyDateOfIterationDay = startOfIterationDay.format("YYYY-MM-DD");
 
-    const isBookable = !!allDatesWithBookabilityStatusInBookerTz[onlyDateOfIterationDay]?.isBookable;
+    const isBookable =
+      !!allDatesWithBookabilityStatusInBookerTz[onlyDateOfIterationDay]
+        ?.isBookable;
 
     if (isBookable) {
       bookableDaysCount++;
@@ -229,7 +244,9 @@ export function getRollingWindowEndDate({
    * We can't just return null(if rollingEndDay couldn't be obtained) and allow days farther than ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK to be booked as that would mean there is no future limit
    * The future limit talks in terms of days so we take the end of the day here to consider the entire day
    */
-  const endOfLastDayOfWindowInBookerTz = (rollingEndDay ?? startOfIterationDay).endOf("day");
+  const endOfLastDayOfWindowInBookerTz = (
+    rollingEndDay ?? startOfIterationDay
+  ).endOf("day");
   log.debug("Returning rollingEndDay", endOfLastDayOfWindowInBookerTz.format());
 
   return endOfLastDayOfWindowInBookerTz;
@@ -243,16 +260,26 @@ export function getRollingWindowEndDate({
 export function isTimeOutOfBounds({
   time,
   minimumBookingNotice,
+  isHost,
 }: {
   time: dayjs.ConfigType;
   minimumBookingNotice?: number;
+  isHost?: boolean;
 }) {
   const date = dayjs(time);
 
   guardAgainstBookingInThePast(date.toDate());
 
+  // If user is a host/organizer rescheduling, ignore minimum notice restrictions
+  if (isHost) {
+    return false;
+  }
+
   if (minimumBookingNotice) {
-    const minimumBookingStartDate = dayjs().add(minimumBookingNotice, "minutes");
+    const minimumBookingStartDate = dayjs().add(
+      minimumBookingNotice,
+      "minutes"
+    );
     if (date.isBefore(minimumBookingStartDate)) {
       return true;
     }
@@ -268,15 +295,21 @@ export function isTimeOutOfBounds({
 export function getPastTimeAndMinimumBookingNoticeBoundsStatus({
   time,
   minimumBookingNotice,
+  isHost,
 }: {
   time: dayjs.ConfigType;
   minimumBookingNotice?: number;
+  isHost?: boolean;
 }): {
   isOutOfBounds: boolean;
   reason: "minBookNoticeViolation" | "slotInPast" | null;
 } {
   try {
-    const isOutOfBounds = isTimeOutOfBounds({ time, minimumBookingNotice });
+    const isOutOfBounds = isTimeOutOfBounds({
+      time,
+      minimumBookingNotice,
+      isHost,
+    });
     return {
       isOutOfBounds,
       reason: isOutOfBounds ? "minBookNoticeViolation" : null,
@@ -310,7 +343,8 @@ export function isTimeViolatingFutureLimit({
   const dateObj = new Date(time);
   if (periodLimits.endOfRollingPeriodEndDayInBookerTz) {
     const isAfterRollingEndDay =
-      dateObj.valueOf() > periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf();
+      dateObj.valueOf() >
+      periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf();
 
     if (isAfterRollingEndDay)
       log.warn(
@@ -318,15 +352,21 @@ export function isTimeViolatingFutureLimit({
         safeStringify({
           formattedDate: dateObj.toISOString(),
           isAfterRollingEndDay,
-          endOfRollingPeriodEndDayTs: periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf(),
+          endOfRollingPeriodEndDayTs:
+            periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf(),
         })
       );
     return isAfterRollingEndDay;
   }
 
-  if (periodLimits.startOfRangeStartDayInEventTz && periodLimits.endOfRangeEndDayInEventTz) {
-    const isBeforeRangeStart = dateObj.valueOf() < periodLimits.startOfRangeStartDayInEventTz.valueOf();
-    const isAfterRangeEnd = dateObj.valueOf() > periodLimits.endOfRangeEndDayInEventTz.valueOf();
+  if (
+    periodLimits.startOfRangeStartDayInEventTz &&
+    periodLimits.endOfRangeEndDayInEventTz
+  ) {
+    const isBeforeRangeStart =
+      dateObj.valueOf() < periodLimits.startOfRangeStartDayInEventTz.valueOf();
+    const isAfterRangeEnd =
+      dateObj.valueOf() > periodLimits.endOfRangeEndDayInEventTz.valueOf();
     if (isBeforeRangeStart || isAfterRangeEnd)
       log.warn(
         "Booking is out of bounds due to range start and end.",
@@ -334,8 +374,11 @@ export function isTimeViolatingFutureLimit({
           formattedDate: dateObj.toISOString(),
           isBeforeRangeStart,
           isAfterRangeEnd,
-          startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.toDate().toISOString(),
-          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.toDate().toISOString(),
+          startOfRangeStartDayInEventTz:
+            periodLimits.startOfRangeStartDayInEventTz.toDate().toISOString(),
+          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz
+            .toDate()
+            .toISOString(),
         })
       );
     return isBeforeRangeStart || isAfterRangeEnd;
@@ -355,15 +398,24 @@ export default function isOutOfBounds(
     bookerUtcOffset,
   }: Pick<
     EventType,
-    "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
+    | "periodType"
+    | "periodDays"
+    | "periodCountCalendarDays"
+    | "periodStartDate"
+    | "periodEndDate"
   > & {
     eventUtcOffset: number;
     bookerUtcOffset: number;
   },
-  minimumBookingNotice?: number
+  minimumBookingNotice?: number,
+  isHost?: boolean
 ) {
   const log = logger.getSubLogger({ prefix: ["isOutOfBounds"] });
-  const isOutOfBoundsByTime = isTimeOutOfBounds({ time, minimumBookingNotice });
+  const isOutOfBoundsByTime = isTimeOutOfBounds({
+    time,
+    minimumBookingNotice,
+    isHost,
+  });
   const periodLimits = calculatePeriodLimits({
     periodType,
     periodDays,
@@ -390,7 +442,10 @@ export default function isOutOfBounds(
   }
 
   if (isOutOfBoundsByPeriod) {
-    log.warn("Booking is out of bounds due to period restrictions", safeStringify({ periodLimits }));
+    log.warn(
+      "Booking is out of bounds due to period restrictions",
+      safeStringify({ periodLimits })
+    );
     return true;
   }
 

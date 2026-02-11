@@ -1280,6 +1280,11 @@ export class BookingRepository implements IBookingRepository {
             minimumRescheduleNotice: true,
             disableRescheduling: true,
             userId: true,
+            hosts: {
+              select: {
+                userId: true,
+              },
+            },
           },
         },
         destinationCalendar: true,

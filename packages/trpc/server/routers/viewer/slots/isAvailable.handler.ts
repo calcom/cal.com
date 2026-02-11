@@ -1,12 +1,18 @@
 import type { NextApiRequest } from "next";
 
+import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
+import { getSession } from "@calcom/trpc/server/middlewares/sessionMiddleware";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
+
+const log = logger.getSubLogger({ prefix: ["[slots/isAvailable]"] });
 
 interface IsAvailableOptions {
   ctx: {
@@ -29,7 +35,7 @@ export const isAvailableHandler = async ({
   const { req } = ctx;
   const uid = req?.cookies?.uid;
 
-  const { slots, eventTypeId } = input;
+  const { slots, eventTypeId, rescheduleUid } = input;
 
   // Get event type details for time bounds validation
   const eventTypeRepo = new EventTypeRepository(ctx.prisma);
@@ -37,6 +43,37 @@ export const isAvailableHandler = async ({
 
   if (!eventType) {
     throw new HttpError({ statusCode: 404, message: "Event type not found" });
+  }
+
+  // Check if user is host/organizer when rescheduling to ignore minimum booking notice
+  let isHostOrOrganizer = false;
+  if (rescheduleUid && req) {
+    try {
+      const session = await getSession({ req } as Parameters<typeof getSession>[0]);
+      const currentUserId = session?.user?.id;
+
+      if (currentUserId) {
+        const originalBooking = await getOriginalRescheduledBooking(
+          rescheduleUid,
+          !!eventType.seatsPerTimeSlot
+        );
+
+        // Security check: Ensure the reschedule is for the same event type
+        // This prevents using a booking from one event type to bypass restrictions on another
+        // We use eventType.id because originalBooking.eventTypeId might be null for old bookings, but the relation should exist
+        const isSameEventType = originalBooking.eventType?.id === eventTypeId;
+
+        if (isSameEventType) {
+          // Check if user is the organizer (assigned host)
+          // We strictly rely on originalBooking.userId to ensure only the assigned host/organizer can bypass
+          const isUserOrganizer = originalBooking.userId && currentUserId === originalBooking.userId;
+          
+          isHostOrOrganizer = !!isUserOrganizer;
+        }
+      }
+    } catch (error) {
+      log.warn("Failed to check if user is host/organizer for reschedule in isAvailable", safeStringify({ error }));
+    }
   }
 
   // Check each slot's availability
@@ -70,6 +107,7 @@ export const isAvailableHandler = async ({
     const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
       time: slot.utcStartIso,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      isHost: isHostOrOrganizer,
     });
 
     return {

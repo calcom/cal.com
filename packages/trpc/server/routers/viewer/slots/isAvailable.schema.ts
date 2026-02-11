@@ -8,6 +8,7 @@ export const ZIsAvailableInputSchema = z.object({
     })
   ),
   eventTypeId: z.number().int(),
+  rescheduleUid: z.string().nullish(),
 });
 
 export type TIsAvailableInputSchema = z.infer<typeof ZIsAvailableInputSchema>;

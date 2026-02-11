@@ -20,11 +20,13 @@ const useQuickAvailabilityChecks = ({
   eventDuration,
   timeslotsAsISOString,
   slotReservationId,
+  rescheduleUid,
 }: {
   eventTypeId: number | undefined;
   eventDuration: number;
   timeslotsAsISOString: string[];
   slotReservationId: string | undefined | null;
+  rescheduleUid: string | null | undefined;
 }) => {
   // Maintain a cache to ensure previous state is maintained as the request is fetched
   // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
@@ -50,6 +52,7 @@ const useQuickAvailabilityChecks = ({
       // enabled flag can't be true if eventTypeId is nullish
 
       eventTypeId: eventTypeId!,
+      rescheduleUid,
     },
     {
       refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
@@ -76,6 +79,7 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { id: number; length: number } | null) => {
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const searchParams = useCompatSearchParams();
   const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
     useBookerStoreContext(
@@ -121,6 +125,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
     eventDuration,
     timeslotsAsISOString: allUniqueSelectedTimeslots,
     slotReservationId,
+    rescheduleUid,
   });
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
