@@ -562,7 +562,7 @@ async function handler(
     });
   }
 
-  if (eventType.metadata?.showBusy && typeof eventType.metadata?.showBusyPercent === "number") {
+  if (eventType.showBusy && typeof eventType.showBusyPercent === "number") {
     const requestedStartUtc = dayjs(reqBody.start).utc();
     const formatter = new Intl.DateTimeFormat("fr-CA", {
       year: "numeric",
@@ -571,14 +571,33 @@ async function handler(
       timeZone: reqBody.timeZone,
     });
     const dateKey = formatter.format(requestedStartUtc.toDate());
-    const storedSlotsByDate = (eventType.metadata?.showBusySlots || {}) as Record<string, string[]>;
-    const storedSlotsForDate = storedSlotsByDate[dateKey] || [];
-    const isVisibleSlot = storedSlotsForDate.some((slot) =>
-      dayjs(slot).utc().isSame(requestedStartUtc, "minute")
-    );
+    const rawWindowDays = eventType.showBusyWindowDays;
+    const windowDays =
+      typeof rawWindowDays === "number" && Number.isFinite(rawWindowDays)
+        ? Math.min(30, Math.max(1, rawWindowDays))
+        : 7;
+    const windowType = eventType.showBusyWindowType === "calendar" ? "calendar" : "business";
+    const today = dayjs().tz(reqBody.timeZone).startOf("day");
+    const windowKeys: string[] = [];
+    let cursor = today;
+    while (windowKeys.length < windowDays) {
+      const isWeekend = cursor.day() === 0 || cursor.day() === 6;
+      if (windowType === "calendar" || !isWeekend) {
+        windowKeys.push(cursor.format("YYYY-MM-DD"));
+      }
+      cursor = cursor.add(1, "day");
+    }
+    const isWithinWindow = windowKeys.includes(dateKey);
+    if (isWithinWindow) {
+      const storedSlotsByDate = (eventType.showBusySlots || {}) as Record<string, string[]>;
+      const storedSlotsForDate = storedSlotsByDate[dateKey] || [];
+      const isVisibleSlot = storedSlotsForDate.some((slot) =>
+        dayjs(slot).utc().isSame(requestedStartUtc, "minute")
+      );
 
-    if (!isVisibleSlot) {
-      throw new Error(ErrorCode.NoAvailableUsersFound);
+      if (!isVisibleSlot) {
+        throw new Error(ErrorCode.NoAvailableUsersFound);
+      }
     }
   }
 

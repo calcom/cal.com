@@ -1423,7 +1423,7 @@ export const EventAdvancedTab = ({
       )}
 
       <Controller
-        name="metadata.showBusy"
+        name="showBusy"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm")}
@@ -1438,14 +1438,23 @@ export const EventAdvancedTab = ({
             onCheckedChange={(enabled) => {
               onChange(enabled);
               if (!enabled) {
-                formMethods.setValue("metadata.showBusyPercent", undefined, { shouldDirty: true });
-                formMethods.setValue("metadata.showBusySlots", undefined, { shouldDirty: true });
+                formMethods.setValue("showBusyPercent", null, { shouldDirty: true });
+                formMethods.setValue("showBusySlots", null, { shouldDirty: true });
+                formMethods.setValue("showBusyWindowDays", null, { shouldDirty: true });
+                formMethods.setValue("showBusyWindowType", null, { shouldDirty: true });
+                return;
+              }
+              if (!formMethods.getValues("showBusyWindowDays")) {
+                formMethods.setValue("showBusyWindowDays", 7, { shouldDirty: true });
+              }
+              if (!formMethods.getValues("showBusyWindowType")) {
+                formMethods.setValue("showBusyWindowType", "business", { shouldDirty: true });
               }
             }}
             childrenClassName="lg:ml-0">
             <div className="border-subtle rounded-b-lg border border-t-0 p-6">
               <Controller
-                name="metadata.showBusyPercent"
+                name="showBusyPercent"
                 render={({ field: { value, onChange } }) => (
                   <SelectField
                     className="w-full"
@@ -1459,6 +1468,42 @@ export const EventAdvancedTab = ({
                   />
                 )}
               />
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <TextField
+                  className="w-28"
+                  label={t("show_busy_window_days")}
+                  type="number"
+                  min={1}
+                  max={30}
+                  {...formMethods.register("showBusyWindowDays", { valueAsNumber: true })}
+                />
+                <Controller
+                  name="showBusyWindowType"
+                  render={({ field: { value, onChange } }) => (
+                    <SelectField
+                      className="w-48"
+                      placeholder={t("show_busy_window_type_placeholder")}
+                      value={
+                        value
+                          ? {
+                              value,
+                              label:
+                                value === "business"
+                                  ? t("show_busy_window_business")
+                                  : t("show_busy_window_calendar"),
+                            }
+                          : undefined
+                      }
+                      onChange={(option) => onChange(option?.value ?? null)}
+                      options={[
+                        { value: "business", label: t("show_busy_window_business") },
+                        { value: "calendar", label: t("show_busy_window_calendar") },
+                      ]}
+                    />
+                  )}
+                />
+                <span className="text-subtle text-sm">{t("into_the_future")}</span>
+              </div>
             </div>
           </SettingsToggle>
         )}

@@ -171,6 +171,11 @@ model EventType {
   slotInterval                             Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
   metadata                                 Json?
+  showBusy                                 Boolean                   @default(false)
+  showBusyPercent                          Int?
+  showBusySlots                            Json?
+  showBusyWindowDays                       Int?
+  showBusyWindowType                       String?
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl                       String?
   forwardParamsSuccessRedirect             Boolean?                  @default(true)
@@ -1552,6 +1557,7 @@ model WebhookScheduledTriggers {
   scheduled     Boolean   @default(false)
   startAfter    DateTime
   retryCount    Int       @default(0)
+  scheduled     Boolean   @default(false)
   createdAt     DateTime? @default(now())
   appId         String?
   webhookId     String?
