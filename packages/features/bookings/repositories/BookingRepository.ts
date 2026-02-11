@@ -707,7 +707,6 @@ export class BookingRepository implements IBookingRepository {
   }
 
   private async _findAllExistingBookingsForEventTypeBetween({
-    eventTypeId,
     seatedEvent = false,
     startDate,
     endDate,
@@ -715,7 +714,6 @@ export class BookingRepository implements IBookingRepository {
   }: {
     startDate: Date;
     endDate: Date;
-    eventTypeId?: number | null;
     seatedEvent?: boolean;
     userIdAndEmailMap: Map<number, string>;
   }) {
@@ -732,12 +730,14 @@ export class BookingRepository implements IBookingRepository {
       uid: true,
       userId: true,
       startTime: true,
+      status: true,
       endTime: true,
       title: true,
       attendees: true,
       eventType: {
         select: {
           id: true,
+          title: true,
           onlyShowFirstAvailableSlot: true,
           afterEventBuffer: true,
           beforeEventBuffer: true,
@@ -757,7 +757,7 @@ export class BookingRepository implements IBookingRepository {
       }),
     } satisfies Prisma.BookingSelect;
 
-    const currentBookingsAllUsersQueryOne = this.prismaClient.booking.findMany({
+    const bookingsWhereUserIsOrganizer = this.prismaClient.booking.findMany({
       where: {
         ...sharedQuery,
         userId: {
@@ -767,7 +767,7 @@ export class BookingRepository implements IBookingRepository {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryTwo = this.prismaClient.booking.findMany({
+    const bookingsWhereUserIsAttendee = this.prismaClient.booking.findMany({
       where: {
         ...sharedQuery,
         attendees: {
@@ -781,28 +781,53 @@ export class BookingRepository implements IBookingRepository {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryThree = eventTypeId
-      ? this.prismaClient.booking.findMany({
-          where: {
-            startTime: { lte: endDate },
-            endTime: { gte: startDate },
-            eventType: {
-              id: eventTypeId,
-              requiresConfirmation: true,
-              requiresConfirmationWillBlockSlot: true,
-            },
-            status: {
-              in: [BookingStatus.PENDING],
+    // host-owned PENDING bookings
+    const pendingAndBlockingBookingsWhereUserIsOrganizer = this.prismaClient.booking.findMany({
+      where: {
+        startTime: { lte: endDate },
+        endTime: { gte: startDate },
+        userId: {
+          in: Array.from(userIdAndEmailMap.keys()),
+        },
+        eventType: {
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+        status: {
+          in: [BookingStatus.PENDING],
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    // when organizer is an attendee on a PENDING booking.
+    const pendingAndBlockingBookingsWhereUserIsAttendee = this.prismaClient.booking.findMany({
+      where: {
+        startTime: { lte: endDate },
+        endTime: { gte: startDate },
+        attendees: {
+          some: {
+            email: {
+              in: Array.from(userIdAndEmailMap.values()),
             },
           },
-          select: bookingsSelect,
-        })
-      : [];
+        },
+        eventType: {
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+        status: {
+          in: [BookingStatus.PENDING],
+        },
+      },
+      select: bookingsSelect,
+    });
 
-    const [resultOne, resultTwo, resultThree] = await Promise.all([
-      currentBookingsAllUsersQueryOne,
-      currentBookingsAllUsersQueryTwo,
-      currentBookingsAllUsersQueryThree,
+    const [resultOne, resultTwo, resultThree, resultFour] = await Promise.all([
+      bookingsWhereUserIsOrganizer,
+      bookingsWhereUserIsAttendee,
+      pendingAndBlockingBookingsWhereUserIsOrganizer,
+      pendingAndBlockingBookingsWhereUserIsAttendee,
     ]);
     // Prevent duplicate booking records when the organizer books his own event type.
     //
@@ -815,7 +840,19 @@ export class BookingRepository implements IBookingRepository {
       return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
     });
 
-    return [...resultOne, ...resultTwoWithOrganizersRemoved, ...resultThree];
+    // Remove duplicates from resultFour (PENDING attendee bookings) where organizer is also an attendee
+    const resultFourWithOrganizersRemoved = resultFour.filter((booking) => {
+      if (!booking.userId) return true;
+      const organizerEmail = userIdAndEmailMap.get(booking.userId);
+      return !booking.attendees.some((attendee) => attendee.email === organizerEmail);
+    });
+
+    return [
+      ...resultOne,
+      ...resultTwoWithOrganizersRemoved,
+      ...resultThree,
+      ...resultFourWithOrganizersRemoved,
+    ];
   }
 
   findAllExistingBookingsForEventTypeBetween = withReporting(

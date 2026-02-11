@@ -26,6 +26,27 @@ export interface IBusyTimesService {
 export class BusyTimesService {
   constructor(public readonly dependencies: IBusyTimesService) {}
 
+  /**
+   * Appends "(unconfirmed but still blocking)" to the booking title if the booking is in PENDING status and the event type of that booking has requiresConfirmation and requiresConfirmationWillBlockSlot set to true.
+   */
+  private buildBookingTitle(
+    title: string,
+    status: BookingStatus,
+    eventType?: {
+      requiresConfirmation?: boolean;
+      requiresConfirmationWillBlockSlot?: boolean;
+    } | null
+  ): string {
+    if (
+      status === BookingStatus.PENDING &&
+      eventType?.requiresConfirmation &&
+      eventType?.requiresConfirmationWillBlockSlot
+    ) {
+      return `${title} (unconfirmed but still blocking)`;
+    }
+    return title;
+  }
+
   async _getBusyTimes(params: {
     credentials: CredentialForCalendarService[];
     userId: number;
@@ -41,10 +62,16 @@ export class BusyTimesService {
     rescheduleUid?: string | null;
     duration?: number | null;
     currentBookings?:
-      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status"> & {
           eventType: Pick<
             EventType,
-            "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+            | "id"
+            | "beforeEventBuffer"
+            | "afterEventBuffer"
+            | "seatsPerTimeSlot"
+            | "requiresConfirmation"
+            | "requiresConfirmationWillBlockSlot"
+            | "title"
           > | null;
           _count?: {
             seatsReferences: number;
@@ -121,7 +148,6 @@ export class BusyTimesService {
       const bookingRepo = this.dependencies.bookingRepo;
       bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
         userIdAndEmailMap: new Map([[userId, userEmail]]),
-        eventTypeId,
         startDate: startTimeAdjustedWithMaxBuffer,
         endDate: endTimeAdjustedWithMaxBuffer,
         seatedEvent,
@@ -130,10 +156,12 @@ export class BusyTimesService {
 
     const bookingSeatCountMap: { [x: string]: number } = {};
     const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
-      const { id, startTime, endTime, eventType, title, ...rest } = booking;
+      const { id, startTime, endTime, eventType, title, status, ...rest } = booking;
 
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
+
+      const bookingTitle = this.buildBookingTitle(title, status, eventType);
 
       if (rest._count?.seatsReferences) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
@@ -172,7 +200,7 @@ export class BusyTimesService {
       aggregate.push({
         start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
         end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-        title,
+        title: bookingTitle,
         source: `eventType-${eventType?.id}-booking-${id}`,
       });
       return aggregate;
@@ -485,12 +513,39 @@ export class BusyTimesService {
         id: true,
         startTime: true,
         endTime: true,
-        eventTypeId: true,
+        eventType: {
+          select: {
+            id: true,
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
+            title: true,
+          },
+        },
         title: true,
         userId: true,
+        status: true,
       },
     });
 
-    return bookings;
+    busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, status }) => {
+      const bookingTitle = this.buildBookingTitle(title, status, eventType);
+
+      return {
+        start: dayjs(startTime).toDate(),
+        end: dayjs(endTime).toDate(),
+        title: bookingTitle,
+        source: `eventType-${eventType?.id}-booking-${id}`,
+        userId,
+      };
+    });
+
+    logger.silly(`Fetch limit checks bookings for eventId: ${eventTypeId} ${JSON.stringify(busyTimes)}`);
+    performance.mark("getBusyTimesForLimitChecksEnd");
+    performance.measure(
+      `prisma booking get for limits took $1'`,
+      "getBusyTimesForLimitChecksStart",
+      "getBusyTimesForLimitChecksEnd"
+    );
+    return busyTimes;
   }
 }
