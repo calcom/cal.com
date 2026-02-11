@@ -5,7 +5,7 @@ import { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
 export const ZGetWrongAssignmentReportsInputSchema = z.object({
   teamId: z.number(),
   isAll: z.boolean().default(false),
-  status: z.enum(["pending", "reviewed"]),
+  status: z.enum(["pending", "handled"]),
   routingFormId: z.string().nullish(),
   reportedById: z.number().nullish(),
   limit: z.number().min(1).max(100).default(10),
@@ -16,7 +16,7 @@ export type TGetWrongAssignmentReportsInputSchema = z.infer<typeof ZGetWrongAssi
 
 export const statusToEnumMap = {
   pending: [WrongAssignmentReportStatus.PENDING],
-  reviewed: [
+  handled: [
     WrongAssignmentReportStatus.REVIEWED,
     WrongAssignmentReportStatus.RESOLVED,
     WrongAssignmentReportStatus.DISMISSED,

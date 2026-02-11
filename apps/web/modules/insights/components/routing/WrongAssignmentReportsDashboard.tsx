@@ -32,7 +32,7 @@ import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable }
 import { useCallback, useMemo, useState } from "react";
 import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 
-type TabType = "pending" | "reviewed";
+type TabType = "pending" | "handled";
 
 export function WrongAssignmentReportsDashboard() {
   const { t } = useLocale();
@@ -227,10 +227,10 @@ export function WrongAssignmentReportsDashboard() {
               {t("pending")}
             </Button>
             <Button
-              color={activeTab === "reviewed" ? "primary" : "secondary"}
+              color={activeTab === "handled" ? "primary" : "secondary"}
               size="sm"
-              onClick={() => setActiveTab("reviewed")}>
-              {t("reviewed")}
+              onClick={() => setActiveTab("handled")}>
+              {t("handled")}
             </Button>
             <DataTableFilters.FilterBar table={table} />
           </>
@@ -238,11 +238,11 @@ export function WrongAssignmentReportsDashboard() {
         ToolbarRight={<DataTableFilters.ClearFiltersButton />}
         EmptyView={
           <EmptyScreen
-            headline={activeTab === "pending" ? t("no_pending_reports") : t("no_reviewed_reports")}
+            headline={activeTab === "pending" ? t("no_pending_reports") : t("no_handled_reports")}
             description={
               activeTab === "pending"
                 ? t("no_pending_reports_description")
-                : t("no_reviewed_reports_description")
+                : t("no_handled_reports_description")
             }
             Icon="file-text"
             className="bg-muted mb-16"
