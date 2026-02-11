@@ -75,7 +75,9 @@ describe("useFeatureOptInBanner", () => {
   it("shows banner for normal users when eligible", () => {
     mockUseSession.mockReturnValue({ data: { user: {} } });
 
-    const { result } = renderHook(() => useFeatureOptInBanner("bookings-v3"));
+    const { result } = renderHook(() =>
+      useFeatureOptInBanner("bookings-v3", { onOptInSuccess: vi.fn() })
+    );
 
     expect(result.current.shouldShow).toBe(true);
   });
@@ -85,7 +87,9 @@ describe("useFeatureOptInBanner", () => {
       data: { user: { impersonatedBy: { id: 999, email: "admin@cal.com" } } },
     });
 
-    const { result } = renderHook(() => useFeatureOptInBanner("bookings-v3"));
+    const { result } = renderHook(() =>
+      useFeatureOptInBanner("bookings-v3", { onOptInSuccess: vi.fn() })
+    );
 
     expect(result.current.shouldShow).toBe(true);
   });

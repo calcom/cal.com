@@ -59,12 +59,12 @@ function isFeatureOptedIn(featureId: string): boolean {
 }
 
 type UseFeatureOptInBannerOptions = {
-  onOptInSuccess?: () => void;
+  onOptInSuccess: () => void;
 };
 
 function useFeatureOptInBanner(
   featureId: string,
-  options?: UseFeatureOptInBannerOptions
+  options: UseFeatureOptInBannerOptions
 ): UseFeatureOptInBannerResult {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(() => isFeatureDismissed(featureId));
@@ -142,8 +142,8 @@ function useFeatureOptInBanner(
   const markOptedIn = useCallback(() => {
     setFeatureOptedIn(featureId);
     setIsOptedIn(true);
-    options?.onOptInSuccess?.();
-  }, [featureId, options?.onOptInSuccess]);
+    options.onOptInSuccess();
+  }, [featureId, options.onOptInSuccess]);
 
   const openDialog = useCallback(() => {
     posthog.capture("feature_opt_in_banner_try_it_clicked", {
