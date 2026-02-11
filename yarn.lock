@@ -1967,7 +1967,7 @@ __metadata:
     "@types/luxon": "npm:3.4.2"
     "@types/passport-jwt": "npm:3.0.13"
     "@types/supertest": "npm:2.0.16"
-    axios: "npm:1.13.2"
+    axios: "npm:1.13.5"
     body-parser: "npm:1.20.3"
     bull: "npm:4.15.1"
     class-transformer: "npm:0.5.1"
