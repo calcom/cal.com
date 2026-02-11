@@ -332,6 +332,7 @@ describe("BillingPeriodService", () => {
 
       expect(result).toEqual({
         billingPeriod: null,
+        billingMode: null,
         subscriptionStart: null,
         subscriptionEnd: null,
         trialEnd: null,
