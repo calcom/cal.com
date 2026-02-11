@@ -8,6 +8,13 @@ import {
   useFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+} from "~/data-table/components";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -397,7 +404,7 @@ function OutOfOfficeEntriesListContent({
         }
         EmptyView={
           <EmptyScreen
-            className="mt-2"
+            className="mt-6"
             headline={
               searchTerm
                 ? t("no_result_found_for", { searchTerm })

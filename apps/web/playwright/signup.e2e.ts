@@ -226,7 +226,7 @@ test.describe("Email Signup Flow Test", async () => {
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
   });
-  
+
   test("Signup fields prefilled with query params", async ({ page, users: _users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
@@ -422,7 +422,11 @@ test.describe("Email Signup Flow Test", async () => {
     await expect(submitButton).toBeEnabled();
   });
 
-  test("Signup with org invite link creates user and joins organization", async ({ page, users, browser }) => {
+  test("Signup with org invite link creates user and joins organization", async ({
+    page,
+    users,
+    browser,
+  }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
@@ -486,11 +490,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
   });
 
-  test("Signup with email-based token still works (regression test)", async ({
-    page,
-    prisma,
-    users,
-  }) => {
+  test("Signup with email-based token still works (regression test)", async ({ page, prisma, users }) => {
     const token = randomBytes(32).toString("hex");
     const userToCreate = users.buildForSignup({
       username: "email-token-user",
@@ -540,9 +540,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
 
     expect(createdUser).toBeTruthy();
-    const membership = createdUser?.teams.find(
-      (m) => m.teamId === emailToken.teamId
-    );
+    const membership = createdUser?.teams.find((m) => m.teamId === emailToken.teamId);
     expect(membership).toBeTruthy();
     expect(membership?.accepted).toBe(true);
 

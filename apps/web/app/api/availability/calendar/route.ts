@@ -91,8 +91,7 @@ async function deleteHandler(req: NextRequest) {
   const user = await authMiddleware();
   const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 
-  const { integration, externalId, eventTypeId } =
-    selectedCalendarSelectSchema.parse(searchParams);
+  const { integration, externalId, eventTypeId } = selectedCalendarSelectSchema.parse(searchParams);
 
   await SelectedCalendarRepository.delete({
     where: {
