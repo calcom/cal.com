@@ -900,7 +900,9 @@ test.describe("Webhook deletion", async () => {
 
     await expect(page.getByTestId("dialog-confirmation")).toBeVisible();
 
-    const deleteResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/webhook/delete"));
+    const deleteResponsePromise = page.waitForResponse((res) =>
+      res.url().includes("/api/trpc/webhook/delete")
+    );
     await page.getByTestId("dialog-confirmation").click();
     const deleteResponse = await deleteResponsePromise;
     expect(deleteResponse.ok()).toBe(true);

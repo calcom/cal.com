@@ -9,15 +9,14 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import type { z } from "zod";
-import { updateSubscriptionQuantity } from "../../lib/subscription-updates";
-// import billing from "../..";
 import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
-import { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import type { SeatChangeType } from "../seatBillingStrategy/ISeatBillingStrategy";
+import type { SeatBillingStrategyFactory } from "../seatBillingStrategy/SeatBillingStrategyFactory";
 import {
   type ITeamBillingService,
   type TeamBillingInput,
@@ -35,22 +34,26 @@ export class TeamBillingService implements ITeamBillingService {
   private billingProviderService: IBillingProviderService;
   private billingRepository: IBillingRepository;
   private teamBillingDataRepository: ITeamBillingDataRepository;
+  private seatBillingStrategyFactory: SeatBillingStrategyFactory;
 
   constructor({
     team,
     billingProviderService,
     teamBillingDataRepository,
     billingRepository,
+    seatBillingStrategyFactory,
   }: {
     team: TeamBillingInput;
     billingProviderService: IBillingProviderService;
     teamBillingDataRepository: ITeamBillingDataRepository;
     billingRepository: IBillingRepository;
+    seatBillingStrategyFactory: SeatBillingStrategyFactory;
   }) {
     this.team = team;
     this.billingProviderService = billingProviderService;
     this.teamBillingDataRepository = teamBillingDataRepository;
     this.billingRepository = billingRepository;
+    this.seatBillingStrategyFactory = seatBillingStrategyFactory;
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
@@ -142,7 +145,7 @@ export class TeamBillingService implements ITeamBillingService {
       this.logErrorFromUnknown(error);
     }
   }
-  async updateQuantity() {
+  async updateQuantity(changeType: SeatChangeType) {
     try {
       await this.getOrgIfNeeded();
       const { id: teamId, metadata, isOrganization } = this.team;
@@ -166,30 +169,15 @@ export class TeamBillingService implements ITeamBillingService {
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
 
-      const billingPeriodService = new BillingPeriodService();
-      const shouldApplyMonthlyProration = await billingPeriodService.shouldApplyMonthlyProration(teamId);
-      if (shouldApplyMonthlyProration) {
-        log.info(`Skipping subscription update for team ${teamId} because monthly proration is enabled.`);
-        return;
-      }
-
-      // Skip immediate subscription update for monthly billing with high water mark
-      // The subscription quantity will be updated before renewal via invoice.upcoming webhook
-      const shouldApplyHighWaterMark = await billingPeriodService.shouldApplyHighWaterMark(teamId);
-      if (shouldApplyHighWaterMark) {
-        log.info(
-          `Skipping subscription update for team ${teamId} because high water mark billing is enabled for monthly plans.`
-        );
-        return;
-      }
-
-      await updateSubscriptionQuantity({
-        billingService: this.billingProviderService,
+      const strategy = await this.seatBillingStrategyFactory.createByTeamId(teamId);
+      await strategy.onSeatChange({
+        teamId,
         subscriptionId,
         subscriptionItemId,
-        quantity: membershipCount,
+        membershipCount,
+        changeType,
       });
-      log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
+      log.info(`Seat change processed for team ${teamId} (${membershipCount} seats).`);
     } catch (error) {
       this.logErrorFromUnknown(error);
     }

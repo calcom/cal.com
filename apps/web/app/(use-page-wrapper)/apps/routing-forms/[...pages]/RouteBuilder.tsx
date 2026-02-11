@@ -398,7 +398,7 @@ const Route = ({
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    return isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "";
+    return isCustom && !isRouter(route) ? (route.action.value.split("/").pop() ?? "") : "";
   });
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -952,7 +952,7 @@ const buildState = <
     | {
         queryValue: AttributesQueryValue;
         config: AttributesQueryBuilderConfigWithRaqbFields;
-      }
+      },
 >({
   queryValue,
   config,

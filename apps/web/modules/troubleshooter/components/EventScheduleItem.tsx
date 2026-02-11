@@ -11,15 +11,14 @@ export function EventScheduleItem(): JSX.Element {
   const { t } = useLocale();
   const selectedEventType = useTroubleshooterStore((state) => state.event);
 
-  const { data: schedule } =
-    trpc.viewer.availability.schedule.getScheduleByEventSlug.useQuery(
-      {
-        eventSlug: selectedEventType?.slug as string,
-      },
-      {
-        enabled: !!selectedEventType?.slug,
-      }
-    );
+  const { data: schedule } = trpc.viewer.availability.schedule.getScheduleByEventSlug.useQuery(
+    {
+      eventSlug: selectedEventType?.slug as string,
+    },
+    {
+      enabled: !!selectedEventType?.slug,
+    }
+  );
 
   return (
     <EventScheduleItemComponent
@@ -27,11 +26,7 @@ export function EventScheduleItem(): JSX.Element {
       suffixSlot={
         schedule && (
           <Link href={`/availability/${schedule.id}`} className="inline-flex">
-            <Badge
-              color="orange"
-              size="sm"
-              className="invisible hover:cursor-pointer group-hover:visible"
-            >
+            <Badge color="orange" size="sm" className="invisible hover:cursor-pointer group-hover:visible">
               {t("edit")}
             </Badge>
           </Link>
