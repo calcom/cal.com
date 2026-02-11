@@ -101,6 +101,7 @@ checksums:
     edit_event_subtitle: de618af1e510a8eebf9e8382d0081f7c
     custom_reply_to_email_no_verified_emails: 89dfb720156d091b6d8018bf58c507a3
     event_icon_updated: d4ecade80f00574a56b475cb8e29ec7f
+    sms: 8a2dff64658b96f6f256cf6709ba569e
     whatsapp: f342772a23e724418e684189a8951a30
     autorefund: cc7e2ac891e4e88c80ba67795339ee49
     autorefund_info: fdea4997d44db0cc7821979fcd4a4683
@@ -1590,8 +1591,11 @@ checksums:
     active_on_teams_other: 10a9e3444668a07128ea95feaba61cb4
     active_on_all_event_types: d00db3b04d4fbfdf3b226158174ce480
     active_on_all_teams: 3775039a53df9263ea3a251f5faa3ad6
+    active_on_channels_one: 3c2ccaa03eb6e2154a9bea2cb4aeeba1
+    active_on_channels_other: 8b4aa4f88b1d42bee6a6cea787defc21
     no_active_event_types: 61ffe47c13345c7c792b2c7d5e13c83d
     no_active_teams: c8fbdfd4084fd1cdea1491417178a9d5
+    immediate_trigger: 101bf4e64708e2eddd98275c87bcd3f6
     new_seat_subject: 75ccfd925ad9f167664c402d30499b4d
     new_seat_title: 2bd30c0710403dc07f96b631d6629e23
     variable: c13db5775ba9791b1522cc55c9c7acce
@@ -3018,6 +3022,7 @@ checksums:
     payment_option: d2973c3836b23b23c12d1e2fd4471fa4
     if_cancelled: 614c9a53dc3d57dea571359e7d87f5d4
     before: e98ce9421a140ee7ea8ee67daec9a855
+    after: 5f60426364c6ccdefb5cc24b15aea0b0
     show_all_columns: f8c81014fa436fa5baf3d0be325e2988
     toggle_columns: 33ea1f6185497c358ae57e79e327c266
     no_columns_found: c73ee3c789abf7838f3c39c661d74db0
@@ -3744,3 +3749,5 @@ checksums:
     claim_username_trusted_by_professionals_description: 531b5b61ec2b2b2899fc5a86531a8b2a
     claim_username_yours_forever_title: ac852df940b86b0ce4a00d8e653fda02
     claim_username_yours_forever_description: 951b747e0f49e8c51c5568298c818382
+    workflow_trigger: 9491a3c411c62187e75a887b6ee0c829
+    worflow_trigger_channel: f17d1e60675ab8ccd347f195e59557be
