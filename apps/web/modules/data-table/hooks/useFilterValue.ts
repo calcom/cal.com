@@ -7,7 +7,7 @@ import { useDataTable } from "./useDataTable";
 
 export function useFilterValue<
   T extends FilterType,
-  TSchema extends FilterValueSchema<T> | typeof ZFilterValue
+  TSchema extends FilterValueSchema<T> | typeof ZFilterValue,
 >(columnId: string, schema: TSchema) {
   const { activeFilters } = useDataTable();
   return useMemo(() => {

@@ -15,7 +15,12 @@ import { ColumnFilterType, ZDateRangeFilterValue } from "@calcom/features/data-t
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+} from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -128,7 +133,7 @@ function OutOfOfficeEntriesListContent({
   const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
-      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
+      isPending || isFetching ? new Array(5).fill(null) : (data?.pages?.flatMap((page) => page.rows) ?? []),
     [data, isPending, isFetching]
   ) as OutOfOfficeEntry[];
 
@@ -337,7 +342,15 @@ function OutOfOfficeEntriesListContent({
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t, deleteOutOfOfficeEntryMutation, totalRowCount]);
+  }, [
+    selectedTab,
+    isPending,
+    isFetching,
+    onOpenEditDialog,
+    t,
+    deleteOutOfOfficeEntryMutation,
+    totalRowCount,
+  ]);
 
   const table = useReactTable({
     data: flatData,
@@ -383,7 +396,13 @@ function OutOfOfficeEntriesListContent({
         EmptyView={
           <EmptyScreen
             className="mt-6"
-            headline={searchTerm ? t("no_result_found_for", {searchTerm}) : selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+            headline={
+              searchTerm
+                ? t("no_result_found_for", { searchTerm })
+                : selectedTab === OutOfOfficeTab.TEAM
+                  ? t("ooo_team_empty_title")
+                  : t("ooo_empty_title")
+            }
             description={
               selectedTab === OutOfOfficeTab.TEAM
                 ? t("ooo_team_empty_description")

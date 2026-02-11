@@ -17,14 +17,17 @@ export const FlagAdminList = () => {
   const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const groupedFlags = data.reduce((acc, flag) => {
-    const type = flag.type || "OTHER";
-    if (!acc[type]) {
-      acc[type] = [];
-    }
-    acc[type].push(flag);
-    return acc;
-  }, {} as Record<string, typeof data>);
+  const groupedFlags = data.reduce(
+    (acc, flag) => {
+      const type = flag.type || "OTHER";
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(flag);
+      return acc;
+    },
+    {} as Record<string, typeof data>
+  );
 
   const sortedTypes = Object.keys(groupedFlags).sort();
 

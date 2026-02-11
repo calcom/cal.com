@@ -14,7 +14,13 @@ import {
 } from "@calcom/features/data-table";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
-import { DataTableWrapper, DataTableFilters, DataTableSegment, DataTableSkeleton, DateRangeFilter } from "@calcom/web/modules/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSkeleton,
+  DateRangeFilter,
+} from "@calcom/web/modules/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc/react";

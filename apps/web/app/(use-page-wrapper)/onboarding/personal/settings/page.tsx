@@ -31,7 +31,9 @@ const ServerPage = async (props: { searchParams: Promise<{ fromTeamOnboarding?: 
   const searchParams = await props.searchParams;
   const fromTeamOnboarding = searchParams?.fromTeamOnboarding === "true";
 
-  return <PersonalSettingsView userEmail={userEmail} userName={userName} fromTeamOnboarding={fromTeamOnboarding} />;
+  return (
+    <PersonalSettingsView userEmail={userEmail} userName={userName} fromTeamOnboarding={fromTeamOnboarding} />
+  );
 };
 
 export default ServerPage;

@@ -11,7 +11,7 @@ import type { TimeRange } from "@calcom/types/schedule";
 
 const Schedule = <
   TFieldValues extends FieldValues,
-  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
+  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>,
 >(props: {
   name: TPath;
   control: Control<TFieldValues>;

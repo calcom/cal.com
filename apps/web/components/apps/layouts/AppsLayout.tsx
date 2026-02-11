@@ -19,7 +19,7 @@ export default function AppsLayout({ children, actions, emptyStore, isAdmin, ...
   const router = useRouter();
 
   return (
-    <Shell {...rest} disableSticky={true} actions={actions?.("block")}>
+    <Shell {...rest} actions={actions?.("block")}>
       <div className="flex flex-col xl:flex-row">
         <main className="w-full">
           {emptyStore ? (

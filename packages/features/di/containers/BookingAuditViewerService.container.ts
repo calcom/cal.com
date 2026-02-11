@@ -13,6 +13,5 @@ bookingAuditRepositoryModuleLoader.loadModule(container);
 bookingAuditViewerServiceModuleLoader.loadModule(container);
 
 export function getBookingAuditViewerService() {
-    return container.get<BookingAuditViewerService>(BOOKING_AUDIT_DI_TOKENS.BOOKING_AUDIT_VIEWER_SERVICE);
+  return container.get<BookingAuditViewerService>(BOOKING_AUDIT_DI_TOKENS.BOOKING_AUDIT_VIEWER_SERVICE);
 }
-

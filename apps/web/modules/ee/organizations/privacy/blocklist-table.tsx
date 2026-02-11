@@ -63,8 +63,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       { placeholderData: keepPreviousData, enabled: activeView === "pending" }
     );
 
-  const { data: pendingReportsCount } =
-    trpc.viewer.organizations.pendingReportsCount.useQuery();
+  const { data: pendingReportsCount } = trpc.viewer.organizations.pendingReportsCount.useQuery();
 
   const { data: entryDetails, isLoading: isDetailsLoading } =
     trpc.viewer.organizations.getWatchlistEntryDetails.useQuery(
@@ -72,29 +71,27 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       { enabled: !!selectedEntryId }
     );
 
-  const createEntry =
-    trpc.viewer.organizations.createWatchlistEntry.useMutation({
-      onSuccess: async () => {
-        await utils.viewer.organizations.listWatchlistEntries.invalidate();
-        showToast(t("blocklist_entry_created"), "success");
-        setShowCreateModal(false);
-      },
-      onError: (error) => {
-        showToast(error.message, "error");
-      },
-    });
+  const createEntry = trpc.viewer.organizations.createWatchlistEntry.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.organizations.listWatchlistEntries.invalidate();
+      showToast(t("blocklist_entry_created"), "success");
+      setShowCreateModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
-  const deleteEntry =
-    trpc.viewer.organizations.deleteWatchlistEntry.useMutation({
-      onSuccess: async () => {
-        await utils.viewer.organizations.listWatchlistEntries.invalidate();
-        setSelectedEntryId(null);
-        showToast(t("blocklist_entry_deleted"), "success");
-      },
-      onError: (error) => {
-        showToast(error.message, "error");
-      },
-    });
+  const deleteEntry = trpc.viewer.organizations.deleteWatchlistEntry.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.organizations.listWatchlistEntries.invalidate();
+      setSelectedEntryId(null);
+      showToast(t("blocklist_entry_deleted"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   const addToWatchlist = trpc.viewer.organizations.addToWatchlist.useMutation({
     onSuccess: async () => {
@@ -108,17 +105,16 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     },
   });
 
-  const dismissReport =
-    trpc.viewer.organizations.dismissBookingReport.useMutation({
-      onSuccess: async () => {
-        await utils.viewer.organizations.listBookingReports.invalidate();
-        await utils.viewer.organizations.pendingReportsCount.invalidate();
-        showToast(t("booking_report_dismissed"), "success");
-      },
-      onError: (error) => {
-        showToast(error.message, "error");
-      },
-    });
+  const dismissReport = trpc.viewer.organizations.dismissBookingReport.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.organizations.listBookingReports.invalidate();
+      await utils.viewer.organizations.pendingReportsCount.invalidate();
+      showToast(t("booking_report_dismissed"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   return (
     <>
@@ -173,11 +169,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {permissions?.canCreate && (
-            <Button
-              color="primary"
-              StartIcon="plus"
-              onClick={() => setShowCreateModal(true)}
-            >
+            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
           )}
@@ -207,12 +199,8 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
           limit={limit}
-          onAddToBlocklist={(email, type, onSuccess) =>
-            addToWatchlist.mutate({ email, type }, { onSuccess })
-          }
-          onDismiss={(email, onSuccess) =>
-            dismissReport.mutate({ email }, { onSuccess })
-          }
+          onAddToBlocklist={(email, type, onSuccess) => addToWatchlist.mutate({ email, type }, { onSuccess })}
+          onDismiss={(email, onSuccess) => dismissReport.mutate({ email }, { onSuccess })}
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
         />

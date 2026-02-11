@@ -8,7 +8,6 @@ import {
   type BlockingInfo,
 } from "./check-user-blocking";
 
-
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
 }));
@@ -55,7 +54,9 @@ describe("check-user-blocking", () => {
       });
 
       test("should skip users with empty emails", async () => {
-        mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["valid@example.com", { isBlocked: false }]]));
+        mockGlobalBlocking.areBlocked.mockResolvedValue(
+          new Map([["valid@example.com", { isBlocked: false }]])
+        );
 
         const users: BlockableUser[] = [
           { email: "", locked: false },
@@ -290,9 +291,7 @@ describe("check-user-blocking", () => {
     });
 
     test("should return false for non-blocked user", () => {
-      const blockingMap = new Map<string, BlockingInfo>([
-        ["clean@example.com", { isBlocked: false }],
-      ]);
+      const blockingMap = new Map<string, BlockingInfo>([["clean@example.com", { isBlocked: false }]]);
 
       expect(isUserBlocked("clean@example.com", blockingMap)).toBe(false);
     });
@@ -343,9 +342,7 @@ describe("check-user-blocking", () => {
     test("should combine global and org blocking results", async () => {
       const emails = ["user@example.com"];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
       mockOrgBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: true }]]));
 
       const result = await checkWatchlistBlocking(emails, 123);
@@ -381,9 +378,7 @@ describe("check-user-blocking", () => {
     test("should normalize emails in result map", async () => {
       const emails = ["USER@EXAMPLE.COM"];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: true }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: true }]]));
 
       const result = await checkWatchlistBlocking(emails);
 
@@ -391,4 +386,3 @@ describe("check-user-blocking", () => {
     });
   });
 });
-

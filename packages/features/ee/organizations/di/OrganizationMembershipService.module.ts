@@ -9,19 +9,18 @@ const token = ORGANIZATION_DI_TOKENS.ORGANIZATION_MEMBERSHIP_SERVICE;
 const moduleToken = ORGANIZATION_DI_TOKENS.ORGANIZATION_MEMBERSHIP_SERVICE_MODULE;
 
 const loadModule = bindModuleToClassOnToken({
-    module: thisModule,
-    moduleToken,
-    token,
-    classs: OrganizationMembershipService,
-    depsMap: {
-        organizationRepository: organizationRepositoryModuleLoader,
-    },
+  module: thisModule,
+  moduleToken,
+  token,
+  classs: OrganizationMembershipService,
+  depsMap: {
+    organizationRepository: organizationRepositoryModuleLoader,
+  },
 });
 
 export const moduleLoader = {
-    token,
-    loadModule,
+  token,
+  loadModule,
 };
 
 export type { OrganizationMembershipService };
-

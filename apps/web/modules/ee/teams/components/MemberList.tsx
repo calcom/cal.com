@@ -23,7 +23,12 @@ import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFetchMoreOnBottomReached } from "~/data-table/hooks/useFetchMoreOnBottomReached";
 import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
-import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar } from "~/data-table/components";
+import {
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableWrapper,
+  DataTableSelectionBar,
+} from "~/data-table/components";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";

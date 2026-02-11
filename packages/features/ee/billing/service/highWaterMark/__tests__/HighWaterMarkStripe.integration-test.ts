@@ -23,8 +23,7 @@ const STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
 const STRIPE_TEAM_MONTHLY_PRICE_ID = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
 // Skip if Stripe is not configured
-const describeIfStripe =
-  STRIPE_PRIVATE_KEY && STRIPE_TEAM_MONTHLY_PRICE_ID ? describe : describe.skip;
+const describeIfStripe = STRIPE_PRIVATE_KEY && STRIPE_TEAM_MONTHLY_PRICE_ID ? describe : describe.skip;
 
 describeIfStripe("HighWaterMark Stripe E2E Test", () => {
   let stripe: Stripe;
@@ -139,9 +138,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
 
     subscription = await stripe.subscriptions.create({
       customer: customer.id,
-      items: [
-        { price: STRIPE_TEAM_MONTHLY_PRICE_ID!, quantity: currentMemberCount },
-      ],
+      items: [{ price: STRIPE_TEAM_MONTHLY_PRICE_ID!, quantity: currentMemberCount }],
       metadata: {
         testData: "true",
         teamId: testTeam.id.toString(),
@@ -163,9 +160,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
         status: "ACTIVE",
         planName: "TEAM",
         highWaterMark: peakMemberCount,
-        highWaterMarkPeriodStart: new Date(
-          subscription.current_period_start * 1000
-        ),
+        highWaterMarkPeriodStart: new Date(subscription.current_period_start * 1000),
       },
     });
 
@@ -175,11 +170,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
     console.log(`HWM (Peak): ${peakMemberCount}`);
     console.log(`Subscription: ${subscription.id}`);
     console.log(`Test Clock: ${testClock.id}`);
-    console.log(
-      `Period End: ${new Date(
-        subscription.current_period_end * 1000
-      ).toISOString()}`
-    );
+    console.log(`Period End: ${new Date(subscription.current_period_end * 1000).toISOString()}`);
   });
 
   afterAll(async () => {
@@ -208,10 +199,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
     console.log("E2E Test cleanup complete");
   });
 
-  async function waitForClockAdvancement(
-    clockId: string,
-    maxWaitMs = 60000
-  ): Promise<void> {
+  async function waitForClockAdvancement(clockId: string, maxWaitMs = 60000): Promise<void> {
     const startTime = Date.now();
     const pollIntervalMs = 2000;
 
@@ -219,20 +207,12 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
       const clock = await stripe.testHelpers.testClocks.retrieve(clockId);
 
       if (clock.status === "ready") {
-        console.log(
-          `Test clock ready at: ${new Date(
-            clock.frozen_time * 1000
-          ).toISOString()}`
-        );
+        console.log(`Test clock ready at: ${new Date(clock.frozen_time * 1000).toISOString()}`);
         return;
       }
 
       if (clock.status === "advancing") {
-        console.log(
-          `Clock still advancing... (${Math.round(
-            (Date.now() - startTime) / 1000
-          )}s elapsed)`
-        );
+        console.log(`Clock still advancing... (${Math.round((Date.now() - startTime) / 1000)}s elapsed)`);
         await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
         continue;
       }
@@ -257,11 +237,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
         return;
       }
 
-      console.log(
-        `Waiting for ${description}... (${Math.round(
-          (Date.now() - startTime) / 1000
-        )}s elapsed)`
-      );
+      console.log(`Waiting for ${description}... (${Math.round((Date.now() - startTime) / 1000)}s elapsed)`);
       await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
     }
 
@@ -295,21 +271,14 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
       where: { teamId: testTeam.id },
       select: { paidSeats: true, highWaterMark: true },
     });
-    console.log(
-      `Reset state: paidSeats=${resetBilling?.paidSeats}, HWM=${resetBilling?.highWaterMark}`
-    );
+    console.log(`Reset state: paidSeats=${resetBilling?.paidSeats}, HWM=${resetBilling?.highWaterMark}`);
 
     expect(resetBilling?.paidSeats).toBe(4);
     expect(resetBilling?.highWaterMark).toBe(6);
 
     // Advance clock to 3 days before period end (triggers invoice.upcoming)
-    const invoiceUpcomingTime =
-      subscription.current_period_end - 3 * 24 * 60 * 60;
-    console.log(
-      `Advancing clock to: ${new Date(
-        invoiceUpcomingTime * 1000
-      ).toISOString()}`
-    );
+    const invoiceUpcomingTime = subscription.current_period_end - 3 * 24 * 60 * 60;
+    console.log(`Advancing clock to: ${new Date(invoiceUpcomingTime * 1000).toISOString()}`);
 
     await stripe.testHelpers.testClocks.advance(testClock.id, {
       frozen_time: invoiceUpcomingTime,
@@ -320,9 +289,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
 
     // The webhook fires during clock advancement but fails because Stripe blocks
     // modifications while advancing. Now that clock is ready, manually trigger scale-up.
-    console.log(
-      "\\nManually triggering scale-up (webhook fails during clock advancement)..."
-    );
+    console.log("\\nManually triggering scale-up (webhook fails during clock advancement)...");
 
     const billingService = new StripeBillingService(stripe);
     const hwmService = new HighWaterMarkService({
@@ -347,9 +314,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
   }, 120000); // 2 minute timeout
 
   it("should scale DOWN subscription quantity to current members after renewal", async () => {
-    console.log(
-      "\n=== Step 2: Advance clock past renewal to trigger scale down ==="
-    );
+    console.log("\n=== Step 2: Advance clock past renewal to trigger scale down ===");
 
     // Get the updated subscription (period may have changed)
     const currentSub = await stripe.subscriptions.retrieve(subscription.id);
@@ -357,12 +322,8 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
 
     // Advance clock past the billing period end (triggers renewal + subscription.updated)
     const renewalTime = periodEnd + 60; // 1 minute after period end
-    console.log(
-      `Current period end: ${new Date(periodEnd * 1000).toISOString()}`
-    );
-    console.log(
-      `Advancing clock to: ${new Date(renewalTime * 1000).toISOString()}`
-    );
+    console.log(`Current period end: ${new Date(periodEnd * 1000).toISOString()}`);
+    console.log(`Advancing clock to: ${new Date(renewalTime * 1000).toISOString()}`);
 
     await stripe.testHelpers.testClocks.advance(testClock.id, {
       frozen_time: renewalTime,
@@ -372,16 +333,12 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
     await waitForClockAdvancement(testClock.id);
 
     // Debug: Check state immediately after clock advancement
-    const subAfterRenewal = await stripe.subscriptions.retrieve(
-      subscription.id
-    );
+    const subAfterRenewal = await stripe.subscriptions.retrieve(subscription.id);
     console.log("Stripe subscription after renewal:");
     console.log(`  - Status: ${subAfterRenewal.status}`);
     console.log(`  - Quantity: ${subAfterRenewal.items.data[0].quantity}`);
     console.log(
-      `  - Period: ${new Date(
-        subAfterRenewal.current_period_start * 1000
-      ).toISOString()} to ${new Date(
+      `  - Period: ${new Date(subAfterRenewal.current_period_start * 1000).toISOString()} to ${new Date(
         subAfterRenewal.current_period_end * 1000
       ).toISOString()}`
     );
@@ -397,9 +354,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
     // The webhook fires during clock advancement but fails because Stripe blocks
     // modifications while advancing. Now that clock is ready, manually trigger reset.
     // This simulates what would happen if we had retry logic or a separate job.
-    console.log(
-      "\\nManually triggering reset (webhook fails during clock advancement)..."
-    );
+    console.log("\\nManually triggering reset (webhook fails during clock advancement)...");
 
     const billingService = new StripeBillingService(stripe);
     const hwmService = new HighWaterMarkService({
@@ -407,9 +362,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
       billingService,
     });
 
-    const newPeriodStart = new Date(
-      subAfterRenewal.current_period_start * 1000
-    );
+    const newPeriodStart = new Date(subAfterRenewal.current_period_start * 1000);
     await hwmService.resetSubscriptionAfterRenewal({
       subscriptionId: subscription.id,
       newPeriodStart,
@@ -430,11 +383,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
     const updatedSub = await stripe.subscriptions.retrieve(subscription.id);
     expect(updatedSub.items.data[0].quantity).toBe(4);
 
-    console.log(
-      "Scale DOWN verified: subscription quantity = 4 (current members)"
-    );
-    console.log(
-      `Final state: paidSeats=${billing?.paidSeats}, HWM=${billing?.highWaterMark}`
-    );
+    console.log("Scale DOWN verified: subscription quantity = 4 (current members)");
+    console.log(`Final state: paidSeats=${billing?.paidSeats}, HWM=${billing?.highWaterMark}`);
   }, 180000); // 3 minute timeout
 });

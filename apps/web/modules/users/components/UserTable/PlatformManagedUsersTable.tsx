@@ -7,7 +7,13 @@ import { useMemo, useReducer, useState } from "react";
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment, DataTableSelectionBar } from "~/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSelectionBar,
+} from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
