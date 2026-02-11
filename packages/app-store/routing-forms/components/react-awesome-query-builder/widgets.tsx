@@ -225,12 +225,18 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     const [intPart, decPart] = value.replace("-", "").split(".");
     const intTrimmed = intPart.replace(/^0+/, "") || "0";
 
-    // Take first 15 digits from integer part
-    const first15Int = intTrimmed.slice(0, 15);
+    if (intTrimmed.length >= 15) {
+      // Take first 15 digits from integer part, drop decimals
+      const first15Int = intTrimmed.slice(0, 15);
+      return (isNegative ? "-" : "") + first15Int;
+    }
 
-    // Join with decimal part (keep all decimals)
-    return (isNegative ? "-" : "") + first15Int + (decPart ? "." + decPart : "");
+    // Integer part has fewer than 15 significant digits; truncate decimal part
+    const remainingDigits = 15 - (intTrimmed === "0" ? 0 : intTrimmed.length);
+    const trimmedDec = decPart ? decPart.slice(0, remainingDigits) : undefined;
+    return (isNegative ? "-" : "") + intTrimmed + (trimmedDec ? "." + trimmedDec : "");
   }
+
 
   // useEffect to detect external change in value and set raw value based on it
   useEffect(() => {
