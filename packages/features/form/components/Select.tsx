@@ -102,14 +102,14 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
+        option: (provided, state) =>
+          Object.assign({}, provided, {
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          }),
       }}
       components={{
         ...components,
@@ -179,7 +179,7 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

@@ -1,12 +1,22 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { deleteRemindersOfActiveOnIds } from "@calcom/features/ee/workflows/lib/deleteRemindersOfActiveOnIds";
+import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
+import { verifyEmailSender } from "@calcom/features/ee/workflows/lib/verifyEmailSender";
+import { WorkflowRelationsRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRelationsRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowStepRepository } from "@calcom/features/ee/workflows/repositories/WorkflowStepRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import tasker from "@calcom/features/tasker";
+import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma, type PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -17,12 +27,8 @@ import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
-  isAuthorized,
   upsertSmsReminderFieldForEventTypes,
-  deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
-  scheduleWorkflowNotifications,
-  verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
   getEmailTemplateText,
@@ -41,35 +47,19 @@ const log = logger.getSubLogger({ prefix: ["[Workflows.update] "] });
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
-  const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
+  const {
+    id,
+    name,
+    activeOnEventTypeIds,
+    activeOnRoutingFormIds,
+    steps,
+    trigger,
+    time,
+    timeUnit,
+    isActiveOnAll,
+  } = input;
 
-  const userWorkflow = await ctx.prisma.workflow.findUnique({
-    where: {
-      id,
-    },
-    select: {
-      id: true,
-      userId: true,
-      isActiveOnAll: true,
-      trigger: true,
-      time: true,
-      timeUnit: true,
-      team: {
-        select: {
-          isOrganization: true,
-        },
-      },
-      teamId: true,
-      user: {
-        select: {
-          teams: true,
-        },
-      },
-      steps: true,
-      activeOn: true,
-      activeOnTeams: true,
-    },
-  });
+  const userWorkflow = await WorkflowRepository.findUniqueForUpdate(id);
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
 
@@ -94,28 +84,80 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let removedActiveOnIds: number[] = [];
 
-  let activeOnWithChildren: number[] = activeOn;
+  let activeOnWithChildren: number[] = activeOnEventTypeIds;
 
   let oldActiveOnIds: number[] = [];
 
-  if (!isOrg) {
-    // activeOn are event types ids
-    const activeOnEventTypes = await ctx.prisma.eventType.findMany({
-      where: {
-        id: {
-          in: activeOn,
-        },
-        ...(userWorkflow.teamId && { parentId: null }), //all children managed event types are added after
-      },
-      select: {
-        id: true,
-        children: {
-          select: {
-            id: true,
-          },
-        },
-      },
+  const workflowRelationsRepository = new WorkflowRelationsRepository(ctx.prisma);
+
+  if (isOrg) {
+    // activeOn are team ids
+    if (userWorkflow.isActiveOnAll) {
+      const teamRepo = new TeamRepository(ctx.prisma);
+      oldActiveOnIds = (
+        await teamRepo.findAllByParentId({ parentId: userWorkflow.teamId ?? 0, select: { id: true } })
+      ).map((team) => team.id);
+    } else {
+      oldActiveOnIds = (await workflowRelationsRepository.findActiveOnTeams(id)).map(
+        (teamRel) => teamRel.teamId
+      );
+    }
+
+    newActiveOn = activeOnEventTypeIds.filter((teamId) => !oldActiveOnIds.includes(teamId));
+
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: [], // No event type IDs for team workflows
+      newRoutingFormIds: [], // No routing form IDs for team workflows
+      newTeamIds: newActiveOn,
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
     });
+
+    if (!isAuthorizedToAddIds) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOnEventTypeIds.includes(teamId));
+
+    await deleteRemindersOfActiveOnIds({
+      removedActiveOnIds,
+      workflowSteps: userWorkflow.steps,
+      isOrg,
+      activeOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)),
+    });
+
+    // clean up any old active on values
+    await workflowRelationsRepository.deleteAllActiveOnRelations(id);
+
+    // create all new active on relationships
+    await workflowRelationsRepository.createActiveOnTeams(id, activeOnEventTypeIds);
+  } else if (isFormTrigger(trigger)) {
+    // activeOnRoutingFormIds are routing form ids
+    const routingFormIds = activeOnRoutingFormIds;
+
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: [], // No event type IDs for form triggers
+      newRoutingFormIds: routingFormIds ?? [],
+      newTeamIds: [], // No team IDs for form triggers
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
+    });
+
+    if (!isAuthorizedToAddIds) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    // clean up any old active on values
+    await workflowRelationsRepository.deleteAllActiveOnRelations(id);
+
+    // Create new workflow - routing forms relationships
+    await workflowRelationsRepository.createActiveOnRoutingForms(id, routingFormIds ?? []);
+  } else {
+    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+    const activeOnEventTypes = await eventTypeRepo.findEventTypesWithoutChildren(
+      activeOnEventTypeIds,
+      userWorkflow.teamId
+    );
 
     activeOnWithChildren = activeOnEventTypes
       .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
@@ -123,41 +165,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     let oldActiveOnEventTypes: { id: number; children: { id: number }[] }[];
     if (userWorkflow.isActiveOnAll) {
-      oldActiveOnEventTypes = await ctx.prisma.eventType.findMany({
-        where: {
-          ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }),
-        },
-        select: {
-          id: true,
-          children: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      });
+      oldActiveOnEventTypes = userWorkflow.teamId
+        ? await eventTypeRepo.findAllIncludingChildrenByTeamId({
+            teamId: userWorkflow.teamId,
+          })
+        : await eventTypeRepo.findAllIncludingChildrenByUserId({
+            userId: userWorkflow.userId,
+          });
     } else {
-      oldActiveOnEventTypes = (
-        await ctx.prisma.workflowsOnEventTypes.findMany({
-          where: {
-            workflowId: id,
-          },
-          select: {
-            eventTypeId: true,
-            eventType: {
-              select: {
-                children: {
-                  select: {
-                    id: true,
-                  },
-                },
-              },
-            },
-          },
-        })
-      ).map((eventTypeRel) => {
-        return { id: eventTypeRel.eventTypeId, children: eventTypeRel.eventType.children };
-      });
+      oldActiveOnEventTypes = (await workflowRelationsRepository.findActiveOnEventTypes(id)).map(
+        (eventTypeRel) => {
+          return { id: eventTypeRel.eventTypeId, children: eventTypeRel.eventType.children };
+        }
+      );
     }
 
     oldActiveOnIds = oldActiveOnEventTypes.flatMap((eventType) => [
@@ -165,14 +185,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ...eventType.children.map((child) => child.id),
     ]);
 
-    newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
-
-    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      newActiveOn,
-      isOrg,
-      userWorkflow?.teamId,
-      userWorkflow?.userId
-    );
+    newActiveOn = activeOnEventTypeIds.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds({
+      newEventTypeIds: newActiveOn,
+      newRoutingFormIds: [],
+      newTeamIds: [],
+      teamId: userWorkflow?.teamId,
+      userId: userWorkflow?.userId,
+    });
 
     if (!isAuthorizedToAddIds) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -181,105 +201,39 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
     removedActiveOnIds = oldActiveOnIds.filter((eventTypeId) => !activeOnWithChildren.includes(eventTypeId));
 
+    // clean up any old active on values
     await deleteRemindersOfActiveOnIds({ removedActiveOnIds, workflowSteps: userWorkflow.steps, isOrg });
 
-    //update active on
-    await ctx.prisma.workflowsOnEventTypes.deleteMany({
-      where: {
-        workflowId: id,
-      },
-    });
+    // clean up an old relationships
+    await workflowRelationsRepository.deleteAllActiveOnRelations(id);
 
     //create all workflow - eventtypes relationships
-    await ctx.prisma.workflowsOnEventTypes.createMany({
-      data: activeOnWithChildren.map((eventTypeId) => ({
-        workflowId: id,
-        eventTypeId,
-      })),
-    });
-  } else {
-    // activeOn are team ids
-    if (userWorkflow.isActiveOnAll) {
-      oldActiveOnIds = (
-        await ctx.prisma.team.findMany({
-          where: {
-            parent: {
-              id: userWorkflow.teamId ?? 0,
-            },
-          },
-          select: {
-            id: true,
-          },
-        })
-      ).map((team) => team.id);
-    } else {
-      oldActiveOnIds = (
-        await ctx.prisma.workflowsOnTeams.findMany({
-          where: {
-            workflowId: id,
-          },
-          select: {
-            teamId: true,
-          },
-        })
-      ).map((teamRel) => teamRel.teamId);
-    }
-
-    newActiveOn = activeOn.filter((teamId) => !oldActiveOnIds.includes(teamId));
-
-    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
-      newActiveOn,
-      isOrg,
-      userWorkflow?.teamId,
-      userWorkflow?.userId
-    );
-
-    if (!isAuthorizedToAddIds) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
-
-    await deleteRemindersOfActiveOnIds({
-      removedActiveOnIds,
-      workflowSteps: userWorkflow.steps,
-      isOrg,
-      activeOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)),
-    });
-
-    //update active on
-    await ctx.prisma.workflowsOnTeams.deleteMany({
-      where: {
-        workflowId: id,
-      },
-    });
-
-    await ctx.prisma.workflowsOnTeams.createMany({
-      data: activeOn.map((teamId) => ({
-        workflowId: id,
-        teamId,
-      })),
-    });
+    await workflowRelationsRepository.createActiveOnEventTypes(id, activeOnWithChildren);
   }
 
   if (userWorkflow.trigger !== trigger || userWorkflow.time !== time || userWorkflow.timeUnit !== timeUnit) {
-    //if trigger changed, delete all reminders from steps before change
-    await deleteRemindersOfActiveOnIds({
-      removedActiveOnIds: oldActiveOnIds,
-      workflowSteps: userWorkflow.steps,
-      isOrg,
-    });
+    if (!isFormTrigger(userWorkflow.trigger)) {
+      // Delete all existing reminders before rescheduling
+      await deleteRemindersOfActiveOnIds({
+        removedActiveOnIds: oldActiveOnIds,
+        workflowSteps: userWorkflow.steps,
+        isOrg,
+      });
+    }
 
-    await scheduleWorkflowNotifications({
-      activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
-      isOrg,
-      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-      time,
-      timeUnit,
-      trigger,
-      userId: user.id,
-      teamId: userWorkflow.teamId,
-    });
+    if (!isFormTrigger(trigger)) {
+      // Schedule new reminders for all activeOn
+      await scheduleWorkflowNotifications({
+        activeOn: activeOnWithChildren, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
+        isOrg,
+        workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+        time,
+        timeUnit,
+        trigger,
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+      });
+    }
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
     await scheduleWorkflowNotifications({
@@ -291,8 +245,28 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       trigger,
       userId: user.id,
       teamId: userWorkflow.teamId,
-      alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+      alreadyScheduledActiveOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
     });
+  }
+
+  const workflowStepRepository = new WorkflowStepRepository(ctx.prisma);
+
+  const agentRepo = new PrismaAgentRepository(prisma);
+
+  const stepIds = userWorkflow.steps.map((step) => step.id);
+  const allReminders = await WorkflowReminderRepository.findWorkflowRemindersByStepIds(stepIds);
+
+  const remindersByStepId = new Map<number, (typeof allReminders)[number][]>();
+  for (const reminder of allReminders) {
+    const stepId = reminder.workflowStepId;
+    if (stepId === null) continue;
+
+    let list = remindersByStepId.get(stepId);
+    if (!list) {
+      list = [];
+      remindersByStepId.set(stepId, list);
+    }
+    list.push(reminder);
   }
 
   // handle deleted and edited workflow steps
@@ -302,7 +276,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       let newStep;
 
       if (foundStep) {
-        const { senderName, ...rest } = {
+        newStep = {
           ...foundStep,
           numberVerificationPending: false,
           sender: getSender({
@@ -311,40 +285,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             senderName: foundStep.senderName,
           }),
         };
-        newStep = rest;
       }
 
-      const remindersFromStep = await ctx.prisma.workflowReminder.findMany({
-        where: {
-          workflowStepId: oldStep.id,
-        },
-        select: {
-          id: true,
-          referenceId: true,
-          method: true,
-          booking: {
-            select: {
-              eventTypeId: true,
-            },
-          },
-        },
-      });
+      const remindersFromStep = remindersByStepId.get(oldStep.id) || [];
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
-          const agent = await ctx.prisma.agent.findUnique({
-            where: { id: oldStep.agentId ?? undefined },
-            select: {
-              id: true,
-              outboundPhoneNumbers: {
-                select: {
-                  id: true,
-                  phoneNumber: true,
-                  subscriptionStatus: true,
-                },
-              },
-            },
-          });
+          const agent = await agentRepo.findAgentWithPhoneNumbers(oldStep.agentId ?? undefined);
 
           if (!agent) {
             throw new TRPCError({
@@ -354,16 +301,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
 
           await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-          await ctx.prisma.workflowStep.delete({
-            where: {
-              id: oldStep.id,
-            },
-          });
+          await workflowStepRepository.deleteById(oldStep.id);
 
           const aiPhoneService = createDefaultAIPhoneServiceProvider();
           const externalErrors: string[] = [];
 
-          const phoneNumberOperations: Promise<any>[] = [];
+          const phoneNumberOperations: Promise<void | { success: boolean; message: string }>[] = [];
 
           if (agent.outboundPhoneNumbers) {
             for (const phoneNumber of agent.outboundPhoneNumbers) {
@@ -440,6 +383,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             log.error(message);
           }
 
+          if (oldStep.inboundAgentId) {
+            try {
+              await aiPhoneService.deleteAgent({
+                id: oldStep.inboundAgentId,
+                userId: user.id,
+                teamId: userWorkflow.teamId ?? undefined,
+              });
+            } catch (error) {
+              const message = `Failed to delete inbound agent ${
+                oldStep.inboundAgentId
+              } from external service: ${error instanceof Error ? error.message : "Unknown error"}`;
+              externalErrors.push(message);
+              log.error(message);
+            }
+          }
+
           // If there were external errors, we should log them for manual cleanup
           // but the operation is considered successful since DB is consistent
           if (externalErrors.length > 0) {
@@ -448,17 +407,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         } else {
           // For non-AI phone steps, just delete reminders and step
           await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-          await ctx.prisma.workflowStep.delete({
-            where: {
-              id: oldStep.id,
-            },
-          });
+          await workflowStepRepository.deleteById(oldStep.id);
         }
       } else if (
         isStepEdited(oldStep, {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
+          inboundAgentId: newStep.inboundAgentId || null,
         })
       ) {
         // check if step that require team plan already existed before
@@ -503,25 +459,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
-        await ctx.prisma.workflowStep.update({
-          where: {
-            id: oldStep.id,
-          },
-          data: {
-            action: newStep.action,
-            sendTo: requiresSender ? newStep.sendTo : null,
-            stepNumber: newStep.stepNumber,
-            workflowId: newStep.workflowId,
-            reminderBody: newStep.reminderBody,
-            emailSubject: newStep.emailSubject,
-            template: newStep.template,
-            numberRequired: newStep.numberRequired,
-            sender: newStep.sender,
-            numberVerificationPending: false,
-            includeCalendarEvent: newStep.includeCalendarEvent,
-            agentId: newStep.agentId || null,
-            verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
-          },
+        await workflowStepRepository.updateWorkflowStep(oldStep.id, {
+          action: newStep.action,
+          sendTo: requiresSender ? newStep.sendTo : null,
+          stepNumber: newStep.stepNumber,
+          reminderBody: newStep.reminderBody,
+          emailSubject: newStep.emailSubject,
+          template: newStep.template,
+          numberRequired: newStep.numberRequired,
+          sender: newStep.sender,
+          numberVerificationPending: false,
+          includeCalendarEvent: newStep.includeCalendarEvent,
+          agentId: newStep.agentId || null,
+          verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
         });
 
         if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
@@ -530,10 +480,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             userId: ctx.user.id,
             createdAt: new Date().toISOString(),
           });
-        } else {
-          // schedule notifications for edited steps
+        } else if (!isFormTrigger(trigger)) {
+          // schedule notifications for edited steps (only for event-based triggers)
           await scheduleWorkflowNotifications({
-            activeOn,
+            activeOn: activeOnEventTypeIds,
             isOrg,
             workflowSteps: [newStep],
             time,
@@ -573,20 +523,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
 
-        const {
-          id: _stepId,
-          senderName,
-          ...stepToAdd
-        } = {
+        return {
           ...newStep,
           sender: getSender({
             action: newStep.action,
             sender: newStep.sender || null,
             senderName: newStep.senderName,
           }),
+          id: undefined,
+          senderName: undefined,
         };
-
-        return stepToAdd;
       })
   );
 
@@ -594,12 +540,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //create new steps
     const createdSteps = await Promise.all(
       addedSteps.map((step) =>
-        ctx.prisma.workflowStep.create({
-          data: {
-            ...step,
-            numberVerificationPending: false,
-            ...(!SCANNING_WORKFLOW_STEPS ? { verifiedAt: new Date() } : {}),
-          },
+        workflowStepRepository.createWorkflowStep({
+          ...step,
+          workflowId: id,
+          numberVerificationPending: false,
+          ...(!SCANNING_WORKFLOW_STEPS ? { verifiedAt: new Date() } : {}),
         })
       )
     );
@@ -614,10 +559,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           })
         )
       );
-    } else {
-      // schedule notification for new step
+    } else if (!isFormTrigger(trigger)) {
+      // schedule notification for new step (only for event-based triggers)
       await scheduleWorkflowNotifications({
-        activeOn,
+        activeOn: activeOnEventTypeIds,
         isOrg,
         workflowSteps: createdSteps,
         time,
@@ -630,50 +575,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   //update trigger, name, time, timeUnit
-  await ctx.prisma.workflow.update({
-    where: {
-      id,
-    },
-    data: {
-      name,
-      trigger,
-      time,
-      timeUnit,
-      isActiveOnAll,
-    },
+  await WorkflowRepository.updateWorkflow(id, {
+    name,
+    trigger,
+    time,
+    timeUnit,
+    isActiveOnAll,
   });
 
-  const workflow = await ctx.prisma.workflow.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      activeOn: {
-        select: {
-          eventType: true,
-        },
-      },
-      activeOnTeams: {
-        select: {
-          team: true,
-        },
-      },
-      team: {
-        select: {
-          id: true,
-          slug: true,
-          members: true,
-          name: true,
-          isOrganization: true,
-        },
-      },
-      steps: {
-        orderBy: {
-          stepNumber: "asc",
-        },
-      },
-    },
-  });
+  const workflow = await WorkflowRepository.findUniqueWithRelations(id);
 
   if (!workflow) {
     throw new TRPCError({
@@ -682,48 +592,51 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  // Remove or add booking field for sms reminder number
-  const smsReminderNumberNeeded =
-    activeOn.length &&
-    steps.some(
-      (step) =>
-        step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
-    );
-  await removeSmsReminderFieldForEventTypes({
-    activeOnToRemove: removedActiveOnIds,
-    workflowId: id,
-    isOrg,
-    activeOn,
-  });
+  // Remove or add booking field for sms reminder number (only for event types, not routing forms)
+  if (!isFormTrigger(trigger)) {
+    const smsReminderNumberNeeded =
+      activeOnWithChildren.length &&
+      steps.some(
+        (step) =>
+          step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
+      );
 
-  if (!smsReminderNumberNeeded) {
     await removeSmsReminderFieldForEventTypes({
-      activeOnToRemove: activeOnWithChildren,
+      activeOnToRemove: removedActiveOnIds,
       workflowId: id,
       isOrg,
-    });
-  } else {
-    await upsertSmsReminderFieldForEventTypes({
       activeOn: activeOnWithChildren,
-      workflowId: id,
-      isSmsReminderNumberRequired: steps.some(
-        (s) =>
-          (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
-          s.numberRequired
-      ),
-      isOrg,
     });
+
+    if (!smsReminderNumberNeeded) {
+      await removeSmsReminderFieldForEventTypes({
+        activeOnToRemove: activeOnWithChildren,
+        workflowId: id,
+        isOrg,
+      });
+    } else {
+      await upsertSmsReminderFieldForEventTypes({
+        activeOn: activeOnWithChildren,
+        workflowId: id,
+        isSmsReminderNumberRequired: steps.some(
+          (s) =>
+            (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+            s.numberRequired
+        ),
+        isOrg,
+      });
+    }
   }
 
   // Remove or add attendeePhoneNumber field for AI phone call actions
   const aiPhoneCallStepsNeeded =
-    activeOn.length && steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL);
+    activeOnWithChildren.length && steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL);
 
   await removeAIAgentCallPhoneNumberFieldForEventTypes({
     activeOnToRemove: removedActiveOnIds,
     workflowId: id,
     isOrg,
-    activeOn,
+    activeOn: activeOnWithChildren,
   });
 
   if (!aiPhoneCallStepsNeeded) {
@@ -751,10 +664,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (!step.agentId) return;
 
         try {
-          const agent = await ctx.prisma.agent.findUnique({
-            where: { id: step.agentId },
-            select: { providerAgentId: true },
-          });
+          const agent = await agentRepo.findProviderAgentIdById(step.agentId);
 
           if (!agent?.providerAgentId) {
             log.error(`Agent not found for step ${step.id} agentId ${step.agentId}`);

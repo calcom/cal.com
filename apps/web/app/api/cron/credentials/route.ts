@@ -6,11 +6,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 
@@ -72,7 +73,7 @@ export async function handleCreateCredentials() {
 
     const credentialCreationPromises = toProcessMembers.map(async (member) => {
       try {
-        await CredentialRepository.create({
+        const credentialData = buildCredentialCreateData({
           type: "google_calendar",
           key: {
             // The in-memory credential that we create for Delegation Credential has access_token as "NOOP_UNUSED_DELEGATION_TOKEN. This is to mark it is in DB, in case we need to identify that.
@@ -82,6 +83,7 @@ export async function handleCreateCredentials() {
           appId: "google-calendar",
           delegationCredentialId: delegationCredential.id,
         });
+        await CredentialRepository.create(credentialData);
         log.info(`Created credential for member ${member.userId}`);
       } catch (error) {
         log.error(`Error creating credential for member ${member.userId}:`, safeStringify(error));

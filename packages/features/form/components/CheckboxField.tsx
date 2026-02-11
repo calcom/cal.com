@@ -1,8 +1,8 @@
 import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
-import { InfoBadge } from "@calcom/ui/components/badge";
 import classNames from "@calcom/ui/classNames";
+import { InfoBadge } from "@calcom/ui/components/badge";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: React.ReactNode;
@@ -48,7 +48,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     {...rest}
                     ref={ref}
                     type="checkbox"
-                    className="text-emphasis focus:ring-emphasis dark:text-muted border-default bg-default h-4 w-4 rounded transition"
+                    className="text-emphasis focus:ring-emphasis dark:text-muted border-default bg-default checked:border-transparent! checked:bg-gray-800! h-4 w-4 rounded-[4px] transition"
                   />
                 </div>
                 <span className="ms-2 text-sm">{description}</span>

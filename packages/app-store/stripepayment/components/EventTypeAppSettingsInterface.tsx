@@ -170,7 +170,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               <RadioGroup.Root
                 disabled={disabled || paymentOption === "HOLD"}
                 defaultValue="never"
-                className="flex flex-col space-y-2"
+                className="flex flex-col stack-y-2"
                 value={getAppData("refundPolicy")}
                 onValueChange={(val) => {
                   setAppData("refundPolicy", val);

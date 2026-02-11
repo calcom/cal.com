@@ -1,10 +1,12 @@
-import { describe, expect } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { buildCalendarEvent, buildPerson } from "@calcom/lib/test/builder";
 import { buildVideoCallData } from "@calcom/lib/test/builder";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
 import generateIcsString from "./generateIcsString";
 
@@ -164,6 +166,92 @@ describe("generateIcsString", () => {
       assertHasIcsString(icsString);
 
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
+    });
+  });
+  describe("error handling", () => {
+    test("throws ErrorWithCode.BadRequest when ics library returns ValidationError", async () => {
+      // Mock the ics library to return a ValidationError
+      const ics = await import("ics");
+      const createEventSpy = vi.spyOn(ics, "createEvent");
+
+      // Simulate a Yup ValidationError (which has name: "ValidationError")
+      const validationError = {
+        name: "ValidationError",
+        message: "attendees[0].email must be a valid email",
+        errors: ["attendees[0].email must be a valid email"],
+      };
+
+      createEventSpy.mockReturnValueOnce({
+        error: validationError as unknown as Error,
+        value: undefined,
+      });
+
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+
+      expect(() =>
+        generateIcsString({
+          event,
+          status: "CONFIRMED",
+        })
+      ).toThrow(ErrorWithCode);
+
+      try {
+        generateIcsString({
+          event,
+          status: "CONFIRMED",
+        });
+      } catch (error) {
+        expect(error).toBeInstanceOf(ErrorWithCode);
+        expect((error as ErrorWithCode).code).toBe(ErrorCode.BadRequest);
+        expect((error as ErrorWithCode).message).toBe("attendees[0].email must be a valid email");
+      }
+
+      createEventSpy.mockRestore();
+    });
+
+    test("re-throws non-ValidationError errors as-is", async () => {
+      const ics = await import("ics");
+      const createEventSpy = vi.spyOn(ics, "createEvent");
+
+      // Simulate a different type of error
+      const genericError = new Error("Some other error");
+
+      createEventSpy.mockReturnValueOnce({
+        error: genericError,
+        value: undefined,
+      });
+
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+
+      expect(() =>
+        generateIcsString({
+          event,
+          status: "CONFIRMED",
+        })
+      ).toThrow(genericError);
+
+      createEventSpy.mockRestore();
+    });
+
+    test("returns ics string when there is no error", () => {
+      const event = buildCalendarEvent({
+        iCalSequence: 0,
+        attendees: [buildPerson()],
+      });
+
+      const icsString = generateIcsString({
+        event,
+        status: "CONFIRMED",
+      });
+
+      expect(icsString).toBeDefined();
+      expect(typeof icsString).toBe("string");
     });
   });
 });

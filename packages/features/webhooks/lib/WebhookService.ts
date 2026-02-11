@@ -1,15 +1,16 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
+import type { WebhookSubscriber } from "./dto/types";
 import getWebhooks from "./getWebhooks";
-import type { GetSubscriberOptions, GetWebhooksReturnType } from "./getWebhooks";
+import type { GetSubscriberOptions } from "./getWebhooks";
 import sendOrSchedulePayload from "./sendOrSchedulePayload";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookService] "] });
 
 /** This is a WIP. With minimal methods until the API matures and stabilizes */
 export class WebhookService {
-  private constructor(private options: GetSubscriberOptions, private webhooks: GetWebhooksReturnType) {}
+  private constructor(private options: GetSubscriberOptions, private webhooks: WebhookSubscriber[]) {}
   static async init(options: GetSubscriberOptions) {
     const webhooks = await getWebhooks(options);
     return new WebhookService(options, webhooks);

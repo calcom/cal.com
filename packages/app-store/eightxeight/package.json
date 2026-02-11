@@ -5,10 +5,10 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/lib": "*"
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   },
   "description": "The best video conferencing solution for businesses of any size. Fully secure, reliable, packed with features and ridiculously simple to use.\r\r"
 }

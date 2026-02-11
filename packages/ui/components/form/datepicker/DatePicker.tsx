@@ -11,10 +11,11 @@ type Props = {
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
   disabled?: boolean;
-  minDate?: Date;
+  minDate?: Date | null;
+  label?: string;
 };
 
-const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
+const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }: Props) => {
   function handleDayClick(newDate: Date) {
     onDatesChange?.(newDate ?? new Date());
   }
@@ -35,22 +36,26 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
 
   return (
     <div className={classNames("grid gap-2", className)}>
-      <Popover.Root>
+      {/* modal prop required for iOS compatibility when nested inside Dialog modals */}
+      <Popover.Root modal>
         <Popover.Trigger asChild>
           <Button
             data-testid="pick-date"
             color="secondary"
             EndIcon="calendar"
             className={classNames("justify-between text-left font-normal", !date && "text-subtle")}>
-            {date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>}
+            {label ?? (date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>)}
           </Button>
         </Popover.Trigger>
+        <Popover.Portal>
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}>
+          sideOffset={4}
+          >
           {calender}
         </Popover.Content>
+        </Popover.Portal>
       </Popover.Root>
     </div>
   );

@@ -1,4 +1,4 @@
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { z } from "zod";
@@ -6,7 +6,8 @@ import type { z } from "zod";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import type { appDataSchema } from "../zod";
-import SalesforceCRMService from "./CrmService";
+import type { SalesforceCRM } from "./CrmService";
+import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
 import { SalesforceRecordEnum } from "./enums";
 
 type AppOptions = z.infer<typeof appDataSchema>;
@@ -57,7 +58,7 @@ const leadQueryResponse = {
   ],
 };
 
-const ownerQueryResponse = {
+const _ownerQueryResponse = {
   records: [
     {
       Id: "owner001",
@@ -87,8 +88,12 @@ vi.mock("./graphql/SalesforceGraphQLClient", () => ({
 }));
 
 describe("SalesforceCRMService", () => {
-  let service: SalesforceCRMService;
-  let mockConnection: { query: any; sobject: any };
+  let service: SalesforceCRM;
+  let mockConnection: {
+    query: ReturnType<typeof vi.fn>;
+    sobject: ReturnType<typeof vi.fn>;
+    search: ReturnType<typeof vi.fn>;
+  };
 
   setupAndTeardown();
 
@@ -96,6 +101,7 @@ describe("SalesforceCRMService", () => {
     mockConnection = {
       query: vi.fn(),
       sobject: vi.fn(),
+      search: vi.fn(),
     };
 
     const mockCredential: CredentialPayload = {
@@ -114,11 +120,12 @@ describe("SalesforceCRMService", () => {
         email: "test-user@example.com",
       },
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
-    service = new SalesforceCRMService(mockCredential, {}, true);
+    service = createSalesforceCrmServiceWithSalesforceType(mockCredential, {}, true);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-ignore - accessing private property for testing
     service.conn = Promise.resolve(mockConnection);
   });
 
@@ -334,7 +341,7 @@ describe("SalesforceCRMService", () => {
 
         expect(querySpy).toHaveBeenNthCalledWith(
           1,
-          "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
+          "SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
         );
       });
     });
@@ -424,7 +431,7 @@ describe("SalesforceCRMService", () => {
 
         expect(querySpy).toHaveBeenNthCalledWith(
           1,
-          "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
+          "SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
         );
       });
     });
@@ -522,6 +529,224 @@ describe("SalesforceCRMService", () => {
     });
   });
 
+  describe("getContactOrLeadFromEmail via getContacts", () => {
+    describe("with roundRobinSkipFallbackToLeadOwner enabled", () => {
+      it("should return contact when contact is found", async () => {
+        mockAppOptions({
+          createEventOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipFallbackToLeadOwner: true,
+        });
+
+        const searchSpy = vi.spyOn(mockConnection, "search");
+        searchSpy.mockResolvedValueOnce({
+          searchRecords: [
+            {
+              Id: "contact001",
+              Email: "test@example.com",
+              OwnerId: "owner001",
+              attributes: { type: "Contact" },
+              Owner: { Email: "owner@example.com" },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact001",
+            email: "test@example.com",
+            ownerId: "owner001",
+            ownerEmail: "owner@example.com",
+            recordType: "Contact",
+          },
+        ]);
+
+        expect(searchSpy).toHaveBeenCalledWith(
+          "FIND {test@example.com} IN EMAIL FIELDS RETURNING Lead(Id, Email, OwnerId, Owner.Email), Contact(Id, Email, OwnerId, Owner.Email)"
+        );
+      });
+
+      it("should return lead when no contact exists but lead is found", async () => {
+        mockAppOptions({
+          createEventOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipFallbackToLeadOwner: true,
+        });
+
+        const searchSpy = vi.spyOn(mockConnection, "search");
+        searchSpy.mockResolvedValueOnce({
+          searchRecords: [
+            {
+              Id: "lead001",
+              Email: "test@example.com",
+              OwnerId: "owner001",
+              attributes: { type: "Lead" },
+              Owner: { Email: "owner@example.com" },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "lead001",
+            email: "test@example.com",
+            ownerId: "owner001",
+            ownerEmail: "owner@example.com",
+            recordType: "Lead",
+          },
+        ]);
+
+        expect(searchSpy).toHaveBeenCalled();
+      });
+
+      it("should prefer contact over lead when both exist", async () => {
+        mockAppOptions({
+          createEventOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipFallbackToLeadOwner: true,
+        });
+
+        const searchSpy = vi.spyOn(mockConnection, "search");
+        searchSpy.mockResolvedValueOnce({
+          searchRecords: [
+            {
+              Id: "lead001",
+              Email: "test@example.com",
+              OwnerId: "owner002",
+              attributes: { type: "Lead" },
+              Owner: { Email: "lead-owner@example.com" },
+            },
+            {
+              Id: "contact001",
+              Email: "test@example.com",
+              OwnerId: "owner001",
+              attributes: { type: "Contact" },
+              Owner: { Email: "contact-owner@example.com" },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact001",
+            email: "test@example.com",
+            ownerId: "owner001",
+            ownerEmail: "contact-owner@example.com",
+            recordType: "Contact",
+          },
+        ]);
+
+        expect(searchSpy).toHaveBeenCalled();
+      });
+
+      it("should return empty array when no records found", async () => {
+        mockAppOptions({
+          createEventOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+          roundRobinSkipFallbackToLeadOwner: true,
+        });
+
+        const searchSpy = vi.spyOn(mockConnection, "search");
+        searchSpy.mockResolvedValueOnce({
+          searchRecords: [],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+          forRoundRobinSkip: true,
+        });
+
+        expect(result).toEqual([]);
+        expect(searchSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe("with createEventOnLeadCheckForContact enabled", () => {
+      it("should find and return contact when it exists", async () => {
+        mockAppOptions({
+          createEventOn: SalesforceRecordEnum.LEAD,
+          createEventOnLeadCheckForContact: true,
+        });
+
+        const searchSpy = vi.spyOn(mockConnection, "search");
+        searchSpy.mockResolvedValueOnce({
+          searchRecords: [
+            {
+              Id: "contact001",
+              Email: "test@example.com",
+              OwnerId: "owner001",
+              attributes: { type: "Contact" },
+              Owner: { Email: "owner@example.com" },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+        });
+
+        expect(result).toEqual([
+          {
+            id: "contact001",
+            email: "test@example.com",
+            recordType: "Contact",
+          },
+        ]);
+
+        expect(searchSpy).toHaveBeenCalled();
+      });
+
+      it("should fallback to lead when contact not found", async () => {
+        mockAppOptions({
+          createEventOn: SalesforceRecordEnum.LEAD,
+          createEventOnLeadCheckForContact: true,
+        });
+
+        const searchSpy = vi.spyOn(mockConnection, "search");
+        searchSpy.mockResolvedValueOnce({
+          searchRecords: [
+            {
+              Id: "lead001",
+              Email: "test@example.com",
+              OwnerId: "owner001",
+              attributes: { type: "Lead" },
+              Owner: { Email: "owner@example.com" },
+            },
+          ],
+        });
+
+        const result = await service.getContacts({
+          emails: "test@example.com",
+        });
+
+        expect(result).toEqual([
+          {
+            id: "lead001",
+            email: "test@example.com",
+            recordType: "Lead",
+          },
+        ]);
+
+        expect(searchSpy).toHaveBeenCalled();
+      });
+    });
+  });
+
   describe("createContacts", () => {
     describe("createEventOn lead", () => {
       describe("createNewContactUnderAccount enabled", () => {
@@ -579,6 +804,299 @@ describe("SalesforceCRMService", () => {
       expect(result).toEqual(
         "'example.com', 'www.example.com', 'http://www.example.com', 'http://example.com', 'https://www.example.com', 'https://example.com'"
       );
+    });
+  });
+
+  describe("getContacts with rrSkipFieldRules", () => {
+    const mockDescribeResponse = {
+      fields: [
+        { name: "Industry", type: "string" },
+        { name: "Type", type: "string" },
+        { name: "Status", type: "string" },
+      ],
+    };
+
+    it("should filter out records matching ignore rule", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "Industry", value: "Technology", action: "ignore" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      // Field rule fields are now included in the main SOQL query
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Technology",
+          },
+        ],
+      });
+
+      // Mock describe for field validation
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should keep records not matching ignore rule", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "Industry", value: "Technology", action: "ignore" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Healthcare",
+          },
+        ],
+      });
+
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([
+        {
+          id: "001",
+          email: "test@example.com",
+          ownerId: "owner001",
+          ownerEmail: "owner@example.com",
+          recordType: "Contact",
+        },
+      ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should filter out records not matching must_include rule", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "Industry", value: "Technology", action: "must_include" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Healthcare",
+          },
+        ],
+      });
+
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should keep records matching must_include rule", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "Industry", value: "Technology", action: "must_include" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Technology",
+          },
+        ],
+      });
+
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([
+        {
+          id: "001",
+          email: "test@example.com",
+          ownerId: "owner001",
+          ownerEmail: "owner@example.com",
+          recordType: "Contact",
+        },
+      ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should handle multiple rules with AND logic", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [
+          { field: "Industry", value: "Technology", action: "must_include" },
+          { field: "Type", value: "Inactive", action: "ignore" },
+        ],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "Technology",
+            Type: "Active",
+          },
+        ],
+      });
+
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([
+        {
+          id: "001",
+          email: "test@example.com",
+          ownerId: "owner001",
+          ownerEmail: "owner@example.com",
+          recordType: "Contact",
+        },
+      ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should skip rules for fields that do not exist on the record type", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "NonExistentField", value: "SomeValue", action: "must_include" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce(contactQueryResponse);
+
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([
+        {
+          id: "001",
+          email: "test@example.com",
+          ownerId: "owner001",
+          ownerEmail: "owner@example.com",
+          recordType: "Contact",
+        },
+      ]);
+    });
+
+    it("should be case-insensitive when matching field values", async () => {
+      mockAppOptions({
+        roundRobinSkipCheckRecordOn: SalesforceRecordEnum.CONTACT,
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "Industry", value: "TECHNOLOGY", action: "must_include" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "001",
+            Email: "test@example.com",
+            OwnerId: "owner001",
+            attributes: { type: "Contact" },
+            Owner: { Email: "owner@example.com" },
+            Industry: "technology",
+          },
+        ],
+      });
+
+      mockConnection.describe = vi.fn().mockResolvedValue(mockDescribeResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: true,
+      });
+
+      expect(result).toEqual([
+        {
+          id: "001",
+          email: "test@example.com",
+          ownerId: "owner001",
+          ownerEmail: "owner@example.com",
+          recordType: "Contact",
+        },
+      ]);
+      expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should not apply field rules when forRoundRobinSkip is false", async () => {
+      mockAppOptions({
+        createEventOn: SalesforceRecordEnum.CONTACT,
+        rrSkipFieldRules: [{ field: "Industry", value: "Technology", action: "ignore" }],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce(contactQueryResponse);
+
+      const result = await service.getContacts({
+        emails: "test@example.com",
+        forRoundRobinSkip: false,
+      });
+
+      expect(result).toEqual([
+        {
+          id: "001",
+          email: "test@example.com",
+          recordType: "Contact",
+        },
+      ]);
+
+      expect(querySpy).toHaveBeenCalledTimes(1);
     });
   });
 });

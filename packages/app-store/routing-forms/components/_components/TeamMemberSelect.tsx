@@ -82,7 +82,7 @@ export const TeamMemberSelect = ({
   return (
     <div>
       <Label htmlFor="routing-form-select-members">{t("routing_form_select_members_to_email")}</Label>
-      <div className="space-y-4">
+      <div className="stack-y-4">
         <Select
           id="routing-form-select-members"
           data-testid="routing-form-select-members"

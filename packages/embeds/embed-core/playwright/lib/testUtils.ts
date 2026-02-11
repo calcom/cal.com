@@ -83,11 +83,23 @@ export const getEmbedIframe = async ({
     },
     { polling: 500 }
   );
-  const embedIframe = page.frame(`cal-embed=${calNamespace}`);
+
+  const iframeSelector = `iframe[name="cal-embed=${calNamespace}"]`;
+  // In case of modal we don't cleanup previous iframe on repeat click, so we should read the last one by default as that would be the one actie
+  const targetIframeElement = page.locator(iframeSelector).last();
+  let elementHandle = await targetIframeElement.elementHandle();
+  let embedIframe = await elementHandle?.contentFrame();
+
   if (!embedIframe) {
     return null;
   }
-  const u = new URL(embedIframe.url());
+  let url = embedIframe.url();
+  if (!url) {
+    // If iframe hasn't even initiated loading yet, wait for it to be visible
+    await targetIframeElement.waitFor();
+    url = embedIframe.url();
+  }
+  const u = new URL(url);
   if (u.pathname === `${pathname}/embed`) {
     return embedIframe;
   }
@@ -231,4 +243,20 @@ export async function expectActualFormResponseConnectedToQueuedFormResponse({
   // There are 5 values that are submitted when CTA is clicked.
   // TODO: We should be able to verify the exact response values by correlating the form field identifiers with the actual Form from DB
   expect(valuesSetInResponse.length).toBe(numberOfExpectedSetFieldValues);
+}
+
+export async function cancelBookingThroughEmbed(bookingUid: string, frame: Frame, page: Page) {
+  await frame.waitForSelector('[data-testid="cancel_reason"]');
+
+  await frame.fill('[data-testid="cancel_reason"]', "Test cancellation from embed");
+
+  const responsePromise = page.waitForResponse("**/api/cancel");
+  await frame.click('[data-testid="confirm_cancel"]');
+
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+
+  await expect(frame.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+  return response;
 }

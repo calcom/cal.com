@@ -18,10 +18,10 @@ const dialogClasses = cva(
   {
     variants: {
       size: {
-        xl: "px-8 pt-8 sm:max-w-[90rem]",
-        lg: "px-8 pt-8 sm:max-w-[70rem]",
-        md: "px-8 pt-8 sm:max-w-[48rem]",
-        default: "px-8 pt-8 sm:max-w-[35rem]",
+        xl: "px-8 pt-8 sm:max-w-360",
+        lg: "px-8 pt-8 sm:max-w-280",
+        md: "px-8 pt-8 sm:max-w-3xl",
+        default: "px-8 pt-8 sm:max-w-140",
       },
     },
     defaultVariants: {
@@ -70,9 +70,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     return (
       <DialogPrimitive.Portal>
         {forceOverlayWhenNoModal ? (
-          <div className="fadeIn fixed inset-0 z-50  bg-neutral-800 bg-opacity-70 transition-opacity" />
+          <div className="fadeIn fixed inset-0 z-50  bg-neutral-800/70 transition-opacity" />
         ) : (
-          <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-80" />
+          <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity dark:bg-neutral-800/80" />
         )}
         <DialogPrimitive.Content
           {...props}
@@ -81,6 +81,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               e.preventDefault();
             }
           }}
+          onClick={(e) => e.stopPropagation()}
           className={classNames(
             dialogClasses({ size: props.size }),
             "max-h-[95vh]",
@@ -99,11 +100,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "confirmation" && (
             <div className="flex">
               {icon && (
-                <div className="bg-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                <div className="bg-emphasis flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
                   <Icon name={icon} className="text-emphasis h-4 w-4" />
                 </div>
               )}
-              <div className="ml-4 flex-grow">
+              <div className="ml-4 grow">
                 <DialogHeader title={title} subtitle={props.description} />
                 <div data-testid="dialog-confirmation">{children}</div>
               </div>
@@ -128,7 +129,7 @@ export function DialogHeader(props: DialogHeaderProps) {
     <div className="mb-4">
       <h2
         data-testid="dialog-title"
-        className="leading-20 text-semibold text-emphasis font-cal mb-1 text-xl"
+        className="text-semibold text-emphasis font-cal mb-1 text-xl"
         id="modal-title">
         {props.title}
       </h2>
@@ -151,7 +152,7 @@ export function DialogFooter(props: DialogFooterProps) {
   return (
     <div
       className={classNames(
-        "bg-muted border-muted bottom-0 -mx-8 mt-10 rounded-b-2xl border",
+        "bg-cal-muted border-muted bottom-0 -mx-8 mt-10 rounded-b-2xl border",
         props?.noSticky ? "" : "sticky",
         props.className
       )}>

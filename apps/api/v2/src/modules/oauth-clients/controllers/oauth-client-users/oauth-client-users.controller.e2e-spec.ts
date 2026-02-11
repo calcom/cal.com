@@ -1,5 +1,22 @@
-import { bootstrap } from "@/app";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { slugify } from "@calcom/platform-libraries";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_04_15/constants/constants";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -12,24 +29,6 @@ import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
-import type { ApiSuccessResponse } from "@calcom/platform-types";
-import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:4321";
 
@@ -705,6 +704,111 @@ describe("OAuth Client Users Endpoints", () => {
         .expect(200);
     });
 
+    describe("managed user time zone", () => {
+      describe("negative tests", () => {
+        it("should not allow '' time zone", async () => {
+          const requestBody = {
+            email: "whatever2@gmail.com",
+            timeZone: "",
+            name: "Bob Smithson",
+          };
+
+          await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(400);
+        });
+
+        it("should not allow 'invalid-timezone' time zone", async () => {
+          const requestBody = {
+            email: "whatever2@gmail.com",
+            timeZone: "invalid-timezone",
+            name: "Bob Smithson",
+          };
+
+          await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(400);
+        });
+      });
+
+      describe("positive tests", () => {
+        it("should allow null timezone", async () => {
+          const requestBody = {
+            email: "whatever1@gmail.com",
+            timeZone: null,
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
+        it("should allow undefined time zone", async () => {
+          const requestBody = {
+            email: "whatever3@gmail.com",
+            timeZone: undefined,
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
+        it("should allow valid time zone", async () => {
+          const requestBody = {
+            email: "whatever4@gmail.com",
+            timeZone: "Europe/Rome",
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toBe("Europe/Rome");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+
+        it("should allow without any time zone", async () => {
+          const requestBody = {
+            email: "whatever5@gmail.com",
+            name: "Bob Smithson",
+          };
+
+          const response = await request(app.getHttpServer())
+            .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+            .set("x-cal-secret-key", oAuthClient.secret)
+            .send(requestBody)
+            .expect(201);
+
+          const responseBody: CreateManagedUserOutput = response.body;
+          expect(responseBody.data.user.timeZone).toEqual("Europe/London");
+          await userRepositoryFixture.delete(responseBody.data.user.id);
+        });
+      });
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await oauthClientRepositoryFixture.delete(oAuthClientEventTypesDisabled.id);
@@ -712,17 +816,17 @@ describe("OAuth Client Users Endpoints", () => {
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(postResponseData2.user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(platformAdmin.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });
@@ -931,7 +1035,7 @@ describe("OAuth Client Users Endpoints", () => {
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });

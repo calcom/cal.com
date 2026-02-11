@@ -22,7 +22,7 @@ This directory contains the refactored RetellAI services that follow the Single 
 
 **Responsibility**: Agent CRUD operations
 
-- `createAgent()` - Create new agents
+- `createOutboundAgent()` - Create new agents
 - `updateAgent()` - Update agent properties
 - `deleteAgent()` - Remove agents
 - `listAgents()` - Get agent lists
@@ -83,7 +83,7 @@ const { llmId, agentId } = await aiConfigService.setupAIConfiguration({
 });
 
 // Create agent
-const agent = await agentService.createAgent({
+const agent = await agentService.createOutboundAgent({
   name: 'Support Agent',
   userId: 1,
   userTimeZone: 'America/New_York',

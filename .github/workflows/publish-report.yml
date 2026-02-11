@@ -1,5 +1,26 @@
 on:
   workflow_call:
+    inputs:
+      head_branch:
+        description: 'The head branch name for report path'
+        required: true
+        type: string
+      source_run_id:
+        description: 'The source run ID for report path'
+        required: true
+        type: string
+      source_run_number:
+        description: 'The source run number for artifact naming and comment'
+        required: true
+        type: string
+      source_run_attempt:
+        description: 'The source run attempt for artifact naming and comment'
+        required: true
+        type: string
+      pr_number:
+        description: 'The PR number to post comment on'
+        required: true
+        type: string
 permissions:
   contents: write
   issues: write
@@ -10,15 +31,23 @@ jobs:
     continue-on-error: true
     env:
       # Unique URL path for each workflow run attempt
-      HTML_REPORT_URL_PATH: reports/${{ github.head_ref }}/${{ github.run_id }}/${{ github.run_attempt }}
-      BRANCH_REPORTS_DIR: reports/${{ github.head_ref }}
+      HTML_REPORT_URL_PATH: reports/${{ inputs.head_branch }}/${{ inputs.source_run_id }}/${{ inputs.source_run_attempt }}
+      BRANCH_REPORTS_DIR: reports/${{ inputs.head_branch }}
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'test-results-2'
+
       - name: Checkout GitHub Pages Branch
         uses: actions/checkout@v4
         with:
-          repository: calcom/test-results
+          repository: calcom/test-results-2
           ref: gh-pages
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          token: ${{ steps.generate-token.outputs.token }}
       - name: Set Git User
         # see: https://github.com/actions/checkout/issues/13#issuecomment-724415212
         run: |
@@ -34,22 +63,27 @@ jobs:
       - name: Cleanup old HTML reports
         if: ${{ env.BRANCH_REPORTS_EXIST == 'true' }}
         timeout-minutes: 3
+        env:
+          HEAD_BRANCH: ${{ inputs.head_branch }}
         run: |
-          rm -rf $BRANCH_REPORTS_DIR
+          rm -rf "$BRANCH_REPORTS_DIR"
           git add .
-          git commit -m "workflow: remove all reports for branch ${{ github.head_ref }}"
+          git commit -m "workflow: remove all reports for branch $HEAD_BRANCH"
       - name: Download zipped HTML report
         uses: actions/download-artifact@v4
         with:
-          name: html-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
+          name: html-report--attempt-${{ inputs.source_run_number }}-${{ inputs.source_run_attempt }}
           path: ${{ env.HTML_REPORT_URL_PATH }}
       - name: Push HTML Report
         timeout-minutes: 3
         # commit report, then try push-rebase-loop until it's able to merge the HTML report to the gh-pages branch
         # this is necessary when this job running at least twice at the same time (e.g. through two pushes at the same time)
+        env:
+          RUN_ID: ${{ inputs.source_run_id }}
+          RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
         run: |
           git add .
-          git commit -m "workflow: add HTML report for run-id ${{ github.run_id }} (attempt:  ${{ github.run_attempt }})"
+          git commit -m "workflow: add HTML report for run-id $RUN_ID (attempt: $RUN_ATTEMPT)"
 
           while true; do
             git pull --rebase
@@ -67,25 +101,25 @@ jobs:
       - name: Output Report URL as Workflow Annotation
         id: url
         run: |
-          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results/$HTML_REPORT_URL_PATH
+          FULL_HTML_REPORT_URL=https://calcom.github.io/test-results-2/$HTML_REPORT_URL_PATH
           echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
           echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
       - name: Find Comment
         uses: peter-evans/find-comment@v2
         id: fc
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ inputs.pr_number }}
           comment-author: "github-actions[bot]"
           body-includes: <!-- GENERATED-E2E-RESULTS -->
       - name: Create comment
         if: steps.fc.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v3
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ inputs.pr_number }}
           body: |
             <!-- GENERATED-E2E-RESULTS -->
             ## E2E results are ready!
-            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
+            - [Workflow #${{ inputs.source_run_number }}.${{ inputs.source_run_attempt }} latest results](${{ steps.url.outputs.link }})
       - name: Update comment
         if: steps.fc.outputs.comment-id != ''
         uses: peter-evans/create-or-update-comment@v3
@@ -95,4 +129,4 @@ jobs:
           body: |
             <!-- GENERATED-E2E-RESULTS -->
             ## E2E results are ready!
-            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
+            - [Workflow #${{ inputs.source_run_number }}.${{ inputs.source_run_attempt }} latest results](${{ steps.url.outputs.link }})

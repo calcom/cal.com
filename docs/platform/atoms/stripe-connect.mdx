@@ -1,0 +1,241 @@
+---
+title: "Stripe Connect"
+---
+
+The Stripe connect integration allows users to effortlessly connect their Stripe account for payment processing. This enables users to accept payments for their bookings, with automatic payment collection and processing through Stripe's secure platform.
+
+## Ways to connect Stripe
+
+There are two ways to connect your Stripe account in Cal.com platform integrations:
+
+<Steps>
+  <Step title="Direct Stripe Connect atom">
+    Use the standalone Stripe Connect button atom to provide a dedicated connection interface. This is ideal when you want to give users a specific place to manage their Stripe connection.
+
+    Below code snippet can be used to render the Stripe connect button:
+
+    ```js
+
+import { StripeConnect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+      return (
+         <>
+            <StripeConnect />
+         </>
+      );
+}
+```
+
+For a demonstration of the Stripe connect atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      style={{ width: "100%", maxWidth: "560px" }}
+      height="315"
+      src="https://www.loom.com/embed/9d1c0b6a68a14a31b990bf753eb9a07d"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+  </Step>
+
+  <Step title="Event Type Settings payment tab">
+    Use the Event Type Settings component with the payments tab enabled. This approach integrates Stripe connection directly into the event type configuration flow, allowing users to set up payments while configuring their event types.
+
+    Below code snippet can be used to render the Event Type Settings with the payments tab:
+
+    ```js
+
+import { EventTypeSettings } from "@calcom/atoms";
+
+export default function EventType() {
+  // your event type ID
+  const eventTypeId = 123; 
+  
+      return (
+          <>
+            <EventTypeSettings 
+              id={eventTypeId} 
+              allowDelete={true}
+              tabs={["setup", "availability", "team", "limits", "advanced", "recurring", "payments"]}
+            />
+          </>
+      );
+}
+```
+
+For a demonstration of the Stripe connect atom via Event Type Settings, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      style={{ width: "100%", maxWidth: "560px" }}
+      height="315"
+      src="https://www.loom.com/embed/2a7ace7a1fc64830b54776517bbff0bd"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+  </Step>
+</Steps>
+
+## Advanced usage
+
+### Team integration
+
+To integrate Stripe to team events, pass the `teamId` prop.
+
+Below code snippet can be used to render the Stripe connect atom for team:
+
+```js
+import { StripeConnect } from "@calcom/atoms";
+
+export default function ConnectTeamStripe() {
+  const teamId = 123; // Your team ID
+
+  return (
+    <>
+      <StripeConnect teamId={teamId} />
+    </>
+  );
+}
+```
+
+### Custom labels
+
+You can customize the button labels for different states (default, loading, and already connected):
+
+```js
+import { StripeConnect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <StripeConnect
+        label="Connect to Stripe"
+        loadingLabel="Checking connection..."
+        alreadyConnectedLabel="Stripe Connected"
+      />
+    </>
+  );
+}
+```
+
+### Redirect URLs
+
+You can specify custom redirect URLs for successful connections and error scenarios:
+
+```js
+import { StripeConnect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <StripeConnect redir="/dashboard/payments" errorRedir="/dashboard/settings" />
+    </>
+  );
+}
+```
+
+### Handling connection status
+
+You can use callback functions to handle connection check success and errors:
+
+```js
+import { StripeConnect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  const handleCheckSuccess = () => {
+    console.log("Stripe connection verified successfully");
+  };
+
+  const handleCheckError = (error) => {
+    console.error("Error checking Stripe connection:", error);
+  };
+
+  return (
+    <>
+      <StripeConnect onCheckSuccess={handleCheckSuccess} onCheckError={handleCheckError} />
+    </>
+  );
+}
+```
+
+### Custom styling
+
+You can customize the appearance of the button using the `className`, `icon`, and `color` props:
+
+```js
+import { StripeConnect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <StripeConnect className="!bg-purple-600 hover:!bg-purple-700" icon="credit-card" color="secondary" />
+    </>
+  );
+}
+```
+
+## Props
+
+We offer all kinds of customizations to the Stripe connect via props. Below is a list of props that can be passed to the Stripe Connect.
+
+<p></p>
+
+| Name                  | Required | Description                                                                               |
+| :-------------------- | :------- | :---------------------------------------------------------------------------------------- |
+| teamId                | No       | The ID of the team for team-based Stripe connections                                      |
+| icon                  | No       | Custom icon to display on the button (defaults to "credit-card")                          |
+| color                 | No       | Button color variant (defaults to "primary")                                              |
+| isClickable           | No       | Boolean to override the disabled state and make the button always clickable               |
+| className             | No       | To pass in custom classnames from outside for styling the atom                            |
+| label                 | No       | The label for the connect button                                                          |
+| alreadyConnectedLabel | No       | Label to display when atom is in already connected state                                  |
+| loadingLabel          | No       | Label to display when atom is in loading state                                            |
+| onCheckError          | No       | A callback function to handle errors when checking the connection status                  |
+| redir                 | No       | A custom redirect URL link where the user gets redirected after successful authentication |
+| errorRedir            | No       | A custom redirect URL link where the user gets redirected after authentication failure    |
+| initialData           | No       | Initial data to be passed for the connection check                                        |
+| onCheckSuccess        | No       | A callback function to handle success when checking the connection status                 |
+
+<Note>
+  Please ensure all custom classnames are valid Tailwind CSS classnames. Note that sometimes the custom
+  classnames may fail to override the styling with the classnames that you might have passed via props. That
+  is because the clsx utility function that we use to override classnames inside our components has some
+  limitations. A simple get around to solve this issue is to just prefix your classnames with ! property just
+  before passing in any classname.
+</Note>
+
+## Setting price and currency
+
+Once you have connected your Stripe account, you can set the price and currency for your event type. This will make sure that the booking is a paid event.
+
+For a demonstration on how to set the price and currency, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      style={{ width: "100%", maxWidth: "560px" }}
+      height="315"
+      src="https://www.loom.com/embed/17a18481138342bf9dc25e14033cb5a1"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+## Integration with Payment Form
+
+The Stripe connect atom works seamlessly with the Payment Form atom. First, connect your Stripe account using this atom, then use the Payment Form atom to process payments for bookings.
+
+For more information on accepting payments and how to combine payment form with Stripe, see the [Payment Form documentation](/platform/atoms/payment-form).

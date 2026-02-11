@@ -5,10 +5,10 @@
   "main": "./index.ts",
   "description": "Cal Video is the in-house web-based video conferencing platform powered by Daily.co, which is minimalistic and lightweight, but has most of the features you need.",
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*"
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

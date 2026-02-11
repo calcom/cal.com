@@ -1,14 +1,20 @@
 import dayjs from "@calcom/dayjs";
+import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
+import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TTriggerNoShowPayloadSchema, TWebhook } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type OriginalRescheduledBooking =
@@ -18,57 +24,32 @@ type OriginalRescheduledBooking =
   | null
   | undefined;
 
-export type Host = {
-  id: number;
-  email: string;
-};
-
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
-
-export function getHosts(booking: Booking): Host[] {
-  const hostMap = new Map<number, Host>();
-
-  const addHost = (id: number, email: string) => {
-    if (!hostMap.has(id)) {
-      hostMap.set(id, { id, email });
-    }
-  };
-
-  booking?.eventType?.hosts?.forEach((host) => addHost(host.userId, host.user.email));
-  booking?.eventType?.users?.forEach((user) => addHost(user.id, user.email));
-
-  // Add booking.user if not already included
-  if (booking?.user?.id && booking?.user?.email) {
-    addHost(booking.user.id, booking.user.email);
-  }
-
-  // Filter hosts to only include those who are also attendees
-  const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email));
-  const filteredHosts = Array.from(hostMap.values()).filter(
-    (host) => attendeeEmails.has(host.email) || host.id === booking.user?.id
-  );
-
-  return filteredHosts;
-}
+type ParticipantsWithEmail = (Participants[number] & { email?: string; isLoggedIn?: boolean })[];
 
 export function sendWebhookPayload(
   webhook: Webhook,
   triggerEvent: WebhookTriggerEvents,
-  booking: Booking,
+  booking: Booking & { guests?: Booking["attendees"] },
   maxStartTime: number,
   participants: ParticipantsWithEmail,
   originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
-): Promise<any> {
+): Promise<{ ok: boolean; status: number } | void> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
   return sendGenericWebhookPayload({
     secretKey: webhook.secret,
     triggerEvent,
     createdAt: new Date().toISOString(),
-    webhook,
+    webhook: {
+      subscriberUrl: webhook.subscriberUrl,
+      appId: webhook.appId,
+      payloadTemplate: webhook.payloadTemplate,
+      version: webhook.version,
+    },
     data: {
       title: booking.title,
       bookingId: booking.id,
@@ -77,7 +58,13 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       participants,
-      ...(!!hostEmail ? { hostEmail } : {}),
+      ...(hostEmail ? { hostEmail } : {}),
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+        ? { noShowHost: booking.noShowHost }
+        : {}),
+      ...(triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW && booking.guests
+        ? { guests: booking.guests }
+        : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
@@ -109,19 +96,36 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
+function checkIfHostJoinedTheCall(email: string, allParticipants: ParticipantsWithEmail): boolean {
   return allParticipants.some(
-    (participant) => participant.user_id && parseInt(participant.user_id) === userId
+    (participant) => participant.email && participant.isLoggedIn && participant.email === email
   );
 }
 
-const getUserById = async (userId: number) => {
-  return prisma.user.findUnique({
-    where: { id: userId },
-  });
-};
+function checkIfGuestJoinedTheCall(email: string, allParticipants: ParticipantsWithEmail): boolean {
+  return allParticipants.some((participant) => participant.email && participant.email === email);
+}
 
-type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
+const getUserOrGuestById = async (id: string) => {
+  // Try User table (numeric IDs)
+  if (!isNaN(Number(id))) {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: { email: true },
+    });
+    if (user) return { email: user.email, isLoggedIn: true };
+  }
+
+  // Try VideoCallGuest table (UUID)
+  const guestSession = await prisma.videoCallGuest
+    .findUnique({
+      where: { id },
+      select: { email: true },
+    })
+    .catch(() => null);
+
+  return { email: guestSession?.email, isLoggedIn: false };
+};
 
 export async function getParticipantsWithEmail(
   allParticipants: Participants
@@ -130,8 +134,8 @@ export async function getParticipantsWithEmail(
     allParticipants.map(async (participant) => {
       if (!participant.user_id) return participant;
 
-      const user = await getUserById(parseInt(participant.user_id));
-      return { ...participant, email: user?.email };
+      const { email, isLoggedIn } = await getUserOrGuestById(participant.user_id);
+      return { ...participant, email, isLoggedIn };
     })
   );
 
@@ -140,15 +144,80 @@ export async function getParticipantsWithEmail(
 
 export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
 
+export const fireNoShowUpdatedEvent = async ({
+  booking,
+  noShowHostAudit,
+  attendeesNoShowAudit,
+}: {
+  booking: {
+    id: number;
+    uid: string;
+    user?: { id: number; uuid: string } | null;
+    eventType?: { teamId?: number | null; parent?: { teamId?: number | null } | null } | null;
+  };
+  noShowHostAudit?: { old: boolean | null; new: boolean | null };
+  attendeesNoShowAudit?: NoShowUpdatedAuditData["attendeesNoShow"];
+}): Promise<void> => {
+  const hasHostNoShow = noShowHostAudit && noShowHostAudit.new !== null;
+  const hasAttendeesNoShow = attendeesNoShowAudit && attendeesNoShowAudit.length > 0;
+
+  if (!hasHostNoShow && !hasAttendeesNoShow) {
+    return;
+  }
+
+  const hostUserUuid = booking.user?.uuid;
+  if (hasHostNoShow && !hostUserUuid) {
+    log.warn("Host no-show audit skipped: booking.user.uuid is undefined", { bookingUid: booking.uid });
+  }
+
+  try {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: booking.user?.id,
+      teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+    });
+
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
+    await bookingEventHandlerService.onNoShowUpdated({
+      bookingUid: booking.uid,
+      // This action is taken by the scheduled tasker job, so we use the system actor
+      actor: makeSystemActor(),
+      organizationId: orgId ?? null,
+      source: "SYSTEM",
+      auditData: {
+        ...(hasHostNoShow && noShowHostAudit.new !== null && hostUserUuid
+          ? {
+              host: {
+                userUuid: hostUserUuid,
+                noShow: { old: noShowHostAudit.old, new: noShowHostAudit.new },
+              },
+            }
+          : {}),
+        ...(hasAttendeesNoShow ? { attendeesNoShow: attendeesNoShowAudit } : {}),
+      },
+      isBookingAuditEnabled,
+    });
+  } catch (error) {
+    log.error("Error logging audit for automatic no-show", error);
+  }
+};
+
 export const prepareNoShowTrigger = async (
   payload: string
 ): Promise<{
   booking: Booking;
   webhook: TWebhook;
+  hosts: Host[];
   hostsThatDidntJoinTheCall: Host[];
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  guestsThatJoinedTheCall: { email: string; name: string }[];
+  guestsThatDidntJoinTheCall: { email: string; name: string }[];
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
 } | void> => {
@@ -198,14 +267,15 @@ export const prepareNoShowTrigger = async (
   }
   const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
 
-  const hosts = getHosts(booking);
+  const { hosts, guests } = getHostsAndGuests(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
+  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
   const hostsThatJoinedTheCall: Host[] = [];
   const hostsThatDidntJoinTheCall: Host[] = [];
 
   for (const host of hosts) {
-    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+    if (checkIfHostJoinedTheCall(host.email, participantsWithEmail)) {
       hostsThatJoinedTheCall.push(host);
     } else {
       hostsThatDidntJoinTheCall.push(host);
@@ -214,19 +284,37 @@ export const prepareNoShowTrigger = async (
 
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
-  const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants > numberOfHostsThatJoined
-  );
+  const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
 
-  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
+  let didGuestJoinTheCall: boolean;
+  const guestsThatJoinedTheCall: { email: string; name: string }[] = [];
+  const guestsThatDidntJoinTheCall: { email: string; name: string }[] = [];
+
+  if (requireEmailForGuests) {
+    for (const guest of guests) {
+      if (checkIfGuestJoinedTheCall(guest.email, participantsWithEmail)) {
+        guestsThatJoinedTheCall.push(guest);
+      } else {
+        guestsThatDidntJoinTheCall.push(guest);
+      }
+    }
+    didGuestJoinTheCall = guestsThatJoinedTheCall.length > 0;
+  } else {
+    didGuestJoinTheCall = meetingDetails.data.some(
+      (meeting) => meeting.max_participants > numberOfHostsThatJoined
+    );
+  }
 
   return {
+    hosts,
     hostsThatDidntJoinTheCall,
     hostsThatJoinedTheCall,
     booking,
     numberOfHostsThatJoined,
     webhook,
     didGuestJoinTheCall,
+    guestsThatJoinedTheCall,
+    guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
   };

@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
@@ -48,7 +48,7 @@ export const verifyCode = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: hashEmail(email),
+    identifier: `verifyCode:${hashEmail(email)}`,
   });
 
   const secret = createHash("md5")

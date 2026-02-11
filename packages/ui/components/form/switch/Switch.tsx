@@ -1,11 +1,9 @@
+import cx from "@calcom/ui/classNames";
 import { useId } from "@radix-ui/react-id";
 import * as Label from "@radix-ui/react-label";
 import * as PrimitiveSwitch from "@radix-ui/react-switch";
+import type React from "react";
 import type { ReactNode } from "react";
-import React from "react";
-
-import cx from "@calcom/ui/classNames";
-
 import { Tooltip } from "../../tooltip";
 
 const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
@@ -47,7 +45,7 @@ export const Switch = (
         className={cx(
           "flex h-auto w-fit flex-row items-center",
           fitToHeight && "h-fit",
-          labelOnLeading && "flex-row-reverse",
+          labelOnLeading && "flex-row-reverse justify-between",
           padding && "hover:bg-subtle rounded-md p-1.5",
           classNames?.container
         )}>
@@ -76,7 +74,7 @@ export const Switch = (
             htmlFor={id}
             className={cx(
               "text-emphasis font-medium",
-              size === "sm" ? "m-1 text-xs" : "ml-2 mt-1 text-sm",
+              size === "sm" ? "m-1 text-xs" : labelOnLeading ? "mr-2 text-sm" : "ml-2 text-sm",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
               labelOnLeading && "flex-1"
             )}>

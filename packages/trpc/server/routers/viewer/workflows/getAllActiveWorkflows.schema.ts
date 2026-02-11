@@ -1,45 +1,31 @@
+import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import { ZWorkflow } from "@calcom/ee/workflows/lib/types";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
 
-import {
-  TIME_UNIT,
-  WORKFLOW_ACTIONS,
-  WORKFLOW_TEMPLATES,
-  WORKFLOW_TRIGGER_EVENTS,
-} from "@calcom/ee/workflows/lib/constants";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+type TWorkflows = { workflow: Workflow }[] | undefined;
 
-const ZWorkflow = z.object({
-  id: z.number(),
-  name: z.string(),
-  trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-  time: z.number().nullable(),
-  timeUnit: z.enum(TIME_UNIT).nullable(),
-  userId: z.number().nullable(),
-  teamId: z.number().nullable(),
-  steps: z
-    .object({
-      id: z.number(),
-      action: z.enum(WORKFLOW_ACTIONS),
-      sendTo: z.string().nullable(),
-      template: z.enum(WORKFLOW_TEMPLATES),
-      reminderBody: z.string().nullable(),
-      emailSubject: z.string().nullable(),
-      numberRequired: z.boolean().nullable(),
-      sender: z.string().nullable(),
-      includeCalendarEvent: z.boolean(),
-      numberVerificationPending: z.boolean(),
-    })
-    .array(),
-});
-
-export const ZWorkflows = z
+export const ZWorkflows: z.ZodType<TWorkflows> = z
   .object({
     workflow: ZWorkflow,
   })
   .array()
   .optional();
 
-export const ZGetAllActiveWorkflowsInputSchema = z.object({
+export type TGetAllActiveWorkflowsInputSchema = {
+  eventType: {
+    id: number;
+    teamId?: number | null;
+    parent?: {
+      id: number | null;
+      teamId: number | null;
+    } | null;
+    metadata: z.infer<typeof EventTypeMetaDataSchema>;
+    userId?: number | null;
+  };
+};
+
+export const ZGetAllActiveWorkflowsInputSchema: z.ZodType<TGetAllActiveWorkflowsInputSchema> = z.object({
   eventType: z.object({
     id: z.number(),
     teamId: z.number().optional().nullable(),
@@ -54,5 +40,3 @@ export const ZGetAllActiveWorkflowsInputSchema = z.object({
     userId: z.number().optional().nullable(),
   }),
 });
-
-export type TGetAllActiveWorkflowsInputSchema = z.infer<typeof ZGetAllActiveWorkflowsInputSchema>;

@@ -17,29 +17,20 @@ export const InstallAppButtonChild = ({
   const { t } = useLocale();
 
   const shouldDisableInstallation = !multiInstall ? !!(credentials && credentials.length) : false;
+  const isDisabled = shouldDisableInstallation || props.disabled;
 
   // Paid apps don't support team installs at the moment
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
     return (
-      <Button
-        data-testid="install-app-button"
-        {...props}
-        disabled={shouldDisableInstallation}
-        color="primary"
-        size="base">
+      <Button data-testid="install-app-button" {...props} disabled={isDisabled} color="primary" size="base">
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
       </Button>
     );
   }
 
   return (
-    <Button
-      data-testid="install-app-button"
-      {...props}
-      disabled={shouldDisableInstallation}
-      color="primary"
-      size="base">
+    <Button data-testid="install-app-button" {...props} disabled={isDisabled} color="primary" size="base">
       {multiInstall ? t("install_another") : t("install_app")}
     </Button>
   );
