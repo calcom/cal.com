@@ -168,6 +168,25 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // Redirect if no routing form response and redirect URL is configured
+  // Don't redirect if this is a reschedule or seated booking flow
+  const hasRoutingFormResponse =
+    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+  if (
+    !hasRoutingFormResponse &&
+    !rescheduleUid &&
+    !bookingUid &&
+    "redirectUrlOnNoRoutingFormResponse" in eventData &&
+    eventData.redirectUrlOnNoRoutingFormResponse
+  ) {
+    return {
+      redirect: {
+        destination: eventData.redirectUrlOnNoRoutingFormResponse,
+        permanent: false,
+      },
+    };
+  }
+
   const props: Props = {
     eventData: {
       ...eventData,
@@ -258,6 +277,25 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+
+  // Redirect if no routing form response and redirect URL is configured
+  // Don't redirect if this is a reschedule or seated booking flow
+  const hasRoutingFormResponse =
+    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+  if (
+    !hasRoutingFormResponse &&
+    !rescheduleUid &&
+    !bookingUid &&
+    "redirectUrlOnNoRoutingFormResponse" in eventData &&
+    eventData.redirectUrlOnNoRoutingFormResponse
+  ) {
+    return {
+      redirect: {
+        destination: eventData.redirectUrlOnNoRoutingFormResponse,
+        permanent: false,
+      },
+    };
   }
 
   const allowSEOIndexing = org

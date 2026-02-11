@@ -2,7 +2,26 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
-import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
+import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
+
+export interface IGetAvailableSlots {
+  slots: Record<
+    string,
+    {
+      time: string;
+      attendees?: number | undefined;
+      bookingUid?: string | undefined;
+      away?: boolean | undefined;
+      fromUser?: IFromUser | undefined;
+      toUser?: IToUser | undefined;
+      reason?: string | undefined;
+      emoji?: string | undefined;
+      showNotePublicly?: boolean | undefined;
+    }[]
+  >;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  troubleshooter?: any;
+}
 
 interface UseAvailableTimeSlotsProps {
   eventDuration: number;

@@ -445,6 +445,9 @@ export const EventAdvancedTab = ({
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [noRoutingFormRedirectUrlVisible, setNoRoutingFormRedirectUrlVisible] = useState(
+    !!formMethods.getValues("redirectUrlOnNoRoutingFormResponse")
+  );
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -949,6 +952,51 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
+      <Controller
+        name="redirectUrlOnNoRoutingFormResponse"
+        render={({ field: { value, onChange } }) => (
+          <>
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                noRoutingFormRedirectUrlVisible && "rounded-b-none",
+                customClassNames?.bookingRedirect?.container
+              )}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
+              descriptionClassName={customClassNames?.bookingRedirect?.description}
+              title={t("redirect_on_no_routing_form")}
+              data-testid="redirect-on-no-routing-form"
+              {...successRedirectUrlLocked}
+              description={t("redirect_on_no_routing_form_description")}
+              checked={noRoutingFormRedirectUrlVisible}
+              onCheckedChange={(e) => {
+                setNoRoutingFormRedirectUrlVisible(e);
+                onChange(e ? value : "");
+              }}>
+              <div
+                className={classNames(
+                  "border-subtle rounded-b-lg border border-t-0 p-6",
+                  customClassNames?.bookingRedirect?.redirectUrlInput?.container
+                )}>
+                <TextField
+                  className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
+                  label={t("redirect_on_no_routing_form")}
+                  labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
+                  labelSrOnly
+                  disabled={successRedirectUrlLocked.disabled}
+                  placeholder={t("external_redirect_url")}
+                  data-testid="no-routing-form-redirect-url"
+                  required={noRoutingFormRedirectUrlVisible}
+                  type="text"
+                  {...formMethods.register("redirectUrlOnNoRoutingFormResponse")}
+                />
+              </div>
+            </SettingsToggle>
+          </>
+        )}
+      />
       {!isPlatform && (
         <Controller
           name="multiplePrivateLinks"
@@ -1031,10 +1079,10 @@ export const EventAdvancedTab = ({
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
-                  ? t("no_show_fee_doesnt_support_seats")
-                  : isRecurringEvent
-                  ? t("recurring_event_doesnt_support_seats")
-                  : undefined
+                    ? t("no_show_fee_doesnt_support_seats")
+                    : isRecurringEvent
+                      ? t("recurring_event_doesnt_support_seats")
+                      : undefined
               }
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported
@@ -1065,7 +1113,7 @@ export const EventAdvancedTab = ({
                         type="number"
                         disabled={seatsLocked.disabled}
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
-                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
+                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : (value ?? 1)}
                         step={1}
                         placeholder="1"
                         min={1}
@@ -1196,7 +1244,7 @@ export const EventAdvancedTab = ({
               checked={value}
               onCheckedChange={(e) => {
                 onChange(e);
-                const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
+                const lockedTimeZone = e ? (eventType.lockedTimeZone ?? "Europe/London") : null;
                 formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
               }}
               data-testid="lock-timezone-toggle"

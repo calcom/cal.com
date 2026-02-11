@@ -13,7 +13,7 @@ import {
   ZDateRangeFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { FilterType } from "@calcom/types/data-table";
@@ -143,7 +143,10 @@ function InvoicesTableContent() {
   };
 
   return (
-    <PanelCard title={t("invoices")} headerContent={<DateRangeFilter column={createdAtColumn} />} className="mt-5">
+    <PanelCard
+      title={t("invoices")}
+      headerContent={<DateRangeFilter column={createdAtColumn} />}
+      className="mt-5">
       {!data?.invoices.length && currentPage === 0 ? (
         <div className="text-subtle p-6 text-center text-sm">{t("no_invoices_in_date_range")}</div>
       ) : (

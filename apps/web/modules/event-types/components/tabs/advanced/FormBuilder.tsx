@@ -152,7 +152,9 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">{description}</p>
+          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+            {description}
+          </p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
               value={(() => {
@@ -256,15 +258,18 @@ export const FormBuilder = function FormBuilder({
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
-            const groupedBySourceLabel = sources.reduce((groupBy, source) => {
-              const item = groupBy[source.label] || [];
-              if (source.type === "user" || source.type === "default") {
+            const groupedBySourceLabel = sources.reduce(
+              (groupBy, source) => {
+                const item = groupBy[source.label] || [];
+                if (source.type === "user" || source.type === "default") {
+                  return groupBy;
+                }
+                item.push(source);
+                groupBy[source.label] = item;
                 return groupBy;
-              }
-              item.push(source);
-              groupBy[source.label] = item;
-              return groupBy;
-            }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
+              },
+              {} as Record<string, NonNullable<(typeof field)["sources"]>>
+            );
 
             return (
               <li
@@ -614,7 +619,7 @@ function FieldEditDialog({
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto">
+          <div className="h-auto max-h-[85vh]">
             <DialogHeader
               title={t("add_a_booking_question")}
               subtitle={
@@ -909,9 +914,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
     );
   }
-  const label =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
-  return <span>{t(label)}</span>;
+  const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
+  const firstField = variantData?.fields?.[0];
+  const label = firstField?.label?.trim() ? firstField.label : "";
+  const firstFieldName = firstField?.name;
+  const defaultLabelFromTypeConfig =
+    fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
+      firstFieldName as keyof (typeof fieldTypeConfigVariants)[typeof variant]["fieldsMap"]
+    ]?.defaultLabel || "";
+  return <span>{t(label || defaultLabelFromTypeConfig)}</span>;
 }
 
 function VariantSelector() {

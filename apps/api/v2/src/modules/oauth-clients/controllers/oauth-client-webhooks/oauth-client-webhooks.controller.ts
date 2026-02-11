@@ -3,7 +3,7 @@ import { MembershipRole } from "@calcom/platform-libraries";
 import { SkipTakePagination } from "@calcom/platform-types";
 import type { Webhook } from "@calcom/prisma/client";
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
@@ -94,6 +94,7 @@ export class OAuthClientWebhooksController {
     summary: "Get a webhook",
     description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
   })
+  @ApiParam({ name: "webhookId", type: String, required: true })
   @UseGuards(IsOAuthClientWebhookGuard)
   async getOAuthClientWebhook(@GetWebhook() webhook: Webhook): Promise<OAuthClientWebhookOutputResponseDto> {
     return {
@@ -135,6 +136,7 @@ export class OAuthClientWebhooksController {
     summary: "Delete a webhook",
     description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
   })
+  @ApiParam({ name: "webhookId", type: String, required: true })
   @UseGuards(IsOAuthClientWebhookGuard)
   async deleteOAuthClientWebhook(
     @GetWebhook() webhook: Webhook

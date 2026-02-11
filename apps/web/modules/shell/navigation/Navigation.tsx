@@ -6,6 +6,7 @@ import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
+import { useMobileMoreItems } from "./useMobileMoreItems";
 import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import classNames from "@calcom/ui/classNames";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
@@ -20,7 +21,7 @@ export const MORE_SEPARATOR_NAME = "more";
 
 const getNavigationItems = (
   orgBranding: OrganizationBranding,
-  hasInsightsAccess: boolean
+  hasAllInsightsAccess: boolean
 ): NavigationItemType[] => [
   {
     name: "event_types_page_title",
@@ -111,7 +112,7 @@ const getNavigationItems = (
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
-    child: hasInsightsAccess
+    child: hasAllInsightsAccess
       ? [
           {
             name: "bookings",
@@ -135,7 +136,14 @@ const getNavigationItems = (
             isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
           },
         ]
-      : undefined,
+      : [
+          {
+            name: "call_history",
+            href: "/insights/call-history",
+            // icon: "phone",
+            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
+          },
+        ],
   },
 ];
 
@@ -193,9 +201,9 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   const { hasPaidPlan, isPending } = useHasPaidPlan();
   return useMemo(() => {
-    const hasInsightsAccess = !isPending && !!hasPaidPlan;
+    const hasAllInsightsAccess = !isPending && !!hasPaidPlan;
     const items = !isPlatformNavigation
-      ? getNavigationItems(orgBranding, hasInsightsAccess)
+      ? getNavigationItems(orgBranding, hasAllInsightsAccess)
       : platformNavigationItems;
 
     const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
@@ -206,7 +214,11 @@ const useNavigationItems = (isPlatformNavigation = false) => {
       (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
     );
 
-    return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+    return {
+      desktopNavigationItems,
+      mobileNavigationBottomItems,
+      mobileNavigationMoreItems,
+    };
   }, [hasPaidPlan, isPending, isPlatformNavigation, orgBranding]);
 };
 
@@ -259,10 +271,13 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 
 export const MobileNavigationMoreItems = () => {
   const { mobileNavigationMoreItems } = useNavigationItems();
+  const bottomItems = useMobileMoreItems();
+
+  const allItems = [...mobileNavigationMoreItems, ...bottomItems];
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
-      {mobileNavigationMoreItems.map((item) => (
+      {allItems.map((item) => (
         <MobileNavigationMoreItem key={item.name} item={item} />
       ))}
     </ul>

@@ -12,7 +12,7 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
 import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
-import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -47,8 +47,6 @@ import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(ma
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
-
 
 const SkeletonLoader = () => {
   return (
@@ -255,22 +253,19 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const router = useRouter();
 
   const teamProfileFormSchema = z.object({
-  id: z.number(),
-  name: z
-    .string()
-    .trim()
-    .min(1,t("must_enter_team_name")),
-  slug: z
-    .string()
-    .regex(regex, {
-      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
-    })
-    .min(1, t("team_url_required")),
-  logo: z.string().nullable(),
-  bio: z.string(),
-});
+    id: z.number(),
+    name: z.string().trim().min(1, t("must_enter_team_name")),
+    slug: z
+      .string()
+      .regex(regex, {
+        message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+      })
+      .min(1, t("team_url_required")),
+    logo: z.string().nullable(),
+    bio: z.string(),
+  });
 
-type FormValues = z.infer<typeof teamProfileFormSchema>;
+  type FormValues = z.infer<typeof teamProfileFormSchema>;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {

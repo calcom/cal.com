@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import type { OAuthClientCreateFormValues } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal";
@@ -105,37 +105,46 @@ const OAuthClientsView = () => {
   }
 
   const newOAuthClientButton = (
-    <NewOAuthClientButton dataTestId="open-oauth-client-create-dialog" onClick={() => setIsCreatingClient(true)} />
+    <NewOAuthClientButton
+      dataTestId="open-oauth-client-create-dialog"
+      onClick={() => setIsCreatingClient(true)}
+    />
   );
 
   return (
     <SettingsHeader
       title={t("oauth_clients")}
       description={t("oauth_clients_description")}
-      CTA={newOAuthClientButton}>
-      {oAuthClients && oAuthClients.length > 0 ? (
-        <OAuthClientsList
-          clients={oAuthClients.map((client) => ({
-            clientId: client.clientId,
-            name: client.name,
-            purpose: client.purpose,
-            redirectUri: client.redirectUri,
-            websiteUrl: client.websiteUrl,
-            logo: client.logo,
-            status: client.status,
-            rejectionReason: client.rejectionReason,
-            clientType: client.clientType,
-          }))}
-          onSelectClient={(client) => setSelectedClient(client)}
-        />
-      ) : (
-        <EmptyScreen
-          Icon="key"
-          headline={t("no_oauth_clients")}
-          description={t("no_oauth_clients_description")}
-          buttonRaw={newOAuthClientButton}
-        />
-      )}
+      CTA={newOAuthClientButton}
+      borderInShellHeader={true}>
+      <div>
+        {oAuthClients && oAuthClients.length > 0 ? (
+          <div className="border-subtle rounded-b-lg border border-t-0">
+            <OAuthClientsList
+              clients={oAuthClients.map((client) => ({
+                clientId: client.clientId,
+                name: client.name,
+                purpose: client.purpose,
+                redirectUri: client.redirectUri,
+                websiteUrl: client.websiteUrl,
+                logo: client.logo,
+                status: client.status,
+                rejectionReason: client.rejectionReason,
+                clientType: client.clientType,
+              }))}
+              onSelectClient={(client) => setSelectedClient(client)}
+            />
+          </div>
+        ) : (
+          <EmptyScreen
+            Icon="key"
+            headline={t("no_oauth_clients")}
+            description={t("no_oauth_clients_description")}
+            className="rounded-b-lg rounded-t-none border-t-0"
+            buttonRaw={newOAuthClientButton}
+          />
+        )}
+      </div>
 
       {submittedClient ? (
         <OAuthClientPreviewDialog

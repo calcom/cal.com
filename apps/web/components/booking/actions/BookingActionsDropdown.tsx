@@ -278,8 +278,8 @@ export function BookingActionsDropdown({
               recurringEventId: booking.recurringEventId,
             })
         : action.id === "reject"
-        ? () => handleReject()
-        : undefined,
+          ? () => handleReject()
+          : undefined,
   })) as ActionType[];
 
   const shouldShowEdit = shouldShowEditActions(actionContext);
@@ -291,14 +291,14 @@ export function BookingActionsDropdown({
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
         : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
-        ? () => setIsOpenLocationDialog(true)
-        : action.id === "add_members"
-        ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
+          ? () => setRerouteDialogIsOpen(true)
+          : action.id === "change_location"
+            ? () => setIsOpenLocationDialog(true)
+            : action.id === "add_members"
+              ? () => setIsOpenAddGuestsDialog(true)
+              : action.id === "reassign"
+                ? () => setIsOpenReassignDialog(true)
+                : undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
@@ -308,22 +308,22 @@ export function BookingActionsDropdown({
       action.id === "view_recordings"
         ? () => setViewRecordingsDialogIsOpen(true)
         : action.id === "meeting_session_details"
-        ? () => setMeetingSessionDetailsDialogIsOpen(true)
-        : action.id === "charge_card"
-        ? () => setChargeCardDialogIsOpen(true)
-        : action.id === "no_show"
-        ? () => {
-            if (attendeeList.length === 1) {
-              const attendee = attendeeList[0];
-              noShowMutation.mutate({
-                bookingUid: booking.uid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-              return;
-            }
-            setIsNoShowDialogOpen(true);
-          }
-        : undefined,
+          ? () => setMeetingSessionDetailsDialogIsOpen(true)
+          : action.id === "charge_card"
+            ? () => setChargeCardDialogIsOpen(true)
+            : action.id === "no_show"
+              ? () => {
+                  if (attendeeList.length === 1) {
+                    const attendee = attendeeList[0];
+                    noShowMutation.mutate({
+                      bookingUid: booking.uid,
+                      attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+                    });
+                    return;
+                  }
+                  setIsNoShowDialogOpen(true);
+                }
+              : undefined,
     disabled:
       action.disabled ||
       (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
@@ -455,23 +455,23 @@ export function BookingActionsDropdown({
         status={getBookingStatus()}
       />
       {isBookingFromRoutingForm && (
-        <>
-          <WrongAssignmentDialog
-            isOpenDialog={isOpenWrongAssignmentDialog}
-            setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-            bookingUid={booking.uid}
-            routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-            guestEmail={booking.attendees[0]?.email ?? ""}
-            hostEmail={booking.user?.email ?? ""}
-            hostName={booking.user?.name ?? null}
-            teamId={booking.eventType?.team?.id ?? null}
-          />
-          <RoutingTraceSheet
-            isOpen={isOpenRoutingTraceSheet}
-            setIsOpen={setIsOpenRoutingTraceSheet}
-            bookingUid={booking.uid}
-          />
-        </>
+        <WrongAssignmentDialog
+          isOpenDialog={isOpenWrongAssignmentDialog}
+          setIsOpenDialog={setIsOpenWrongAssignmentDialog}
+          bookingUid={booking.uid}
+          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
+          guestEmail={booking.attendees[0]?.email ?? ""}
+          hostEmail={booking.user?.email ?? ""}
+          hostName={booking.user?.name ?? null}
+          teamId={booking.eventType?.team?.id ?? null}
+        />
+      )}
+      {booking.assignmentReason.length > 0 && (
+        <RoutingTraceSheet
+          isOpen={isOpenRoutingTraceSheet}
+          setIsOpen={setIsOpenRoutingTraceSheet}
+          bookingUid={booking.uid}
+        />
       )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
