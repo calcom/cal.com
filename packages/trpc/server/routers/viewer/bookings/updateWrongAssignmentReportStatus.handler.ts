@@ -1,6 +1,7 @@
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -39,10 +40,15 @@ export const updateWrongAssignmentReportStatusHandler = async ({
     });
   }
 
-  const membershipRepository = new MembershipRepository();
-  const hasMembership = await membershipRepository.hasMembership({ userId: user.id, teamId: report.teamId });
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: user.id,
+    teamId: report.teamId,
+    permission: "booking.update",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+  });
 
-  if (!hasMembership) {
+  if (!hasPermission) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You don't have access to this team",
