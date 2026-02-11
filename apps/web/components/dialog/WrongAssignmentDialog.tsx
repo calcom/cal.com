@@ -234,10 +234,8 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
     },
   });
 
-  const { data: existingReport, isPending: isCheckingReport } = trpc.viewer.bookings.hasWrongAssignmentReport.useQuery(
-    { bookingUid },
-    { enabled: isOpenDialog }
-  );
+  const { data: existingReport, isPending: isCheckingReport } =
+    trpc.viewer.bookings.hasWrongAssignmentReport.useQuery({ bookingUid }, { enabled: isOpenDialog });
   const alreadyReported = existingReport?.hasReport ?? false;
 
   const teamIdForQuery = teamId ?? 0;
@@ -329,7 +327,11 @@ export function WrongAssignmentDialog(props: IWrongAssignmentDialog): JSX.Elemen
             <Button type="button" color="secondary" onClick={handleCloseClick} disabled={isPending}>
               {t("close")}
             </Button>
-            <Button type="submit" color="primary" disabled={isPending || alreadyReported || isCheckingReport} loading={isPending || isCheckingReport}>
+            <Button
+              type="submit"
+              color="primary"
+              disabled={isPending || alreadyReported || isCheckingReport}
+              loading={isPending || isCheckingReport}>
               {t("submit")}
             </Button>
           </DialogFooter>

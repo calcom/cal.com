@@ -19,8 +19,7 @@ export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
   const hasBlocking = blockingProrations.length > 0;
 
   // Use Stripe invoice URL if available, otherwise fall back to billing settings
-  const paymentUrl =
-    displayProration.invoiceUrl ?? `/settings/teams/${displayProration.teamId}/billing`;
+  const paymentUrl = displayProration.invoiceUrl ?? `/settings/teams/${displayProration.teamId}/billing`;
 
   return (
     <TopBanner

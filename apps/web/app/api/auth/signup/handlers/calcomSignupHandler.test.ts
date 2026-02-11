@@ -27,19 +27,27 @@ type InnerHandler = (body: Record<string, string>, status: UsernameStatus) => Pr
 var mockCapturedHandler: InnerHandler | null;
 
 vi.mock("next/server", async () => {
-  const { createNextServerMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks");
+  const { createNextServerMock } = await import(
+    "@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks"
+  );
   return createNextServerMock();
 });
 vi.mock("next/headers", async () => {
-  const { createNextHeadersMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks");
+  const { createNextHeadersMock } = await import(
+    "@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks"
+  );
   return createNextHeadersMock();
 });
 vi.mock("@calcom/prisma", async () => {
-  const { createPrismaMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks");
+  const { createPrismaMock } = await import(
+    "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks"
+  );
   return createPrismaMock();
 });
 vi.mock("@calcom/prisma/client", async () => {
-  const { createPrismaMock } = await import("@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks");
+  const { createPrismaMock } = await import(
+    "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks"
+  );
   return createPrismaMock();
 });
 vi.mock("@calcom/lib/logger", () => ({
@@ -49,9 +57,13 @@ vi.mock("@calcom/lib/auth/hashPassword", () => ({ hashPassword: vi.fn().mockReso
 vi.mock("@calcom/lib/constants", () => ({ WEBAPP_URL: "http://localhost:3000" }));
 vi.mock("@calcom/lib/tracking", () => ({ getTrackingFromCookies: vi.fn().mockReturnValue({}) }));
 vi.mock("@calcom/app-store/stripepayment/lib/utils", () => ({ getPremiumMonthlyPlanPriceId: vi.fn() }));
-vi.mock("@calcom/features/auth/lib/getLocaleFromRequest", () => ({ getLocaleFromRequest: vi.fn().mockResolvedValue("en") }));
+vi.mock("@calcom/features/auth/lib/getLocaleFromRequest", () => ({
+  getLocaleFromRequest: vi.fn().mockResolvedValue("en"),
+}));
 vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({ sendEmailVerification: vi.fn() }));
-vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({ createOrUpdateMemberships: vi.fn() }));
+vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
+  createOrUpdateMemberships: vi.fn(),
+}));
 vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
 vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
   validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({ isValid: true, username: "testuser" }),
@@ -70,7 +82,8 @@ vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChild
 vi.mock("@calcom/features/auth/signup/utils/token", () => ({
   findTokenByToken: (...args: unknown[]) => mockFindTokenByToken(...args),
   throwIfTokenExpired: vi.fn(),
-  validateAndGetCorrectedUsernameForTeam: (...args: unknown[]) => mockValidateAndGetCorrectedUsernameForTeam(...args),
+  validateAndGetCorrectedUsernameForTeam: (...args: unknown[]) =>
+    mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
 // Capture inner handler from usernameHandler wrapper

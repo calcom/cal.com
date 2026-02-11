@@ -1,8 +1,6 @@
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getBillingProviderService, getSeatBillingStrategyFactory } from "@calcom/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 
-import { findMonthlyProrationLineItem } from "../../lib/proration-utils";
-import { MonthlyProrationService } from "../../service/proration/MonthlyProrationService";
 import type { SWHMap } from "./__handler";
 
 const log = logger.getSubLogger({ prefix: ["invoice-payment-failed"] });
@@ -12,19 +10,14 @@ type Data = SWHMap["invoice.payment_failed"]["data"];
 const handler = async (data: Data) => {
   const invoice = data.object;
 
-  const prorationLineItem = findMonthlyProrationLineItem(invoice.lines.data);
+  const subscriptionId =
+    typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
 
-  if (!prorationLineItem) {
-    return { success: true, message: "no proration line items in invoice" };
+  if (!subscriptionId) {
+    log.debug("Not a subscription invoice, skipping");
+    return { success: true, message: "not a subscription invoice" };
   }
 
-  const prorationId = prorationLineItem.metadata?.prorationId;
-  if (!prorationId) {
-    log.warn("proration line item missing prorationId metadata");
-    return { success: false, message: "missing prorationId in metadata" };
-  }
-
-  const prorationService = new MonthlyProrationService();
   let failureReason = invoice.status ?? "payment_failed";
   const paymentIntentId =
     typeof invoice.payment_intent === "string" ? invoice.payment_intent : invoice.payment_intent?.id;
@@ -35,14 +28,15 @@ const handler = async (data: Data) => {
     failureReason = paymentFailureReason ?? failureReason;
   }
 
-  await prorationService.handleProrationPaymentFailure({
-    prorationId,
-    reason: failureReason,
-  });
+  const factory = getSeatBillingStrategyFactory();
+  const strategy = await factory.createBySubscriptionId(subscriptionId);
+  const { handled } = await strategy.onPaymentFailed({ lines: invoice.lines }, failureReason);
 
-  log.info(`proration ${prorationId} marked as failed`);
+  if (handled) {
+    log.info("Strategy handled payment failure", { subscriptionId, failureReason });
+  }
 
-  return { success: true };
+  return { success: true, handled };
 };
 
 export default handler;

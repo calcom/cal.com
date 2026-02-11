@@ -2,8 +2,7 @@ import { CalendarToggleContainerComponent } from "@calcom/features/troubleshoote
 import { trpc } from "@calcom/trpc/react";
 
 export function CalendarToggleContainer() {
-  const { data, isLoading } =
-    trpc.viewer.calendars.connectedCalendars.useQuery();
+  const { data, isLoading } = trpc.viewer.calendars.connectedCalendars.useQuery();
 
   return (
     <CalendarToggleContainerComponent

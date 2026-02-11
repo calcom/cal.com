@@ -13,7 +13,11 @@ type UseCreateTeamOptions = {
 };
 
 export function useCreateTeam(options: UseCreateTeamOptions = {}) {
-  const { redirectBasePath = "/onboarding/teams", skipRedirectAfterInvite = false, isOnboarding = true } = options;
+  const {
+    redirectBasePath = "/onboarding/teams",
+    skipRedirectAfterInvite = false,
+    isOnboarding = true,
+  } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
