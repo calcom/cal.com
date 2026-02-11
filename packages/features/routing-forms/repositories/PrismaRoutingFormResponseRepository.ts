@@ -11,7 +11,8 @@ export class PrismaRoutingFormResponseRepository implements RoutingFormResponseR
       where: {
         id,
       },
-      include: {
+      select: {
+        response: true,
         form: {
           select: {
             fields: true,

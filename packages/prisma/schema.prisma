@@ -2592,6 +2592,7 @@ model WrongAssignmentReport {
   @@index([status])
   @@index([reviewedById])
   @@index([createdAt])
+  @@index([teamId, status, createdAt])
 }
 
 enum BillingPeriod {
