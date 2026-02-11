@@ -99,10 +99,7 @@ describe("SeatBillingStrategyFactory", () => {
   });
 
   it("returns HighWaterMarkStrategy for monthly plan with HWM enabled", async () => {
-    const factory = createFactory(
-      { ...baseBillingInfo, billingPeriod: "MONTHLY" },
-      { "hwm-seating": true }
-    );
+    const factory = createFactory({ ...baseBillingInfo, billingPeriod: "MONTHLY" }, { "hwm-seating": true });
     const strategy = await factory.createByTeamId(1);
 
     expect(strategy).toBeInstanceOf(HighWaterMarkStrategy);
@@ -119,10 +116,7 @@ describe("SeatBillingStrategyFactory", () => {
   });
 
   it("returns ImmediateUpdateStrategy for monthly plan with HWM disabled", async () => {
-    const factory = createFactory(
-      { ...baseBillingInfo, billingPeriod: "MONTHLY" },
-      { "hwm-seating": false }
-    );
+    const factory = createFactory({ ...baseBillingInfo, billingPeriod: "MONTHLY" }, { "hwm-seating": false });
     const strategy = await factory.createByTeamId(1);
 
     expect(strategy).toBeInstanceOf(ImmediateUpdateStrategy);

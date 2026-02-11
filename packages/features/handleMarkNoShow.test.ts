@@ -793,9 +793,9 @@ describe("handleMarkNoShow", () => {
 
       const call = mockOnNoShowUpdated.mock.calls[0][0];
       expect(call.auditData.attendeesNoShow).toHaveLength(2);
-      expect(call.auditData.attendeesNoShow.map((a: { attendeeEmail: string }) => a.attendeeEmail)).not.toContain(
-        "attendee2@example.com"
-      );
+      expect(
+        call.auditData.attendeesNoShow.map((a: { attendeeEmail: string }) => a.attendeeEmail)
+      ).not.toContain("attendee2@example.com");
     });
 
     it("should not fire audit event when nothing changed", async () => {
