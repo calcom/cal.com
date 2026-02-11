@@ -65,6 +65,10 @@ export function isTextMessageToSpecificNumber(action?: WorkflowActions) {
   return action === WorkflowActions.SMS_NUMBER || action === WorkflowActions.WHATSAPP_NUMBER;
 }
 
+export function isNtfyAction(action: WorkflowActions) {
+  return action === WorkflowActions.NTFY_TOPIC;
+}
+
 export function getWhatsappTemplateForTrigger(trigger: WorkflowTriggerEvents): WorkflowTemplates {
   switch (trigger) {
     case "NEW_EVENT":

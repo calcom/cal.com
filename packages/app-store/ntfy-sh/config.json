@@ -1,0 +1,17 @@
+{
+  "name": "ntfy.sh",
+  "slug": "ntfy-sh",
+  "type": "ntfy-sh_automation",
+  "logo": "icon.svg",
+  "url": "https://ntfy.sh",
+  "variant": "automation",
+  "categories": [
+    "automation"
+  ],
+  "publisher": "Balaji Krishnamurthy",
+  "email": "balajikrishnamurthy2004@gmail.com",
+  "description": "ntfy lets you send push notifications to your phone or desktop via scripts from any computer, using simple HTTP PUT or POST requests.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "general-app-settings"
+}

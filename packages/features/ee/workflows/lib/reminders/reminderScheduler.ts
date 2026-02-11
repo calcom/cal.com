@@ -6,6 +6,7 @@ import {
   isSMSOrWhatsappAction,
   isWhatsappAction,
   isCalAIAction,
+  isNtfyAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
@@ -21,9 +22,11 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { ntfyPublisher } from "@calcom/app-store/ntfy-sh/lib";
 import type { FormSubmissionData } from "../types";
 import type { BookingInfo } from "../types";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
+import { htmlToPlainText } from "@calcom/lib/CalEventParser";
 
 export type WorkflowContextData =
   | { evt: BookingInfo; formData?: never }
@@ -200,6 +203,30 @@ const processWorkflowStep = async (
       routedEventTypeId: formData ? formData.routedEventTypeId : null,
       ...contextData,
     });
+  } else if (isNtfyAction(step.action)) {
+
+    const whereClause = workflow.teamId ? { teamId: workflow.teamId } : { userId: workflow.userId };
+
+    const credential = await prisma.credential.findFirst({
+      where: {
+       appId: "ntfy-sh",
+       ...whereClause
+      },
+    });
+
+    if (credential == null) return;
+
+    const key = credential.key as { baseUrl: string, topic: string, username?: string, password?: string };
+    console.log({key});
+    console.log("Inside reminder scheduler");
+      await ntfyPublisher({
+        baseUrl: key.baseUrl,
+        topic: key.topic,
+        username: key.username,
+        password: key.password,
+        title: step.emailSubject || "Notification",
+        body: htmlToPlainText(step.reminderBody || "")
+      });
   }
 };
 

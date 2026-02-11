@@ -10,6 +10,7 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  "ntfy-sh": dynamic(() => import("./ntfy-sh/components/AppSettingsInterface")),
   "general-app-settings": dynamic(
     () => import("./templates/general-app-settings/components/AppSettingsInterface")
   ),

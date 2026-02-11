@@ -2815,6 +2815,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/ntfy-sh@workspace:packages/app-store/ntfy-sh":
+  version: 0.0.0-use.local
+  resolution: "@calcom/ntfy-sh@workspace:packages/app-store/ntfy-sh"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/office365calendar@workspace:packages/app-store/office365calendar":
   version: 0.0.0-use.local
   resolution: "@calcom/office365calendar@workspace:packages/app-store/office365calendar"
