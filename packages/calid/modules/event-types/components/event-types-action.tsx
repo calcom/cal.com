@@ -13,12 +13,13 @@ import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 import type { DeleteDialogState } from "../types/event-types";
@@ -51,6 +52,9 @@ export const EventTypeActions = ({
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
   const { copyToClipboard } = useCopy();
+
+  const watchPeriodType = useWatch({ control: form.control, name: "periodType" });
+  const watchPeriodDates = useWatch({ control: form.control, name: "periodDates" });
 
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
     open: false,
@@ -211,6 +215,15 @@ export const EventTypeActions = ({
     }
   })();
 
+  const isRangeMissingDates = (() => {
+    try {
+      if (watchPeriodType !== PeriodType.RANGE) return false;
+      return !watchPeriodDates?.startDate || !watchPeriodDates?.endDate;
+    } catch (error) {
+      return false;
+    }
+  })();
+
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
       {/* Mobile dropdown */}
@@ -335,7 +348,7 @@ export const EventTypeActions = ({
         type="button"
         loading={isUpdatePending}
         onClick={() => handleSubmit(form.getValues())}
-        disabled={!isFormDirty || isUpdatePending}
+        disabled={!isFormDirty || isUpdatePending || isRangeMissingDates}
         form="event-type-form">
         {t("save")}
       </Button>
