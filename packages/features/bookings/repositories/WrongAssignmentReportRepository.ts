@@ -343,8 +343,8 @@ export class WrongAssignmentReportRepository {
       where: { id },
       data: {
         status,
-        reviewedById,
-        reviewedAt: new Date(),
+        reviewedById: status === "PENDING" ? null : reviewedById,
+        reviewedAt: status === "PENDING" ? null : new Date(),
       },
       select: {
         id: true,
