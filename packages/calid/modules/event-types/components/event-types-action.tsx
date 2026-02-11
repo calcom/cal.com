@@ -116,9 +116,8 @@ export const EventTypeActions = ({
       const formIsDirty = form?.formState?.isDirty || false;
       if (!formIsDirty) return false;
 
-      const metadata = form?.getValues("metadata") as Record<string, unknown> | undefined;
-      const showBusy = metadata?.showBusy === true;
-      const showBusyPercent = metadata?.showBusyPercent;
+      const showBusy = form?.getValues("showBusy") === true;
+      const showBusyPercent = form?.getValues("showBusyPercent");
       if (showBusy && (showBusyPercent === undefined || showBusyPercent === null)) {
         return false;
       }
@@ -168,11 +167,6 @@ export const EventTypeActions = ({
         // Special handling for Apps tab metadata to fix toggle reset issue
         if (key === "metadata") {
           const metadata = (currentValue as Record<string, unknown>) || {};
-          const showBusy = metadata.showBusy === true;
-          const showBusyPercent = metadata.showBusyPercent;
-          if (showBusy && (showBusyPercent === undefined || showBusyPercent === null)) {
-            return false;
-          }
 
           if (!currentValue || !defaultValue) {
             return JSON.stringify(currentValue) !== JSON.stringify(defaultValue);

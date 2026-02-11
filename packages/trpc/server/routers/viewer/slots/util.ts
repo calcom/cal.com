@@ -1388,14 +1388,55 @@ export class AvailableSlotsService {
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
-    const showBusyPercent = eventType.metadata?.showBusyPercent;
-    const storedShowBusySlots = (eventType.metadata?.showBusySlots || {}) as Record<string, string[]>;
+    const showBusyPercent = eventType.showBusyPercent ?? undefined;
+    const storedShowBusySlots = (eventType.showBusySlots || {}) as Record<string, string[]>;
     let didUpdateStoredSlots = false;
 
+    const resolveShowBusyWindow = () => {
+      const rawDays = eventType.showBusyWindowDays;
+      const windowDays =
+        typeof rawDays === "number" && Number.isFinite(rawDays) ? Math.min(30, Math.max(1, rawDays)) : 7;
+      const windowType = eventType.showBusyWindowType === "calendar" ? "calendar" : "business";
+      const tz = input.timeZone || eventType.timeZone || "Etc/GMT";
+      const today = dayjs().tz(tz).startOf("day");
+      const dateKeys: string[] = [];
+      let cursor = today;
+      while (dateKeys.length < windowDays) {
+        const isWeekend = cursor.day() === 0 || cursor.day() === 6;
+        if (windowType === "calendar" || !isWeekend) {
+          dateKeys.push(cursor.format("YYYY-MM-DD"));
+        }
+        cursor = cursor.add(1, "day");
+      }
+      return { dateKeys, windowType, windowDays };
+    };
+
+    const showBusyWindow = eventType.showBusy ? resolveShowBusyWindow() : null;
+    const showBusyWindowSet = showBusyWindow ? new Set(showBusyWindow.dateKeys) : null;
+
+    if (showBusyWindowSet) {
+      const nextStored: typeof storedShowBusySlots = {};
+      for (const [dateKey, times] of Object.entries(storedShowBusySlots)) {
+        if (showBusyWindowSet.has(dateKey)) {
+          nextStored[dateKey] = times;
+        } else {
+          didUpdateStoredSlots = true;
+        }
+      }
+      Object.keys(storedShowBusySlots).forEach((key) => {
+        if (!nextStored[key]) delete storedShowBusySlots[key];
+      });
+      Object.assign(storedShowBusySlots, nextStored);
+    }
+
     const finalSlotsMappedToDate =
-      eventType.metadata?.showBusy && typeof showBusyPercent === "number"
+      eventType.showBusy && typeof showBusyPercent === "number"
         ? Object.entries(withinBoundsSlotsMappedToDate).reduce((acc, [date, slots]) => {
             if (!slots.length) return acc;
+            if (showBusyWindowSet && !showBusyWindowSet.has(date)) {
+              acc[date] = slots;
+              return acc;
+            }
 
             const storedTimes = storedShowBusySlots[date];
             if (storedTimes?.length) {
@@ -1417,10 +1458,7 @@ export class AvailableSlotsService {
       await ctx.prisma.eventType.update({
         where: { id: eventType.id },
         data: {
-          metadata: {
-            ...(eventType.metadata || {}),
-            showBusySlots: storedShowBusySlots,
-          },
+          showBusySlots: storedShowBusySlots,
         },
       });
     }
