@@ -148,6 +148,29 @@ export class BillingPeriodService {
 
       try {
         const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
+
+        const terminalStatuses = ["canceled", "incomplete_expired"];
+        if (terminalStatuses.includes(subscription.status)) {
+          log.info(
+            `Skipping sync for team ${teamId} — subscription ${billing.subscriptionId} has status "${subscription.status}"`
+          );
+          const now = new Date();
+          const isInTrial = billing.subscriptionTrialEnd
+            ? new Date(billing.subscriptionTrialEnd) > now
+            : false;
+
+          return {
+            billingPeriod: billing.billingPeriod,
+            billingMode: billing.billingMode,
+            subscriptionStart: billing.subscriptionStart,
+            subscriptionEnd: billing.subscriptionEnd,
+            trialEnd: billing.subscriptionTrialEnd,
+            isInTrial,
+            pricePerSeat: billing.pricePerSeat,
+            isOrganization,
+          };
+        }
+
         const { billingPeriod, pricePerSeat, paidSeats, subscriptionStart, subscriptionEnd } =
           extractBillingDataFromStripeSubscription(subscription);
 
