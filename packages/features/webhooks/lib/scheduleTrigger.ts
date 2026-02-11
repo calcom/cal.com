@@ -84,7 +84,15 @@ export async function addSubscription({
           id: true,
           uid: true,
           startTime: true,
+          endTime: true,
           location: true,
+          title: true,
+          description: true,
+          responses: true,
+          customInputs: true,
+          userPrimaryEmail: true,
+          metadata: true,
+          noShowHost: true,
           eventType: {
             select: {
               bookingFields: true,
@@ -94,6 +102,7 @@ export async function addSubscription({
             select: {
               name: true,
               email: true,
+              noShow: true,
             },
           },
         },
