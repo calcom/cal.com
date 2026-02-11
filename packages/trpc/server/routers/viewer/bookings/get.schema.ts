@@ -20,6 +20,7 @@ type TGetInputSchemaFilters = {
   beforeUpdatedDate?: string;
   afterCreatedDate?: string;
   beforeCreatedDate?: string;
+  noShow?: boolean;
 };
 
 type TGetInputSchemaSort = {
@@ -59,6 +60,7 @@ export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInput
     beforeUpdatedDate: z.string().optional(),
     afterCreatedDate: z.string().optional(),
     beforeCreatedDate: z.string().optional(),
+    noShow: z.boolean().optional(),
   }),
   limit: z.number().min(1).max(100),
   offset: z.number().default(0),

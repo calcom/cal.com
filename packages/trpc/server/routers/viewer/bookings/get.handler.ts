@@ -399,6 +399,22 @@ export async function getBookings({
       fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
     }
 
+    // 8. Filter by noShow 
+    if (filters?.noShow){
+      fullQuery = fullQuery.where((eb) =>
+        eb.or([
+          eb("Booking.noShowHost", "=", true),
+          eb.exists(
+            eb
+              .selectFrom("Attendee")
+              .select("Attendee.id")
+              .whereRef("Attendee.bookingId", "=", "Booking.id")
+              .where("Attendee.noShow", "=", true)
+          ),
+        ])
+      );
+    }
+
     return fullQuery;
   });
 
