@@ -435,6 +435,17 @@ describe("NumberWidget", () => {
       // Should display truncated to 15 digits
       expect((input as HTMLInputElement).value).toBe("123,456,789,012,345");
     });
+
+    it("trims decimal by significant digits for numbers < 1 with leading decimal zeros", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="0.000001234567890123456789" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+      const displayed = (input as HTMLInputElement).value;
+
+      expect(displayed).not.toBe("0.000001234567890");
+      expect(displayed).toMatch(/0\.0+123456789/);
+    });
   });
 
   describe("Edge cases", () => {
@@ -456,6 +467,48 @@ describe("NumberWidget", () => {
       fireEvent.change(input, { target: { value: "000123.45" } });
 
       expect(setValue).toHaveBeenLastCalledWith("123.45");
+    });
+
+    it("keeps small decimals like 0.0001 (does not strip zeros after decimal point)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "0.0001" } });
+
+      expect(setValue).toHaveBeenLastCalledWith("0.0001");
+      expect((input as HTMLInputElement).value).toBe("0.0001");
+    });
+
+    it("preserves leading decimal so user can type .0, .00, .0001", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="0" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: ".0" } });
+      expect((input as HTMLInputElement).value).toBe(".0");
+      expect(setValue).toHaveBeenLastCalledWith(".0");
+
+      fireEvent.change(input, { target: { value: ".00" } });
+      expect((input as HTMLInputElement).value).toBe(".00");
+      expect(setValue).toHaveBeenLastCalledWith(".00");
+    });
+
+    it("preserves decimal part when typing 10,000.0 then .0001 (e.g. 10,000.0001)", () => {
+      setNavigatorLanguage("en-US");
+      const setValue = vi.fn();
+      render(<NumberWidget value="" setValue={setValue} />);
+      const input = screen.getByRole("textbox");
+
+      fireEvent.change(input, { target: { value: "10000.0" } });
+      expect((input as HTMLInputElement).value).toBe("10000.0");
+      fireEvent.change(input, { target: { value: "10000.00" } });
+      expect((input as HTMLInputElement).value).toBe("10000.00");
+      fireEvent.change(input, { target: { value: "10000.0001" } });
+      expect((input as HTMLInputElement).value).toBe("10,000.0001");
+      expect(setValue).toHaveBeenLastCalledWith("10000.0001");
     });
 
     it("updates when parent resets value to empty", () => {

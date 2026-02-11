@@ -135,7 +135,8 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   );
 };
 
-function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+function NumberWidget(props: TextLikeComponentPropsRAQB) {
+  const { value, setValue, type: _type, ...remainingProps } = props;
   const valueStr = value != null && value !== "" ? String(value) : "";
   // Keep raw value to preserve the decimal separator.
   // Intl.NumberFormat drops it if no digit follows,
@@ -203,12 +204,18 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     // - not NaN
     // - not end with decimal Intl.NumberFormat drops decimal seperator if not followed by digit
     // - not minus sign because it can also be dropped if not followed by digit
-    // - and number not equal to zero. because we want to allow ''
+    // - number not zero so we preserve ".0", "0.", "0" as typed
+    // - decimal part must not end with 0 so we preserve "10,000.0", "10,000.00" while typing
+    const hasDecimal = rawStr.includes(symbols.decimal);
+    const decPart = hasDecimal ? normalized.split(".").pop() ?? "" : "";
+    const decimalEndsWithZero = decPart.endsWith("0");
     if (
       !isNaN(numberValue) &&
+      numberValue !== 0 &&
       !rawStr.endsWith(symbols.decimal) &&
       rawStr !== symbols.minus &&
-      numberValue !== 0
+      rawValue !== "" &&
+      !decimalEndsWithZero
     ) {
       return new Intl.NumberFormat(language, {
         minimumFractionDigits: 0,
@@ -231,9 +238,16 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       return (isNegative ? "-" : "") + first15Int;
     }
 
-    // Integer part has fewer than 15 significant digits; truncate decimal part
-    const remainingDigits = 15 - (intTrimmed === "0" ? 0 : intTrimmed.length);
-    const trimmedDec = decPart ? decPart.slice(0, remainingDigits) : undefined;
+    // Integer part has fewer than 15 significant digits; truncate decimal by significant digits (not raw length)
+    const intSigDigits = intTrimmed === "0" ? 0 : intTrimmed.length;
+    const remainingSigDigits = 15 - intSigDigits;
+    let trimmedDec: string | undefined;
+    if (decPart && remainingSigDigits > 0) {
+      const leadingZeros = decPart.match(/^0*/)?.[0] ?? "";
+      const sigPart = decPart.slice(leadingZeros.length);
+      const keptSig = sigPart.slice(0, remainingSigDigits);
+      trimmedDec = leadingZeros + keptSig;
+    }
     return (isNegative ? "-" : "") + intTrimmed + (trimmedDec ? "." + trimmedDec : "");
   }
 
@@ -278,6 +292,10 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       const numberValue = Number(processedValue);
 
       if (!isNaN(numberValue)) {
+        // When value is 0, preserve user input that includes a decimal (e.g. ".0", "0.") so they can type ".00", ".0001", etc.
+        if (numberValue === 0 && rawNormalized.includes(".")) {
+          return;
+        }
         const localizedValue = new Intl.NumberFormat(language, {
           minimumFractionDigits: 0,
           maximumFractionDigits: 14,
@@ -320,9 +338,11 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
 
     // Normalize for parent: remove group separators, then replace decimal and minus
     let normalized = normalizeRawValue(val);
-    // Strip leading zeros (except "0" or "0.xxx" or "-0" or "-0.xxx")
-    normalized = normalized.replace(/^(-?)0+(?=\d)/, "$1");
-    setValue(normalized);
+    // Strip leading zeros in the integer part only (so "00123" -> "123", but "0.0001" stays "0.0001")
+    const [intPart, decPart] = normalized.split(".");
+    let intTrimmed = intPart.replace(/^(-?)0+(?=\d)/, "$1");
+    if (intTrimmed === "" && intPart.length > 0) intTrimmed = "0";
+    setValue(decPart !== undefined ? `${intTrimmed}.${decPart}` : intTrimmed);
   };
 
   return (
