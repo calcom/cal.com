@@ -111,6 +111,10 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
     return { isValid: false, error: ERRORS.NON_IMAGE_DATA_URL };
   }
 
+  if (urlString.startsWith("/api/avatar/")) {
+    return { isValid: true };
+  }
+
   let url: URL;
   try {
     url = new URL(urlString);
