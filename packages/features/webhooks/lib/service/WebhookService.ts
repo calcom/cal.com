@@ -2,6 +2,8 @@ import { createHmac } from "node:crypto";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
+import { getFlattenedZapierPayload } from "../getFlattenedZapierPayload";
+
 import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { ITasker, ILogger } from "../interface/infrastructure";
@@ -85,11 +87,14 @@ export class WebhookService implements IWebhookService {
         ? "application/json"
         : "application/x-www-form-urlencoded";
 
-    const body = JSON.stringify({
-      triggerEvent: trigger,
-      createdAt: payload.createdAt,
-      payload: payload.payload,
-    });
+    const body =
+      subscriber.appId === "zapier" && !payloadTemplate
+        ? getFlattenedZapierPayload(trigger, payload.createdAt, payload.payload)
+        : JSON.stringify({
+          triggerEvent: trigger,
+          createdAt: payload.createdAt,
+          payload: payload.payload,
+        });
 
     const signature = subscriber.secret
       ? createHmac("sha256", subscriber.secret).update(body).digest("hex")

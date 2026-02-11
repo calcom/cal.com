@@ -11,7 +11,8 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 // Minimal webhook shape for sending payloads (subset of WebhookSubscriber)
 type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate" | "version">;
 
-type ContentType = "application/json" | "application/x-www-form-urlencoded";
+import { getFlattenedZapierPayload } from "./getFlattenedZapierPayload";
+import { addSubscription, listBookings, listOOOEntries } from "./scheduleTrigger";
 
 export type EventTypeInfo = {
   eventTitle?: string | null;
@@ -222,15 +223,7 @@ export function isEventPayload(data: WebhookPayloadType): data is EventPayloadTy
   return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data);
 }
 
-function getZapierNoShowPayload(data: BookingNoShowUpdatedPayload & { createdAt: string }): string {
-  return JSON.stringify({
-    bookingUid: data.bookingUid,
-    bookingId: data.bookingId,
-    message: data.message,
-    attendees: data.attendees,
-    createdAt: data.createdAt,
-  });
-}
+
 
 const sendPayload = async (
   secretKey: string | null,
@@ -253,8 +246,8 @@ const sendPayload = async (
     if (appId === "zapier") {
       body = getZapierPayload({ ...data, createdAt });
     }
-  } else if (isNoShowPayload(data) && appId === "zapier") {
-    body = getZapierNoShowPayload({ ...data, createdAt });
+  } else if (appId === "zapier") {
+    body = getFlattenedZapierPayload(triggerEvent, createdAt, data);
   }
 
   if (body === undefined) {
