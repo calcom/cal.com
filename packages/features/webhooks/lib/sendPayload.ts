@@ -98,10 +98,10 @@ export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
     paymentData?: PaymentData;
     requestReschedule?: boolean;
     assignmentReason?:
-      | string
-      | { reasonEnum: string; reasonString: string }[]
-      | { category: string; details?: string | null }
-      | null;
+    | string
+    | { reasonEnum: string; reasonString: string }[]
+    | { category: string; details?: string | null }
+    | null;
   };
 
 export type WebhookPayloadType =
@@ -222,6 +222,16 @@ export function isEventPayload(data: WebhookPayloadType): data is EventPayloadTy
   return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data);
 }
 
+function getZapierNoShowPayload(data: BookingNoShowUpdatedPayload & { createdAt: string }): string {
+  return JSON.stringify({
+    bookingUid: data.bookingUid,
+    bookingId: data.bookingId,
+    message: data.message,
+    attendees: data.attendees,
+    createdAt: data.createdAt,
+  });
+}
+
 const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
@@ -243,6 +253,8 @@ const sendPayload = async (
     if (appId === "zapier") {
       body = getZapierPayload({ ...data, createdAt });
     }
+  } else if (isNoShowPayload(data) && appId === "zapier") {
+    body = getZapierNoShowPayload({ ...data, createdAt });
   }
 
   if (body === undefined) {
@@ -281,11 +293,6 @@ export const sendGenericWebhookPayload = async ({
   data: Record<string, unknown>;
   rootData?: Record<string, unknown>;
 }) => {
-  const { payloadTemplate: template } = webhook;
-
-  const contentType =
-    !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
-
   const defaultPayload = {
     // Added rootData props first so that using the known(i.e. triggerEvent, createdAt, payload) properties in rootData doesn't override the known properties
     ...rootData,
@@ -295,7 +302,19 @@ export const sendGenericWebhookPayload = async ({
   };
 
   let body: string;
-  if (template) {
+  const { appId, payloadTemplate: template } = webhook;
+
+  const contentType =
+    !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
+
+  if (appId === "zapier" && !template) {
+    body = JSON.stringify({
+      triggerEvent,
+      createdAt,
+      ...data,
+      ...rootData,
+    });
+  } else if (template) {
     body = applyTemplate(template, defaultPayload, contentType);
   } else {
     body = JSON.stringify(defaultPayload);

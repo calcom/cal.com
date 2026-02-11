@@ -62,7 +62,8 @@ export async function addSubscription({
 
     if (
       triggerEvent === WebhookTriggerEvents.MEETING_ENDED ||
-      triggerEvent === WebhookTriggerEvents.MEETING_STARTED
+      triggerEvent === WebhookTriggerEvents.MEETING_STARTED ||
+      NO_SHOW_TRIGGERS.includes(triggerEvent)
     ) {
       //schedule job for already existing bookings
       const where: Prisma.BookingWhereInput = {};
@@ -79,7 +80,11 @@ export async function addSubscription({
           },
           status: BookingStatus.ACCEPTED,
         },
-        include: {
+        select: {
+          id: true,
+          uid: true,
+          startTime: true,
+          location: true,
           eventType: {
             select: {
               bookingFields: true,
@@ -105,15 +110,19 @@ export async function addSubscription({
       });
 
       for (const booking of bookingsWithCalEventResponses) {
-        scheduleTrigger({
-          booking,
-          subscriberUrl: createSubscription.subscriberUrl,
-          subscriber: {
-            id: createSubscription.id,
-            appId: createSubscription.appId,
-          },
-          triggerEvent,
-        });
+        if (NO_SHOW_TRIGGERS.includes(triggerEvent)) {
+          await scheduleNoShowTaskForBooking(booking, createSubscription, triggerEvent);
+        } else {
+          scheduleTrigger({
+            booking,
+            subscriberUrl: createSubscription.subscriberUrl,
+            subscriber: {
+              id: createSubscription.id,
+              appId: createSubscription.appId,
+            },
+            triggerEvent,
+          });
+        }
       }
     }
 
@@ -171,8 +180,7 @@ export async function deleteSubscription({
     const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
 
     log.error(
-      `Error deleting subscription for user ${
-        teamId ? `team ${teamId}` : `userId ${userId}`
+      `Error deleting subscription for user ${teamId ? `team ${teamId}` : `userId ${userId}`
       }, webhookId ${webhookId}`,
       safeStringify(err)
     );
@@ -216,6 +224,7 @@ export async function listBookings(
         location: true,
         cancellationReason: true,
         status: true,
+        noShowHost: true,
         metadata: true,
         user: {
           select: {
@@ -243,6 +252,7 @@ export async function listBookings(
             name: true,
             email: true,
             timeZone: true,
+            noShow: true,
           },
         },
       },
