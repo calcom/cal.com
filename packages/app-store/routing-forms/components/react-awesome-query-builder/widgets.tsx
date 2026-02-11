@@ -136,10 +136,11 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  const valueStr = value != null && value !== "" ? String(value) : "";
   // Keep raw value to preserve the decimal separator.
   // Intl.NumberFormat drops it if no digit follows,
   // but we need it for correct formatting on every keystroke.
-  const [rawValue, setRawValue] = useState(value || "");
+  const [rawValue, setRawValue] = useState(valueStr);
 
   // Detect locale and generate a number formatter
   const language = typeof navigator !== "undefined" ? navigator.language : "en-US";
@@ -184,8 +185,9 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
   // why need to use Number() - Intl.NumberFormat only accept Number
   // since we are using Number() the no of decimal digits is varies based on total digits
   const formattedValue = useMemo(() => {
-    // Use rawValue (which updates immediately) instead of value prop
-    const normalized = normalizeRawValue(rawValue);
+    // Use rawValue (which updates immediately) instead of value prop; coerce to string for .replace/.endsWith
+    const rawStr = typeof rawValue === "string" ? rawValue : String(rawValue ?? "");
+    const normalized = normalizeRawValue(rawStr);
     const significantDigits = (normalized || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
 
     let processedValue = normalized || "";
@@ -204,8 +206,8 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     // - and number not equal to zero. because we want to allow ''
     if (
       !isNaN(numberValue) &&
-      !rawValue.endsWith(symbols.decimal) &&
-      rawValue !== symbols.minus &&
+      !rawStr.endsWith(symbols.decimal) &&
+      rawStr !== symbols.minus &&
       numberValue !== 0
     ) {
       return new Intl.NumberFormat(language, {
@@ -214,7 +216,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       }).format(numberValue);
     }
 
-    return rawValue;
+    return rawStr;
   }, [rawValue, language, symbols, normalizeRawValue]);
 
   // function to remove more than 15 significant digits
@@ -232,24 +234,25 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
 
   // useEffect to detect external change in value and set raw value based on it
   useEffect(() => {
-    if (normalizeRawValue(rawValue) !== value) {
-      if (!value || value === "") {
+    const rawNormalized = normalizeRawValue(typeof rawValue === "string" ? rawValue : String(rawValue ?? ""));
+    if (rawNormalized !== valueStr) {
+      if (!valueStr) {
         setRawValue("");
         return;
       }
 
-      if (value === "-") {
+      if (valueStr === "-") {
         setRawValue(symbols.minus);
         return;
       }
 
-      const significantDigits = (value || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
+      const significantDigits = (valueStr || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
 
-      let processedValue = value || "";
+      let processedValue = valueStr || "";
 
       // Truncate to 15 significant digits if exceeded
       if (significantDigits > 15) {
-        processedValue = trimToMaxSignifcantDigits(value);
+        processedValue = trimToMaxSignifcantDigits(valueStr);
       }
 
       // Then handle trailing decimal (after trimming)
@@ -278,7 +281,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
         setRawValue(""); // Clear the input if number is invalid
       }
     }
-  }, [value, symbols]);
+  }, [valueStr, symbols, language, normalizeRawValue]);
 
   // function to change value change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -323,7 +326,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
       className="mb-2"
-      value={formattedValue}
+      value={typeof formattedValue === "string" ? formattedValue : String(formattedValue ?? "")}
       onChange={handleChange}
       {...remainingProps}
     />
