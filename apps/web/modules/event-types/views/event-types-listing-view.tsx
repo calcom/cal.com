@@ -642,7 +642,7 @@ export const InfiniteEventTypeList = ({
                                     variant="icon"
                                     StartIcon="link"
                                     onClick={() => {
-                                      showToast(t("link_copied"), "success");
+                                      showToast(t("link_copied"), "success", { id: "link-copied" });
                                       copyToClipboard(calLink);
                                     }}
                                   />
@@ -655,7 +655,7 @@ export const InfiniteEventTypeList = ({
                                       variant="icon"
                                       StartIcon="venetian-mask"
                                       onClick={() => {
-                                        showToast(t("private_link_copied"), "success");
+                                        showToast(t("private_link_copied"), "success", { id: "private-link-copied" });
                                         copyToClipboard(placeholderHashedLink);
                                         setPrivateLinkCopyIndices((prev) => {
                                           const prevIndex = prev[type.slug] ?? 0;
@@ -771,7 +771,7 @@ export const InfiniteEventTypeList = ({
                                   data-testid={`event-type-duplicate-${type.id}`}
                                   onClick={() => {
                                     navigator.clipboard.writeText(calLink);
-                                    showToast(t("link_copied"), "success");
+                                    showToast(t("link_copied"), "success", { id: "link-copied" });
                                   }}
                                   StartIcon="clipboard"
                                   className="w-full rounded-none text-left">
@@ -793,8 +793,8 @@ export const InfiniteEventTypeList = ({
                                       }),
                                       url: calLink,
                                     })
-                                    .then(() => showToast(t("link_shared"), "success"))
-                                    .catch(() => showToast(t("failed"), "error"));
+                                    .then(() => showToast(t("link_shared"), "success", { id: "link-shared" }))
+                                    .catch(() => showToast(t("failed"), "error", { id: "link-share-failed" }));
                                 }}
                                 StartIcon="upload"
                                 className="w-full rounded-none">
