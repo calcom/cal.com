@@ -6,8 +6,14 @@ import { getDomainLabel } from "@calcom/features/routing-trace/presenters/getDom
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@calcom/ui/components/sheet";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetBody,
+} from "@calcom/ui/components/sheet";
+
 
 interface RoutingTraceSheetProps {
   isOpen: boolean;
@@ -39,29 +45,19 @@ export function RoutingTraceSheet({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent>
-        <SheetHeader showCloseButton={!showReportButton}>
+        <SheetHeader showCloseButton={!showReportButton} className="w-full">
           {showReportButton ? (
             <div className="flex w-full items-center justify-between">
               <SheetTitle>{t("routing_trace")}</SheetTitle>
-              <div className="flex items-center gap-2">
-                <Tooltip
-                  content={hasExistingReport ? t("wrong_assignment_already_reported") : ""}>
-                  <Button
-                    color="secondary"
-                    size="sm"
-                    StartIcon="flag"
-                    disabled={hasExistingReport}
-                    onClick={onReport}>
-                    {t("report")}
-                  </Button>
-                </Tooltip>
+              <div className="flex items-center gap-2 pl-2">
                 <Button
-                  variant="icon"
-                  StartIcon="x"
-                  color="minimal"
-                  className="aspect-square p-1"
-                  onClick={() => setIsOpen(false)}
-                />
+                  color="secondary"
+                  size="sm"
+                  StartIcon="flag"
+                  disabled={hasExistingReport}
+                  onClick={onReport}>
+                  {t("report")}
+                </Button>
               </div>
             </div>
           ) : (
@@ -69,53 +65,53 @@ export function RoutingTraceSheet({
           )}
         </SheetHeader>
         <SheetBody>
-        {isLoading && (
-          <div className="flex flex-col gap-4 py-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-3">
-                <div className="bg-muted h-8 w-8 animate-pulse rounded-full" />
-                <div className="flex flex-1 flex-col gap-1.5">
-                  <div className="bg-muted h-3 w-24 animate-pulse rounded" />
-                  <div className="bg-muted h-4 w-full animate-pulse rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {!isLoading && !data?.steps?.length && (
-          <p className="text-subtle text-sm">{t("no_results_found")}</p>
-        )}
-        {!isLoading && data?.steps && data.steps.length > 0 && (
-          <div className="relative flex flex-col">
-            {data.steps.map((step, idx) => {
-              const isLast = idx === data.steps.length - 1;
-              return (
-                <div key={idx} className="relative flex gap-3 pb-6 last:pb-0">
-                  {/* Timeline connector line */}
-                  {!isLast && (
-                    <div className="border-subtle absolute left-4 top-8 bottom-0 border-l" />
-                  )}
-                  {/* Icon circle */}
-                  <div className="bg-default border-subtle relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border">
-                    <DomainIcon domain={step.domain} />
+          {isLoading && (
+            <div className="flex flex-col gap-4 py-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="bg-muted h-8 w-8 animate-pulse rounded-full" />
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <div className="bg-muted h-3 w-24 animate-pulse rounded" />
+                    <div className="bg-muted h-4 w-full animate-pulse rounded" />
                   </div>
-                  {/* Content */}
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-subtle text-subtle rounded px-1.5 py-0.5 text-xs font-medium">
-                        {getDomainLabel(step.domain)}
-                      </span>
-                      <span className="text-muted text-xs">
-                        {dayjs(step.timestamp).format("h:mm:ss.SSS A")}
-                      </span>
+                </div>
+              ))}
+            </div>
+          )}
+          {!isLoading && !data?.steps?.length && (
+            <p className="text-subtle text-sm">{t("no_results_found")}</p>
+          )}
+          {!isLoading && data?.steps && data.steps.length > 0 && (
+            <div className="relative flex flex-col">
+              {data.steps.map((step, idx) => {
+                const isLast = idx === data.steps.length - 1;
+                return (
+                  <div key={idx} className="relative flex gap-3 pb-6 last:pb-0">
+                    {/* Timeline connector line */}
+                    {!isLast && (
+                      <div className="border-subtle absolute left-4 top-8 bottom-0 border-l" />
+                    )}
+                    {/* Icon circle */}
+                    <div className="bg-default border-subtle relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border">
+                      <DomainIcon domain={step.domain} />
                     </div>
-                    <p className="text-emphasis text-sm">{step.message}</p>
+                    {/* Content */}
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-subtle text-subtle rounded px-1.5 py-0.5 text-xs font-medium">
+                          {getDomainLabel(step.domain)}
+                        </span>
+                        <span className="text-muted text-xs">
+                          {dayjs(step.timestamp).format("h:mm:ss.SSS A")}
+                        </span>
+                      </div>
+                      <p className="text-emphasis text-sm">{step.message}</p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
         </SheetBody>
       </SheetContent>
     </Sheet>
