@@ -132,7 +132,9 @@ export async function getBookings({
     getAttendeeEmailsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     // Only fetch accessible user IDs when we need to validate the userIds filter
-    needsUserIdsValidation ? getUserIdsFromTeamIds(prisma, teamIdsWithBookingPermission) : Promise.resolve([]),
+    needsUserIdsValidation
+      ? getUserIdsFromTeamIds(prisma, teamIdsWithBookingPermission)
+      : Promise.resolve([]),
   ]);
 
   const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
@@ -403,13 +405,14 @@ export async function getBookings({
   });
 
   const queryUnion = queriesWithFilters.reduce((acc, query) => {
-    return acc.union(query);
+    return acc.unionAll(query);
   });
 
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
   const getBookingsUnionCompiled = kysely
     .selectFrom(queryUnion.as("union_subquery"))
+    .distinct()
     .selectAll("union_subquery")
     .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
       eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
@@ -436,7 +439,7 @@ export async function getBookings({
     (
       await kysely
         .selectFrom(queryUnion.as("union_subquery"))
-        .select(({ fn }) => fn.countAll().as("bookingCount"))
+        .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
         .executeTakeFirst()
     )?.bookingCount ?? 0
   );

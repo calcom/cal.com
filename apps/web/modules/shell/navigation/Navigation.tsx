@@ -6,6 +6,7 @@ import {
   useOrgBranding,
   type OrganizationBranding,
 } from "@calcom/features/ee/organizations/context/provider";
+import { useMobileMoreItems } from "./useMobileMoreItems";
 import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import classNames from "@calcom/ui/classNames";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
@@ -141,7 +142,7 @@ const getNavigationItems = (
             href: "/insights/call-history",
             // icon: "phone",
             isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
-          }
+          },
         ],
   },
 ];
@@ -213,7 +214,11 @@ const useNavigationItems = (isPlatformNavigation = false) => {
       (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
     );
 
-    return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+    return {
+      desktopNavigationItems,
+      mobileNavigationBottomItems,
+      mobileNavigationMoreItems,
+    };
   }, [hasPaidPlan, isPending, isPlatformNavigation, orgBranding]);
 };
 
@@ -266,10 +271,13 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 
 export const MobileNavigationMoreItems = () => {
   const { mobileNavigationMoreItems } = useNavigationItems();
+  const bottomItems = useMobileMoreItems();
+
+  const allItems = [...mobileNavigationMoreItems, ...bottomItems];
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">
-      {mobileNavigationMoreItems.map((item) => (
+      {allItems.map((item) => (
         <MobileNavigationMoreItem key={item.name} item={item} />
       ))}
     </ul>

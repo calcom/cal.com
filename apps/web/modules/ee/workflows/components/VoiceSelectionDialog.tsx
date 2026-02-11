@@ -4,7 +4,7 @@ import { useMemo, useState, useCallback } from "react";
 
 import { DataTableProvider } from "@calcom/features/data-table";
 import { DataTableWrapper } from "~/data-table/components";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { useVoicePreview } from "@calcom/features/ee/workflows/hooks/useVoicePreview";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -59,10 +59,13 @@ function VoiceSelectionContent({
 
   const { data: voices, isLoading } = trpc.viewer.aiVoiceAgent.listVoices.useQuery();
 
-  const handleUseVoice = useCallback((voiceId: string) => {
-    onVoiceSelect(voiceId);
-    showToast("Voice selected successfully", "success");
-  }, [onVoiceSelect]);
+  const handleUseVoice = useCallback(
+    (voiceId: string) => {
+      onVoiceSelect(voiceId);
+      showToast("Voice selected successfully", "success");
+    },
+    [onVoiceSelect]
+  );
 
   const voiceData: Voice[] = useMemo(() => {
     if (!voices) return [];

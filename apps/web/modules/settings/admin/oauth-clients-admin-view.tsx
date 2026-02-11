@@ -22,15 +22,19 @@ export default function OAuthClientsAdminView() {
   const [createdClient, setCreatedClient] = useState<OAuthClientDetails | null>(null);
   const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
-  const { data: pendingClients, isLoading: isPendingClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
-    status: "PENDING",
-  });
-  const { data: rejectedClients, isLoading: isRejectedClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
-    status: "REJECTED",
-  });
-  const { data: approvedClients, isLoading: isApprovedClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
-    status: "APPROVED",
-  });
+  const { data: pendingClients, isLoading: isPendingClientsLoading } = trpc.viewer.oAuth.listClients.useQuery(
+    {
+      status: "PENDING",
+    }
+  );
+  const { data: rejectedClients, isLoading: isRejectedClientsLoading } =
+    trpc.viewer.oAuth.listClients.useQuery({
+      status: "REJECTED",
+    });
+  const { data: approvedClients, isLoading: isApprovedClientsLoading } =
+    trpc.viewer.oAuth.listClients.useQuery({
+      status: "APPROVED",
+    });
 
   const createMutation = trpc.viewer.oAuth.createClient.useMutation({
     onSuccess: async (data) => {
@@ -53,10 +57,7 @@ export default function OAuthClientsAdminView() {
 
   const updateStatusMutation = trpc.viewer.oAuth.updateClient.useMutation({
     onSuccess: async (data) => {
-      showToast(
-        t("oauth_client_status_updated", { name: data.name, status: data.status }),
-        "success"
-      );
+      showToast(t("oauth_client_status_updated", { name: data.name, status: data.status }), "success");
 
       setSelectedClient((prev) => {
         if (!prev) return prev;
@@ -100,7 +101,11 @@ export default function OAuthClientsAdminView() {
   };
 
   const handleReject = (input: { clientId: string; rejectionReason: string }) => {
-    updateStatusMutation.mutate({ clientId: input.clientId, status: "REJECTED", rejectionReason: input.rejectionReason });
+    updateStatusMutation.mutate({
+      clientId: input.clientId,
+      status: "REJECTED",
+      rejectionReason: input.rejectionReason,
+    });
   };
 
   if (isPendingClientsLoading || isRejectedClientsLoading || isApprovedClientsLoading) {
@@ -108,9 +113,7 @@ export default function OAuthClientsAdminView() {
   }
 
   return (
-    <SettingsHeader
-      title={t("oauth_clients_admin")}
-      description={t("oauth_clients_admin_description")}>
+    <SettingsHeader title={t("oauth_clients_admin")} description={t("oauth_clients_admin_description")}>
       <div className="space-y-10">
         <div className="space-y-3" data-testid="oauth-client-admin-pending-section">
           <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>

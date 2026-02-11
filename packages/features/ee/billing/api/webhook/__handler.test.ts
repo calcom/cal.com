@@ -30,7 +30,7 @@ describe("stripeWebhookHandler", () => {
     ({
       headers,
       body,
-    } as unknown as NextApiRequest);
+    }) as unknown as NextApiRequest;
 
   it("should throw an error if stripe-signature header is missing", async () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({

@@ -1,6 +1,6 @@
-import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { router } from "../../trpc";
 import app_RoutingForms from "../apps/routing-forms/_router";
+import { featureFlagRouter } from "../features/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";

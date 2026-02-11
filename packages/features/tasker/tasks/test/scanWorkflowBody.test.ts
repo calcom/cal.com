@@ -368,7 +368,7 @@ describe("scanWorkflowBody", () => {
       // Note: In practice, this scenario is rare since workflow steps are always
       // associated with a workflow, but the code handles it gracefully by logging
       // a warning and returning early.
-      
+
       const payload = JSON.stringify({
         userId: 5,
         workflowStepIds: [999], // Non-existent step IDs
@@ -376,7 +376,7 @@ describe("scanWorkflowBody", () => {
 
       // Should not throw - the function returns early when no steps are found
       await expect(scanWorkflowBody(payload)).resolves.not.toThrow();
-      
+
       // Should not schedule notifications since no workflow was found
       expect(scheduleWorkflowNotifications).not.toHaveBeenCalled();
     });
@@ -439,12 +439,7 @@ describe("scanWorkflowBody", () => {
       await scanWorkflowBody(payload);
 
       // Should pass whitelistWorkflows=true
-      expect(submitWorkflowStepForUrlScanning).toHaveBeenCalledWith(
-        205,
-        expect.any(String),
-        6,
-        true
-      );
+      expect(submitWorkflowStepForUrlScanning).toHaveBeenCalledWith(205, expect.any(String), 6, true);
     });
   });
 
