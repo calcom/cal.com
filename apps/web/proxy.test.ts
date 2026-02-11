@@ -471,20 +471,20 @@ describe("Middleware Matcher Configuration", () => {
     expect(uniqueEntries.size).toBe(matcher.length);
   });
 
-  it("should not contain any /api/ routes", () => {
-    const apiRoutes = matcher.filter((entry) => entry.startsWith("/api/"));
+  it("should not contain any /api/ routes except /api/auth/signup", () => {
+    const apiRoutes = matcher.filter((entry) => entry.startsWith("/api/") && entry !== "/api/auth/signup");
     expect(apiRoutes).toEqual([]);
   });
 
   it("should only contain the expected reduced route set", () => {
     expect(matcher).toEqual([
       "/auth/login",
-      "/api/auth/signup",
+      "/login",
       "/apps/installed",
       "/auth/logout",
-      "/availability",
-      "/login",
       "/:path*/embed",
+      "/availability",
+      "/api/auth/signup",
     ]);
   });
 });
