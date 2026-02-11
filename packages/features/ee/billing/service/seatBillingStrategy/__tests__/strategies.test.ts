@@ -317,10 +317,18 @@ describe("ActiveUserBillingStrategy", () => {
     return { strategy, activeUserService, billingProvider, teamBillingDataRepo };
   }
 
-  it("onSeatChange is a no-op", async () => {
-    const { strategy } = createStrategy();
-    await expect(strategy.onSeatChange(mockContext)).resolves.toBeUndefined();
-  });
+  it.each(["addition", "removal", "sync"] as const)(
+    "onSeatChange is a no-op for %s",
+    async (changeType) => {
+      const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+
+      await strategy.onSeatChange({ ...mockContext, changeType });
+
+      expect(activeUserService.getActiveUserCountForOrg).not.toHaveBeenCalled();
+      expect(billingProvider.handleSubscriptionUpdate).not.toHaveBeenCalled();
+      expect(teamBillingDataRepo.findBySubscriptionId).not.toHaveBeenCalled();
+    }
+  );
 
   it("counts active users and updates Stripe on onInvoiceUpcoming", async () => {
     const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
@@ -358,6 +366,94 @@ describe("ActiveUserBillingStrategy", () => {
       membershipCount: 7,
       prorationBehavior: "none",
     });
+  });
+
+  it("updates Stripe to 0 when no users were active", async () => {
+    const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue({
+      items: [{ id: "si_456", quantity: 5, price: { unit_amount: 1500, recurring: { interval: "month" } } }],
+      customer: "cus_123",
+      status: "active",
+      current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
+      current_period_end: Math.floor(new Date("2025-07-01").getTime() / 1000),
+      trial_end: null,
+    });
+
+    vi.mocked(activeUserService.getActiveUserCountForOrg).mockResolvedValue(0);
+
+    const result = await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(result).toEqual({ applied: true });
+    expect(billingProvider.handleSubscriptionUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ membershipCount: 0 })
+    );
+  });
+
+  it("uses the first subscription item when multiple exist", async () => {
+    const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue({
+      items: [
+        { id: "si_first", quantity: 5, price: { unit_amount: 1500, recurring: { interval: "month" } } },
+        { id: "si_second", quantity: 10, price: { unit_amount: 3000, recurring: { interval: "month" } } },
+      ],
+      customer: "cus_123",
+      status: "active",
+      current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
+      current_period_end: Math.floor(new Date("2025-07-01").getTime() / 1000),
+      trial_end: null,
+    });
+
+    vi.mocked(activeUserService.getActiveUserCountForOrg).mockResolvedValue(3);
+
+    await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(billingProvider.handleSubscriptionUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ subscriptionItemId: "si_first" })
+    );
+  });
+
+  it("does not query active users when team lookup fails", async () => {
+    const { strategy, activeUserService, teamBillingDataRepo } = createStrategy();
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue(null);
+
+    await strategy.onInvoiceUpcoming("sub_unknown");
+
+    expect(activeUserService.getActiveUserCountForOrg).not.toHaveBeenCalled();
+  });
+
+  it("does not query active users when subscription lookup fails", async () => {
+    const { strategy, activeUserService, teamBillingDataRepo, billingProvider } = createStrategy();
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue(null);
+
+    await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(activeUserService.getActiveUserCountForOrg).not.toHaveBeenCalled();
   });
 
   it("returns applied: false when team not found", async () => {
