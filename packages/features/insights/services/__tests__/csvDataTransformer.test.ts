@@ -9,6 +9,7 @@ import {
   processBookingsForCsv,
   formatCsvRow,
   transformBookingsForCsv,
+  getUtmDataForBooking,
   type BookingWithAttendees,
   type BookingTimeStatusData,
 } from "../csvDataTransformer";
@@ -212,6 +213,7 @@ describe("csvDataTransformer", () => {
       seatsReferences: [],
       responses: {},
       eventType: { bookingFields: [] },
+      tracking: null,
       ...overrides,
     });
 
@@ -365,6 +367,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
+          tracking: null,
         },
         {
           uid: "booking-2",
@@ -377,6 +380,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
+          tracking: null,
         },
       ];
 
@@ -397,6 +401,7 @@ describe("csvDataTransformer", () => {
           eventType: {
             bookingFields: [{ name: "company", type: "text", label: "Company" }],
           },
+          tracking: null,
         },
         {
           uid: "booking-2",
@@ -407,6 +412,7 @@ describe("csvDataTransformer", () => {
           eventType: {
             bookingFields: [{ name: "department", type: "text", label: "Department" }],
           },
+          tracking: null,
         },
       ];
 
@@ -438,6 +444,7 @@ describe("csvDataTransformer", () => {
               { name: "customPhone", type: "phone", label: "Contact Phone" },
             ],
           },
+          tracking: null,
         },
         {
           uid: "seated-booking",
@@ -456,6 +463,7 @@ describe("csvDataTransformer", () => {
               { name: "dietaryRestrictions", type: "text", label: "Dietary Restrictions" },
             ],
           },
+          tracking: null,
         },
       ];
 
@@ -689,6 +697,13 @@ describe("csvDataTransformer", () => {
               { name: "timeline", type: "text", label: "Timeline" },
             ],
           },
+          tracking: {
+            utm_source: "google",
+            utm_medium: "cpc",
+            utm_campaign: "spring-sale",
+            utm_term: "scheduling",
+            utm_content: "banner-ad",
+          },
         },
         {
           uid: "booking-2",
@@ -707,6 +722,7 @@ describe("csvDataTransformer", () => {
               { name: "emergencyContact", type: "phone", label: "Emergency Contact" },
             ],
           },
+          tracking: null,
         },
       ];
 
@@ -753,12 +769,151 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
+          tracking: null,
         },
       ];
 
       const result = transformBookingsForCsv(csvData, bookings, "UTC");
 
       expect(result).toHaveLength(0);
+    });
+
+    it("should include UTM data in transformed rows", () => {
+      const csvData: BookingTimeStatusData[] = [
+        {
+          id: 1,
+          uid: "booking-with-utm",
+          title: "UTM Test",
+          createdAt: new Date("2024-01-01T00:00:00Z"),
+          timeStatus: "completed",
+          eventTypeId: 1,
+          eventLength: 30,
+          startTime: new Date("2024-01-01T10:00:00Z"),
+          endTime: new Date("2024-01-01T10:30:00Z"),
+          paid: false,
+          userEmail: "test@test.com",
+          userUsername: "test",
+          rating: null,
+          ratingFeedback: null,
+          noShowHost: false,
+        },
+        {
+          id: 2,
+          uid: "booking-no-utm",
+          title: "No UTM",
+          createdAt: new Date("2024-01-02T00:00:00Z"),
+          timeStatus: "completed",
+          eventTypeId: 1,
+          eventLength: 30,
+          startTime: new Date("2024-01-02T10:00:00Z"),
+          endTime: new Date("2024-01-02T10:30:00Z"),
+          paid: false,
+          userEmail: "test@test.com",
+          userUsername: "test",
+          rating: null,
+          ratingFeedback: null,
+          noShowHost: false,
+        },
+      ];
+
+      const bookings: BookingWithAttendees[] = [
+        {
+          uid: "booking-with-utm",
+          eventTypeId: 1,
+          attendees: [{ name: "A", email: "a@test.com", phoneNumber: null, noShow: false }],
+          seatsReferences: [],
+          responses: {},
+          eventType: { bookingFields: [] },
+          tracking: {
+            utm_source: "google",
+            utm_medium: "cpc",
+            utm_campaign: "spring-sale",
+            utm_term: "scheduling",
+            utm_content: "banner-ad",
+          },
+        },
+        {
+          uid: "booking-no-utm",
+          eventTypeId: 1,
+          attendees: [{ name: "B", email: "b@test.com", phoneNumber: null, noShow: false }],
+          seatsReferences: [],
+          responses: {},
+          eventType: { bookingFields: [] },
+          tracking: null,
+        },
+      ];
+
+      const result = transformBookingsForCsv(csvData, bookings, "UTC");
+
+      expect(result[0].utm_source).toBe("google");
+      expect(result[0].utm_medium).toBe("cpc");
+      expect(result[0].utm_campaign).toBe("spring-sale");
+      expect(result[0].utm_term).toBe("scheduling");
+      expect(result[0].utm_content).toBe("banner-ad");
+
+      expect(result[1].utm_source).toBe("");
+      expect(result[1].utm_medium).toBe("");
+      expect(result[1].utm_campaign).toBe("");
+      expect(result[1].utm_term).toBe("");
+      expect(result[1].utm_content).toBe("");
+    });
+  });
+
+  describe("getUtmDataForBooking", () => {
+    it("should return UTM data from booking", () => {
+      const booking: BookingWithAttendees = {
+        uid: "test",
+        eventTypeId: 1,
+        attendees: [],
+        seatsReferences: [],
+        responses: {},
+        eventType: null,
+        tracking: {
+          utm_source: "google",
+          utm_medium: "cpc",
+          utm_campaign: "spring-sale",
+          utm_term: "scheduling",
+          utm_content: "banner-ad",
+        },
+      };
+
+      expect(getUtmDataForBooking(booking)).toEqual({
+        utm_source: "google",
+        utm_medium: "cpc",
+        utm_campaign: "spring-sale",
+        utm_term: "scheduling",
+        utm_content: "banner-ad",
+      });
+    });
+
+    it("should return empty strings for null UTM values", () => {
+      const booking: BookingWithAttendees = {
+        uid: "test",
+        eventTypeId: 1,
+        attendees: [],
+        seatsReferences: [],
+        responses: {},
+        eventType: null,
+        tracking: null,
+      };
+
+      expect(getUtmDataForBooking(booking)).toEqual({
+        utm_source: "",
+        utm_medium: "",
+        utm_campaign: "",
+        utm_term: "",
+        utm_content: "",
+      });
+    });
+
+    it("should return empty strings for undefined booking", () => {
+      expect(getUtmDataForBooking(undefined)).toEqual({
+        utm_source: "",
+        utm_medium: "",
+        utm_campaign: "",
+        utm_term: "",
+        utm_content: "",
+      });
     });
   });
 });
