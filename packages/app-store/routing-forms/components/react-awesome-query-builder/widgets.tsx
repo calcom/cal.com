@@ -266,7 +266,7 @@ function NumberWidget(props: TextLikeComponentPropsRAQB) {
       const numberValue = Number(processedValue);
 
       if (!isNaN(numberValue)) {
-        if (numberValue === 0 && rawNormalized.includes(".")) {
+        if (numberValue === 0 && valueStr.includes(".")) {
           return;
         }
         const localizedValue = new Intl.NumberFormat(language, {
