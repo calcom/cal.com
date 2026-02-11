@@ -5,9 +5,7 @@ import { WrongAssignmentReportService } from "@calcom/features/bookings/services
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 
 type ReportWrongAssignmentOptions = {

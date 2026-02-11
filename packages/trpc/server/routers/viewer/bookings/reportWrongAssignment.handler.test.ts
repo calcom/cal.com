@@ -1,6 +1,6 @@
-import { ErrorWithCode } from "@calcom/lib/errors";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -47,7 +47,8 @@ vi.mock("@calcom/prisma", () => ({
 vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => {
     const translations: Record<string, string> = {
-      wrong_assignment_already_reported: "A wrong assignment report has already been submitted for this booking",
+      wrong_assignment_already_reported:
+        "A wrong assignment report has already been submitted for this booking",
       wrong_assignment_reported: "Wrong assignment reported successfully",
     };
     return translations[key] || key;
@@ -148,10 +149,14 @@ describe("reportWrongAssignmentHandler", () => {
       await expect(
         reportWrongAssignmentHandler({
           ctx: { user: mockUser },
-          input: {
-            bookingUid: "test-booking-uid",
-            additionalNotes: "This booking was assigned to me incorrectly",
-          },
+          input: mockInput,
+        })
+      ).rejects.toThrow(TRPCError);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: mockInput,
         })
       ).rejects.toMatchObject({
         message: "Booking not found",
