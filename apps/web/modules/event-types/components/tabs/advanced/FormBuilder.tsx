@@ -1012,12 +1012,13 @@ function VariantFields({
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
+            
           return (
             <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{f.name}</span>
+                  <span className="text-muted">{t(appUiFieldConfig?.defaultLabel || "")}</span>
                 </Label>
               )}
               <InputField

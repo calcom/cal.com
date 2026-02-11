@@ -44,6 +44,13 @@ export type BookingWithAttendees = {
   eventType: {
     bookingFields: unknown;
   } | null;
+  tracking: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
 };
 
 export type ProcessedBookingData = {
@@ -279,6 +286,18 @@ export function formatCsvRow(
   return result;
 }
 
+export function getUtmDataForBooking(
+  booking: BookingWithAttendees | undefined
+): Record<string, string> {
+  return {
+    utm_source: booking?.tracking?.utm_source || "",
+    utm_medium: booking?.tracking?.utm_medium || "",
+    utm_campaign: booking?.tracking?.utm_campaign || "",
+    utm_term: booking?.tracking?.utm_term || "",
+    utm_content: booking?.tracking?.utm_content || "",
+  };
+}
+
 export function transformBookingsForCsv(
   csvData: BookingTimeStatusData[],
   bookings: BookingWithAttendees[],
@@ -286,14 +305,21 @@ export function transformBookingsForCsv(
 ): Record<string, unknown>[] {
   const { bookingMap, maxAttendees, allBookingQuestionLabels } = processBookingsForCsv(bookings);
 
+  const bookingsByUid = new Map(bookings.map((b) => [b.uid, b]));
+
   return csvData.map((bookingTimeStatus) => {
     const processedData = bookingTimeStatus.uid ? bookingMap.get(bookingTimeStatus.uid) : null;
-    return formatCsvRow(
+    const booking = bookingTimeStatus.uid ? bookingsByUid.get(bookingTimeStatus.uid) : undefined;
+    const row = formatCsvRow(
       bookingTimeStatus,
       processedData || null,
       maxAttendees,
       allBookingQuestionLabels,
       timeZone
     );
+    return {
+      ...row,
+      ...getUtmDataForBooking(booking),
+    };
   });
 }
