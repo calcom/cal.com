@@ -40,8 +40,8 @@ export const useEventTypeForm = ({
   const { t } = useLocale();
   const periodDates = useMemo(
     () => ({
-      startDate: new Date(eventType.periodStartDate || Date.now()),
-      endDate: new Date(eventType.periodEndDate || Date.now()),
+      startDate: eventType.periodStartDate ?? undefined,
+      endDate: eventType.periodEndDate ?? undefined,
     }),
     [eventType.periodStartDate, eventType.periodEndDate]
   );
