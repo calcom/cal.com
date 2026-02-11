@@ -2,6 +2,7 @@
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "target": "es6",
     "paths": {
       "~/*": ["modules/*"],
       "@components/*": ["components/*"],
