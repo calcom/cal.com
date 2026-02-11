@@ -75,7 +75,7 @@ async function getFormResponseDisplayHandler({ ctx, input }: GetFormResponseDisp
         displayValue,
       };
     })
-    .filter(Boolean);
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   return {
     form: {
