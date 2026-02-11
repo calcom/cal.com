@@ -799,12 +799,7 @@ test.describe("Bookings", () => {
 
     await bookingItem.locator('[role="button"]').first().click();
 
-    await expect
-      .poll(() => {
-        const url = new URL(page.url());
-        return url.searchParams.get("uid");
-      })
-      .toBe(bookingFixture.uid);
+    await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
   });
 });
 
