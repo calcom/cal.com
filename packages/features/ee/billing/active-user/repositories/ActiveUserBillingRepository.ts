@@ -48,10 +48,6 @@ export class ActiveUserBillingRepository {
     });
   }
 
-  /**
-   * Get member details (id, email, name) for a regular organization.
-   * Used by the breakdown UI to display per-member active status.
-   */
   async getOrgMemberDetailsByOrgId(
     orgId: number
   ): Promise<{ id: number; email: string; name: string | null }[]> {
@@ -139,9 +135,6 @@ export class ActiveUserBillingRepository {
     });
   }
 
-  /**
-   * Get bookings where a user was the host in the given period.
-   */
   async getBookingsByHostUserId(
     userId: number,
     periodStart: Date,
@@ -178,9 +171,6 @@ export class ActiveUserBillingRepository {
     });
   }
 
-  /**
-   * Get bookings where a user was an attendee in the given period.
-   */
   async getBookingsByAttendeeEmail(
     email: string,
     periodStart: Date,

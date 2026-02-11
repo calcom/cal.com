@@ -147,7 +147,16 @@ export class ActiveUserBillingService {
     activeAs: "host" | "attendee",
     periodStart: Date,
     periodEnd: Date
-  ) {
+  ): Promise<
+    Array<{
+      id: number;
+      uid: string;
+      title: string;
+      startTime: Date;
+      endTime: Date;
+      otherParty: string;
+    }>
+  > {
     if (activeAs === "host") {
       const bookings = await this.deps.activeUserBillingRepository.getBookingsByHostUserId(
         userId,

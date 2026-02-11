@@ -57,6 +57,18 @@ export const getActiveUserBookingsHandler = async ({ ctx, input }: GetActiveUser
   }
 
   try {
+    const targetMembership = await membershipRepository.findUniqueByUserIdAndTeamId({
+      userId,
+      teamId,
+    });
+
+    if (!targetMembership || !targetMembership.accepted) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Target user is not a member of this team",
+      });
+    }
+
     const billingPeriodService = new BillingPeriodService();
     const billingInfo = await billingPeriodService.getOrCreateBillingPeriodInfo(teamId);
 
