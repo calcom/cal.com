@@ -23,6 +23,10 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       name: true,
       availability: true,
       timeZone: true,
+      // Sync-related fields for Google Calendar Working Location
+      syncSource: true,
+      syncLastAt: true,
+      syncError: true,
     },
     orderBy: {
       id: "asc",
