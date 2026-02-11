@@ -88,7 +88,7 @@ export class WrongAssignmentReportService {
 
     return {
       success: true,
-      message: "Wrong assignment reported successfully",
+      message: t("wrong_assignment_reported"),
       reportId: report.id,
     };
   }
