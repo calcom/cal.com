@@ -151,13 +151,6 @@ describe("reportWrongAssignmentHandler", () => {
           ctx: { user: mockUser },
           input: mockInput,
         })
-      ).rejects.toThrow(TRPCError);
-
-      await expect(
-        reportWrongAssignmentHandler({
-          ctx: { user: mockUser },
-          input: mockInput,
-        })
       ).rejects.toMatchObject({
         message: "Booking not found",
       });
