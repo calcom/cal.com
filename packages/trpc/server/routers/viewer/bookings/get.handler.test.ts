@@ -408,3 +408,123 @@ describe("getBookings - PBAC Permission Checks", () => {
     });
   });
 });
+
+describe("getBookings - Filter Logic", () => {
+  const mockUser = {
+    id: 1,
+    email: "user@example.com",
+    orgId: null,
+  };
+
+  const mockPrisma = {
+    user: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    eventType: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    booking: {
+      groupBy: vi.fn().mockResolvedValue([]),
+    },
+    $queryRaw: vi.fn().mockResolvedValue([]),
+  } as unknown as PrismaClient;
+
+  const orSpy = vi.fn();
+  const existsSpy = vi.fn();
+
+  // Mock Expression Builder to capture logic inside .where() callbacks
+  const mockExpressionBuilder = {
+    or: orSpy,
+    exists: existsSpy,
+    // Helper for eb("Booking.noShowHost", "=", true)
+    call: vi.fn(),
+    selectFrom: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    whereRef: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+  };
+  // Make the mock function-like to handle eb("field", "=", value) syntax
+  const mockEbFunc = Object.assign(vi.fn(), mockExpressionBuilder);
+
+
+  const createMockKysely = () => {
+    const mockQueryBuilder = {
+      select: vi.fn().mockReturnThis(),
+      selectAll: vi.fn().mockReturnThis(),
+      where: vi.fn((arg) => {
+        // If argument is a function, execute it with our mock builder to trigger spies
+        if (typeof arg === 'function') {
+          try { arg(mockEbFunc); } catch (e) { }
+        }
+        return mockQueryBuilder;
+      }),
+      innerJoin: vi.fn().mockReturnThis(),
+      union: vi.fn().mockReturnThis(),
+      as: vi.fn().mockReturnThis(),
+      $if: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      offset: vi.fn().mockReturnThis(),
+      compile: vi.fn(() => ({ sql: "SELECT * FROM bookings" })),
+      executeTakeFirst: vi.fn().mockResolvedValue({ bookingCount: 0 }),
+      execute: vi.fn().mockResolvedValue([]),
+    };
+
+    return {
+      selectFrom: vi.fn(() => mockQueryBuilder),
+      executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+    } as unknown as Kysely<DB>;
+  };
+
+  let mockKysely: Kysely<DB>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockKysely = createMockKysely();
+    // Reset permissions mock
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return {
+        getTeamIdsWithPermission: vi.fn().mockResolvedValue([]),
+      } as unknown as PermissionCheckService;
+    });
+  });
+
+  it("should apply no-show filter when enabled", async () => {
+    await getBookings({
+      user: mockUser,
+      prisma: mockPrisma,
+      kysely: mockKysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {
+        noShow: true,
+      },
+      take: 10,
+      skip: 0,
+    });
+
+    // Verify that .or() was called on the expression builder
+    // This confirms that the noShow filter logic (which wraps conditions in OR) was executed
+    expect(orSpy).toHaveBeenCalled();
+    // Verify that .exists() was called (checking for attendee noShow)
+    expect(existsSpy).toHaveBeenCalled();
+  });
+
+  it("should NOT apply no-show filter when disabled", async () => {
+    await getBookings({
+      user: mockUser,
+      prisma: mockPrisma,
+      kysely: mockKysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {
+        noShow: undefined, // disabled
+      },
+      take: 10,
+      skip: 0,
+    });
+
+    // Verify that .or() was NOT called
+    expect(orSpy).not.toHaveBeenCalled();
+    expect(existsSpy).not.toHaveBeenCalled();
+  });
+});
+
