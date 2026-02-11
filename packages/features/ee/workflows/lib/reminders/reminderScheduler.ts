@@ -218,8 +218,11 @@ const processWorkflowStep = async (
 
     const key = credential.key as { baseUrl: string, topic: string, username?: string, password?: string };
 
+    if (!key.topic) return;
+    const baseUrl = key.baseUrl || "https://ntfy.sh";
+
       await ntfyPublisher({
-        baseUrl: key.baseUrl,
+        baseUrl: baseUrl,
         topic: key.topic,
         username: key.username,
         password: key.password,

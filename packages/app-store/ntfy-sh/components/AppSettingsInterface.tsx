@@ -8,7 +8,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 export default function AppSettings() {
   const { t } = useLocale();
-  const [topic, setTopic] = useState("testtopic");
+  const [topic, setTopic] = useState("");
   const [baseUrl, setBaseUrl] = useState("https://ntfy.sh");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
