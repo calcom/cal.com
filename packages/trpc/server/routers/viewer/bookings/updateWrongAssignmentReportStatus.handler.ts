@@ -45,7 +45,7 @@ export const updateWrongAssignmentReportStatusHandler = async ({
     userId: user.id,
     teamId: report.teamId,
     permission: "booking.update",
-    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
   });
 
   if (!hasPermission) {
