@@ -98,8 +98,8 @@ export function BlocklistEntryDetailsSheet<T extends BlocklistEntry>({
                           {detailsData.entry.source === "MANUAL"
                             ? t("manual")
                             : detailsData.entry.source === "FREE_DOMAIN_POLICY"
-                            ? t("free_domain_policy")
-                            : t("automatic")}
+                              ? t("free_domain_policy")
+                              : t("automatic")}
                         </p>
                       </div>
                     </>
