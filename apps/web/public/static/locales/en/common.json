@@ -2651,6 +2651,7 @@
   "no_show_hosts_over_time": "No-show hosts over time",
   "csat_over_time": "CSAT over time",
   "no_show_hosts": "No-show hosts",
+  "no_show": "No show",
   "csat": "CSAT",
   "acknowledge_booking_no_show_fee": "I acknowledge that if I do not attend this event that a {{amount, currency}} no show fee will be applied to my card.",
   "days": "days",
