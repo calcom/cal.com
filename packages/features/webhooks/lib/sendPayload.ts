@@ -12,7 +12,6 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate" | "version">;
 
 import { getFlattenedZapierPayload } from "./getFlattenedZapierPayload";
-import { addSubscription, listBookings, listOOOEntries } from "./scheduleTrigger";
 
 export type EventTypeInfo = {
   eventTitle?: string | null;
@@ -99,10 +98,10 @@ export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
     paymentData?: PaymentData;
     requestReschedule?: boolean;
     assignmentReason?:
-    | string
-    | { reasonEnum: string; reasonString: string }[]
-    | { category: string; details?: string | null }
-    | null;
+      | string
+      | { reasonEnum: string; reasonString: string }[]
+      | { category: string; details?: string | null }
+      | null;
   };
 
 export type WebhookPayloadType =
@@ -222,8 +221,6 @@ export function isDelegationCredentialErrorPayload(
 export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
   return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data);
 }
-
-
 
 const sendPayload = async (
   secretKey: string | null,
