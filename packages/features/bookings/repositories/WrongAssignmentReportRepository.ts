@@ -26,63 +26,12 @@ export class WrongAssignmentReportRepository {
     });
   }
 
-  async findById(id: string) {
+  async findTeamIdById(id: string): Promise<{ id: string; teamId: number | null } | null> {
     return this.prismaClient.wrongAssignmentReport.findUnique({
       where: { id },
       select: {
         id: true,
-        bookingUid: true,
-        reportedById: true,
-        correctAssignee: true,
-        additionalNotes: true,
         teamId: true,
-        routingFormId: true,
-        status: true,
-        reviewedById: true,
-        reviewedAt: true,
-        createdAt: true,
-        updatedAt: true,
-        booking: {
-          select: {
-            id: true,
-            title: true,
-            startTime: true,
-            endTime: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            attendees: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        reportedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        routingForm: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        reviewedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
       },
     });
   }

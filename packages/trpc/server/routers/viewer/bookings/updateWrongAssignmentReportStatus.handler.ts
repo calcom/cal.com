@@ -24,7 +24,7 @@ export const updateWrongAssignmentReportStatusHandler = async ({
 
   const repo = new WrongAssignmentReportRepository(prisma);
 
-  const report = await repo.findById(reportId);
+  const report = await repo.findTeamIdById(reportId);
 
   if (!report) {
     throw new TRPCError({
