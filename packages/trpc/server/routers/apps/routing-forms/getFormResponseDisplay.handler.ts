@@ -40,7 +40,7 @@ async function getFormResponseDisplayHandler({ ctx, input }: GetFormResponseDisp
   if (!(await canAccessEntity({ userId: form.userId, teamId: form.teamId }, user.id))) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: translate("you_dont_have_access_to_reroute_this_booking"),
+      message: translate("you_dont_have_access_to_view_this_form_response"),
     });
   }
 
