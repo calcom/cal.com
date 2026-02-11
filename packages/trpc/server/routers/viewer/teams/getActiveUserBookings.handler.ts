@@ -5,6 +5,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
@@ -25,7 +26,7 @@ export const getActiveUserBookingsHandler = async ({ ctx, input }: GetActiveUser
     return null;
   }
 
-  const { teamId, userId, email, activeAs } = input;
+  const { teamId, userId, activeAs } = input;
 
   const membershipRepository = new MembershipRepository();
   const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
@@ -69,6 +70,18 @@ export const getActiveUserBookingsHandler = async ({ ctx, input }: GetActiveUser
       });
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!targetUser) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Target user not found",
+      });
+    }
+
     const billingPeriodService = new BillingPeriodService();
     const billingInfo = await billingPeriodService.getOrCreateBillingPeriodInfo(teamId);
 
@@ -83,7 +96,7 @@ export const getActiveUserBookingsHandler = async ({ ctx, input }: GetActiveUser
     const activeUserBillingService = getActiveUserBillingService();
     const bookings = await activeUserBillingService.getBookingsForUser(
       userId,
-      email,
+      targetUser.email,
       activeAs,
       billingInfo.subscriptionStart,
       billingInfo.subscriptionEnd

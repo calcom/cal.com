@@ -1,8 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -34,30 +32,12 @@ import { ActiveUserBreakdownSkeleton } from "./ActiveUserBreakdownSkeleton";
 
 const PAGE_SIZE = 10;
 
-export function ActiveUserBreakdown() {
-  const pathname = usePathname();
-  const session = useSession();
-
-  const getTeamIdFromContext = () => {
-    if (!pathname) return null;
-    if (pathname.includes("/teams/") && pathname.includes("/billing")) {
-      const teamIdMatch = pathname.match(/\/teams\/(\d+)\/billing/);
-      return teamIdMatch ? parseInt(teamIdMatch[1], 10) : null;
-    }
-    if (pathname.includes("/organizations/billing")) {
-      return session.data?.user?.org?.id ?? null;
-    }
-    return null;
-  };
-
-  const teamId = getTeamIdFromContext();
-
+export function ActiveUserBreakdown({ teamId }: { teamId: number }) {
   const { data, isLoading } = trpc.viewer.teams.getActiveUserBreakdown.useQuery(
-    { teamId: teamId! },
+    { teamId },
     { enabled: !!teamId }
   );
 
-  if (!teamId) return null;
   if (isLoading) return <ActiveUserBreakdownSkeleton />;
   if (!data) return null;
 
@@ -87,6 +67,10 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
   const [selectedUser, setSelectedUser] = useState<SelectedUser | null>(null);
 
   const { activeUsers, totalMembers, activeHosts, activeAttendees, periodStart, periodEnd } = data;
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [activeUsers]);
 
   const totalPages = Math.ceil(activeUsers.length / PAGE_SIZE);
   const paginatedUsers = activeUsers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
@@ -191,7 +175,6 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
               <UserBookingsSheet
                 teamId={teamId}
                 userId={selectedUser.id}
-                email={selectedUser.email}
                 activeAs={selectedUser.activeAs}
               />
             )}
@@ -209,18 +192,16 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
 function UserBookingsSheet({
   teamId,
   userId,
-  email,
   activeAs,
 }: {
   teamId: number;
   userId: number;
-  email: string;
   activeAs: "host" | "attendee";
 }) {
   const { t } = useLocale();
 
   const { data, isLoading } = trpc.viewer.teams.getActiveUserBookings.useQuery(
-    { teamId, userId, email, activeAs },
+    { teamId, userId, activeAs },
     { enabled: true }
   );
 

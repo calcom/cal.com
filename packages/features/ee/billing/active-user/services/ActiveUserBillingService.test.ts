@@ -14,6 +14,7 @@ function createMockRepository(): {
     getActiveUsersAsHost: vi.fn().mockResolvedValue([]),
     getActiveUsersAsAttendee: vi.fn().mockResolvedValue([]),
     getBookingsByHostUserId: vi.fn().mockResolvedValue([]),
+    getBookingsByAttendeeEmail: vi.fn().mockResolvedValue([]),
   };
 }
 

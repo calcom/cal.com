@@ -1,4 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
+
+const BOOKING_DETAIL_LIMIT = 100;
 
 export class ActiveUserBillingRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
@@ -94,9 +97,10 @@ export class ActiveUserBillingRepository {
         bookings: {
           some: {
             userId: { not: null },
+            status: BookingStatus.ACCEPTED,
             startTime: {
               gte: periodStart,
-              lte: periodEnd,
+              lt: periodEnd,
             },
           },
         },
@@ -122,9 +126,10 @@ export class ActiveUserBillingRepository {
         bookings: {
           some: {
             userId: { not: null },
+            status: BookingStatus.ACCEPTED,
             startTime: {
               gte: periodStart,
-              lte: periodEnd,
+              lt: periodEnd,
             },
           },
         },
@@ -152,9 +157,11 @@ export class ActiveUserBillingRepository {
     return this.prismaClient.booking.findMany({
       where: {
         userId,
-        startTime: { gte: periodStart, lte: periodEnd },
+        status: BookingStatus.ACCEPTED,
+        startTime: { gte: periodStart, lt: periodEnd },
       },
       orderBy: { startTime: "desc" },
+      take: BOOKING_DETAIL_LIMIT,
       select: {
         id: true,
         uid: true,
@@ -188,9 +195,11 @@ export class ActiveUserBillingRepository {
     return this.prismaClient.booking.findMany({
       where: {
         attendees: { some: { email } },
-        startTime: { gte: periodStart, lte: periodEnd },
+        status: BookingStatus.ACCEPTED,
+        startTime: { gte: periodStart, lt: periodEnd },
       },
       orderBy: { startTime: "desc" },
+      take: BOOKING_DETAIL_LIMIT,
       select: {
         id: true,
         uid: true,
@@ -220,9 +229,10 @@ export class ActiveUserBillingRepository {
       where: {
         email: { in: userEmails },
         booking: {
+          status: BookingStatus.ACCEPTED,
           startTime: {
             gte: periodStart,
-            lte: periodEnd,
+            lt: periodEnd,
           },
         },
       },

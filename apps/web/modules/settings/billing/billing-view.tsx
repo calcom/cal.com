@@ -147,7 +147,7 @@ const BillingView = () => {
         </div>
       </div>
       <BillingCredits />
-      <ActiveUserBreakdown />
+      {teamIdNumber && <ActiveUserBreakdown teamId={teamIdNumber} />}
       <InvoicesTable />
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
