@@ -5,7 +5,10 @@ import type { z } from "zod";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 
-import getBookingResponsesSchema, { getBookingResponsesPartialSchema } from "./getBookingResponsesSchema";
+import getBookingResponsesSchema, {
+  getBookingResponsesPartialSchema,
+  getBookingResponsesSchemaWithOptionalChecks,
+} from "./getBookingResponsesSchema";
 
 const CUSTOM_REQUIRED_FIELD_ERROR_MSG = "error_required_field";
 const CUSTOM_PHONE_VALIDATION_ERROR_MSG = "invalid_number";
@@ -790,6 +793,100 @@ describe("getBookingResponsesSchema", () => {
         })
       );
     });
+
+    test(`optional phone field should be validated if a value is provided`, async () => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "optionalPhone",
+            type: "phone",
+            required: false,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+
+      // Should pass if empty string is provided
+      const parsedEmptyString = await schema.safeParseAsync({
+        name: "John",
+        email: "john@example.com",
+        optionalPhone: "",
+      });
+      expect(parsedEmptyString.success).toBe(true);
+
+      // Should pass if undefined is provided
+      const parsedUndefined = await schema.safeParseAsync({
+        name: "John",
+        email: "john@example.com",
+      });
+      expect(parsedUndefined.success).toBe(true);
+
+      // Should fail if invalid phone is provided
+      const parsedInvalid = await schema.safeParseAsync({
+        name: "John",
+        email: "john@example.com",
+        optionalPhone: "invalid-phone",
+      });
+      expect(parsedInvalid.success).toBe(false);
+      if (!parsedInvalid.success) {
+        expect(parsedInvalid.error.issues[0]).toEqual(
+          expect.objectContaining({
+            message: `{optionalPhone}${CUSTOM_PHONE_VALIDATION_ERROR_MSG}`,
+            code: "custom",
+          })
+        );
+      }
+    });
+  });
+
+  describe("getBookingResponsesSchemaWithOptionalChecks", () => {
+    test("should validate optional fields when checkOptional is true", async () => {
+      const schema = getBookingResponsesSchemaWithOptionalChecks({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "optionalField",
+            type: "text",
+            required: false,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+
+      const parsedResponses = await schema.safeParseAsync({
+        name: "John",
+        email: "john@example.com",
+      });
+
+      expect(parsedResponses.success).toBe(false);
+      if (!parsedResponses.success) {
+        expect(parsedResponses.error.issues[0]).toEqual(
+          expect.objectContaining({
+            message: `{optionalField}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
+            code: "custom",
+          })
+        );
+      }
+    });
   });
 
   test("should fail parsing when invalid field type is provided", async () => {
@@ -1206,6 +1303,53 @@ describe("validate radioInput type field", () => {
       },
     });
   });
+});
+
+test("should handle optional radioInput fields", async () => {
+  const schema = getBookingResponsesSchema({
+    bookingFields: [
+      {
+        name: "name",
+        type: "name",
+        required: true,
+      },
+      {
+        name: "email",
+        type: "email",
+        required: true,
+      },
+      {
+        name: "optionalRadio",
+        type: "radioInput",
+        required: false,
+        optionsInputs: {
+          custom: {
+            type: "text",
+            required: true,
+          },
+        },
+      },
+    ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+    view: "ALL_VIEWS",
+  });
+
+  // Should pass if undefined
+  const parsedUndefined = await schema.safeParseAsync({
+    name: "John",
+    email: "john@example.com",
+  });
+  expect(parsedUndefined.success).toBe(true);
+
+  // Should fail if option is selected but required input is empty
+  const parsedInvalid = await schema.safeParseAsync({
+    name: "John",
+    email: "john@example.com",
+    optionalRadio: JSON.stringify({
+      value: "custom",
+      optionValue: "",
+    }),
+  });
+  expect(parsedInvalid.success).toBe(false);
 });
 
 describe("validate url type field", () => {
