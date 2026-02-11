@@ -80,13 +80,21 @@ describe("validateUrlForSSRFSync", () => {
     expect(validateUrlForSSRFSync("data:image/png;base64,iVBORw0KGgo=").isValid).toBe(true);
   });
 
-  it("allows whitelisted path /api/avatar/ (Cal.com avatar URLs only)", () => {
+  it("allows /api/avatar/{uuid}.png only", () => {
     expect(validateUrlForSSRFSync("/api/avatar/ba0fa3a6-2aac-4032-8230-3789f5752e5a.png").isValid).toBe(
       true
     );
+    expect(validateUrlForSSRFSync("/api/avatar/any-value.png").isValid).toBe(true);
   });
 
-  it("rejects other path-only URLs (only /api/avatar/ is whitelisted)", () => {
+  it("rejects /api/avatar/ path without .png extension", () => {
+    expect(validateUrlForSSRFSync("/api/avatar/ba0fa3a6-2aac-4032-8230-3789f5752e5a").isValid).toBe(
+      false
+    );
+    expect(validateUrlForSSRFSync("/api/avatar/foo.jpg").isValid).toBe(false);
+  });
+
+  it("rejects other path-only URLs", () => {
     expect(validateUrlForSSRFSync("/api/logo.png").isValid).toBe(false);
     expect(validateUrlForSSRFSync("/other/path").isValid).toBe(false);
   });
