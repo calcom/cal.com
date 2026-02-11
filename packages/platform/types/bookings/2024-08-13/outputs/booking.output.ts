@@ -100,7 +100,11 @@ class BookingHost {
   @Expose()
   email!: string;
 
-  @ApiProperty({ type: String, example: "jane100@example.com", description: "Clean email for display purposes" })
+  @ApiProperty({
+    type: String,
+    example: "jane100@example.com",
+    description: "Clean email for display purposes",
+  })
   @IsString()
   @Expose()
   displayEmail!: string;
@@ -406,7 +410,11 @@ class ReassignedToDto {
   @Expose()
   email!: string;
 
-  @ApiProperty({ type: String, example: "john.doe@example.com", description: "Clean email for display purposes" })
+  @ApiProperty({
+    type: String,
+    example: "john.doe@example.com",
+    description: "Clean email for display purposes",
+  })
   @IsString()
   @Expose()
   displayEmail!: string;
