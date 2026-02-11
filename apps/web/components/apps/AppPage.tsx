@@ -184,7 +184,9 @@ export const AppPage = ({
     enabled: !!dependencies,
   });
 
-  const disableInstall = dependencyData.data ? dependencyData.data.some((dependency) => !dependency.installed) : false;
+  const disableInstall = dependencyData.data
+    ? dependencyData.data.some((dependency) => !dependency.installed)
+    : false;
 
   // const disableInstall = requiresGCal && !gCalInstalled.data;
 

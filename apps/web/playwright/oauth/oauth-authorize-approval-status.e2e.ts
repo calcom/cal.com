@@ -46,7 +46,11 @@ test.describe("OAuth authorize - client approval status", () => {
     return client;
   }
 
-  test("PENDING client renders error on authorize page (no redirect)", async ({ page, users, prisma }, testInfo) => {
+  test("PENDING client renders error on authorize page (no redirect)", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
     const user = await users.create({ username: "oauth-authorize-pending" });
     await user.apiLogin();
 
@@ -68,7 +72,11 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page.getByText(OAUTH_ERROR_REASONS["client_not_approved"])).toBeVisible();
   });
 
-  test("REJECTED client renders error on authorize page (no redirect)", async ({ page, users, prisma }, testInfo) => {
+  test("REJECTED client renders error on authorize page (no redirect)", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
     const user = await users.create({ username: "oauth-authorize-rejected" });
     await user.apiLogin();
 
@@ -120,7 +128,11 @@ test.describe("OAuth authorize - client approval status", () => {
     expect(url.searchParams.get("error")).toBeNull();
   });
 
-  test("redirect_uri mismatch renders error on authorize page (no redirect)", async ({ page, users, prisma }, testInfo) => {
+  test("redirect_uri mismatch renders error on authorize page (no redirect)", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
     const user = await users.create({ username: "oauth-authorize-redirect-uri-mismatch" });
     await user.apiLogin();
 

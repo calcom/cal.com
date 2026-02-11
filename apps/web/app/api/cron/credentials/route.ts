@@ -71,20 +71,20 @@ export async function handleCreateCredentials() {
       `Creating credentials for ${toProcessMembers.length} members out of ${delegatedMembers.length} delegated members in organization ${organization.id}`
     );
 
-      const credentialCreationPromises = toProcessMembers.map(async (member) => {
-        try {
-          const credentialData = buildCredentialCreateData({
-            type: "google_calendar",
-            key: {
-              // The in-memory credential that we create for Delegation Credential has access_token as "NOOP_UNUSED_DELEGATION_TOKEN. This is to mark it is in DB, in case we need to identify that.
-              access_token: "NOOP_UNUSED_DELEGATION_TOKEN_DB",
-            },
-            userId: member.userId,
-            appId: "google-calendar",
-            delegationCredentialId: delegationCredential.id,
-          });
-          await CredentialRepository.create(credentialData);
-          log.info(`Created credential for member ${member.userId}`);
+    const credentialCreationPromises = toProcessMembers.map(async (member) => {
+      try {
+        const credentialData = buildCredentialCreateData({
+          type: "google_calendar",
+          key: {
+            // The in-memory credential that we create for Delegation Credential has access_token as "NOOP_UNUSED_DELEGATION_TOKEN. This is to mark it is in DB, in case we need to identify that.
+            access_token: "NOOP_UNUSED_DELEGATION_TOKEN_DB",
+          },
+          userId: member.userId,
+          appId: "google-calendar",
+          delegationCredentialId: delegationCredential.id,
+        });
+        await CredentialRepository.create(credentialData);
+        log.info(`Created credential for member ${member.userId}`);
       } catch (error) {
         log.error(`Error creating credential for member ${member.userId}:`, safeStringify(error));
         throw error;

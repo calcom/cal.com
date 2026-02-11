@@ -8,7 +8,10 @@ import type { HighWaterMarkRepository } from "../../../repository/highWaterMark/
 import { ActiveUserBillingStrategy } from "../ActiveUserBillingStrategy";
 import { HighWaterMarkStrategy } from "../HighWaterMarkStrategy";
 import { ImmediateUpdateStrategy } from "../ImmediateUpdateStrategy";
-import type { SeatChangeContext, StripeInvoiceData } from "../ISeatBillingStrategy";
+import type {
+  SeatChangeContext,
+  StripeInvoiceData,
+} from "../ISeatBillingStrategy";
 import { MonthlyProrationStrategy } from "../MonthlyProrationStrategy";
 
 const mockContext: SeatChangeContext = {
@@ -29,7 +32,9 @@ function createMockBillingProviderService(): IBillingProviderService {
 function createMockHighWaterMarkRepository(): HighWaterMarkRepository {
   return {
     getByTeamId: vi.fn(),
-    updateIfHigher: vi.fn().mockResolvedValue({ updated: false, previousHighWaterMark: null }),
+    updateIfHigher: vi
+      .fn()
+      .mockResolvedValue({ updated: false, previousHighWaterMark: null }),
   } as unknown as HighWaterMarkRepository;
 }
 
@@ -62,25 +67,41 @@ describe("ImmediateUpdateStrategy", () => {
   });
 
   it("returns no-op for onInvoiceUpcoming", async () => {
-    const strategy = new ImmediateUpdateStrategy(createMockBillingProviderService());
-    expect(await strategy.onInvoiceUpcoming("sub_123")).toEqual({ applied: false });
+    const strategy = new ImmediateUpdateStrategy(
+      createMockBillingProviderService()
+    );
+    expect(await strategy.onInvoiceUpcoming("sub_123")).toEqual({
+      applied: false,
+    });
   });
 
   it("returns no-op for onRenewalPaid", async () => {
-    const strategy = new ImmediateUpdateStrategy(createMockBillingProviderService());
-    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({ reset: false });
+    const strategy = new ImmediateUpdateStrategy(
+      createMockBillingProviderService()
+    );
+    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({
+      reset: false,
+    });
   });
 
   it("returns no-op for onPaymentSucceeded (inherited from base)", async () => {
-    const strategy = new ImmediateUpdateStrategy(createMockBillingProviderService());
+    const strategy = new ImmediateUpdateStrategy(
+      createMockBillingProviderService()
+    );
     const invoice: StripeInvoiceData = { lines: { data: [] } };
-    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({ handled: false });
+    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({
+      handled: false,
+    });
   });
 
   it("returns no-op for onPaymentFailed (inherited from base)", async () => {
-    const strategy = new ImmediateUpdateStrategy(createMockBillingProviderService());
+    const strategy = new ImmediateUpdateStrategy(
+      createMockBillingProviderService()
+    );
     const invoice: StripeInvoiceData = { lines: { data: [] } };
-    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({ handled: false });
+    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({
+      handled: false,
+    });
   });
 });
 
@@ -102,7 +123,10 @@ describe("HighWaterMarkStrategy", () => {
       highWaterMarkPeriodStart: new Date("2025-06-01"),
       isOrganization: false,
     });
-    vi.mocked(hwmRepo.updateIfHigher).mockResolvedValue({ updated: true, previousHighWaterMark: 8 });
+    vi.mocked(hwmRepo.updateIfHigher).mockResolvedValue({
+      updated: true,
+      previousHighWaterMark: 8,
+    });
 
     await strategy.onSeatChange(mockContext);
 
@@ -168,12 +192,16 @@ describe("HighWaterMarkStrategy", () => {
 
   it("delegates onInvoiceUpcoming to HighWaterMarkService", async () => {
     const { strategy, hwmService } = createStrategy();
-    vi.mocked(hwmService.applyHighWaterMarkToSubscription).mockResolvedValue(true);
+    vi.mocked(hwmService.applyHighWaterMarkToSubscription).mockResolvedValue(
+      true
+    );
 
     const result = await strategy.onInvoiceUpcoming("sub_123");
 
     expect(result).toEqual({ applied: true });
-    expect(hwmService.applyHighWaterMarkToSubscription).toHaveBeenCalledWith("sub_123");
+    expect(hwmService.applyHighWaterMarkToSubscription).toHaveBeenCalledWith(
+      "sub_123"
+    );
   });
 
   it("delegates onRenewalPaid to HighWaterMarkService", async () => {
@@ -193,13 +221,17 @@ describe("HighWaterMarkStrategy", () => {
   it("returns no-op for onPaymentSucceeded (inherited from base)", async () => {
     const { strategy } = createStrategy();
     const invoice: StripeInvoiceData = { lines: { data: [] } };
-    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({ handled: false });
+    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({
+      handled: false,
+    });
   });
 
   it("returns no-op for onPaymentFailed (inherited from base)", async () => {
     const { strategy } = createStrategy();
     const invoice: StripeInvoiceData = { lines: { data: [] } };
-    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({ handled: false });
+    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({
+      handled: false,
+    });
   });
 });
 
@@ -219,24 +251,34 @@ describe("MonthlyProrationStrategy", () => {
 
   it("returns no-op for onInvoiceUpcoming (inherited from base)", async () => {
     const { strategy } = createProrationStrategy();
-    expect(await strategy.onInvoiceUpcoming("sub_123")).toEqual({ applied: false });
+    expect(await strategy.onInvoiceUpcoming("sub_123")).toEqual({
+      applied: false,
+    });
   });
 
   it("returns no-op for onRenewalPaid (inherited from base)", async () => {
     const { strategy } = createProrationStrategy();
-    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({ reset: false });
+    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({
+      reset: false,
+    });
   });
 
   it("handles payment succeeded for proration invoice", async () => {
     const { strategy, prorationService } = createProrationStrategy();
     const invoice: StripeInvoiceData = {
-      lines: { data: [{ metadata: { type: "monthly_proration", prorationId: "pro_123" } }] },
+      lines: {
+        data: [
+          { metadata: { type: "monthly_proration", prorationId: "pro_123" } },
+        ],
+      },
     };
 
     const result = await strategy.onPaymentSucceeded(invoice);
 
     expect(result).toEqual({ handled: true });
-    expect(prorationService.handleProrationPaymentSuccess).toHaveBeenCalledWith("pro_123");
+    expect(prorationService.handleProrationPaymentSuccess).toHaveBeenCalledWith(
+      "pro_123"
+    );
   });
 
   it("returns not handled for non-proration invoice on payment succeeded", async () => {
@@ -248,7 +290,9 @@ describe("MonthlyProrationStrategy", () => {
     const result = await strategy.onPaymentSucceeded(invoice);
 
     expect(result).toEqual({ handled: false });
-    expect(prorationService.handleProrationPaymentSuccess).not.toHaveBeenCalled();
+    expect(
+      prorationService.handleProrationPaymentSuccess
+    ).not.toHaveBeenCalled();
   });
 
   it("returns not handled when proration line item has no prorationId", async () => {
@@ -260,22 +304,30 @@ describe("MonthlyProrationStrategy", () => {
     const result = await strategy.onPaymentSucceeded(invoice);
 
     expect(result).toEqual({ handled: false });
-    expect(prorationService.handleProrationPaymentSuccess).not.toHaveBeenCalled();
+    expect(
+      prorationService.handleProrationPaymentSuccess
+    ).not.toHaveBeenCalled();
   });
 
   it("handles payment failed for proration invoice", async () => {
     const { strategy, prorationService } = createProrationStrategy();
     const invoice: StripeInvoiceData = {
-      lines: { data: [{ metadata: { type: "monthly_proration", prorationId: "pro_456" } }] },
+      lines: {
+        data: [
+          { metadata: { type: "monthly_proration", prorationId: "pro_456" } },
+        ],
+      },
     };
 
     const result = await strategy.onPaymentFailed(invoice, "card_declined");
 
     expect(result).toEqual({ handled: true });
-    expect(prorationService.handleProrationPaymentFailure).toHaveBeenCalledWith({
-      prorationId: "pro_456",
-      reason: "card_declined",
-    });
+    expect(prorationService.handleProrationPaymentFailure).toHaveBeenCalledWith(
+      {
+        prorationId: "pro_456",
+        reason: "card_declined",
+      }
+    );
   });
 
   it("returns not handled for non-proration invoice on payment failed", async () => {
@@ -285,7 +337,9 @@ describe("MonthlyProrationStrategy", () => {
     const result = await strategy.onPaymentFailed(invoice, "card_declined");
 
     expect(result).toEqual({ handled: false });
-    expect(prorationService.handleProrationPaymentFailure).not.toHaveBeenCalled();
+    expect(
+      prorationService.handleProrationPaymentFailure
+    ).not.toHaveBeenCalled();
   });
 });
 
@@ -314,13 +368,23 @@ describe("ActiveUserBillingStrategy", () => {
       billingProviderService: billingProvider,
       teamBillingDataRepository: teamBillingDataRepo,
     });
-    return { strategy, activeUserService, billingProvider, teamBillingDataRepo };
+    return {
+      strategy,
+      activeUserService,
+      billingProvider,
+      teamBillingDataRepo,
+    };
   }
 
   it.each(["addition", "removal", "sync"] as const)(
     "onSeatChange is a no-op for %s",
     async (changeType) => {
-      const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+      const {
+        strategy,
+        activeUserService,
+        billingProvider,
+        teamBillingDataRepo,
+      } = createStrategy();
 
       await strategy.onSeatChange({ ...mockContext, changeType });
 
@@ -331,7 +395,12 @@ describe("ActiveUserBillingStrategy", () => {
   );
 
   it("counts active users and updates Stripe on onInvoiceUpcoming", async () => {
-    const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+    const {
+      strategy,
+      activeUserService,
+      billingProvider,
+      teamBillingDataRepo,
+    } = createStrategy();
 
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
       id: 42,
@@ -342,7 +411,13 @@ describe("ActiveUserBillingStrategy", () => {
     });
 
     vi.mocked(billingProvider.getSubscription).mockResolvedValue({
-      items: [{ id: "si_456", quantity: 5, price: { unit_amount: 1500, recurring: { interval: "month" } } }],
+      items: [
+        {
+          id: "si_456",
+          quantity: 5,
+          price: { unit_amount: 1500, recurring: { interval: "month" } },
+        },
+      ],
       customer: "cus_123",
       status: "active",
       current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
@@ -369,7 +444,12 @@ describe("ActiveUserBillingStrategy", () => {
   });
 
   it("updates Stripe to 0 when no users were active", async () => {
-    const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+    const {
+      strategy,
+      activeUserService,
+      billingProvider,
+      teamBillingDataRepo,
+    } = createStrategy();
 
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
       id: 42,
@@ -380,7 +460,13 @@ describe("ActiveUserBillingStrategy", () => {
     });
 
     vi.mocked(billingProvider.getSubscription).mockResolvedValue({
-      items: [{ id: "si_456", quantity: 5, price: { unit_amount: 1500, recurring: { interval: "month" } } }],
+      items: [
+        {
+          id: "si_456",
+          quantity: 5,
+          price: { unit_amount: 1500, recurring: { interval: "month" } },
+        },
+      ],
       customer: "cus_123",
       status: "active",
       current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
@@ -399,7 +485,12 @@ describe("ActiveUserBillingStrategy", () => {
   });
 
   it("uses the first subscription item when multiple exist", async () => {
-    const { strategy, activeUserService, billingProvider, teamBillingDataRepo } = createStrategy();
+    const {
+      strategy,
+      activeUserService,
+      billingProvider,
+      teamBillingDataRepo,
+    } = createStrategy();
 
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
       id: 42,
@@ -411,8 +502,16 @@ describe("ActiveUserBillingStrategy", () => {
 
     vi.mocked(billingProvider.getSubscription).mockResolvedValue({
       items: [
-        { id: "si_first", quantity: 5, price: { unit_amount: 1500, recurring: { interval: "month" } } },
-        { id: "si_second", quantity: 10, price: { unit_amount: 3000, recurring: { interval: "month" } } },
+        {
+          id: "si_first",
+          quantity: 5,
+          price: { unit_amount: 1500, recurring: { interval: "month" } },
+        },
+        {
+          id: "si_second",
+          quantity: 10,
+          price: { unit_amount: 3000, recurring: { interval: "month" } },
+        },
       ],
       customer: "cus_123",
       status: "active",
@@ -431,7 +530,8 @@ describe("ActiveUserBillingStrategy", () => {
   });
 
   it("does not query active users when team lookup fails", async () => {
-    const { strategy, activeUserService, teamBillingDataRepo } = createStrategy();
+    const { strategy, activeUserService, teamBillingDataRepo } =
+      createStrategy();
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue(null);
 
     await strategy.onInvoiceUpcoming("sub_unknown");
@@ -440,7 +540,12 @@ describe("ActiveUserBillingStrategy", () => {
   });
 
   it("does not query active users when subscription lookup fails", async () => {
-    const { strategy, activeUserService, teamBillingDataRepo, billingProvider } = createStrategy();
+    const {
+      strategy,
+      activeUserService,
+      teamBillingDataRepo,
+      billingProvider,
+    } = createStrategy();
 
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
       id: 42,
@@ -508,18 +613,24 @@ describe("ActiveUserBillingStrategy", () => {
 
   it("returns no-op for onRenewalPaid (inherited from base)", async () => {
     const { strategy } = createStrategy();
-    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({ reset: false });
+    expect(await strategy.onRenewalPaid("sub_123", new Date())).toEqual({
+      reset: false,
+    });
   });
 
   it("returns no-op for onPaymentSucceeded (inherited from base)", async () => {
     const { strategy } = createStrategy();
     const invoice: StripeInvoiceData = { lines: { data: [] } };
-    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({ handled: false });
+    expect(await strategy.onPaymentSucceeded(invoice)).toEqual({
+      handled: false,
+    });
   });
 
   it("returns no-op for onPaymentFailed (inherited from base)", async () => {
     const { strategy } = createStrategy();
     const invoice: StripeInvoiceData = { lines: { data: [] } };
-    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({ handled: false });
+    expect(await strategy.onPaymentFailed(invoice, "card_declined")).toEqual({
+      handled: false,
+    });
   });
 });

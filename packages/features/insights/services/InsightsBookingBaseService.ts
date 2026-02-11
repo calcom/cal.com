@@ -588,6 +588,15 @@ export class InsightsBookingBaseService {
             bookingFields: true,
           },
         },
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
       },
     });
 

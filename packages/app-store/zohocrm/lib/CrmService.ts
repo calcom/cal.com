@@ -236,7 +236,7 @@ class ZohoCrmCrmService implements CRM {
         );
         if (!zohoCrmTokenInfo.data.error) {
           // set expiry date as offset from current time.
-          zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60);
+          zohoCrmTokenInfo.data.expiryDate = Math.round(Date.now() + 60 * 60 * 1000);
 
           await prisma.credential.update({
             where: {
