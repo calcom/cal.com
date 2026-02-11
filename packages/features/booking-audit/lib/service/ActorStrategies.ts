@@ -64,7 +64,9 @@ export const ACTOR_STRATEGIES: Record<AuditActorType, ActorStrategy> = {
     enrich: (actor, dbStore) => {
       const credential = actor.credentialId ? dbStore.getCredentialById(actor.credentialId) : null;
       return {
-        displayName: credential ? getAppNameFromSlug({ appSlug: credential.appId }) : (actor.name ?? "Deleted App"),
+        displayName: credential
+          ? getAppNameFromSlug({ appSlug: credential.appId })
+          : (actor.name ?? "Deleted App"),
         displayEmail: null,
         displayAvatar: null,
       };

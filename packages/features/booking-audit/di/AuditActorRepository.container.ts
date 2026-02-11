@@ -1,9 +1,7 @@
 import { createContainer } from "@calcom/features/di/di";
 import type { IAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 
-import {
-  moduleLoader as auditActorRepositoryModule,
-} from "./AuditActorRepository.module";
+import { moduleLoader as auditActorRepositoryModule } from "./AuditActorRepository.module";
 
 const container = createContainer();
 

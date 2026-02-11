@@ -67,9 +67,9 @@ async function selectOperatorOption({ fromLocator, option }: { fromLocator: Loca
 }
 
 async function addAttributeRoutingRule(page: Page) {
-  // TODO: Use a better selector maybe?
-  await page.locator('text="Add rule"').nth(1).click();
-  const attributeQueryBuilder = page.locator(".group-container").nth(1);
+  // Use data-testid to target the main attributes query builder specifically
+  const attributeQueryBuilder = page.locator('[data-testid="attributes-query-builder"]');
+  await attributeQueryBuilder.locator('text="Add rule"').click();
   const attributeSelectorFirstRule = attributeQueryBuilder.locator(".rule--field").nth(0);
   await selectFirstAttributeOption({
     fromLocator: attributeSelectorFirstRule,
@@ -84,8 +84,9 @@ async function addAttributeRoutingRule(page: Page) {
 }
 
 async function addAttributeRoutingRuleWithOperator(page: Page, valueFrom: string, valueTo: string) {
-  await page.locator('text="Add rule"').nth(1).click();
-  const attributeQueryBuilder = page.locator(".group-container").nth(1);
+  // Use data-testid to target the main attributes query builder specifically
+  const attributeQueryBuilder = page.locator('[data-testid="attributes-query-builder"]');
+  await attributeQueryBuilder.locator('text="Add rule"').click();
   const attributeSelectorFirstRule = attributeQueryBuilder.locator(".rule--field").nth(0);
   await selectFirstAttributeOption({
     fromLocator: attributeSelectorFirstRule,

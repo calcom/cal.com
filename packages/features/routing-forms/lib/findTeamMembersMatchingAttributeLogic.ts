@@ -479,7 +479,12 @@ export async function findTeamMembersMatchingAttributeLogic(
   } = {}
 ) {
   // Higher value of concurrency might not be performant as it might overwhelm the system. So, use a lower value as default.
-  const { enablePerf = false, concurrency = 2, enableTroubleshooter = false, routingFormTraceService } = options;
+  const {
+    enablePerf = false,
+    concurrency = 2,
+    enableTroubleshooter = false,
+    routingFormTraceService,
+  } = options;
 
   // Any explicit value being passed should cause fallback to be considered. Even undefined
   const considerFallback = "fallbackAttributesQueryValue" in data;

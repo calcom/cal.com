@@ -40,7 +40,7 @@ export class WrongAssignmentReportService {
       throw ErrorWithCode.Factory.BadRequest(t("wrong_assignment_already_reported"));
     }
 
-    const booking = await bookingRepo.findByUidIncludeEventTypeAndTeamAndAssignmentReason({
+    const booking = await bookingRepo.findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({
       bookingUid: input.bookingUid,
     });
 
@@ -48,12 +48,8 @@ export class WrongAssignmentReportService {
       throw ErrorWithCode.Factory.NotFound("Booking not found");
     }
 
-    const teamId = booking.eventType?.teamId || null;
-    const bookingUserId = booking.user?.id || null;
-    const assignmentReason = booking.assignmentReason?.[0];
-    const guestEmail = booking.attendees[0]?.email || "";
-    const hostEmail = booking.user?.email || "";
-    const hostName = booking.user?.name || null;
+    const teamId = booking.eventType?.team?.id ?? null;
+    const orgId = booking.eventType?.team?.parentId ?? null;
     const routingFormId = booking.routedFromRoutingFormReponse?.formId || null;
 
     let report: { id: string };
@@ -76,11 +72,7 @@ export class WrongAssignmentReportService {
     await this.sendWebhooks({
       booking,
       teamId,
-      bookingUserId,
-      assignmentReason,
-      guestEmail,
-      hostEmail,
-      hostName,
+      orgId,
       reporter: { id: input.userId, email: input.userEmail, name: input.userName },
       correctAssignee: input.correctAssignee || null,
       additionalNotes: input.additionalNotes || null,
@@ -131,19 +123,15 @@ export class WrongAssignmentReportService {
 
   private async sendWebhooks(params: {
     booking: NonNullable<
-      Awaited<ReturnType<BookingRepository["findByUidIncludeEventTypeAndTeamAndAssignmentReason"]>>
+      Awaited<ReturnType<BookingRepository["findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason"]>>
     >;
     teamId: number | null;
-    bookingUserId: number | null;
-    assignmentReason: { reasonString: string | null } | undefined;
-    guestEmail: string;
-    hostEmail: string;
-    hostName: string | null;
+    orgId: number | null;
     reporter: { id: number; email: string; name: string | null };
     correctAssignee: string | null;
     additionalNotes: string | null;
   }) {
-    const { booking, teamId, bookingUserId, assignmentReason, reporter } = params;
+    const { booking, teamId, orgId, reporter } = params;
 
     const webhookPayload = {
       booking: {
@@ -158,17 +146,17 @@ export class WrongAssignmentReportService {
               id: booking.eventType.id,
               title: booking.eventType.title,
               slug: booking.eventType.slug,
-              teamId: booking.eventType.teamId,
+              teamId: teamId,
             }
           : null,
       },
       report: {
         reportedBy: reporter,
-        routingReason: assignmentReason?.reasonString || null,
-        guest: params.guestEmail,
+        firstAssignmentReason: booking.assignmentReason[0]?.reasonString ?? null,
+        guest: booking.attendees[0]?.email ?? null,
         host: {
-          email: params.hostEmail,
-          name: params.hostName,
+          email: booking.user?.email ?? null,
+          name: booking.user?.name ?? null,
         },
         correctAssignee: params.correctAssignee,
         additionalNotes: params.additionalNotes,
@@ -177,8 +165,9 @@ export class WrongAssignmentReportService {
 
     try {
       const webhooks = await getWebhooks({
-        userId: bookingUserId,
+        userId: booking.userId,
         teamId,
+        orgId,
         triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
       });
 
@@ -199,7 +188,7 @@ export class WrongAssignmentReportService {
 
       log.info(`Wrong assignment report webhooks sent for booking ${booking.uid}`, {
         teamId,
-        userId: bookingUserId,
+        userId: booking.userId,
         webhookCount: webhooks.length,
       });
     } catch (error) {

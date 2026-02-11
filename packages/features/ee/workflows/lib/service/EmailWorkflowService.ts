@@ -21,7 +21,11 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
+import {
+  isEmailAction,
+  getTemplateBodyForAction,
+  getTemplateSubjectForAction,
+} from "../actionHelperFunctions";
 import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
@@ -414,7 +418,7 @@ export class EmailWorkflowService {
 
     if (matchedTemplate === WorkflowTemplates.REMINDER) {
       const t = await getTranslation(locale, "common");
-      const meetingUrl =  
+      const meetingUrl =
         getVideoCallUrlFromCalEvent({
           videoCallData: evt.videoCallData,
           uid: evt.uid,
@@ -547,10 +551,9 @@ export class EmailWorkflowService {
     };
 
     const shouldIncludeCalendarEvent =
-    includeCalendarEvent &&
-    triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
+      includeCalendarEvent && triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
 
-  const attachments = shouldIncludeCalendarEvent
+    const attachments = shouldIncludeCalendarEvent
       ? [
           {
             content:

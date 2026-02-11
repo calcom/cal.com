@@ -342,4 +342,334 @@ describe("handleResponse", () => {
       })
     ).rejects.toThrow(/Chosen route is a router/);
   });
+
+  describe("Fallback action", () => {
+    // Mock attributesQueryValue with actual rules
+    const mockAttributesQueryValueWithRules = {
+      type: "group",
+      children1: {
+        "rule-1": {
+          type: "rule",
+          properties: {
+            field: "attr-1",
+            operator: "select_equals",
+            value: ["option-1"],
+          },
+        },
+      },
+    };
+
+    it("should return fallbackAction when no team members match attribute logic", async () => {
+      const fallbackAction = {
+        type: "externalRedirectUrl" as const,
+        value: "https://example.com/fallback",
+      };
+      const chosenRoute = {
+        id: "route1",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryValue: { type: "group", children1: {} } as any,
+        action: {
+          type: "eventTypeRedirectUrl" as const,
+          value: "team/30min",
+        },
+        attributeRoutingConfig: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        attributesQueryValue: mockAttributesQueryValueWithRules as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+        fallbackAction,
+        isFallback: false,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
+
+      vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [], // Empty array = no users found
+        checkedFallback: true, // Fallback was checked and triggered
+        fallbackAttributeLogicBuildingWarnings: [],
+        mainAttributeLogicBuildingWarnings: [],
+        timeTaken: {},
+      });
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: formWithRoute,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: true,
+        identifierKeyedResponse: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
+
+      expect(result.teamMembersMatchingAttributeLogic).toEqual([]);
+      expect(result.fallbackAction).toEqual(fallbackAction);
+
+      // Verify that fallbackAttributesQueryValue is NOT passed when fallbackAction is configured
+      expect(findTeamMembersMatchingAttributeLogic).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fallbackAttributesQueryValue: undefined,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("should return null fallbackAction when team members are found", async () => {
+      const fallbackAction = {
+        type: "externalRedirectUrl" as const,
+        value: "https://example.com/fallback",
+      };
+      const chosenRoute = {
+        id: "route1",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryValue: { type: "group", children1: {} } as any,
+        action: {
+          type: "eventTypeRedirectUrl" as const,
+          value: "team/30min",
+        },
+        attributeRoutingConfig: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        attributesQueryValue: mockAttributesQueryValueWithRules as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+        fallbackAction,
+        isFallback: false,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
+
+      vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
+        checkedFallback: false,
+        fallbackAttributeLogicBuildingWarnings: [],
+        mainAttributeLogicBuildingWarnings: [],
+        timeTaken: {},
+      });
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: formWithRoute,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: true,
+        identifierKeyedResponse: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
+
+      expect(result.teamMembersMatchingAttributeLogic).toEqual([123]);
+      expect(result.fallbackAction).toBeNull();
+    });
+
+    it("should return null fallbackAction when route has no fallbackAction configured", async () => {
+      const chosenRoute = {
+        id: "route1",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryValue: { type: "group", children1: {} } as any,
+        action: {
+          type: "eventTypeRedirectUrl" as const,
+          value: "team/30min",
+        },
+        attributeRoutingConfig: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        attributesQueryValue: { type: "group", children1: {} } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+        // No fallbackAction configured
+        isFallback: false,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
+
+      vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [], // Empty array = no users found
+        checkedFallback: false,
+        fallbackAttributeLogicBuildingWarnings: [],
+        mainAttributeLogicBuildingWarnings: [],
+        timeTaken: {},
+      });
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: formWithRoute,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: true,
+        identifierKeyedResponse: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
+
+      expect(result.teamMembersMatchingAttributeLogic).toEqual([]);
+      expect(result.fallbackAction).toBeNull();
+
+      // Verify that fallbackAttributesQueryValue IS passed when fallbackAction is NOT configured (backwards compatibility)
+      expect(findTeamMembersMatchingAttributeLogic).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fallbackAttributesQueryValue: { type: "group", children1: {} },
+        }),
+        expect.anything()
+      );
+    });
+
+    it("should return null fallbackAction when teamMembersMatchingAttributeLogic is null (non-team form)", async () => {
+      const fallbackAction = {
+        type: "externalRedirectUrl" as const,
+        value: "https://example.com/fallback",
+      };
+      const chosenRoute = {
+        id: "route1",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryValue: { type: "group", children1: {} } as any,
+        action: {
+          type: "eventTypeRedirectUrl" as const,
+          value: "team/30min",
+        },
+        attributeRoutingConfig: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        attributesQueryValue: { type: "group", children1: {} } as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+        fallbackAction,
+        isFallback: false,
+      };
+      // Non-team form (no teamId or orgId)
+      const nonTeamForm: TargetRoutingFormForResponse = {
+        ...mockForm,
+        teamId: null,
+        team: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        routes: [chosenRoute as any],
+      };
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: nonTeamForm,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: true,
+        identifierKeyedResponse: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
+
+      // teamMembersMatchingAttributeLogic is null for non-team forms
+      expect(result.teamMembersMatchingAttributeLogic).toBeNull();
+      // fallbackAction should be null because attribute routing has no rules configured (empty children1)
+      expect(result.fallbackAction).toBeNull();
+    });
+
+    it("should return fallbackAction when team has no orgId but attribute routing is configured", async () => {
+      const fallbackAction = {
+        type: "externalRedirectUrl" as const,
+        value: "https://example.com/fallback",
+      };
+      const chosenRoute = {
+        id: "route1",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryValue: { type: "group", children1: {} } as any,
+        action: {
+          type: "eventTypeRedirectUrl" as const,
+          value: "team/30min",
+        },
+        attributeRoutingConfig: null,
+        // Route has attribute routing rules configured
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        attributesQueryValue: mockAttributesQueryValueWithRules as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+        fallbackAction,
+        isFallback: false,
+      };
+      // Team form but team has no parentId (not part of an org)
+      const teamWithoutOrgForm: TargetRoutingFormForResponse = {
+        ...mockForm,
+        teamId: 123,
+        team: { parentId: null }, // No org
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        routes: [chosenRoute as any],
+      };
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: teamWithoutOrgForm,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: true,
+        identifierKeyedResponse: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
+
+      // teamMembersMatchingAttributeLogic is null because orgId is missing (attribute routing couldn't run)
+      expect(result.teamMembersMatchingAttributeLogic).toBeNull();
+      // fallbackAction SHOULD be returned because attribute routing was configured but couldn't run
+      expect(result.fallbackAction).toEqual(fallbackAction);
+    });
+
+    it("should return null fallbackAction when no team members found but CRM contact owner exists", async () => {
+      const fallbackAction = {
+        type: "externalRedirectUrl" as const,
+        value: "https://example.com/fallback",
+      };
+      const chosenRoute = {
+        id: "route1",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryValue: { type: "group", children1: {} } as any,
+        action: {
+          type: "eventTypeRedirectUrl" as const,
+          value: "team/30min",
+        },
+        attributeRoutingConfig: null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        attributesQueryValue: mockAttributesQueryValueWithRules as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+        fallbackAction,
+        isFallback: false,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
+
+      vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [], // Empty array = no users found
+        checkedFallback: false,
+        fallbackAttributeLogicBuildingWarnings: [],
+        mainAttributeLogicBuildingWarnings: [],
+        timeTaken: {},
+      });
+
+      // Mock CRM contact owner found
+      vi.mocked(routerGetCrmContactOwnerEmail).mockResolvedValue({
+        email: "crm-owner@example.com",
+        recordType: "contact",
+        crmAppSlug: "hubspot",
+        recordId: "123",
+      });
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: formWithRoute,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: true,
+        fetchCrm: true,
+        identifierKeyedResponse: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
+
+      expect(result.teamMembersMatchingAttributeLogic).toEqual([]);
+      expect(result.crmContactOwnerEmail).toEqual("crm-owner@example.com");
+      // fallbackAction should be null because CRM contact owner was found
+      expect(result.fallbackAction).toBeNull();
+    });
+  });
 });
