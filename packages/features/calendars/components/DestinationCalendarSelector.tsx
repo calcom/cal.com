@@ -10,7 +10,6 @@ import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
-
 type CalendarWithPrimary = Omit<IntegrationCalendar, "primary"> & {
   primary?: boolean | null;
   isSelected?: boolean;

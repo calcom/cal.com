@@ -42,10 +42,10 @@ const ServerPage = async ({ searchParams }: PageProps) => {
         provider === IdentityProvider.GOOGLE
           ? "Google"
           : provider === IdentityProvider.CAL
-          ? "Email and Password"
-          : provider === IdentityProvider.SAML
-          ? "SAML (like Okta)"
-          : "your original login method";
+            ? "Email and Password"
+            : provider === IdentityProvider.SAML
+              ? "SAML (like Okta)"
+              : "your original login method";
       return t("account_managed_by_identity_provider_error", { provider: providerName });
     } else if (error === "saml-idp-not-authoritative") {
       return t("saml_idp_not_authoritative_error");

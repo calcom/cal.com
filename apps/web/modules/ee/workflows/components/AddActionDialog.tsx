@@ -59,7 +59,7 @@ type AddActionFormValues = {
   numberRequired?: boolean;
   senderId?: string;
   senderName?: string;
-}; 
+};
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();

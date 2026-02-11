@@ -73,7 +73,9 @@ export function BulkEditDefaultForEventsModal({
               </div>
             )}
             {eventTypes.map((eventType) => (
-              <div key={eventType.id} className="bg-cal-muted flex items-center space-x-2 rounded-md px-3 py-2.5">
+              <div
+                key={eventType.id}
+                className="bg-cal-muted flex items-center space-x-2 rounded-md px-3 py-2.5">
                 <CheckboxField
                   description={eventType.title}
                   descriptionAsLabel

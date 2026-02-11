@@ -40,9 +40,7 @@ export interface IIntegrationAttributeSyncCardProps {
   onDelete?: () => void;
 }
 
-const IntegrationAttributeSyncCard = (
-  props: IIntegrationAttributeSyncCardProps
-) => {
+const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps) => {
   const {
     sync,
     credentialOptions,
@@ -74,9 +72,7 @@ const IntegrationAttributeSyncCard = (
             operator: RuleOperatorEnum.AND,
             conditions: [],
           },
-          syncFieldMappings: Array.isArray(sync.syncFieldMappings)
-            ? sync.syncFieldMappings
-            : [],
+          syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
         }
       : {
           id: "",
@@ -104,9 +100,7 @@ const IntegrationAttributeSyncCard = (
           operator: RuleOperatorEnum.AND,
           conditions: [],
         },
-        syncFieldMappings: Array.isArray(sync.syncFieldMappings)
-          ? sync.syncFieldMappings
-          : [],
+        syncFieldMappings: Array.isArray(sync.syncFieldMappings) ? sync.syncFieldMappings : [],
       });
     }
     // Only need to run if the sync changes
@@ -161,8 +155,7 @@ const IntegrationAttributeSyncCard = (
                   fn: handleDelete,
                 }
               : undefined
-          }
-        >
+          }>
           <FormCardBody>
             <div className="space-y-4">
               <div className="bg-default border-subtle rounded-2xl border p-2">
@@ -192,26 +185,16 @@ const IntegrationAttributeSyncCard = (
                         <SelectField
                           placeholder={t("attribute_sync_select_credential")}
                           options={credentialOptions}
-                          value={
-                            credentialOptions.find(
-                              (opt) => Number(opt.value) === field.value
-                            ) || null
-                          }
-                          onChange={(option) =>
-                            field.onChange(Number(option?.value))
-                          }
+                          value={credentialOptions.find((opt) => Number(opt.value) === field.value) || null}
+                          onChange={(option) => field.onChange(Number(option?.value))}
                         />
                         {fieldState.error && (
-                          <p className="mt-1 text-xs text-red-600">
-                            {fieldState.error.message}
-                          </p>
+                          <p className="mt-1 text-xs text-red-600">{fieldState.error.message}</p>
                         )}
                       </>
                     )}
                   />
-                  <p className="text-subtle mt-1 text-xs">
-                    {t("attribute_sync_credential_description")}
-                  </p>
+                  <p className="text-subtle mt-1 text-xs">{t("attribute_sync_credential_description")}</p>
                 </div>
               </div>
 
@@ -247,16 +230,10 @@ const IntegrationAttributeSyncCard = (
                     validate: (mappings) => {
                       const seenAttributes = new Set<string>();
                       for (const mapping of mappings || []) {
-                        if (
-                          mapping.attributeId &&
-                          seenAttributes.has(mapping.attributeId)
-                        ) {
-                          return t(
-                            "attribute_sync_duplicate_attribute_mapping"
-                          );
+                        if (mapping.attributeId && seenAttributes.has(mapping.attributeId)) {
+                          return t("attribute_sync_duplicate_attribute_mapping");
                         }
-                        if (mapping.attributeId)
-                          seenAttributes.add(mapping.attributeId);
+                        if (mapping.attributeId) seenAttributes.add(mapping.attributeId);
                       }
                       return true;
                     },
@@ -264,16 +241,12 @@ const IntegrationAttributeSyncCard = (
                   render={({ field }) => (
                     <FieldMappingBuilder
                       value={{ mappings: field.value || [] }}
-                      onChange={(fieldMappings) =>
-                        field.onChange(fieldMappings.mappings)
-                      }
+                      onChange={(fieldMappings) => field.onChange(fieldMappings.mappings)}
                       attributeOptions={attributeOptions}
                     />
                   )}
                 />
-                <p className="text-subtle mt-1 text-xs">
-                  {t("attribute_sync_field_mappings_description")}
-                </p>
+                <p className="text-subtle mt-1 text-xs">{t("attribute_sync_field_mappings_description")}</p>
               </div>
 
               <div className="border-subtle flex justify-end gap-2 border-t pt-4">
@@ -282,11 +255,7 @@ const IntegrationAttributeSyncCard = (
                     {t("cancel")}
                   </Button>
                 )}
-                <Button
-                  type="submit"
-                  loading={isPending}
-                  disabled={!form.formState.isDirty}
-                >
+                <Button type="submit" loading={isPending} disabled={!form.formState.isDirty}>
                   {isCreateMode ? t("create") : t("save")}
                 </Button>
               </div>
@@ -300,8 +269,7 @@ const IntegrationAttributeSyncCard = (
           variety="danger"
           title={t("attribute_sync_delete_title")}
           confirmBtnText={t("delete")}
-          onConfirm={confirmDelete}
-        >
+          onConfirm={confirmDelete}>
           {t("attribute_sync_delete_confirmation")}
         </ConfirmationDialogContent>
       </Dialog>

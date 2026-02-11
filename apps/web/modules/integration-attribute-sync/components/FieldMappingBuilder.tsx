@@ -173,9 +173,7 @@ export const FieldMappingBuilder = ({
               attributeOptions={attributeOptions}
               isLoading={isLoadingAttributes}
               error={
-                duplicateIndices.has(index)
-                  ? t("attribute_sync_duplicate_attribute_mapping")
-                  : undefined
+                duplicateIndices.has(index) ? t("attribute_sync_duplicate_attribute_mapping") : undefined
               }
             />
           ))

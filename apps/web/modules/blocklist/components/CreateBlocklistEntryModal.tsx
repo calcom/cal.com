@@ -160,7 +160,11 @@ export function CreateBlocklistEntryModal({
           </div>
 
           <DialogFooter className="mt-6">
-            <Button type="button" color="secondary" onClick={handleClose} disabled={isSubmitting || isPending}>
+            <Button
+              type="button"
+              color="secondary"
+              onClick={handleClose}
+              disabled={isSubmitting || isPending}>
               {t("cancel")}
             </Button>
             <Button type="submit" loading={isSubmitting || isPending} disabled={isSubmitting || isPending}>

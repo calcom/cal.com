@@ -196,4 +196,3 @@ export const OnboardingMigrateTeamsBrowserView = ({
     </div>
   );
 };
-

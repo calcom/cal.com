@@ -208,7 +208,9 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
           isPending={isDeleting}
           onConfirm={confirmDelete}>
           {t(
-            isSystem ? "remove_value_from_system_blocklist_description" : "remove_value_from_blocklist_description"
+            isSystem
+              ? "remove_value_from_system_blocklist_description"
+              : "remove_value_from_blocklist_description"
           )}
         </ConfirmationDialogContent>
       </Dialog>

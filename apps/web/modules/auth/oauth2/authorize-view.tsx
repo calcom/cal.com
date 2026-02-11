@@ -29,11 +29,8 @@ export function Authorize() {
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
   const code_challenge = searchParams?.get("code_challenge") as string;
-  const code_challenge_method = searchParams?.get(
-    "code_challenge_method"
-  ) as string;
-  const show_account_selector =
-    searchParams?.get("show_account_selector") === "true";
+  const code_challenge_method = searchParams?.get("code_challenge_method") as string;
+  const show_account_selector = searchParams?.get("show_account_selector") === "true";
 
   const queryString = searchParams?.toString();
 
@@ -58,30 +55,25 @@ export function Authorize() {
   );
 
   const { data, isPending: isPendingProfiles } =
-    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(
-      undefined,
-      {
-        enabled: show_account_selector,
-      }
-    );
-
-  const generateAuthCodeMutation =
-    trpc.viewer.oAuth.generateAuthCode.useMutation({
-      onSuccess: (data) => {
-        window.location.href =
-          data.redirectUrl ??
-          `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
-      },
-      onError: (error) => {
-        if (client?.redirectUri) {
-          redirectToOAuthError({
-            redirectUri: client.redirectUri,
-            trpcError: error,
-            state,
-          });
-        }
-      },
+    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(undefined, {
+      enabled: show_account_selector,
     });
+
+  const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
+    onSuccess: (data) => {
+      window.location.href =
+        data.redirectUrl ?? `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+    },
+    onError: (error) => {
+      if (client?.redirectUri) {
+        redirectToOAuthError({
+          redirectUri: client.redirectUri,
+          trpcError: error,
+          state,
+        });
+      }
+    },
+  });
 
   const mappedProfiles = data
     ? data
@@ -130,11 +122,7 @@ export function Authorize() {
     return <div>{getClientError.message}</div>;
   }
 
-  if (
-    isPendingGetClient ||
-    (show_account_selector && isPendingProfiles) ||
-    status !== "authenticated"
-  ) {
+  if (isPendingGetClient || (show_account_selector && isPendingProfiles) || status !== "authenticated") {
     return <></>;
   }
 
@@ -147,9 +135,7 @@ export function Authorize() {
     return (
       <div className="flex justify-center pt-32">
         <div className="flex items-center space-x-3">
-          <span className="text-lg font-medium text-gray-700">
-            {t("authorizing")}
-          </span>
+          <span className="text-lg font-medium text-gray-700">{t("authorizing")}</span>
         </div>
       </div>
     );
@@ -169,11 +155,7 @@ export function Authorize() {
           <div className="relative -ml-6 w-24 h-24">
             <div className="flex absolute inset-0 justify-center items-center">
               <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
-                <img
-                  src="/cal-com-icon.svg"
-                  alt="Logo"
-                  className="w-16 h-16 rounded-full"
-                />
+                <img src="/cal-com-icon.svg" alt="Logo" className="w-16 h-16 rounded-full" />
               </div>
             </div>
           </div>
@@ -202,9 +184,7 @@ export function Authorize() {
         )}
         {show_account_selector && (
           <>
-            <div className="mb-1 text-sm font-medium">
-              {t("select_account_team")}
-            </div>
+            <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
             <Select
               isSearchable={true}
               id="account-select"
@@ -257,9 +237,7 @@ export function Authorize() {
             <div className="mb-1 text-sm font-medium">
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
-            <div className="text-sm">
-              {t("oauth_access_information", { appName: APP_NAME })}
-            </div>{" "}
+            <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
           </div>
         </div>
         <div className="-mx-9 mb-4 border-b border-subtle border-" />
@@ -274,11 +252,8 @@ export function Authorize() {
               if (state) {
                 params.set("state", state);
               }
-              window.location.href = `${
-                client.redirectUri
-              }${separator}${params.toString()}`;
-            }}
-          >
+              window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
+            }}>
             {t("go_back")}
           </Button>
           <Button
@@ -291,13 +266,11 @@ export function Authorize() {
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>
                 codeChallenge: code_challenge || undefined,
-                codeChallengeMethod:
-                  (code_challenge_method as "S256") || undefined,
+                codeChallengeMethod: (code_challenge_method as "S256") || undefined,
                 state,
               });
             }}
-            data-testid="allow-button"
-          >
+            data-testid="allow-button">
             {t("allow")}
           </Button>
         </div>
@@ -335,9 +308,7 @@ function buildOAuthErrorRedirectUrl({
     errorParams.append("state", state);
   }
 
-  return `${redirectUri}${
-    redirectUri.includes("?") ? "&" : "?"
-  }${errorParams.toString()}`;
+  return `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
 }
 
 function redirectToOAuthError({

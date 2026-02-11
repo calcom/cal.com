@@ -194,4 +194,3 @@ export const OnboardingMigrateMembersBrowserView = ({
     </div>
   );
 };
-

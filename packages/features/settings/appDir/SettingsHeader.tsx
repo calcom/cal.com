@@ -39,7 +39,7 @@ export default function Header({
   onBackButtonClick,
 }: HeaderProps) {
   const { t } = useLocale();
-  
+
   return (
     <div>
       <header

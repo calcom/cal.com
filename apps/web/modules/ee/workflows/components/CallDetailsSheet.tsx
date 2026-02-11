@@ -96,8 +96,8 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
                     selectedCall.call_analysis?.user_sentiment === "Positive"
                       ? "green"
                       : selectedCall.call_analysis?.user_sentiment === "Negative"
-                      ? "red"
-                      : "gray"
+                        ? "red"
+                        : "gray"
                   }>
                   {selectedCall.call_analysis?.user_sentiment || "Unknown"}
                 </Badge>

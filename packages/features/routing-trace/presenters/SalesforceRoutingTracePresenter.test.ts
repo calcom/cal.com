@@ -45,7 +45,11 @@ describe("SalesforceRoutingTracePresenter", () => {
 
   it("presents lookup_field_query with accountId", () => {
     const result = SalesforceRoutingTracePresenter.present(
-      makeStep("lookup_field_query", { fieldName: "Owner__c", salesforceObject: "Account", accountId: "001ABC" })
+      makeStep("lookup_field_query", {
+        fieldName: "Owner__c",
+        salesforceObject: "Account",
+        accountId: "001ABC",
+      })
     );
     expect(result).toBe('Querying lookup field "Owner__c" on Account (Account: 001ABC)');
   });
@@ -66,7 +70,11 @@ describe("SalesforceRoutingTracePresenter", () => {
 
   it("presents contact_owner_lookup", () => {
     const result = SalesforceRoutingTracePresenter.present(
-      makeStep("contact_owner_lookup", { contactId: "003ABC", ownerEmail: "owner@acme.com", ownerId: "005ABC" })
+      makeStep("contact_owner_lookup", {
+        contactId: "003ABC",
+        ownerEmail: "owner@acme.com",
+        ownerId: "005ABC",
+      })
     );
     expect(result).toBe("Contact owner lookup: owner@acme.com (Contact: 003ABC)");
   });
@@ -80,7 +88,11 @@ describe("SalesforceRoutingTracePresenter", () => {
 
   it("presents account_owner_lookup", () => {
     const result = SalesforceRoutingTracePresenter.present(
-      makeStep("account_owner_lookup", { accountId: "001ABC", ownerEmail: "owner@acme.com", ownerId: "005ABC" })
+      makeStep("account_owner_lookup", {
+        accountId: "001ABC",
+        ownerEmail: "owner@acme.com",
+        ownerId: "005ABC",
+      })
     );
     expect(result).toBe("Account owner lookup: owner@acme.com (Account: 001ABC)");
   });
@@ -128,7 +140,9 @@ describe("SalesforceRoutingTracePresenter", () => {
         ownerEmail: "owner@acme.com",
       })
     );
-    expect(result).toBe("Existing contact found via GraphQL: 003ABC (Account: 001ABC, Owner: owner@acme.com)");
+    expect(result).toBe(
+      "Existing contact found via GraphQL: 003ABC (Account: 001ABC, Owner: owner@acme.com)"
+    );
   });
 
   it("presents graphql_account_found_by_website", () => {
@@ -165,7 +179,11 @@ describe("SalesforceRoutingTracePresenter", () => {
 
   it("presents salesforce_assignment", () => {
     const result = SalesforceRoutingTracePresenter.present(
-      makeStep("salesforce_assignment", { email: "owner@acme.com", recordType: "Contact", recordId: "003ABC" })
+      makeStep("salesforce_assignment", {
+        email: "owner@acme.com",
+        recordType: "Contact",
+        recordId: "003ABC",
+      })
     );
     expect(result).toBe("Salesforce assignment: owner@acme.com via Contact (ID: 003ABC)");
   });

@@ -594,11 +594,7 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
       });
     });
 
-    test("TEXT - members without attribute are excluded from booking", async ({
-      page,
-      users,
-      orgs,
-    }) => {
+    test("TEXT - members without attribute are excluded from booking", async ({ page, users, orgs }) => {
       const org = await orgs.create({ name: "TestOrg" });
       const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
 
@@ -678,11 +674,7 @@ test.describe("Event type with assignAllTeamMembers + attribute segment filter",
       });
     });
 
-    test("NUMBER - members without attribute are excluded from booking", async ({
-      page,
-      users,
-      orgs,
-    }) => {
+    test("NUMBER - members without attribute are excluded from booking", async ({ page, users, orgs }) => {
       const org = await orgs.create({ name: "TestOrg" });
       const teamMatesObj = [{ name: "teammate-1" }, { name: "teammate-2" }];
 

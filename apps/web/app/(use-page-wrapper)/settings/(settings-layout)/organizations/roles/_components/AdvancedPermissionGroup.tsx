@@ -54,10 +54,10 @@ export function AdvancedPermissionGroup({
   const allPermissions = isAllResources
     ? ["*.*"]
     : resourceConfig
-    ? Object.entries(resourceConfig)
-        .filter(([action]) => action !== INTERNAL_DATAACCESS_KEY)
-        .map(([action]) => `${resource}.${action}`)
-    : [];
+      ? Object.entries(resourceConfig)
+          .filter(([action]) => action !== INTERNAL_DATAACCESS_KEY)
+          .map(([action]) => `${resource}.${action}`)
+      : [];
 
   // Check if all permissions for this resource are selected
   const isAllSelected = isAllResources
