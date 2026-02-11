@@ -28,7 +28,6 @@ import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
   transformBookingResponsesToVariableFormat,
 } from "../reminders/templates/customTemplate";
-import { replaceCloakedLinksInHtml } from "../reminders/utils";
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
@@ -69,7 +68,6 @@ export class EmailWorkflowService {
     }
 
     const workflow = workflowReminder.workflowStep.workflow;
-    const isOrganization = workflow.team?.isOrganization ?? false;
 
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
@@ -89,9 +87,10 @@ export class EmailWorkflowService {
       creditCheckFn,
     });
 
-    const hideBranding = await getHideBranding({
-      userId: workflow.userId ?? undefined,
-      teamId: workflow.teamId ?? undefined,
+    const hideBranding = await this.shouldHideBranding({
+      platformClientId: evt.platformClientId,
+      userId: workflow.userId,
+      teamId: workflow.teamId,
     });
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({
@@ -111,7 +110,6 @@ export class EmailWorkflowService {
       action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
-      isOrganization,
     });
 
     const results = await Promise.allSettled(
@@ -240,6 +238,27 @@ export class EmailWorkflowService {
     } as const;
   }
 
+  private async shouldHideBranding({
+    platformClientId,
+    userId,
+    teamId,
+  }: {
+    platformClientId?: string | null;
+    userId?: number | null;
+    teamId?: number | null;
+  }): Promise<boolean> {
+    if (platformClientId) {
+      return true;
+    }
+
+    const hideBranding = await getHideBranding({
+      userId: userId ?? undefined,
+      teamId: teamId ?? undefined,
+    });
+
+    return hideBranding;
+  }
+
   async generateEmailPayloadForEvtWorkflow({
     evt,
     sendTo,
@@ -252,7 +271,6 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
-    isOrganization,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -265,7 +283,6 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
-    isOrganization?: boolean;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -417,6 +434,7 @@ export class EmailWorkflowService {
         meetingUrl,
         otherPerson: attendeeName,
         name,
+        isBrandingDisabled: hideBranding,
       });
     } else if (matchedTemplate === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
@@ -431,6 +449,7 @@ export class EmailWorkflowService {
         timeZone,
         organizer: evt.organizer.name,
         name,
+        isBrandingDisabled: hideBranding,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
       });
@@ -549,15 +568,9 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
-    // Organization accounts are allowed to use cloaked links (URL behind text)
-    // since they are paid accounts with lower spam/scam risk
-    const processedEmailBody = isOrganization
-      ? emailContent.emailBody
-      : replaceCloakedLinksInHtml(emailContent.emailBody);
-
     return {
       subject: emailContent.emailSubject,
-      html: processedEmailBody,
+      html: emailContent.emailBody,
       ...(!evt.hideOrganizerEmail && {
         replyTo: customReplyToEmail || evt.organizer.email,
       }),

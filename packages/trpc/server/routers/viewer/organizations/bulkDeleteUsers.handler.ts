@@ -154,7 +154,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
 
   const teamBillingServiceFactory = getTeamBillingServiceFactory();
   const teamBillingService = await teamBillingServiceFactory.findAndInit(currentUserOrgId);
-  await teamBillingService.updateQuantity();
+  await teamBillingService.updateQuantity("removal");
 
   return {
     success: true,

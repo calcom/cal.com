@@ -14,7 +14,13 @@ import {
   ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableFilters, DataTableSegment, DataTableSkeleton, DateRangeFilter } from "@calcom/web/modules/data-table/components";
+import {
+  DataTableWrapper,
+  DataTableFilters,
+  DataTableSegment,
+  DataTableSkeleton,
+  DateRangeFilter,
+} from "@calcom/web/modules/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { trpc } from "@calcom/trpc/react";
@@ -24,7 +30,7 @@ import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 import { useInsightsColumns } from "@calcom/web/modules/insights/hooks/useInsightsColumns";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
 import { useInsightsRoutingFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useInsightsRoutingFacetedUniqueValues";
-import type { RoutingFormTableRow } from "@calcom/features/insights/lib/types";
+import type { RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

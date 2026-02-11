@@ -3,7 +3,9 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -54,6 +56,7 @@ async function fireRejectionEvent({
   actionSource,
   rejectedBookings,
   rejectionReason,
+  isBookingAuditEnabled,
   tracingLogger,
 }: {
   actor: Actor;
@@ -64,6 +67,7 @@ async function fireRejectionEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
 }): Promise<void> {
   try {
@@ -82,6 +86,7 @@ async function fireRejectionEvent({
         organizationId,
         operationId,
         source: actionSource,
+        isBookingAuditEnabled,
       });
     } else if (rejectedBookings.length === 1) {
       const booking = rejectedBookings[0];
@@ -94,6 +99,7 @@ async function fireRejectionEvent({
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
         source: actionSource,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -149,7 +155,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
           disableGuests: true,
+          disableCancelling: true,
+          disableRescheduling: true,
           customReplyToEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           metadata: true,
           locations: true,
           team: {
@@ -197,6 +207,16 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
+      assignmentReason: {
+        select: {
+          reasonEnum: true,
+          reasonString: true,
+        },
+        orderBy: {
+          createdAt: "desc" as const,
+        },
+        take: 1,
+      },
     },
   });
 
@@ -311,6 +331,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    disableCancelling: booking.eventType?.disableCancelling ?? false,
+    disableRescheduling: booking.eventType?.disableRescheduling ?? false,
     team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -321,6 +345,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
+    assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
+      ? {
+          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
+          details: booking.assignmentReason[0].reasonString ?? null,
+        }
+      : null,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -474,12 +504,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
     await fireRejectionEvent({
       actor,
       actionSource,
       organizationId: orgId ?? null,
       rejectionReason: rejectionReason ?? null,
       rejectedBookings,
+      isBookingAuditEnabled,
       tracingLogger: log,
     });
 

@@ -148,8 +148,8 @@ const WorkflowListItem = (props: ItemProps) => {
               workflow.readOnly && props.isChildrenManagedEventType
                 ? "locked_by_team_admin"
                 : isActive
-                ? "turn_off"
-                : "turn_on"
+                  ? "turn_off"
+                  : "turn_on"
             ) as string
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
@@ -203,7 +203,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
+          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : (dataWf?.readOnly ?? false),
         } as WorkflowType;
       });
 
@@ -253,7 +253,7 @@ function EventWorkflowsTab(props: Props) {
               title={
                 <ServerTrans
                   t={t}
-                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
+                  i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admin"}`}
                 />
               }
               actions={<div className="flex h-full items-center">{workflowsDisableProps.LockedIcon}</div>}
@@ -261,7 +261,7 @@ function EventWorkflowsTab(props: Props) {
                 <ServerTrans
                   t={t}
                   i18nKey={`workflows_${lockedText}_${
-                    isManagedEventType ? "for_members" : "by_team_admins"
+                    isManagedEventType ? "for_members" : "by_team_admin"
                   }_description`}
                 />
               }

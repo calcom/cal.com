@@ -1,4 +1,3 @@
- 
 import startCase from "lodash/startCase";
 
 import type { FilterType } from "@calcom/types/data-table";
@@ -8,7 +7,12 @@ import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useFilterValue } from "@calcom/features/data-table/hooks";
-import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import {
+  type FilterableColumn,
+  type FilterValue,
+  ZFilterValue,
+  ColumnFilterType,
+} from "@calcom/features/data-table/lib/types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,

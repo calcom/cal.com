@@ -72,7 +72,7 @@ const mockBillingService: IBillingProviderService = {
   createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
   deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
-  finalizeInvoice: vi.fn().mockResolvedValue(undefined),
+  finalizeInvoice: vi.fn().mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
   getSubscription: vi.fn().mockResolvedValue({
     items: [
       { id: "si_test_123", quantity: 1, price: { unit_amount: 12000, recurring: { interval: "year" } } },
@@ -370,6 +370,7 @@ describe("MonthlyProrationService", () => {
       expect(mockProrationRepository.updateProrationStatus).toHaveBeenCalledWith("proration-789", "PENDING", {
         invoiceItemId: "ii_test_123",
         invoiceId: "in_test_123",
+        invoiceUrl: "https://invoice.stripe.com/test",
       });
     });
 

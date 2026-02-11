@@ -2,13 +2,12 @@ import type { ErrorOption, FieldPath } from "react-hook-form";
 
 import type { RegularBookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
 import type { Slots } from "@calcom/features/calendars/lib/types";
+import type { PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
-
 import type { BookingCreateBody } from "./lib/bookingCreateBodySchema";
 
-export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
+export type PublicEvent = NonNullable<PublicEventType>;
 
 export type BookerEventQuery = {
   isSuccess: boolean;

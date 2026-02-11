@@ -4,6 +4,7 @@ import {
   ConditionIdentifierEnum,
   ConditionOperatorEnum,
   type IAttributeSyncRule,
+  type ICreateAttributeSyncInput,
   type IFieldMapping,
   type IFieldMappingFormState,
   type IFieldMappingWithOptionalId,
@@ -80,3 +81,13 @@ export const syncFormDataSchema: z.ZodType<ISyncFormData> = z.object({
   rule: attributeSyncRuleSchema,
   syncFieldMappings: z.array(z.union([fieldMappingSchema, newFieldMappingSchema])),
 });
+
+export const createAttributeSyncSchema: z.ZodType<ICreateAttributeSyncInput> = z.object({
+  name: z.string().min(1, "Name is required"),
+  credentialId: z.number(),
+  rule: attributeSyncRuleSchema,
+  syncFieldMappings: z.array(newFieldMappingSchema),
+  enabled: z.boolean(),
+});
+
+export type ZCreateAttributeSyncSchema = ICreateAttributeSyncInput;

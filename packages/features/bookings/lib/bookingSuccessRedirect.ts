@@ -189,9 +189,11 @@ export const useBookingSuccessRedirect = () => {
     query,
     booking,
     forwardParamsSuccessRedirect,
+    redirectUrlOnNoRoutingFormResponse,
   }: {
     successRedirectUrl: EventType["successRedirectUrl"];
     forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
+    redirectUrlOnNoRoutingFormResponse?: EventType["redirectUrlOnNoRoutingFormResponse"];
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
@@ -200,6 +202,16 @@ export const useBookingSuccessRedirect = () => {
       ...query,
       "cal.rerouting": searchParams.get("cal.rerouting"),
     };
+
+    // Check if there's no routing form response and redirect URL is configured
+    const hasRoutingFormResponse =
+      searchParams.get("cal.routingFormResponseId") || searchParams.get("cal.queuedFormResponseId");
+
+    if (!hasRoutingFormResponse && redirectUrlOnNoRoutingFormResponse) {
+      const url = new URL(redirectUrlOnNoRoutingFormResponse);
+      navigateInTopWindow(url.toString());
+      return;
+    }
 
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);

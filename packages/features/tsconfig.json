@@ -5,12 +5,21 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["/*"]
+      "~/*": ["./*"]
     },
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "experimentalDecorators": true
   },
   "include": [".", "../types/next-auth.d.ts", "../types/tanstack-table.d.ts"],
-  "exclude": ["dist", "build", "**/node_modules/**", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
+  "exclude": [
+    "dist",
+    "build",
+    "**/node_modules/**",
+    "**/*.test.*",
+    "**/__mocks__/*",
+    "**/__tests__/*",
+    "auth",
+    "ee"
+  ]
 }
