@@ -2,7 +2,7 @@
   "name": "ntfy.sh",
   "slug": "ntfy-sh",
   "type": "ntfy-sh_automation",
-  "logo": "icon.svg",
+  "logo": "ntfy.png",
   "url": "https://ntfy.sh",
   "variant": "automation",
   "categories": [
