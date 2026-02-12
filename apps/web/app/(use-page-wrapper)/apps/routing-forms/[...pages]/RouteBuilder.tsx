@@ -473,6 +473,7 @@ const Route = ({
           variables: validation.invalidVariables.map((v) => `{${v}}`).join(", "),
         })
       );
+      setCustomEventTypeSlug(slug);
       return false;
     } else {
       setUrlValidationError(null);
@@ -482,6 +483,7 @@ const Route = ({
       action: { ...route.action, value: `${eventTypePrefix}${slug}`}
     })
     return true;
+  }
   }
 
   const renderBuilder = useCallback(
