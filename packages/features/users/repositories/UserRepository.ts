@@ -1429,4 +1429,11 @@ export class UserRepository {
       },
     });
   }
+
+  async lockByEmail({ email }: { email: string }) {
+    await this.prismaClient.user.updateMany({
+      where: { email },
+      data: { locked: true },
+    });
+  }
 }

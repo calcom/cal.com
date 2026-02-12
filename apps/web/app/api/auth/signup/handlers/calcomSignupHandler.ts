@@ -14,6 +14,7 @@ import {
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
@@ -315,6 +316,9 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
         description: "Auto-added during signup review",
       });
     }
+
+    const userRepository = new UserRepository(prisma);
+    await userRepository.lockByEmail({ email });
 
     return NextResponse.json(
       { message: "Created user", stripeCustomerId: customer.stripeCustomerId, accountUnderReview: true },
