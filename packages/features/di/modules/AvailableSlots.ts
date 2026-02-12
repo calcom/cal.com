@@ -15,11 +15,11 @@ availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSl
   eventTypeRepo: DI_TOKENS.EVENT_TYPE_REPOSITORY,
   routingFormResponseRepo: DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY,
   redisClient: DI_TOKENS.REDIS_CLIENT,
-  cacheService: DI_TOKENS.CACHE_SERVICE,
   checkBookingLimitsService: DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE,
   userAvailabilityService: DI_TOKENS.GET_USER_AVAILABILITY_SERVICE,
   busyTimesService: DI_TOKENS.BUSY_TIMES_SERVICE,
   featuresRepo: DI_TOKENS.FEATURES_REPOSITORY,
   qualifiedHostsService: DI_TOKENS.QUALIFIED_HOSTS_SERVICE,
   noSlotsNotificationService: DI_TOKENS.NO_SLOTS_NOTIFICATION_SERVICE,
+  orgMembershipLookup: DI_TOKENS.ORG_MEMBERSHIP_LOOKUP,
 } satisfies Record<keyof IAvailableSlotsService, symbol>);

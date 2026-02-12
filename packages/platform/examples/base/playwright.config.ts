@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
-import path from "path";
+import path from "node:path"
 
 const envPath = process.env.CI ? path.resolve(__dirname, ".env") : path.resolve(__dirname, ".env.local");
 

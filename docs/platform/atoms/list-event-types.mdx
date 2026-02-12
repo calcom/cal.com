@@ -1,0 +1,90 @@
+---
+title: "List Event Types"
+---
+
+The List Event Types atom displays all of a user's event types with their title, description, and duration. Each item includes a dropdown menu with edit and delete actions.
+
+<div style={{ display: "flex", justifyContent: "center" }}>
+  <img src="/images/list_event_types_light.png" alt="List event types" width="620" />
+</div>
+
+## Quick start
+
+Below is a code snippet to render the ListEventTypes atom. The `getEventTypeUrl` prop receives the event type ID and should return the URL where users will be redirected when clicking on an event type.
+
+```tsx
+import { CalProvider, ListEventTypes } from "@calcom/atoms";
+
+export default function EventTypesPage() {
+  return (
+    <CalProvider clientId="your-client-id" accessToken="user-access-token">
+      <ListEventTypes getEventTypeUrl={(eventTypeId) => `/event-types/${eventTypeId}`} />
+    </CalProvider>
+  );
+}
+```
+
+<Info>
+  The `ListEventTypes` atom requires authentication. Make sure it's wrapped in a `CalProvider` with a valid
+  `accessToken`.
+</Info>
+
+## Props
+
+| Name            | Required | Description                                                                                                                                                                    |
+| :-------------- | :------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| getEventTypeUrl | No       | Callback function that receives the event type ID and returns the URL to redirect when clicking on an event type. If not provided, the event type items will not be clickable. |
+
+## Demo
+
+<iframe
+  height="315"
+  style={{ width: "100%", maxWidth: "560px" }}
+  src="https://www.loom.com/embed/05b2e707e9d544cd8da443a0707bc08d"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen="true"
+></iframe>
+
+## Combining with EventTypeSettings
+
+The ListEventTypes atom can be combined with the [EventTypeSettings](/platform/atoms/event-type#event-type-settings) atom to provide a complete event type management experience. When a user clicks on an event type from the list, they are redirected to a settings page where they can edit the event type details.
+
+<Steps>
+  <Step title="Create the list page">
+    Use the quick start example above to set up a page that displays all event types. The `getEventTypeUrl` prop should return the route where you'll render the EventTypeSettings atom (e.g., `/event-types/${eventTypeId}`).
+  </Step>
+  <Step title="Create the settings page">
+    Set up a dynamic route page (e.g., `/event-types/[eventTypeId]`) that extracts the event type ID from the URL and passes it to the EventTypeSettings atom:
+
+```tsx
+import { useRouter } from "next/router";
+
+import { CalProvider, EventTypeSettings } from "@calcom/atoms";
+
+export default function EventTypeSettingsPage() {
+  const router = useRouter();
+  const eventTypeId = Number(router.query.eventTypeId);
+
+  if (!eventTypeId) return null;
+
+  return (
+    <CalProvider clientId="your-client-id" accessToken="user-access-token">
+      <EventTypeSettings
+        id={eventTypeId}
+        onSuccess={() => {
+          console.log("Event type updated successfully");
+        }}
+      />
+    </CalProvider>
+  );
+}
+```
+
+  </Step>
+</Steps>
+
+<Info>
+  For a complete implementation example, check out the [example
+  app](https://github.com/calcom/cal.com/tree/main/packages/platform/examples/base).
+</Info>

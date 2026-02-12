@@ -1,6 +1,7 @@
+import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { sendVerificationCode } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,6 +18,16 @@ type SendVerificationCodeOptions = {
 
 export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificationCodeOptions) => {
   const { user } = ctx;
+
+  await checkRateLimitAndThrowError({
+    identifier: `sms:verification:${user.id}`,
+    rateLimitingType: "sms",
+  });
+
+  await checkRateLimitAndThrowError({
+    identifier: `sms:verification:${user.id}`,
+    rateLimitingType: "smsMonth",
+  });
 
   const isCurrentUsernamePremium =
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;

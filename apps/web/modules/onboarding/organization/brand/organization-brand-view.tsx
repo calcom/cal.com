@@ -1,234 +1,205 @@
 "use client";
 
-import * as Popover from "@radix-ui/react-popover";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
-import { HexColorPicker } from "react-colorful";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { ColorPicker, Label } from "@calcom/ui/components/form";
+import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
-import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { useMigrationFlow } from "../../hooks/useMigrationFlow";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
   userEmail: string;
 };
 
-const BrandColorPicker = ({
-  value,
-  onChange,
-  t,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  t: (key: string) => string;
-}) => {
-  return (
-    <div className="border-default bg-default flex h-7 w-32 items-center gap-2 rounded-lg border px-2 py-1.5">
-      <Popover.Root>
-        <Popover.Trigger asChild>
-          <button
-            className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
-            style={{ backgroundColor: value }}
-            aria-label={t("onboarding_pick_color_aria")}
-          />
-        </Popover.Trigger>
-        <Popover.Portal>
-          <Popover.Content align="start" sideOffset={5}>
-            <HexColorPicker color={value} onChange={onChange} className="!h-32 !w-32" />
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover.Root>
-      <input
-        type="text"
-        value={value.replace("#", "")}
-        onChange={(e) => {
-          const newValue = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
-          onChange(newValue);
-        }}
-        className="text-emphasis grow border-none bg-transparent text-sm font-medium leading-4 outline-none"
-        maxLength={6}
-      />
-    </div>
-  );
-};
-
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
-  const { organizationBrand, setOrganizationBrand, organizationDetails } = useOnboardingStore();
+  const { organizationDetails, organizationBrand, setOrganizationBrand } = useOnboardingStore();
+  const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
-  const [brandColor, setBrandColor] = useState("#000000");
-  const [_logoFile, setLogoFile] = useState<File | null>(null);
-  const [_bannerFile, setBannerFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [brandColor, setBrandColor] = useState("#000000");
 
-  // Load from store on mount
   useEffect(() => {
-    setBrandColor(organizationBrand.color);
     setLogoPreview(organizationBrand.logo);
     setBannerPreview(organizationBrand.banner);
+    setBrandColor(organizationBrand.color);
   }, [organizationBrand]);
 
-  const handleLogoChange = (file: File | null) => {
-    setLogoFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setLogoPreview(base64);
-        setOrganizationBrand({ logo: base64 });
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setLogoPreview(null);
-      setOrganizationBrand({ logo: null });
-    }
+  const handleLogoChange = (newLogo: string) => {
+    setLogoPreview(newLogo);
+    setOrganizationBrand({ logo: newLogo });
   };
 
-  const handleBannerChange = (file: File | null) => {
-    setBannerFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setBannerPreview(base64);
-        setOrganizationBrand({ banner: base64 });
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setBannerPreview(null);
-      setOrganizationBrand({ banner: null });
+  const handleBannerChange = (newBanner: string) => {
+    setBannerPreview(newBanner);
+    setOrganizationBrand({ banner: newBanner });
+  };
+
+  const handleColorChange = (color: string) => {
+    setBrandColor(color);
+    setOrganizationBrand({ color });
+  };
+
+  const getNextStep = () => {
+    const migrateParam = searchParams?.get("migrate");
+    const queryString = migrateParam ? `?migrate=${migrateParam}` : "";
+
+    // If migration flow and has teams, go to migrate-teams, otherwise go to teams
+    if (isMigrationFlow && hasTeams) {
+      return `/onboarding/organization/migrate-teams${queryString}`;
     }
+    return `/onboarding/organization/teams${queryString}`;
   };
 
   const handleContinue = () => {
-    // Save brand color to store
-    setOrganizationBrand({ color: brandColor });
-    router.push("/onboarding/organization/teams");
+    posthog.capture("onboarding_organization_brand_continue_clicked", {
+      has_logo: !!logoPreview,
+      has_banner: !!bannerPreview,
+      has_custom_color: brandColor !== "#000000",
+    });
+    // Save to store (already saved on change, but ensure it's persisted)
+    setOrganizationBrand({
+      logo: logoPreview,
+      banner: bannerPreview,
+      color: brandColor,
+    });
+    router.push(getNextStep());
   };
 
   const handleSkip = () => {
-    // Skip brand setup and go to teams
+    posthog.capture("onboarding_organization_brand_skip_clicked");
+    // Skip brand customization and go to teams
     router.push("/onboarding/organization/teams");
   };
 
+  const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={2}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={totalSteps}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_brand_title")}
         subtitle={t("onboarding_org_brand_subtitle")}
         footer={
-          <>
-            <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
-              {t("ill_do_this_later")}
+          <div className="flex w-full items-center justify-between gap-4">
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={() => {
+                posthog.capture("onboarding_organization_brand_back_clicked");
+                router.push("/onboarding/organization/details");
+              }}>
+              {t("back")}
             </Button>
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
-          </>
+            <div className="flex items-center gap-2">
+              <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                {t("continue")}
+              </Button>
+            </div>
+          </div>
         }>
         {/* Form */}
-        <div className="bg-default border-muted w-full rounded-[10px] border">
-          <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-            <div className="flex w-full flex-col items-start">
-              <div className="flex w-full gap-6 px-5 py-4">
-                {/* Left side - Form */}
-                <div className="flex w-full flex-col gap-6">
-                  {/* Brand Color */}
-                  <div className="flex w-full flex-col gap-6">
-                    <p className="text-emphasis text-sm font-medium leading-4">{t("brand_color")}</p>
-                    <div className="flex w-full items-center gap-2">
-                      <p className="text-subtle w-[98px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-4">
-                        {t("onboarding_primary_color_label")}
-                      </p>
-                      <BrandColorPicker
-                        value={brandColor}
-                        onChange={(value) => {
-                          setBrandColor(value);
-                          setOrganizationBrand({ color: value });
-                        }}
-                        t={t}
+        <div className="relative flex">
+          {/* Scrollable content container */}
+          <div className="relative h-full w-full gap-6">
+            <div className="flex w-full flex-col gap-4 rounded-xl">
+              {/* Banner Upload */}
+              <div className="flex w-full flex-col gap-2">
+                <p className="text-emphasis text-sm font-medium leading-4">{t("onboarding_banner_label")}</p>
+                <div className="flex w-full flex-col gap-2">
+                  <div className="bg-cal-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
+                    {bannerPreview && (
+                      <img
+                        src={bannerPreview}
+                        alt={t("onboarding_banner_preview_alt")}
+                        className="h-full w-full object-cover"
                       />
-                    </div>
+                    )}
                   </div>
-
-                  {/* Logo Upload */}
-                  <div className="flex w-full flex-col gap-2">
-                    <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
-                    <div className="flex items-center gap-2">
-                      <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
-                        {logoPreview && (
-                          <img
-                            src={logoPreview}
-                            alt={t("onboarding_logo_preview_alt")}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          color="secondary"
-                          size="sm"
-                          onClick={() => document.getElementById("logo-upload")?.click()}>
-                          {t("upload")}
-                        </Button>
-                        <input
-                          id="logo-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-subtle text-xs font-normal leading-3">
-                      {t("onboarding_logo_size_hint")}
-                    </p>
-                  </div>
-
-                  {/* Banner Upload */}
-                  <div className="flex w-full flex-col gap-2">
-                    <p className="text-emphasis text-sm font-medium leading-4">
-                      {t("onboarding_banner_label")}
-                    </p>
-                    <div className="flex w-full flex-col gap-2">
-                      <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
-                        {bannerPreview && (
-                          <img
-                            src={bannerPreview}
-                            alt={t("onboarding_banner_preview_alt")}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          color="secondary"
-                          size="sm"
-                          className="w-fit"
-                          onClick={() => document.getElementById("banner-upload")?.click()}>
-                          {t("upload")}
-                        </Button>
-                        <input
-                          id="banner-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleBannerChange(e.target.files?.[0] || null)}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-subtle text-xs font-normal leading-3">
-                      {t("onboarding_banner_size_hint")}
-                    </p>
+                  <div className="flex gap-2">
+                    <BannerUploader
+                      id="org-banner-upload"
+                      buttonMsg={t("upload")}
+                      handleAvatarChange={handleBannerChange}
+                      imageSrc={bannerPreview || undefined}
+                      target="banner"
+                      triggerButtonColor="secondary"
+                      height={500}
+                      width={1500}
+                    />
+                    {bannerPreview && (
+                      <Button
+                        color="minimal"
+                        size="sm"
+                        onClick={() => {
+                          setBannerPreview(null);
+                          setOrganizationBrand({ banner: null });
+                        }}>
+                        {t("remove")}
+                      </Button>
+                    )}
                   </div>
                 </div>
+                <p className="text-subtle text-xs font-normal leading-3">
+                  {t("onboarding_banner_size_hint")}
+                </p>
+              </div>
+              {/* Logo Upload */}
+              <div className="flex w-full flex-col gap-2">
+                <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
+                <div className="flex items-center gap-2">
+                  <div className="bg-cal-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                    {logoPreview && (
+                      <img
+                        src={logoPreview}
+                        alt={t("onboarding_logo_preview_alt")}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <ImageUploader
+                    id="org-logo-upload"
+                    buttonMsg={t("upload")}
+                    handleAvatarChange={handleLogoChange}
+                    imageSrc={logoPreview || undefined}
+                    target="logo"
+                    triggerButtonColor="secondary"
+                    buttonSize="sm"
+                  />
+                  {logoPreview && (
+                    <Button
+                      color="minimal"
+                      size="sm"
+                      onClick={() => {
+                        setLogoPreview(null);
+                        setOrganizationBrand({ logo: null });
+                      }}>
+                      {t("remove")}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
+              </div>
+              {/* Brand Color */}
+              <div className="flex w-full flex-col gap-2">
+                <Label className="text-emphasis text-sm font-medium leading-4">
+                  {t("light_brand_color")}
+                </Label>
+                <ColorPicker defaultValue={brandColor} onChange={handleColorChange} />
               </div>
             </div>
           </div>
@@ -236,7 +207,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
       </OnboardingCard>
 
       {/* Right column - Browser view */}
-      <OnboardingBrowserView />
+      <OnboardingOrganizationBrowserView
+        avatar={logoPreview}
+        name={organizationDetails.name}
+        bio={organizationDetails.bio}
+        slug={organizationDetails.link}
+        bannerUrl={bannerPreview}
+        brandColor={brandColor}
+      />
     </OnboardingLayout>
   );
 };

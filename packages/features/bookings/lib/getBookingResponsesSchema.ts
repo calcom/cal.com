@@ -4,13 +4,18 @@ import z from "zod";
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
 import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
 import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
+import logger from "@calcom/lib/logger";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-type CommonParams = { bookingFields: BookingFields; view: View };
+type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
+type CommonParams = {
+  bookingFields: BookingFields;
+  view: View;
+  translateFn?: TranslationFunction;
+};
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
@@ -23,24 +28,69 @@ const ensureValidPhoneNumber = (value: string) => {
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
 };
-export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
+
+/**
+ * Checks if a booker email matches an email/domain entry.
+ * Supports three formats:
+ * - Full email: "user@example.com" - matches exactly
+ * - Domain with @ prefix: "@example.com" - matches any email ending with "@example.com"
+ * - Domain without @ prefix: "example.com" - matches any email ending with "@example.com"
+ */
+const doesEmailMatchEntry = (bookerEmail: string, entry: string): boolean => {
+  const bookerEmailLower = bookerEmail.toLowerCase();
+
+  if (entry.startsWith("@")) {
+    const domain = entry.slice(1).toLowerCase();
+    return bookerEmailLower.endsWith("@" + domain);
+  }
+
+  if (entry.includes("@")) {
+    return bookerEmailLower === entry.toLowerCase();
+  }
+
+  return bookerEmailLower.endsWith("@" + entry.toLowerCase());
+};
+export const getBookingResponsesPartialSchema = ({ bookingFields, view, translateFn }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view });
+  return preprocess({
+    schema,
+    bookingFields,
+    isPartialSchema: true,
+    view,
+    translateFn,
+  });
 };
 
 // Should be used when we know that not all fields responses are present
 // - Can happen when we are parsing the prefill query string
 // - Can happen when we are parsing a booking's responses (which was created before we added a new required field)
-export default function getBookingResponsesSchema({ bookingFields, view }: CommonParams) {
+export default function getBookingResponsesSchema({ bookingFields, view, translateFn }: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view });
+  return preprocess({
+    schema,
+    bookingFields,
+    isPartialSchema: false,
+    view,
+    translateFn,
+  });
 }
 
 // Should be used when we want to check if the optional fields are entered and valid as well
-export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view }: CommonParams) {
+export function getBookingResponsesSchemaWithOptionalChecks({
+  bookingFields,
+  view,
+  translateFn,
+}: CommonParams) {
   const schema = bookingResponses.and(z.record(z.any()));
-  return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true });
+  return preprocess({
+    schema,
+    bookingFields,
+    isPartialSchema: false,
+    view,
+    checkOptional: true,
+    translateFn,
+  });
 }
 
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
@@ -51,6 +101,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema,
   view: currentView,
   checkOptional = false,
+  translateFn,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -59,6 +110,7 @@ function preprocess<T extends z.ZodType>({
   isPartialSchema: boolean;
   checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
+  const log = logger.getSubLogger({ prefix: ["getBookingResponsesSchema"] });
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
@@ -104,7 +156,9 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch (e) {
+            log.error(`Failed to parse JSON for field ${field.name}`, e);
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -150,7 +204,10 @@ function preprocess<T extends z.ZodType>({
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
-        const m = (message: string) => `{${bookingField.name}}${message}`;
+        const m = (message: string, options?: Record<string, unknown>) => {
+          const translatedMessage = translateFn ? translateFn(message, options) : message;
+          return `{${bookingField.name}}${translatedMessage}`;
+        };
         const views = bookingField.views;
         const isFieldApplicableToCurrentView =
           currentView === "ALL_VIEWS" ? true : views ? views.find((view) => view.id === currentView) : true;
@@ -170,12 +227,15 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (isRequired && !isPartialSchema && !value) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: m(`error_required_field`),
+          });
           return;
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden && (checkOptional || bookingField.required)) {
+          if (!bookingField.hidden && (isRequired || (value && value.trim() !== ""))) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
@@ -185,28 +245,34 @@ function preprocess<T extends z.ZodType>({
             }
 
             // validate the excluded emails
-            const bookerEmail = value;
-            const excludedEmails =
-              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+            if (value) {
+              const bookerEmail = value;
+              const excludedEmails =
+                bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
-            const match = excludedEmails.find((email) => bookerEmail.includes(email));
-            if (match) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: m("exclude_emails_match_found_error_message"),
-              });
-            }
-            const requiredEmails =
-              bookingField.requireEmails
-                ?.split(",")
-                .map((domain) => domain.trim())
-                .filter(Boolean) || [];
-            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
-            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: m("require_emails_no_match_found_error_message"),
-              });
+              const match = excludedEmails.find((excludedEntry) =>
+                doesEmailMatchEntry(bookerEmail, excludedEntry)
+              );
+              if (match) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: m("exclude_emails_match_found_error_message"),
+                });
+              }
+              const requiredEmails =
+                bookingField.requireEmails
+                  ?.split(",")
+                  .map((domain) => domain.trim())
+                  .filter(Boolean) || [];
+              const requiredEmailsMatch = requiredEmails.find((requiredEntry) =>
+                doesEmailMatchEntry(bookerEmail, requiredEntry)
+              );
+              if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: m("require_emails_no_match_found_error_message"),
+                });
+              }
             }
           }
 
@@ -230,7 +296,10 @@ function preprocess<T extends z.ZodType>({
           const emailsParsed = emailSchema.array().safeParse(value);
 
           if (isRequired && (!value || value.length === 0)) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m(`error_required_field`),
+            });
             continue;
           }
 
@@ -251,7 +320,10 @@ function preprocess<T extends z.ZodType>({
           const emails = emailsParsed.data;
           emails.sort().some((item, i) => {
             if (item === emails[i + 1]) {
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("duplicate_email") });
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("duplicate_email"),
+              });
               return true;
             }
           });
@@ -260,18 +332,27 @@ function preprocess<T extends z.ZodType>({
 
         if (bookingField.type === "multiselect") {
           if (isRequired && (!value || value.length === 0)) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m(`error_required_field`),
+            });
             continue;
           }
           if (!stringSchema.array().safeParse(value).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("Invalid array of strings"),
+            });
           }
           continue;
         }
 
         if (bookingField.type === "checkbox") {
           if (!stringSchema.array().safeParse(value).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid array of strings") });
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("Invalid array of strings"),
+            });
           }
           continue;
         }
@@ -283,7 +364,10 @@ function preprocess<T extends z.ZodType>({
           // Validate phone number if the field is not hidden and requires validation
           if (!bookingField.hidden && needsValidation) {
             if (!(await phoneSchema.safeParseAsync(value)).success) {
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("invalid_number"),
+              });
             }
           }
           continue;
@@ -292,7 +376,10 @@ function preprocess<T extends z.ZodType>({
         if (bookingField.type === "boolean") {
           const schema = z.boolean();
           if (!schema.safeParse(value).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid Boolean") });
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("Invalid Boolean"),
+            });
           }
           continue;
         }
@@ -306,7 +393,10 @@ function preprocess<T extends z.ZodType>({
               // Either the field is required or there is a radio selected, we need to check if the optionInput is required or not.
               (isRequired || value?.value) && checkOptional ? true : optionField?.required && !optionValue
             ) {
-              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("error_required_field"),
+              });
               return;
             }
 
@@ -314,7 +404,10 @@ function preprocess<T extends z.ZodType>({
               // `typeOfOptionInput` can be any of the main types. So, we the same validations should run for `optionValue`
               if (typeOfOptionInput === "phone") {
                 if (!(await phoneSchema.safeParseAsync(optionValue)).success) {
-                  ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+                  ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: m("invalid_number"),
+                  });
                 }
               }
             }
@@ -327,7 +420,10 @@ function preprocess<T extends z.ZodType>({
         if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("Invalid string"),
+            });
           }
           continue;
         }

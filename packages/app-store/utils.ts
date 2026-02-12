@@ -57,13 +57,14 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
       const credential = {
         id: 0,
         type: appMeta.type,
-         
+
         key: appMeta.key!,
         userId: 0,
         user: { email: "" },
         teamId: null,
         appId: appMeta.slug,
         invalid: false,
+        encryptedKey: null,
         delegatedTo: null,
         delegatedToId: null,
         delegationCredentialId: null,
@@ -173,5 +174,16 @@ export const defaultVideoAppCategories: AppCategories[] = [
   // Legacy name for conferencing
   "video",
 ];
+
+export function sanitizeAppForViewer<
+  T extends App & {
+    credential?: CredentialDataWithTeamName | null;
+    credentials?: CredentialDataWithTeamName[];
+    locationOption?: LocationOption | null;
+  }
+>(app: T): Omit<T, "key" | "credential" | "credentials"> {
+  const { key: _, credential: _1, credentials: _2, ...sanitizedApp } = app;
+  return sanitizedApp;
+}
 
 export default getApps;

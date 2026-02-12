@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZDeleteInputSchema = z.object({
+export type TDeleteInputSchema = {
+  id: number;
+};
+
+export const ZDeleteInputSchema: z.ZodType<TDeleteInputSchema> = z.object({
   id: z.number(),
 });
-
-export type TDeleteInputSchema = z.infer<typeof ZDeleteInputSchema>;

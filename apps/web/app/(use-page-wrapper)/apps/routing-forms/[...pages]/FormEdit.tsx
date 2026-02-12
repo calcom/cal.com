@@ -1,13 +1,8 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useWatch } from "react-hook-form";
-import { Toaster } from "sonner";
-import { v4 as uuidv4 } from "uuid";
-
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -15,17 +10,20 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import {
   BooleanToggleGroupField,
   Label,
+  MultiOptionInput,
   SelectField,
   TextField,
-  MultiOptionInput,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Toaster } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
@@ -87,7 +85,13 @@ function Field({
         moveUp={moveUp}
         moveDown={moveDown}
         badge={
-          router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
+          router
+            ? {
+                text: router.name,
+                variant: "gray",
+                href: `${appUrl}/form-edit/${router.id}`,
+              }
+            : null
         }
         deleteField={router ? null : deleteField}>
         <FormCardBody>
@@ -96,26 +100,47 @@ function Field({
               data-testid={`${hookFieldNamespace}.label`}
               disabled={!!router}
               label="Label"
-              className="flex-grow"
+              className="grow"
               placeholder={t("this_is_what_your_users_would_see")}
               defaultValue={label || routerField?.label || "Field"}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+                const newLabel = e.target.value;
+                // Use label from useWatch which is guaranteed to be the previous value
+                // since useWatch updates reactively (after re-render), not synchronously
+                const previousLabel = label || "";
+                hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, {
+                  shouldDirty: true,
+                });
+                const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
+                // Only auto-update identifier if it was auto-generated from the previous label
+                // This preserves manual identifier changes
+                const isIdentifierGeneratedFromPreviousLabel =
+                  currentIdentifier === getFieldIdentifier(previousLabel).toLowerCase();
+                if (!currentIdentifier || isIdentifierGeneratedFromPreviousLabel) {
+                  hookForm.setValue(
+                    `${hookFieldNamespace}.identifier`,
+                    getFieldIdentifier(newLabel).toLowerCase(),
+                    { shouldDirty: true }
+                  );
+                }
               }}
             />
           </div>
           <div className="mb-3 w-full">
             <TextField
               disabled={!!router}
-              label="Identifier"
+              label={t("identifier_url_parameter")}
+              hint={t("identifier_url_parameter_hint")}
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
               value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value.toLowerCase(), {
+                  shouldDirty: true,
+                });
               }}
             />
           </div>
@@ -150,14 +175,14 @@ function Field({
                     <SelectField
                       maxMenuHeight={200}
                       styles={{
-                        singleValue: (baseStyles) => ({
-                          ...baseStyles,
-                          fontSize: "14px",
-                        }),
-                        option: (baseStyles) => ({
-                          ...baseStyles,
-                          fontSize: "14px",
-                        }),
+                        singleValue: (baseStyles) =>
+                          Object.assign({}, baseStyles, {
+                            fontSize: "14px",
+                          }),
+                        option: (baseStyles) =>
+                          Object.assign({}, baseStyles, {
+                            fontSize: "14px",
+                          }),
                       }}
                       label="Type"
                       isDisabled={!!router}
@@ -177,7 +202,7 @@ function Field({
             />
           </div>
           {["select", "multiselect"].includes(fieldType) ? (
-            <div className="bg-muted w-full rounded-[10px] p-2">
+            <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput
                 fieldArrayName={`${hookFieldNamespace}.options`}
@@ -232,8 +257,6 @@ const FormEdit = ({
     append: appendHookFormField,
     remove: removeHookFormField,
     swap: swapHookFormField,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore https://github.com/react-hook-form/react-hook-form/issues/6679
   } = useFieldArray({
     control: hookForm.control,
     name: fieldsNamespace,
@@ -244,8 +267,6 @@ const FormEdit = ({
 
   const addField = () => {
     appendHookFormField({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       id: uuidv4(),
       // This is same type from react-awesome-query-builder
       type: "text",
@@ -307,7 +328,7 @@ const FormEdit = ({
   ) : (
     <div className="w-full py-4 lg:py-8">
       {/* TODO: remake empty screen for V3 */}
-      <div className="border-sublte bg-muted flex flex-col items-center gap-6 rounded-xl border p-11">
+      <div className="border-subtle bg-cal-muted flex flex-col items-center gap-6 rounded-xl border p-11">
         <div className="mb-3 grid">
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">

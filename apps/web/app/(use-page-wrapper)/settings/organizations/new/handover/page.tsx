@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/onboarding-handover";
+import LegacyPage, { LayoutWrapper } from "~/ee/organizations/new/onboarding-handover";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

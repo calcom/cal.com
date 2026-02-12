@@ -1,10 +1,9 @@
+import path from "node:path";
+import { Worker } from "node:worker_threads";
+
+import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as path from "path";
-import { Worker } from "worker_threads";
-
-// Import WorkerOptions type
-import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import { TimeSlots } from "./slots-output.service";
 
@@ -43,11 +42,13 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
   private availableWorkers: Worker[] = [];
 
   constructor(private readonly config: ConfigService) {
-    this.maxWorkers = process.env.SLOTS_WORKER_POOL_SIZE
-      ? parseInt(process.env.SLOTS_WORKER_POOL_SIZE, 10)
-      : 4;
+    this.maxWorkers = this.config.get<number>("slotsWorkerPoolSize") ?? 4;
+    if (!this.config.get<boolean>("enableSlotsWorkers")) {
+      this.maxWorkers = 0;
+    }
+
     // Workers are not initialized in E@E
-    if (!this.config.get<boolean>("e2e")) {
+    if (!this.config.get<boolean>("e2e") && this.maxWorkers > 0) {
       this.initializeWorkerPool();
     }
   }
@@ -108,10 +109,12 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
           this.logger.error(`Error terminating failed worker ${failedWorker.threadId}: ${err?.message}`);
         });
     } catch (error) {
+      let errorMessage = String(error);
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       this.logger.error(
-        `Failed to invoke terminate method on failed worker ${failedWorker.threadId}: ${
-          error instanceof Error ? error.message : String(error)
-        }`
+        `Failed to invoke terminate method on failed worker ${failedWorker.threadId}: ${errorMessage}`
       );
     }
 
@@ -119,16 +122,43 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
     try {
       this.createNewWorker();
     } catch (error) {
-      this.logger.error(
-        `Failed to create replacement worker after failure: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        error instanceof Error ? error.stack : undefined
-      );
+      let errorMessage = String(error);
+      let errorStack: string | undefined;
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        errorStack = error.stack;
+      }
+
+      this.logger.error(`Failed to create replacement worker after failure: ${errorMessage}`, errorStack);
     }
 
     // After a worker fails, process the next task in case there are queued tasks
     this.processNextTask();
+  }
+
+  /**
+   * Converts the request context into a serializable format for worker communication.
+   * @param ctx The context from GetScheduleOptions containing request data.
+   * @returns A serializable context object with cookies and headers, or undefined.
+   */
+  private getSerializableContext(ctx: GetScheduleOptions["ctx"]): WorkerMessage["ctx"] {
+    if (!ctx) {
+      return undefined;
+    }
+
+    let reqData: NonNullable<NonNullable<WorkerMessage["ctx"]>["req"]> | undefined;
+
+    if (ctx.req) {
+      reqData = {
+        cookies: (ctx.req.cookies as Record<string, string>) || {},
+        headers: (ctx.req.headers as Record<string, string>) || {},
+      };
+    }
+
+    return {
+      req: reqData,
+    };
   }
 
   /**
@@ -146,21 +176,12 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       }
 
       // Prepare context for serialization
-      const serializableCtx: WorkerMessage["ctx"] = task.options.ctx
-        ? {
-            req: task.options.ctx.req
-              ? {
-                  cookies: (task.options.ctx.req.cookies as Record<string, string>) || {},
-                  headers: (task.options.ctx.req.headers as Record<string, string>) || {},
-                }
-              : undefined,
-          }
-        : undefined;
+      const serializableCtx = this.getSerializableContext(task.options.ctx);
 
       try {
         // Use 'once' listeners for task-specific responses and errors.
         // 'once' listeners automatically remove themselves after being invoked, preventing leaks.
-        const messageListener = (result: WorkerResult) => {
+        const messageListener = (result: WorkerResult): void => {
           this.availableWorkers.push(worker); // Return worker to the available pool
           if (result.success) {
             task.resolve(result.data as TimeSlots);
@@ -170,7 +191,7 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
           this.processNextTask(); // Attempt to process the next task
         };
 
-        const errorListener = (err: Error) => {
+        const errorListener = (err: Error): void => {
           this.availableWorkers.push(worker); // Ensure worker is returned
           task.reject(new Error(`Worker thread error during task execution: ${err.message}`));
           this.processNextTask(); // Attempt to process the next task
@@ -186,11 +207,13 @@ export class SlotsWorkerService_2024_04_15 implements OnModuleDestroy {
       } catch (error) {
         // If posting the message itself fails (e.g., serialization error)
         this.availableWorkers.push(worker); // Ensure worker is returned to pool
-        task.reject(
-          new Error(
-            `Failed to dispatch task to worker: ${error instanceof Error ? error.message : String(error)}`
-          )
-        );
+
+        let errorMessage = String(error);
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+
+        task.reject(new Error(`Failed to dispatch task to worker: ${errorMessage}`));
         this.processNextTask(); // Try to process next task if available
       }
     }

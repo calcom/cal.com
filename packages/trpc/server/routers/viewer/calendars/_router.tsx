@@ -1,14 +1,8 @@
-import { z } from "zod";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
-
-type CalendarsRouterHandlerCache = {
-  connectedCalendars?: typeof import("./connectedCalendars.handler").connectedCalendarsHandler;
-  setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
-};
+import { ZSetDestinationReminderInputSchema } from "./setDestinationReminder.schema";
 
 export const calendarsRouter = router({
   connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
@@ -25,10 +19,11 @@ export const calendarsRouter = router({
       return setDestinationCalendarHandler({ ctx, input });
     }),
 
-  deleteCache: authedProcedure
-    .input(z.object({ credentialId: z.number() }))
+  setDestinationReminder: authedProcedure
+    .input(ZSetDestinationReminderInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { deleteCacheHandler } = await import("./deleteCache.handler");
-      return deleteCacheHandler({ ctx, input });
+      const { setDestinationReminderHandler } = await import("./setDestinationReminder.handler");
+
+      return setDestinationReminderHandler({ ctx, input });
     }),
 });

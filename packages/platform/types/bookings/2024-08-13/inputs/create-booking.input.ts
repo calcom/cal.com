@@ -1,5 +1,11 @@
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import {
+  ApiExtraModels,
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+  getSchemaPath,
+} from "@nestjs/swagger";
+import { Transform, Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
   IsInt,
@@ -239,6 +245,14 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsObject()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (!value || typeof value !== "object") return value;
+    const transformed: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      transformed[key] = val === null ? "" : val;
+    }
+    return transformed;
+  })
   bookingFieldsResponses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
@@ -380,6 +394,18 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsString()
   emailVerificationCode?: string;
+
+  /* @ApiPropertyOptional({
+    type: [Number],
+    description:
+      "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+    example: [1, 2, 3],
+  }) */
+  @ApiHideProperty()
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  rrHostSubsetIds?: number[];
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

@@ -1,12 +1,51 @@
-import fs from "fs";
-import matter from "gray-matter";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
+
+import yaml from "js-yaml";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["lib", "parseFrontmatter"] });
+
+const FRONTMATTER_REGEX = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Parses markdown content with YAML frontmatter
+ * Replaces gray-matter to use js-yaml 4.x directly (yaml.load is safe by default)
+ */
+export function parseFrontmatter(source: string): { data: Record<string, unknown>; content: string } {
+  const match = source.match(FRONTMATTER_REGEX);
+
+  if (!match) {
+    return { data: {}, content: source };
+  }
+
+  let data: Record<string, unknown> = {};
+
+  try {
+    const parsed = yaml.load(match[1], { schema: yaml.JSON_SCHEMA });
+
+    if (isRecord(parsed)) {
+      data = parsed;
+    }
+  } catch (error) {
+    log.warn("Invalid YAML frontmatter", { error });
+  }
+
+  return {
+    data,
+    content: source.slice(match[0].length),
+  };
+}
 
 export const sourceSchema = z.object({
   content: z.string(),
@@ -65,7 +104,7 @@ export const getStaticProps = async (slug: string) => {
     source = appMeta.description;
   }
 
-  const result = matter(source);
+  const result = parseFrontmatter(source);
   const { content, data } = sourceSchema.parse({ content: result.content, data: result.data });
   if (data.items) {
     data.items = data.items.map((item) => {

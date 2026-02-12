@@ -1,43 +1,37 @@
 import { useMemo, useCallback } from "react";
 
-import type { RowData } from "../types";
-
-function isDataRow(row: RowData): row is Extract<RowData, { type: "data" }> {
-  return row.type === "data";
-}
+import type { BookingOutput } from "../types";
 
 export function useBookingCursor({
   bookings,
-  selectedBookingId,
-  setSelectedBookingId,
+  selectedBookingUid,
+  setSelectedBookingUid,
 }: {
-  bookings: RowData[];
-  selectedBookingId: number | null;
-  setSelectedBookingId: (bookingId: number | null) => void;
+  bookings: BookingOutput[];
+  selectedBookingUid: string | null;
+  setSelectedBookingUid: (bookingUid: string | null) => void;
 }) {
-  const bookingRows = useMemo(() => bookings.filter(isDataRow), [bookings]);
-
   const currentIndex = useMemo(
-    () => bookingRows.findIndex((row) => selectedBookingId && row.booking.id === selectedBookingId),
-    [bookingRows, selectedBookingId]
+    () => bookings.findIndex((booking) => selectedBookingUid && booking.uid === selectedBookingUid),
+    [bookings, selectedBookingUid]
   );
 
   const onPrevious = useCallback(() => {
     if (currentIndex >= 1) {
-      setSelectedBookingId(bookingRows[currentIndex - 1].booking.id);
+      setSelectedBookingUid(bookings[currentIndex - 1].uid);
     }
-  }, [bookingRows, currentIndex, setSelectedBookingId]);
+  }, [bookings, currentIndex, setSelectedBookingUid]);
 
   const onNext = useCallback(() => {
-    if (currentIndex >= 0 && currentIndex < bookingRows.length - 1) {
-      setSelectedBookingId(bookingRows[currentIndex + 1].booking.id);
+    if (currentIndex >= 0 && currentIndex < bookings.length - 1) {
+      setSelectedBookingUid(bookings[currentIndex + 1].uid);
     }
-  }, [bookingRows, currentIndex, setSelectedBookingId]);
+  }, [bookings, currentIndex, setSelectedBookingUid]);
 
   return {
     onPrevious,
     onNext,
     hasPrevious: currentIndex > 0,
-    hasNext: currentIndex < bookingRows.length - 1 && currentIndex >= 0,
+    hasNext: currentIndex < bookings.length - 1 && currentIndex >= 0,
   };
 }

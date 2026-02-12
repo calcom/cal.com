@@ -191,7 +191,7 @@ export const FormSettingsSlideover = ({
             )}
           </div>
         </div>
-        <SheetFooter className="flex-shrink-0 ">
+        <SheetFooter className="shrink-0 ">
           <Button color="minimal" onClick={handleCancel} data-testid="settings-slider-over-cancel">
             {t("cancel")}
           </Button>

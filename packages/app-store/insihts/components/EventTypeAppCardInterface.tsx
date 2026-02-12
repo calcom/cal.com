@@ -20,7 +20,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       }}
       switchChecked={enabled}
       teamId={eventType.team?.id || undefined}>
-      <fieldset className="space-y-2" disabled={disabled}>
+      <fieldset className="stack-y-2" disabled={disabled}>
         <TextField
           disabled={disabled}
           name="Site ID"

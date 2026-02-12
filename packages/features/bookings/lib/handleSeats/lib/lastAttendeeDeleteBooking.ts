@@ -1,4 +1,3 @@
- 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
@@ -43,7 +42,7 @@ const lastAttendeeDeleteBooking = async (
             integrationsToDelete.push(deleteMeeting(credential, reference.uid));
           }
           if (reference.type.includes("_calendar") && originalBookingEvt) {
-            const calendar = await getCalendar(credential);
+            const calendar = await getCalendar(credential, "booking");
             if (calendar) {
               integrationsToDelete.push(
                 calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)

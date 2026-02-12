@@ -1,21 +1,20 @@
-import { dir } from "i18next";
-import { Inter } from "next/font/google";
-import localFont from "next/font/local";
-import { headers, cookies } from "next/headers";
-import React from "react";
-
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { dir } from "i18next";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
+import { cookies, headers } from "next/headers";
+import Script from "next/script";
+import type React from "react";
 
 import "../styles/globals.css";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
-import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
+import { SpeculationRules } from "./SpeculationRules";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -44,7 +43,7 @@ export const viewport = {
 
 export const metadata = {
   icons: {
-    icon: "/favicon.ico",
+    icon: "/api/logo?type=favicon-32",
     apple: "/api/logo?type=apple-touch-icon",
     other: [
       {
@@ -98,6 +97,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const h = await headers();
   const nonce = h.get("x-csp-nonce") ?? "";
 
+  const country = h.get("cf-ipcountry") || h.get("x-vercel-ip-country") || "Unknown";
+
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
   const ns = "common";
@@ -115,29 +116,37 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+            data-options='{"activationKey":"Meta+c"}'
+          />
+        )}
       </head>
       <body
         className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {
-              background: "transparent",
-              // Keep the embed hidden till parent initializes and
-              // - gives it the appropriate styles if UI instruction is there.
-              // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
-              // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-              visibility: "hidden",
-              // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
-              opacity: 0,
-            }
+                background: "transparent",
+                // Keep the embed hidden till parent initializes and
+                // - gives it the appropriate styles if UI instruction is there.
+                // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+                // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
+                visibility: "hidden",
+                // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
+                opacity: 0,
+              }
             : {
-              visibility: "visible",
-              opacity: 1,
-            }
+                visibility: "visible",
+                opacity: 1,
+              }
         }>
         <IconSprites />
         <SpeculationRules
@@ -154,7 +163,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed} nonce={nonce}>
+        <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>

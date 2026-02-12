@@ -21,9 +21,11 @@ import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
+import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
+
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
-  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown },
 >(
   usersFromTeam: T[]
 ) => {
@@ -174,12 +176,13 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        hour: string;
-        count: number;
-      }>
-    >(query);
+    const results =
+      await this.prisma.$queryRaw<
+        Array<{
+          hour: string;
+          count: number;
+        }>
+      >(query);
 
     // Create a map of results by hour for easy lookup
     const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
@@ -404,7 +407,7 @@ export class InsightsBookingBaseService {
       parentId: options.orgId,
       select: { id: true },
     });
-    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
+    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
 
     // Get all users from the organization
     const userIdsFromOrg =
@@ -417,7 +420,7 @@ export class InsightsBookingBaseService {
     const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
 
     if (userIdsFromOrg.length > 0) {
-      const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
+      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
       conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
     }
 
@@ -483,8 +486,6 @@ export class InsightsBookingBaseService {
     offset?: number;
     timeZone: string;
   }) {
-    const DATE_FORMAT = "YYYY-MM-DD";
-    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -522,25 +523,26 @@ export class InsightsBookingBaseService {
       OFFSET ${offset}
     `;
 
-    const csvData = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        uid: string | null;
-        title: string;
-        createdAt: Date;
-        timeStatus: string;
-        eventTypeId: number | null;
-        eventLength: number;
-        startTime: Date;
-        endTime: Date;
-        paid: boolean;
-        userEmail: string;
-        userUsername: string;
-        rating: number | null;
-        ratingFeedback: string | null;
-        noShowHost: boolean;
-      }>
-    >(csvDataQuery);
+    const csvData =
+      await this.prisma.$queryRaw<
+        Array<{
+          id: number;
+          uid: string | null;
+          title: string;
+          createdAt: Date;
+          timeStatus: string;
+          eventTypeId: number | null;
+          eventLength: number;
+          startTime: Date;
+          endTime: Date;
+          paid: boolean;
+          userEmail: string;
+          userUsername: string;
+          rating: number | null;
+          ratingFeedback: string | null;
+          noShowHost: boolean;
+        }>
+      >(csvDataQuery);
 
     if (csvData.length === 0) {
       return { data: csvData, total: totalCount };
@@ -552,7 +554,7 @@ export class InsightsBookingBaseService {
       return { data: csvData, total: totalCount };
     }
 
-    // 2. Get all bookings with their attendees and seat references
+    // 2. Get all bookings with their attendees, seat references, and phone data
     const bookings = await this.prisma.booking.findMany({
       where: {
         uid: {
@@ -561,10 +563,12 @@ export class InsightsBookingBaseService {
       },
       select: {
         uid: true,
+        eventTypeId: true,
         attendees: {
           select: {
             name: true,
             email: true,
+            phoneNumber: true,
             noShow: true,
           },
         },
@@ -574,120 +578,32 @@ export class InsightsBookingBaseService {
               select: {
                 name: true,
                 email: true,
+                phoneNumber: true,
                 noShow: true,
               },
             },
           },
         },
+        responses: true,
+        eventType: {
+          select: {
+            bookingFields: true,
+          },
+        },
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
       },
     });
 
-    // 3. Create booking map with attendee data (matching original logic)
-    const bookingMap = new Map(
-      bookings.map((booking) => {
-        const attendeeList =
-          booking.seatsReferences.length > 0
-            ? booking.seatsReferences.map((ref) => ref.attendee)
-            : booking.attendees;
-
-        // List all no-show guests (name and email)
-        const noShowGuests =
-          attendeeList
-            .filter((attendee) => attendee?.noShow)
-            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-            .filter(Boolean) // remove null values
-            .join("; ") || null;
-        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
-
-        const formattedAttendees = attendeeList
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
-          .filter(Boolean);
-
-        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
-      })
-    );
-
-    // 4. Calculate max attendees for dynamic columns
-    const maxAttendees = Math.max(
-      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
-      0
-    );
-
-    // 5. Create final booking map with attendee fields
-    const finalBookingMap = new Map(
-      Array.from(bookingMap.entries()).map(([uid, data]) => {
-        const attendeeFields: Record<string, string | null> = {};
-
-        for (let i = 1; i <= maxAttendees; i++) {
-          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
-        }
-
-        return [
-          uid,
-          {
-            noShowGuests: data.noShowGuests,
-            noShowGuestsCount: data.noShowGuestsCount,
-            ...attendeeFields,
-          },
-        ];
-      })
-    );
-
-    // 6. Combine booking data with attendee data and add ISO timestamp columns
-    const data = csvData.map((bookingTimeStatus) => {
-      const dateAndTime = {
-        createdAt: bookingTimeStatus.createdAt.toISOString(),
-        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
-        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
-        startTime: bookingTimeStatus.startTime.toISOString(),
-        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
-        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
-        endTime: bookingTimeStatus.endTime.toISOString(),
-        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
-        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
-      };
-
-      if (!bookingTimeStatus.uid) {
-        // should not be reached because we filtered above
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-        };
-      }
-
-      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
-
-      if (!attendeeData) {
-        const nullAttendeeFields: Record<string, null> = {};
-        for (let i = 1; i <= maxAttendees; i++) {
-          nullAttendeeFields[`attendee${i}`] = null;
-        }
-
-        return {
-          ...bookingTimeStatus,
-          ...dateAndTime,
-          noShowGuests: null,
-          noShowGuestsCount: 0,
-          ...nullAttendeeFields,
-        };
-      }
-
-      return {
-        ...bookingTimeStatus,
-        ...dateAndTime,
-        noShowGuests: attendeeData.noShowGuests,
-        noShowGuestsCount: attendeeData.noShowGuestsCount,
-        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
-      };
-    });
+    // 3. Transform bookings data for CSV export
+    const data = transformBookingsForCsv(csvData as BookingTimeStatusData[], bookings, timeZone);
 
     return { data, total: totalCount };
   }
@@ -738,15 +654,16 @@ export class InsightsBookingBaseService {
     ORDER BY bs."date"
   `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        bookingsCount: number;
-        timeStatus: string;
-        noShowHost: boolean;
-        noShowGuests: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          bookingsCount: number;
+          timeStatus: string;
+          noShowHost: boolean;
+          noShowGuests: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: {
@@ -848,12 +765,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromSelected = await this.prisma.$queryRaw<
-      Array<{
-        eventTypeId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromSelected =
+      await this.prisma.$queryRaw<
+        Array<{
+          eventTypeId: number;
+          count: number;
+        }>
+      >(query);
 
     const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
 
@@ -954,12 +872,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          count: number;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1017,12 +936,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          count: number;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1080,13 +1000,14 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number | null;
-        rating: number | null;
-        ratingFeedback: string | null;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number | null;
+          rating: number | null;
+          ratingFeedback: string | null;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1178,19 +1099,20 @@ export class InsightsBookingBaseService {
       FROM booking_stats bs, guest_stats gs
     `;
 
-    const stats = await this.prisma.$queryRaw<
-      Array<{
-        total_bookings: bigint;
-        completed_bookings: bigint;
-        rescheduled_bookings: bigint;
-        cancelled_bookings: bigint;
-        no_show_host_bookings: bigint;
-        avg_rating: number | null;
-        total_ratings: bigint;
-        ratings_above_3: bigint;
-        no_show_guests: bigint;
-      }>
-    >(query);
+    const stats =
+      await this.prisma.$queryRaw<
+        Array<{
+          total_bookings: bigint;
+          completed_bookings: bigint;
+          rescheduled_bookings: bigint;
+          cancelled_bookings: bigint;
+          no_show_host_bookings: bigint;
+          avg_rating: number | null;
+          total_ratings: bigint;
+          ratings_above_3: bigint;
+          no_show_guests: bigint;
+        }>
+      >(query);
 
     const rawStats = stats[0];
     return rawStats
@@ -1259,15 +1181,16 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const recentNoShowBookings = await this.prisma.$queryRaw<
-      Array<{
-        bookingId: number;
-        startTime: Date;
-        eventTypeName: string;
-        guestName: string;
-        guestEmail: string;
-      }>
-    >(query);
+    const recentNoShowBookings =
+      await this.prisma.$queryRaw<
+        Array<{
+          bookingId: number;
+          startTime: Date;
+          eventTypeName: string;
+          guestName: string;
+          guestEmail: string;
+        }>
+      >(query);
 
     return recentNoShowBookings;
   }
@@ -1307,12 +1230,13 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        count: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          count: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: { [date: string]: number } = {};
@@ -1365,13 +1289,14 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        ratings_above_3: number;
-        total_ratings: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          ratings_above_3: number;
+          total_ratings: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: { [date: string]: { ratingsAbove3: number; totalRatings: number } } = {};

@@ -95,7 +95,7 @@ export default function Authorize() {
         <div className="mb-4 mt-5 font-medium text-black">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        <ul className="space-y-4 text-sm text-black">{permissions}</ul>
+        <ul className="stack-y-4 text-sm text-black">{permissions}</ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
             <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
@@ -110,7 +110,7 @@ export default function Authorize() {
         <div className="border-subtle border- -mx-9 mb-4 border-b" />
         <div className="flex justify-end">
           <Button
-            className="bg-primary mr-2 text-black"
+            className="bg-primary-default mr-2 text-black"
             onClick={() => {
               router.back();
             }}>
