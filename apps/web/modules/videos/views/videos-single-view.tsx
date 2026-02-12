@@ -17,7 +17,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
-import { ChevronRightIcon } from "@coss/ui/icons";
+import { CalendarDaysIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider, useDailyEvent } from "@daily-co/daily-react";
@@ -451,7 +451,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           <div className="flex items-center justify-between rounded-lg border border-subtle p-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-md bg-subtle">
-                <Icon name="calendar-days" className="h-5 w-5 text-default" />
+                <CalendarDaysIcon className="h-5 w-5 text-default" />
               </div>
               <div>
                 <p className="font-semibold text-emphasis text-sm">{bookingTitle}</p>
