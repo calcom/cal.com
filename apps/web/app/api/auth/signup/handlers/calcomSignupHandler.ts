@@ -14,6 +14,7 @@ import {
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
@@ -296,40 +297,22 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     }
   }
 
-  if (checkoutSessionId) {
-    console.log("Created user but missing payment", checkoutSessionId);
-    return NextResponse.json(
-      { message: "Created user but missing payment", checkoutSessionId },
-      { status: 402 }
-    );
-  }
-
   const featuresRepository = new FeaturesRepository(prisma);
   const signupWatchlistReviewEnabled =
     await featuresRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
 
   if (signupWatchlistReviewEnabled && !token) {
+    const globalWatchlistRepo = new GlobalWatchlistRepository(prisma);
     const normalizedEmail = normalizeEmail(email);
-    const existing = await prisma.watchlist.findFirst({
-      where: {
-        type: WatchlistType.EMAIL,
-        value: normalizedEmail,
-        isGlobal: true,
-        organizationId: null,
-      },
-      select: { id: true },
-    });
+    const existing = await globalWatchlistRepo.findBlockedEmail(normalizedEmail);
 
     if (!existing) {
-      await prisma.watchlist.create({
-        data: {
-          type: WatchlistType.EMAIL,
-          value: normalizedEmail,
-          action: WatchlistAction.BLOCK,
-          source: WatchlistSource.SIGNUP,
-          isGlobal: true,
-          description: "Auto-added during signup review",
-        },
+      await globalWatchlistRepo.createEntry({
+        type: WatchlistType.EMAIL,
+        value: normalizedEmail,
+        action: WatchlistAction.BLOCK,
+        source: WatchlistSource.SIGNUP,
+        description: "Auto-added during signup review",
       });
     }
 
@@ -341,6 +324,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     return NextResponse.json(
       { message: "Created user", stripeCustomerId: customer.stripeCustomerId, accountUnderReview: true },
       { status: 201 }
+    );
+  }
+
+  if (checkoutSessionId) {
+    console.log("Created user but missing payment", checkoutSessionId);
+    return NextResponse.json(
+      { message: "Created user but missing payment", checkoutSessionId },
+      { status: 402 }
     );
   }
 
