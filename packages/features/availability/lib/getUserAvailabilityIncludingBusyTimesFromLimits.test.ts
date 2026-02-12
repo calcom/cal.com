@@ -56,6 +56,8 @@ const DATE_FROM = "2025-01-06T00:00:00Z";
 const DATE_TO = "2025-01-10T23:59:59Z";
 const DATE_FROM_ISO = "2025-01-06T00:00:00.000Z";
 const DATE_TO_ISO = "2025-01-10T23:59:59.000Z";
+const LIMIT_DATE_FROM_FORMATTED = "2025-01-01T00:00:00+00:00";
+const LIMIT_DATE_TO_FORMATTED = "2025-01-31T23:59:59+00:00";
 
 const createMockUser = (
   overrides?: Partial<NonNullable<GetUserAvailabilityInitialData["user"]>>
@@ -172,14 +174,15 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       { PER_DAY: 3 },
       null
     );
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userIds: [1],
-        eventTypeId: 100,
-        bookingLimits: { PER_DAY: 3 },
-        durationLimits: null,
-      })
-    );
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith({
+      userIds: [1],
+      eventTypeId: 100,
+      startDate: LIMIT_DATE_FROM_FORMATTED,
+      endDate: LIMIT_DATE_TO_FORMATTED,
+      rescheduleUid: undefined,
+      bookingLimits: { PER_DAY: 3 },
+      durationLimits: null,
+    });
   });
 
   it("fetches busy times when eventType has duration limits", async () => {
@@ -197,13 +200,15 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       null,
       { PER_WEEK: 120 }
     );
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userIds: [1],
-        bookingLimits: null,
-        durationLimits: { PER_WEEK: 120 },
-      })
-    );
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith({
+      userIds: [1],
+      eventTypeId: 100,
+      startDate: LIMIT_DATE_FROM_FORMATTED,
+      endDate: LIMIT_DATE_TO_FORMATTED,
+      rescheduleUid: undefined,
+      bookingLimits: null,
+      durationLimits: { PER_WEEK: 120 },
+    });
   });
 
   it("passes both bookingLimits and durationLimits separately to getStartEndDateforLimitCheck", async () => {
@@ -265,11 +270,15 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       eventType,
     });
 
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userIds: [1, 2, 3],
-      })
-    );
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith({
+      userIds: [1, 2, 3],
+      eventTypeId: 100,
+      startDate: LIMIT_DATE_FROM_FORMATTED,
+      endDate: LIMIT_DATE_TO_FORMATTED,
+      rescheduleUid: undefined,
+      bookingLimits: { PER_DAY: 5 },
+      durationLimits: null,
+    });
   });
 
   it("uses only the user ID for solo events with booking limits", async () => {
@@ -284,11 +293,15 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       eventType,
     });
 
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userIds: [42],
-      })
-    );
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith({
+      userIds: [42],
+      eventTypeId: 100,
+      startDate: LIMIT_DATE_FROM_FORMATTED,
+      endDate: LIMIT_DATE_TO_FORMATTED,
+      rescheduleUid: undefined,
+      bookingLimits: { PER_DAY: 2 },
+      durationLimits: null,
+    });
   });
 
   it("fetches eventType by eventTypeId when not provided in initialData", async () => {
@@ -304,12 +317,15 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     });
 
     expect(mockDependencies.eventTypeRepo.findByIdForUserAvailability).toHaveBeenCalledWith({ id: 100 });
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        eventTypeId: 100,
-        bookingLimits: { PER_DAY: 1 },
-      })
-    );
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith({
+      userIds: [1],
+      eventTypeId: 100,
+      startDate: LIMIT_DATE_FROM_FORMATTED,
+      endDate: LIMIT_DATE_TO_FORMATTED,
+      rescheduleUid: undefined,
+      bookingLimits: { PER_DAY: 1 },
+      durationLimits: null,
+    });
   });
 
   it("passes fetched busyTimesFromLimitsBookings to _getUserAvailability", async () => {
@@ -334,10 +350,12 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     });
 
     expect(getUserAvailabilitySpy).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
+      createParams(),
+      {
+        user,
+        eventType,
         busyTimesFromLimitsBookings: fetchedBusyTimes,
-      })
+      }
     );
   });
 
@@ -351,10 +369,14 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
       rescheduleUid: "reschedule-uid-123",
     });
 
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        rescheduleUid: "reschedule-uid-123",
-      })
-    );
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith({
+      userIds: [1],
+      eventTypeId: 100,
+      startDate: LIMIT_DATE_FROM_FORMATTED,
+      endDate: LIMIT_DATE_TO_FORMATTED,
+      rescheduleUid: "reschedule-uid-123",
+      bookingLimits: { PER_DAY: 3 },
+      durationLimits: null,
+    });
   });
 });
