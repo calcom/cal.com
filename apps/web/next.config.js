@@ -213,6 +213,7 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
+    "@calid/job-dispatcher",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {

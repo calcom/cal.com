@@ -1,4 +1,4 @@
-import { Inngest } from "inngest";
+import { getInngestClient } from "@calid/job-dispatcher/";
 import { serve } from "inngest/next";
 
 import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
@@ -12,10 +12,7 @@ import { handleCalendlyImportEvent } from "@calcom/web/pages/api/import/calendly
 import { triggerScheduledWebhook } from "./trigger-scheduled-webhook";
 import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
 
-export const inngestClient = new Inngest({
-  id: INNGEST_ID,
-  eventKey: process.env.INNGEST_EVENT_KEY || "",
-});
+export const inngestClient = getInngestClient();
 
 const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
 const WHATSAPP_TEMPLATE_SYNC_CRON = process.env.WHATSAPP_TEMPLATE_SYNC_CRON ?? "0 * * * *";
