@@ -531,4 +531,4 @@ function shouldHideBranding(booking: {
   return !!booking.user?.hideBranding;
 }
 
-export {handler};
+export { handler };

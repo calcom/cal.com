@@ -29,4 +29,3 @@ export const moduleLoader: ModuleLoader = {
 };
 
 export type { ManagedEventReassignmentService };
-

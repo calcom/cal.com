@@ -21,9 +21,9 @@ describe("NoShowUpdatedAuditActionService - getDataRequirements contract", () =>
       },
     };
 
-    const { errors, accessedData} = await verifyDataRequirementsContract(service, storedData);
+    const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
     expect(errors).toEqual([]);
-    expect(accessedData.userUuids.size).toBe(1)
+    expect(accessedData.userUuids.size).toBe(1);
   });
 
   it("should declare empty userUuids when only attendees are set", async () => {
@@ -34,9 +34,9 @@ describe("NoShowUpdatedAuditActionService - getDataRequirements contract", () =>
       },
     };
 
-    const { errors, accessedData} = await verifyDataRequirementsContract(service, storedData);
+    const { errors, accessedData } = await verifyDataRequirementsContract(service, storedData);
     expect(errors).toEqual([]);
-    expect(accessedData.userUuids.size).toBe(0)
+    expect(accessedData.userUuids.size).toBe(0);
   });
 
   it("should declare exactly the userUuids accessed when both host and attendees are set", async () => {

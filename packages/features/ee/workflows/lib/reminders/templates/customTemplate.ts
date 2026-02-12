@@ -128,13 +128,13 @@ const customTemplate = (
 
   const attendeeFirstName = variables.attendeeFirstName
     ? variables.attendeeFirstName
-    : attendeeNameWords?.[0] ?? "";
+    : (attendeeNameWords?.[0] ?? "");
 
   const attendeeLastName = variables.attendeeLastName
     ? variables.attendeeLastName
     : attendeeNameWordCount > 1
-    ? attendeeNameWords![attendeeNameWordCount - 1]
-    : "";
+      ? attendeeNameWords![attendeeNameWordCount - 1]
+      : "";
 
   let dynamicText = text
     .replaceAll("{EVENT_NAME}", variables.eventName || "")

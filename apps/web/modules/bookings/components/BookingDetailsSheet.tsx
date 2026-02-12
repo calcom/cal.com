@@ -215,7 +215,7 @@ function BookingDetailsSheetInner({
         .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
-  const reason = booking.assignmentReason?.[0];
+  const reason = booking.assignmentReasonSortedByCreatedAt?.[booking.assignmentReasonSortedByCreatedAt.length - 1];
   const reasonTitle = reason && assignmentReasonBadgeTitleMap(reason.reasonEnum);
 
   return (
@@ -597,12 +597,12 @@ function RecurringInfoSection({
 function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
 
-  if (!booking.assignmentReason || booking.assignmentReason.length === 0) {
+  if (!booking.assignmentReasonSortedByCreatedAt || booking.assignmentReasonSortedByCreatedAt.length === 0) {
     return null;
   }
 
-  // we fetch only one assignment reason.
-  const reason = booking.assignmentReason[0];
+  const reason =
+    booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1];
   if (!reason.reasonString) {
     return null;
   }
