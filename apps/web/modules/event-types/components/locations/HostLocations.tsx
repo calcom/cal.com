@@ -27,7 +27,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Label, TextField, Select, SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon, TriangleAlertIcon } from "@coss/ui/icons";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -328,7 +328,7 @@ const HostLocationRow = ({
         <div className="flex items-center gap-2">
           {currentLocation && !hasAppInstalled && (
             <Badge variant="orange" className="whitespace-nowrap">
-              <Icon name="triangle-alert" className="mr-1 h-3 w-3" />
+              <TriangleAlertIcon className="mr-1 h-3 w-3" />
               {t("app_not_installed")}
             </Badge>
           )}
@@ -689,7 +689,7 @@ const HostList = ({
       <div ref={containerRef} className="border-subtle max-h-96 overflow-y-auto rounded-md border">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
+            <LoaderIcon className="text-subtle h-5 w-5 animate-spin" />
           </div>
         ) : (
           <>
@@ -705,7 +705,7 @@ const HostList = ({
             ))}
             {isFetchingNextPage && (
               <div className="flex items-center justify-center py-4">
-                <Icon name="loader" className="text-subtle h-4 w-4 animate-spin" />
+                <LoaderIcon className="text-subtle h-4 w-4 animate-spin" />
               </div>
             )}
           </>

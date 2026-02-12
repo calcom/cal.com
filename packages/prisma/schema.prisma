@@ -499,6 +499,7 @@ model User {
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
   reportedBookings               BookingReport[]               @relation("ReportedBy")
   wrongAssignmentReports         WrongAssignmentReport[]       @relation("WrongAssignmentReportedBy")
+  reviewedWrongAssignmentReports WrongAssignmentReport[]       @relation("WrongAssignmentReviewedBy")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -2579,6 +2580,9 @@ model WrongAssignmentReport {
   routingFormId   String?
   routingForm     App_RoutingForms_Form?      @relation(fields: [routingFormId], references: [id], onDelete: SetNull)
   status          WrongAssignmentReportStatus @default(PENDING)
+  reviewedById    Int?
+  reviewedBy      User?                       @relation("WrongAssignmentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
   createdAt       DateTime                    @default(now())
   updatedAt       DateTime                    @updatedAt
 
@@ -2586,12 +2590,19 @@ model WrongAssignmentReport {
   @@index([teamId])
   @@index([routingFormId])
   @@index([status])
+  @@index([reviewedById])
   @@index([createdAt])
+  @@index([teamId, status, createdAt])
 }
 
 enum BillingPeriod {
   MONTHLY
   ANNUALLY
+}
+
+enum BillingMode {
+  SEATS
+  ACTIVE_USERS
 }
 
 model OrganizationOnboarding {
@@ -3033,6 +3044,7 @@ model TeamBilling {
   subscriptionEnd      DateTime?
 
   billingPeriod     BillingPeriod?
+  billingMode       BillingMode    @default(SEATS)
   pricePerSeat      Int?
   paidSeats         Int?
   monthlyProrations MonthlyProration[]
@@ -3061,6 +3073,7 @@ model OrganizationBilling {
   subscriptionEnd      DateTime?
 
   billingPeriod     BillingPeriod?
+  billingMode       BillingMode    @default(SEATS)
   pricePerSeat      Int?
   paidSeats         Int?
   monthlyProrations MonthlyProration[]

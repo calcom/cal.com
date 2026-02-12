@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select } from "@calcom/ui/components/form";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon, PhoneIncomingIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { VoiceSelectionDialog } from "../../../VoiceSelectionDialog";
@@ -91,7 +91,7 @@ export function IncomingCallsTab({
       <div className="border-subtle rounded-xl border p-8">
         <div className="stack-y-6 flex flex-col items-center text-center">
           <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
-            <Icon name="info" className="text-subtle h-8 w-8" />
+            <InfoIcon className="text-subtle h-8 w-8" />
           </div>
           <div className="stack-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("setup_incoming_agent")}</h3>
@@ -107,7 +107,7 @@ export function IncomingCallsTab({
       <div className="border-subtle rounded-xl border p-8">
         <div className="stack-y-6 flex flex-col items-center text-center">
           <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
-            <Icon name="phone-incoming" className="text-subtle h-8 w-8" />
+            <PhoneIncomingIcon className="text-subtle h-8 w-8" />
           </div>
           <div className="stack-y-2">
             <h3 className="text-emphasis text-lg font-semibold">{t("setup_inbound_agent")}</h3>
