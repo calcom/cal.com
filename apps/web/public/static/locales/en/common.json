@@ -848,6 +848,7 @@
   "wrong_assignment_reported": "Wrong assignment reported successfully",
   "wrong_assignment_already_reported": "A wrong assignment report has already been submitted for this booking.",
   "routing_reason": "Routing Reason",
+  "first_assignment_reason": "First Assignment Reason",
   "no_routing_reason": "No routing reason available",
   "who_booked_it": "Who booked it?",
   "who_received_it": "Who received it?",
