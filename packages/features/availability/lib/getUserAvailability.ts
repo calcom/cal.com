@@ -681,12 +681,13 @@ export class UserAvailabilityService {
     const { bookingLimits, durationLimits } = await this.parseLimits(eventType);
 
     let busyTimesFromLimitsBookings: EventBusyDetails[] = [];
-    if (!initialData?.busyTimesFromLimitsBookings && eventType) {
+    if (!initialData?.busyTimesFromLimitsBookings && eventType && (bookingLimits || durationLimits)) {
       const busyTimesService = getBusyTimesService();
       const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
         dateFrom.toISOString(),
         dateTo.toISOString(),
-        bookingLimits || durationLimits
+        bookingLimits,
+        durationLimits
       );
 
       // For team events with booking/duration limits, fetch bookings for all team members

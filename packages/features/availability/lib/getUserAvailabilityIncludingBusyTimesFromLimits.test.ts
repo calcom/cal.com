@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { GetUserAvailabilityInitialData } from "./getUserAvailability";
+import type { EventType, GetUserAvailabilityInitialData } from "./getUserAvailability";
 import { UserAvailabilityService } from "./getUserAvailability";
 
 vi.mock("@calcom/features/di/containers/BusyTimes", () => ({
@@ -32,24 +32,34 @@ const mockBusyTimesService = {
   getBusyTimes: vi.fn().mockResolvedValue([]),
 };
 
-const mockDependencies = {
+const mockDependencies: ConstructorParameters<typeof UserAvailabilityService>[0] = {
   oooRepo: {
     findUserOOODays: vi.fn().mockResolvedValue([]),
-  } as never,
-  bookingRepo: {} as never,
+  },
+  bookingRepo: {
+    findAcceptedBookingByEventTypeId: vi.fn().mockResolvedValue([]),
+  },
   redisClient: {
     get: vi.fn().mockResolvedValue(null),
     set: vi.fn(),
-  } as never,
+  },
   eventTypeRepo: {
     findByIdForUserAvailability: vi.fn().mockResolvedValue(null),
-  } as never,
+    findForSlots: vi.fn().mockResolvedValue(null),
+  },
   holidayRepo: {
     findUserSettingsSelect: vi.fn().mockResolvedValue(null),
-  } as never,
+  },
 };
 
-const createMockUser = (overrides?: Partial<NonNullable<GetUserAvailabilityInitialData["user"]>>) => ({
+const DATE_FROM = "2025-01-06T00:00:00Z";
+const DATE_TO = "2025-01-10T23:59:59Z";
+const DATE_FROM_ISO = "2025-01-06T00:00:00.000Z";
+const DATE_TO_ISO = "2025-01-10T23:59:59.000Z";
+
+const createMockUser = (
+  overrides?: Partial<NonNullable<GetUserAvailabilityInitialData["user"]>>
+): NonNullable<GetUserAvailabilityInitialData["user"]> => ({
   id: 1,
   username: "testuser",
   email: "test@example.com",
@@ -91,10 +101,8 @@ const createMockUser = (overrides?: Partial<NonNullable<GetUserAvailabilityIniti
   ...overrides,
 });
 
-const createMockEventType = (overrides?: Record<string, unknown>) => ({
+const createMockEventType = (overrides?: Partial<NonNullable<EventType>>): NonNullable<EventType> => ({
   id: 100,
-  slug: "test-event",
-  title: "Test Event",
   length: 30,
   seatsPerTimeSlot: null,
   timeZone: null,
@@ -108,12 +116,13 @@ const createMockEventType = (overrides?: Record<string, unknown>) => ({
   team: null,
   parent: null,
   schedulingType: null,
+  assignAllTeamMembers: false,
   ...overrides,
 });
 
 const createParams = (overrides?: Record<string, unknown>) => ({
-  dateFrom: dayjs("2025-01-06T00:00:00Z"),
-  dateTo: dayjs("2025-01-10T23:59:59Z"),
+  dateFrom: dayjs(DATE_FROM),
+  dateTo: dayjs(DATE_TO),
   returnDateOverrides: false,
   ...overrides,
 });
@@ -139,7 +148,7 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
 
     const result = await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
       busyTimesFromLimitsBookings: existingBusyTimes,
     });
 
@@ -148,67 +157,86 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     expect(result.busy).toBeDefined();
   });
 
-  it("fetches busy times from limits when eventType has booking limits and no initialData busyTimesFromLimitsBookings", async () => {
+  it("fetches busy times when eventType has booking limits", async () => {
     const user = createMockUser();
     const eventType = createMockEventType({ bookingLimits: { PER_DAY: 3 } });
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams({ eventTypeId: 100 }), {
       user,
-      eventType: eventType as never,
+      eventType,
     });
 
     expect(mockBusyTimesService.getStartEndDateforLimitCheck).toHaveBeenCalledWith(
-      "2025-01-06T00:00:00.000Z",
-      "2025-01-10T23:59:59.000Z",
-      expect.objectContaining({ PER_DAY: 3 })
+      DATE_FROM_ISO,
+      DATE_TO_ISO,
+      { PER_DAY: 3 },
+      null
     );
     expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
       expect.objectContaining({
-        userIds: [user.id],
+        userIds: [1],
         eventTypeId: 100,
-        bookingLimits: expect.objectContaining({ PER_DAY: 3 }),
+        bookingLimits: { PER_DAY: 3 },
+        durationLimits: null,
       })
     );
   });
 
-  it("fetches busy times from limits when eventType has duration limits", async () => {
+  it("fetches busy times when eventType has duration limits", async () => {
     const user = createMockUser();
     const eventType = createMockEventType({ durationLimits: { PER_WEEK: 120 } });
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
     });
 
     expect(mockBusyTimesService.getStartEndDateforLimitCheck).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(String),
-      expect.objectContaining({ PER_WEEK: 120 })
+      DATE_FROM_ISO,
+      DATE_TO_ISO,
+      null,
+      { PER_WEEK: 120 }
     );
     expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
       expect.objectContaining({
-        userIds: [user.id],
-        durationLimits: expect.objectContaining({ PER_WEEK: 120 }),
+        userIds: [1],
+        bookingLimits: null,
+        durationLimits: { PER_WEEK: 120 },
       })
     );
   });
 
-  it("still calls getBusyTimesForLimitChecks when eventType exists but has no limits", async () => {
+  it("passes both bookingLimits and durationLimits separately to getStartEndDateforLimitCheck", async () => {
+    const user = createMockUser();
+    const eventType = createMockEventType({
+      bookingLimits: { PER_DAY: 3 },
+      durationLimits: { PER_WEEK: 120 },
+    });
+
+    await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
+      user,
+      eventType,
+    });
+
+    expect(mockBusyTimesService.getStartEndDateforLimitCheck).toHaveBeenCalledWith(
+      DATE_FROM_ISO,
+      DATE_TO_ISO,
+      { PER_DAY: 3 },
+      { PER_WEEK: 120 }
+    );
+  });
+
+  it("skips fetching limit busy times when eventType has no limits", async () => {
     const user = createMockUser();
     const eventType = createMockEventType();
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
     });
 
-    expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bookingLimits: null,
-        durationLimits: null,
-        eventTypeId: 100,
-      })
-    );
+    expect(mockBusyTimesService.getStartEndDateforLimitCheck).not.toHaveBeenCalled();
+    expect(mockBusyTimesService.getBusyTimesForLimitChecks).not.toHaveBeenCalled();
   });
 
   it("skips fetching limit busy times when no eventType exists", async () => {
@@ -225,12 +253,16 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     const user = createMockUser();
     const eventType = createMockEventType({
       bookingLimits: { PER_DAY: 5 },
-      hosts: [{ user: { id: 1 } }, { user: { id: 2 } }, { user: { id: 3 } }],
+      hosts: [
+        { user: { id: 1, email: "host1@test.com" }, schedule: null },
+        { user: { id: 2, email: "host2@test.com" }, schedule: null },
+        { user: { id: 3, email: "host3@test.com" }, schedule: null },
+      ],
     });
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
     });
 
     expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
@@ -249,7 +281,7 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
     });
 
     expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
@@ -263,7 +295,9 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     const user = createMockUser();
     const fetchedEventType = createMockEventType({ bookingLimits: { PER_DAY: 1 } });
 
-    mockDependencies.eventTypeRepo.findByIdForUserAvailability.mockResolvedValueOnce(fetchedEventType);
+    vi.mocked(mockDependencies.eventTypeRepo.findByIdForUserAvailability).mockResolvedValueOnce(
+      fetchedEventType
+    );
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams({ eventTypeId: 100 }), {
       user,
@@ -273,7 +307,7 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     expect(mockBusyTimesService.getBusyTimesForLimitChecks).toHaveBeenCalledWith(
       expect.objectContaining({
         eventTypeId: 100,
-        bookingLimits: expect.objectContaining({ PER_DAY: 1 }),
+        bookingLimits: { PER_DAY: 1 },
       })
     );
   });
@@ -292,11 +326,11 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
 
     mockBusyTimesService.getBusyTimesForLimitChecks.mockResolvedValueOnce(fetchedBusyTimes);
 
-    const getUserAvailabilitySpy = vi.spyOn(service, "_getUserAvailability" as never);
+    const getUserAvailabilitySpy = vi.spyOn(service, "_getUserAvailability" as keyof typeof service);
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
     });
 
     expect(getUserAvailabilitySpy).toHaveBeenCalledWith(
@@ -313,7 +347,7 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
 
     await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
       user,
-      eventType: eventType as never,
+      eventType,
       rescheduleUid: "reschedule-uid-123",
     });
 
