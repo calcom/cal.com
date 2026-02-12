@@ -70,7 +70,6 @@ export async function getCalIdConnectedApps({
 
   let credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   let userCalIdTeams: CalIdTeamQuery[] = [];
-  let userRoleInCurrentTeam: string | undefined;
 
   if (includeCalIdTeamInstalledApps || calIdTeamId) {
     const calIdTeamsQuery = await prisma.calIdTeam.findMany({
@@ -102,68 +101,17 @@ export async function getCalIdConnectedApps({
 
     userCalIdTeams = calIdTeamsQuery;
 
-    // Get user's role in the current team
-    if (calIdTeamId) {
-      const currentTeam = userCalIdTeams.find((t) => t.id === calIdTeamId);
-      userRoleInCurrentTeam = currentTeam?.members[0]?.role;
-    }
-
     const calIdTeamAppCredentials = userCalIdTeams.flatMap((calIdTeamApp) => {
       return calIdTeamApp.credentials ? buildNonDelegationCredentials(calIdTeamApp.credentials.flat()) : [];
     });
 
-    // Get team owner credentials for payment apps
-    let teamOwnerCredentials: any[] = [];
-    if (calIdTeamId && extendsFeature === "EventType") {
-      const allTeamMembers = await prisma.calIdMembership.findMany({
-        where: {
-          calIdTeamId: calIdTeamId,
-          acceptedInvitation: true,
-        },
-        select: {
-          userId: true,
-          role: true,
-        },
-      });
-
-      const ownerUserIds = allTeamMembers
-        .filter((member) => member.role === "OWNER")
-        .map((member) => member.userId);
-
-      if (ownerUserIds.length > 0) {
-        const ownerCreds = await prisma.credential.findMany({
-          where: {
-            userId: {
-              in: ownerUserIds,
-            },
-            // appId: {
-            //   in: ['razorpay', 'stripe', 'paypal', 'alby'],
-            // },
-          },
-          select: credentialForCalendarServiceSelect,
-        });
-
-        teamOwnerCredentials = buildNonDelegationCredentials(ownerCreds);
-      }
-    }
-
-    //Allow all team members to see team apps, not just owners
+    // For team-specific event types, only show team-level credentials.
     if (!includeCalIdTeamInstalledApps || calIdTeamId) {
-      const isOwnerOfEventCalIdTeam = userRoleInCurrentTeam === "OWNER";
-
-      if (isOwnerOfEventCalIdTeam) {
-        // Owners can see their personal Razorpay + all team apps + owner credentials
-        credentials = credentials
-          .filter((cr) => cr.appId === "razorpay")
-          .concat(calIdTeamAppCredentials)
-          .concat(teamOwnerCredentials);
-      } else {
-        // Non-owners (ADMIN/MEMBER) can see all team apps + owner credentials
-        // They just can't modify them (handled in the frontend)
-        credentials = calIdTeamAppCredentials.concat(teamOwnerCredentials);
-      }
+      credentials = calIdTeamAppCredentials;
     } else {
-      credentials = credentials.concat(calIdTeamAppCredentials).concat(teamOwnerCredentials);
+      // For the general apps listing (not team-specific event types),
+      // show both user and team credentials
+      credentials = credentials.concat(calIdTeamAppCredentials);
     }
   }
 
