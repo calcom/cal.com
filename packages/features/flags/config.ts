@@ -36,6 +36,7 @@ export type AppFlags = {
   "booking-audit": boolean;
   "monthly-proration": boolean;
   "hwm-seating": boolean;
+  "active-user-billing": boolean;
   "sidebar-tips": boolean;
 };
 

@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma"
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
 
@@ -52,14 +52,14 @@ describe("getRawEventType", () => {
         organizationId: overrides?.organizationId,
         ...(overrides?.withProfile &&
           overrides.organizationId && {
-          profiles: {
-            create: {
-              organizationId: overrides.organizationId,
-              uid: username,
-              username,
+            profiles: {
+              create: {
+                organizationId: overrides.organizationId,
+                uid: username,
+                username,
+              },
             },
-          },
-        }),
+          }),
       },
     });
     createdResources.users.push(user.id);
@@ -119,10 +119,7 @@ describe("getRawEventType", () => {
     return membership;
   };
 
-  const createTestEventType = async (
-    userId: number,
-    overrides?: { slug?: string; title?: string }
-  ) => {
+  const createTestEventType = async (userId: number, overrides?: { slug?: string; title?: string }) => {
     const timestamp = Date.now() + Math.random();
     const eventType = await prisma.eventType.create({
       data: {

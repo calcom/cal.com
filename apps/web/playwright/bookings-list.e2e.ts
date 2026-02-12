@@ -763,6 +763,56 @@ test.describe("Bookings", () => {
         .toBe(1);
     });
   });
+
+  test("clicking a booking item adds uid param to URL when bookings-v3 is enabled", async ({
+    page,
+    users,
+    bookings,
+    prisma,
+  }) => {
+    const existingFlag = await prisma.feature.findUnique({ where: { slug: "bookings-v3" } });
+    await prisma.feature.upsert({
+      where: { slug: "bookings-v3" },
+      update: { enabled: true },
+      create: { slug: "bookings-v3", enabled: true, type: "OPERATIONAL" },
+    });
+
+    try {
+      const user = await users.create();
+
+      const bookingFixture = await createBooking({
+        title: "Test booking for uid param",
+        bookingsFixture: bookings,
+        relativeDate: 3,
+        organizer: user,
+        organizerEventType: user.eventTypes[0],
+        attendees: [{ name: "Attendee", email: "attendee@example.com", timeZone: "Europe/Berlin" }],
+      });
+
+      await user.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
+      await bookingsGetResponse;
+
+      const bookingItem = page.locator(`[data-booking-uid="${bookingFixture.uid}"]`);
+      await expect(bookingItem).toBeVisible();
+
+      await bookingItem.locator('[role="button"]').first().click();
+
+      await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
+    } finally {
+      if (existingFlag) {
+        await prisma.feature.update({
+          where: { slug: "bookings-v3" },
+          data: { enabled: existingFlag.enabled },
+        });
+      } else {
+        await prisma.feature.deleteMany({ where: { slug: "bookings-v3" } });
+      }
+    }
+  });
 });
 
 async function createBooking({
