@@ -82,17 +82,14 @@ export function NewScheduleButton({
               required:t('required'),
               pattern:{
                 value: new RegExp(
-  "^[\\p{L}\\p{M}\\p{N}\\s&\\-_'\\u2018\\u2019@.:,/]+$",
-  "u"
-),
+                  "^[\\p{L}\\p{M}\\p{N}\\s&\\-_'\\u2018\\u2019@.:,/]+$",
+                  "u"
+                ),
                 message:t("invalid_characters_in_name"),
               }
             })}
           />
-
-  
           <DialogFooter>
-
             <DialogClose />
             <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}
