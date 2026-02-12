@@ -18,4 +18,3 @@ export abstract class BaseDelegationPayloadBuilder implements IDelegationPayload
    */
   abstract build(dto: DelegationCredentialErrorDTO): WebhookPayload;
 }
-

@@ -68,15 +68,15 @@ export const generateTeamCheckoutSession = async ({
     mode: "subscription",
     ...(dubCustomer?.discount?.couponId
       ? {
-        discounts: [
-          {
-            coupon:
-              process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                ? dubCustomer.discount.couponTestId
-                : dubCustomer.discount.couponId,
-          },
-        ],
-      }
+          discounts: [
+            {
+              coupon:
+                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                  ? dubCustomer.discount.couponTestId
+                  : dubCustomer.discount.couponId,
+            },
+          ],
+        }
       : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
@@ -108,8 +108,14 @@ export const generateTeamCheckoutSession = async ({
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds?.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
   });
   return session;
@@ -160,10 +166,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (
-      isOrg &&
-      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE
-    ) {
+    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
@@ -201,8 +204,14 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
     subscription_data: {
       metadata: {

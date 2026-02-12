@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
@@ -120,7 +121,7 @@ export default function JoinCall(props: PageProps) {
         }
 
         return callFrame;
-      } catch (err) {
+      } catch (_err) {
         return DailyIframe.getCallInstance();
       }
     },
@@ -160,8 +161,6 @@ export default function JoinCall(props: PageProps) {
     activeMeetingPassword,
     activeMeetingUrl,
     createCallFrame,
-    loggedInUserName,
-    overrideName,
     guestCredentials,
   ]);
 
@@ -182,7 +181,7 @@ export default function JoinCall(props: PageProps) {
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
           <img
-            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+            className="fixed z-10 hidden aspect-square h-16 min-h-16 w-16 min-w-16 rounded-full sm:inline-block"
             src={calVideoLogo}
             alt="My Org Logo"
             style={{
@@ -206,6 +205,8 @@ export default function JoinCall(props: PageProps) {
         <LogInOverlay
           isOpen={!hideLoginModal}
           bookingUid={booking.uid}
+          bookingTitle={booking.title}
+          hostName={booking.user?.name ?? ""}
           loggedInUserName={loggedInUserName ?? undefined}
           overrideName={overrideName}
           requireEmailForGuests={requireEmailForGuests}
@@ -292,6 +293,8 @@ function ProgressBar(props: ProgressBarProps) {
 interface LogInOverlayProps {
   isOpen: boolean;
   bookingUid: string;
+  bookingTitle: string;
+  hostName: string;
   loggedInUserName?: string;
   overrideName?: string;
   requireEmailForGuests?: boolean;
@@ -308,6 +311,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
   const {
     bookingUid,
+    bookingTitle,
+    hostName,
     isOpen: _open,
     loggedInUserName,
     overrideName,
@@ -441,100 +446,75 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent
-        title={t("join_video_call")}
-        description={t("choose_how_you_d_like_to_appear_on_the_call")}
-        className="p-6 sm:max-w-lg"
-        onInteractOutside={(e) => e.preventDefault()}>
-        <div className="mt-2 pb-4">
-          <div className="stack-y-4">
-            <div>
-              <div className="font-semibold">{t("join_as_guest")}</div>
-              <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
+      <DialogContent className="p-6 sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+        <div className="flex flex-col gap-5">
+          <div className="flex items-center justify-between rounded-lg border border-subtle p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-subtle">
+                <Icon name="calendar-days" className="h-5 w-5 text-default" />
+              </div>
+              <div>
+                <p className="font-semibold text-emphasis text-sm">{bookingTitle}</p>
+                <p className="text-subtle text-xs">{t("hosted_by", { name: hostName })}</p>
+              </div>
             </div>
-
-            {requireEmailForGuests ? (
-              <div className="flex flex-col gap-4">
-                <Input
-                  type="text"
-                  placeholder={t("your_name")}
-                  className="w-full flex-1"
-                  value={userName}
-                  onChange={handleUserNameChange}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading}
-                  autoFocus
-                />
-
-                <Input
-                  type="email"
-                  placeholder={t("email_address")}
-                  className="w-full flex-1"
-                  value={userEmail}
-                  onChange={handleEmailChange}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading}
-                />
-
-                <Button
-                  color="secondary"
-                  className="w-fit self-end"
-                  onClick={handleContinueAsGuest}
-                  loading={isLoading}>
-                  {t("continue")}
-                </Button>
-              </div>
-            ) : (
-              <div className="flex gap-4">
-                <Input
-                  type="text"
-                  placeholder={t("your_name")}
-                  className="w-full flex-1"
-                  value={userName}
-                  onChange={handleUserNameChange}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading}
-                  autoFocus
-                />
-                <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
-                  {t("continue")}
-                </Button>
-              </div>
-            )}
+            <Badge variant="success" withDot>
+              {t("ready")}
+            </Badge>
           </div>
 
-          {error && (
-            <div className="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-              <div className="flex">
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
+          <div>
+            <h3 className="font-bold text-emphasis text-lg">{t("ready_to_join")}</h3>
+            <p className="text-sm text-subtle">{t("enter_name_to_join_call")}</p>
+          </div>
 
-          {/* Divider */}
-          <hr className="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
+          <div className="flex flex-col gap-3">
+            <Input
+              type="text"
+              placeholder={t("your_name")}
+              className="w-full"
+              value={userName}
+              onChange={handleUserNameChange}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              autoFocus
+            />
 
-          <div className="stack-y-4 mt-5">
-            <div>
-              <h4 className="text-base font-semibold text-black dark:text-white">
-                {t("sign_in_to_cal_com")}
-              </h4>
-              <p className="text-sm text-gray-500 dark:text-gray-300">
-                {t("track_meetings_and_manage_schedule")}
-              </p>
-            </div>
+            {requireEmailForGuests && (
+              <Input
+                type="email"
+                placeholder={t("email_address")}
+                className="w-full"
+                value={userEmail}
+                onChange={handleEmailChange}
+                onKeyDown={handleKeyDown}
+                disabled={isLoading}
+              />
+            )}
 
             <Button
               color="primary"
               className="w-full justify-center"
-              onClick={() =>
-                (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
-              }>
-              {t("sign_in")}
+              onClick={handleContinueAsGuest}
+              loading={isLoading}>
+              {t("join_call_as_guest")}
             </Button>
           </div>
+
+          {error && (
+            <div className="rounded-md bg-error p-3">
+              <p className="font-medium text-error text-sm">{error}</p>
+            </div>
+          )}
+
+          <p className="text-center text-sm text-subtle">
+            <a
+              href={`${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`}
+              className="text-emphasis underline">
+              {t("sign_in")}
+            </a>{" "}
+            {t("to_track_no_shows")}
+          </p>
         </div>
       </DialogContent>
     </Dialog>
@@ -562,72 +542,66 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
   });
 
   return (
-    <>
-      <aside
-        className={classNames(
-          "no-scrollbar fixed left-0 top-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-[232px]"
-        )}>
-        <main className="prose-sm prose max-w-64 prose-a:text-white prose-h3:text-white prose-h3:font-cal scroll-bar scrollbar-track-w-20 overflow-x-hidden! bg-default w-full overflow-scroll border-r border-gray-300/20 p-4 text-white shadow-sm backdrop-blur-lg">
-          <h3>{t("what")}:</h3>
-          <p>{booking.title}</p>
-          <h3>{t("invitee_timezone")}:</h3>
-          <p>{timeZone}</p>
-          <h3>{t("when")}:</h3>
-          <p suppressHydrationWarning={true}>
-            {formatToLocalizedDate(startTime)} <br />
-            {formatToLocalizedTime({ date: startTime, timeZone })}
-          </p>
-          <h3>{t("time_left")}</h3>
-          <ProgressBar
-            key={String(open)}
-            endTime={endTime.toISOString()}
-            startTime={startTime.toISOString()}
-          />
+    <aside
+      className={classNames(
+        "no-scrollbar fixed top-0 left-0 z-30 flex h-full w-64 transform justify-between overflow-x-hidden overflow-y-scroll transition-all duration-300 ease-in-out",
+        open ? "translate-x-0" : "-translate-x-[232px]"
+      )}>
+      <main className="prose-sm prose scroll-bar scrollbar-track-w-20 overflow-x-hidden! w-full max-w-64 overflow-scroll border-subtle border-r bg-default p-4 prose-h3:font-cal prose-a:text-emphasis prose-h3:text-emphasis text-emphasis shadow-sm backdrop-blur-lg">
+        <h3>{t("what")}:</h3>
+        <p>{booking.title}</p>
+        <h3>{t("invitee_timezone")}:</h3>
+        <p>{timeZone}</p>
+        <h3>{t("when")}:</h3>
+        <p suppressHydrationWarning={true}>
+          {formatToLocalizedDate(startTime)} <br />
+          {formatToLocalizedTime({ date: startTime, timeZone })}
+        </p>
+        <h3>{t("time_left")}</h3>
+        <ProgressBar key={String(open)} endTime={endTime.toISOString()} startTime={startTime.toISOString()} />
 
-          <h3>{t("who")}:</h3>
-          <p>
-            {booking?.user?.name} - {t("organizer")}
-            {!booking?.eventType?.hideOrganizerEmail && (
-              <>
-                : <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
-              </>
-            )}
-          </p>
-
-          {booking.attendees.length
-            ? booking.attendees.map((attendee) => (
-                <p key={attendee.id}>
-                  {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
-                </p>
-              ))
-            : null}
-
-          {booking.description && (
+        <h3>{t("who")}:</h3>
+        <p>
+          {booking?.user?.name} - {t("organizer")}
+          {!booking?.eventType?.hideOrganizerEmail && (
             <>
-              <h3>{t("description")}:</h3>
-
-              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
-              <div
-                className="prose-sm prose prose-invert"
-                dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
-              />
+              : <a href={`mailto:${booking?.user?.email}`}>{booking?.user?.email}</a>
             </>
           )}
-        </main>
-        <div className="flex items-center justify-center">
-          <button
-            aria-label={`${open ? "close" : "open"} booking description sidebar`}
-            className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
-            onClick={() => setOpen(!open)}>
-            <Icon
-              name="chevron-right"
-              aria-hidden
-              className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
+        </p>
+
+        {booking.attendees.length
+          ? booking.attendees.map((attendee) => (
+              <p key={attendee.id}>
+                {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
+              </p>
+            ))
+          : null}
+
+        {booking.description && (
+          <>
+            <h3>{t("description")}:</h3>
+
+            {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
+            <div
+              className="prose-sm prose prose-invert"
+              dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
             />
-          </button>
-        </div>
-      </aside>
-    </>
+          </>
+        )}
+      </main>
+      <div className="flex items-center justify-center">
+        <button
+          aria-label={`${open ? "close" : "open"} booking description sidebar`}
+          className="h-20 w-6 rounded-r-md border border-gray-300/20 border-l-0 bg-black/60 text-white shadow-sm backdrop-blur-lg"
+          onClick={() => setOpen(!open)}>
+          <Icon
+            name="chevron-right"
+            aria-hidden
+            className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
+          />
+        </button>
+      </div>
+    </aside>
   );
 }

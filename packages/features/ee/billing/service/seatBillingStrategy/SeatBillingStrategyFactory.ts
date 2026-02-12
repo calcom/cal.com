@@ -50,9 +50,7 @@ export class SeatBillingStrategyFactory {
   }
 
   async createByTeamId(teamId: number): Promise<ISeatBillingStrategy> {
-    const info = await this.deps.billingPeriodService.getBillingPeriodInfo(
-      teamId
-    );
+    const info = await this.deps.billingPeriodService.getBillingPeriodInfo(teamId);
 
     if (!info.isInTrial && info.subscriptionStart) {
       if (info.billingMode === "ACTIVE_USERS") {
@@ -64,16 +62,11 @@ export class SeatBillingStrategyFactory {
       }
       if (info.billingPeriod === "ANNUALLY") {
         const enabled =
-          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
-            "monthly-proration"
-          );
+          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
         if (enabled) return this.prorationStrategy;
       }
       if (info.billingPeriod === "MONTHLY") {
-        const enabled =
-          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
-            "hwm-seating"
-          );
+        const enabled = await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
         if (enabled) return this.hwmStrategy;
       }
     }
@@ -81,16 +74,10 @@ export class SeatBillingStrategyFactory {
     return this.fallback;
   }
 
-  async createBySubscriptionId(
-    subscriptionId: string
-  ): Promise<ISeatBillingStrategy> {
-    const team = await this.deps.teamBillingDataRepository.findBySubscriptionId(
-      subscriptionId
-    );
+  async createBySubscriptionId(subscriptionId: string): Promise<ISeatBillingStrategy> {
+    const team = await this.deps.teamBillingDataRepository.findBySubscriptionId(subscriptionId);
     if (!team) {
-      log.warn(
-        `No team found for subscription ${subscriptionId}, using fallback strategy`
-      );
+      log.warn(`No team found for subscription ${subscriptionId}, using fallback strategy`);
       return this.fallback;
     }
     return this.createByTeamId(team.id);

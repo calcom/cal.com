@@ -157,7 +157,8 @@
     "min-document": "2.19.1",
     "tar": "7.5.7",
     "lodash": "4.17.23",
-    "lodash-es": "4.17.23"
+    "lodash-es": "4.17.23",
+    "@lingo.dev/_compiler/fast-xml-parser": "5.3.4"
   },
   "packageExtensions": {
     "ink@3.2.0": {
