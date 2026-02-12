@@ -433,7 +433,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => {},
+  onChange = () => { },
   className = "",
   readOnly = false,
   showPrice = false,
@@ -593,7 +593,6 @@ function FieldEditDialog({
     //resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
-  
 
   useEffect(() => {
     if (!formFieldType) {
@@ -615,7 +614,6 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -1010,11 +1008,11 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
-            
+
           return (
             <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
               {!isSimpleVariant && (
