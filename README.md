@@ -731,38 +731,6 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 See the [roadmap project](https://cal.com/roadmap) for a list of proposed features (and known issues). You can change the view to see planned tagged releases.
 
-<!-- LICENSE -->
-
-## License
-
-Cal.com, Inc. is a commercial open source company, which means some parts of this open source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](https://github.com/calcom/cal.com/tree/main/packages/features/ee)) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Cal.com, Inc. which is hired in full-time. Find their compensation on https://cal.com/open.
-
-> [!NOTE]
-> Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
-
-|                                   | AGPLv3 | EE  |
-| --------------------------------- | ------ | --- |
-| Self-host for commercial purposes | ✅     | ✅  |
-| Clone privately                   | ✅     | ✅  |
-| Fork publicly                     | ✅     | ✅  |
-| Requires CLA                      | ✅     | ✅  |
-|  Official Support                 | ❌     | ✅  |
-| Derivative work privately         | ❌     | ✅  |
-|  SSO                              | ❌     | ✅  |
-| Admin Panel                       | ❌     | ✅  |
-| Impersonation                     | ❌     | ✅  |
-| Managed Event Types               | ❌     | ✅  |
-| Organizations                     | ❌     | ✅  |
-| Payments                          | ❌     | ✅  |
-| Platform                          | ❌     | ✅  |
-| Teams                             | ❌     | ✅  |
-| Users                             | ❌     | ✅  |
-| Video                             | ❌     | ✅  |
-| Workflows                         | ❌     | ✅  |
-
-> [!TIP]
-> We work closely with the community and always invite feedback about what should be open and what is fine to be commercial. This list is not set and stone and we have moved things from commercial to open in the past. Please open a [discussion](https://github.com/calcom/cal.com/discussions) if you feel like something is wrong.
-
 ## Repo Activity
 
 <img width="100%" src="https://repobeats.axiom.co/api/embed/6bfca2f20f39738048b6e70ca205efde46352c3d.svg" />
@@ -987,11 +955,18 @@ An example of good readme is [atoms readme](https://github.com/calcom/cal.com/bl
 1. Follow semantic versioning when using changesets.
 2. Mark breaking changes using `❗️Breaking change`
 
-<!-- LICENSE -->
-
 ## License
 
-Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/main/LICENSE). See `LICENSE` for more information.
+Cal.com uses an open-core model: the core is open-source under [AGPLv3](https://opensource.org/license/agpl-v3), with optional [Enterprise Edition](https://github.com/calcom/cal.com/tree/main/packages/features/ee) features available under a commercial license. See the [LICENSE](https://github.com/calcom/cal.com/blob/main/LICENSE) file for details.
+
+| Feature | AGPLv3 | EE |
+| - | - | - |
+| Self-host for commercial purposes | ✅ | ✅ |
+| Clone privately | ✅ | ✅ |
+| Fork publicly | ✅ | ✅ |
+| Requires CLA | ✅ | ✅ |
+| Official support | ❌ | ✅ |
+| SSO, Admin Panel, Teams, Organizations | ❌ | ✅ |
 
 <!-- ACKNOWLEDGEMENTS -->
 
