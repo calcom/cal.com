@@ -767,11 +767,14 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 
 <img width="100%" src="https://repobeats.axiom.co/api/embed/6bfca2f20f39738048b6e70ca205efde46352c3d.svg" />
 
-<!-- CONTRIBUTING -->
-
 ## Contributing
+We ❤️ contributions! Whether it’s fixing a typo, improving documentation, or building new features, your help makes Cal.com better.
 
-Please see our [contributing guide](/CONTRIBUTING.md).
+- Check out our [Contributing Guide](./CONTRIBUTING.md) for detailed steps.
+- Join the discussion on [GitHub Discussions](https://github.com/calcom/cal.com/discussions) or our community channels.
+- Please follow our coding standards and commit message conventions to keep the project consistent.
+
+Even small improvements matter — thank you for helping us grow!
 
 ### Good First Issues
 

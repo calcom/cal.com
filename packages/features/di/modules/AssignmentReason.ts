@@ -19,4 +19,3 @@ export const moduleLoader: ModuleLoader = {
   token,
   loadModule,
 };
-

@@ -40,10 +40,12 @@ export function getHostsAndGuests(booking: BookingInput): { hosts: Host[]; guest
 
   const hostEmails = new Set(filteredHosts.map((host) => host.email));
   const guests =
-    booking.attendees?.filter((attendee) => !hostEmails.has(attendee.email)).map((attendee) => ({
-      email: attendee.email,
-      name: attendee.name,
-    })) ?? [];
+    booking.attendees
+      ?.filter((attendee) => !hostEmails.has(attendee.email))
+      .map((attendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+      })) ?? [];
 
   return {
     hosts: filteredHosts,

@@ -11,14 +11,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { ColumnFilterType, ZDateRangeFilterValue } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 import {
-  DataTableProvider,
-  ColumnFilterType,
-  useDataTable,
-  useFilterValue,
-  ZDateRangeFilterValue,
-} from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+} from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -29,8 +31,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { ClockIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -131,7 +133,7 @@ function OutOfOfficeEntriesListContent({
   const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
     () =>
-      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
+      isPending || isFetching ? new Array(5).fill(null) : (data?.pages?.flatMap((page) => page.rows) ?? []),
     [data, isPending, isFetching]
   ) as OutOfOfficeEntry[];
 
@@ -340,7 +342,15 @@ function OutOfOfficeEntriesListContent({
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching, onOpenEditDialog, t, deleteOutOfOfficeEntryMutation, totalRowCount]);
+  }, [
+    selectedTab,
+    isPending,
+    isFetching,
+    onOpenEditDialog,
+    t,
+    deleteOutOfOfficeEntryMutation,
+    totalRowCount,
+  ]);
 
   const table = useReactTable({
     data: flatData,
@@ -386,7 +396,13 @@ function OutOfOfficeEntriesListContent({
         EmptyView={
           <EmptyScreen
             className="mt-6"
-            headline={searchTerm ? t("no_result_found_for", {searchTerm}) : selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
+            headline={
+              searchTerm
+                ? t("no_result_found_for", { searchTerm })
+                : selectedTab === OutOfOfficeTab.TEAM
+                  ? t("ooo_team_empty_title")
+                  : t("ooo_empty_title")
+            }
             description={
               selectedTab === OutOfOfficeTab.TEAM
                 ? t("ooo_team_empty_description")
@@ -404,7 +420,7 @@ function OutOfOfficeEntriesListContent({
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} className="text-black" />
+                      <ClockIcon size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-56 bg-white text-lg font-bold" />
                       <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
                         z

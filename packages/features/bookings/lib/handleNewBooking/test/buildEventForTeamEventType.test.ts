@@ -25,7 +25,7 @@ vi.mock("@calcom/features/CalendarEventBuilder", () => {
       fromEvent: vi.fn().mockImplementation((_evt) => ({
         withDestinationCalendar: withDestinationCalendarSpy,
         withTeam: withTeamSpy,
-        build: vi.fn().mockImplementation(function() {
+        build: vi.fn().mockImplementation(function () {
           return {
             destinationCalendar: [],
             team: {}, // <- you won't use this result anyway

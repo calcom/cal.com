@@ -35,6 +35,7 @@ const initialData: AppFlags = {
   "booking-audit": false,
   "monthly-proration": false,
   "hwm-seating": false,
+  "active-user-billing": false,
   "sidebar-tips": false,
 };
 
