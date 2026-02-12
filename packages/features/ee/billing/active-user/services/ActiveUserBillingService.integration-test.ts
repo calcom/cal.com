@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
