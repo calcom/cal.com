@@ -102,6 +102,11 @@ export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
       | { reasonEnum: string; reasonString: string }[]
       | { category: string; details?: string | null }
       | null;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmTerm?: string;
+    utmContent?: string;
   };
 
 export type WebhookPayloadType =

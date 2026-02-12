@@ -2517,6 +2517,11 @@ async function handler(
     rescheduledBy: reqBody.rescheduledBy,
     location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    ...(reqBody.tracking?.utm_source && { utmSource: reqBody.tracking.utm_source }),
+    ...(reqBody.tracking?.utm_medium && { utmMedium: reqBody.tracking.utm_medium }),
+    ...(reqBody.tracking?.utm_campaign && { utmCampaign: reqBody.tracking.utm_campaign }),
+    ...(reqBody.tracking?.utm_term && { utmTerm: reqBody.tracking.utm_term }),
+    ...(reqBody.tracking?.utm_content && { utmContent: reqBody.tracking.utm_content }),
   };
 
   if (bookingRequiresPayment) {

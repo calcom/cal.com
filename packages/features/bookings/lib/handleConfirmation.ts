@@ -570,6 +570,17 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+    const trackingData = await prisma.tracking.findUnique({
+      where: { bookingId },
+      select: {
+        utm_source: true,
+        utm_medium: true,
+        utm_campaign: true,
+        utm_term: true,
+        utm_content: true,
+      },
+    });
+
     const payload: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
@@ -579,6 +590,11 @@ export async function handleConfirmation(args: {
       smsReminderNumber: booking.smsReminderNumber || undefined,
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
+      ...(trackingData?.utm_source && { utmSource: trackingData.utm_source }),
+      ...(trackingData?.utm_medium && { utmMedium: trackingData.utm_medium }),
+      ...(trackingData?.utm_campaign && { utmCampaign: trackingData.utm_campaign }),
+      ...(trackingData?.utm_term && { utmTerm: trackingData.utm_term }),
+      ...(trackingData?.utm_content && { utmContent: trackingData.utm_content }),
     };
 
     const promises = subscribersBookingCreated.map((sub) =>
