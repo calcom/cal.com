@@ -2637,6 +2637,7 @@
   "email_verified": "Email verified",
   "select_user": "Select user",
   "select_event_type": "Select event type",
+  "select_field_type": "Select field type",
   "select_date_range": "Select date range",
   "popular_events": "Popular events",
   "no_event_types_found": "No event types found",

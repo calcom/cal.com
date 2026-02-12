@@ -10,7 +10,7 @@ import { useEffect, useState, memo, useMemo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowDownIcon, ArrowUpIcon, CheckIcon, ChevronsUpDownIcon, EyeOffIcon } from "@coss/ui/icons";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import {
   TableNew,
@@ -481,11 +481,10 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
             }>
             {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
           </div>
-          {header.column.getIsSorted() === "asc" && <Icon name="arrow-up" className="h-4 w-4 shrink-0" />}
-          {header.column.getIsSorted() === "desc" && <Icon name="arrow-down" className="h-4 w-4 shrink-0" />}
+          {header.column.getIsSorted() === "asc" && <ArrowUpIcon className="h-4 w-4 shrink-0" />}
+          {header.column.getIsSorted() === "desc" && <ArrowDownIcon className="h-4 w-4 shrink-0" />}
           <div className="grow" />
-          <Icon
-            name="chevrons-up-down"
+          <ChevronsUpDownIcon
             className={classNames(
               "text-subtle h-4 w-4 shrink-0",
               !open && "opacity-0 group-hover:opacity-100"
@@ -507,10 +506,10 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
                       header.column.toggleSorting(false, true);
                     }
                   }}>
-                  <Icon name="arrow-up" className="h-4 w-4" />
+                  <ArrowUpIcon className="h-4 w-4" />
                   {t("asc")}
                   <div className="flex-1" />
-                  {header.column.getIsSorted() === "asc" && <Icon name="check" className="h-4 w-4" />}
+                  {header.column.getIsSorted() === "asc" && <CheckIcon className="h-4 w-4" />}
                 </CommandItem>
                 <CommandItem
                   className="flex cursor-pointer items-center gap-2 px-3 py-2"
@@ -521,10 +520,10 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
                       header.column.toggleSorting(true, true);
                     }
                   }}>
-                  <Icon name="arrow-down" className="h-4 w-4" />
+                  <ArrowDownIcon className="h-4 w-4" />
                   {t("desc")}
                   <div className="flex-1" />
-                  {header.column.getIsSorted() === "desc" && <Icon name="check" className="h-4 w-4" />}
+                  {header.column.getIsSorted() === "desc" && <CheckIcon className="h-4 w-4" />}
                 </CommandItem>
               </>
             )}
@@ -535,7 +534,7 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
                   header.column.toggleVisibility(false);
                   setOpen(false);
                 }}>
-                <Icon name="eye-off" className="h-4 w-4" />
+                <EyeOffIcon className="h-4 w-4" />
                 {t("hide")}
               </CommandItem>
             )}

@@ -16,8 +16,8 @@ import {
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { CheckIcon } from "@coss/ui/icons";
 
 import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
 import {
@@ -236,7 +236,7 @@ export const DateRangeFilter = ({
                     updateDateRangeFromPreset(option.value);
                   }}>
                   <span className="capitalize">{t(option.labelKey, option.i18nOptions)}</span>
-                  {selectedPreset.value === option.value && <Icon name="check" />}
+                  {selectedPreset.value === option.value && <CheckIcon />}
                 </CommandItem>
               ))}
             </CommandList>
