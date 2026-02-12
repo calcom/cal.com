@@ -166,10 +166,10 @@ export function ScheduleListItem({
             loadingText={t("delete")}
             onConfirm={(e) => {
               e.preventDefault();
-             deleteFunction({scheduleId: schedule.id,})
-             
-            }}
-            >
+              deleteFunction({
+                scheduleId: schedule.id,
+              });
+            }}>
             {t("delete_schedule_description")}
           </ConfirmationDialogContent>
         </Dialog>
