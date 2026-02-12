@@ -515,7 +515,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventTypeId}`,
+        uid: `booking-uid-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -598,7 +598,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid in range format", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventTypeId}`,
+        uid: `booking-uid-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
