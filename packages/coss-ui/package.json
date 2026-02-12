@@ -2,6 +2,7 @@
   "name": "@coss/ui",
   "private": true,
   "version": "0.0.0",
+  "sideEffects": false,
   "exports": {
     "./styles.css": "./src/styles/globals.css",
     "./icons": "./src/icons.tsx",
