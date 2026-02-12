@@ -1,5 +1,4 @@
-import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
-import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { getActiveUserBillingService } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.container";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -10,20 +9,20 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { TGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
+import type { TGetActiveUserBreakdownInputSchema } from "./getActiveUserBreakdown.schema";
 
-const log = logger.getSubLogger({ prefix: ["getSubscriptionStatus"] });
+const log = logger.getSubLogger({ prefix: ["getActiveUserBreakdown"] });
 
-type GetSubscriptionStatusOptions = {
+type GetActiveUserBreakdownOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TGetSubscriptionStatusInputSchema;
+  input: TGetActiveUserBreakdownInputSchema;
 };
 
-export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscriptionStatusOptions) => {
+export const getActiveUserBreakdownHandler = async ({ ctx, input }: GetActiveUserBreakdownOptions) => {
   if (!IS_TEAM_BILLING_ENABLED) {
-    return { status: null, isTrialing: false, billingMode: null };
+    return null;
   }
 
   const { teamId } = input;
@@ -53,36 +52,48 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
   if (!hasManageBillingPermission) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "Only team owners and admins can view subscription status",
+      message: "Only team owners and admins can view active user breakdown",
     });
   }
 
   try {
-    const teamBillingServiceFactory = getTeamBillingServiceFactory();
-    const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
-
-    const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
-
     const billingPeriodService = new BillingPeriodService();
-    const billingInfo = await billingPeriodService.getBillingPeriodInfo(teamId);
+    const billingInfo = await billingPeriodService.getOrCreateBillingPeriodInfo(teamId);
 
-    log.debug(`Subscription status for team ${teamId}: ${subscriptionStatus}`);
+    if (billingInfo.billingMode !== "ACTIVE_USERS") {
+      return null;
+    }
+
+    if (!billingInfo.subscriptionStart || !billingInfo.subscriptionEnd) {
+      return null;
+    }
+
+    const activeUserBillingService = getActiveUserBillingService();
+    const breakdown = await activeUserBillingService.getActiveUsersForOrg(
+      teamId,
+      billingInfo.subscriptionStart,
+      billingInfo.subscriptionEnd
+    );
 
     return {
-      status: subscriptionStatus,
-      isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
-      billingMode: billingInfo.billingMode,
+      activeUsers: breakdown.activeUsers,
+      totalMembers: breakdown.totalMembers,
+      activeHosts: breakdown.activeHosts,
+      activeAttendees: breakdown.activeAttendees,
+      periodStart: billingInfo.subscriptionStart.toISOString(),
+      periodEnd: billingInfo.subscriptionEnd.toISOString(),
+      pricePerSeat: billingInfo.pricePerSeat,
     };
   } catch (error) {
     if (error instanceof TRPCError) {
       throw error;
     }
-    log.error("Error getting subscription status", error);
+    log.error("Error getting active user breakdown", error);
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to get subscription status",
+      message: "Failed to get active user breakdown",
     });
   }
 };
 
-export default getSubscriptionStatusHandler;
+export default getActiveUserBreakdownHandler;
