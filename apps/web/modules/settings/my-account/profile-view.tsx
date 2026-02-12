@@ -713,7 +713,6 @@ const ProfileForm = ({
                 shouldDirty: true,
               });
             }}
-            excludedToolbarItems={["blockType"]}
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
