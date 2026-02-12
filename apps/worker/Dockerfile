@@ -1,77 +1,107 @@
-# ---------- Base ----------
-FROM node:20-alpine AS base
+# =====================================================
+# 1️⃣ BUILDER STAGE (full deps + build)
+# =====================================================
+FROM node:20-alpine AS builder
+
 WORKDIR /app
 
-# Required for some native deps
-RUN apk add --no-cache libc6-compat openssl
-
-# ---------- Dependencies ----------
-FROM base AS deps
-
+RUN apk add --no-cache libc6-compat openssl python3 make g++
 RUN corepack enable
 
 COPY package.json yarn.lock turbo.json ./
 COPY .yarn .yarn
 COPY .yarnrc.yml ./
 
-# Now this works
 RUN yarn plugin import workspace-tools
 
+# Runtime workspaces
 COPY apps/worker apps/worker
-COPY packages/tsconfig packages/tsconfig
 COPY packages/queue packages/queue
 COPY packages/calendar-sync packages/calendar-sync
-
-#listed below are prisma and its transitive dependencies 
 COPY packages/prisma packages/prisma
+COPY packages/tsconfig packages/tsconfig
 
-#below are the transitive dependencies of prisma which are not required
+# Build-only transitive workspaces
 COPY packages/lib packages/lib
 COPY packages/config packages/config
 COPY packages/eslint-plugin packages/eslint-plugin
 COPY packages/dayjs packages/dayjs
 COPY packages/types packages/types
 
+# Install FULL graph (for build)
 RUN yarn workspaces focus \
-  @calid/worker \
-  @calid/queue \
-  @calid/calendar-sync \
-  @calid/prisma \
-  --all
-# ---------- Build ----------
-FROM deps AS build
+    @calid/worker \
+    @calid/queue \
+    @calid/calendar-sync \
+    @calid/prisma \
+    --all && \
+    yarn cache clean --all && \
+    rm -rf .yarn/cache .yarn/install-state.gz
 
-# Build in correct order handled by turborepo, but we need to specify the filter to avoid building the entire monorepo
+# Build everything (THIS generates Prisma client + engines)
 RUN yarn turbo run build --filter=@calid/worker...
 
-# ---------- Runtime ----------
-FROM base AS runner
+# -----------------------------------------------------
+# STASH PRISMA RUNTIME BEFORE PRUNING NODE_MODULES
+# -----------------------------------------------------
+RUN mkdir -p /app/prisma-runtime && \
+    cp -R node_modules/.prisma /app/prisma-runtime/.prisma && \
+    cp -R node_modules/@prisma /app/prisma-runtime/@prisma
+
+# =====================================================
+# 2️⃣ PRUNE STEP — runtime deps ONLY (no prisma workspace)
+# =====================================================
+RUN rm -rf node_modules
+ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
+
+RUN yarn workspaces focus \
+    @calid/worker \
+    @calid/queue \
+    @calid/calendar-sync \
+    --production && \
+    yarn cache clean --all && \
+    rm -rf .yarn/cache .yarn/install-state.gz
+
+
+# =====================================================
+# 3️⃣ RUNTIME IMAGE
+# =====================================================
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+RUN apk add --no-cache openssl libc6-compat
+RUN corepack enable
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 worker
+
+# Yarn runtime essentials
+COPY --from=builder --chown=worker:nodejs /app/.yarn/releases ./.yarn/releases
+COPY --from=builder --chown=worker:nodejs /app/.yarn/plugins ./.yarn/plugins
+COPY --from=builder --chown=worker:nodejs /app/.yarnrc.yml ./
+COPY --from=builder --chown=worker:nodejs /app/package.json ./
+
+# Compiled code
+COPY --from=builder --chown=worker:nodejs /app/apps/worker/dist ./apps/worker/dist
+COPY --from=builder --chown=worker:nodejs /app/packages/queue/dist ./packages/queue/dist
+COPY --from=builder --chown=worker:nodejs /app/packages/calendar-sync/dist ./packages/calendar-sync/dist
+
+# package.json for module resolution
+COPY --from=builder --chown=worker:nodejs /app/apps/worker/package.json ./apps/worker/package.json
+COPY --from=builder --chown=worker:nodejs /app/packages/queue/package.json ./packages/queue/package.json
+COPY --from=builder --chown=worker:nodejs /app/packages/calendar-sync/package.json ./packages/calendar-sync/package.json
+
+# Runtime node_modules 
+COPY --from=builder --chown=worker:nodejs /app/node_modules ./node_modules
+
+#
+# Restore Prisma runtime (engines + generated client)
+COPY --from=builder --chown=worker:nodejs /app/prisma-runtime/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=worker:nodejs /app/prisma-runtime/@prisma ./node_modules/@prisma
+
 
 ENV NODE_ENV=production
+USER worker
 
-# Enable Corepack here too (node runtime still uses yarn pnp resolution)
-RUN corepack enable
-RUN corepack prepare yarn@3.4.1 --activate
-
-# Copy runtime artifacts
-# Copy compiled outputs of ALL runtime workspace deps
-COPY --from=build /app/apps/worker/dist apps/worker/dist
-COPY --from=build /app/packages/queue/dist packages/queue/dist
-COPY --from=build /app/packages/calendar-sync/dist packages/calendar-sync/dist
-COPY --from=build /app/packages/prisma packages/prisma
-
-
-# Copy package.json of runtime workspaces (important for resolution)
-COPY apps/worker/package.json apps/worker/package.json
-COPY packages/queue/package.json packages/queue/package.json
-COPY packages/calendar-sync/package.json packages/calendar-sync/package.json
-COPY packages/prisma/package.json packages/prisma/package.json
-
-
-# Copy node_modules AFTER workspaces exist
-COPY --from=build /app/node_modules node_modules
-
-
-WORKDIR /app/apps/worker
-
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/worker/dist/index.js"]
