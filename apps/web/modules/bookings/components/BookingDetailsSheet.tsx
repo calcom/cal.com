@@ -220,7 +220,7 @@ function BookingDetailsSheetInner({
   return (
     <Sheet open={true} onOpenChange={handleClose} modal={false}>
       <SheetContent
-        className="overflow-y-auto pb-0"
+        className="overflow-y-auto pb-0 sm:pb-0"
         hideOverlay
         onInteractOutside={(e) => {
           // Check if the click is on a booking list item
