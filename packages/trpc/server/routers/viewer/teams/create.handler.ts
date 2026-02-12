@@ -9,6 +9,7 @@ import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import type { TrackingData } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { BillingPeriod } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,7 +36,7 @@ const generateCheckoutSession = async ({
   teamName: string;
   userId: number;
   isOnboarding?: boolean;
-  billingPeriod?: "MONTHLY" | "ANNUALLY";
+  billingPeriod?: BillingPeriod;
   tracking?: TrackingData;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
