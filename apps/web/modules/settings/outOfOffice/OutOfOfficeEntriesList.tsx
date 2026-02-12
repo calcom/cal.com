@@ -37,12 +37,6 @@ import {
 } from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  DataTableFilters,
-  DataTableSegment,
-  DataTableToolbar,
-  DataTableWrapper,
-} from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
