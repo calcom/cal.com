@@ -7,8 +7,5 @@ const container = createContainer();
 
 export function getManagedEventReassignmentService() {
   managedEventReassignmentServiceModuleLoader.loadModule(container);
-  return container.get<ManagedEventReassignmentService>(
-    managedEventReassignmentServiceModuleLoader.token
-  );
+  return container.get<ManagedEventReassignmentService>(managedEventReassignmentServiceModuleLoader.token);
 }
-

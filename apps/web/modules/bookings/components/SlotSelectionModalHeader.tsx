@@ -29,10 +29,7 @@ type TimezoneSelectProps = Omit<
 };
 
 const WebTimezoneSelect: ComponentType<TimezoneSelectProps> = dynamic(
-  () =>
-    import("@calcom/web/modules/timezone/components/TimezoneSelect").then(
-      (mod) => mod.TimezoneSelect
-    ),
+  () => import("@calcom/web/modules/timezone/components/TimezoneSelect").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
     loading: () => <LoadingState />,
@@ -104,9 +101,7 @@ export const SlotSelectionModalHeader = ({
           <span className="text-default text-sm">{formattedDate.fullDate}</span>
         </div>
 
-        {event && (
-          <EventDetails event={event} blocks={[EventDetailBlocks.DURATION]} />
-        )}
+        {event && <EventDetails event={event} blocks={[EventDetailBlocks.DURATION]} />}
 
         <div className="mb-0 flex items-center gap-2 text-default text-sm">
           <Icon name="globe" className="h-4 w-4 shrink-0 text-subtle" />

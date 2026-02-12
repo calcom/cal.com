@@ -42,10 +42,7 @@ const Page = async ({ params }: { params: Params }) => {
   const org = await organizationRepository.adminFindById({ id: input.data.id });
   const t = await getTranslate();
   return (
-    <SettingsHeader
-      title={`${t("editing_org")}: ${org.name}`}
-      description={t("admin_orgs_edit_description")}
-    >
+    <SettingsHeader title={`${t("editing_org")}: ${org.name}`} description={t("admin_orgs_edit_description")}>
       <LicenseRequired>
         <OrgForm org={org} />
       </LicenseRequired>

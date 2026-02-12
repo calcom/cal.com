@@ -10,5 +10,7 @@ const attributeSyncRuleServiceContainer = createContainer();
 export function getAttributeSyncRuleService(): AttributeSyncRuleService {
   attributeSyncRuleServiceModule.loadModule(attributeSyncRuleServiceContainer);
 
-  return attributeSyncRuleServiceContainer.get<AttributeSyncRuleService>(attributeSyncRuleServiceModule.token);
+  return attributeSyncRuleServiceContainer.get<AttributeSyncRuleService>(
+    attributeSyncRuleServiceModule.token
+  );
 }
