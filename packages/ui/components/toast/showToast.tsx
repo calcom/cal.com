@@ -80,6 +80,10 @@ export function showToast(
   options: number | ExternalToast = TOAST_VISIBLE_DURATION
 ) {
   const _options: ExternalToast = typeof options === "number" ? { duration: options } : options;
+
+  // Use message as default ID to prevent duplicate toasts with same content
+  if (!_options.id) _options.id = message;
+
   if (!_options.duration) _options.duration = TOAST_VISIBLE_DURATION;
   if (!_options.position) _options.position = "bottom-center";
 
