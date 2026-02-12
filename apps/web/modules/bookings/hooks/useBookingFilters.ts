@@ -1,10 +1,10 @@
 import {
-  useFilterValue,
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
   ZSingleSelectFilterValue,
 } from "@calcom/features/data-table";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 
 export function useBookingFilters() {
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
