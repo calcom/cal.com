@@ -8,8 +8,8 @@ import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui/components/address";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { TriangleAlertIcon, UserPlusIcon } from "@coss/ui/icons";
 
 interface IAddGuestsDialog {
   isOpenDialog: boolean;
@@ -59,7 +59,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
       <DialogContent enableOverflow>
         <div className="flex flex-row md:space-x-3">
           <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
-            <Icon name="user-plus" className="m-auto h-6 w-6" />
+            <UserPlusIcon className="m-auto h-6 w-6" />
           </div>
           <div className="w-full md:pt-1">
             <DialogHeader title={t("additional_guests")} />
@@ -75,7 +75,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
             {isInvalidEmail && (
               <div className="my-4 flex text-sm text-red-700">
                 <div className="shrink-0">
-                  <Icon name="triangle-alert" className="h-5 w-5" />
+                  <TriangleAlertIcon className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
                   <p className="font-medium">{t("emails_must_be_unique_valid")}</p>

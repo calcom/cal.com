@@ -31,6 +31,7 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { ClockIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -394,7 +395,7 @@ function OutOfOfficeEntriesListContent({
         }
         EmptyView={
           <EmptyScreen
-            className="mt-2"
+            className="mt-6"
             headline={
               searchTerm
                 ? t("no_result_found_for", { searchTerm })
@@ -419,7 +420,7 @@ function OutOfOfficeEntriesListContent({
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} className="text-black" />
+                      <ClockIcon size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-56 bg-white text-lg font-bold" />
                       <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
                         z

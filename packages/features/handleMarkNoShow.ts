@@ -26,8 +26,34 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
-import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 import type { TFunction } from "i18next";
+import { z } from "zod";
+
+export const ZNoShowInputSchema = z
+  .object({
+    bookingUid: z.string(),
+    attendees: z
+      .array(
+        z.object({
+          email: z.string(),
+          noShow: z.boolean(),
+        })
+      )
+      .optional(),
+    noShowHost: z.boolean().optional(),
+  })
+  .refine(
+    (data) => {
+      return (data.attendees && data.attendees.length > 0) || data.noShowHost !== undefined;
+    },
+    {
+      message: "At least one of 'attendees' or 'noShowHost' must be provided",
+      path: ["attendees", "noShowHost"],
+    }
+  );
+
+export type TNoShowInputSchema = z.infer<typeof ZNoShowInputSchema>;
+
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
@@ -84,7 +110,7 @@ const buildResultPayload = async ({
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
   t: TFunction;
   emailToAttendeeMap: EmailToAttendeeMap;
-}): Promise<{message: string; attendees: NoShowAttendees}> => {
+}): Promise<{ message: string; attendees: NoShowAttendees }> => {
   const updatedAttendees = await updateAttendees({ attendees, emailToAttendeeMap });
 
   if (updatedAttendees.length === 1) {
@@ -215,7 +241,8 @@ async function fireNoShowUpdated({
     ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
-  const isSomethingChanged = auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
+  const isSomethingChanged =
+    auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
   if (isSomethingChanged) {
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
@@ -422,7 +449,7 @@ const updateAttendees = async ({
   emailToAttendeeMap,
 }: {
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
-  emailToAttendeeMap: EmailToAttendeeMap; 
+  emailToAttendeeMap: EmailToAttendeeMap;
 }): Promise<NoShowAttendees> => {
   const attendeeRepository = new AttendeeRepository(prisma);
   const updatePromises = attendees.map((attendee) => {

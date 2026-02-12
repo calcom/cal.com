@@ -11,6 +11,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { CalendarIcon, TriangleAlertIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { memo, useCallback, useMemo } from "react";
 import { OutOfOfficeToggleGroup } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
@@ -145,7 +146,7 @@ function ConflictWarning({
   return (
     <div className="bg-semantic-attention-subtle rounded-md px-3 py-2">
       <div className="flex items-center gap-2">
-        <Icon name="triangle-alert" className="text-semantic-attention h-4 w-4 shrink-0" />
+        <TriangleAlertIcon className="text-semantic-attention h-4 w-4 shrink-0" />
         <p className="text-emphasis text-sm font-medium">
           {t("holiday_booking_conflict_warning", { count: totalBookings })}:
         </p>
