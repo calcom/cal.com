@@ -301,7 +301,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   const signupWatchlistReviewEnabled =
     await featuresRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
 
-  if (signupWatchlistReviewEnabled) {
+  if (signupWatchlistReviewEnabled && !token) {
     const globalWatchlistRepo = new GlobalWatchlistRepository(prisma);
     const normalizedEmail = normalizeEmail(email);
     const existing = await globalWatchlistRepo.findBlockedEmail(normalizedEmail);
