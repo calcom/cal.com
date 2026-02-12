@@ -2,7 +2,9 @@
   "name": "@coss/ui",
   "private": true,
   "version": "0.0.0",
-  "sideEffects": ["./src/styles/globals.css"],
+  "sideEffects": [
+    "./src/styles/globals.css"
+  ],
   "exports": {
     "./styles.css": "./src/styles/globals.css",
     "./icons": "./src/icons.tsx",
@@ -12,10 +14,18 @@
   },
   "typesVersions": {
     "*": {
-      "icons": ["./src/icons.tsx"],
-      "lib/*": ["./src/lib/*.ts"],
-      "components/*": ["./src/components/*.tsx"],
-      "hooks/*": ["./src/hooks/*.ts"]
+      "icons": [
+        "./src/icons.tsx"
+      ],
+      "lib/*": [
+        "./src/lib/*.ts"
+      ],
+      "components/*": [
+        "./src/components/*.tsx"
+      ],
+      "hooks/*": [
+        "./src/hooks/*.ts"
+      ]
     }
   },
   "scripts": {
