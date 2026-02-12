@@ -75,13 +75,11 @@ vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({ sentrySpan: {} }));
 vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
   checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),
 }));
-vi.mock("@calcom/features/flags/features.repository", () => {
-  return {
-    FeaturesRepository: class {
-      checkIfFeatureIsEnabledGlobally = vi.fn().mockResolvedValue(false);
-    },
-  };
-});
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: vi.fn().mockReturnValue({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  }),
+}));
 vi.mock("@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository", () => {
   return {
     GlobalWatchlistRepository: class {

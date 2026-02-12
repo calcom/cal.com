@@ -13,7 +13,7 @@ import {
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -298,9 +298,9 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     }
   }
 
-  const featuresRepository = new FeaturesRepository(prisma);
+  const featureRepository = getFeatureRepository();
   const signupWatchlistReviewEnabled =
-    await featuresRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
+    await featureRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
 
   if (signupWatchlistReviewEnabled && !token) {
     const globalWatchlistRepo = new GlobalWatchlistRepository(prisma);
