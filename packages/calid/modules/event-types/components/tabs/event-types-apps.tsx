@@ -141,12 +141,9 @@ const EventTypeAppCard = ({
 const useAppCategorization = (eventTypeApps: any, hasTeamContext = false, isChildrenManaged = false) => {
   const installedApps = useMemo(() => {
     if (hasTeamContext) {
-      // For team events, show both user and team apps
-      return (
-        eventTypeApps?.items.filter(
-          (app: any) => (app.userCredentialIds?.length || 0) > 0 || (app.calIdTeams?.length || 0) > 0
-        ) || []
-      );
+      // For team events, only show team-installed apps (not user-installed apps)
+      // Apps installed at the user level should only appear in user event types
+      return eventTypeApps?.items.filter((app: any) => (app.calIdTeams?.length || 0) > 0) || [];
     }
     if (isChildrenManaged) {
       // For children managed events, only show team apps (from the managed event)
@@ -158,12 +155,8 @@ const useAppCategorization = (eventTypeApps: any, hasTeamContext = false, isChil
 
   const notInstalledApps = useMemo(() => {
     if (hasTeamContext) {
-      // For team events, show available apps that can be installed
-      return (
-        eventTypeApps?.items.filter(
-          (app: any) => (app.userCredentialIds?.length || 0) === 0 && (app.calIdTeams?.length || 0) === 0
-        ) || []
-      );
+      // For team events, show apps not installed at the team level
+      return eventTypeApps?.items.filter((app: any) => (app.calIdTeams?.length || 0) === 0) || [];
     }
     if (isChildrenManaged) {
       // For children managed events, show no available apps (they inherit from managed event)
@@ -220,7 +213,7 @@ const useTeamAppCards = (
 
       app.calIdTeams?.forEach((team: any) => {
         if (team) {
-          const isOwner = team.userRole === "OWNER";
+          const isOwnerOrAdmin = team.userRole === "OWNER" || team.userRole === "ADMIN";
           appCards.push(
             <EventTypeAppCard
               key={`${app.slug}-team-${team.credentialId}`}
@@ -237,7 +230,7 @@ const useTeamAppCards = (
               }}
               eventType={eventType}
               eventTypeFormMetadata={eventTypeFormMetadata}
-              disabled={!isOwner || disabled}
+              disabled={!isOwnerOrAdmin || disabled}
             />
           );
         }
@@ -253,24 +246,19 @@ const useTeamAppCards = (
     eventTypeFormMetadata,
     disabled,
     isChildrenManaged,
-    // isNonOwner,
   ]);
 };
 
 export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProps) => {
   const { t } = useLocale();
+  const { data: currentUser } = useMeQuery();
   const formMethods = useFormContext<FormValues>();
-
-  // Check if this is a children managed event type or team managed event type
   const isChildrenManaged = isChildrenManagedEventType(eventType as any);
   const isTeamManaged = isManagedEventType(eventType as any);
-
-  // Field permissions management for managed events
   const fieldPermissions = useFieldPermissions({ eventType: eventType as any, translate: t, formMethods });
   const appsDisableProps = fieldPermissions.getFieldState("apps");
   const lockedText = appsDisableProps.isLocked ? "locked" : "unlocked";
 
-  // Fetch app integrations data for the current team/user
   const hasTeamContext = !!(eventType as any).calIdTeamId;
   const { data: eventTypeApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery({
     extendsFeature: "EventType",
@@ -278,29 +266,23 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
     includeCalIdTeamInstalledApps: hasTeamContext || isChildrenManaged,
   });
 
-  const { data: currentUser } = useMeQuery();
-
   const currentUserMembership =
     (eventType as any).team?.members?.find((member: any) => member.userId === currentUser?.id) ||
     (eventType as any).calIdTeam?.members?.find((member: any) => {
-      // Handle both direct userId and nested user.id
       return member.userId === currentUser?.id || member.user?.id === currentUser?.id;
     });
 
-  const isOwner = currentUserMembership?.role === "OWNER";
-  const isNonOwner = hasTeamContext && !isOwner;
+  const isOwnerOrAdmin = currentUserMembership?.role === "OWNER" || currentUserMembership?.role === "ADMIN";
+  const isNonOwner = hasTeamContext && !isOwnerOrAdmin;
 
-  // Categorize apps based on installation status
   const { installedApps, notInstalledApps, appsWithTeamCredentials } = useAppCategorization(
     eventTypeApps,
     hasTeamContext,
     isChildrenManaged
   );
 
-  // Initialize app data management hooks
   const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
 
-  // Generate app cards for team credentials
   const teamAppCards = useTeamAppCards(
     appsWithTeamCredentials,
     getAppDataGetter,
@@ -312,7 +294,6 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
   );
 
   const userOnlyApps = useMemo(() => {
-    // Show user-only apps (apps without team credentials) for all event types (matching Cal.com behavior)
     return installedApps.filter((app: any) => (app.calIdTeams?.length || 0) === 0);
   }, [installedApps]);
 
@@ -378,7 +359,6 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
                 app={app}
                 eventType={eventType}
                 eventTypeFormMetadata={eventTypeFormMetadata}
-                // disabled={false}
                 disabled={isNonOwner || appsDisableProps.isDisabled}
               />
             </div>
