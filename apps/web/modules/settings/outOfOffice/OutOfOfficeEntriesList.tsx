@@ -1,13 +1,25 @@
 "use client";
 
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import dayjs from "@calcom/dayjs";
 import {
-  ColumnFilterType,
   DataTableProvider,
+  ColumnFilterType,
   useDataTable,
   useFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
+import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -21,25 +33,10 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  DataTableFilters,
-  DataTableSegment,
-  DataTableToolbar,
-  DataTableWrapper,
-} from "~/data-table/components";
-import { useSegments } from "~/data-table/hooks/useSegments";
+
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
-import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 import type { BookingRedirectForm } from "./types";
+import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
