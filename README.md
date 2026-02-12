@@ -957,7 +957,10 @@ An example of good readme is [atoms readme](https://github.com/calcom/cal.com/bl
 
 ## License
 
-Cal.com uses an open-core model: the core is open-source under [AGPLv3](https://opensource.org/license/agpl-v3), with optional [Enterprise Edition](https://github.com/calcom/cal.com/tree/main/packages/features/ee) features available under a commercial license. See the [LICENSE](https://github.com/calcom/cal.com/blob/main/LICENSE) file for details.
+Cal.com, Inc. is a commercial open source company, which means some parts of this open source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](https://github.com/calcom/cal.com/tree/main/packages/features/ee)) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Cal.com, Inc. which is hired in full-time. Find their compensation on https://cal.com/open.
+
+> [!NOTE]
+> Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
 
 | Feature | AGPLv3 | EE |
 | - | - | - |
