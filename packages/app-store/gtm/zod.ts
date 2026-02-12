@@ -2,11 +2,14 @@ import { z } from "zod";
 
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 
-import { createPrefixedIdSchema } from "@calcom/app-store/_lib/analytics-schemas";
-
 export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
-    trackingId: createPrefixedIdSchema({ prefix: "GTM-", addPrefixIfMissing: true, allowEmpty: false }),
+    trackingId: z.string().transform((val) => {
+      let trackingId = val.trim();
+      // Ensure that trackingId is transformed if needed to begin with "GTM-" always
+      trackingId = !trackingId.startsWith("GTM-") ? `GTM-${trackingId}` : trackingId;
+      return trackingId;
+    }),
   })
 );
 

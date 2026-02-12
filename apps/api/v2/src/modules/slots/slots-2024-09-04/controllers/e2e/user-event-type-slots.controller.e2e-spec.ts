@@ -866,7 +866,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       bookingSeatsRepositoryFixture.create({
-        referenceUid: "100",
+        referenceUid: randomString(),
         data: {},
         booking: {
           connect: {
@@ -995,7 +995,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       bookingSeatsRepositoryFixture.create({
-        referenceUid: "100",
+        referenceUid: randomString(),
         data: {},
         booking: {
           connect: {

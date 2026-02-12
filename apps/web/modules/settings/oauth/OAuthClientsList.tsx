@@ -34,7 +34,7 @@ export const OAuthClientsList = ({
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle rounded-lg border" data-testid="oauth-clients-list">
+    <div data-testid="oauth-clients-list">
       {clients.map((client, index) => (
         <div
           key={client.clientId}
@@ -60,6 +60,7 @@ export const OAuthClientsList = ({
             />
             <div>
               <div className="text-emphasis font-medium">{client.name}</div>
+              {client.user?.email && <div className="text-subtle text-sm">{client.user.email}</div>}
             </div>
           </div>
           <div className="flex items-center gap-4">

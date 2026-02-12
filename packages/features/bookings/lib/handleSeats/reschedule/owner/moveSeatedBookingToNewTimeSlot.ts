@@ -1,4 +1,3 @@
-
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
@@ -13,7 +12,17 @@ import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
-async function updateBooking({ bookingId, startTime, endTime, cancellationReason }: { bookingId: number, startTime: string, endTime: string, cancellationReason: string }): Promise<(Booking & { appsStatus?: AppsStatus[] })> {
+async function updateBooking({
+  bookingId,
+  startTime,
+  endTime,
+  cancellationReason,
+}: {
+  bookingId: number;
+  startTime: string;
+  endTime: string;
+  cancellationReason: string;
+}): Promise<Booking & { appsStatus?: AppsStatus[] }> {
   const booking = await prisma.booking.update({
     where: {
       id: bookingId,
@@ -51,7 +60,12 @@ const moveSeatedBookingToNewTimeSlot = async (
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
 
-  const newBooking = await updateBooking({ bookingId: seatedBooking.id, startTime: evt.startTime, endTime: evt.endTime, cancellationReason: rescheduleReason });
+  const newBooking = await updateBooking({
+    bookingId: seatedBooking.id,
+    startTime: evt.startTime,
+    endTime: evt.endTime,
+    cancellationReason: rescheduleReason,
+  });
 
   evt = { ...addVideoCallDataToEvent(newBooking.references, evt), bookerUrl: evt.bookerUrl };
 

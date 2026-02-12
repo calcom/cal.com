@@ -55,9 +55,7 @@ export const useSubmitOnboarding = () => {
           let teamName: string | undefined = undefined;
 
           if (invite.team && invite.team.trim().length > 0) {
-            const matchingTeam = teams.find(
-              (team) => team.name.toLowerCase() === invite.team.toLowerCase()
-            );
+            const matchingTeam = teams.find((team) => team.name.toLowerCase() === invite.team.toLowerCase());
             if (matchingTeam?.isBeingMigrated && matchingTeam.id !== -1) {
               // Use team ID for migrated teams
               teamId = matchingTeam.id;
@@ -111,7 +109,7 @@ export const useSubmitOnboarding = () => {
       showToast("Organization created successfully!", "success");
       // Set flag to show welcome modal after redirect
       setShowNewOrgModalFlag();
-      
+
       // Check if this is a migration flow (user has already completed onboarding)
       const hasMigratedTeams = teams.some((team) => team.isBeingMigrated);
       if (hasMigratedTeams) {

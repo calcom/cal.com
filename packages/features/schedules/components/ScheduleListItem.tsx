@@ -66,47 +66,40 @@ export function ScheduleListItem({
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
-          <Link href={redirectUrl} className="grow truncate text-sm" title={schedule.name}>
-            <div className="space-x-2 rtl:space-x-reverse">
-              <span className="text-emphasis truncate font-medium">{schedule.name}</span>
-              {schedule.isDefault && (
-                <Badge variant="gray" className="text-xs">
-                  {t("default")}
-                </Badge>
-              )}
-            </div>
-            <p className="text-subtle mt-1">
-              {schedule.availability
-                .filter(
-                  (availability: AvailabilityItem) => !!availability.days.length
-                )
-                .map((availability: AvailabilityItem) =>
-                  availabilityAsString(availability, {
-                    locale: i18n.language,
-                    hour12: displayOptions?.hour12,
-                  })
-                )
-                // sort the availability strings as per user's weekstart (settings)
-                .sort(
-                  sortAvailabilityStrings(
-                    i18n.language,
-                    displayOptions?.weekStart
-                  )
-                )
-                .map((availabilityString: string) => (
-                  <Fragment key={availabilityString}>
-                    {availabilityString}
-                    <br />
-                  </Fragment>
-                ))}
-              {(schedule.timeZone || displayOptions?.timeZone) && (
-                <span className="my-1 flex items-center first-letter:text-xs">
-                  <Icon name="globe" className="h-3.5 w-3.5" />
-                  &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
-                </span>
-              )}
-            </p>
-          </Link>
+        <Link href={redirectUrl} className="grow truncate text-sm" title={schedule.name}>
+          <div className="space-x-2 rtl:space-x-reverse">
+            <span className="text-emphasis truncate font-medium">{schedule.name}</span>
+            {schedule.isDefault && (
+              <Badge variant="gray" className="text-xs">
+                {t("default")}
+              </Badge>
+            )}
+          </div>
+          <p className="text-subtle mt-1">
+            {schedule.availability
+              .filter((availability: AvailabilityItem) => !!availability.days.length)
+              .map((availability: AvailabilityItem) =>
+                availabilityAsString(availability, {
+                  locale: i18n.language,
+                  hour12: displayOptions?.hour12,
+                })
+              )
+              // sort the availability strings as per user's weekstart (settings)
+              .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
+              .map((availabilityString: string) => (
+                <Fragment key={availabilityString}>
+                  {availabilityString}
+                  <br />
+                </Fragment>
+              ))}
+            {(schedule.timeZone || displayOptions?.timeZone) && (
+              <span className="my-1 flex items-center first-letter:text-xs">
+                <Icon name="globe" className="h-3.5 w-3.5" />
+                &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
+              </span>
+            )}
+          </p>
+        </Link>
         <Dropdown>
           <DropdownMenuTrigger asChild>
             <Button
