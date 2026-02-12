@@ -95,8 +95,7 @@ export const Badge = function Badge(props: BadgeProps) {
           <Icon
             name={StartIcon}
             data-testid="start-icon"
-            className="stroke-[3px]"
-            style={{ width: 12, height: 12 }}
+            className="stroke-[3px] w-3 h-3"
           />
         ) : null)}
       {children}
