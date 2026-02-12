@@ -13,7 +13,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@calid/queue": "workspace:^"
+    "@calid/calendar-sync": "*",
+    "@calid/queue": "*"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
