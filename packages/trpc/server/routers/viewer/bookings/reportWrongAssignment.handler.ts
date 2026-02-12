@@ -1,17 +1,11 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
-import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { WrongAssignmentReportService } from "@calcom/features/bookings/services/WrongAssignmentReportService";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 
 type ReportWrongAssignmentOptions = {
@@ -21,136 +15,32 @@ type ReportWrongAssignmentOptions = {
   input: TReportWrongAssignmentInputSchema;
 };
 
-const log = logger.getSubLogger({ prefix: ["reportWrongAssignmentHandler"] });
-
 export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAssignmentOptions) => {
   const { user } = ctx;
-  const { bookingUid, correctAssignee, additionalNotes } = input;
 
-  const t = await getTranslation(user.locale ?? "en", "common");
-  const bookingRepository = new BookingRepository(prisma);
-  const wrongAssignmentReportRepo = new WrongAssignmentReportRepository(prisma);
   const bookingAccessService = new BookingAccessService(prisma);
-
   const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
     userId: user.id,
-    bookingUid,
+    bookingUid: input.bookingUid,
   });
 
   if (!hasAccess) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
-  const booking = await bookingRepository.findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({
-    bookingUid,
+  const service = new WrongAssignmentReportService({
+    bookingRepo: new BookingRepository(prisma),
+    wrongAssignmentReportRepo: new WrongAssignmentReportRepository(prisma),
+    teamRepo: new TeamRepository(prisma),
   });
 
-  if (!booking) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
-  }
-
-  const teamId = booking.eventType?.team?.id ?? null;
-  const orgId = booking.eventType?.team?.parentId ?? null;
-  const routingFormId = booking.routedFromRoutingFormReponse?.formId || null;
-
-  const alreadyReported = await wrongAssignmentReportRepo.existsByBookingUid(booking.uid);
-
-  if (alreadyReported) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: t("wrong_assignment_already_reported"),
-    });
-  }
-
-  let report: { id: string };
-  try {
-    report = await wrongAssignmentReportRepo.createReport({
-      bookingUid: booking.uid,
-      reportedById: user.id,
-      correctAssignee: correctAssignee || null,
-      additionalNotes,
-      teamId,
-      routingFormId,
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: t("wrong_assignment_already_reported"),
-      });
-    }
-    throw error;
-  }
-
-  const webhookPayload = {
-    booking: {
-      uid: booking.uid,
-      id: booking.id,
-      title: booking.title,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      status: booking.status,
-      eventType: booking.eventType
-        ? {
-            id: booking.eventType.id,
-            title: booking.eventType.title,
-            slug: booking.eventType.slug,
-            teamId: teamId,
-          }
-        : null,
-    },
-    report: {
-      reportedBy: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
-      firstAssignmentReason: booking.assignmentReason[0]?.reasonString ?? null,
-      guest: booking.attendees[0]?.email ?? null,
-      host: {
-        email: booking.user?.email ?? null,
-        name: booking.user?.name ?? null,
-      },
-      correctAssignee: correctAssignee || null,
-      additionalNotes: additionalNotes || null,
-    },
-  };
-
-  try {
-    const webhooks = await getWebhooks({
-      userId: booking.userId,
-      teamId,
-      orgId,
-      triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
-    });
-
-    const webhookPromises = webhooks.map((webhook) =>
-      sendGenericWebhookPayload({
-        secretKey: webhook.secret,
-        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
-        createdAt: new Date().toISOString(),
-        webhook,
-        data: webhookPayload,
-      }).catch((error) => {
-        log.error(`Failed to send webhook to ${webhook.subscriberUrl}:`, error);
-        return { ok: false, status: 0 };
-      })
-    );
-
-    await Promise.allSettled(webhookPromises);
-
-    log.info(`Wrong assignment report sent for booking ${booking.uid}`, {
-      teamId,
-      userId: booking.userId,
-      webhookCount: webhooks.length,
-    });
-  } catch (error) {
-    log.error("Failed to send wrong assignment webhooks:", error);
-  }
-
-  return {
-    success: true,
-    message: "Wrong assignment reported successfully",
-    reportId: report.id,
-  };
+  return service.report({
+    userId: user.id,
+    userEmail: user.email,
+    userName: user.name,
+    userLocale: user.locale ?? "en",
+    bookingUid: input.bookingUid,
+    correctAssignee: input.correctAssignee,
+    additionalNotes: input.additionalNotes,
+  });
 };
