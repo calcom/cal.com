@@ -16,7 +16,7 @@ const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_mes
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
 
 describe("getBookingResponsesSchema", () => {
-  test(`should parse booking responses`, async ({}) => {
+  test(`should parse booking responses`, async ({ }) => {
     const schema = getBookingResponsesSchema({
       bookingFields: [
         {
@@ -89,7 +89,7 @@ describe("getBookingResponsesSchema", () => {
 
   describe("System Fields", () => {
     describe(`'name' and 'email' must be considered as required fields`, () => {
-      test(`'name' and 'email' must be considered as required fields `, async ({}) => {
+      test(`'name' and 'email' must be considered as required fields `, async ({ }) => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
             {
@@ -1049,12 +1049,166 @@ describe("getBookingResponsesSchema", () => {
     });
   });
 
-  test.todo("select");
-  test.todo("textarea");
-  test.todo("number");
-  test.todo("checkbox");
   test.todo("radio");
   test.todo("boolean");
+
+  describe("date field type", () => {
+    const bookingFieldsWithDate = [
+      {
+        name: "name",
+        type: "name",
+        required: true,
+      },
+      {
+        name: "email",
+        type: "email",
+        required: true,
+      },
+      {
+        name: "testDate",
+        type: "date",
+        required: true,
+      },
+    ] as any;
+
+    test("should successfully parse a valid date", async () => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithDate,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "2024-05-20",
+      });
+      expect(parsedResponses.success).toBe(true);
+      if (parsedResponses.success) {
+        expect(parsedResponses.data.testDate).toBe("2024-05-20");
+      }
+    });
+
+    test("should fail parsing an invalid date", async () => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithDate,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "invalid-date",
+      });
+      expect(parsedResponses.success).toBe(false);
+    });
+
+    test("should validate minDate constraint", async () => {
+      const bookingFieldsWithMinDate = [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testDate",
+          type: "date",
+          required: true,
+          minDate: "2024-05-20",
+        },
+      ] as any;
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithMinDate,
+        view: "ALL_VIEWS",
+      });
+
+      const tooEarly = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "2024-05-19",
+      });
+      expect(tooEarly.success).toBe(false);
+
+      const exactlyMin = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "2024-05-20",
+      });
+      expect(exactlyMin.success).toBe(true);
+    });
+
+    test("should validate maxDate constraint", async () => {
+      const bookingFieldsWithMaxDate = [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testDate",
+          type: "date",
+          required: true,
+          maxDate: "2024-05-20",
+        },
+      ] as any;
+      const schema = getBookingResponsesSchema({
+        bookingFields: bookingFieldsWithMaxDate,
+        view: "ALL_VIEWS",
+      });
+
+      const tooLate = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "2024-05-21",
+      });
+      expect(tooLate.success).toBe(false);
+
+      const exactlyMax = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "2024-05-20",
+      });
+      expect(exactlyMax.success).toBe(true);
+    });
+
+    test("should skip validation for optional empty date field", async () => {
+      const optionalDateField = [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "testDate",
+          type: "date",
+          required: false,
+        },
+      ] as any;
+      const schema = getBookingResponsesSchema({
+        bookingFields: optionalDateField,
+        view: "ALL_VIEWS",
+      });
+
+      const empty = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        testDate: "",
+      });
+      expect(empty.success).toBe(true);
+    });
+  });
 });
 
 describe("validate radioInput type field", () => {
@@ -1876,7 +2030,7 @@ describe("require email/domain validation", () => {
       ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
-    
+
     const parsedResponses = await schema.safeParseAsync({
       name: "John Doe",
       email: "john@example.com",

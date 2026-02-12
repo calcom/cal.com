@@ -265,6 +265,9 @@ export const fieldTypesSchemaMap: Partial<
       return response;
     },
     superRefine: ({ field, response, ctx, m }) => {
+      if (!response) {
+        return;
+      }
       const value = dayjs(response);
       if (!value.isValid()) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_date") });

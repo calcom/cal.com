@@ -907,7 +907,8 @@ export type InputBookingField_2024_06_14 =
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14
-  | UrlFieldInput_2024_06_14;
+  | UrlFieldInput_2024_06_14
+  | DateFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
@@ -932,6 +933,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     radio: RadioGroupFieldInput_2024_06_14,
     boolean: BooleanFieldInput_2024_06_14,
     url: UrlFieldInput_2024_06_14,
+    date: DateFieldInput_2024_06_14,
   };
 
   async validate(bookingFields: { type: string; slug: string }[]) {

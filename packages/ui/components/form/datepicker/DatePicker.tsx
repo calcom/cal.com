@@ -12,10 +12,11 @@ type Props = {
   className?: string;
   disabled?: boolean;
   minDate?: Date | null;
+  maxDate?: Date | null;
   label?: string;
 };
 
-const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }: Props) => {
+const DatePicker = ({ minDate, maxDate, disabled, date, onDatesChange, className, label }: Props) => {
   function handleDayClick(newDate: Date) {
     onDatesChange?.(newDate ?? new Date());
   }
@@ -24,7 +25,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
     <Calendar
       initialFocus
       fromDate={minDate === null ? undefined : fromDate}
-      // toDate={maxDate}
+      toDate={maxDate ?? undefined}
       mode="single"
       defaultMonth={date}
       selected={date}
@@ -48,13 +49,13 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
           </Button>
         </Popover.Trigger>
         <Popover.Portal>
-        <Popover.Content
-          className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
-          align="start"
-          sideOffset={4}
+          <Popover.Content
+            className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
+            align="start"
+            sideOffset={4}
           >
-          {calender}
-        </Popover.Content>
+            {calender}
+          </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
     </div>

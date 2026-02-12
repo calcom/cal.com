@@ -121,6 +121,7 @@ export const Components: Record<FieldType, Component> = {
         }}
         disabled={props.readOnly}
         minDate={props.minDate ? new Date(props.minDate) : undefined}
+        maxDate={props.maxDate ? new Date(props.maxDate) : undefined}
       />
     ),
   },
