@@ -64,7 +64,7 @@ export default function BottomNav() {
           </Tooltip>
           <span className="text-default text-sm font-medium">{t("view_public_page")}</span>
         </div>
-        {user?.metadata?.isProUser?.yearClaimed > 0 && user?.metadata?.isProUser?.verified && (
+        {user?.metadata?.isProUser?.yearClaimed > 0 && (
           <ProBadge
             yearClaimed={user.metadata.isProUser.yearClaimed}
             validTillDate={user.metadata.isProUser.validTillDate}

@@ -735,6 +735,10 @@ export function isCalIdStepFieldsEdited(oldStep: CalIdWorkflowStep, newStep: Cal
   ] as const;
 
   for (const key of fieldsToCompare) {
+    if (key === "reminderBody" && newStep.template !== WorkflowTemplates.CUSTOM) {
+      continue;
+    }
+
     if (oldStep[key] !== newStep[key]) {
       return true;
     }

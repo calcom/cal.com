@@ -206,19 +206,6 @@ export const AppPage = ({
   const disableInstall =
     dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
 
-  // const disableInstall = requiresGCal && !gCalInstalled.data;
-
-  // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
-  // Such apps, can only be installed once.
-
-  const allowedMultipleInstalls =
-    (categories.indexOf("calendar") > -1 && variant !== "other") || slug === "whatsapp-business";
-  useEffect(() => {
-    if (searchParams?.get("defaultInstall") === "true") {
-      mutation.mutate({ type, variant, slug, defaultInstall: true });
-    }
-  }, []);
-
   const installOrDisconnectAppButton = () => {
     if (appDbQuery.isPending) {
       return <SkeletonButton className="h-10 w-24" />;
@@ -311,7 +298,7 @@ export const AppPage = ({
     return (
       <div className="flex items-center space-x-3">
         {isGlobal ||
-          (existingCredentials.length > 0 && allowedMultipleInstalls ? (
+          (existingCredentials.length > 0 && availableForTeams ? (
             <div className="flex space-x-3">
               <Button StartIcon="check" color="secondary" disabled>
                 {existingCredentials.length > 0

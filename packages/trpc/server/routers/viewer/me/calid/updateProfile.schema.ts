@@ -12,10 +12,10 @@ export const updateUserMetadataAllowedKeys = z.object({
   isProUser: z
     .object({
       yearClaimed: z.number().optional(),
-      formSubmittedForYear: z.number().optional(),
+      claimSubmittedForYear: z.number().optional(),
       validTillDate: z.string().optional(),
-      verified: z.boolean().optional(),
-      firstYearClaimDate: z.string().optional(),
+      claimDate: z.string().optional(),
+      claimProtocol: z.enum(["v1", "v2"]).optional(),
     })
     .optional(),
   gettingStartedActions: z

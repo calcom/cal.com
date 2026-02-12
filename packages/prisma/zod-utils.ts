@@ -355,10 +355,10 @@ export const userMetadata = z
     isProUser: z
       .object({
         yearClaimed: z.number().optional().default(0),
-        formSubmittedForYear: z.number().optional(),
+        claimSubmittedForYear: z.number().optional(),
         validTillDate: z.string().optional(),
-        verified: z.boolean().optional().default(false),
-        firstYearClaimDate: z.string().optional(),
+        claimDate: z.string().optional(),
+        claimProtocol: z.enum(["v1", "v2"]).optional(),
       })
       .optional(),
     sessionTimeout: z.number().optional(), // Minutes

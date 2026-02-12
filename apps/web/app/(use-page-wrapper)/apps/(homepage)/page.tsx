@@ -28,8 +28,11 @@ const ServerPage = async () => {
   if (session?.user?.id) {
     const userRepo = new UserRepository(prisma);
     const userAdminTeams = await userRepo.getUserAdminTeams({ userId: session.user.id });
-    userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
-    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
+    const userCalIdAdminTeams = await userRepo.getUserCalIdAdminTeams({ userId: session.user.id });
+    const legacyTeamIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
+    const calIdTeamIds = userCalIdAdminTeams?.calIdTeams?.map(({ calIdTeam }) => calIdTeam.id) ?? [];
+    userAdminTeamsIds = [...legacyTeamIds, ...calIdTeamIds];
+    appStore = await getAppRegistryWithCredentials(session.user.id, legacyTeamIds, calIdTeamIds);
   } else {
     appStore = await getAppRegistry();
     userAdminTeamsIds = [];
