@@ -11,14 +11,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { ColumnFilterType, ZDateRangeFilterValue } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 import {
-  DataTableProvider,
-  ColumnFilterType,
-  useDataTable,
-  useFilterValue,
-  ZDateRangeFilterValue,
-} from "@calcom/features/data-table";
-import { DataTableWrapper, DataTableToolbar, DataTableFilters, DataTableSegment } from "~/data-table/components";
+  DataTableWrapper,
+  DataTableToolbar,
+  DataTableFilters,
+  DataTableSegment,
+} from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";

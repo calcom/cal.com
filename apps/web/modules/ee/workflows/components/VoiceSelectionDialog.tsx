@@ -2,7 +2,7 @@ import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } fro
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useCallback } from "react";
 
-import { DataTableProvider } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { DataTableWrapper } from "~/data-table/components";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import { useVoicePreview } from "@calcom/features/ee/workflows/hooks/useVoicePreview";
