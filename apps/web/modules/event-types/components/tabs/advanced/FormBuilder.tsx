@@ -593,6 +593,7 @@ function FieldEditDialog({
     //resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
+  
 
   useEffect(() => {
     if (!formFieldType) {
@@ -614,6 +615,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
+
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -645,7 +647,8 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
+              value={fieldTypesConfigMap[formFieldType]}
+              // value="Hello World"
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
