@@ -16,7 +16,7 @@ export async function GET() {
   const job = await calendarSyncQueue.add(
     "calendar-sync-test",
     {
-      userId: "test-user-123",
+      userId: "121",
       provider: "google",
       syncType: "full",
     },

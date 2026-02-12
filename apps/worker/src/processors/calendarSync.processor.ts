@@ -1,3 +1,4 @@
+import { handleGoogleCalendarSync } from "@calid/calendar-sync";
 import type { CalendarSyncJob } from "@calid/queue/types";
 import type { Job } from "bullmq";
 
@@ -9,7 +10,7 @@ export async function processCalendarSync(job: Job<CalendarSyncJob>) {
 
   switch (provider) {
     case "google":
-      // google sync logic
+      await handleGoogleCalendarSync(Number(userId));
       break;
     case "outlook":
       // outlook sync logic

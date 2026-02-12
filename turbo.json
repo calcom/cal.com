@@ -9,7 +9,7 @@
     "@calcom/prisma#generate-schemas": {
       "cache": false,
       "dependsOn": [],
-      "outputs": ["node_modules/.prisma/client/**"]
+      "outputs": ["node_modules/.prisma/**", "node_modules/@prisma/client/**"]
     },
     "@calcom/web#build": {
       "dependsOn": ["@calcom/prisma#generate-schemas", "@calid/queue#build"],
@@ -74,13 +74,19 @@
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calid/queue#build": {
-      "cache": true,
+      "cache": false,
       "outputs": ["dist/**"]
+    },
+    "@calid/calendar-sync#build": {
+      "dependsOn": ["@calcom/prisma#generate-schemas"],
+      "outputs": ["dist/**"],
+      "cache": false
     },
 
     "@calid/worker#build": {
-      "dependsOn": ["@calid/queue#build"],
-      "outputs": ["dist/**"]
+      "dependsOn": ["@calid/queue#build", "@calid/calendar-sync#build"],
+      "outputs": ["dist/**"],
+      "cache": false
     },
 
     "@calid/worker#start": {
