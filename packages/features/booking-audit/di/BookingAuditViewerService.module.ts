@@ -14,7 +14,7 @@ export const bookingAuditViewerServiceModule = createModule();
 const token = BOOKING_AUDIT_DI_TOKENS.BOOKING_AUDIT_VIEWER_SERVICE;
 const moduleToken = BOOKING_AUDIT_DI_TOKENS.BOOKING_AUDIT_VIEWER_SERVICE_MODULE;
 
-export { BookingAuditViewerService }
+export { BookingAuditViewerService };
 
 const loadModule = bindModuleToClassOnToken({
   module: bookingAuditViewerServiceModule,
@@ -34,6 +34,5 @@ const loadModule = bindModuleToClassOnToken({
 
 export const moduleLoader = {
   token,
-  loadModule
+  loadModule,
 };
-

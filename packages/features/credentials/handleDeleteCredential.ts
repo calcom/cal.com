@@ -363,8 +363,8 @@ const handleDeleteCredential = async ({
                 destinationCalendar: booking.destinationCalendar
                   ? [booking.destinationCalendar]
                   : booking.user?.destinationCalendar
-                  ? [booking.user?.destinationCalendar]
-                  : [],
+                    ? [booking.user?.destinationCalendar]
+                    : [],
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
@@ -493,12 +493,15 @@ const removeAppFromEventTypeMetadata = (
   }
 ) => {
   const appMetadata = eventTypeMetadata?.apps
-    ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
-        if (appName !== appSlugToDelete) {
-          filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
-        }
-        return filteredApps;
-      }, {} as z.infer<typeof EventTypeAppMetadataSchema>)
+    ? Object.entries(eventTypeMetadata.apps).reduce(
+        (filteredApps, [appName, appData]) => {
+          if (appName !== appSlugToDelete) {
+            filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
+          }
+          return filteredApps;
+        },
+        {} as z.infer<typeof EventTypeAppMetadataSchema>
+      )
     : {};
 
   return appMetadata;

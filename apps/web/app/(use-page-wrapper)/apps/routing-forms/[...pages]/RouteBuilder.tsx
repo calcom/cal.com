@@ -1,43 +1,34 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Link from "next/link";
-import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
-import type { UseFormReturn } from "react-hook-form";
-import { Toaster } from "sonner";
-
 import { buildEmptyQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils.client";
 import { raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils.server";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
-import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
 import { RoutingSkeleton } from "@calcom/app-store/routing-forms/components/_components/RoutingSkeleton";
+import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import {
-  withRaqbSettingsAndWidgets,
   ConfigFor,
+  withRaqbSettingsAndWidgets,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
-import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
 import { createFallbackRoute } from "@calcom/app-store/routing-forms/lib/createFallbackRoute";
 import getEventTypeAppMetadata from "@calcom/app-store/routing-forms/lib/getEventTypeAppMetadata";
 import {
-  getQueryBuilderConfigForFormFields,
-  getQueryBuilderConfigForAttributes,
-  type FormFieldsQueryBuilderConfigWithRaqbFields,
   type AttributesQueryBuilderConfigWithRaqbFields,
+  type FormFieldsQueryBuilderConfigWithRaqbFields,
+  getQueryBuilderConfigForAttributes,
+  getQueryBuilderConfigForFormFields,
   isDynamicOperandField,
 } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { RoutingPages } from "@calcom/app-store/routing-forms/lib/RoutingPages";
 import type {
+  Attribute,
+  AttributeRoutingConfig,
+  EditFormRoute,
   GlobalRoute,
   LocalRoute,
+  RoutingFormWithResponseCount,
   SerializableRoute,
-  Attribute,
-  EditFormRoute,
-  AttributeRoutingConfig,
 } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -52,15 +43,25 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
-import { SelectWithValidation as Select, TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  SelectWithValidation as Select,
+  SelectField,
+  Switch,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Icon } from "@calcom/ui/components/icon";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import Link from "next/link";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { BuilderProps, Config, ImmutableTree, JsonTree } from "react-awesome-query-builder";
+import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
+import type { UseFormReturn } from "react-hook-form";
+import { Toaster } from "sonner";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
@@ -342,6 +343,166 @@ const WeightedAttributesSelector = ({
   ) : null;
 };
 
+type RouteActionSelectorProps = {
+  action: LocalRoute["action"] | undefined;
+  onActionChange: (action: LocalRoute["action"]) => void;
+  onEventTypeChange?: (action: LocalRoute["action"]) => void;
+  eventTypeOptions: { label: string; value: string; eventTypeId: number }[];
+  selectedEventTypeOption:
+    | { label: string; value: string; eventTypeId: number }
+    | { label: string; value: "custom"; eventTypeId: 0 }
+    | undefined;
+  disabled?: boolean;
+  className?: string;
+  showCustomEventTypeInput?: boolean;
+  customEventTypeSlug?: string;
+  onCustomEventTypeSlugChange?: (slug: string) => void;
+  eventTypePrefix?: string;
+  fieldIdentifiers?: string[];
+  t: (key: string, options?: Record<string, string>) => string;
+};
+
+const RouteActionSelector = ({
+  action,
+  onActionChange,
+  onEventTypeChange,
+  eventTypeOptions,
+  selectedEventTypeOption,
+  disabled = false,
+  className = "",
+  showCustomEventTypeInput = false,
+  customEventTypeSlug = "",
+  onCustomEventTypeSlugChange,
+  eventTypePrefix = "",
+  fieldIdentifiers = [],
+  t,
+}: RouteActionSelectorProps) => {
+  return (
+    <div className={classNames("flex w-full flex-col gap-2 text-sm lg:flex-row", className)}>
+      <div className="flex grow items-center gap-2">
+        <Select
+          size="sm"
+          isDisabled={disabled}
+          className="data-testid-select-routing-action block w-full grow"
+          required
+          value={RoutingPages.find((page) => page.value === action?.type)}
+          onChange={(item) => {
+            if (!item) {
+              return;
+            }
+            const newAction: LocalRoute["action"] = {
+              type: item.value,
+              value: "",
+            };
+
+            if (newAction.type === "customPageMessage") {
+              newAction.value = t("default_custom_page_message");
+            } else {
+              newAction.value = "";
+            }
+
+            onActionChange(newAction);
+          }}
+          options={RoutingPages}
+        />
+      </div>
+      {action?.type ? (
+        action?.type === "customPageMessage" ? (
+          <TextArea
+            required
+            disabled={disabled}
+            name="customPageMessage"
+            className="border-default flex grow lg:w-fit"
+            style={{
+              minHeight: "38px",
+            }}
+            value={action.value}
+            onChange={(e) => {
+              onActionChange({ ...action, value: e.target.value });
+            }}
+          />
+        ) : action?.type === "externalRedirectUrl" ? (
+          <TextField
+            size="sm"
+            disabled={disabled}
+            name="externalRedirectUrl"
+            className="border-default flex grow text-sm"
+            containerClassName="grow"
+            type="url"
+            required
+            labelSrOnly
+            value={action.value}
+            onChange={(e) => {
+              onActionChange({ ...action, value: e.target.value });
+            }}
+            placeholder="https://example.com"
+          />
+        ) : (
+          <div className="grow">
+            <Select
+              size="sm"
+              required
+              className="data-testid-eventTypeRedirectUrl-select"
+              isDisabled={disabled}
+              options={eventTypeOptions}
+              onChange={(option) => {
+                if (!option) {
+                  return;
+                }
+                const newAction = {
+                  ...action,
+                  value: option.value,
+                  eventTypeId: option.eventTypeId,
+                };
+                if (onEventTypeChange) {
+                  onEventTypeChange(newAction);
+                } else {
+                  onActionChange(newAction);
+                }
+              }}
+              value={selectedEventTypeOption}
+            />
+            {showCustomEventTypeInput &&
+            eventTypeOptions.length !== 0 &&
+            action.value !== "" &&
+            (action.value === "custom" ||
+              !eventTypeOptions.find((eventOption) => eventOption.value === action.value) ||
+              customEventTypeSlug.length) ? (
+              <>
+                <TextField
+                  disabled={disabled}
+                  className="border-default flex w-full grow text-sm"
+                  containerClassName="grow mt-2"
+                  addOnLeading={eventTypePrefix}
+                  required
+                  value={customEventTypeSlug}
+                  onChange={(e) => {
+                    onCustomEventTypeSlugChange?.(e.target.value);
+                    onActionChange({
+                      ...action,
+                      value: `${eventTypePrefix}${e.target.value}`,
+                    });
+                  }}
+                  placeholder="event-url"
+                />
+                <div className="mt-2 ">
+                  <p className="text-subtle text-xs">
+                    {fieldIdentifiers.length
+                      ? t("field_identifiers_as_variables_with_example", {
+                          variable: `{${fieldIdentifiers[0]}}`,
+                        })
+                      : t("field_identifiers_as_variables")}
+                  </p>
+                </div>
+              </>
+            ) : null}
+          </div>
+        )
+      ) : null}
+    </div>
+  );
+};
+
 const Route = ({
   form,
   route,
@@ -395,10 +556,20 @@ const Route = ({
       ? eventOptions[0].value.substring(0, eventOptions[0].value.lastIndexOf("/") + 1)
       : "";
 
+  const getCustomSlug = (actionValue: string | undefined) => {
+    if (!actionValue) return "";
+    const isCustom = !eventOptions.find((eventOption) => eventOption.value === actionValue);
+    return isCustom ? (actionValue.split("/").pop() ?? "") : "";
+  };
+
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>(() => {
-    const isCustom =
-      !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
-    return isCustom && !isRouter(route) ? (route.action.value.split("/").pop() ?? "") : "";
+    if (isRouter(route)) return "";
+    return getCustomSlug(route.action.value);
+  });
+
+  const [customFallbackEventTypeSlug, setCustomFallbackEventTypeSlug] = useState<string>(() => {
+    if (isRouter(route)) return "";
+    return getCustomSlug(route.fallbackAction?.value);
   });
 
   useEnsureEventTypeIdInRedirectUrlAction({
@@ -558,7 +729,7 @@ const Route = ({
   const attributesQueryBuilder =
     // team member attributes are only available for organization teams
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm && isOrganization ? (
-      <div className="mt-4">
+      <div>
         {/* TODO: */}
         {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
         "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
@@ -573,13 +744,13 @@ const Route = ({
           </div>
         ) : null}
 
-        <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+        <div className="cal-query-builder-container mt-4" data-testid="attributes-query-builder">
           <div className="ml-2 flex items-center gap-0.5">
             <div className="border-subtle rounded-lg border p-1">
               <Icon name="user-check" className="text-subtle h-4 w-4" />
             </div>
             <span className="text-emphasis ml-2 text-sm font-medium">
-              And connect with specific team members
+              {t("connect_with_specific_team_members")}
             </span>
           </div>
           {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
@@ -600,30 +771,71 @@ const Route = ({
       </div>
     ) : null;
 
-  const fallbackAttributesQueryBuilder =
-    route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
+  const fallbackActionOptions = eventTypeRedirectUrlOptions;
+  const fallbackActionSelectedOption = route.fallbackAction?.eventTypeId
+    ? eventTypeRedirectUrlOptions.find((option) => option.eventTypeId === route.fallbackAction?.eventTypeId)
+    : eventTypeRedirectUrlOptions.find((option) => option.value === route.fallbackAction?.value);
+
+  // Only show fallback section when main action has a valid event type selected
+  // This prevents showing an empty fallback action selector before user selects an event type
+  const hasValidEventTypeSelected =
+    route.action?.type === RouteActionType.EventTypeRedirectUrl &&
+    (route.action?.eventTypeId || route.action?.value);
+
+  const matchingMembersFallbackRoute =
+    hasValidEventTypeSelected && isTeamForm ? (
       <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="border-subtle rounded-lg border p-1">
             <Icon name="blocks" className="text-subtle h-4 w-4" />
           </div>
-          <span className="text-emphasis ml-2 text-sm font-medium">Fallback</span>
+          <span className="text-emphasis ml-2 text-sm font-medium">{t("fallback_action")}</span>
         </div>
-        {route.fallbackAttributesQueryBuilderState &&
-          attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
-            <Query
-              {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
-              value={route.fallbackAttributesQueryBuilderState.tree}
-              onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                onChangeFallbackTeamMembersQuery(
-                  route,
-                  immutableTree,
-                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                );
-              }}
-              renderBuilder={renderBuilder}
-            />
-          )}
+        <div className="bg-cal-muted mt-2 rounded-xl p-2">
+          <RouteActionSelector
+            action={route.fallbackAction}
+            onActionChange={(newAction) => setRoute(route.id, { fallbackAction: newAction })}
+            eventTypeOptions={fallbackActionOptions}
+            selectedEventTypeOption={fallbackActionSelectedOption}
+            disabled={disabled}
+            showCustomEventTypeInput
+            customEventTypeSlug={customFallbackEventTypeSlug}
+            onCustomEventTypeSlugChange={setCustomFallbackEventTypeSlug}
+            eventTypePrefix={eventTypePrefix}
+            fieldIdentifiers={fieldIdentifiers}
+            t={t}
+          />
+        </div>
+        {isOrganization && (
+          <div className="mt-4">
+            {route.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl &&
+              route.fallbackAttributesQueryBuilderState &&
+              attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+                <div>
+                  <div className="ml-2 flex items-center gap-0.5">
+                    <div className="border-subtle rounded-lg border p-1">
+                      <Icon name="user-check" className="text-subtle h-4 w-4" />
+                    </div>
+                    <span className="text-emphasis ml-2 text-sm font-medium">
+                      {t("connect_with_specific_team_members")}
+                    </span>
+                  </div>
+                  <Query
+                    {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+                    value={route.fallbackAttributesQueryBuilderState.tree}
+                    onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                      onChangeFallbackTeamMembersQuery(
+                        route,
+                        immutableTree,
+                        attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                      );
+                    }}
+                    renderBuilder={renderBuilder}
+                  />
+                </div>
+              )}
+          </div>
+        )}
       </div>
     ) : null;
 
@@ -659,283 +871,87 @@ const Route = ({
           {formFieldsQueryBuilder}
           <div>
             {route.isFallback ? (
-              <div className="flex w-full flex-col gap-2 text-sm lg:flex-row">
-                <div className="flex grow items-center gap-2">
-                  {/* <div className="flex grow-0 whitespace-nowrap">
-                      <span>{t("send_booker_to")}</span>
-                    </div> */}
-                  <Select
-                    size="sm"
-                    isDisabled={disabled}
-                    className="data-testid-select-routing-action block w-full grow"
-                    required
-                    value={RoutingPages.find((page) => page.value === route.action?.type)}
-                    onChange={(item) => {
-                      if (!item) {
-                        return;
-                      }
-                      const action: LocalRoute["action"] = {
-                        type: item.value,
-                        value: "",
-                      };
-
-                      if (action.type === "customPageMessage") {
-                        action.value = "We are not ready for you yet :(";
-                      } else {
-                        action.value = "";
-                      }
-
-                      setRoute(route.id, { action });
-                    }}
-                    options={RoutingPages}
-                  />
-                </div>
-                {route.action?.type ? (
-                  route.action?.type === "customPageMessage" ? (
-                    <TextArea
-                      required
-                      disabled={disabled}
-                      name="customPageMessage"
-                      className="border-default flex grow lg:w-fit"
-                      style={{
-                        minHeight: "38px",
-                      }}
-                      value={route.action.value}
-                      onChange={(e) => {
-                        setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                      }}
-                    />
-                  ) : route.action?.type === "externalRedirectUrl" ? (
-                    <TextField
-                      disabled={disabled}
-                      name="externalRedirectUrl"
-                      className="border-default flex grow text-sm"
-                      containerClassName="grow"
-                      type="url"
-                      required
-                      labelSrOnly
-                      value={route.action.value}
-                      onChange={(e) => {
-                        setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                      }}
-                      placeholder="https://example.com"
-                    />
-                  ) : (
-                    <div className="grow">
-                      <Select
-                        size="sm"
-                        required
-                        className="data-testid-eventTypeRedirectUrl-select"
-                        isDisabled={disabled}
-                        options={eventTypeRedirectUrlOptions}
-                        onChange={(option) => {
-                          if (!option) {
-                            return;
-                          }
-                          if (option.value !== "custom") {
-                            setRoute(route.id, {
-                              action: {
-                                ...route.action,
-                                value: option.value,
-                                eventTypeId: option.eventTypeId,
-                              },
-                              attributeRoutingConfig: {},
-                            });
-                            setCustomEventTypeSlug("");
-                          } else {
-                            setRoute(route.id, {
-                              action: { ...route.action, value: "custom", eventTypeId: 0 },
-                              attributeRoutingConfig: {},
-                            });
-                            setCustomEventTypeSlug("");
-                          }
-                        }}
-                        value={eventTypeRedirectUrlSelectedOption}
-                      />
-                      {eventOptions.length !== 0 &&
-                      route.action.value !== "" &&
-                      (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
-                        customEventTypeSlug.length) ? (
-                        <>
-                          <TextField
-                            disabled={disabled}
-                            className="border-default flex w-full grow text-sm"
-                            containerClassName="grow mt-2"
-                            addOnLeading={eventTypePrefix}
-                            required
-                            value={customEventTypeSlug}
-                            onChange={(e) => {
-                              setCustomEventTypeSlug(e.target.value);
-                              setRoute(route.id, {
-                                action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
-                              });
-                            }}
-                            placeholder="event-url"
-                          />
-                          <div className="mt-2 ">
-                            <p className="text-subtle text-xs">
-                              {fieldIdentifiers.length
-                                ? t("field_identifiers_as_variables_with_example", {
-                                    variable: `{${fieldIdentifiers[0]}}`,
-                                  })
-                                : t("field_identifiers_as_variables")}
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <></>
-                      )}
-                    </div>
-                  )
-                ) : null}
-              </div>
+              <RouteActionSelector
+                action={route.action}
+                onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
+                onEventTypeChange={(newAction) => {
+                  // Initialize fallbackAction with the same event type if not already set with a valid event type
+                  // Check if fallbackAction has a valid event type (eventTypeId or non-empty value)
+                  const hasValidFallbackEventType =
+                    route.fallbackAction?.eventTypeId || route.fallbackAction?.value;
+                  const fallbackAction = hasValidFallbackEventType
+                    ? route.fallbackAction
+                    : newAction.type === RouteActionType.EventTypeRedirectUrl
+                      ? {
+                          type: newAction.type,
+                          value: newAction.value,
+                          eventTypeId: newAction.eventTypeId,
+                        }
+                      : undefined;
+                  setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
+                  setCustomEventTypeSlug("");
+                }}
+                eventTypeOptions={eventTypeRedirectUrlOptions}
+                selectedEventTypeOption={eventTypeRedirectUrlSelectedOption}
+                disabled={disabled}
+                showCustomEventTypeInput
+                customEventTypeSlug={customEventTypeSlug}
+                onCustomEventTypeSlugChange={setCustomEventTypeSlug}
+                eventTypePrefix={eventTypePrefix}
+                fieldIdentifiers={fieldIdentifiers}
+                t={t}
+              />
             ) : (
               <div className="bg-default border-subtle my-3 rounded-xl border p-2">
                 <div className="mb-2 ml-2 flex items-center gap-0.5">
                   <div className="border-subtle rounded-lg border p-1">
                     <Icon name="arrow-right" className="text-subtle h-4 w-4" />
                   </div>
-                  <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
+                  <span className="text-emphasis ml-2 text-sm font-medium">{t("send_booker_to")}</span>
                 </div>
-                <div className="bg-cal-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
-                  <div className="flex grow items-center gap-2">
-                    <Select
-                      size="sm"
-                      isDisabled={disabled}
-                      className="data-testid-select-routing-action block w-full grow"
-                      required
-                      value={RoutingPages.find((page) => page.value === route.action?.type)}
-                      onChange={(item) => {
-                        if (!item) {
-                          return;
-                        }
-                        const action: LocalRoute["action"] = {
-                          type: item.value,
-                          value: "",
-                        };
-
-                        if (action.type === "customPageMessage") {
-                          action.value = "We are not ready for you yet :(";
-                        } else {
-                          action.value = "";
-                        }
-
-                        setRoute(route.id, { action });
-                      }}
-                      options={RoutingPages}
-                    />
-                  </div>
-                  {route.action?.type ? (
-                    route.action?.type === "customPageMessage" ? (
-                      <TextArea
-                        required
-                        disabled={disabled}
-                        name="customPageMessage"
-                        className="border-default flex grow lg:w-fit"
-                        style={{
-                          minHeight: "38px",
-                        }}
-                        value={route.action.value}
-                        onChange={(e) => {
-                          setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                        }}
-                      />
-                    ) : route.action?.type === "externalRedirectUrl" ? (
-                      <TextField
-                        size="sm"
-                        disabled={disabled}
-                        name="externalRedirectUrl"
-                        className="border-default flex grow text-sm"
-                        containerClassName="grow"
-                        type="url"
-                        required
-                        labelSrOnly
-                        value={route.action.value}
-                        onChange={(e) => {
-                          setRoute(route.id, { action: { ...route.action, value: e.target.value } });
-                        }}
-                        placeholder="https://example.com"
-                      />
-                    ) : (
-                      <div className="grow">
-                        <Select
-                          size="sm"
-                          required
-                          className="data-testid-eventTypeRedirectUrl-select"
-                          isDisabled={disabled}
-                          options={eventTypeRedirectUrlOptions}
-                          onChange={(option) => {
-                            if (!option) {
-                              return;
+                <div className="bg-cal-muted rounded-xl p-2">
+                  <RouteActionSelector
+                    action={route.action}
+                    onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
+                    onEventTypeChange={(newAction) => {
+                      // Initialize fallbackAction with the same event type if not already set with a valid event type
+                      // Check if fallbackAction has a valid event type (eventTypeId or non-empty value)
+                      const hasValidFallbackEventType =
+                        route.fallbackAction?.eventTypeId || route.fallbackAction?.value;
+                      const fallbackAction = hasValidFallbackEventType
+                        ? route.fallbackAction
+                        : newAction.type === RouteActionType.EventTypeRedirectUrl
+                          ? {
+                              type: newAction.type,
+                              value: newAction.value,
+                              eventTypeId: newAction.eventTypeId,
                             }
-                            if (option.value !== "custom") {
-                              setRoute(route.id, {
-                                action: {
-                                  ...route.action,
-                                  value: option.value,
-                                  eventTypeId: option.eventTypeId,
-                                },
-                                attributeRoutingConfig: {},
-                              });
-                              setCustomEventTypeSlug("");
-                            } else {
-                              setRoute(route.id, {
-                                action: { ...route.action, value: "custom", eventTypeId: 0 },
-                                attributeRoutingConfig: {},
-                              });
-                              setCustomEventTypeSlug("");
-                            }
-                          }}
-                          value={eventTypeRedirectUrlSelectedOption}
-                        />
-                        {eventOptions.length !== 0 &&
-                        route.action.value !== "" &&
-                        (!eventOptions.find((eventOption) => eventOption.value === route.action.value) ||
-                          customEventTypeSlug.length) ? (
-                          <>
-                            <TextField
-                              disabled={disabled}
-                              className="border-default flex w-full grow text-sm"
-                              containerClassName="grow mt-2"
-                              addOnLeading={eventTypePrefix}
-                              required
-                              value={customEventTypeSlug}
-                              onChange={(e) => {
-                                setCustomEventTypeSlug(e.target.value);
-                                setRoute(route.id, {
-                                  action: { ...route.action, value: `${eventTypePrefix}${e.target.value}` },
-                                });
-                              }}
-                              placeholder="event-url"
-                            />
-                            <div className="mt-2 ">
-                              <p className="text-subtle text-xs">
-                                {fieldIdentifiers.length
-                                  ? t("field_identifiers_as_variables_with_example", {
-                                      variable: `{${fieldIdentifiers[0]}}`,
-                                    })
-                                  : t("field_identifiers_as_variables")}
-                              </p>
-                            </div>
-                          </>
-                        ) : (
-                          <></>
-                        )}
-                      </div>
-                    )
-                  ) : null}
+                          : undefined;
+                      setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
+                      setCustomEventTypeSlug("");
+                    }}
+                    eventTypeOptions={eventTypeRedirectUrlOptions}
+                    selectedEventTypeOption={eventTypeRedirectUrlSelectedOption}
+                    disabled={disabled}
+                    showCustomEventTypeInput
+                    customEventTypeSlug={customEventTypeSlug}
+                    onCustomEventTypeSlugChange={setCustomEventTypeSlug}
+                    eventTypePrefix={eventTypePrefix}
+                    fieldIdentifiers={fieldIdentifiers}
+                    t={t}
+                  />
                 </div>
+                {attributesQueryBuilder}
               </div>
             )}
 
-            {attributesQueryBuilder}
             <WeightedAttributesSelector
               attributes={attributes}
               route={route}
               eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
               setRoute={setRoute}
             />
-            {fallbackAttributesQueryBuilder ? <>{fallbackAttributesQueryBuilder}</> : null}
+            {matchingMembersFallbackRoute ? <>{matchingMembersFallbackRoute}</> : null}
           </div>
         </div>
       </div>
@@ -1026,6 +1042,16 @@ function useRoutes({
         if (!r.fallbackAttributesQueryValue) {
           r.fallbackAttributesQueryValue = getEmptyQueryValue() as LocalRoute["fallbackAttributesQueryValue"];
         }
+
+        // Initialize fallbackAction with the main action for backwards compatibility
+        // This ensures existing routes show the correct default (same event type as main route)
+        if (!r.fallbackAction && r.action?.type === RouteActionType.EventTypeRedirectUrl) {
+          r.fallbackAction = {
+            type: r.action.type,
+            value: r.action.value,
+            eventTypeId: r.action.eventTypeId,
+          };
+        }
       });
       return _routes;
     };
@@ -1056,6 +1082,17 @@ function useRoutes({
         if (isRouter(route)) {
           return route;
         }
+        // Initialize fallbackAction from action if not set and action is EventTypeRedirectUrl
+        // This handles the case where user creates a new route and changes action to an event type
+        const fallbackAction =
+          route.fallbackAction ??
+          (route.action?.type === RouteActionType.EventTypeRedirectUrl
+            ? {
+                type: route.action.type,
+                value: route.action.value,
+                eventTypeId: route.action.eventTypeId,
+              }
+            : undefined);
         return {
           id: route.id,
           name: route.name,
@@ -1066,6 +1103,7 @@ function useRoutes({
           attributesQueryValue: route.attributesQueryValue,
           fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
           attributeIdForWeights: route.attributeIdForWeights,
+          fallbackAction,
         };
       });
     }
@@ -1087,10 +1125,21 @@ const useCreateRoute = ({
 }) => {
   const createRoute = useCallback(() => {
     const newEmptyRoute = getEmptyRoute();
+    // Initialize fallbackAction with the main action for new routes
+    // This ensures new routes have a valid fallbackAction when saved
+    const fallbackAction =
+      newEmptyRoute.action?.type === RouteActionType.EventTypeRedirectUrl
+        ? {
+            type: newEmptyRoute.action.type,
+            value: newEmptyRoute.action.value,
+            eventTypeId: newEmptyRoute.action.eventTypeId,
+          }
+        : undefined;
     const newRoutes = [
       ...routes,
       {
         ...newEmptyRoute,
+        fallbackAction,
         formFieldsQueryBuilderState: buildState({
           queryValue: newEmptyRoute.queryValue,
           config: formFieldsQueryBuilderConfig,

@@ -212,10 +212,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       },
     });
 
-    const allBookingReports = [
-      ...(entry?.bookingReports ?? []),
-      ...(entry?.globalBookingReports ?? []),
-    ];
+    const allBookingReports = [...(entry?.bookingReports ?? []), ...(entry?.globalBookingReports ?? [])];
 
     return {
       entry: entry

@@ -1,9 +1,6 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
-import type {
-  AttributeId,
-  AttributeOptionValueWithType,
-} from "@calcom/app-store/routing-forms/types/types";
+import type { AttributeId, AttributeOptionValueWithType } from "@calcom/app-store/routing-forms/types/types";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";
@@ -88,13 +85,7 @@ type FullAttribute = {
   }[];
 };
 
-async function _findMembershipsForBothOrgAndTeam({
-  orgId,
-  teamId,
-}: {
-  orgId: number;
-  teamId: number;
-}) {
+async function _findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
   const memberships = await prisma.membership.findMany({
     where: {
       teamId: {
@@ -186,10 +177,7 @@ function _prepareAssignmentData({
             newAttributeOptionValue,
           ];
         } else if (currentAttributeOptionValue) {
-          attributes[attribute.id].attributeOption = [
-            currentAttributeOptionValue,
-            newAttributeOptionValue,
-          ];
+          attributes[attribute.id].attributeOption = [currentAttributeOptionValue, newAttributeOptionValue];
         } else {
           // Set the first value
           attributes[attribute.id] = {
@@ -231,9 +219,7 @@ function _prepareAssignmentData({
           console.error(
             `Enriching "contains" for attribute ${
               attribute.name
-            }: Option with id ${optionId} not found. Looked up in ${JSON.stringify(
-              allOptions
-            )}`
+            }: Option with id ${optionId} not found. Looked up in ${JSON.stringify(allOptions)}`
           );
           return null;
         }
@@ -243,9 +229,7 @@ function _prepareAssignmentData({
           slug: option.slug,
         };
       })
-      .filter(
-        (option): option is NonNullable<typeof option> => option !== null
-      );
+      .filter((option): option is NonNullable<typeof option> => option !== null);
   }
 }
 
@@ -255,10 +239,7 @@ function _prepareAssignmentData({
  */
 function _buildAttributeLookupMaps(attributesOfTheOrg: FullAttribute[]) {
   const optionIdToAttribute = new Map<AttributeOptionId, FullAttribute>();
-  const optionIdToOption = new Map<
-    AttributeOptionId,
-    FullAttribute["options"][number]
-  >();
+  const optionIdToOption = new Map<AttributeOptionId, FullAttribute["options"][number]>();
   const attributeIdToOptions = new Map<string, FullAttribute["options"]>();
 
   for (const attribute of attributesOfTheOrg) {
@@ -294,31 +275,19 @@ function _getAttributeOptionFromId({
   return lookupMaps.optionIdToOption.get(attributeOptionId);
 }
 
-async function _getOrgMembershipToUserIdForTeam({
-  orgId,
-  teamId,
-}: {
-  orgId: number;
-  teamId: number;
-}) {
-  const { orgMemberships, teamMemberships } =
-    await _findMembershipsForBothOrgAndTeam({
-      orgId,
-      teamId,
-    });
+async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
+  const { orgMemberships, teamMemberships } = await _findMembershipsForBothOrgAndTeam({
+    orgId,
+    teamId,
+  });
 
   // Using map for performance lookup as it matters in the below loop working with 1000s of records
-  const orgMembershipsByUserId = new Map(
-    orgMemberships.map((m) => [m.userId, m])
-  );
+  const orgMembershipsByUserId = new Map(orgMemberships.map((m) => [m.userId, m]));
 
   /**
    * Holds the records of orgMembershipId to userId for the sub-team's members only.
    */
-  const orgMembershipToUserIdForTeamMembers = new Map<
-    OrgMembershipId,
-    UserId
-  >();
+  const orgMembershipToUserIdForTeamMembers = new Map<OrgMembershipId, UserId>();
 
   /**
    * For an organization with 3000 users and 10 teams, with every team having around 300 members, the total memberships we get for a team are 3000+300 = 3300
@@ -332,10 +301,7 @@ async function _getOrgMembershipToUserIdForTeam({
       // );
       return;
     }
-    orgMembershipToUserIdForTeamMembers.set(
-      orgMembership.id,
-      orgMembership.userId
-    );
+    orgMembershipToUserIdForTeamMembers.set(orgMembership.id, orgMembership.userId);
   });
 
   return orgMembershipToUserIdForTeamMembers;
@@ -354,23 +320,19 @@ async function _queryAllData({
   const attributeRepo = new PrismaAttributeRepository(prisma);
   const attributeToUserRepo = new PrismaAttributeToUserRepository(prisma);
 
-  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] =
-    await Promise.all([
-      _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
-      attributeRepo.findManyByOrgId({ orgId, attributeIds }),
-    ]);
+  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
+    _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
+    attributeRepo.findManyByOrgId({ orgId, attributeIds }),
+  ]);
 
-  const orgMembershipIds = Array.from(
-    orgMembershipToUserIdForTeamMembers.keys()
-  );
+  const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
 
   // Get the attributes assigned to the members of the team
   // If attributeIds is provided, only fetch assignments for those specific attributes
-  const attributesToUsersForTeam =
-    await attributeToUserRepo.findManyByOrgMembershipIds({
-      orgMembershipIds,
-      attributeIds,
-    });
+  const attributesToUsersForTeam = await attributeToUserRepo.findManyByOrgMembershipIds({
+    orgMembershipIds,
+    attributeIds,
+  });
 
   return {
     attributesOfTheOrg,
@@ -379,13 +341,7 @@ async function _queryAllData({
   };
 }
 
-async function getAttributesAssignedToMembersOfTeam({
-  teamId,
-  userId,
-}: {
-  teamId: number;
-  userId?: number;
-}) {
+async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId: number; userId?: number }) {
   const log = logger.getSubLogger({
     prefix: ["getAttributeToUserWithMembershipAndAttributes"],
   });
@@ -455,9 +411,7 @@ function _buildAssignmentsForTeam({
       const orgMembershipId = attributeToUser.memberId;
       const userId = orgMembershipToUserIdForTeamMembers.get(orgMembershipId);
       if (!userId) {
-        console.error(
-          `No org membership found for membership id ${orgMembershipId}`
-        );
+        console.error(`No org membership found for membership id ${orgMembershipId}`);
         return null;
       }
       const attribute = _getAttributeFromAttributeOption({
@@ -484,10 +438,7 @@ function _buildAssignmentsForTeam({
         attributeOption,
       };
     })
-    .filter(
-      (assignment): assignment is NonNullable<typeof assignment> =>
-        assignment !== null
-    );
+    .filter((assignment): assignment is NonNullable<typeof assignment> => assignment !== null);
 }
 
 export async function getAttributesAssignmentData({
@@ -501,15 +452,12 @@ export async function getAttributesAssignmentData({
    * This significantly improves performance when only a few attributes are needed. */
   attributeIds?: string[];
 }) {
-  const {
-    attributesOfTheOrg,
-    attributesToUsersForTeam,
-    orgMembershipToUserIdForTeamMembers,
-  } = await _queryAllData({
-    orgId,
-    teamId,
-    attributeIds,
-  });
+  const { attributesOfTheOrg, attributesToUsersForTeam, orgMembershipToUserIdForTeamMembers } =
+    await _queryAllData({
+      orgId,
+      teamId,
+      attributeIds,
+    });
 
   const lookupMaps = _buildAttributeLookupMaps(attributesOfTheOrg);
 
@@ -550,12 +498,6 @@ export async function getAttributesForTeam({ teamId }: { teamId: number }) {
   return attributes satisfies Attribute[];
 }
 
-export async function getUsersAttributes({
-  userId,
-  teamId,
-}: {
-  userId: number;
-  teamId: number;
-}) {
+export async function getUsersAttributes({ userId, teamId }: { userId: number; teamId: number }) {
   return await getAttributesAssignedToMembersOfTeam({ teamId, userId });
 }
