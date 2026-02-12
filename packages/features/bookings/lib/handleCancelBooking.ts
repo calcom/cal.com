@@ -46,7 +46,8 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, InternalNotePresetType } from "@calcom/prisma/enums";
+import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -681,6 +682,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         booking: bookingToDelete,
         userId: userId || -1,
         teamId: teamId,
+        presetType: InternalNotePresetType.CANCELLATION,
       });
     }
   } catch (error) {
