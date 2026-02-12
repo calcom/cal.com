@@ -2310,6 +2310,8 @@
   "enable_apps": "Enable apps",
   "enable_apps_description": "Enable apps that users can integrate with {{appName}}",
   "purchase_license": "Purchase a license",
+  "account_under_review_title": "Your account is under review",
+  "account_under_review_description": "Your account has been created and is currently under review. You will be able to sign in once your account has been approved.",
   "already_have_account": "Already have an account?",
   "already_have_key": "I already have a key:",
   "already_have_key_suggestion": "Please copy your existing CALCOM_LICENSE_KEY environment variable here.",

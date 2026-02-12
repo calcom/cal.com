@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { trpc } from "@calcom/trpc/react";
 
@@ -37,6 +38,7 @@ const initialData: AppFlags = {
   "hwm-seating": false,
   "active-user-billing": false,
   "sidebar-tips": false,
+  "signup-watchlist-review": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

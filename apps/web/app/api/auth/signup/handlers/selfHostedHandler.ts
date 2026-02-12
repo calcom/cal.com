@@ -1,9 +1,18 @@
-import { NextResponse } from "next/server";
-
+import process from "node:process";
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
+import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -11,17 +20,9 @@ import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-
-import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
-import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
-import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
-import {
-  findTokenByToken,
-  throwIfTokenExpired,
-  validateAndGetCorrectedUsernameForTeam,
-} from "@calcom/features/auth/signup/utils/token";
+import { NextResponse } from "next/server";
 
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
@@ -215,6 +216,43 @@ export default async function handler(body: Record<string, string>) {
       username: correctedUsername,
       language,
     });
+  }
+
+  const featuresRepository = new FeaturesRepository(prisma);
+  const signupWatchlistReviewEnabled =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
+
+  if (signupWatchlistReviewEnabled && !token) {
+    const normalizedEmail = normalizeEmail(userEmail);
+    const existing = await prisma.watchlist.findFirst({
+      where: {
+        type: WatchlistType.EMAIL,
+        value: normalizedEmail,
+        isGlobal: true,
+        organizationId: null,
+      },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      await prisma.watchlist.create({
+        data: {
+          type: WatchlistType.EMAIL,
+          value: normalizedEmail,
+          action: WatchlistAction.BLOCK,
+          source: WatchlistSource.SIGNUP,
+          isGlobal: true,
+          description: "Auto-added during signup review",
+        },
+      });
+    }
+
+    await prisma.user.updateMany({
+      where: { email: userEmail },
+      data: { locked: true },
+    });
+
+    return NextResponse.json({ message: "Created user", accountUnderReview: true }, { status: 201 });
   }
 
   return NextResponse.json({ message: "Created user" }, { status: 201 });
