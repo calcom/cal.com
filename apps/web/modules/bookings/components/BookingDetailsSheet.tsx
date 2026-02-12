@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
+import { formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -445,14 +446,20 @@ function DisplayTimestamp({
   endTime: Date | dayjs.Dayjs;
   timeZone?: string;
 }) {
+  const {
+    i18n: { language },
+  } = useLocale();
   const start = startTime instanceof Date ? dayjs(startTime).tz(timeZone) : startTime;
   const end = endTime instanceof Date ? dayjs(endTime).tz(timeZone) : endTime;
+  const localizedTimezone = timeZone
+    ? formatToLocalizedTimezone(start, language, timeZone)
+    : start.format("Z");
 
   return (
     <>
       <span>{start.format("dddd, MMMM D, YYYY")}</span>
       <span>
-        {start.format("h:mma")} - {end.format("h:mma")} ({timeZone || start.format("Z")})
+        {start.format("h:mma")} - {end.format("h:mma")} ({localizedTimezone})
       </span>
     </>
   );
@@ -507,6 +514,9 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
               />
               <div className="min-w-0 flex-1">
                 <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
+                {attendee.phoneNumber && (
+                  <p className="text-default truncate text-sm leading-[1.2]">{attendee.phoneNumber}</p>
+                )}
                 <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
               </div>
             </div>
