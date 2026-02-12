@@ -4,17 +4,16 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsInt,
   IsObject,
   IsOptional,
   IsString,
-  IsEmail,
   IsTimeZone,
   IsUrl,
   ValidateNested,
 } from "class-validator";
-
 import type { BookingLanguageType } from "../inputs/language";
 import { BookingLanguage } from "../inputs/language";
 
@@ -100,7 +99,11 @@ class BookingHost {
   @Expose()
   email!: string;
 
-  @ApiProperty({ type: String, example: "jane100@example.com", description: "Clean email for display purposes" })
+  @ApiProperty({
+    type: String,
+    example: "jane100@example.com",
+    description: "Clean email for display purposes",
+  })
   @IsString()
   @Expose()
   displayEmail!: string;
@@ -126,6 +129,38 @@ class EventType {
   @IsString()
   @Expose()
   slug!: string;
+}
+
+class BookingTracking {
+  @ApiPropertyOptional({ type: String, example: "google" })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  utmSource?: string;
+
+  @ApiPropertyOptional({ type: String, example: "cpc" })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  utmMedium?: string;
+
+  @ApiPropertyOptional({ type: String, example: "spring_sale" })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  utmCampaign?: string;
+
+  @ApiPropertyOptional({ type: String, example: "scheduling" })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  utmTerm?: string;
+
+  @ApiPropertyOptional({ type: String, example: "header_cta" })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  utmContent?: string;
 }
 
 class BaseBookingOutput_2024_08_13 {
@@ -285,6 +320,16 @@ class BaseBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   icsUid?: string;
+
+  @ApiPropertyOptional({
+    type: BookingTracking,
+    description: "UTM tracking parameters captured during booking.",
+  })
+  @ValidateNested()
+  @Type(() => BookingTracking)
+  @IsOptional()
+  @Expose()
+  tracking?: BookingTracking;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
@@ -406,7 +451,11 @@ class ReassignedToDto {
   @Expose()
   email!: string;
 
-  @ApiProperty({ type: String, example: "john.doe@example.com", description: "Clean email for display purposes" })
+  @ApiProperty({
+    type: String,
+    example: "john.doe@example.com",
+    description: "Clean email for display purposes",
+  })
   @IsString()
   @Expose()
   displayEmail!: string;

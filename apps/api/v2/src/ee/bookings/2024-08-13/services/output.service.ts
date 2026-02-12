@@ -83,6 +83,13 @@ type DatabaseBooking = Booking & {
   }[];
   user: DatabaseUser | null;
   createdAt: Date;
+  tracking?: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
 };
 
 type BookingWithUser = Booking & { user: DatabaseUser | null };
@@ -148,6 +155,15 @@ export class OutputBookingsService_2024_08_13 {
       icsUid: databaseBooking.iCalUID,
       rescheduledToUid,
       rescheduledByEmail,
+      tracking: databaseBooking.tracking
+        ? {
+            utmSource: databaseBooking.tracking.utm_source ?? undefined,
+            utmMedium: databaseBooking.tracking.utm_medium ?? undefined,
+            utmCampaign: databaseBooking.tracking.utm_campaign ?? undefined,
+            utmTerm: databaseBooking.tracking.utm_term ?? undefined,
+            utmContent: databaseBooking.tracking.utm_content ?? undefined,
+          }
+        : undefined,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
