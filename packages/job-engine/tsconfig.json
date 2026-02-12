@@ -8,6 +8,8 @@
     "moduleResolution": "NodeNext",
     "target": "ES2022",
 
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "types": ["node"],
     "lib": ["ES2022"],
 

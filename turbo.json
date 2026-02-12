@@ -77,14 +77,14 @@
       "cache": false,
       "outputs": ["dist/**"]
     },
-    "@calid/calendar-sync#build": {
+    "@calid/job-engine#build": {
       "dependsOn": ["@calcom/prisma#generate-schemas"],
       "outputs": ["dist/**"],
       "cache": false
     },
 
     "@calid/worker#build": {
-      "dependsOn": ["@calid/queue#build", "@calid/calendar-sync#build"],
+      "dependsOn": ["@calid/queue#build", "@calid/job-engine#build"],
       "outputs": ["dist/**"],
       "cache": false
     },

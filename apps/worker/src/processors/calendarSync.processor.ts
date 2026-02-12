@@ -1,4 +1,4 @@
-import { handleGoogleCalendarSync } from "@calid/calendar-sync";
+import { handleGoogleCalendarSync } from "@calid/job-engine/calendar-sync";
 import type { CalendarSyncJob } from "@calid/queue/types";
 import type { Job } from "bullmq";
 

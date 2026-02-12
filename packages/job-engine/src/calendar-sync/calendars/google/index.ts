@@ -1,4 +1,4 @@
-import { prisma } from "../../prisma.js";
+import { prisma } from "../../../prisma.ts";
 
 export const handleGoogleCalendarSync = async (userId: number) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });

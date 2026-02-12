@@ -4534,17 +4534,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calid/calendar-sync@*, @calid/calendar-sync@workspace:packages/calendar-sync":
-  version: 0.0.0-use.local
-  resolution: "@calid/calendar-sync@workspace:packages/calendar-sync"
-  dependencies:
-    "@types/uuid": ^11.0.0
-    axios: ^1.6.5
-    prisma: ^7.3.0
-    uuid: ^13.0.0
-  languageName: unknown
-  linkType: soft
-
 "@calid/connector@workspace:apps/connector":
   version: 0.0.0-use.local
   resolution: "@calid/connector@workspace:apps/connector"
@@ -4620,6 +4609,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calid/job-engine@*, @calid/job-engine@workspace:packages/job-engine":
+  version: 0.0.0-use.local
+  resolution: "@calid/job-engine@workspace:packages/job-engine"
+  dependencies:
+    "@types/uuid": ^11.0.0
+    axios: ^1.6.5
+    prisma: ^7.3.0
+    typescript: ^5.9.3
+    uuid: ^13.0.0
+  languageName: unknown
+  linkType: soft
+
 "@calid/queue@*, @calid/queue@workspace:packages/queue":
   version: 0.0.0-use.local
   resolution: "@calid/queue@workspace:packages/queue"
@@ -4635,7 +4636,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calid/worker@workspace:apps/worker"
   dependencies:
-    "@calid/calendar-sync": "*"
+    "@calid/job-engine": "*"
     "@calid/queue": "*"
     ts-node: ^10.9.2
     typescript: ^5.9.3
