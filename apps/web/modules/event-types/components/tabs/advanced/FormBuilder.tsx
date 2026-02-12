@@ -648,7 +648,6 @@ function FieldEditDialog({
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={fieldTypesConfigMap[formFieldType]}
-              // value="Hello World"
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
