@@ -1,29 +1,18 @@
 import process from "node:process";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 
 const log = logger.getSubLogger({ prefix: ["[lyra]"] });
 
 const LYRA_API_URL = process.env.LYRA_API_URL || "https://app.lyra.so";
 
 const LyraVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
-  // Decrypt API key from credential
-  let apiKey: string;
-  try {
-    const decrypted = symmetricDecrypt(
-      (credential.key as { encrypted: string }).encrypted,
-      process.env.CALENDSO_ENCRYPTION_KEY || ""
-    );
-    const parsed = JSON.parse(decrypted);
-    apiKey = parsed.api_key;
-  } catch (error) {
-    log.error("Failed to decrypt Lyra API key", error);
-    throw new Error("Invalid Lyra credentials");
-  }
+  const tokenObject = getTokenObjectFromCredential(credential);
+  const accessToken = tokenObject.access_token;
 
   return {
     getAvailability: async () => {
@@ -36,7 +25,7 @@ const LyraVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           title: event.title,

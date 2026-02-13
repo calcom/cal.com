@@ -17,7 +17,7 @@ Follow-ups write themselves and next steps are captured instantly. Every meeting
 
 ## How It Works
 
-1. Generate an API key in your [Lyra settings](https://app.lyra.so/settings/account/api-keys)
-2. Install Lyra in Cal.com and enter your API key
+1. Install Lyra from the Cal.com App Store
+2. Sign in with your Lyra account to authorize Cal.com
 3. Select Lyra as your conferencing option for event types
 4. When bookings are made, Lyra meeting links are automatically generated

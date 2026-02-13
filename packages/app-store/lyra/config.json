@@ -11,7 +11,7 @@
   "publisher": "Lyra",
   "email": "support@lyra.so",
   "description": "The meeting platform built for pros.",
-  "isOAuth": false,
+  "isOAuth": true,
   "appData": {
     "location": {
       "linkType": "dynamic",
