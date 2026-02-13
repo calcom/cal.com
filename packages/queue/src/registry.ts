@@ -1,4 +1,4 @@
-import type { Queue } from "bullmq";
+import type { Queue, QueueEvents } from "bullmq";
 
 import {
   DEFAULT_QUEUE,
@@ -7,6 +7,9 @@ import {
   getDataSyncQueue,
   SCHEDULED_QUEUE,
   getScheduledQueue,
+  getDefaultQueueEvents,
+  getDataSyncQueueEvents,
+  getScheduledQueueEvents,
 } from "./queues";
 
 export enum QueueName {
@@ -19,4 +22,10 @@ export const queueRegistry: Record<QueueName, Queue> = {
   [QueueName.DEFAULT]: getDefaultQueue(),
   [QueueName.DATA_SYNC]: getDataSyncQueue(),
   [QueueName.SCHEDULED]: getScheduledQueue(),
+};
+
+export const queueEventsRegistry: Record<QueueName, QueueEvents> = {
+  [QueueName.DEFAULT]: getDefaultQueueEvents(),
+  [QueueName.DATA_SYNC]: getDataSyncQueueEvents(),
+  [QueueName.SCHEDULED]: getScheduledQueueEvents(),
 };

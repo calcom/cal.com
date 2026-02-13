@@ -1,4 +1,4 @@
-import type { JobsOptions, Queue } from "bullmq";
+import type { JobsOptions, Queue, QueueEvents } from "bullmq";
 import type { Inngest } from "inngest";
 
 export type InngestClient = InstanceType<
@@ -45,6 +45,24 @@ export type JobDispatcherConfig = {
    */
   queueRegistry: Record<string, Queue>;
 
+  // Optional registry of QueueEvents for listening to job lifecycle events (e.g. for logging or metrics)
+  queueEventsRegistry?: Record<string, QueueEvents>;
+  /**
+   * How long (ms) to wait for a worker to pick up the job after enqueuing.
+   * If the job is still in `waiting` state after this timeout, it is removed
+   * from the queue and routed to Inngest to guarantee exactly‑once execution.
+   *
+   * @default 5000 (5 seconds)
+   */
+  pickupTimeoutMs?: number;
+
+  /**
+   * Polling interval (ms) when checking if a worker picked up the job.
+   *
+   * @default 500
+   */
+  pickupPollIntervalMs?: number;
+
   /**
    * Optional custom logger.  Defaults to `console`.
    */
@@ -66,9 +84,9 @@ export interface DispatcherLogger {
 // ---------------------------------------------------------------------------
 
 export type DispatchResult = {
-  /** The canonical job name: `${queue}/${name}` */
+  /** The canonical job name (same as input `name`) */
   jobName: string;
-  /** Which backend actually accepted the job */
+  /** Which backend actually handled the job */
   backend: "bullmq" | "inngest";
   /** Whether a fallback was used */
   fallback: boolean;

@@ -1,8 +1,10 @@
-import { Queue } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
 
 import { getRedisOptions } from "../redis";
 
 let queue: Queue | null = null;
+let queueEvents: QueueEvents | null = null;
+
 export const DATA_SYNC_QUEUE = "data_sync_queue";
 
 export const DATA_SYNC_JOB_OPTIONS = {
@@ -26,4 +28,14 @@ export function getDataSyncQueue(): Queue {
   }
 
   return queue;
+}
+
+export function getDataSyncQueueEvents(): QueueEvents {
+  if (!queueEvents) {
+    queueEvents = new QueueEvents(`${DATA_SYNC_QUEUE}_events`, {
+      connection: getRedisOptions(),
+    });
+  }
+
+  return queueEvents;
 }

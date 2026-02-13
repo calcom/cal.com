@@ -14,16 +14,12 @@ export type InngestClient = InstanceType<
 // ---------------------------------------------------------------------------
 // Inngest client singleton
 // ---------------------------------------------------------------------------
-// We lazily import Inngest so the package doesn't hard‑crash if inngest is
-// not installed (e.g. after full migration).  The client is created once and
-// reused for the lifetime of the process.
-// ---------------------------------------------------------------------------
 
 let inngestClient: InngestClient | null = null;
 
 // /**
 //  * Minimal interface matching the subset of the Inngest client we actually use.
-//  * This avoids coupling the package to a specific Inngest SDK version.
+//  * Avoids coupling to a specific Inngest SDK version.
 //  */
 // interface InngestClient {
 //   send(payload: { name: string; data: unknown }): Promise<unknown>;
@@ -31,15 +27,10 @@ let inngestClient: InngestClient | null = null;
 
 /**
  * Resolve (or lazily create) the Inngest client.
- *
- * The function first checks whether an explicit client was provided via
- * `setInngestClient`.  If not, it dynamically imports the `inngest` package
- * and instantiates a client using `INNGEST_EVENT_KEY` from the environment.
  */
 export function getInngestClient(): InngestClient {
   if (inngestClient) return inngestClient;
   try {
-    // Dynamic import so the dep is optional at runtime
     inngestClient = new Inngest({
       id: INNGEST_ID,
       eventKey: process.env.INNGEST_EVENT_KEY || "",
@@ -54,8 +45,8 @@ export function getInngestClient(): InngestClient {
 }
 
 /**
- * Allow injecting a pre‑configured Inngest client (useful for testing or
- * when the host app already has one).
+ * Inject a pre‑configured Inngest client (useful for testing or when the
+ * host app already has one).
  */
 export function setInngestClient(client: InngestClient): void {
   inngestClient = client;
@@ -71,6 +62,7 @@ export function setInngestClient(client: InngestClient): void {
  * @param jobName  Canonical job name (`queue/name`)
  * @param data     JSON payload
  * @param logger   Logger instance
+ * @returns The raw result from `inngestClient.send()`
  */
 export async function sendToInngest(
   jobName: string,
@@ -78,13 +70,10 @@ export async function sendToInngest(
   logger: DispatcherLogger
 ): Promise<InngestSendReturn> {
   const client = getInngestClient();
-
   const inngestJobName = `${jobName}-${INNGEST_ID === "onehash-cal" ? "prod" : "stag"}`;
 
   const result = await client.send({ name: inngestJobName, data });
 
-  logger.info("[job-dispatcher] Job dispatched via Inngest", {
-    jobName,
-  });
+  logger.info("[job-dispatcher] Job dispatched via Inngest", { jobName });
   return result;
 }

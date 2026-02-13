@@ -1,8 +1,9 @@
-import { Queue } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
 
 import { getRedisOptions } from "../redis";
 
 let queue: Queue | null = null;
+let queueEvents: QueueEvents | null = null;
 export const DEFAULT_QUEUE = "default_queue";
 
 const DEFAULT_JOB_OPTIONS = {
@@ -29,4 +30,14 @@ export function getDefaultQueue(): Queue {
   }
 
   return queue;
+}
+
+export function getDefaultQueueEvents(): QueueEvents {
+  if (!queueEvents) {
+    queueEvents = new QueueEvents(`${DEFAULT_QUEUE}_events`, {
+      connection: getRedisOptions(),
+    });
+  }
+
+  return queueEvents;
 }
