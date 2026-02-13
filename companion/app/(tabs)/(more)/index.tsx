@@ -10,10 +10,12 @@ import {
   View,
 } from "react-native";
 import { Header } from "@/components/Header";
+import { LandingPagePicker } from "@/components/LandingPagePicker";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
-import { showErrorAlert } from "@/utils/alerts";
+import { type LandingPage, useUserPreferences } from "@/hooks/useUserPreferences";
+import { showErrorAlert, showSuccessAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getColors } from "@/constants/colors";
 
@@ -28,10 +30,21 @@ interface MoreMenuItem {
 export default function More() {
   const { logout } = useAuth();
   const { clearCache } = useQueryContext();
+  const { preferences, setLandingPage, landingPageLabel } = useUserPreferences();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLandingPagePicker, setShowLandingPagePicker] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const theme = getColors(isDark);
+
+  const handleLandingPageSelect = async (value: LandingPage) => {
+    try {
+      await setLandingPage(value);
+      showSuccessAlert("Saved", "First page updated");
+    } catch {
+      showErrorAlert("Error", "Failed to save preference. Please try again.");
+    }
+  };
 
   const performLogout = async () => {
     try {
@@ -136,6 +149,49 @@ export default function More() {
           ))}
         </View>
 
+        {/* App Settings */}
+        <View
+          className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
+          style={{ borderColor: theme.border, backgroundColor: theme.backgroundSecondary }}
+        >
+          <View
+            className="border-b border-[#E5E5EA] bg-gray-50 px-4 py-2"
+            style={{ borderBottomColor: theme.border, backgroundColor: isDark ? "#2C2C2E" : undefined }}
+          >
+            <Text
+              className="text-xs font-semibold uppercase text-gray-500"
+              style={{ color: theme.textSecondary }}
+            >
+              App Settings
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setShowLandingPagePicker(true)}
+            className="flex-row items-center justify-between bg-white px-5 py-4 active:bg-[#F8F9FA]"
+            style={{ backgroundColor: theme.backgroundSecondary }}
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="home-outline" size={20} color={theme.text} />
+              <Text className="ml-3 text-base font-semibold" style={{ color: theme.text }}>
+                First Page
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <View
+                className="ml-3 rounded-md bg-gray-100 px-2.5 py-1"
+                style={{ backgroundColor: isDark ? "#3A3A3C" : undefined }}
+              >
+                <Text
+                  className="text-sm font-medium text-gray-600"
+                  style={{ color: theme.textSecondary }}
+                >
+                  {landingPageLabel}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Delete Account Link */}
         <View
           className="mt-6 overflow-hidden rounded-lg border border-[#E5E5EA] bg-white"
@@ -199,6 +255,14 @@ export default function More() {
           performLogout();
         }}
         onCancel={() => setShowLogoutModal(false)}
+      />
+
+      {/* Landing Page Picker Modal */}
+      <LandingPagePicker
+        visible={showLandingPagePicker}
+        currentValue={preferences.landingPage}
+        onSelect={handleLandingPageSelect}
+        onClose={() => setShowLandingPagePicker(false)}
       />
     </View>
   );
