@@ -1,14 +1,11 @@
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
-import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TGetAllByUserIdInputSchema } from "./getAllSchedulesByUserId.schema";
-
-const log = logger.getSubLogger({ prefix: ["getAllSchedulesByUserIdHandler"] });
 
 type GetOptions = {
   ctx: {
@@ -41,11 +38,10 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     },
   });
 
-  if (!schedules) {
-    log.error(`No Schedules found for userId:${input.userId}`);
-    throw new TRPCError({
-      code: "NOT_FOUND",
-    });
+  if (!schedules.length) {
+    return {
+      schedules: [],
+    };
   }
 
   const scheduleRepository = new ScheduleRepository(prisma);
@@ -55,7 +51,7 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     schedules: schedules.map((schedule) => {
       return {
         ...schedule,
-        isDefault: schedule.id === defaultScheduleId,
+        isDefault: defaultScheduleId !== null && schedule.id === defaultScheduleId,
         readOnly: schedule.userId !== user.id,
       };
     }),

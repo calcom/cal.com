@@ -70,15 +70,14 @@ describe("ScheduleRepository", () => {
       expect(result).toBe(scheduleId);
     });
 
-    it("should throw error if no schedules found", async () => {
+    it("should return null if no schedules found", async () => {
       const userId = 1;
 
       prismaMock.user.findUnique.mockResolvedValue({ defaultScheduleId: null } as User);
       prismaMock.schedule.findFirst.mockResolvedValue(null);
 
-      await expect(scheduleRepository.getDefaultScheduleId(userId)).rejects.toThrow(
-        "No schedules found for user"
-      );
+      const result = await scheduleRepository.getDefaultScheduleId(userId);
+      expect(result).toBeNull();
     });
   });
 
@@ -217,17 +216,30 @@ describe("ScheduleRepository", () => {
       });
     });
 
-    it("should throw error when schedule is not found", async () => {
+    it("should return null when schedule is not found", async () => {
       prismaMock.schedule.findUnique.mockResolvedValue(null);
 
-      await expect(
-        scheduleRepository.findDetailedScheduleById({
-          scheduleId: 999,
-          userId: 1,
-          timeZone: "UTC",
-          defaultScheduleId: null,
-        })
-      ).rejects.toThrow("Schedule not found");
+      const result = await scheduleRepository.findDetailedScheduleById({
+        scheduleId: 999,
+        userId: 1,
+        timeZone: "UTC",
+        defaultScheduleId: null,
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("findManyDetailedScheduleByUserId", () => {
+    it("should return empty array when no schedules exist", async () => {
+      prismaMock.schedule.findMany.mockResolvedValue([]);
+
+      const result = await scheduleRepository.findManyDetailedScheduleByUserId({
+        userId: 1,
+        defaultScheduleId: null,
+        timeZone: "UTC",
+      });
+      expect(result).toEqual([]);
     });
   });
 });

@@ -96,9 +96,15 @@ export class ScheduleRepository {
     scheduleId?: number;
     isManagedEventType?: boolean;
   }) {
+    const resolvedScheduleId = scheduleId || (await this.getDefaultScheduleId(userId));
+
+    if (!resolvedScheduleId) {
+      return null;
+    }
+
     const schedule = await this.prismaClient.schedule.findUnique({
       where: {
-        id: scheduleId || (await this.getDefaultScheduleId(userId)),
+        id: resolvedScheduleId,
       },
       select: {
         id: true,
@@ -110,7 +116,7 @@ export class ScheduleRepository {
     });
 
     if (!schedule) {
-      throw new Error("Schedule not found");
+      return null;
     }
     const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({ memberId: schedule?.userId, userId });
 
@@ -171,7 +177,7 @@ export class ScheduleRepository {
     });
 
     if (!schedules?.length) {
-      throw new Error("Schedules not found");
+      return [];
     }
 
     const isCurrentUserPartOfTeam = await hasReadPermissionsForUserId({
@@ -207,7 +213,7 @@ export class ScheduleRepository {
     return schedulesFormatted;
   }
 
-  async getDefaultScheduleId(userId: number) {
+  async getDefaultScheduleId(userId: number): Promise<number | null> {
     const user = await this.prismaClient.user.findUnique({
       where: {
         id: userId,
@@ -232,8 +238,7 @@ export class ScheduleRepository {
     });
 
     if (!defaultSchedule) {
-      // Handle case where defaultSchedule is null by throwing an error
-      throw new Error("No schedules found for user");
+      return null;
     }
 
     return defaultSchedule.id;

@@ -43,26 +43,28 @@ async function postHandler(request: NextRequest) {
     const scheduleRepository = new ScheduleRepository(prisma);
     const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
-    if (!user.defaultScheduleId) {
-      // set default schedule if not already set
-      await prisma.user.update({
+    if (defaultScheduleId) {
+      if (!user.defaultScheduleId) {
+        // set default schedule if not already set
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultScheduleId,
+          },
+        });
+      }
+
+      await prisma.schedule.updateMany({
         where: {
-          id: user.id,
+          id: defaultScheduleId,
         },
         data: {
-          defaultScheduleId,
+          timeZone: timeZone,
         },
       });
     }
-
-    await prisma.schedule.updateMany({
-      where: {
-        id: defaultScheduleId,
-      },
-      data: {
-        timeZone: timeZone,
-      },
-    });
     timeZonesChanged++;
   };
 
