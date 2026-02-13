@@ -1,7 +1,10 @@
-import prisma from "@calcom/prisma";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+
+import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
+
 import { test } from "../lib/fixtures";
 import { moveUserToOrg } from "../lib/orgMigration";
 import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
@@ -502,10 +505,7 @@ async function signupFromInviteLink({
   await inviteLinkPage.locator("input[name=email]").fill(email);
   await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await inviteLinkPage.locator("button[type=submit]").click();
-  await inviteLinkPage.waitForURL((url) => {
-    const path = url.pathname;
-    return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
-  });
+  await inviteLinkPage.waitForURL("/getting-started");
   return { email };
 }
 
@@ -540,10 +540,7 @@ export async function signupFromEmailInviteLink({
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await signupPage.locator("button[type=submit]").click();
-  await signupPage.waitForURL((url) => {
-    const path = url.pathname;
-    return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
-  });
+  await signupPage.waitForURL("/getting-started?from=signup");
   await context.close();
   await signupPage.close();
 }

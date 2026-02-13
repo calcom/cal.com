@@ -117,7 +117,6 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
                 {t("onboarding_skip_for_now")}
               </Button>
               <Button
-                data-testid="onboarding-continue-btn"
                 color="primary"
                 className="rounded-[10px]"
                 onClick={handleContinue}
