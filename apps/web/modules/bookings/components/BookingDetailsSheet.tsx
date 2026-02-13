@@ -452,7 +452,7 @@ function DisplayTimestamp({
   const start = startTime instanceof Date ? dayjs(startTime).tz(timeZone) : startTime;
   const end = endTime instanceof Date ? dayjs(endTime).tz(timeZone) : endTime;
   const localizedTimezone = timeZone
-    ? formatToLocalizedTimezone(start, language, timeZone)
+    ? formatToLocalizedTimezone(start, language, timeZone) ?? timeZone
     : start.format("Z");
 
   return (
