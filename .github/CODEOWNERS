@@ -42,3 +42,4 @@
 **/*.spec.*
 **/*.e2e.*
 **/*.test.*
+**/*.integration-test.*
