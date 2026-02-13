@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import { useState, useEffect, useRef } from "react";
+import { Text, TextInput, useColorScheme, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
 import {
@@ -10,27 +11,68 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppPressable } from "@/components/AppPressable";
-import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useEventTypes } from "@/hooks";
+import { getColors } from "@/constants/colors";
+
+const VALID_FILTERS: BookingFilter[] = [
+  "upcoming",
+  "unconfirmed",
+  "recurring",
+  "past",
+  "cancelled",
+];
+
+function isValidBookingFilter(value: string | undefined): value is BookingFilter {
+  return value !== undefined && VALID_FILTERS.includes(value as BookingFilter);
+}
 
 export default function Bookings() {
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = getColors(isDark);
 
   // Use React Query hook for event types (same as iOS for unified caching)
   const { data: eventTypes = [], isLoading: eventTypesLoading } = useEventTypes();
 
   // Use the active booking filter hook
-  const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
-    "upcoming",
-    () => {
-      // Clear dependent filters when status filter changes
-      setSearchQuery("");
-      setSelectedEventTypeId(null);
-      setSelectedEventTypeLabel(null);
+  const {
+    activeFilter,
+    filterOptions,
+    filterParams,
+    handleFilterChange: originalHandleFilterChange,
+  } = useActiveBookingFilter(initialFilter, () => {
+    // Clear dependent filters when status filter changes
+    setSearchQuery("");
+    setSelectedEventTypeId(null);
+    setSelectedEventTypeLabel(null);
+  });
+
+  // Wrap handleFilterChange with debug logging
+  const handleFilterChange = (filter: string) => {
+    originalHandleFilterChange(filter as BookingFilter);
+  };
+
+  // Track if we want to ignore the next activeFilter change (because it came from URL sync)
+  const lastUrlFilter = useRef<string | null>(null);
+
+  // Reactively update filter when URL params change (e.g., from deep link)
+  useEffect(() => {
+    if (
+      isValidBookingFilter(filter) &&
+      filter !== activeFilter &&
+      filter !== lastUrlFilter.current
+    ) {
+      lastUrlFilter.current = filter;
+      originalHandleFilterChange(filter);
     }
-  );
+  }, [filter, activeFilter, originalHandleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -55,7 +97,13 @@ export default function Bookings() {
       selectedEventTypeId !== null ? selectedEventTypeLabel || "Event Type" : "Filter";
 
     return (
-      <View className="border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4">
+      <View
+        className="border-b border-gray-300 bg-gray-100 px-2 py-2 md:px-4"
+        style={{
+          borderBottomColor: theme.borderSubtle,
+          backgroundColor: isDark ? theme.background : undefined,
+        }}
+      >
         <View className="flex-row items-center gap-3">
           {/* Dropdown menu for event type filter */}
           <DropdownMenu>
@@ -63,21 +111,31 @@ export default function Bookings() {
               <AppPressable
                 className="flex-row items-center rounded-lg border border-gray-200 bg-white"
                 style={{
+                  borderColor: theme.border,
+                  backgroundColor: theme.backgroundSecondary,
                   paddingHorizontal: 8,
                   paddingVertical: 6,
                   flexDirection: "row",
                   alignItems: "center",
                 }}
               >
-                <Ionicons name="options-outline" size={14} color="#333" />
+                <Ionicons name="options-outline" size={14} color={theme.textSecondary} />
                 <Text
-                  className={`text-sm ${selectedEventTypeId !== null ? "text-[#000000] font-semibold" : "text-[#333]"}`}
-                  style={{ marginLeft: 4 }}
+                  className={`text-sm ${selectedEventTypeId !== null ? "font-semibold" : ""}`}
+                  style={{
+                    marginLeft: 4,
+                    color: selectedEventTypeId !== null ? theme.text : theme.textSecondary,
+                  }}
                   numberOfLines={1}
                 >
                   {filterLabel}
                 </Text>
-                <Ionicons name="chevron-down" size={12} color="#333" style={{ marginLeft: 2 }} />
+                <Ionicons
+                  name="chevron-down"
+                  size={12}
+                  color={theme.textSecondary}
+                  style={{ marginLeft: 2 }}
+                />
               </AppPressable>
             </DropdownMenuTrigger>
 
@@ -92,7 +150,9 @@ export default function Bookings() {
                 checked={selectedEventTypeId === null}
                 onCheckedChange={() => handleEventTypeSelect(null)}
               >
-                <Text className="text-base">All Event Types</Text>
+                <Text className="text-base" style={{ color: theme.text }}>
+                  All Event Types
+                </Text>
               </DropdownMenuCheckboxItem>
 
               {/* Event type options */}
@@ -102,7 +162,7 @@ export default function Bookings() {
                   checked={selectedEventTypeId === eventType.id}
                   onCheckedChange={() => handleEventTypeSelect(eventType.id, eventType.title)}
                 >
-                  <Text className="text-base" numberOfLines={1}>
+                  <Text className="text-base" style={{ color: theme.text }} numberOfLines={1}>
                     {eventType.title}
                   </Text>
                 </DropdownMenuCheckboxItem>
@@ -111,7 +171,7 @@ export default function Bookings() {
               {/* Loading state */}
               {eventTypesLoading && eventTypes.length === 0 && (
                 <DropdownMenuCheckboxItem checked={false} onCheckedChange={() => {}}>
-                  <Text className="text-base text-gray-500">Loading...</Text>
+                  <Text className="text-base text-gray-500 dark:text-gray-400">Loading...</Text>
                 </DropdownMenuCheckboxItem>
               )}
             </DropdownMenuContent>
@@ -120,8 +180,13 @@ export default function Bookings() {
           <View style={{ flex: 1 }}>
             <TextInput
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: theme.backgroundSecondary,
+                color: theme.text,
+              }}
               placeholder="Search bookings"
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={theme.textSecondary}
               value={searchQuery}
               onChangeText={handleSearch}
               autoCapitalize="none"

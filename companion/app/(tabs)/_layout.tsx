@@ -1,57 +1,92 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ColorValue, ImageSourcePropType } from "react-native";
-import { Tabs, VectorIcon } from "expo-router";
+import { Tabs, VectorIcon, useRouter } from "expo-router";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { useColorScheme } from "react-native";
 import { Platform } from "react-native";
+import { useEffect, useRef } from "react";
+import { getRouteFromPreference, useUserPreferences } from "@/hooks/useUserPreferences";
 
 // Type for vector icon families that support getImageSource
 type VectorIconFamily = {
   getImageSource: (name: string, size: number, color: ColorValue) => Promise<ImageSourcePropType>;
 };
 
-const SELECTED_COLOR = "#000000";
-
 export default function TabLayout() {
+  const router = useRouter();
+  const { preferences, isLoading } = useUserPreferences();
+  const hasNavigated = useRef(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    selected: isDark ? "#FFFFFF" : "#000000",
+    inactive: "#A3A3A3",
+    background: isDark ? "#000000" : "#FFFFFF",
+    border: isDark ? "#4D4D4D" : "#C6C6C8",
+    indicator: isDark ? "#FFFFFF15" : "#00000015",
+  };
+
+  // Navigate to preferred landing page on first load
+  // Since Bookings is the default first tab, we only navigate if preference is different
+  useEffect(() => {
+    if (!isLoading && !hasNavigated.current) {
+      hasNavigated.current = true;
+
+      // Only navigate if preference is not the default (bookings)
+      if (preferences.landingPage !== "bookings") {
+        const route = getRouteFromPreference(preferences.landingPage);
+        console.log("[TabLayout] Navigating to preferred landing page:", route);
+
+        // Use a minimal delay to ensure NativeTabs is initialized
+        setTimeout(() => {
+          // biome-ignore lint/suspicious/noExplicitAny: expo-router types don't support dynamic route strings from preferences
+          router.navigate(route as any);
+        }, 50);
+      }
+    }
+  }, [isLoading, preferences.landingPage, router]);
+
   if (Platform.OS === "web") {
-    return <WebTabs />;
+    return <WebTabs colors={colors} />;
   }
 
   return (
     <NativeTabs
-      tintColor={SELECTED_COLOR}
-      iconColor={Platform.select({ android: "#8E8E93", ios: undefined })}
-      indicatorColor={Platform.select({ android: "#00000015", ios: undefined })}
-      backgroundColor={Platform.select({ android: "#FFFFFFFF", ios: undefined })}
+      tintColor={colors.selected}
+      iconColor={Platform.select({ android: colors.inactive, ios: undefined })}
+      indicatorColor={Platform.select({ android: colors.indicator, ios: undefined })}
+      backgroundColor={Platform.select({ android: colors.background, ios: undefined })}
       labelStyle={{
-        default: { color: "#8E8E93", fontSize: Platform.select({ android: 11, ios: 8.5 }) },
-        selected: { color: SELECTED_COLOR, fontSize: Platform.select({ android: 12, ios: 10 }) },
+        default: { color: colors.inactive, fontSize: Platform.select({ android: 11, ios: 8.5 }) },
+        selected: { color: colors.selected, fontSize: Platform.select({ android: 12, ios: 10 }) },
       }}
       disableTransparentOnScrollEdge={true}
     >
-      <NativeTabs.Trigger name="(event-types)">
-        {Platform.select({
-          ios: <NativeTabs.Trigger.Icon sf="link" />,
-          android: (
-            <NativeTabs.Trigger.Icon
-              src={<VectorIcon family={Ionicons as VectorIconFamily} name="link-outline" />}
-              selectedColor={SELECTED_COLOR}
-            />
-          ),
-        })}
-        <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-
       <NativeTabs.Trigger name="(bookings)">
         {Platform.select({
           ios: <NativeTabs.Trigger.Icon sf="calendar" />,
           android: (
             <NativeTabs.Trigger.Icon
               src={<VectorIcon family={Ionicons as VectorIconFamily} name="calendar-outline" />}
-              selectedColor={SELECTED_COLOR}
+              selectedColor={colors.selected}
             />
           ),
         })}
         <NativeTabs.Trigger.Label>Bookings</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="(event-types)">
+        {Platform.select({
+          ios: <NativeTabs.Trigger.Icon sf="link" />,
+          android: (
+            <NativeTabs.Trigger.Icon
+              src={<VectorIcon family={Ionicons as VectorIconFamily} name="link-outline" />}
+              selectedColor={colors.selected}
+            />
+          ),
+        })}
+        <NativeTabs.Trigger.Label>Event Types</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(availability)">
@@ -60,7 +95,7 @@ export default function TabLayout() {
           android: (
             <NativeTabs.Trigger.Icon
               src={<VectorIcon family={Ionicons as VectorIconFamily} name="time-outline" />}
-              selectedColor={SELECTED_COLOR}
+              selectedColor={colors.selected}
             />
           ),
         })}
@@ -73,7 +108,7 @@ export default function TabLayout() {
           android: (
             <NativeTabs.Trigger.Icon
               src={<VectorIcon family={Ionicons as VectorIconFamily} name="ellipsis-horizontal" />}
-              selectedColor={SELECTED_COLOR}
+              selectedColor={colors.selected}
             />
           ),
         })}
@@ -83,18 +118,26 @@ export default function TabLayout() {
   );
 }
 
+type TabColors = {
+  selected: string;
+  inactive: string;
+  background: string;
+  border: string;
+  indicator: string;
+};
+
 // TODO: Remove this once native tabs are supported on web
-function WebTabs() {
+function WebTabs({ colors }: { colors: TabColors }) {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#000000",
-        tabBarInactiveTintColor: "#8E8E93",
+        tabBarActiveTintColor: colors.selected,
+        tabBarInactiveTintColor: colors.inactive,
         tabBarStyle: {
-          backgroundColor: "#ffffff",
+          backgroundColor: colors.background,
           borderTopWidth: 0.5,
-          borderTopColor: "#C6C6C8",
+          borderTopColor: colors.border,
           paddingBottom: 4,
           paddingTop: 4,
           height: Platform.OS === "android" ? 74 : 66,

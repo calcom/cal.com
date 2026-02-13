@@ -65,6 +65,15 @@ export {
 } from "./useSchedules";
 // Toast hook
 export { type ToastState, type ToastType, useToast } from "./useToast";
+// User Preferences hooks
+export {
+  getRouteFromPreference,
+  LANDING_PAGE_OPTIONS,
+  type LandingPage,
+  type LandingPageOption,
+  type UserPreferences,
+  useUserPreferences,
+} from "./useUserPreferences";
 // User Profile hooks
 export {
   type UpdateUserProfileInput,
@@ -75,3 +84,5 @@ export {
   useUsername,
   useUserProfile,
 } from "./useUserProfile";
+// Widget sync hook
+export { useWidgetSync } from "./useWidgetSync";

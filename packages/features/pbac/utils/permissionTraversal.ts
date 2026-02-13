@@ -120,7 +120,10 @@ export const traversePermissions = (
  * @param scope The scope to use for permission registry (defaults to Organization)
  * @returns Array of dependency permissions
  */
-export const getTransitiveDependencies = (permission: string, scope: Scope = Scope.Organization): string[] => {
+export const getTransitiveDependencies = (
+  permission: string,
+  scope: Scope = Scope.Organization
+): string[] => {
   return traversePermissions(permission, "dependencies", scope);
 };
 

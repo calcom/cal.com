@@ -249,15 +249,17 @@ export interface AdditionalInformation {
   hangoutLink?: string;
 }
 
-export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId"> {
+export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId" | "integration"> {
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
   // For displaying the connected email address
   email?: string;
-  primaryEmail?: string;
+  primaryEmail?: string | null;
   credentialId?: number | null;
   integrationTitle?: string;
+  integration: string;
+  customCalendarReminder?: DestinationCalendar["customCalendarReminder"];
 }
 
 /**
@@ -314,7 +316,7 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDelegationCredentialSetup?(): Promise<boolean>;
+  testDelegationCredentialSetup?(): Promise<void>;
 }
 
 /**

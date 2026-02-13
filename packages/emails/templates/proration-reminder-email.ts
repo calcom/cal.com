@@ -65,6 +65,9 @@ export default class ProrationReminderEmail extends BaseEmail {
 
   protected getTextBody(): string {
     const formattedAmount = (this.proration.proratedAmount / 100).toFixed(2);
-    return `Reminder: Your invoice of $${formattedAmount} for team ${this.team.name} is still unpaid. Please pay to avoid restrictions on adding new users.`;
+    return this.user.t("proration_reminder_text", {
+      amount: formattedAmount,
+      teamName: this.team.name,
+    });
   }
 }
