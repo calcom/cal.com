@@ -22,6 +22,7 @@ jobs:
     name: Prepare
     runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
+      contents: read
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks }}
