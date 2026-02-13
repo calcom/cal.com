@@ -20,3 +20,4 @@ export class DisableRescheduling_2024_06_14 {
   })
   minutesBefore?: number;
 }
+

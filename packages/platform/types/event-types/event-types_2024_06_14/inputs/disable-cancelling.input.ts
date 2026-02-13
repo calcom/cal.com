@@ -12,3 +12,4 @@ export class DisableCancelling_2024_06_14 {
 
   // Note: minutesBefore can be added later when the feature is implemented for cancelling
 }
+
