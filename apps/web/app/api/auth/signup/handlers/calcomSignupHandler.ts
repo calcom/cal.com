@@ -317,7 +317,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     );
   }
 
-  if (!checkoutSessionId) {
+  if (!checkoutSessionId && !token) {
     sendEmailVerification({
       email,
       language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
