@@ -55,7 +55,7 @@ function AddFilterButtonComponent<TData>(
             <PopoverTrigger asChild>
               <Button ref={ref} color="secondary" data-testid="add-filter-button" className="h-full">
                 <span className="sr-only">{t("filter")}</span>
-                <PlusIcon size={16} />
+                <PlusIcon />
               </Button>
             </PopoverTrigger>
           </Tooltip>
