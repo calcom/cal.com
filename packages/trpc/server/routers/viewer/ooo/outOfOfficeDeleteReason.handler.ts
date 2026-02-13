@@ -11,7 +11,7 @@ type DeleteOptions = {
 };
 
 export const outOfOfficeDeleteReason = async ({ ctx, input }: DeleteOptions) => {
-  // safe to hard delete than toggling the "enabled" button.
+  // safe to hard delete than toggling the "enabled" column.
   // If some OOO is already using it, it will then show a default data. 
   // First checking if it's getting used or not will cause one extra call to db. Not really worth it.
   try {

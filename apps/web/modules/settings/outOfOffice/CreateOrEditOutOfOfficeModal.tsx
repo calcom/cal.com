@@ -136,7 +136,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const deleteCustomReason = trpc.viewer.ooo.outOfOfficeDeleteReason.useMutation({
     onSuccess: (_data, variables) => {
     showToast(t("custom_reason_deleted"), "success");
-    
+
     const currentReasonId = getValues("reasonId");
     
     if (currentReasonId === variables.id) {
@@ -388,7 +388,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Input
                           value={customEmoji}
                           onChange={(e) => setCustomEmoji(e.target.value)}
-                          maxLength={2}
+                          maxLength={10}
+                          minLength={1}
                           className="mt-1 text-center"
                           placeholder="💼"
                         />
