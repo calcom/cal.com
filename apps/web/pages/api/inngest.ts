@@ -36,8 +36,8 @@ const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
 );
 
 const handleCalendlyImportFn = inngestClient.createFunction(
-  { id: `import-from-calendly-${key}`, retries: 2 },
-  { event: `import-from-calendly-${key}` },
+  { id: `sync-import-from-calendly-${key}`, retries: 2 },
+  { event: `sync/import-from-calendly-${key}` },
   async ({ event, step, logger }) => {
     await handleCalendlyImportEvent(
       event.data.sendCampaignEmails,

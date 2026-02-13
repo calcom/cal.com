@@ -328,8 +328,8 @@ jobs:
 
                 # Check for success message in logs
                 LOGS=$(docker logs "$container" 2>&1)
-                # Matches the log output from worker entrypoint: "Worker is up"
-                if echo "$LOGS" | grep -q "Worker is up"; then
+                # Matches the log output from worker entrypoint: "Workers are up"
+                if echo "$LOGS" | grep -q "Workers are up"; then
                   # Also check for errors
                   if echo "$LOGS" | grep -qi "fatal\|panic\|error.*failed\|ECONNREFUSED"; then
                     log_message "WARN" "⚠️ $container started but has errors"

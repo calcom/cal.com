@@ -9,19 +9,19 @@ import type {
   QueueAddReturn,
 } from "./types";
 
-// ---------------------------------------------------------------------------
-// Default BullMQ job options
-// ---------------------------------------------------------------------------
+// // ---------------------------------------------------------------------------
+// // Default BullMQ job options
+// // ---------------------------------------------------------------------------
 
-const DEFAULT_BULLMQ_OPTIONS: JobsOptions = {
-  attempts: 3,
-  backoff: {
-    type: "exponential",
-    delay: 3000,
-  },
-  removeOnComplete: false,
-  removeOnFail: false,
-};
+// const DEFAULT_BULLMQ_OPTIONS: JobsOptions = {
+//   attempts: 3,
+//   backoff: {
+//     type: "exponential",
+//     delay: 3000,
+//   },
+//   removeOnComplete: false,
+//   removeOnFail: false,
+// };
 
 // ---------------------------------------------------------------------------
 // Console‑based default logger
@@ -95,7 +95,7 @@ export class JobDispatcher {
    */
   async dispatch<T = unknown>(input: DispatchJobInput<T>): Promise<DispatchResult> {
     const { queue: queueName, name, data, bullmqOptions } = input;
-    const jobName = buildJobName(queueName, name);
+    const jobName = name;
 
     // ── Fast path: BullMQ disabled ──────────────────────────────────────
     if (!this.useBullmq) {
@@ -163,7 +163,6 @@ export class JobDispatcher {
     }
 
     const options: JobsOptions = {
-      ...DEFAULT_BULLMQ_OPTIONS,
       ...overrides,
     };
 

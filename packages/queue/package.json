@@ -15,8 +15,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "enqueue-test": "tsx scripts/enqueueCalendarSync.ts"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "bullmq": "^5.67.2",

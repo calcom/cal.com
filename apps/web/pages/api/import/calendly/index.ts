@@ -1032,7 +1032,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     await inngestClient.send({
-      name: `import-from-calendly-${key}`,
+      name: `sync/import-from-calendly-${key}`,
       data: {
         sendCampaignEmails: sendCampaignEmails === "true",
         userCalendlyIntegrationProvider: {
@@ -1180,7 +1180,7 @@ export const handleCalendlyImportEvent = async (
       try {
         await step.run("Triggering continued event", async () => {
           await inngestClient.send({
-            name: `import-from-calendly-${key}`,
+            name: `sync/import-from-calendly-${key}`,
             data: {
               sendCampaignEmails,
               userCalendlyIntegrationProvider,

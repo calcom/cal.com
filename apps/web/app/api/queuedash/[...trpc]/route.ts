@@ -1,4 +1,5 @@
 import { appRouter } from "@queuedash/api";
+import type { Queue } from "bullmq";
 
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
@@ -6,20 +7,36 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 let queues: {
-  queue: Awaited<ReturnType<typeof import("@calid/queue")["getCalendarSyncQueue"]>>;
+  queue: Queue;
   displayName: string;
   type: "bullmq";
 }[];
 
 async function getQueues() {
   if (!queues) {
-    const { getCalendarSyncQueue } = await import("@calid/queue");
-    const calendarSyncQueue = getCalendarSyncQueue();
-    await calendarSyncQueue.waitUntilReady();
+    const { getDefaultQueue, getDataSyncQueue, getScheduledQueue } = await import("@calid/queue");
+    const defaultQueue = getDefaultQueue();
+    const dataSyncQueue = getDataSyncQueue();
+    const scheduledQueue = getScheduledQueue();
+    await Promise.all([
+      defaultQueue.waitUntilReady(),
+      dataSyncQueue.waitUntilReady(),
+      scheduledQueue.waitUntilReady(),
+    ]);
     queues = [
       {
-        queue: calendarSyncQueue,
-        displayName: "Calendar Sync Queue",
+        queue: defaultQueue,
+        displayName: "Default Queue",
+        type: "bullmq",
+      },
+      {
+        queue: dataSyncQueue,
+        displayName: "Data Sync Queue",
+        type: "bullmq",
+      },
+      {
+        queue: scheduledQueue,
+        displayName: "Scheduled Queue",
         type: "bullmq",
       },
     ];

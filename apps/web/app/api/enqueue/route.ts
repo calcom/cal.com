@@ -1,4 +1,4 @@
-import { QueueName } from "@calid/queue";
+import { JobName, QueueName } from "@calid/queue";
 // app/api/enqueue/route.ts
 import { NextResponse } from "next/server";
 
@@ -6,8 +6,8 @@ import dispatcher from "@lib/job-disptacher";
 
 export async function GET() {
   const jobResult = await dispatcher.dispatch({
-    queue: QueueName.CALENDAR_SYNC,
-    name: "calendar-sync-test",
+    queue: QueueName.DATA_SYNC,
+    name: JobName.CALENDAR_SYNC,
     data: {
       userId: "121",
       provider: "google",

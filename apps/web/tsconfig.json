@@ -2,6 +2,7 @@
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "moduleResolution": "bundler",
     "paths": {
       "~/*": ["modules/*"],
       "@components/*": ["components/*"],

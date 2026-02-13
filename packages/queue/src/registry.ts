@@ -1,11 +1,22 @@
 import type { Queue } from "bullmq";
 
-import { getCalendarSyncQueue } from "./queues";
+import {
+  DEFAULT_QUEUE,
+  getDefaultQueue,
+  DATA_SYNC_QUEUE,
+  getDataSyncQueue,
+  SCHEDULED_QUEUE,
+  getScheduledQueue,
+} from "./queues";
 
 export enum QueueName {
-  CALENDAR_SYNC = "calendarSync",
+  DEFAULT = DEFAULT_QUEUE,
+  DATA_SYNC = DATA_SYNC_QUEUE,
+  SCHEDULED = SCHEDULED_QUEUE,
 }
 
 export const queueRegistry: Record<QueueName, Queue> = {
-  [QueueName.CALENDAR_SYNC]: getCalendarSyncQueue(),
+  [QueueName.DEFAULT]: getDefaultQueue(),
+  [QueueName.DATA_SYNC]: getDataSyncQueue(),
+  [QueueName.SCHEDULED]: getScheduledQueue(),
 };

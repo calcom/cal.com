@@ -79,7 +79,9 @@ export async function sendToInngest(
 ): Promise<InngestSendReturn> {
   const client = getInngestClient();
 
-  const result = await client.send({ name: jobName, data });
+  const inngestJobName = `${jobName}-${INNGEST_ID === "onehash-cal" ? "prod" : "stag"}`;
+
+  const result = await client.send({ name: inngestJobName, data });
 
   logger.info("[job-dispatcher] Job dispatched via Inngest", {
     jobName,
