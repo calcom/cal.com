@@ -9,7 +9,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Card } from "@calcom/ui/components/card";
-import { Icon } from "@calcom/ui/components/icon";
+import {
+  BuildingIcon,
+  ChartLineIcon,
+  PaintbrushIcon,
+  PencilIcon,
+  UserPlusIcon,
+  UsersIcon,
+} from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
@@ -69,7 +76,7 @@ export default function TeamList(props: Props) {
               <div className="bg-subtle p-4" key={team.id}>
                 <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                   <Card
-                    icon={<Icon name="building" className="h-5 w-5 text-red-700" />}
+                    icon={<BuildingIcon className="h-5 w-5 text-red-700" />}
                     variant="basic"
                     title={props.teams.length === 1 ? t("you_have_one_team") : t("You have a lot of teams")}
                     description={
@@ -84,7 +91,7 @@ export default function TeamList(props: Props) {
                     }}
                   />
                   <Card
-                    icon={<Icon name="paintbrush" className="h-5 w-5 text-orange-700" />}
+                    icon={<PaintbrushIcon className="h-5 w-5 text-orange-700" />}
                     variant="basic"
                     title={t("Get a clean subdomain")}
                     description={t(
@@ -96,7 +103,7 @@ export default function TeamList(props: Props) {
                     }}
                   />
                   <Card
-                    icon={<Icon name="chart-line" className="h-5 w-5 text-green-700" />}
+                    icon={<ChartLineIcon className="h-5 w-5 text-green-700" />}
                     variant="basic"
                     title={t("Admin tools and analytics")}
                     description={t(
@@ -134,7 +141,7 @@ export default function TeamList(props: Props) {
                   <h3 className="text-emphasis mb-4 text-sm font-semibold">{t("recommended_next_steps")}</h3>
                   <div className="grid-col-1 grid gap-2 md:grid-cols-3">
                     <Card
-                      icon={<Icon name="user-plus" className="h-5 w-5 text-green-700" />}
+                      icon={<UserPlusIcon className="h-5 w-5 text-green-700" />}
                       variant="basic"
                       title={t("invite_team_member")}
                       description={t("meetings_are_better_with_the_right")}
@@ -144,7 +151,7 @@ export default function TeamList(props: Props) {
                       }}
                     />
                     <Card
-                      icon={<Icon name="users" className="h-5 w-5 text-orange-700" />}
+                      icon={<UsersIcon className="h-5 w-5 text-orange-700" />}
                       variant="basic"
                       title={t("collective_or_roundrobin")}
                       description={t("book_your_team_members")}
@@ -154,7 +161,7 @@ export default function TeamList(props: Props) {
                       }}
                     />
                     <Card
-                      icon={<Icon name="pencil" className="h-5 w-5 text-purple-700" />}
+                      icon={<PencilIcon className="h-5 w-5 text-purple-700" />}
                       variant="basic"
                       title={t("appearance")}
                       description={t("appearance_description")}

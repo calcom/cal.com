@@ -63,6 +63,15 @@ const appRoutingForms = router({
       );
       return handler({ ctx, input });
     }),
+  getFormResponseDisplay: authedProcedure
+    .input(ZFormByResponseIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getFormResponseDisplay",
+        () => import("./getFormResponseDisplay.handler")
+      );
+      return handler({ ctx, input });
+    }),
   formMutation: authedProcedure.input(ZFormMutationInputSchema).mutation(async ({ ctx, input }) => {
     const handler = await getHandler("formMutation", () => import("./formMutation.handler"));
     return handler({ ctx, input });

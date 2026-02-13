@@ -3,7 +3,7 @@
 import debounce from "lodash/debounce";
 import { createContext, useContext, useCallback, useMemo, useEffect } from "react";
 
-import type { FilterValue, ActiveFilters } from "../lib/types";
+import type { FilterValue, ActiveFilters } from "@calcom/features/data-table/lib/types";
 import { useDataTableSegment } from "./DataTableSegmentContext";
 import { useDataTableState } from "./DataTableStateContext";
 
