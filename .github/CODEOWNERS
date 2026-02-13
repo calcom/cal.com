@@ -43,4 +43,5 @@
 **/*.e2e.*
 **/*.e2e-spec.*
 **/*.test.*
+**/*.test-suite.*
 **/*.integration-test.*
