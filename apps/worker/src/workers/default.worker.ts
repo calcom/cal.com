@@ -1,4 +1,4 @@
-import { getRedisOptions, QueueName } from "@calid/queue";
+import { getRedisOptions } from "@calid/queue";
 import type { DefaultJob } from "@calid/queue/types";
 import { Worker } from "bullmq";
 
@@ -12,13 +12,15 @@ export const DEFAULT_WORKER_CONFIG = {
   maxStalledCount: 2, // retry stalled jobs twice
   limiter: DEFAULT_RATE_LIMITER, // apply rate limiting
 };
+export const DEFAULT_WORKER_NAME = "default-worker";
 export const defaultWorker = new Worker<DefaultJob>(
-  QueueName.DEFAULT,
+  DEFAULT_WORKER_NAME,
   async (job) => {
     // await processCalendarSync(job);
   },
   {
     connection: getRedisOptions(),
+    name: DEFAULT_WORKER_NAME,
     ...DEFAULT_WORKER_CONFIG,
   }
 );

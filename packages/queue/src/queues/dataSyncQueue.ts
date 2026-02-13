@@ -19,6 +19,16 @@ export const DATA_SYNC_JOB_OPTIONS = {
   removeOnFail: false, // KEEP FAILED JOBS FOREVER
 };
 
+/** 
+For long-running, DB-heavy, potentially blocking jobs.
+Requires low concurrency.
+
+Examples:
+
+Calendar sync
+Import from Calendly
+Bookings export
+*/
 export function getDataSyncQueue(): Queue {
   if (!queue) {
     queue = new Queue(DATA_SYNC_QUEUE, {

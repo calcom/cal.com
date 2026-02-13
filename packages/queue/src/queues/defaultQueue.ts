@@ -21,6 +21,16 @@ const DEFAULT_JOB_OPTIONS = {
   },
 };
 
+/** 
+For IO-heavy, short/medium-running, horizontally scalable jobs.
+
+Examples:
+
+Booking emails
+Notifications / reminders
+Integrations / webhooks
+Maintenance / cron job
+*/
 export function getDefaultQueue(): Queue {
   if (!queue) {
     queue = new Queue(DEFAULT_QUEUE, {

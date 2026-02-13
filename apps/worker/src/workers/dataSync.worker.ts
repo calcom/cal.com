@@ -17,6 +17,8 @@ export const DATA_SYNC_WORKER_CONFIG = {
   limiter: DATA_SYNC_RATE_LIMITER, // apply rate limiting
 };
 
+export const DATA_SYNC_WORKER_NAME = "data-sync-worker";
+
 export const dataSyncWorker = new Worker<DataSyncJob>(
   QueueName.DATA_SYNC,
   async (job: Job<DataSyncJob>) => {
@@ -38,6 +40,7 @@ export const dataSyncWorker = new Worker<DataSyncJob>(
   },
   {
     connection: getRedisOptions(),
+    name: DATA_SYNC_WORKER_NAME,
     ...DATA_SYNC_WORKER_CONFIG,
   }
 );

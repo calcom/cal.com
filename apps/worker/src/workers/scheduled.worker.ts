@@ -2,6 +2,8 @@ import { QueueName, getRedisOptions } from "@calid/queue";
 import type { ScheduledJob } from "@calid/queue/types";
 import { Worker } from "bullmq";
 
+export const SCHEDULED_WORKER_NAME = "scheduled-worker";
+
 export const SCHEDULED_RATE_LIMITER = {
   max: 20,
   duration: 1000,
@@ -21,6 +23,7 @@ export const scheduledWorker = new Worker<ScheduledJob>(
   },
   {
     connection: getRedisOptions(),
+    name: SCHEDULED_WORKER_NAME,
     ...SCHEDULED_WORKER_CONFIG,
   }
 );
