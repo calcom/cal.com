@@ -16,6 +16,7 @@ import type { EventType, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
@@ -176,6 +177,17 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
   const org = usersInOrgContext[0].profile.organization;
+
+  const isEmbed = context.resolvedUrl?.includes("/embed");
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: org?.customDomain?.slug,
+      path: `/${usernameList[0]}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
+  }
 
   return {
     props: {

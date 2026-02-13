@@ -15,6 +15,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
@@ -149,8 +150,17 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
+  const isEmbed = context.resolvedUrl?.includes("/embed");
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const orgCustomDomainSlug = users[0]?.profile?.organization?.customDomain?.slug;
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: orgCustomDomainSlug,
+      path: `/${usernames.join("+")}/${slug}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
+  }
 
   const eventData = await EventRepository.getPublicEvent(
     {
@@ -257,6 +267,18 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+
+  const isEmbed = context.resolvedUrl?.includes("/embed");
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const orgCustomDomainSlug = user?.profile?.organization?.customDomain?.slug;
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: orgCustomDomainSlug,
+      path: `/${username}/${slug}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;

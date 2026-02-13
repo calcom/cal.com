@@ -19,6 +19,7 @@ import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
@@ -149,6 +150,22 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
     } as const;
+  }
+
+  const isEmbed = context.resolvedUrl?.includes("/embed");
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const orgCustomDomainSlug = team.isOrganization
+      ? team.customDomain?.slug
+      : team.parent?.customDomain?.slug;
+    const path = isOrgProfile ? "/" : `/${slug}`;
+    const qs = context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "";
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: orgCustomDomainSlug,
+      path,
+      search: qs,
+    });
+    if (customDomainRedirect) return customDomainRedirect;
   }
 
   const organizationSettings = getOrganizationSettings(team);

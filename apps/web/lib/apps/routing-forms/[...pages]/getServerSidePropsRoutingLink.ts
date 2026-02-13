@@ -4,6 +4,8 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
+
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma
@@ -21,7 +23,7 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const { currentOrgDomain, isValidOrgDomain, customDomain } = orgDomainConfig(context.req);
 
   const isEmbed = appPages[1] === "embed";
 
@@ -74,6 +76,18 @@ export const getServerSideProps = async function getServerSideProps(
     return {
       notFound: true,
     };
+  }
+
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const orgCustomDomainSlug =
+      form.team?.parent?.customDomain?.slug ?? form.user.organization?.customDomain?.slug;
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: orgCustomDomainSlug,
+      path: `/forms/${formId}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
   }
 
   const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");

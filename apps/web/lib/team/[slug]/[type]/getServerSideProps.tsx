@@ -16,6 +16,7 @@ import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 const paramsSchema = z.object({
@@ -50,6 +51,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!team || !team.eventTypes?.[0]) {
     return { notFound: true } as const;
+  }
+
+  const isEmbed = context.resolvedUrl?.includes("/embed");
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: team.parent?.customDomain?.slug,
+      path: `/${teamSlug}/${meetingSlug}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
   }
 
   const eventData = team.eventTypes[0];
@@ -250,6 +262,10 @@ const getTeamWithEventsData = async (
           brandColor: true,
           darkBrandColor: true,
           theme: true,
+          customDomain: {
+            where: { verified: true },
+            select: { slug: true },
+          },
           organizationSettings: {
             select: {
               allowSEOIndexing: true,

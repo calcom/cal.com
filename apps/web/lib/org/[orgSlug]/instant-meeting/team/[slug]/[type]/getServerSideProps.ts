@@ -10,6 +10,8 @@ import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hid
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
+
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
   slug: z.string().transform((s) => slugify(s)),
@@ -33,6 +35,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       parent: {
         select: {
           hideBranding: true,
+          customDomain: {
+            where: { verified: true },
+            select: { slug: true },
+          },
         },
       },
     },
@@ -42,6 +48,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return {
       notFound: true,
     } as const;
+  }
+
+  if (isValidOrgDomain && !customDomain) {
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: team.parent?.customDomain?.slug,
+      path: `/instant-meeting/team/${teamSlug}/${meetingSlug}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;

@@ -118,6 +118,10 @@ export async function getTeamWithMembers(args: {
           isOrganization: true,
           logoUrl: true,
           metadata: true,
+          customDomain: {
+            where: { verified: true },
+            select: { slug: true },
+          },
           organizationSettings: {
             select: {
               allowSEOIndexing: true,
@@ -341,6 +345,10 @@ export async function getTeamWithoutMembers(args: {
       rrResetInterval: true,
       rrTimestampBasis: true,
       includeManagedEventsInLimits: true,
+      customDomain: {
+        where: { verified: true },
+        select: { slug: true },
+      },
       parent: {
         select: {
           id: true,
