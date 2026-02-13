@@ -221,7 +221,7 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
         });
       }
     } catch (error) {
-      this.adminLog.error("Failed to auto-unlock user after SIGNUP watchlist removal", { email, error });
+      this.adminLog.error("Failed to auto-unlock user after SIGNUP watchlist removal", { error });
     }
   }
 
