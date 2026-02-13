@@ -13,7 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@calid/calendar-sync": "*",
+    "@calid/job-engine": "*",
     "@calid/queue": "*"
   },
   "devDependencies": {

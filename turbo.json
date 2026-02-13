@@ -77,14 +77,14 @@
       "cache": false,
       "outputs": ["dist/**"]
     },
-    "@calid/calendar-sync#build": {
+    "@calid/job-engine#build": {
       "dependsOn": ["@calcom/prisma#generate-schemas"],
       "outputs": ["dist/**"],
       "cache": false
     },
 
     "@calid/worker#build": {
-      "dependsOn": ["@calid/queue#build", "@calid/calendar-sync#build"],
+      "dependsOn": ["@calid/queue#build", "@calid/job-engine#build"],
       "outputs": ["dist/**"],
       "cache": false
     },
@@ -441,6 +441,7 @@
     "ICSMOBILE_TRANSACTION_AUTH_KEY",
     "ICSMOBILE_OTP_AUTH_KEY",
     "ICSMOBILE_SENDERID",
-    "REDIS_URL"
+    "REDIS_URL",
+    "USE_BULLMQ"
   ]
 }

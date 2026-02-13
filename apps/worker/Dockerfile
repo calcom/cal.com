@@ -17,7 +17,7 @@ RUN yarn plugin import workspace-tools
 # Runtime workspaces
 COPY apps/worker apps/worker
 COPY packages/queue packages/queue
-COPY packages/calendar-sync packages/calendar-sync
+COPY packages/job-engine packages/job-engine
 COPY packages/prisma packages/prisma
 COPY packages/tsconfig packages/tsconfig
 
@@ -32,7 +32,7 @@ COPY packages/types packages/types
 RUN yarn workspaces focus \
     @calid/worker \
     @calid/queue \
-    @calid/calendar-sync \
+    @calid/job-engine \
     @calid/prisma \
     --all && \
     yarn cache clean --all && \
@@ -57,7 +57,7 @@ ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
 RUN yarn workspaces focus \
     @calid/worker \
     @calid/queue \
-    @calid/calendar-sync \
+    @calid/job-engine \
     --production && \
     yarn cache clean --all && \
     rm -rf .yarn/cache .yarn/install-state.gz
@@ -85,12 +85,12 @@ COPY --from=builder --chown=worker:nodejs /app/package.json ./
 # Compiled code
 COPY --from=builder --chown=worker:nodejs /app/apps/worker/dist ./apps/worker/dist
 COPY --from=builder --chown=worker:nodejs /app/packages/queue/dist ./packages/queue/dist
-COPY --from=builder --chown=worker:nodejs /app/packages/calendar-sync/dist ./packages/calendar-sync/dist
+COPY --from=builder --chown=worker:nodejs /app/packages/job-engine/dist ./packages/job-engine/dist
 
 # package.json for module resolution
 COPY --from=builder --chown=worker:nodejs /app/apps/worker/package.json ./apps/worker/package.json
 COPY --from=builder --chown=worker:nodejs /app/packages/queue/package.json ./packages/queue/package.json
-COPY --from=builder --chown=worker:nodejs /app/packages/calendar-sync/package.json ./packages/calendar-sync/package.json
+COPY --from=builder --chown=worker:nodejs /app/packages/job-engine/package.json ./packages/job-engine/package.json
 
 # Runtime node_modules 
 COPY --from=builder --chown=worker:nodejs /app/node_modules ./node_modules

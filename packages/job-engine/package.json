@@ -1,10 +1,16 @@
 {
-  "name": "@calid/calendar-sync",
+  "name": "@calid/job-engine",
   "private": true,
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
+  "exports": {
+    "./calendar-sync": {
+      "types": "./dist/calendar-sync/index.d.ts",
+      "default": "./dist/calendar-sync/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc"
   },
@@ -14,6 +20,7 @@
   },
   "devDependencies": {
     "@types/uuid": "^11.0.0",
-    "prisma": "^7.3.0"
+    "prisma": "^7.3.0",
+    "typescript": "^5.9.3"
   }
 }
