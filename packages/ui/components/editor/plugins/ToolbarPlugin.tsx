@@ -15,6 +15,7 @@ import { $isAtNodeEnd, $wrapNodes } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import classNames from "classnames";
 import type { EditorState, GridSelection, LexicalEditor, NodeSelection, RangeSelection } from "lexical";
+import  EmojiPicker,{Theme}  from "emoji-picker-react";
 import {
   $createParagraphNode,
   $getRoot,
@@ -247,6 +248,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   const [isLink, setIsLink] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const formatParagraph = () => {
     if (blockType !== "paragraph") {
@@ -361,6 +363,17 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       }
     });
   };
+
+  const addEmoji = (emojiObject: { emoji: string }) => {
+  editor.update(() => {
+    const selection = $getSelection();
+    if ($isRangeSelection(selection)) {
+      selection.insertRawText(emojiObject.emoji);
+    }
+  });
+  setShowEmojiPicker(false);
+};
+
 
   useEffect(() => {
     if (!props.firstRender) {
@@ -537,6 +550,25 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
           )}
+
+        <div className="relative">
+    <Button
+      aria-label="Emoji"
+      color="minimal"
+      variant="icon"
+      type="button"
+      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+    > 
+    😊
+    </Button>
+    {showEmojiPicker &&
+      createPortal(
+        <div className="absolute z-50 top-30 right-10 mt-2">
+          <EmojiPicker  theme={Theme.DARK}  onEmojiClick={addEmoji} />
+        </div>,
+        document.body
+      )}
+  </div>
         </div>
         {props.variables && (
           <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>

@@ -18581,6 +18581,7 @@ __metadata:
     c8: "npm:7.13.0"
     checkly: "npm:latest"
     dotenv-checker: "npm:1.1.5"
+    emoji-picker-react: "npm:^4.18.0"
     husky: "npm:9.1.7"
     i18n-unused: "npm:0.13.0"
     jest-diff: "npm:29.7.0"
@@ -21428,6 +21429,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"emoji-picker-react@npm:^4.18.0":
+  version: 4.18.0
+  resolution: "emoji-picker-react@npm:4.18.0"
+  dependencies:
+    flairup: "npm:1.0.0"
+  peerDependencies:
+    react: ">=16"
+  checksum: 10/a42192f5ee5310e44f759b79e567ceace63ae83d7b339ce18d562bedff5d0c91b229bf221ea7d64a7cd90608916cb5128fe03f032d1d155d6730443da1c0cd46
+  languageName: node
+  linkType: hard
+
 "emoji-regex@npm:^10.2.1, emoji-regex@npm:^10.3.0":
   version: 10.5.0
   resolution: "emoji-regex@npm:10.5.0"
@@ -23026,6 +23038,13 @@ __metadata:
     locate-path: "npm:^6.0.0"
     path-exists: "npm:^4.0.0"
   checksum: 10/07955e357348f34660bde7920783204ff5a26ac2cafcaa28bace494027158a97b9f56faaf2d89a6106211a8174db650dd9f503f9c0d526b1202d5554a00b9095
+  languageName: node
+  linkType: hard
+
+"flairup@npm:1.0.0":
+  version: 1.0.0
+  resolution: "flairup@npm:1.0.0"
+  checksum: 10/9125711da6effe146fa748fda4c293027a142bde7cc9264d6e515a5845c79181d6fdb63bb1254a5c364006b333a1083d06ac6ead0c2e3c28024c977363e19571
   languageName: node
   linkType: hard
 

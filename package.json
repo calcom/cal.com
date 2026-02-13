@@ -179,5 +179,8 @@
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
+  },
+  "dependencies": {
+    "emoji-picker-react": "^4.18.0"
   }
 }
