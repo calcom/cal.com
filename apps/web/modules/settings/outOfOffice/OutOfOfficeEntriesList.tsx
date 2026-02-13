@@ -78,18 +78,21 @@ export default function OutOfOfficeEntriesList({
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
+      borderInShellHeader={true}
       CTA={
         <div className="flex gap-2">
           <OutOfOfficeToggleGroup />
           <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" onClick={onOpenCreateDialog} />
         </div>
       }>
-      <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
-        <OutOfOfficeEntriesListContent
-          onOpenCreateDialog={onOpenCreateDialog}
-          onOpenEditDialog={onOpenEditDialog}
-        />
-      </DataTableProvider>
+      <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
+        <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
+          <OutOfOfficeEntriesListContent
+            onOpenCreateDialog={onOpenCreateDialog}
+            onOpenEditDialog={onOpenEditDialog}
+          />
+        </DataTableProvider>
+      </div>
     </SettingsHeader>
   );
 }
@@ -168,92 +171,90 @@ function OutOfOfficeEntriesListContent({
       }),
       ...(selectedTab === OutOfOfficeTab.TEAM
         ? [
-            columnHelper.display({
-              id: "member",
-              header: `Member`,
-              size: 300,
-              cell: ({ row }) => {
-                if (!row.original || !row.original.user || isPending || isFetching) {
-                  return <SkeletonText className="h-8 w-full" />;
-                }
-                const { avatarUrl, username, email, name } = row.original.user;
-                const memberName =
-                  name ||
-                  (() => {
-                    const emailName = email.split("@")[0];
-                    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                  })();
-                return (
-                  <div className="flex items-center gap-2">
-                    <Avatar
-                      size="sm"
-                      alt={username || email}
-                      imageSrc={getUserAvatarUrl({
-                        avatarUrl,
-                      })}
-                    />
-                    <div className="">
-                      <div
-                        data-testid={`ooo-member-${username}-username`}
-                        className="text-emphasis text-sm font-medium leading-none">
-                        {memberName}
-                      </div>
-                      <div
-                        data-testid={`ooo-member-${username}-email`}
-                        className="text-subtle mt-1 text-sm leading-none">
-                        {email}
-                      </div>
+          columnHelper.display({
+            id: "member",
+            header: `Member`,
+            size: 220,
+            cell: ({ row }) => {
+              if (!row.original || !row.original.user || isPending || isFetching) {
+                return <SkeletonText className="h-8 w-full" />;
+              }
+              const { avatarUrl, username, email, name } = row.original.user;
+              const memberName =
+                name ||
+                (() => {
+                  const emailName = email.split("@")[0];
+                  return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                })();
+              return (
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    size="sm"
+                    alt={username || email}
+                    imageSrc={getUserAvatarUrl({
+                      avatarUrl,
+                    })}
+                  />
+                  <div className="">
+                    <div
+                      data-testid={`ooo-member-${username}-username`}
+                      className="text-emphasis text-sm font-medium leading-none">
+                      {memberName}
+                    </div>
+                    <div
+                      data-testid={`ooo-member-${username}-email`}
+                      className="text-subtle mt-1 text-sm leading-none">
+                      {email}
                     </div>
                   </div>
-                );
-              },
-            }),
-          ]
+                </div>
+              );
+            },
+          }),
+        ]
         : []),
       columnHelper.display({
         id: "outOfOffice",
         header: `${t("out_of_office")} (${totalRowCount})`,
-        size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
+        size: 570,
         cell: ({ row }) => {
           const item = row.original;
           return (
             <>
               {row.original && !isPending && !isFetching ? (
                 <div
-                  className="flex flex-row justify-between p-2"
+                  className="flex flex-row items-center gap-3 py-2"
                   data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
-                  <div className="flex flex-row items-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
-                      {item?.reason?.emoji || "🏝️"}
-                    </div>
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-subtle">
+                    {item?.reason?.emoji || "🏝️"}
+                  </div>
 
-                    <div className="ml-2 flex flex-col">
-                      <p className="px-2 font-bold">
-                        {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
-                      </p>
-                      <p className="px-2">
-                        {item.toUser?.username ? (
-                          <ServerTrans
-                            t={t}
-                            i18nKey="ooo_forwarding_to"
-                            values={{
-                              username: item.toUser?.username,
-                            }}
-                            components={[<span key="ooo-username" className="text-subtle font-bold" />]}
-                          />
-                        ) : (
-                          <>{t("ooo_not_forwarding")}</>
-                        )}
-                      </p>
-                      {item.notes && (
-                        <p className="px-2">
-                          <span className="text-subtle">{t("notes")}: </span>
-                          <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
-                            {item.notes}
-                          </span>
-                        </p>
+                  <div className="flex flex-col">
+                    <p className="font-bold">
+                      {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+                    </p>
+                    <p>
+                      {item.toUser?.username ? (
+                        <ServerTrans
+                          t={t}
+                          i18nKey="ooo_forwarding_to"
+                          values={{
+                            username: item.toUser?.username,
+                          }}
+                          components={[<span key="ooo-username" className="text-subtle font-bold" />]}
+                        />
+                      ) : (
+                        <>{t("ooo_not_forwarding")}</>
                       )}
-                    </div>
+                    </p>
+                    {item.notes && (
+                      <p>
+                        <span className="text-subtle">{t("notes")}: </span>
+                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+                          {item.notes}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
