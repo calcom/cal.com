@@ -360,6 +360,11 @@ jobs:
     if: always()
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Fail if prepare failed
+        run: |
+          echo "::error::Prepare job failed (result: ${{ needs.prepare.result }}). Please check the prepare job logs."
+          exit 1
+        if: needs.prepare.result != 'success'
       - name: Fail if conditional jobs failed
         run: exit 1
         if: |
