@@ -64,12 +64,16 @@ export class SalesforceGraphQLClient {
    * 2. If no contact is found, then find an account that is an exact match of the email domain
    * 3. If no account is found, then find contacts that match the email domain and find the account that the majority of contacts are connect to
    */
-  async GetAccountRecordsForRRSkip(email: string, fieldRules?: RRSkipFieldRule[]): Promise<Contact[]> {
+  async GetAccountRecordsForRRSkip(
+    email: string,
+    fieldRules?: RRSkipFieldRule[]
+  ): Promise<Contact[]> {
     const log = logger.getSubLogger({
       prefix: [`[getAccountRecordsForRRSkip]:${email}`],
     });
     const emailDomain = email.split("@")[1];
-    const websites = this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
+    const websites =
+      this.getAllPossibleAccountWebsiteFromEmailDomain(emailDomain);
 
     // Trace query initiation
     SalesforceRoutingTraceService.graphqlQueryInitiated({
@@ -80,11 +84,16 @@ export class SalesforceGraphQLClient {
     log.info(`Query against email and email domain of ${emailDomain}`);
 
     const hasFieldRules = fieldRules && fieldRules.length > 0;
-    const fieldRuleFields = hasFieldRules ? Array.from(new Set(fieldRules.map((r) => r.field))) : [];
+    const fieldRuleFields = hasFieldRules
+      ? Array.from(new Set(fieldRules.map((r) => r.field)))
+      : [];
     log.info(`fieldRuleFields`, fieldRuleFields);
 
     if (hasFieldRules) {
-      log.info("Using dynamic query with field rule fields", safeStringify({ fieldRuleFields, fieldRules }));
+      log.info(
+        "Using dynamic query with field rule fields",
+        safeStringify({ fieldRuleFields, fieldRules })
+      );
     }
 
     // Use dynamic query if field rules require extra fields, otherwise use static typed query
@@ -129,7 +138,9 @@ export class SalesforceGraphQLClient {
         if (hasFieldRules && accountNode) {
           const failedRule = this.getFailingFieldRule(accountNode, fieldRules);
           if (failedRule) {
-            log.info(`Contact ${contact.Id}'s account filtered out by field rules, checking next contact`);
+            log.info(
+              `Contact ${contact.Id}'s account filtered out by field rules, checking next contact`
+            );
             SalesforceRoutingTraceService.fieldRuleFilteredRecord({
               tier: "contact",
               recordId: contact.Id,
@@ -170,7 +181,9 @@ export class SalesforceGraphQLClient {
         if (hasFieldRules) {
           const failedRule = this.getFailingFieldRule(account, fieldRules);
           if (failedRule) {
-            log.info(`Account ${account.Id} filtered out by field rules, checking next account`);
+            log.info(
+              `Account ${account.Id} filtered out by field rules, checking next account`
+            );
             SalesforceRoutingTraceService.fieldRuleFilteredRecord({
               tier: "account",
               recordId: account.Id,
@@ -202,7 +215,8 @@ export class SalesforceGraphQLClient {
 
     // If no account is found, find an account based on existing contacts
     if (queryData.uiapi.query.relatedContacts) {
-      const relatedContactsResults = queryData.uiapi.query.relatedContacts?.edges;
+      const relatedContactsResults =
+        queryData.uiapi.query.relatedContacts?.edges;
 
       if (!relatedContactsResults) return [];
 
@@ -219,15 +233,21 @@ export class SalesforceGraphQLClient {
             return contacts;
           }
           if (!node.AccountId?.value) {
-            log.error(`A related contact with id ${node.Id} didn't have an account id`);
+            log.error(
+              `A related contact with id ${node.Id} didn't have an account id`
+            );
             return contacts;
           }
           if (!node.Account?.Owner?.Id) {
-            log.error(`A related contact with id ${node.Id} didn't have an account owner id`);
+            log.error(
+              `A related contact with id ${node.Id} didn't have an account owner id`
+            );
             return contacts;
           }
           if (!node.Account?.Owner?.Email?.value) {
-            log.error(`A related contact with id ${node.Id} didn't have an account owner email`);
+            log.error(
+              `A related contact with id ${node.Id} didn't have an account owner email`
+            );
             return contacts;
           }
 
@@ -284,7 +304,9 @@ export class SalesforceGraphQLClient {
           if (accountNode) {
             const failedRule = this.getFailingFieldRule(accountNode, fieldRules);
             if (failedRule) {
-              log.info(`Dominant account ${accountId} filtered out by field rules, trying next account`);
+              log.info(
+                `Dominant account ${accountId} filtered out by field rules, trying next account`
+              );
               SalesforceRoutingTraceService.fieldRuleFilteredRecord({
                 tier: "related_contacts",
                 recordId: accountId,
@@ -298,7 +320,9 @@ export class SalesforceGraphQLClient {
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore - in CD/CI pipeline this will have any type
-        const contactUnderAccount = relatedContacts.find((contact) => contact.AccountId === accountId);
+        const contactUnderAccount = relatedContacts.find(
+          (contact) => contact.AccountId === accountId
+        );
         if (!contactUnderAccount) {
           log.error(
             `Could not find a contact under account id ${accountId}`,
@@ -319,7 +343,9 @@ export class SalesforceGraphQLClient {
           ownerEmail: contactUnderAccount.ownerEmail,
         });
 
-        log.info(`Account found via related contacts with account id ${accountId}`);
+        log.info(
+          `Account found via related contacts with account id ${accountId}`
+        );
         return [
           {
             id: accountId,
@@ -375,7 +401,9 @@ export class SalesforceGraphQLClient {
       );
 
       if (rule.action === RRSkipFieldRuleActionEnum.IGNORE && matches) {
-        log.info(`FILTERED: ignore rule matched — field "${rule.field}" equals "${ruleValue}"`);
+        log.info(
+          `FILTERED: ignore rule matched — field "${rule.field}" equals "${ruleValue}"`
+        );
         SalesforceRoutingTraceService.fieldRuleEvaluated({
           field: rule.field,
           action: rule.action,
@@ -412,7 +440,9 @@ export class SalesforceGraphQLClient {
    * but injects extra fields into all Account selections.
    */
   private buildDynamicAccountQuery(fieldRuleFields: string[]): string {
-    const extraFields = fieldRuleFields.map((field) => `${field} { value }`).join("\n              ");
+    const extraFields = fieldRuleFields
+      .map((field) => `${field} { value }`)
+      .join("\n              ");
 
     return `
       query GetAccountRecordsForRRSkipWithFields($email: Email!, $websites: [Url!]!, $emailDomain: Email!) {

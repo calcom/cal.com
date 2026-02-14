@@ -50,8 +50,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       const returnTo = options?.returnTo
         ? options.returnTo
         : variables && variables.returnTo
-          ? variables.returnTo
-          : undefined;
+        ? variables.returnTo
+        : undefined;
       if (variables === "") {
         type = _type;
       } else {

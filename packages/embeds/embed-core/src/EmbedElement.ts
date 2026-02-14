@@ -160,8 +160,7 @@ export class EmbedElement extends HTMLElement {
     this.getSkeletonData = data.getSkeletonData;
     this.boundResizeHandler = this.resizeHandler.bind(this);
     this.boundPrefersDarkThemeChangedHandler = this.prefersDarkThemeChangedHandler.bind(this);
-    this.boundEnsureContainerTakesSkeletonHeightWhenVisible =
-      this.ensureContainerTakesSkeletonHeightWhenVisible.bind(this);
+    this.boundEnsureContainerTakesSkeletonHeightWhenVisible = this.ensureContainerTakesSkeletonHeightWhenVisible.bind(this);
   }
 
   public isSkeletonLoaderVisible() {

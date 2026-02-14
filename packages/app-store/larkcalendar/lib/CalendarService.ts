@@ -136,8 +136,8 @@ class LarkCalendarService implements Calendar {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? (event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
-        event.destinationCalendar[0])
+      ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
+        event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -175,8 +175,8 @@ class LarkCalendarService implements Calendar {
 
   private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0])
+      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0]
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {

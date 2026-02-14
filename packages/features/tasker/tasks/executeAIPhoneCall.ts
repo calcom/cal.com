@@ -39,7 +39,9 @@ type BookingWithRelations = NonNullable<
  * for backward compatibility.
  * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
  */
-export function convertResponsesToVariableFormats(responses: Record<string, { value?: unknown }>) {
+export function convertResponsesToVariableFormats(
+  responses: Record<string, { value?: unknown }>
+) {
   return Object.fromEntries(
     Object.entries(responses).flatMap(([key, value]) => {
       const formats = getVariableFormats(key);

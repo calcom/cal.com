@@ -150,9 +150,9 @@ export async function patchHandler(req: NextApiRequest) {
 
   if (hasEmailBeenChanged && newEmail) {
     const secondaryEmail = await userRepository.findSecondaryEmailByUserIdAndEmail({
-      userId: query.userId,
-      email: newEmail,
-    });
+        userId: query.userId,
+        email: newEmail,
+      });
 
     if (emailVerification) {
       if (secondaryEmail && secondaryEmail.emailVerified) {

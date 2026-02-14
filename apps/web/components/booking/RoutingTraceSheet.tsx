@@ -6,7 +6,14 @@ import { getDomainLabel } from "@calcom/features/routing-trace/presenters/getDom
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@calcom/ui/components/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetBody,
+} from "@calcom/ui/components/sheet";
+
 
 interface RoutingTraceSheetProps {
   isOpen: boolean;
@@ -81,7 +88,9 @@ export function RoutingTraceSheet({
                 return (
                   <div key={idx} className="relative flex gap-3 pb-6 last:pb-0">
                     {/* Timeline connector line */}
-                    {!isLast && <div className="border-subtle absolute left-4 top-8 bottom-0 border-l" />}
+                    {!isLast && (
+                      <div className="border-subtle absolute left-4 top-8 bottom-0 border-l" />
+                    )}
                     {/* Icon circle */}
                     <div className="bg-default border-subtle relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border">
                       <DomainIcon domain={step.domain} />

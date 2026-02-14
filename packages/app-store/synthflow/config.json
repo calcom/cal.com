@@ -6,7 +6,9 @@
   "logo": "icon.svg",
   "url": "https://synthflow.ai/integrations/calcom",
   "variant": "automation",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "Synthflow.ai",
   "email": "albert@synthflow.ai",
   "description": "Effortless Human-Like AI Phone Calls and Scheduling",

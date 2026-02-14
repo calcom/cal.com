@@ -73,7 +73,8 @@ describe("filterEventTypesWhereLocationUpdateIsAllowed", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {},
+            unlockedFields: {
+            },
           },
         },
       },
@@ -107,7 +108,8 @@ describe("filterEventTypesWhereLocationUpdateIsAllowed", () => {
       {
         id: 1,
         parentId: 100,
-        metadata: {},
+        metadata: {
+        },
       },
     ];
 
@@ -153,7 +155,8 @@ describe("filterEventTypesWhereLocationUpdateIsAllowed", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {},
+            unlockedFields: {
+            },
           },
         },
       },
@@ -232,7 +235,8 @@ describe("getBulkUserEventTypes", () => {
         locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {},
+            unlockedFields: {
+            },
           },
         } as Prisma.JsonValue,
         parentId: 100,

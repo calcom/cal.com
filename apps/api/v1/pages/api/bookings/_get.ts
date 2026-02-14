@@ -170,8 +170,8 @@ export async function handler(req: NextApiRequest) {
   const expand = Array.isArray(queryFilterForExpand)
     ? queryFilterForExpand
     : queryFilterForExpand
-      ? [queryFilterForExpand]
-      : [];
+    ? [queryFilterForExpand]
+    : [];
 
   args.include = {
     attendees: true,
@@ -184,8 +184,8 @@ export async function handler(req: NextApiRequest) {
   const attendeeEmails = Array.isArray(queryFilterForAttendeeEmails.attendeeEmail)
     ? queryFilterForAttendeeEmails.attendeeEmail
     : typeof queryFilterForAttendeeEmails.attendeeEmail === "string"
-      ? [queryFilterForAttendeeEmails.attendeeEmail]
-      : [];
+    ? [queryFilterForAttendeeEmails.attendeeEmail]
+    : [];
   const filterByAttendeeEmails = attendeeEmails.length > 0;
   let userEmailsToFilterBy: string[] = [];
 

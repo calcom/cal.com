@@ -12,6 +12,7 @@ const validateSsrfUrl = (url: string | null | undefined): boolean => {
   return validateUrlForSSRFSync(url).isValid;
 };
 
+
 /**
  * Zod schema for validating user-provided URLs before server-side fetching
  * Applies synchronous SSRF checks only (no DNS resolution)

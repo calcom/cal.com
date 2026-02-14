@@ -12,10 +12,7 @@ export const MULTIPLE_SELECTED_CALENDARS_FOUND = "Multiple SelecteCalendars foun
 
 @Injectable()
 export class SelectedCalendarsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async upsertSelectedCalendar(
     externalId: string,

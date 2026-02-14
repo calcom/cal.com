@@ -84,8 +84,9 @@ export class SelectedCalendarsService {
   }
 
   private async isMemberOfDelegationCredentialOrganization(userId: number, delegationCredentialId: string) {
-    const delegationCredential =
-      await this.organizationsDelegationCredentialRepository.findById(delegationCredentialId);
+    const delegationCredential = await this.organizationsDelegationCredentialRepository.findById(
+      delegationCredentialId
+    );
     if (!delegationCredential) {
       throw new NotFoundException("DelegationCredential with provided delegationCredentialId not found");
     }

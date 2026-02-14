@@ -6,7 +6,9 @@
   "logo": "icon-dark.svg",
   "url": "https://elevenlabs.io/docs/conversational-ai/guides/integrations/cal-com",
   "variant": "automation",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "ElevenLabs",
   "email": "support@elevenlabs.io",
   "description": "Create the most realistic speech with our AI audio platform",

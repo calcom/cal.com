@@ -36,3 +36,4 @@ export const holidaysRouter = router({
     return checkConflictsHandler({ ctx, input });
   }),
 });
+

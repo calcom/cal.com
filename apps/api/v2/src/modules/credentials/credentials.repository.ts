@@ -8,10 +8,7 @@ import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class CredentialsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async upsertUserAppCredential(
     type: keyof typeof APPS_TYPE_ID_MAPPING,

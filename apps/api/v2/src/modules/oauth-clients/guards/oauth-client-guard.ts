@@ -12,10 +12,7 @@ import {
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {
-  constructor(
-    private oAuthClientRepository: OAuthClientRepository,
-    private usersService: UsersService
-  ) {}
+  constructor(private oAuthClientRepository: OAuthClientRepository, private usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<ApiAuthGuardRequest>();

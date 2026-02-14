@@ -31,7 +31,15 @@ export class VerificationTokenRepository {
     return { ...token, expires };
   }
 
-  static async create({ identifier, token, expires }: { identifier: string; token: string; expires: Date }) {
+  static async create({
+    identifier,
+    token,
+    expires,
+  }: {
+    identifier: string;
+    token: string;
+    expires: Date;
+  }) {
     return prisma.verificationToken.create({
       data: {
         identifier,

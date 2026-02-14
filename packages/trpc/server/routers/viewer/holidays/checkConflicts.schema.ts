@@ -6,3 +6,4 @@ export const ZCheckConflictsSchema = z.object({
 });
 
 export type TCheckConflictsSchema = z.infer<typeof ZCheckConflictsSchema>;
+

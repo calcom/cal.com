@@ -52,8 +52,8 @@ export async function handleButtonAndInvitationStep(req: NextApiRequest): Promis
   const submit_booking_url = current_canvas?.stored_data?.submit_booking_url
     ? current_canvas?.stored_data?.submit_booking_url
     : component_id === "submit_booking_url"
-      ? input_values?.submit_booking_url
-      : component_id;
+    ? input_values?.submit_booking_url
+    : component_id;
 
   return {
     canvas: {
@@ -70,7 +70,7 @@ export async function handleButtonAndInvitationStep(req: NextApiRequest): Promis
                 text: e,
                 style: "error",
                 align: "left",
-              }) as TextComponent
+              } as TextComponent)
           ),
         ],
       },

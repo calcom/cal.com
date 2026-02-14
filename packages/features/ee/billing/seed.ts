@@ -20,9 +20,12 @@
 import { spawn } from "node:child_process";
 import * as readline from "node:readline";
 
-const HWM_SCRIPT = "packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts";
-const PRORATION_SCRIPT = "packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts";
-const ACTIVE_USER_SCRIPT = "packages/features/ee/billing/active-user/seed-active-user-test.ts";
+const HWM_SCRIPT =
+  "packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts";
+const PRORATION_SCRIPT =
+  "packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts";
+const ACTIVE_USER_SCRIPT =
+  "packages/features/ee/billing/active-user/seed-active-user-test.ts";
 
 const passthrough = process.argv.filter((a) => a === "--skip-stripe");
 
@@ -132,7 +135,9 @@ async function interactive() {
 }
 
 async function main() {
-  const args = process.argv.slice(2).filter((a) => !a.startsWith("--skip-stripe"));
+  const args = process.argv
+    .slice(2)
+    .filter((a) => !a.startsWith("--skip-stripe"));
 
   if (args.includes("--hwm")) {
     process.exit(await seedHwm(args.includes("--cleanup")));

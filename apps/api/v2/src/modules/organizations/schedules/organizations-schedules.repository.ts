@@ -4,10 +4,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationSchedulesRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getSchedulesByUserIds(userIds: number[], skip: number, take: number) {
     return this.dbRead.prisma.schedule.findMany({

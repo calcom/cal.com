@@ -515,7 +515,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
-              expect(data.metadata).toEqual({ ...body.metadata, platformClientId: oAuthClient.id });
+              expect(data.metadata).toEqual({...body.metadata, platformClientId: oAuthClient.id});
               createdBooking = data;
             } else {
               throw new Error(
@@ -2115,7 +2115,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
-              expect(data.metadata).toEqual({ ...body.metadata, platformClientId: oAuthClient.id });
+              expect(data.metadata).toEqual({...body.metadata, platformClientId: oAuthClient.id});
               createdBooking = data;
             } else {
               throw new Error(
@@ -2676,7 +2676,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
         jest
           .spyOn(eventManagerProto, "createAllCalendarEvents")
           .mockImplementation(() => Promise.resolve([]));
-        jest.spyOn(eventManagerProto, "createAllCRMEvents").mockImplementation(() => Promise.resolve([]));
+        jest
+          .spyOn(eventManagerProto, "createAllCRMEvents")
+          .mockImplementation(() => Promise.resolve([]));
       });
 
       describe("platform oAuth client has calendar events enabled", () => {

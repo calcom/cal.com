@@ -8,10 +8,7 @@ import { ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
 export class SlotsRepository_2024_04_15 {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getBookingWithAttendees(bookingUid?: string) {
     return this.dbRead.prisma.booking.findUnique({

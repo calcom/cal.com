@@ -6,10 +6,7 @@ import type { Prisma, AttributeToUser, Membership, User, Profile } from "@calcom
 
 @Injectable()
 export class OrganizationsUsersRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   private filterOnOrgMembership(orgId: number) {
     return {

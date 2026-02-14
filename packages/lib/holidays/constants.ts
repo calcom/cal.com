@@ -13,10 +13,7 @@ export const GOOGLE_RELIGIOUS_HOLIDAY_CALENDARS: Record<string, { name: string; 
   HINDU: { name: "Hindu Holidays", calendarId: "en.hinduism#holiday@group.v.calendar.google.com" },
   JEWISH: { name: "Jewish Holidays", calendarId: "en.judaism#holiday@group.v.calendar.google.com" },
   MUSLIM: { name: "Muslim Holidays", calendarId: "en.islamic#holiday@group.v.calendar.google.com" },
-  ORTHODOX: {
-    name: "Orthodox Holidays",
-    calendarId: "en.orthodox_christianity#holiday@group.v.calendar.google.com",
-  },
+  ORTHODOX: { name: "Orthodox Holidays", calendarId: "en.orthodox_christianity#holiday@group.v.calendar.google.com" },
 };
 
 /**
@@ -93,10 +90,7 @@ export const GOOGLE_HOLIDAY_CALENDARS: Record<string, { name: string; calendarId
   EE: { name: "Estonia", calendarId: "en.ee.official#holiday@group.v.calendar.google.com" },
   SZ: { name: "Eswatini", calendarId: "en.sz.official#holiday@group.v.calendar.google.com" },
   ET: { name: "Ethiopia", calendarId: "en.et.official#holiday@group.v.calendar.google.com" },
-  FK: {
-    name: "Falkland Islands (Islas Malvinas)",
-    calendarId: "en.fk.official#holiday@group.v.calendar.google.com",
-  },
+  FK: { name: "Falkland Islands (Islas Malvinas)", calendarId: "en.fk.official#holiday@group.v.calendar.google.com" },
   FO: { name: "Faroe Islands", calendarId: "en.fo.official#holiday@group.v.calendar.google.com" },
   FJ: { name: "Fiji", calendarId: "en.fj.official#holiday@group.v.calendar.google.com" },
   FI: { name: "Finland", calendarId: "en.finnish.official#holiday@group.v.calendar.google.com" },
@@ -263,3 +257,4 @@ export const GOOGLE_HOLIDAY_CALENDARS: Record<string, { name: string; calendarId
   ZM: { name: "Zambia", calendarId: "en.zm.official#holiday@group.v.calendar.google.com" },
   ZW: { name: "Zimbabwe", calendarId: "en.zw.official#holiday@group.v.calendar.google.com" },
 };
+

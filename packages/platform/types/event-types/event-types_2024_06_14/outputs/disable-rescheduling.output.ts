@@ -20,3 +20,4 @@ export class DisableReschedulingOutput_2024_06_14 {
   })
   minutesBefore?: number;
 }
+

@@ -44,9 +44,7 @@ describe("createEventPbacProcedure", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(PermissionCheckService).mockImplementation(function () {
-      return mockPermissionCheckService as any;
-    });
+    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
   });
 
   describe("personal events", () => {

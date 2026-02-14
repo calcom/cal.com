@@ -9,13 +9,21 @@ export const LargeCalendar = (): JSX.Element | null => {
 
   if (event.teamId) {
     return (
-      <CalendarViewPlatformWrapper isEventTypeView={true} teamId={event.teamId} eventSlug={event.slug} />
+      <CalendarViewPlatformWrapper
+        isEventTypeView={true}
+        teamId={event.teamId}
+        eventSlug={event.slug}
+      />
     );
   }
 
   if (event.username) {
     return (
-      <CalendarViewPlatformWrapper isEventTypeView={true} username={event.username} eventSlug={event.slug} />
+      <CalendarViewPlatformWrapper
+        isEventTypeView={true}
+        username={event.username}
+        eventSlug={event.slug}
+      />
     );
   }
 

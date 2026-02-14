@@ -50,7 +50,9 @@ export function RoutingFormResponseSheet({
               {data.form?.name && (
                 <div className="border-subtle border-b pb-3">
                   <p className="text-emphasis text-sm font-medium">{data.form.name}</p>
-                  {data.form.description && <p className="text-subtle text-xs">{data.form.description}</p>}
+                  {data.form.description && (
+                    <p className="text-subtle text-xs">{data.form.description}</p>
+                  )}
                 </div>
               )}
               {data.responses.map((item) => (

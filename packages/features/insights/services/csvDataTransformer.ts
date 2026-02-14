@@ -276,7 +276,9 @@ export function formatCsvRow(
   return result;
 }
 
-export function getUtmDataForBooking(booking: BookingWithAttendees | undefined): Record<string, string> {
+export function getUtmDataForBooking(
+  booking: BookingWithAttendees | undefined
+): Record<string, string> {
   return {
     utm_source: booking?.tracking?.utm_source || "",
     utm_medium: booking?.tracking?.utm_medium || "",

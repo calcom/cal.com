@@ -19,7 +19,14 @@ import {
   SheetClose,
 } from "@coss/ui/components/sheet";
 import { Skeleton } from "@coss/ui/components/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@coss/ui/components/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@coss/ui/components/table";
 
 import { ActiveUserBreakdownSkeleton } from "./ActiveUserBreakdownSkeleton";
 
@@ -105,7 +112,10 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
                 </TableHeader>
                 <TableBody>
                   {paginatedUsers.map((user) => (
-                    <TableRow key={user.id} className="cursor-pointer" onClick={() => setSelectedUser(user)}>
+                    <TableRow
+                      key={user.id}
+                      className="cursor-pointer"
+                      onClick={() => setSelectedUser(user)}>
                       <TableCell>{user.name || "-"}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
@@ -162,7 +172,11 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
 
           <SheetPanel>
             {selectedUser && (
-              <UserBookingsSheet teamId={teamId} userId={selectedUser.id} activeAs={selectedUser.activeAs} />
+              <UserBookingsSheet
+                teamId={teamId}
+                userId={selectedUser.id}
+                activeAs={selectedUser.activeAs}
+              />
             )}
           </SheetPanel>
 

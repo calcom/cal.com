@@ -93,3 +93,4 @@ export function getGoogleCalendarClient(): GoogleCalendarClient {
   }
   return defaultClient;
 }
+

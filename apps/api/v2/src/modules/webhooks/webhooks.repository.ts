@@ -13,10 +13,7 @@ type WebhookInputData = Pick<
 
 @Injectable()
 export class WebhooksRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createUserWebhook(userId: number, data: WebhookInputData) {
     const id = uuidv4();

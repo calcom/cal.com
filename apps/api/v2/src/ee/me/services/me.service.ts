@@ -27,9 +27,13 @@ export class MeService {
     const update = { ...updateData };
 
     if (update.timeZone && user.defaultScheduleId) {
-      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
-        timeZone: update.timeZone,
-      });
+      await this.schedulesService.updateUserSchedule(
+        user,
+        user.defaultScheduleId,
+        {
+          timeZone: update.timeZone,
+        }
+      );
     }
 
     const isEmailVerificationEnabled = user.isPlatformManaged
@@ -44,13 +48,14 @@ export class MeService {
       const secondaryEmail = await this.usersRepository.findVerifiedSecondaryEmail(user.id, newEmail);
 
       if (secondaryEmail && secondaryEmail.emailVerified) {
-        const updatedUser = await this.usersRepository.swapPrimaryEmailWithSecondaryEmail(
-          user.id,
-          secondaryEmail.id,
-          user.email,
-          user.emailVerified,
-          newEmail
-        );
+        const updatedUser =
+          await this.usersRepository.swapPrimaryEmailWithSecondaryEmail(
+            user.id,
+            secondaryEmail.id,
+            user.email,
+            user.emailVerified,
+            newEmail
+          );
 
         return {
           updatedUser,
@@ -68,7 +73,9 @@ export class MeService {
     }
 
     const updatedUser =
-      Object.keys(update).length > 0 ? await this.usersRepository.update(user.id, update) : user;
+      Object.keys(update).length > 0
+        ? await this.usersRepository.update(user.id, update)
+        : user;
 
     if (sendEmailVerification && newEmail) {
       await sendChangeOfEmailVerification({

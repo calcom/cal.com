@@ -29,9 +29,7 @@ export const objectsToCsv = (data: Record<string, any>[]): string => {
   // Create CSV rows
   const csvRows = [
     // Header row
-    headers
-      .map((header) => sanitizeValue(header))
-      .join(","),
+    headers.map((header) => sanitizeValue(header)).join(","),
     // Data rows
     ...data.map((row) =>
       headers

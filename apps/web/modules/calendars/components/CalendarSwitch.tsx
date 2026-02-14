@@ -104,7 +104,9 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           {t("adding_events_to")}
         </span>
       )}
-      {mutation.isPending && <RotateCwIcon className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {mutation.isPending && (
+        <RotateCwIcon className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />
+      )}
     </div>
   );
 };

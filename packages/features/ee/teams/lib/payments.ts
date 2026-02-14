@@ -308,10 +308,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
       throw new Error(`Missing env var: ${envVar}`);
     }
 
-    log.debug(
-      "Getting price ID",
-      safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod })
-    );
+    log.debug("Getting price ID", safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod }));
 
     return fixedPriceId;
   }

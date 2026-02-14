@@ -120,7 +120,7 @@ export const embedStore = {
    * - null = not yet initialized (before first linkReady)
    * - 1 = first view (triggers bookerViewed)
    * - 2+ = subsequent views/reopens (triggers bookerReopened)
-   *
+   * 
    * `linkReady` fires when iframe content is fully ready for user interaction
    * (after content height is known and slots are loaded if skeleton loader is used).
    */
@@ -176,7 +176,7 @@ export const embedStore = {
  * Resets all page-specific data
  */
 export function resetPageData() {
-  log("Resetting page data");
+  log('Resetting page data');
   embedStore.pageData = {
     eventsState: {
       bookerViewed: {
@@ -204,7 +204,9 @@ type PageDataDirectProps = Omit<typeof embedStore.pageData, "eventsState">;
 /**
  * Gets a direct property from pageData in a type-safe way
  */
-export function getPageDataProp<K extends keyof PageDataDirectProps>(key: K): PageDataDirectProps[K] {
+export function getPageDataProp<K extends keyof PageDataDirectProps>(
+  key: K
+): PageDataDirectProps[K] {
   return embedStore.pageData[key] as PageDataDirectProps[K];
 }
 

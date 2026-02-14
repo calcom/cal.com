@@ -9,11 +9,9 @@ import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 const mockGetEmailSettings = vi.fn();
 
 vi.mock("@calcom/features/organizations/repositories/OrganizationSettingsRepository", () => ({
-  OrganizationSettingsRepository: vi.fn().mockImplementation(function () {
-    return {
-      getEmailSettings: mockGetEmailSettings,
-    };
-  }),
+  OrganizationSettingsRepository: vi.fn().mockImplementation(function() { return {
+    getEmailSettings: mockGetEmailSettings,
+  }; }),
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -186,6 +184,7 @@ describe("shouldSkipAttendeeEmailWithSettings", () => {
 });
 
 describe("AttendeeScheduledEmail - Privacy fix for seated events", () => {
+
   const createMockPerson = (name: string, email: string): Person => ({
     name,
     email,

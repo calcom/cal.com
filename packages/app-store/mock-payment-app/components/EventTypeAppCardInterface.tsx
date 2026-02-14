@@ -20,11 +20,7 @@ import { paymentOptions } from "../zod";
 
 type Option = { value: string; label: string };
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  app,
-  eventType,
-  onAppInstallSuccess,
-}) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const searchParams = useSearchParams();
   /** TODO "pathname" no longer contains square-bracket expressions. Rewrite the code relying on them if required. **/
   const pathname = usePathname();

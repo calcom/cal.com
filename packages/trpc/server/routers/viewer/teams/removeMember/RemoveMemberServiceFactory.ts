@@ -16,9 +16,7 @@ export class RemoveMemberServiceFactory {
     const isPBACEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, "pbac");
 
     const teamRepository = new TeamRepository(prisma);
-    const service = isPBACEnabled
-      ? new PBACRemoveMemberService()
-      : new LegacyRemoveMemberService(teamRepository);
+    const service = isPBACEnabled ? new PBACRemoveMemberService() : new LegacyRemoveMemberService(teamRepository);
 
     return service;
   }

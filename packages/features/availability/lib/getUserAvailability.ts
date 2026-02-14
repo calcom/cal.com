@@ -716,7 +716,7 @@ export class UserAvailabilityService {
             // optional chaining destructuring toUser
             toUser: toUserData,
             reason: reason?.reason || null,
-            specifiedReason: reason?.reason === "ooo_reasons_other" ? (specifiedReason ?? null) : null,
+            specifiedReason: reason?.reason === "ooo_reasons_other" ? specifiedReason ?? null : null,
             emoji: reason?.emoji || null,
             notes,
             showNotePublicly,

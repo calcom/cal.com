@@ -7,3 +7,4 @@ export const ZUpdateSettingsSchema = z.object({
 });
 
 export type TUpdateSettingsSchema = z.infer<typeof ZUpdateSettingsSchema>;
+

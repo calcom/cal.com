@@ -91,7 +91,7 @@ describe("PATCH /api/bookings", () => {
   it("Allows PATCH when user is system-wide admin", async () => {
     // Check if admin user already exists before upserting
     const existingAdmin = await prisma.user.findUnique({ where: { email: "test-admin@example.com" } });
-
+    
     // Create a system-wide admin user for this test
     const adminUser = await prisma.user.upsert({
       where: { email: "test-admin@example.com" },
@@ -103,7 +103,7 @@ describe("PATCH /api/bookings", () => {
         role: "ADMIN",
       },
     });
-
+    
     // Only track for cleanup if we created it (not if it already existed)
     if (!existingAdmin) {
       testAdminUserId = adminUser.id;

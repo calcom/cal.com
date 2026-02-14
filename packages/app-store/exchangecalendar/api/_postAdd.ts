@@ -38,12 +38,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   };
 
   try {
-    const service = BuildCalendarService({
-      id: 0,
-      user: { email: session.user.email || "" },
-      ...data,
-      encryptedKey: null,
-    });
+    const service = BuildCalendarService({ id: 0, user: { email: session.user.email || "" }, ...data, encryptedKey: null });
     await service?.listCalendars();
     await prisma.credential.create({ data });
   } catch (reason) {

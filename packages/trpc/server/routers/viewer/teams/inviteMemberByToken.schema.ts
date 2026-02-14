@@ -7,8 +7,7 @@ export type TInviteMemberByTokenSchemaInputSchema = {
   creationSource: CreationSource;
 };
 
-export const ZInviteMemberByTokenSchemaInputSchema: z.ZodType<TInviteMemberByTokenSchemaInputSchema> =
-  z.object({
-    token: z.string(),
-    creationSource: z.nativeEnum(CreationSource),
-  });
+export const ZInviteMemberByTokenSchemaInputSchema: z.ZodType<TInviteMemberByTokenSchemaInputSchema> = z.object({
+  token: z.string(),
+  creationSource: z.nativeEnum(CreationSource),
+});

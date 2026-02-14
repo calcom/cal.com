@@ -1,8 +1,4 @@
-import {
-  ZMultiSelectFilterValue,
-  ZDateRangeFilterValue,
-  ZTextFilterValue,
-} from "@calcom/features/data-table";
+import { ZMultiSelectFilterValue, ZDateRangeFilterValue, ZTextFilterValue } from "@calcom/features/data-table";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 
 export function useBookingFilters() {

@@ -6,11 +6,7 @@ import { TextField } from "@calcom/ui/components/form";
 
 import type { appDataSchema } from "../zod";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  app,
-  eventType,
-  onAppInstallSuccess,
-}) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const siteId = getAppData("SITE_ID");
   const { enabled, updateEnabled } = useIsAppEnabled(app);

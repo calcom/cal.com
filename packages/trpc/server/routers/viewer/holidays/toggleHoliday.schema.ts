@@ -6,3 +6,4 @@ export const ZToggleHolidaySchema = z.object({
 });
 
 export type TToggleHolidaySchema = z.infer<typeof ZToggleHolidaySchema>;
+

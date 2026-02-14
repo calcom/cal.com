@@ -36,9 +36,7 @@ describe("PBACRemoveMemberService", () => {
       getTeamIdsWithPermission: vi.fn(),
     };
 
-    vi.mocked(PermissionCheckService).mockImplementation(function () {
-      return mockPermissionCheckService as any;
-    });
+    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
 
     service = new PBACRemoveMemberService();
   });

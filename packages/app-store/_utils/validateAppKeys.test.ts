@@ -129,7 +129,7 @@ describe("shouldEnableApp", () => {
       expect(result).toBe(false);
     });
   });
-
+  
   describe("Apps with empty key schemas (user-configured apps like PayPal, GTM)", () => {
     // These apps have `appKeysSchema = z.object({})` - they don't need server-side keys
     // Users configure them after installation, so they should always be enabled

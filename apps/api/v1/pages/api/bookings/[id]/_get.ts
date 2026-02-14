@@ -97,8 +97,8 @@ export async function getHandler(req: NextApiRequest) {
   const expand = Array.isArray(queryFilterForExpand)
     ? queryFilterForExpand
     : queryFilterForExpand
-      ? [queryFilterForExpand]
-      : [];
+    ? [queryFilterForExpand]
+    : [];
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {

@@ -82,7 +82,8 @@ export class ActiveUserBillingService {
     periodStart: Date,
     periodEnd: Date
   ): Promise<ActiveUsersBreakdown> {
-    const memberDetails = await this.deps.activeUserBillingRepository.getOrgMemberDetailsByOrgId(orgId);
+    const memberDetails =
+      await this.deps.activeUserBillingRepository.getOrgMemberDetailsByOrgId(orgId);
 
     if (memberDetails.length === 0) {
       return { activeUsers: [], totalMembers: 0, activeHosts: 0, activeAttendees: 0 };

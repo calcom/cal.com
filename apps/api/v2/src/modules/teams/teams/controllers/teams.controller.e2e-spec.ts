@@ -41,14 +41,14 @@ describe("Teams endpoint", () => {
   let team1: TeamOutputDto;
   let team2: TeamOutputDto;
 
-  beforeAll(async () => {
-    mockThrottlerGuard();
+    beforeAll(async () => {
+      mockThrottlerGuard();
 
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule, TeamsModule],
-    }).compile();
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, TeamsModule],
+      }).compile();
 
-    jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({}) as unknown as Stripe);
+      jest.spyOn(StripeService.prototype, "getStripe").mockImplementation(() => ({}) as unknown as Stripe);
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);

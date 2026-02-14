@@ -78,7 +78,10 @@ const meetingPasswordRequirementSchema = z
 
 export type MeetingPasswordRequirement = z.infer<typeof meetingPasswordRequirementSchema>;
 
-export function hasInvalidConsecutiveChars(password: string, consecutiveLength: number | undefined): boolean {
+export function hasInvalidConsecutiveChars(
+  password: string,
+  consecutiveLength: number | undefined
+): boolean {
   if (!consecutiveLength || consecutiveLength < 4) return false;
 
   const maxRun = consecutiveLength - 1;
@@ -164,7 +167,10 @@ function validatePasswordAgainstRequirements(
     return false;
   }
 
-  if (requirements.have_special_character && !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)) {
+  if (
+    requirements.have_special_character &&
+    !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)
+  ) {
     return false;
   }
 
@@ -181,7 +187,7 @@ function getCompliantPassword(
   defaultPassword: string | null | undefined,
   requirements: MeetingPasswordRequirement
 ): string | undefined {
-  if (!requirements) {
+  if (!requirements ) {
     return defaultPassword ?? undefined;
   }
 

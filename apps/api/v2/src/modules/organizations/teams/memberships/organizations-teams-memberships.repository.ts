@@ -7,10 +7,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async findOrgTeamMembershipsPaginated(organizationId: number, teamId: number, skip: number, take: number) {
     return await this.dbRead.prisma.membership.findMany({

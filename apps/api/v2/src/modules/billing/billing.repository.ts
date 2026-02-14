@@ -6,10 +6,7 @@ import { Injectable, Logger } from "@nestjs/common";
 @Injectable()
 export class BillingRepository {
   private readonly logger = new Logger("BillingRepository");
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   getBillingForTeam = (teamId: number) =>
     this.dbRead.prisma.platformBilling.findUnique({

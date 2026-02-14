@@ -7,10 +7,7 @@ import type { Membership, Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class TeamsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async create(team: Prisma.TeamCreateInput) {
     return this.dbWrite.prisma.team.create({

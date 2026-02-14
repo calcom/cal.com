@@ -1,5 +1,5 @@
 import type { AxiosError, AxiosRequestConfig } from "axios";
-
+ 
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import usePrevious from "react-use/lib/usePrevious";
@@ -67,16 +67,7 @@ export const useOAuthFlow = ({
         http.responseInterceptor.eject(interceptorId);
       }
     };
-  }, [
-    clientAccessToken,
-    isRefreshing,
-    refreshUrl,
-    onError,
-    onSuccess,
-    onTokenRefreshStart,
-    onTokenRefreshSuccess,
-    onTokenRefreshError,
-  ]);
+  }, [clientAccessToken, isRefreshing, refreshUrl, onError, onSuccess, onTokenRefreshStart, onTokenRefreshSuccess, onTokenRefreshError]);
 
   useEffect(() => {
     if (accessToken && http.getUrl() && prevAccessToken !== accessToken) {
@@ -104,17 +95,7 @@ export const useOAuthFlow = ({
           setClientAccessToken(accessToken);
         });
     }
-  }, [
-    accessToken,
-    clientId,
-    refreshUrl,
-    prevAccessToken,
-    onError,
-    onSuccess,
-    onTokenRefreshStart,
-    onTokenRefreshSuccess,
-    onTokenRefreshError,
-  ]);
+  }, [accessToken, clientId, refreshUrl, prevAccessToken, onError, onSuccess, onTokenRefreshStart, onTokenRefreshSuccess, onTokenRefreshError]);
 
   return { isRefreshing, currentAccessToken: clientAccessToken };
 };

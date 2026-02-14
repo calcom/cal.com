@@ -9,14 +9,13 @@ export type TUpdateInternalNotesPresetsInputSchema = {
   }[];
 };
 
-export const ZUpdateInternalNotesPresetsInputSchema: z.ZodType<TUpdateInternalNotesPresetsInputSchema> =
-  z.object({
-    teamId: z.number(),
-    presets: z.array(
-      z.object({
-        id: z.number(),
-        name: z.string(),
-        cancellationReason: z.string().optional(),
-      })
-    ),
-  });
+export const ZUpdateInternalNotesPresetsInputSchema: z.ZodType<TUpdateInternalNotesPresetsInputSchema> = z.object({
+  teamId: z.number(),
+  presets: z.array(
+    z.object({
+      id: z.number(),
+      name: z.string(),
+      cancellationReason: z.string().optional(),
+    })
+  ),
+});

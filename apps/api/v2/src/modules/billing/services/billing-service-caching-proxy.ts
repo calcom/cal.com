@@ -10,10 +10,7 @@ export const BILLING_CACHE_TTL_MS = 3_600_000; // 1 hour
 
 @Injectable()
 export class BillingServiceCachingProxy implements IBillingService {
-  constructor(
-    private readonly billingService: BillingService,
-    private readonly redisService: RedisService
-  ) {}
+  constructor(private readonly billingService: BillingService, private readonly redisService: RedisService) {}
 
   async getBillingData(teamId: number) {
     const cachedBillingData = await this.getBillingCache(teamId);
@@ -76,8 +73,9 @@ export class BillingServiceCachingProxy implements IBillingService {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
     if (subscriptionId) {
-      const teamBilling =
-        await this.billingService.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+      const teamBilling = await this.billingService.billingRepository.getBillingForTeamBySubscriptionId(
+        subscriptionId
+      );
       if (teamBilling?.id) {
         await this.deleteBillingCache(teamBilling.id);
       }
@@ -89,8 +87,9 @@ export class BillingServiceCachingProxy implements IBillingService {
     const invoice = event.data.object as Stripe.Invoice;
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
     if (subscriptionId) {
-      const teamBilling =
-        await this.billingService.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+      const teamBilling = await this.billingService.billingRepository.getBillingForTeamBySubscriptionId(
+        subscriptionId
+      );
       if (teamBilling?.id) {
         await this.deleteBillingCache(teamBilling.id);
       }
@@ -102,8 +101,9 @@ export class BillingServiceCachingProxy implements IBillingService {
     const subscription = event.data.object as Stripe.Subscription;
     const subscriptionId = subscription.id;
     if (subscriptionId) {
-      const teamBilling =
-        await this.billingService.billingRepository.getBillingForTeamBySubscriptionId(subscriptionId);
+      const teamBilling = await this.billingService.billingRepository.getBillingForTeamBySubscriptionId(
+        subscriptionId
+      );
       if (teamBilling?.id) {
         await this.deleteBillingCache(teamBilling.id);
       }

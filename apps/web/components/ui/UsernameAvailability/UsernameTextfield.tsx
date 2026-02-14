@@ -142,7 +142,11 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
               <span className={classNames("bg-default mx-0 p-3")}>
-                {usernameIsAvailable ? <CheckIcon className="relative bottom-[6px] h-4 w-4" /> : <></>}
+                {usernameIsAvailable ? (
+                  <CheckIcon className="relative bottom-[6px] h-4 w-4" />
+                ) : (
+                  <></>
+                )}
               </span>
             </div>
           )}

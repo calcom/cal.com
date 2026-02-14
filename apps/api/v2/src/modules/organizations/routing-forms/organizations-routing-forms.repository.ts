@@ -4,10 +4,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsRoutingFormsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getOrganizationRoutingForms(
     orgId: number,

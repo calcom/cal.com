@@ -21,10 +21,7 @@ export const MembershipUserSelect: Prisma.UserSelect = {
 
 @Injectable()
 export class TeamsMembershipsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
     return this.dbWrite.prisma.membership.create({

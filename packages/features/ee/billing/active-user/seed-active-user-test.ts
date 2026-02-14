@@ -47,10 +47,7 @@ const TOTAL_ACTIVE = ACTIVE_HOSTS + ACTIVE_ATTENDEES_ONLY; // 30
 
 const ORG_SLUG = "aub-test-org";
 const ORG_ADMIN_EMAIL = "aub-org-admin@example.com";
-const ORG_MEMBER_EMAILS = Array.from(
-  { length: TOTAL_MEMBERS },
-  (_, i) => `aub-org-member-${i + 1}@example.com`
-);
+const ORG_MEMBER_EMAILS = Array.from({ length: TOTAL_MEMBERS }, (_, i) => `aub-org-member-${i + 1}@example.com`);
 
 const ALL_EMAILS = [ORG_ADMIN_EMAIL, ...ORG_MEMBER_EMAILS];
 
@@ -67,7 +64,12 @@ async function getHashedPassword(): Promise<string> {
   return hashedPasswordCache;
 }
 
-async function createTestUser(email: string, name: string, username: string, organizationId?: number) {
+async function createTestUser(
+  email: string,
+  name: string,
+  username: string,
+  organizationId?: number
+) {
   const hashedPassword = await getHashedPassword();
 
   const user = await prisma.user.upsert({
@@ -332,7 +334,9 @@ async function seed(): Promise<SeedResult> {
     console.log(`  Subscription: ${subscription.id} (${totalMembers} seats)`);
     console.log(`  Product: ${product.id} (${product.name})`);
     console.log(`  Stripe period: ${periodStart.toISOString()} - ${periodEnd.toISOString()}`);
-    console.log(`  Test clock URL: https://dashboard.stripe.com/test/test-clocks/${testClock.id}`);
+    console.log(
+      `  Test clock URL: https://dashboard.stripe.com/test/test-clocks/${testClock.id}`
+    );
   }
 
   // Create bookings within the billing period to produce exactly 30 active users:
@@ -349,7 +353,12 @@ async function seed(): Promise<SeedResult> {
   console.log(`Creating bookings in period ${periodStart.toISOString()} - ${periodEnd.toISOString()}...`);
   const bookingIds: number[] = [];
 
-  async function createBooking(host: UserRecord, startTime: Date, endTime: Date, attendeeEmail?: string) {
+  async function createBooking(
+    host: UserRecord,
+    startTime: Date,
+    endTime: Date,
+    attendeeEmail?: string
+  ) {
     const booking = await prisma.booking.create({
       data: {
         uid: randomUUID(),
@@ -391,7 +400,8 @@ async function seed(): Promise<SeedResult> {
   for (let i = 0; i < ACTIVE_HOSTS - 1; i++) {
     const host = members[i];
     const day = inPeriod(3 + i);
-    const attendeeEmail = i < ACTIVE_ATTENDEES_ONLY ? members[ACTIVE_HOSTS - 1 + i].email : undefined;
+    const attendeeEmail =
+      i < ACTIVE_ATTENDEES_ONLY ? members[ACTIVE_HOSTS - 1 + i].email : undefined;
     await createBooking(host, day, hourLater(day), attendeeEmail);
   }
 
@@ -404,7 +414,10 @@ async function seed(): Promise<SeedResult> {
   console.log(`  Created ${bookingIds.length} bookings`);
 
   // Build expected lists
-  const expectedActiveHosts = [admin.email, ...members.slice(0, ACTIVE_HOSTS - 1).map((m) => m.email)];
+  const expectedActiveHosts = [
+    admin.email,
+    ...members.slice(0, ACTIVE_HOSTS - 1).map((m) => m.email),
+  ];
   const expectedActiveAttendees = members
     .slice(ACTIVE_HOSTS - 1, ACTIVE_HOSTS - 1 + ACTIVE_ATTENDEES_ONLY)
     .map((m) => m.email);
@@ -490,7 +503,8 @@ async function main() {
       result.periodEnd
     );
 
-    const expectedTotal = result.expectedActiveHosts.length + result.expectedActiveAttendees.length;
+    const expectedTotal =
+      result.expectedActiveHosts.length + result.expectedActiveAttendees.length;
 
     // Print summary
     console.log("=== Summary ===\n");
@@ -521,9 +535,7 @@ async function main() {
     console.log("  +--------------------------+---------+");
     console.log(`  | Total org members        | ${String(result.totalMembers).padStart(7)} |`);
     console.log(`  | Active hosts (created)   | ${String(result.expectedActiveHosts.length).padStart(7)} |`);
-    console.log(
-      `  | Active attendees (created)| ${String(result.expectedActiveAttendees.length).padStart(6)} |`
-    );
+    console.log(`  | Active attendees (created)| ${String(result.expectedActiveAttendees.length).padStart(6)} |`);
     console.log(`  | Total active (created)   | ${String(expectedTotal).padStart(7)} |`);
     console.log(`  | Inactive (created)       | ${String(result.expectedInactive.length).padStart(7)} |`);
     console.log(`  | Service counted          | ${String(serviceCount).padStart(7)} |`);
@@ -532,7 +544,9 @@ async function main() {
     if (serviceCount === expectedTotal) {
       console.log("\n  [PASS] Service count matches expected count.");
     } else {
-      console.log(`\n  [MISMATCH] Expected ${expectedTotal}, service returned ${serviceCount}.`);
+      console.log(
+        `\n  [MISMATCH] Expected ${expectedTotal}, service returned ${serviceCount}.`
+      );
     }
 
     console.log("\n=== Done ===\n");

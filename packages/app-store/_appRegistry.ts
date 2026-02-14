@@ -54,7 +54,8 @@ export async function getAppRegistry() {
     apps.push({
       ...app,
       category: app.category || "other",
-      installed: true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
+      installed:
+        true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
       installCount: installCountPerApp[dbapp.slug] || 0,
     });
   }

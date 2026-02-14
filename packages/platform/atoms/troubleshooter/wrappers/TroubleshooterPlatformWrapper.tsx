@@ -34,7 +34,8 @@ export const TroubleshooterComponent = ({
             isMobile
               ? "[--troubleshooter-meta-width:0px]"
               : "[--troubleshooter-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
-          )}>
+          )}
+        >
           <div
             style={{
               display: "grid",
@@ -46,7 +47,8 @@ export const TroubleshooterComponent = ({
             }}
             className={classNames(
               "bg-default dark:bg-cal-muted text-default min-h-full w-full sm:transition-[width] sm:duration-300"
-            )}>
+            )}
+          >
             <div className="sticky top-0 z-10 self-start ps-6 [grid-area:meta]">
               <TroubleshooterSidebar
                 onManageCalendarsClick={onManageCalendarsClick}

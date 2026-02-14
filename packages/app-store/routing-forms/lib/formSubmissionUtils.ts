@@ -192,14 +192,11 @@ export async function _onFormSubmission(
       },
       rootData: {
         // Send responses unwrapped at root level for backwards compatibility
-        ...Object.entries(fieldResponsesByIdentifier).reduce(
-          (acc, [key, value]) => {
-            const normalizedKey = normalizeIdentifierForHandlebars(key);
-            acc[normalizedKey] = value.value;
-            return acc;
-          },
-          {} as Record<string, FormResponse[keyof FormResponse]["value"]>
-        ),
+        ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
+          const normalizedKey = normalizeIdentifierForHandlebars(key);
+          acc[normalizedKey] = value.value;
+          return acc;
+        }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
       },
     }).catch((e) => {
       console.error(`Error executing routing form webhook`, webhook, e);

@@ -2,7 +2,15 @@
 
 import type { SetStateAction, Dispatch } from "react";
 import React from "react";
-import { useMemo, useState, useEffect, forwardRef, useImperativeHandle, useRef, useCallback } from "react";
+import {
+  useMemo,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useCallback,
+} from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -16,7 +24,9 @@ import type {
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import { ScheduleComponent as PlatformSchedule } from "@calcom/features/schedules/components/ScheduleComponent";
+import {
+  ScheduleComponent as PlatformSchedule,
+} from "@calcom/features/schedules/components/ScheduleComponent";
 import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -332,10 +342,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     const formHasChanges = useMemo(() => {
       if (!initialValuesRef.current) return false;
       try {
-        return (
-          JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) ||
-          JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current)
-        );
+        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
       } catch {
         return form.formState.isDirty;
       }
@@ -636,7 +643,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               type="submit"
               form="availability-form"
               loading={isSaving}
-              disabled={isLoading || !formHasChanges}>
+              disabled={isLoading || !formHasChanges}
+            >
               {t("save")}
             </Button>
             <Button

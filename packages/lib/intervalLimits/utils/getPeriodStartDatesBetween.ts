@@ -21,7 +21,4 @@ function _getPeriodStartDatesBetween(
   return dates;
 }
 
-export const getPeriodStartDatesBetween = withReporting(
-  _getPeriodStartDatesBetween,
-  "getPeriodStartDatesBetween"
-);
+export const getPeriodStartDatesBetween = withReporting(_getPeriodStartDatesBetween, "getPeriodStartDatesBetween");

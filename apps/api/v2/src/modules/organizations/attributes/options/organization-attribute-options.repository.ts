@@ -146,23 +146,18 @@ export class OrganizationAttributeOptionRepository {
         opt.assignedUsers.flatMap((assignedUser) => assignedUser.member.userId)
       );
       // reduce remove options that are not assigned alongside assignedOptionIds filter
-      return options.reduce(
-        (acc, opt) => {
-          if (
-            opt.assignedUsers.some((assignedUser) => matchingUserIds.includes(assignedUser.member.userId))
-          ) {
-            return [
-              ...acc,
-              {
-                ...opt,
-                assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
-              },
-            ];
-          }
-          return acc;
-        },
-        [] as typeof options
-      );
+      return options.reduce((acc, opt) => {
+        if (opt.assignedUsers.some((assignedUser) => matchingUserIds.includes(assignedUser.member.userId))) {
+          return [
+            ...acc,
+            {
+              ...opt,
+              assignedUserIds: opt.assignedUsers.map((attributeToUser) => attributeToUser.member.userId),
+            },
+          ];
+        }
+        return acc;
+      }, [] as typeof options);
     }
 
     return options.map((opt) => {

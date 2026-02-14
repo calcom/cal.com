@@ -83,7 +83,9 @@ export function ValidatedOrganizationSlug({
         placeholder="acme"
         addOnSuffix={
           <div className="flex items-center gap-2">
-            {validationState === "checking" && <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />}
+            {validationState === "checking" && (
+              <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />
+            )}
             <span className="text-subtle text-sm">.cal.com</span>
           </div>
         }

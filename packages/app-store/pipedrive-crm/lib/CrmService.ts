@@ -257,7 +257,7 @@ class PipedriveCrmService implements CRM {
         location: event.location,
         uid: event.uid,
       }),
-      person_id: parseInt(contacts[0].id),
+     person_id: parseInt(contacts[0].id),
     };
 
     return this.requestPipedrive<{ success: boolean; data: PipedriveActivity }>("activities", {

@@ -103,13 +103,12 @@ export const useTabsNavigations = ({
           ? formMethods.getValues("schedule") === null
             ? t("members_default_schedule")
             : isChildrenManagedEventType
-              ? `${
-                  formMethods.getValues("scheduleName")
-                    ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                    : t(`default_schedule_name`)
-                }`
-              : (formMethods.getValues("scheduleName") ?? t(`default_schedule_name`))
-          : (formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)),
+              ? `${formMethods.getValues("scheduleName")
+                ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+                : t(`default_schedule_name`)
+              }`
+              : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
+          : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
       "data-testid": "availability",
     });
     // If there is a team put this navigation item within the tabs
@@ -118,9 +117,8 @@ export const useTabsNavigations = ({
         name: t("assignment"),
         href: `/event-types/${eventTypeId}?tabName=team`,
         icon: "users",
-        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
-          isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
-        }`,
+        info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
+          }`,
         "data-testid": "assignment",
       });
     }

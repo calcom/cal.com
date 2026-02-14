@@ -65,7 +65,7 @@ export function BaseCalProvider({
   onTokenRefreshSuccess,
   onTokenRefreshError,
   isEmbed,
-  isOAuth2,
+  isOAuth2
 }: BaseCalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
@@ -169,6 +169,7 @@ export function BaseCalProvider({
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
+
 
   return isInit ? (
     <AtomsContext.Provider

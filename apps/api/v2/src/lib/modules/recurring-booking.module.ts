@@ -31,4 +31,4 @@ import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
   ],
   exports: [RecurringBookingService],
 })
-export class RecurringBookingModule {}
+export class RecurringBookingModule { }

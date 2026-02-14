@@ -55,7 +55,9 @@ export class SeatBillingStrategyFactory {
     if (!info.isInTrial && info.subscriptionStart) {
       if (info.billingMode === "ACTIVE_USERS") {
         const enabled =
-          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("active-user-billing");
+          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
+            "active-user-billing"
+          );
         if (enabled) return this.activeUserStrategy;
       }
       if (info.billingPeriod === "ANNUALLY") {

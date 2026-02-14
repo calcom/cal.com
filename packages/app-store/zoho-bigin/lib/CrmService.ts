@@ -321,7 +321,7 @@ export default function BuildCrmService(
   return new BiginCrmService(credential);
 }
 
-const toISO8601String = (date: Date) => {
+const toISO8601String= (date: Date) => {
   const tzo = -date.getTimezoneOffset(),
     dif = tzo >= 0 ? "+" : "-",
     pad = function (num: number) {

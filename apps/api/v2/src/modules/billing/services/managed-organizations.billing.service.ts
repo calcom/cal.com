@@ -6,10 +6,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 
 @Injectable()
 export class ManagedOrganizationsBillingService {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createManagedOrganizationBilling(managerOrgId: number, managedOrgId: number) {
     const managerOrgBilling = await this.dbRead.prisma.platformBilling.findUnique({

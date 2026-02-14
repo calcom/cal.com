@@ -77,7 +77,7 @@ export class EventTypesAtomService {
     private readonly eventTypeService: EventTypesService_2024_06_14,
     private readonly teamEventTypeService: TeamsEventTypesService,
     private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   private async getTeamSlug(teamId: number): Promise<string> {

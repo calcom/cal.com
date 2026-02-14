@@ -4,10 +4,7 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class PrivateLinksRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async listByEventTypeId(eventTypeId: number) {
     return this.dbRead.prisma.hashedLink.findMany({

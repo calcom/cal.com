@@ -31,10 +31,7 @@ const HOLIDAY_EMOJI_MAP: Array<{ keywords: string[]; emoji: string }> = [
   { keywords: ["revolution", "revolución"], emoji: "✊" },
   { keywords: ["unity", "unification", "einheit", "german unity"], emoji: "🤝" },
   { keywords: ["flag day", "día de la bandera"], emoji: "🚩" },
-  {
-    keywords: ["labor", "labour", "workers", "trabajo", "travail", "may day", "tag der arbeit"],
-    emoji: "👷",
-  },
+  { keywords: ["labor", "labour", "workers", "trabajo", "travail", "may day", "tag der arbeit"], emoji: "👷" },
   { keywords: ["diwali", "deepavali", "dipavali"], emoji: "🪔" },
   { keywords: ["holi"], emoji: "🎨" },
   { keywords: ["dussehra", "dasara", "vijayadashami"], emoji: "🏹" },

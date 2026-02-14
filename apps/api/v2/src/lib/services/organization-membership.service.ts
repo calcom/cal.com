@@ -5,7 +5,8 @@ import { OrganizationMembershipService as BaseOrganizationMembershipService } fr
 
 @Injectable()
 export class OrganizationMembershipService extends BaseOrganizationMembershipService {
-  constructor(organizationsRepository: OrganizationsRepository) {
-    super({ organizationRepository: organizationsRepository });
-  }
+    constructor(organizationsRepository: OrganizationsRepository) {
+        super({ organizationRepository: organizationsRepository });
+    }
 }
+

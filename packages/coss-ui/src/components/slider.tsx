@@ -32,17 +32,20 @@ function Slider({
       min={min}
       thumbAlignment="edge"
       value={value}
-      {...props}>
+      {...props}
+    >
       {children}
       <SliderPrimitive.Control
         className={cn(
           "flex touch-none select-none data-disabled:pointer-events-none data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=horizontal]:w-full data-[orientation=horizontal]:min-w-44 data-[orientation=vertical]:flex-col data-disabled:opacity-64",
-          className
+          className,
         )}
-        data-slot="slider-control">
+        data-slot="slider-control"
+      >
         <SliderPrimitive.Track
           className="relative grow select-none before:absolute before:rounded-full before:bg-input data-[orientation=horizontal]:h-1 data-[orientation=vertical]:h-full data-[orientation=horizontal]:w-full data-[orientation=vertical]:w-1 data-[orientation=horizontal]:before:inset-x-0.5 data-[orientation=vertical]:before:inset-x-0 data-[orientation=horizontal]:before:inset-y-0 data-[orientation=vertical]:before:inset-y-0.5"
-          data-slot="slider-track">
+          data-slot="slider-track"
+        >
           <SliderPrimitive.Indicator
             className="select-none rounded-full bg-primary data-[orientation=horizontal]:ms-0.5 data-[orientation=vertical]:mb-0.5"
             data-slot="slider-indicator"

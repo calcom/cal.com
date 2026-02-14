@@ -45,6 +45,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return typeof code === "string" ? code : null;
   }, [router.query.code]);
 
+
   useEffect(() => {
     fetch("/api/get-users", { method: "get" }).then(async (res) => {
       const data = await res.json();
@@ -134,7 +135,8 @@ export default function App({ Component, pageProps }: AppProps) {
           options={{
             apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "",
             refreshUrl: "/api/refresh",
-          }}>
+          }}
+        >
           {email ? (
             <Component {...pageProps} calUsername={username} calEmail={email} />
           ) : (
@@ -150,7 +152,8 @@ export default function App({ Component, pageProps }: AppProps) {
           options={{
             apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "",
             refreshUrl: "/api/refresh",
-          }}>
+          }}
+        >
           {email ? (
             <Component {...pageProps} calUsername={username} calEmail={email} />
           ) : (

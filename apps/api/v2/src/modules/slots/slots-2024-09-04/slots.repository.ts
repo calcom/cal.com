@@ -6,10 +6,7 @@ import { v4 as uuid } from "uuid";
 
 @Injectable()
 export class SlotsRepository_2024_09_04 {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getByUid(uid: string) {
     return this.dbRead.prisma.selectedSlots.findFirst({ where: { uid } });

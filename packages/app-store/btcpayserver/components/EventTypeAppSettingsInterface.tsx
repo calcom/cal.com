@@ -110,8 +110,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                   paymentOptionSelectValue
                     ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }
                     : paymentOptions.length > 0
-                      ? { ...paymentOptions[0], label: t(paymentOptions[0].label) }
-                      : undefined
+                    ? { ...paymentOptions[0], label: t(paymentOptions[0].label) }
+                    : undefined
                 }
                 options={paymentOptions.map((option) => {
                   return { ...option, label: t(option.label) || option.label };
@@ -134,3 +134,4 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 };
 
 export default EventTypeAppSettingsInterface;
+

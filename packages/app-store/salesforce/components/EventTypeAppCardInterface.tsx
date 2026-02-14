@@ -21,11 +21,7 @@ import type { appDataSchema, RRSkipFieldRule } from "../zod";
 import FieldRulesSettings from "./components/FieldRulesSettings";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
-  app,
-  eventType,
-  onAppInstallSuccess,
-}) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
   const pathname = usePathname();
 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();

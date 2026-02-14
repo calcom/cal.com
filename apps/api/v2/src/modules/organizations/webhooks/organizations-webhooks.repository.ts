@@ -11,10 +11,7 @@ type WebhookInputData = Pick<
 >;
 @Injectable()
 export class OrganizationsWebhooksRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async findWebhookByUrl(organizationId: number, subscriberUrl: string) {
     return this.dbRead.prisma.webhook.findFirst({

@@ -311,8 +311,9 @@ export class CalendarsController {
     const { id: credentialId } = body;
     await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
 
-    const { id, type, userId, teamId, appId, invalid } =
-      await this.calendarsRepository.deleteCredentials(credentialId);
+    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
+      credentialId
+    );
 
     this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
 

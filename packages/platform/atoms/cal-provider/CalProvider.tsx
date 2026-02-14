@@ -103,7 +103,8 @@ export function CalProvider({
         version={version}
         labels={labels as Record<translationKeys, string>}
         language={language}
-        organizationId={organizationId}>
+        organizationId={organizationId}
+      >
         {children}
       </BaseCalProvider>
     </QueryClientProvider>

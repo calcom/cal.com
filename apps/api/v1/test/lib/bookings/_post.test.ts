@@ -67,11 +67,9 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 
 const mockFindOriginalRescheduledBooking = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(function () {
-    return {
-      findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
-    };
-  }),
+  BookingRepository: vi.fn().mockImplementation(function() { return {
+    findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
+  }; }),
 }));
 
 vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
@@ -96,7 +94,7 @@ vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
 }));
 
 vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
-  default: vi.fn().mockImplementation(function () {
+  default: vi.fn().mockImplementation(function() {
     return {
       reschedule: vi.fn().mockResolvedValue({
         results: [],
@@ -157,12 +155,10 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   },
 }));
 vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function () {
-    return {
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-      checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-    };
-  }),
+  FeaturesRepository: vi.fn().mockImplementation(function() { return {
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+  }; }),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({

@@ -52,7 +52,10 @@ export class BookingGuestsService_2024_08_13 {
     if (res.message === "Guests added") {
       return await this.bookingsService.getBooking(bookingUid, user);
     } else {
-      throw new HttpException("Failed to add guests to the booking", 500);
+      throw new HttpException(
+        "Failed to add guests to the booking",
+        500
+      );
     }
   }
 }

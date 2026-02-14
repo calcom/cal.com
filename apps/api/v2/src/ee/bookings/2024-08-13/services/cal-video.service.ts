@@ -20,7 +20,8 @@ export class CalVideoService {
 
   private getVideoSessionsRoomName(references?: Array<{ type: string; meetingId?: string | null }>) {
     return (
-      references?.filter((reference) => reference.type === CAL_VIDEO_TYPE)?.pop()?.meetingId ?? undefined
+      references?.filter((reference) => reference.type === CAL_VIDEO_TYPE)?.pop()?.meetingId ??
+      undefined
     );
   }
 

@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { fakeCurrentDocumentUrl, nextTick } from "../embed-iframe/__tests__/test-utils";
 
+
 describe("embed-iframe", async () => {
   let sdkActionManager: typeof import("../sdk-event").sdkActionManager;
-  let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
+  let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore
   let resetPageData: typeof import("../embed-iframe/lib/embedStore").resetPageData;
   beforeEach(async () => {
     ({ sdkActionManager } = await import("../sdk-event"));
@@ -239,9 +240,12 @@ describe("embed-iframe", async () => {
       bookerReadyHasFired?: boolean;
     }) => {
       embedStore.viewId = overrides?.viewId ?? null;
-      embedStore.pageData.eventsState.bookerViewed.hasFired = overrides?.bookerViewedHasFired ?? false;
-      embedStore.pageData.eventsState.bookerReopened.hasFired = overrides?.bookerReopenedHasFired ?? false;
-      embedStore.pageData.eventsState.bookerReloaded.hasFired = overrides?.bookerReloadedHasFired ?? false;
+      embedStore.pageData.eventsState.bookerViewed.hasFired =
+        overrides?.bookerViewedHasFired ?? false;
+      embedStore.pageData.eventsState.bookerReopened.hasFired =
+        overrides?.bookerReopenedHasFired ?? false;
+      embedStore.pageData.eventsState.bookerReloaded.hasFired =
+        overrides?.bookerReloadedHasFired ?? false;
       embedStore.pageData.eventsState.bookerReady.hasFired = overrides?.bookerReadyHasFired ?? false;
     };
     let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
@@ -261,7 +265,7 @@ describe("embed-iframe", async () => {
         writable: true,
         configurable: true,
       });
-      console.log("Importing embed-iframe");
+      console.log('Importing embed-iframe');
       await import("../embed-iframe");
       embedStore.viewId = null;
       resetPageData();

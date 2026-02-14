@@ -384,9 +384,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(rescheduledBooking.duration).toEqual(bookingWithNonDefaultDuration.duration);
 
             // verify the end time is correct (start + 30 minutes)
-            const expectedEndTime = new Date(
-              Date.UTC(2030, 0, 9, 12, nonDefaultLengthInMinutes, 0)
-            ).toISOString();
+            const expectedEndTime = new Date(Date.UTC(2030, 0, 9, 12, nonDefaultLengthInMinutes, 0)).toISOString();
             expect(rescheduledBooking.start).toEqual(newStartTime);
             expect(rescheduledBooking.end).toEqual(expectedEndTime);
 

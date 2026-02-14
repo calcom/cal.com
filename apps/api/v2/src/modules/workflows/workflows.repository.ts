@@ -17,10 +17,7 @@ export type WorkflowType = Workflow & {
 
 @Injectable()
 export class WorkflowsRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async deleteTeamWorkflowById(teamId: number, workflowId: number) {
     return await this.dbWrite.prisma.workflow.delete({ where: { id: workflowId, teamId } });

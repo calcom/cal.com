@@ -123,9 +123,7 @@ export class WrongAssignmentReportService {
 
   private async sendWebhooks(params: {
     booking: NonNullable<
-      Awaited<
-        ReturnType<BookingRepository["findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason"]>
-      >
+      Awaited<ReturnType<BookingRepository["findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason"]>>
     >;
     teamId: number | null;
     orgId: number | null;

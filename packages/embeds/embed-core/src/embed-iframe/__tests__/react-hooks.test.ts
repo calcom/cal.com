@@ -6,7 +6,10 @@ import { embedStore, resetPageData } from "../lib/embedStore";
 import { useBookerEmbedEvents } from "../react-hooks";
 import { fakeCurrentDocumentUrl } from "./test-utils";
 
-const createTestSchedule = (overrides?: { isSuccess?: boolean; dataUpdatedAt?: number }) => ({
+const createTestSchedule = (overrides?: {
+  isSuccess?: boolean;
+  dataUpdatedAt?: number;
+}) => ({
   isSuccess: overrides?.isSuccess ?? true,
   dataUpdatedAt: overrides?.dataUpdatedAt ?? Date.now(),
 });
@@ -28,9 +31,12 @@ const createTestEmbedState = (overrides?: {
   reloadInitiated?: boolean;
 }) => {
   embedStore.viewId = overrides?.viewId ?? null;
-  embedStore.pageData.eventsState.bookerViewed.hasFired = overrides?.bookerViewedHasFired ?? false;
-  embedStore.pageData.eventsState.bookerReopened.hasFired = overrides?.bookerReopenedHasFired ?? false;
-  embedStore.pageData.eventsState.bookerReloaded.hasFired = overrides?.bookerReloadedHasFired ?? false;
+  embedStore.pageData.eventsState.bookerViewed.hasFired =
+    overrides?.bookerViewedHasFired ?? false;
+  embedStore.pageData.eventsState.bookerReopened.hasFired =
+    overrides?.bookerReopenedHasFired ?? false;
+  embedStore.pageData.eventsState.bookerReloaded.hasFired =
+    overrides?.bookerReloadedHasFired ?? false;
   embedStore.pageData.eventsState.bookerReady.hasFired = overrides?.bookerReadyHasFired ?? false;
   embedStore.pageData.reloadInitiated = overrides?.reloadInitiated ?? false;
 };
@@ -48,7 +54,10 @@ const expectEventFired = (
   return event;
 };
 
-const expectEventNotFired = (firedEvents: Array<{ type: string; data: unknown }>, eventType: string) => {
+const expectEventNotFired = (
+  firedEvents: Array<{ type: string; data: unknown }>,
+  eventType: string
+) => {
   const event = firedEvents.find((e) => e.type === eventType);
   expect(event).toBeUndefined();
 };
@@ -157,7 +166,9 @@ describe("useBookerEmbedEvents", () => {
       const eventConfig = createTestEventConfig();
       const schedule = createTestSchedule({ isSuccess: true });
 
-      const { rerender } = renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
+      const { rerender } = renderHook(() =>
+        useBookerEmbedEvents({ ...eventConfig, schedule })
+      );
 
       expect(firedEvents).toHaveLength(2);
 
@@ -174,7 +185,9 @@ describe("useBookerEmbedEvents", () => {
       const eventConfig = createTestEventConfig();
       const schedule = createTestSchedule({ isSuccess: true });
 
-      const { rerender } = renderHook(() => useBookerEmbedEvents({ ...eventConfig, schedule }));
+      const { rerender } = renderHook(() =>
+        useBookerEmbedEvents({ ...eventConfig, schedule })
+      );
 
       expectEventFired(firedEvents, "bookerReady", {
         eventId: eventConfig.eventId,

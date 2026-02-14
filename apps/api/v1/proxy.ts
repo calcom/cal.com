@@ -9,7 +9,13 @@ function proxy(_request: NextRequest) {
 
 export const config = {
   // The blocked segment is always the last part of the path, so we only need this matcher.
-  matcher: ["/:path*/_get", "/:path*/_post", "/:path*/_patch", "/:path*/_delete", "/:path*/_auth-middleware"],
+  matcher: [
+    "/:path*/_get",
+    "/:path*/_post",
+    "/:path*/_patch",
+    "/:path*/_delete",
+    "/:path*/_auth-middleware",
+  ],
 };
 
 export default proxy;

@@ -16,8 +16,12 @@ export function CalendarToggleContainer({
     <CalendarToggleContainerComponent
       connectedCalendars={calendars.data?.connectedCalendars ?? []}
       isLoading={calendars.isLoading}
-      {...(onManageCalendarsClick ? { manageCalendarsAction: { onClick: onManageCalendarsClick } } : {})}
-      {...(onInstallCalendarClick ? { installCalendarAction: { onClick: onInstallCalendarClick } } : {})}
+      {...(onManageCalendarsClick
+        ? { manageCalendarsAction: { onClick: onManageCalendarsClick } }
+        : {})}
+      {...(onInstallCalendarClick
+        ? { installCalendarAction: { onClick: onInstallCalendarClick } }
+        : {})}
     />
   );
 }

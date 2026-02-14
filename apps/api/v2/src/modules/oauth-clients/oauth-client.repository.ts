@@ -6,10 +6,7 @@ import type { PlatformOAuthClient, Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class OAuthClientRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createOAuthClient(
     organizationId: number,

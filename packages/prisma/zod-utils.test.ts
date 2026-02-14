@@ -63,6 +63,7 @@ describe("excludeOrRequireEmailSchema", () => {
   });
 
   describe("invalid inputs", () => {
+
     it("rejects invalid TLD lengths", () => {
       expect(parse("example.c").success).toBe(false);
     });

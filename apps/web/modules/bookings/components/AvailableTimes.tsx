@@ -316,17 +316,8 @@ interface IOOOSlotProps {
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
   const isPlatform = useIsPlatform();
-  const {
-    fromUser,
-    toUser,
-    reason,
-    specifiedReason,
-    emoji,
-    notes,
-    showNotePublicly,
-    time,
-    className = "",
-  } = props;
+  const { fromUser, toUser, reason, specifiedReason, emoji, notes, showNotePublicly, time, className = "" } =
+    props;
 
   if (isPlatform) return <></>;
   return (

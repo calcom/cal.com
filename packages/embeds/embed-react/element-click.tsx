@@ -25,7 +25,8 @@ function App() {
     <button
       data-cal-namespace={calNamespace}
       data-cal-link="pro"
-      data-cal-config='{"layout":"month_view", "theme":"dark", "useSlotsViewOnSmallScreen":"true"}'>
+      data-cal-config='{"layout":"month_view", "theme":"dark", "useSlotsViewOnSmallScreen":"true"}'
+    >
       Click me
     </button>
   );

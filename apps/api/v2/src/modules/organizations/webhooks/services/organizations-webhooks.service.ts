@@ -1,10 +1,7 @@
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
-import {
-  validateWebhookUrl,
-  validateWebhookUrlIfChanged,
-} from "@/modules/webhooks/utils/validate-webhook-url";
+import { validateWebhookUrl, validateWebhookUrlIfChanged } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
