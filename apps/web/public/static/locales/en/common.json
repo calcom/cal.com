@@ -4631,7 +4631,6 @@
   "last_6_months": "Last 6 months",
   "last_12_months": "Last 12 months",
   "calendar_events_disabled_video_limitation": "When calendar events are disabled, meeting links cannot be generated for apps whose link generation is tied to calendar event creation, for example, Google Meet and Microsoft Teams. Other video apps like Cal Video will continue to work.",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
   "paypal": "PayPal",
   "paypal_getting_started": "Getting started with Paypal APP",
   "important_requirements": "Important requirements:",
@@ -4652,5 +4651,6 @@
   "paypal_step_6": "Paste them in the required fields and save them.",
   "paypal_step_7": "You should be all set up after this.",
   "dashboard": "dashboard",
-  "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings."
+  "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings.",
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
