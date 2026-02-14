@@ -54,8 +54,9 @@ interface OutOfOfficeEntry {
     id: number;
     emoji: string;
     reason: string;
-    userId: number;
+    userId: number | null;
   } | null;
+  specifiedReason?: string | null;
   notes: string | null;
   showNotePublicly: boolean | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
@@ -294,6 +295,7 @@ function OutOfOfficeEntriesListContent({
                           endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
+                          specifiedReason: item.specifiedReason ?? undefined,
                           notes: item.notes ?? undefined,
                           showNotePublicly: item.showNotePublicly ?? false,
                           forUserId: item.user?.id || null,

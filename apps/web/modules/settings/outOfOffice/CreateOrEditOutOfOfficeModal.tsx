@@ -103,10 +103,18 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
-  const reasonList: Option[] = (outOfOfficeReasonList || []).map((reason) => ({
-    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
-    value: reason.id,
-  }));
+  const reasonList: Option[] = useMemo(() => {
+    const list = outOfOfficeReasonList || [];
+    const custom = list.filter((r) => r.userId != null).sort((a, b) => b.id - a.id);
+    const system = list.filter((r) => r.userId === null);
+    const other = system.find((r) => r.reason === "ooo_reasons_other");
+    const systemRest = system.filter((r) => r.reason !== "ooo_reasons_other");
+    const sorted = other ? [...custom, ...systemRest, other] : [...custom, ...system];
+    return sorted.map((reason) => ({
+      label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
+      value: reason.id,
+    }));
+  }, [outOfOfficeReasonList, t]);
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
 

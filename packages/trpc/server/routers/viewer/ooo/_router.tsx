@@ -2,6 +2,8 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZOutOfOfficeInputSchema } from "./outOfOfficeCreateOrUpdate.schema";
 import { ZOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
+import { ZOutOfOfficeCustomReasonCreateSchema } from "./outOfOfficeCustomReasonCreate.schema";
+import { ZOutOfOfficeCustomReasonDeleteSchema } from "./outOfOfficeCustomReasonDelete.schema";
 import { ZOutOfOfficeDelete } from "./outOfOfficeEntryDelete.schema";
 
 export const oooRouter = router({
@@ -19,8 +21,24 @@ export const oooRouter = router({
     const handler = (await import("./outOfOfficeEntriesList.handler")).outOfOfficeEntriesList;
     return handler(opts);
   }),
-  outOfOfficeReasonList: authedProcedure.query(async () => {
+  outOfOfficeReasonList: authedProcedure.query(async (opts) => {
     const handler = (await import("./outOfOfficeReasons.handler")).outOfOfficeReasonList;
-    return handler();
+    return handler(opts);
   }),
+  outOfOfficeReasonIdsInUse: authedProcedure.query(async (opts) => {
+    const handler = (await import("./outOfOfficeReasonIdsInUse.handler")).outOfOfficeReasonIdsInUse;
+    return handler(opts);
+  }),
+  outOfOfficeCustomReasonCreate: authedProcedure
+    .input(ZOutOfOfficeCustomReasonCreateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = (await import("./outOfOfficeCustomReasonCreate.handler")).outOfOfficeCustomReasonCreate;
+      return handler({ ctx, input });
+    }),
+  outOfOfficeCustomReasonDelete: authedProcedure
+    .input(ZOutOfOfficeCustomReasonDeleteSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = (await import("./outOfOfficeCustomReasonDelete.handler")).outOfOfficeCustomReasonDelete;
+      return handler({ ctx, input });
+    }),
 });
