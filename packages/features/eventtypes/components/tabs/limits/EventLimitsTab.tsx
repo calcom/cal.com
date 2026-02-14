@@ -357,7 +357,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
         <InputField
           required
           disabled={passThroughProps.disabled}
-          defaultValue={minimumBookingNoticeDisplayValues.value}
+          value={minimumBookingNoticeDisplayValues.value}
           onChange={(e) =>
             setMinimumBookingNoticeDisplayValues({
               ...minimumBookingNoticeDisplayValues,
@@ -385,10 +385,10 @@ const MinimumBookingNoticeInput = React.forwardRef<
         )}
         onChange={(input) => {
           if (input) {
-            setMinimumBookingNoticeDisplayValues({
-              ...minimumBookingNoticeDisplayValues,
+            setMinimumBookingNoticeDisplayValues((prev) => ({
               type: input.value,
-            });
+              value: convertToNewDurationType(prev.type, input.value, prev.value),
+            }));
           }
         }}
         options={durationTypeOptions}
