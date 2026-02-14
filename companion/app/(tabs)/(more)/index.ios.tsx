@@ -12,11 +12,13 @@ import {
   useColorScheme,
   View,
 } from "react-native";
+import { LandingPagePicker } from "@/components/LandingPagePicker";
 import { LogoutConfirmModal } from "@/components/LogoutConfirmModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryContext } from "@/contexts/QueryContext";
 import { useUserProfile } from "@/hooks";
-import { showErrorAlert, showNotAvailableAlert } from "@/utils/alerts";
+import { type LandingPage, useUserPreferences } from "@/hooks/useUserPreferences";
+import { showErrorAlert, showSuccessAlert, showNotAvailableAlert } from "@/utils/alerts";
 import { openInAppBrowser } from "@/utils/browser";
 import { getAvatarUrl } from "@/utils/getAvatarUrl";
 import { getColors } from "@/constants/colors";
@@ -33,7 +35,9 @@ export default function More() {
   const router = useRouter();
   const { logout } = useAuth();
   const { clearCache } = useQueryContext();
+  const { preferences, setLandingPage, landingPageLabel } = useUserPreferences();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLandingPagePicker, setShowLandingPagePicker] = useState(false);
   const { data: userProfile } = useUserProfile();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -46,6 +50,15 @@ export default function More() {
     text: isDark ? "#FFFFFF" : "#333333",
     textSecondary: isDark ? "#A3A3A3" : "#C7C7CC",
     border: isDark ? "#4D4D4D" : "#E5E5EA",
+  };
+
+  const handleLandingPageSelect = async (value: LandingPage) => {
+    try {
+      await setLandingPage(value);
+      showSuccessAlert("Saved", "First page updated");
+    } catch {
+      showErrorAlert("Error", "Failed to save preference. Please try again.");
+    }
   };
 
   const performLogout = async () => {
@@ -183,6 +196,74 @@ export default function More() {
           ))}
         </View>
 
+        {/* App Settings */}
+        <View
+          style={{
+            marginTop: 24,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.backgroundSecondary,
+            overflow: "hidden",
+          }}
+        >
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+              backgroundColor: isDark ? "#2C2C2E" : "#F9FAFB",
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+            }}
+          >
+            <Text
+              style={{ color: isDark ? "#A3A3A3" : "#6B7280" }}
+              className="text-xs font-semibold uppercase"
+            >
+              App Settings
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setShowLandingPagePicker(true)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              backgroundColor: colors.backgroundSecondary,
+              paddingHorizontal: 20,
+              paddingVertical: 16,
+            }}
+            activeOpacity={0.7}
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="home-outline" size={20} color={colors.text} />
+              <Text style={{ color: colors.text }} className="ml-3 text-base font-semibold">
+                First Page
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <View
+                style={{
+                  marginLeft: 12,
+                  marginRight: 8,
+                  borderRadius: 6,
+                  backgroundColor: isDark ? "#3A3A3C" : "#F3F4F6",
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                }}
+              >
+                <Text
+                  style={{ color: isDark ? "#A3A3A3" : "#4B5563" }}
+                  className="text-sm font-medium"
+                >
+                  {landingPageLabel}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Delete Account Link */}
         <View
           style={{
@@ -267,6 +348,14 @@ export default function More() {
           performLogout();
         }}
         onCancel={() => setShowLogoutModal(false)}
+      />
+
+      {/* Landing Page Picker */}
+      <LandingPagePicker
+        visible={showLandingPagePicker}
+        currentValue={preferences.landingPage}
+        onSelect={handleLandingPageSelect}
+        onClose={() => setShowLandingPagePicker(false)}
       />
     </>
   );

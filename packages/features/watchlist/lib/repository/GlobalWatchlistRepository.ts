@@ -1,6 +1,5 @@
 import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
-import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
-
+import { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
 
 /**
@@ -164,7 +163,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async deleteEntry(id: string): Promise<void> {
-    this.prisma.watchlist.delete({
+    await this.prisma.watchlist.delete({
       where: { id },
     });
   }
