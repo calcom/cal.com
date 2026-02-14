@@ -16,7 +16,6 @@ import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-t
 import { TeamsInviteModule } from "@/modules/teams/invite/teams-invite.module";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
-import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -41,9 +40,4 @@ import { Module } from "@nestjs/common";
     EventTypesPrivateLinksModule,
   ],
 })
-export class PlatformEndpointsModule implements NestModule {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  configure(_consumer: MiddlewareConsumer) {
-    // TODO: apply ratelimits
-  }
-}
+export class PlatformEndpointsModule { }

@@ -65,6 +65,7 @@ import {
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
+import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import {
   AuthOptionalUser,
@@ -102,7 +103,7 @@ export class BookingsController_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
     private readonly calVideoService: CalVideoService
-  ) {}
+  ) { }
 
   @Post("/")
   @UseGuards(OptionalApiAuthGuard)
@@ -155,6 +156,12 @@ export class BookingsController_2024_08_13 {
     CreateInstantBookingInput_2024_08_13,
     CreateRecurringBookingInput_2024_08_13
   )
+  @Throttle({
+    name: "create_booking",
+    limit: 60,
+    ttl: 60000,
+    blockDuration: 60000,
+  })
   async createBooking(
     @Body(new CreateBookingInputPipe())
     body: CreateBookingInput,

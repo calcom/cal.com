@@ -16,7 +16,6 @@ import { TeamsBookingsModule } from "@/modules/teams/bookings/teams-bookings.mod
 import { TeamsSchedulesModule } from "@/modules/teams/schedules/teams-schedules.module";
 import { TimezoneModule } from "@/modules/timezones/timezones.module";
 import { VerifiedResourcesModule } from "@/modules/verified-resources/verified-resources.module";
-import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
 import { UsersModule } from "./users/users.module";
@@ -46,9 +45,4 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     TeamsBookingsModule,
   ],
 })
-export class EndpointsModule implements NestModule {
-   
-  configure(_consumer: MiddlewareConsumer) {
-    // TODO: apply ratelimits
-  }
-}
+export class EndpointsModule { }
