@@ -10180,7 +10180,7 @@
       "patch": {
         "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
         "summary": "Update booking location for an existing booking",
-        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n\n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
