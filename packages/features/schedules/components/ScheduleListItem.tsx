@@ -9,7 +9,6 @@ import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { LoaderIcon } from "@coss/ui/icons";
 import {
   Dropdown,
   DropdownItem,
