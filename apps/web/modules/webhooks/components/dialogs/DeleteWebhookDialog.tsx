@@ -33,7 +33,12 @@ export function DeleteWebhookDialog({ open, onOpenChange, onConfirm, isPending }
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
-          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>
+          <Button
+            data-testid="dialog-confirmation"
+            variant="destructive"
+            disabled={isPending}
+            onClick={onConfirm}
+          >
             {isPending && <Spinner className="absolute" />}
             <span className={isPending ? "invisible" : undefined}>
               {t("confirm_delete_webhook")}
