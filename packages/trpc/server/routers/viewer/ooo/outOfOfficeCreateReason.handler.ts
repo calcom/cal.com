@@ -26,6 +26,20 @@ export const outOfOfficeCreateReason = async ({ ctx, input }: CreateOptions) => 
       });
     }
 
+    const existingSystemDefault = await prisma.outOfOfficeReason.findFirst({
+      where: {
+        userId: null,
+        reason: input.reason,
+      },
+    });
+
+    if (existingSystemDefault) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "This reason already exists as a system default",
+      });
+    }
+
     const customReason = await prisma.outOfOfficeReason.create({
       data: {
         emoji: input.emoji,

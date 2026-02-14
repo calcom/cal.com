@@ -21,7 +21,7 @@ const mockUser = {
 
 describe("outOfOfficeCreateReason", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it("should create a custom reason successfully", async () => {
@@ -80,6 +80,31 @@ describe("outOfOfficeCreateReason", () => {
 
     await expect(outOfOfficeCreateReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
       "You already have a custom reason with this text"
+    );
+
+    expect(prisma.outOfOfficeReason.create).not.toHaveBeenCalled();
+  });
+
+  it("should throw CONFLICT error if reason already exists as a system default", async () => {
+    const input = {
+      emoji: "🏢",
+      reason: "Vacation",
+    };
+
+    const existingSystemDefault: OutOfOfficeReason = {
+      id: 1,
+      emoji: "🏖️",
+      reason: "Vacation",
+      userId: null,
+      enabled: true,
+    };
+
+    vi.mocked(prisma.outOfOfficeReason.findFirst)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(existingSystemDefault);
+
+    await expect(outOfOfficeCreateReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
+      "This reason already exists as a system default"
     );
 
     expect(prisma.outOfOfficeReason.create).not.toHaveBeenCalled();

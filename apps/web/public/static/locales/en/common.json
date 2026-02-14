@@ -3232,7 +3232,7 @@
   "ooo_reasons_unspecified": "Unspecified",
   "ooo_reasons_vacation": "Vacation",
   "ooo_reasons_travel": "Travel",
-  "ooo_custom_reasons": "Reason: {{customReasom}}",
+  "ooo_custom_reasons": "Reason: {{customReason}}",
   "ooo_reasons_sick_leave": "Sick leave",
   "ooo_reasons_public_holiday": "Public holiday",
   "ooo_forwarding_to": "Forwarding to <0>{{username}}</0>",

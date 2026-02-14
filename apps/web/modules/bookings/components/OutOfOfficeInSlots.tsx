@@ -64,9 +64,9 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
                 {t("ooo_user_is_ooo", { displayName: fromUser?.displayName })}
               </p>
 
-              {reason && reason != "ooo_reasons_unspecified" && showNotePublicly && (
+              {reason && !reason.startsWith("ooo_reasons_") && showNotePublicly && (
                 <p className="mt-2 text-subtle font-semibold">
-                  {t("ooo_custom_reasons", { customReasom: reason })}
+                  {t("ooo_custom_reasons", { customReason: reason })}
                 </p>
               )}
               
