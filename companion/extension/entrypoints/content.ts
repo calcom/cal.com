@@ -38,6 +38,7 @@ export default defineContentScript({
 
     let isVisible = false;
     let isClosed = true;
+    let iframeLoaded = false;
 
     // Create sidebar container
     const sidebarContainer = document.createElement("div");
@@ -69,7 +70,6 @@ export default defineContentScript({
     // - ext:build-prod → uses https://companion.cal.com
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
-    iframe.src = COMPANION_URL;
     // Enable clipboard access for the cross-origin iframe
     // This allows the companion app to use navigator.clipboard.writeText()
     iframe.allow = "clipboard-write; clipboard-read";
@@ -90,6 +90,8 @@ export default defineContentScript({
 
     // Listen for messages from iframe to control width and handle OAuth
     window.addEventListener("message", (event) => {
+      if (!iframeLoaded) return;
+
       // Security: Only accept messages from our iframe's origin
       // This prevents malicious scripts on the host page from manipulating the companion
       const iframeOrigin = new URL(iframe.src).origin;
@@ -505,6 +507,10 @@ export default defineContentScript({
 
     // Function to open the sidebar
     function openSidebar() {
+      if (!iframeLoaded) {
+        iframe.src = COMPANION_URL;
+        iframeLoaded = true;
+      }
       if (isClosed) {
         isClosed = false;
         isVisible = true;
