@@ -140,7 +140,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     const currentReasonId = getValues("reasonId");
     
     if (currentReasonId === variables.id) {
-      setValue("reasonId", 1);
+      const fallbackReason = reasonList.find((r) => !r.isCustom);
+      setValue("reasonId", fallbackReason?.value ?? 1);
     }
     
     utils.viewer.ooo.outOfOfficeReasonList.invalidate();
