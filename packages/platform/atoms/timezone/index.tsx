@@ -6,7 +6,11 @@ import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import useGetCityTimezones from "../hooks/useGetCityTimezones";
 import { filterPropsTimezones, formatTimezones } from "../src/lib/timeZones";
 
-export function Timezone(props: Omit<TimezoneSelectComponentProps, "data" | "isPending" | "isWebTimezoneSelect"> & { timeZones?: Timezone[] }) {
+export function Timezone(
+  props: Omit<TimezoneSelectComponentProps, "data" | "isPending" | "isWebTimezoneSelect"> & {
+    timeZones?: Timezone[];
+  }
+) {
   const { isLoading: isLoadingAvailableCityTimezones, data: availableCityTimezones } = useGetCityTimezones();
   const cityTimeZones = useMemo(() => {
     if (props.timeZones) {

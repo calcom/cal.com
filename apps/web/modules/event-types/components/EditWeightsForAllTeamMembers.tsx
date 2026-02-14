@@ -284,9 +284,7 @@ export const EditWeightsForAllTeamMembers = ({
                 placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-                addOnLeading={
-                  <SearchIcon className="text-subtle h-4 w-4" />
-                }
+                addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
               />
 
               <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">

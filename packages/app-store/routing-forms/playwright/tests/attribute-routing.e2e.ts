@@ -143,8 +143,7 @@ async function openPreview(page: Page, formId: string) {
 
 function getMutationResponsePromise(page: Page) {
   return page.waitForResponse(
-    (resp) =>
-      resp.url().includes("findTeamMembersMatchingAttributeLogicOfRoute") && resp.status() === 200
+    (resp) => resp.url().includes("findTeamMembersMatchingAttributeLogicOfRoute") && resp.status() === 200
   );
 }
 

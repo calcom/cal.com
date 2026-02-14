@@ -89,16 +89,16 @@ export type EventDataMap = {
    * Note: Not fired during prerendering. Includes event information and slots loading status.
    */
   bookerViewed:
-  | {
-    eventId: number;
-    eventSlug: string;
-    slotsLoaded: true;
-  }
-  | {
-    eventId: null;
-    eventSlug: null;
-    slotsLoaded: false;
-  };
+    | {
+        eventId: number;
+        eventSlug: string;
+        slotsLoaded: true;
+      }
+    | {
+        eventId: null;
+        eventSlug: null;
+        slotsLoaded: false;
+      };
   /**
    * Fired when booker has been reopened after being closed.
    * Purpose: Track when booker is reopened, distinguishing from first view.
@@ -106,16 +106,16 @@ export type EventDataMap = {
    * Note: Distinguishes between first view (bookerViewed) and reopen (bookerReopened).
    */
   bookerReopened:
-  | {
-    eventId: number;
-    eventSlug: string;
-    slotsLoaded: true;
-  }
-  | {
-    eventId: null;
-    eventSlug: null;
-    slotsLoaded: false;
-  };
+    | {
+        eventId: number;
+        eventSlug: string;
+        slotsLoaded: true;
+      }
+    | {
+        eventId: null;
+        eventSlug: null;
+        slotsLoaded: false;
+      };
   /**
    * Fired when booker has been reloaded (full page reload within modal).
    * Purpose: Track when booker is reloaded, distinguishing from first view and reopen.
@@ -123,16 +123,16 @@ export type EventDataMap = {
    * Note: Distinguishes between first view (bookerViewed), reopen (bookerReopened), and reload (bookerReloaded).
    */
   bookerReloaded:
-  | {
-    eventId: number;
-    eventSlug: string;
-    slotsLoaded: true;
-  }
-  | {
-    eventId: null;
-    eventSlug: null;
-    slotsLoaded: false;
-  };
+    | {
+        eventId: number;
+        eventSlug: string;
+        slotsLoaded: true;
+      }
+    | {
+        eventId: null;
+        eventSlug: null;
+        slotsLoaded: false;
+      };
   /**
    * Fired when connect() method has been called to update prerendered embed.
    * Purpose: Signal that prerendered embed is being connected with new configuration.

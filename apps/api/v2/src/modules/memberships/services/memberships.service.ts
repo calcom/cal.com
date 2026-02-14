@@ -25,9 +25,8 @@ export class MembershipsService {
   }
 
   async isUserOrgAdminOrOwnerOfAnotherUser(userId: number, anotherUserId: number) {
-    const orgIdsWhereUserIsAdminOrOwner = await this.membershipsRepository.getOrgIdsWhereUserIsAdminOrOwner(
-      userId
-    );
+    const orgIdsWhereUserIsAdminOrOwner =
+      await this.membershipsRepository.getOrgIdsWhereUserIsAdminOrOwner(userId);
 
     if (orgIdsWhereUserIsAdminOrOwner.length === 0) {
       return false;

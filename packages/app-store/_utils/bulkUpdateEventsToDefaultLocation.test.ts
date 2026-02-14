@@ -159,8 +159,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         },
       },
@@ -225,8 +224,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         },
       },

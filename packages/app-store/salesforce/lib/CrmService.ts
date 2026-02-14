@@ -653,8 +653,9 @@ class SalesforceCRMService implements CRM {
 
       if (records.length === 0) {
         // Build extra SELECT fields from validated field rules so we don't need a second query
-        const extraFields =
-          validatedFieldRules?.length ? ", " + validatedFieldRules.map((r) => r.field).join(", ") : "";
+        const extraFields = validatedFieldRules?.length
+          ? ", " + validatedFieldRules.map((r) => r.field).join(", ")
+          : "";
 
         // Handle Account record type
         if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {

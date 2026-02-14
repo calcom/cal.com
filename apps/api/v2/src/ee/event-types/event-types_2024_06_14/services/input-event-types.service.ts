@@ -607,7 +607,7 @@ export class InputEventTypesService_2024_06_14 {
       "mirotalk-video": "mirotalk",
       "jelly-video": "jelly",
       "jelly-conferencing": "jelly",
-      "huddle": "huddle01",
+      huddle: "huddle01",
       "element-call-video": "element-call",
       "eightxeight-video": "eightxeight",
       "discord-video": "discord",
@@ -629,7 +629,9 @@ export class InputEventTypesService_2024_06_14 {
     return foundApp.credential;
   }
 
-  transformInputDisableRescheduling(disableRescheduling: CreateEventTypeInput_2024_06_14["disableRescheduling"]) {
+  transformInputDisableRescheduling(
+    disableRescheduling: CreateEventTypeInput_2024_06_14["disableRescheduling"]
+  ) {
     if (!disableRescheduling) {
       return {};
     }

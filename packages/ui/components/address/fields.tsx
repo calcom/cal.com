@@ -102,14 +102,13 @@ export const TextField = forwardRef<HTMLInputElement, InputFieldProps>(function 
   return <InputField ref={ref} {...props} />;
 });
 
-export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
-  return (
-    <InputField data-testid="password" type="password" placeholder="•••••••••••••" ref={ref} {...props} />
-  );
-});
+export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(
+  function PasswordField(props, ref) {
+    return (
+      <InputField data-testid="password" type="password" placeholder="•••••••••••••" ref={ref} {...props} />
+    );
+  }
+);
 
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
   return (
@@ -160,39 +159,38 @@ type TextAreaFieldProps = {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
-  props,
-  ref
-) {
-  const id = useId();
-  const { t } = useLocale();
-  const methods = useFormContext();
-  const {
-    label = t(props.name as string),
-    labelProps,
-    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
-      ? t(`${props.name}_placeholder`)
-      : "",
-    ...passThrough
-  } = props;
-  return (
-    <div>
-      {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
-          {label}
-        </Label>
-      )}
-      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name]?.message && (
-        <Alert
-          className="mt-1"
-          severity="error"
-          message={<>{methods.formState.errors[props.name]?.message}</>}
-        />
-      )}
-    </div>
-  );
-});
+export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
+  function TextField(props, ref) {
+    const id = useId();
+    const { t } = useLocale();
+    const methods = useFormContext();
+    const {
+      label = t(props.name as string),
+      labelProps,
+      placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+        ? t(`${props.name}_placeholder`)
+        : "",
+      ...passThrough
+    } = props;
+    return (
+      <div>
+        {!!props.name && (
+          <Label htmlFor={id} {...labelProps}>
+            {label}
+          </Label>
+        )}
+        <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+        {methods?.formState?.errors[props.name]?.message && (
+          <Alert
+            className="mt-1"
+            severity="error"
+            message={<>{methods.formState.errors[props.name]?.message}</>}
+          />
+        )}
+      </div>
+    );
+  }
+);
 
 type FormProps<T extends object> = { form: UseFormReturn<T>; handleSubmit: SubmitHandler<T> } & Omit<
   JSX.IntrinsicElements["form"],

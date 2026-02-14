@@ -6,7 +6,10 @@ import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationAttributesRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async createOrganizationAttribute(organizationId: number, data: CreateOrganizationAttributeInput) {
     const { options, ...attributeData } = data;

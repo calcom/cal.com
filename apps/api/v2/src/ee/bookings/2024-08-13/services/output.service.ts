@@ -168,9 +168,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.getDisplayEmail(guest)
-      );
+      bookingTransformed.bookingFieldsResponses.displayGuests =
+        bookingTransformed.bookingFieldsResponses.guests.map((guest: string) => this.getDisplayEmail(guest));
     }
 
     return bookingTransformed;
@@ -230,10 +229,10 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputRecurringBookings(bookingsIds: number[]) {
     const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
-    
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
-    const transformed = bookingsIds.map(bookingId => {
+
+    const bookingsMap = new Map(databaseBookings.map((booking) => [booking.id, booking]));
+
+    const transformed = bookingsIds.map((bookingId) => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
@@ -313,9 +312,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.getDisplayEmail(guest)
-      );
+      bookingTransformed.bookingFieldsResponses.displayGuests =
+        bookingTransformed.bookingFieldsResponses.guests.map((guest: string) => this.getDisplayEmail(guest));
     }
 
     return bookingTransformed;
@@ -409,11 +407,12 @@ export class OutputBookingsService_2024_08_13 {
   }
 
   async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
-    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
-    
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
-    const transformed = bookingsIds.map(bookingId => {
+    const databaseBookings =
+      await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
+
+    const bookingsMap = new Map(databaseBookings.map((booking) => [booking.id, booking]));
+
+    const transformed = bookingsIds.map((bookingId) => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);

@@ -511,7 +511,10 @@ describe("SalesforceRoutingTraceService", () => {
         expect(addStepSpy).toHaveBeenCalledWith({
           domain: "salesforce",
           step: "graphql_no_account_found",
-          data: { email: "user@example.com", reason: "Could not find dominant account from related contacts" },
+          data: {
+            email: "user@example.com",
+            reason: "Could not find dominant account from related contacts",
+          },
         });
       });
     });

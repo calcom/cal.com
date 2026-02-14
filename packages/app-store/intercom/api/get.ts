@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const parsedUrl = new URL(url);
         const hostname = parsedUrl.hostname.toLowerCase();
-        
+
         if (hostname === "cal.com" || hostname.endsWith(".cal.com")) {
           origin = parsedUrl.origin;
           calLink = parsedUrl.pathname + parsedUrl.search;

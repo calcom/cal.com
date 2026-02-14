@@ -78,9 +78,7 @@ if (isBrowser) {
 
 const setEmbedStyles = (stylesConfig: EmbedStyles) => {
   embedStore.styles = stylesConfig;
-  for (const [, setEmbedStyle] of Object.entries(
-    embedStore.reactStylesStateSetters
-  )) {
+  for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
     setEmbedStyle((styles) => {
       return {
         ...styles,
@@ -92,9 +90,7 @@ const setEmbedStyles = (stylesConfig: EmbedStyles) => {
 
 const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
   embedStore.nonStyles = stylesConfig;
-  for (const [, setEmbedStyle] of Object.entries(
-    embedStore.reactStylesStateSetters
-  )) {
+  for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
     setEmbedStyle((styles) => {
       return {
         ...styles,
@@ -120,17 +116,14 @@ const registerNewSetter = (
   // It's possible that 'ui' instruction has already been processed and the registration happened due to some action by the user in iframe.
   // So, we should call the setter immediately with available embedStyles
   if (registration.styles) {
-    embedStore.reactStylesStateSetters[
-      registration.elementName as keyof EmbedStyles
-    ] = registration.setState;
+    embedStore.reactStylesStateSetters[registration.elementName as keyof EmbedStyles] = registration.setState;
     registration.setState(embedStore.styles || {});
     return () => {
       delete embedStore.reactStylesStateSetters[registration.elementName];
     };
   } else {
-    embedStore.reactNonStylesStateSetters[
-      registration.elementName as keyof EmbedNonStylesConfig
-    ] = registration.setState;
+    embedStore.reactNonStylesStateSetters[registration.elementName as keyof EmbedNonStylesConfig] =
+      registration.setState;
     registration.setState(embedStore.nonStyles || {});
 
     return () => {
@@ -186,9 +179,7 @@ export const useEmbedUiConfig = () => {
   embedStore.setUiConfig.push(setUiConfig);
   useEffect(() => {
     return () => {
-      const foundAtIndex = embedStore.setUiConfig.findIndex(
-        (item) => item === setUiConfig
-      );
+      const foundAtIndex = embedStore.setUiConfig.findIndex((item) => item === setUiConfig);
       // Keep removing the setters that are stale
       embedStore.setUiConfig.splice(foundAtIndex, 1);
     };
@@ -212,9 +203,7 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
   return styles[elementName] || {};
 };
 
-export const useEmbedNonStylesConfig = (
-  elementName: keyof EmbedNonStylesConfig
-) => {
+export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig) => {
   const [, setNonStyles] = useState({} as EmbedNonStylesConfig);
 
   useEffect(() => {
@@ -243,9 +232,7 @@ export const useIsBackgroundTransparent = () => {
 
 export const useBrandColors = () => {
   // TODO: Branding shouldn't be part of ui.styles. It should exist as ui.branding.
-  const brandingColors = useEmbedNonStylesConfig(
-    "branding"
-  ) as EmbedNonStylesConfig["branding"];
+  const brandingColors = useEmbedNonStylesConfig("branding") as EmbedNonStylesConfig["branding"];
   return brandingColors || {};
 };
 
@@ -267,8 +254,7 @@ function getEmbedType() {
   }
   if (isBrowser) {
     const url = new URL(document.URL);
-    const embedType = (embedStore.embedType =
-      url.searchParams.get("embedType"));
+    const embedType = (embedStore.embedType = url.searchParams.get("embedType"));
     return embedType;
   }
 }
@@ -342,14 +328,13 @@ async function ensureRoutingFormResponseIdInUrl({
   // Update routingFormResponseId in url only after connect is completed, to keep things simple
   // Adding cal.routingFormResponseId in query param later shouldn't change anything in UI plus no slot request would go again due ot this.
 
-  const { stopEnsuringQueryParamsInUrl } =
-    embedStore.router.ensureQueryParamsInUrl({
-      toBeThereParams: {
-        ...toBeThereParams,
-        "cal.routingFormResponseId": newlyRecordedResponseId.toString(),
-      },
-      toRemoveParams,
-    });
+  const { stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
+    toBeThereParams: {
+      ...toBeThereParams,
+      "cal.routingFormResponseId": newlyRecordedResponseId.toString(),
+    },
+    toRemoveParams,
+  });
   // Immediately stop ensuring query params in url as the page is already ready
   // We could think about doing it after some time if needed later.
   stopEnsuringQueryParamsInUrl();
@@ -399,10 +384,7 @@ export const methods = {
     let mergedCssVarsPerTheme: UiConfig["cssVarsPerTheme"] | undefined;
 
     if (oldCssVarsPerTheme || newCssVarsPerTheme) {
-      mergedCssVarsPerTheme = {} as Record<
-        "light" | "dark",
-        Record<string, string>
-      >;
+      mergedCssVarsPerTheme = {} as Record<"light" | "dark", Record<string, string>>;
       const themeKeys = [
         ...(oldCssVarsPerTheme ? Object.keys(oldCssVarsPerTheme) : []),
         ...(newCssVarsPerTheme ? Object.keys(newCssVarsPerTheme) : []),
@@ -420,15 +402,11 @@ export const methods = {
     uiConfig = {
       ...embedStore.uiConfig,
       ...uiConfig,
-      ...(mergedCssVarsPerTheme
-        ? { cssVarsPerTheme: mergedCssVarsPerTheme }
-        : {}),
+      ...(mergedCssVarsPerTheme ? { cssVarsPerTheme: mergedCssVarsPerTheme } : {}),
     };
 
     if (uiConfig.cssVarsPerTheme) {
-      const mappedCssVarsPerTheme = mapOldToNewCssVars(
-        uiConfig.cssVarsPerTheme
-      );
+      const mappedCssVarsPerTheme = mapOldToNewCssVars(uiConfig.cssVarsPerTheme);
       window.CalEmbed.applyCssVars(mappedCssVarsPerTheme);
     }
 
@@ -493,9 +471,7 @@ export const methods = {
     embedStore.providedCorrectHeightToParent = false;
 
     if (noSlotsFetchOnConnect !== "true") {
-      log(
-        "Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch"
-      );
+      log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
       // Incrementing the version forces the slots call to be made again
       embedStore.connectVersion = embedStore.connectVersion + 1;
     }
@@ -540,9 +516,7 @@ export const methods = {
 };
 
 export type InterfaceWithParent = {
-  [key in keyof typeof methods]: (
-    firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]
-  ) => void;
+  [key in keyof typeof methods]: (firstAndOnlyArg: Parameters<(typeof methods)[key]>[number]) => void;
 };
 
 export const interfaceWithParent: InterfaceWithParent = methods;
@@ -567,9 +541,7 @@ function main() {
 
   const autoScrollFromParam = url.searchParams.get("ui.autoscroll");
   const shouldDisableAutoScroll = autoScrollFromParam === "false";
-  const useSlotsViewOnSmallScreenParam = url.searchParams.get(
-    "useSlotsViewOnSmallScreen"
-  );
+  const useSlotsViewOnSmallScreenParam = url.searchParams.get("useSlotsViewOnSmallScreen");
 
   embedStore.uiConfig = {
     // TODO: Add theme as well here
@@ -577,8 +549,7 @@ function main() {
     layout: url.searchParams.get("layout") as BookerLayouts,
     disableAutoScroll: shouldDisableAutoScroll,
     // by default useSlotsViewOnSmallScreen should be false
-    useSlotsViewOnSmallScreen:
-      (useSlotsViewOnSmallScreenParam ?? "false") === "true",
+    useSlotsViewOnSmallScreen: (useSlotsViewOnSmallScreenParam ?? "false") === "true",
   };
 
   actOnColorScheme(embedStore.uiConfig.colorScheme);
@@ -590,8 +561,7 @@ function main() {
     return;
   }
 
-  const willSlotsBeFetched =
-    url.searchParams.get("cal.skipSlotsFetch") !== "true";
+  const willSlotsBeFetched = url.searchParams.get("cal.skipSlotsFetch") !== "true";
   log(`Slots will ${willSlotsBeFetched ? "" : "NOT "}be fetched`);
 
   window.addEventListener("message", (e) => {
@@ -629,10 +599,7 @@ function main() {
   });
 
   sdkActionManager?.on("*", (e) => {
-    if (
-      isPrerendering() &&
-      !eventsAllowedInPrerendering.includes(e.detail.type)
-    ) {
+    if (isPrerendering() && !eventsAllowedInPrerendering.includes(e.detail.type)) {
       return;
     }
     const detail = e.detail;
@@ -643,9 +610,7 @@ function main() {
   if (url.searchParams.get("preload") !== "true" && window?.isEmbed?.()) {
     initializeAndSetupEmbed();
   } else {
-    log(
-      `Preloaded scenario - Skipping initialization and setup as only assets need to be loaded`
-    );
+    log(`Preloaded scenario - Skipping initialization and setup as only assets need to be loaded`);
   }
 }
 
@@ -722,11 +687,10 @@ async function connectPreloadedEmbed({
   toBeThereParams: Record<string, string | string[]>;
   toRemoveParams: string[];
 }) {
-  const { hasChanged, stopEnsuringQueryParamsInUrl } =
-    embedStore.router.ensureQueryParamsInUrl({
-      toBeThereParams,
-      toRemoveParams,
-    });
+  const { hasChanged, stopEnsuringQueryParamsInUrl } = embedStore.router.ensureQueryParamsInUrl({
+    toBeThereParams,
+    toRemoveParams,
+  });
 
   let waitForFrames = 0;
 

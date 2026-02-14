@@ -263,7 +263,8 @@ export function Card({
                   {learnMore.text}
                 </LinkComponent>
               ) : learnMore.onClick ? (
-                <button type="button"
+                <button
+                  type="button"
                   color="minimal"
                   onClick={learnMore.onClick}
                   className={classNames("cursor-pointer text-default text-xs font-medium", buttonClassName)}>

@@ -9,22 +9,12 @@ import { getAttributeSyncFieldMappingService } from "@calcom/features/ee/integra
 
 const log = logger.getSubLogger({ prefix: ["[salesforce/user-sync]"] });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const {
-    instanceUrl,
-    orgId: sfdcOrgId,
-    salesforceUserId,
-    email,
-    changedFields,
-    timestamp,
-  } = req.body;
+  const { instanceUrl, orgId: sfdcOrgId, salesforceUserId, email, changedFields, timestamp } = req.body;
 
   log.info("Received user sync request", {
     instanceUrl,
@@ -80,9 +70,7 @@ export default async function handler(
   });
 
   if (!user) {
-    log.error(
-      `User not found for email ${email} and teamId ${credential.teamId}`
-    );
+    log.error(`User not found for email ${email} and teamId ${credential.teamId}`);
     return res.status(400).json({ error: "Invalid user" });
   }
 
@@ -90,25 +78,22 @@ export default async function handler(
 
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
-  const integrationAttributeSyncs =
-    await integrationAttributeSyncService.getAllByCredentialId(credential.id);
+  const integrationAttributeSyncs = await integrationAttributeSyncService.getAllByCredentialId(credential.id);
 
   const attributeSyncRuleService = getAttributeSyncRuleService();
-  const attributeSyncFieldMappingService =
-    getAttributeSyncFieldMappingService();
+  const attributeSyncFieldMappingService = getAttributeSyncFieldMappingService();
 
   const results = await Promise.allSettled(
     integrationAttributeSyncs.map(async (sync) => {
       // Only check rule if one exists - skip sync only if rule returns false
       if (sync.attributeSyncRule) {
-        const shouldSyncApplyToUser =
-          await attributeSyncRuleService.shouldSyncApplyToUser({
-            user: {
-              id: user.id,
-              organizationId,
-            },
-            attributeSyncRule: sync.attributeSyncRule.rule,
-          });
+        const shouldSyncApplyToUser = await attributeSyncRuleService.shouldSyncApplyToUser({
+          user: {
+            id: user.id,
+            organizationId,
+          },
+          attributeSyncRule: sync.attributeSyncRule.rule,
+        });
 
         if (!shouldSyncApplyToUser) return;
       }
@@ -129,9 +114,7 @@ export default async function handler(
     })
   );
 
-  const errors = results.filter(
-    (result): result is PromiseRejectedResult => result.status === "rejected"
-  );
+  const errors = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
 
   if (errors.length > 0) {
     log.error("Errors syncing user attributes", {

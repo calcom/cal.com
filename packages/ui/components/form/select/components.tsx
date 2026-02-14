@@ -10,7 +10,7 @@ import type { SelectProps } from "./types";
 export const InputComponent = <
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >({
   inputClassName,
   ...props
@@ -45,7 +45,7 @@ type ExtendedOption = {
 export const OptionComponent = <
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >({
   ...props
 }: OptionProps<Option, IsMulti, Group>) => {
@@ -85,7 +85,7 @@ export const OptionComponent = <
 export const ControlComponent = <
   Option,
   IsMulti extends boolean,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >(
   controlProps: ControlProps<Option, IsMulti, Group> & {
     selectProps: SelectProps<Option, IsMulti, Group>;

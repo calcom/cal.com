@@ -1280,7 +1280,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone ?? "UTC";
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
@@ -1429,7 +1429,16 @@ export class AvailableSlotsService {
 
       return availableTimeSlots.reduce(
         (
-          r: Record<string, { time: string; attendees?: number; bookingUid?: string; reason?: string; specifiedReason?: string | null }[]>,
+          r: Record<
+            string,
+            {
+              time: string;
+              attendees?: number;
+              bookingUid?: string;
+              reason?: string;
+              specifiedReason?: string | null;
+            }[]
+          >,
           { time, reason, specifiedReason, ...passThroughProps }
         ) => {
           // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
@@ -1547,7 +1556,7 @@ export class AvailableSlotsService {
       slotsMappedToDate: withinBoundsSlotsMappedToDate,
       startTime: input.startTime,
       endTime: input.endTime,
-      timeZone: input.timeZone
+      timeZone: input.timeZone,
     });
 
     // We only want to run this on single targeted events and not dynamic

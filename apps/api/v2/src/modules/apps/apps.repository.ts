@@ -6,7 +6,10 @@ import type { App, Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class AppsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getAppBySlug(slug: string): Promise<App | null> {
     return await this.dbRead.prisma.app.findUnique({ where: { slug } });

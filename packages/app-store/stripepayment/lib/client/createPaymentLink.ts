@@ -1,4 +1,3 @@
-
 import { WEBSITE_URL } from "@calcom/lib/constants";
 
 // biome-ignore lint/style/useNodejsImportProtocol: No node env

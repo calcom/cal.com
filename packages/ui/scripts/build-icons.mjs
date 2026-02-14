@@ -32,21 +32,13 @@ async function generateIconFiles() {
 
   const spriteFilepath = path.join(outputDir, "sprite.svg");
   const typeOutputFilepath = path.join(typesDir, "icon-names.ts");
-  const currentSprite = await fsExtra
-    .readFile(spriteFilepath, "utf8")
-    .catch(() => "");
-  const currentTypes = await fsExtra
-    .readFile(typeOutputFilepath, "utf8")
-    .catch(() => "");
+  const currentSprite = await fsExtra.readFile(spriteFilepath, "utf8").catch(() => "");
+  const currentTypes = await fsExtra.readFile(typeOutputFilepath, "utf8").catch(() => "");
 
   const iconNames = files.map((file) => iconName(file));
 
-  const spriteUpToDate = iconNames.every((name) =>
-    currentSprite.includes(`id=${name}`)
-  );
-  const typesUpToDate = iconNames.every((name) =>
-    currentTypes.includes(`"${name}"`)
-  );
+  const spriteUpToDate = iconNames.every((name) => currentSprite.includes(`id=${name}`));
+  const typesUpToDate = iconNames.every((name) => currentTypes.includes(`"${name}"`));
 
   if (spriteUpToDate && typesUpToDate) {
     logVerbose(`Icons are up to date`);
@@ -73,10 +65,7 @@ async function generateIconFiles() {
 export type IconName =
 \t| ${stringifiedIconNames.join("\n  | ")};
 `;
-  const typesChanged = await writeIfChanged(
-    typeOutputFilepath,
-    typeOutputContent
-  );
+  const typesChanged = await writeIfChanged(typeOutputFilepath, typeOutputContent);
 
   logVerbose(`Manifest saved to ${path.relative(cwd, typeOutputFilepath)}`);
 
@@ -130,9 +119,7 @@ async function generateSvgSprite({ files, inputDir, outputPath }) {
 }
 
 async function writeIfChanged(filepath, newContent) {
-  const currentContent = await fsExtra
-    .readFile(filepath, "utf8")
-    .catch(() => "");
+  const currentContent = await fsExtra.readFile(filepath, "utf8").catch(() => "");
   if (currentContent === newContent) return false;
   await fsExtra.writeFile(filepath, newContent, "utf8");
   await $`node ${biomeBin} format --write ${filepath}`;

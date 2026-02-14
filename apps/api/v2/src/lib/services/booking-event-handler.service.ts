@@ -21,4 +21,3 @@ export class BookingEventHandlerService extends BaseBookingEventHandlerService {
     });
   }
 }
-

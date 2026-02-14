@@ -6,9 +6,7 @@
   "logo": "icon-dark.svg",
   "url": "https://www.lindy.ai/integrations/cal-com",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "Lindy",
   "email": "flo@lindy.ai",
   "description": "Build AI agents in minutes to automate workflows, save time and grow your business",

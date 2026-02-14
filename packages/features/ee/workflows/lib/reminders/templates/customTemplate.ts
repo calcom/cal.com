@@ -229,7 +229,9 @@ const customTemplate = (
         const availableVariable = formatIdentifierToVariable(customInput);
         // Legacy format for backward compatibility with templates created before underscore support
         const availableVariableLegacyFormat = formatIdentifierToVariableLegacy(customInput);
-        const isFoundTemplateVariableValid = foundVariableInTemplate === availableVariable || foundVariableInTemplate === availableVariableLegacyFormat;
+        const isFoundTemplateVariableValid =
+          foundVariableInTemplate === availableVariable ||
+          foundVariableInTemplate === availableVariableLegacyFormat;
 
         if (isFoundTemplateVariableValid && variables.responses) {
           const response = variables.responses[customInput];

@@ -6,18 +6,14 @@
   "logo": "logo.png",
   "url": "https://github.com/miguelnietoa",
   "variant": "calendar",
-  "categories": [
-    "calendar"
-  ],
+  "categories": ["calendar"],
   "publisher": "Miguel Nieto",
   "email": "support@cal.com",
   "description": "All of your commitments, now in one place.",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "link-as-an-app",
-  "dependencies": [
-    "google-calendar"
-  ],
+  "dependencies": ["google-calendar"],
   "isOAuth": false,
   "externalLink": {
     "url": "https://cron.com",

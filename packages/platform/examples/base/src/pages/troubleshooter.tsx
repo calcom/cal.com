@@ -6,10 +6,7 @@ import { useRouter } from "next/router";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Troubleshooter(props: {
-  calUsername: string;
-  calEmail: string;
-}) {
+export default function Troubleshooter(props: { calUsername: string; calEmail: string }) {
   const router = useRouter();
 
   return (

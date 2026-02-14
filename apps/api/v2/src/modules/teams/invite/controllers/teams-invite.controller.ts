@@ -6,15 +6,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateInviteOutputDto } from "@/modules/teams/invite/outputs/invite.output";
 
-import {
-  Controller,
-  UseGuards,
-  Post,
-  Param,
-  ParseIntPipe,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
+import { Controller, UseGuards, Post, Param, ParseIntPipe, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -32,9 +24,7 @@ export class TeamsInviteController {
   @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Create team invite link" })
   @HttpCode(HttpStatus.OK)
-  async createInvite(
-    @Param("teamId", ParseIntPipe) teamId: number
-  ): Promise<CreateInviteOutputDto> {
+  async createInvite(@Param("teamId", ParseIntPipe) teamId: number): Promise<CreateInviteOutputDto> {
     const result = await TeamService.createInvite(teamId);
     return { status: SUCCESS_STATUS, data: result };
   }

@@ -61,7 +61,7 @@ export class OrganizationsTeamsMembershipsController {
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly orgMembershipService: OrganizationMembershipService
-  ) { }
+  ) {}
 
   @Get("/")
   @ApiOperation({ summary: "Get all memberships" })
@@ -169,7 +169,6 @@ export class OrganizationsTeamsMembershipsController {
       data: plainToClass(TeamMembershipOutput, updatedMembership, { strategy: "excludeAll" }),
     };
   }
-
 
   // TODO: Refactor to use inviteMembersWithNoInviterPermissionCheck when it is moved to a Service
   // See: packages/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler.ts

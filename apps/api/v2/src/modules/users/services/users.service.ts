@@ -28,7 +28,7 @@ export class UsersService {
     const users = await Promise.all(
       usernames.map((username) => this.usersRepository.findByUsername(username, orgSlug, orgId))
     );
-    
+
     return users;
   }
 

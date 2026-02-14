@@ -297,9 +297,7 @@ export function Header({
                 variant="icon"
                 color="minimal"
                 onClick={() => setIsEditing(true)}
-                CustomStartIcon={
-                  <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
+                CustomStartIcon={<PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />}>
                 <span className="sr-only">Edit</span>
               </Button>
             </div>

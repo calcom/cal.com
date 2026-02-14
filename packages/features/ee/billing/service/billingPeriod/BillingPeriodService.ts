@@ -137,14 +137,11 @@ export class BillingPeriodService {
       };
     }
 
-    const periodIsStale =
-      billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
+    const periodIsStale = billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
     const needsSync = (!billing.billingPeriod || periodIsStale) && billing.subscriptionId;
 
     if (needsSync) {
-      log.info(
-        `Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
-      );
+      log.info(`Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`);
 
       try {
         const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);

@@ -87,13 +87,13 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
             ? formMethods.getValues("schedule") === null
               ? t("members_default_schedule")
               : isChildrenManagedEventType
-              ? `${
-                  formMethods.getValues("scheduleName")
-                    ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                    : t("default_schedule_name")
-                }`
-              : formMethods.getValues("scheduleName") ?? t("default_schedule_name")
-            : formMethods.getValues("scheduleName") ?? t("default_schedule_name"),
+                ? `${
+                    formMethods.getValues("scheduleName")
+                      ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+                      : t("default_schedule_name")
+                  }`
+                : (formMethods.getValues("scheduleName") ?? t("default_schedule_name"))
+            : (formMethods.getValues("scheduleName") ?? t("default_schedule_name")),
         "data-testid": "availability",
       });
 

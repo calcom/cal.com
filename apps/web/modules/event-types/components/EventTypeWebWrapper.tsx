@@ -113,7 +113,7 @@ export const EventTypeWebWrapper = ({
     { id },
     { enabled: !serverFetchedData }
   );
-  
+
   if (serverFetchedData) {
     return (
       <EventPermissionProvider initialPermissions={permissions}>

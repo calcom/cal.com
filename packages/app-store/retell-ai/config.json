@@ -6,9 +6,7 @@
   "logo": "icon-dark.svg",
   "url": "https://go.cal.com/retellai",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "Retell AI",
   "email": "founders@retellai.com",
   "description": "Supercharge your Call Operations with AI \r",

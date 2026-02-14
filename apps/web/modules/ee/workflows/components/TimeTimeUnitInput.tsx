@@ -37,9 +37,7 @@ const TimeUnitAddonSuffix = ({
       <DropdownMenuTrigger asChild>
         <button className="flex items-center">
           <div className="mr-1 w-3/5">{timeUnit ? timeUnitOptions[timeUnit] : "undefined"}</div>
-          <div className="w-1/4 pt-1">
-            {isDropdownOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-          </div>
+          <div className="w-1/4 pt-1">{isDropdownOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}</div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>{DropdownItems}</DropdownMenuContent>

@@ -6,9 +6,7 @@
   "logo": "icon-dark.svg",
   "url": "https://www.greetmate.ai",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "Greetmate Inc.",
   "email": "support@greetmate.ai",
   "description": "Connect [Cal.com](https://cal.com/) to [Greetmate.ai](https://www.greetmate.ai/) and enable appointment scheduling for your AI agents.",

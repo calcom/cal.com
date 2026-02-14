@@ -142,8 +142,7 @@ const _handleResponse = async ({
             // 3. If fallbackAction is CustomPageMessage or ExternalRedirectUrl → don't use it (attribute routing doesn't apply)
             const hasFallbackAction = "fallbackAction" in chosenRoute && chosenRoute.fallbackAction;
             const shouldUseFallbackAttributesQuery =
-              !hasFallbackAction ||
-              chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
+              !hasFallbackAction || chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
             const teamMembersMatchingAttributeLogicWithResult =
               formTeamId && formOrgId
                 ? await findTeamMembersMatchingAttributeLogic(

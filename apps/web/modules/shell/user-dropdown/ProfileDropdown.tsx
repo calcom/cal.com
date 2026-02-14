@@ -95,9 +95,7 @@ export function ProfileDropdown() {
                     <Avatar alt={option.label || ""} size="xsm" />
                     <span className="ml-2">{option.label}</span>
                   </span>
-                  {isSelected ? (
-                    <CheckIcon className="ml-2 inline h-4 w-4" />
-                  ) : null}
+                  {isSelected ? <CheckIcon className="ml-2 inline h-4 w-4" /> : null}
                 </DropdownItem>
               </DropdownMenuItem>
             );

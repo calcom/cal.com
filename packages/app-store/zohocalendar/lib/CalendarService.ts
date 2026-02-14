@@ -470,9 +470,9 @@ class ZohoCalendarService implements Calendar {
       reminders: [
         {
           minutes: "-15",
-            action: "popup",
-          },
-        ],
+          action: "popup",
+        },
+      ],
       location: event.location
         ? getLocation({
             videoCallData: event.videoCallData,

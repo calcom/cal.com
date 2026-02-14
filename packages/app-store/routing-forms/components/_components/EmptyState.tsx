@@ -47,9 +47,7 @@ export const EmptyState = ({
         />
       </div>
       <div className="w-full">
-        <h1 className="text-emphasis line-clamp-1 text-center text-lg font-semibold">
-          {header}
-        </h1>
+        <h1 className="text-emphasis line-clamp-1 text-center text-lg font-semibold">{header}</h1>
         <p className="mt-2 line-clamp-1 text-center text-sm leading-normal transition-all duration-200 ease-in-out hover:line-clamp-none">
           {text}
         </p>
@@ -58,8 +56,7 @@ export const EmptyState = ({
         data-testid={buttonDataTestId}
         StartIcon={buttonStartIcon}
         onClick={buttonOnClick}
-        className={buttonClassName}
-      >
+        className={buttonClassName}>
         {buttonText}
       </Button>
     </div>

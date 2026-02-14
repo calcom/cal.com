@@ -128,8 +128,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       ],
     },
   });
- 
-
 
   // don't allow infinite redirects
   if (existingOutOfOfficeEntry) {
@@ -244,13 +242,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       })
     : null;
   const reason = await prisma.outOfOfficeReason.findUnique({
-    where: {
-      id: input.reasonId,
-    },
-    select: {
-      reason: true,
-      emoji: true,
-    },
+    where: { id: input.reasonId },
+    select: { reason: true, emoji: true },
   });
   if (toUserId) {
     // await send email to notify user

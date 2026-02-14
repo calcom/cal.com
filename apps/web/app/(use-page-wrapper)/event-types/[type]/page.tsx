@@ -62,7 +62,7 @@ const ServerPage = async ({ params }: PageProps) => {
 
   // Fetch permissions for the event type's team
   const permissions = await getEventTypePermissions(session.user.id, data.eventType.teamId);
- 
+
   return <EventTypeWebWrapper data={data} id={eventTypeId} permissions={permissions} />;
 };
 

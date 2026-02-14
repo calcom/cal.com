@@ -349,7 +349,11 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
 
     const activeUserBillingService = getActiveUserBillingService();
-    return activeUserBillingService.getActiveUserCountForPlatformOrg(subscriptionId, invoiceStart, invoiceEnd);
+    return activeUserBillingService.getActiveUserCountForPlatformOrg(
+      subscriptionId,
+      invoiceStart,
+      invoiceEnd
+    );
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan): Promise<void> {

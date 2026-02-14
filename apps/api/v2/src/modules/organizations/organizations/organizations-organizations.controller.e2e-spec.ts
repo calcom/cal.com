@@ -92,14 +92,14 @@ describe("Organizations Organizations Endpoints", () => {
 
   const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
-    beforeAll(async () => {
-      mockThrottlerGuard();
+  beforeAll(async () => {
+    mockThrottlerGuard();
 
-      const moduleRef = await Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-      }).compile();
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+    }).compile();
 
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+    userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);

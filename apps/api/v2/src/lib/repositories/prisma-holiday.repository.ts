@@ -10,4 +10,3 @@ export class PrismaHolidayRepository extends PrismaHolidayRepositoryLib {
     super(dbWrite.prisma as unknown as PrismaClient);
   }
 }
-

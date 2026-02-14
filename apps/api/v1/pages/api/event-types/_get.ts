@@ -111,10 +111,13 @@ async function defaultScheduleId<T extends DefaultScheduleIdEventTypeBase>({
     return eventTypes;
   }
 
-  const defaultScheduleIds = users.reduce((result, user) => {
-    result[user.id] = user.defaultScheduleId;
-    return result;
-  }, {} as { [x: number]: number | null });
+  const defaultScheduleIds = users.reduce(
+    (result, user) => {
+      result[user.id] = user.defaultScheduleId;
+      return result;
+    },
+    {} as { [x: number]: number | null }
+  );
 
   return eventTypes.map((eventType) => {
     // realistically never happens, userId shouldn't be null on personal event types.

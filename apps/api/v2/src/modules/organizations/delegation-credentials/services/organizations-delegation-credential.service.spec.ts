@@ -1,7 +1,4 @@
-import {
-  CALENDARS_QUEUE,
-  DEFAULT_CALENDARS_JOB,
-} from "@/ee/calendars/processors/calendars.processor";
+import { CALENDARS_QUEUE, DEFAULT_CALENDARS_JOB } from "@/ee/calendars/processors/calendars.processor";
 import { CalendarsTasker } from "@/lib/services/tasker/calendars-tasker.service";
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
 import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
@@ -58,9 +55,7 @@ describe("OrganizationsDelegationCredentialService", () => {
       ],
     }).compile();
 
-    service = module.get<OrganizationsDelegationCredentialService>(
-      OrganizationsDelegationCredentialService
-    );
+    service = module.get<OrganizationsDelegationCredentialService>(OrganizationsDelegationCredentialService);
     mockRepository = module.get<OrganizationsDelegationCredentialRepository>(
       OrganizationsDelegationCredentialRepository
     );
@@ -147,9 +142,7 @@ describe("OrganizationsDelegationCredentialService", () => {
     });
 
     it("does not throw when repository fails", async () => {
-      (mockRepository.findDelegatedUserProfiles as jest.Mock).mockRejectedValue(
-        new Error("Database error")
-      );
+      (mockRepository.findDelegatedUserProfiles as jest.Mock).mockRejectedValue(new Error("Database error"));
 
       await expect(service.ensureDefaultCalendars(orgId, domain)).resolves.toBeUndefined();
       expect(mockQueue.add).not.toHaveBeenCalled();
@@ -205,7 +198,9 @@ describe("OrganizationsDelegationCredentialService", () => {
     it("returns early and logs warning for invalid email without @ symbol", async () => {
       await service.ensureDefaultCalendarsForUser(orgId, userId, "invalidemail");
 
-      expect(Logger.prototype.warn).toHaveBeenCalledWith(`Invalid email format for user ${userId}: missing domain`);
+      expect(Logger.prototype.warn).toHaveBeenCalledWith(
+        `Invalid email format for user ${userId}: missing domain`
+      );
       expect(mockRepository.findEnabledByOrgIdAndDomain).not.toHaveBeenCalled();
       expect(mockQueue.add).not.toHaveBeenCalled();
     });
@@ -213,7 +208,9 @@ describe("OrganizationsDelegationCredentialService", () => {
     it("returns early for email with @ but no domain part", async () => {
       await service.ensureDefaultCalendarsForUser(orgId, userId, "user@");
 
-      expect(Logger.prototype.warn).toHaveBeenCalledWith(`Invalid email format for user ${userId}: missing domain`);
+      expect(Logger.prototype.warn).toHaveBeenCalledWith(
+        `Invalid email format for user ${userId}: missing domain`
+      );
       expect(mockRepository.findEnabledByOrgIdAndDomain).not.toHaveBeenCalled();
       expect(mockQueue.add).not.toHaveBeenCalled();
     });
@@ -273,13 +270,17 @@ describe("OrganizationsDelegationCredentialService", () => {
         });
         mockCalendarsTasker.dispatch.mockRejectedValue(new Error("Tasker error"));
 
-        await expect(service.ensureDefaultCalendarsForUser(orgId, userId, userEmail)).resolves.toBeUndefined();
+        await expect(
+          service.ensureDefaultCalendarsForUser(orgId, userId, userEmail)
+        ).resolves.toBeUndefined();
       });
 
       it("returns early for invalid email without calling tasker", async () => {
         await service.ensureDefaultCalendarsForUser(orgId, userId, "invalidemail");
 
-        expect(Logger.prototype.warn).toHaveBeenCalledWith(`Invalid email format for user ${userId}: missing domain`);
+        expect(Logger.prototype.warn).toHaveBeenCalledWith(
+          `Invalid email format for user ${userId}: missing domain`
+        );
         expect(mockCalendarsTasker.dispatch).not.toHaveBeenCalled();
         expect(mockRepository.findEnabledByOrgIdAndDomain).not.toHaveBeenCalled();
       });
