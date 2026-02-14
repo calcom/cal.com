@@ -1,7 +1,7 @@
+import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 import { prisma } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 
@@ -25,6 +25,7 @@ const lockUserAccountHandler = async ({ input }: GetOptions) => {
     select: {
       id: true,
       email: true,
+      username: true,
     },
   });
 
@@ -39,6 +40,11 @@ const lockUserAccountHandler = async ({ input }: GetOptions) => {
     if (watchlistEntry) {
       await globalWatchlistRepo.deleteEntry(watchlistEntry.id);
     }
+
+    await sendEmailVerification({
+      email: user.email,
+      username: user.username || "",
+    });
   }
 
   return {
