@@ -327,11 +327,11 @@ export class OutputBookingsService_2024_08_13 {
     userIsEventTypeAdminOrOwner: boolean
   ): Promise<CreateSeatedBookingOutput_2024_08_13> {
     const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
-    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking, showAttendees);
+    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking, showAttendees, seatUid);
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean, seatUid?: string) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -340,10 +340,23 @@ export class OutputBookingsService_2024_08_13 {
     const rescheduledToUid = await this.getRescheduledToUid(databaseBooking);
     const rescheduledByEmail = await this.getRescheduledByEmail(databaseBooking);
 
+    let bookingTitle = databaseBooking.title;
+
+    if (seatUid && !showAttendees) {
+      const currentAttendee = databaseBooking.attendees.find(
+        (attendee) => attendee.bookingSeat?.referenceUid === seatUid
+      );
+      const firstAttendeeName = databaseBooking.attendees[0]?.name;
+      
+      if (currentAttendee && firstAttendeeName && currentAttendee.name !== firstAttendeeName) {
+        bookingTitle = databaseBooking.title.replace(firstAttendeeName, currentAttendee.name);
+      }
+    }
+
     const booking = {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
-      title: databaseBooking.title,
+      title: bookingTitle,
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
@@ -456,22 +469,36 @@ export class OutputBookingsService_2024_08_13 {
     const showAttendees = userIsEventTypeAdminOrOwner || !!databaseBooking.eventType?.seatsShowAttendees;
     const getRecurringSeatedBookingOutput = this.getOutputRecurringSeatedBooking(
       databaseBooking,
-      showAttendees
+      showAttendees,
+      seatUid
     );
     return { ...getRecurringSeatedBookingOutput, seatUid };
   }
 
-  getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean) {
+  getOutputRecurringSeatedBooking(databaseBooking: DatabaseBooking, showAttendees: boolean, seatUid?: string) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
 
+    let bookingTitle = databaseBooking.title;
+
+    if (seatUid && !showAttendees) {
+      const currentAttendee = databaseBooking.attendees.find(
+        (attendee) => attendee.bookingSeat?.referenceUid === seatUid
+      );
+      const firstAttendeeName = databaseBooking.attendees[0]?.name;
+      
+      if (currentAttendee && firstAttendeeName && currentAttendee.name !== firstAttendeeName) {
+        bookingTitle = databaseBooking.title.replace(firstAttendeeName, currentAttendee.name);
+      }
+    }
+
     const booking = {
       id: databaseBooking.id,
       uid: databaseBooking.uid,
-      title: databaseBooking.title,
+      title: bookingTitle,
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),

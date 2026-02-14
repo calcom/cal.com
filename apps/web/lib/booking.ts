@@ -206,6 +206,15 @@ export const handleSeatsEventTypeOnBooking = async (
     bookingInfo["responses"] = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
   }
 
+  if (seatAttendee && bookingInfo.title && !isHost) {
+    const firstAttendeeName = bookingInfo.attendees?.[0]?.name;
+    const currentAttendeeName = seatAttendee.attendee.name;
+    
+    if (firstAttendeeName && currentAttendeeName && firstAttendeeName !== currentAttendeeName) {
+      bookingInfo["title"] = bookingInfo.title.replace(firstAttendeeName, currentAttendeeName);
+    }
+  }
+
   if (!eventType.seatsShowAttendees && !isHost) {
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
