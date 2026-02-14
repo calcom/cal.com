@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="kaspaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#49EACB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#70C4BA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="45" fill="url(#kaspaGrad)"/>
+  <text x="50" y="62" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle">K</text>
+  <text x="50" y="80" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle">PAY</text>
+</svg>

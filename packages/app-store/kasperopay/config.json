@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "KasperoPay",
+  "slug": "kasperopay",
+  "type": "kasperopay_payment",
+  "logo": "icon.svg",
+  "url": "https://kaspa-store.com",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "Kaspero Labs",
+  "email": "support@kasperolabs.com",
+  "description": "Accept Kaspa payments for your Cal.com bookings. KasperoPay supports multiple wallets including Kasware, Kastle, and mobile QR payments.",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "kasperopay",
+  "isOAuth": false
+}
