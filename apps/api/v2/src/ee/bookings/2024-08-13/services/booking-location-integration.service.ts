@@ -116,8 +116,7 @@ export class BookingLocationIntegrationService_2024_08_13 {
 
   private async handleGoogleMeetLocation(ctx: IntegrationHandlerContext): Promise<BookingLocationResponse> {
     const hasGoogleCalendar = ctx.booking.references.some(
-      (ref: BookingWithUserAndEventDetails["references"][number]) =>
-        ref.type.includes("google_calendar") && !ref.deleted
+      (ref) => ref.type.includes("google_calendar") && !ref.deleted
     );
 
     if (!hasGoogleCalendar) {
@@ -134,8 +133,7 @@ export class BookingLocationIntegrationService_2024_08_13 {
 
   private async handleMSTeamsLocation(ctx: IntegrationHandlerContext): Promise<BookingLocationResponse> {
     const hasOffice365Calendar = ctx.booking.references.some(
-      (ref: BookingWithUserAndEventDetails["references"][number]) =>
-        ref.type.includes("office365_calendar") && !ref.deleted
+      (ref) => ref.type.includes("office365_calendar") && !ref.deleted
     );
 
     if (hasOffice365Calendar) {
@@ -254,8 +252,7 @@ export class BookingLocationIntegrationService_2024_08_13 {
     requiredCalendarType: string
   ): Promise<BookingLocationResponse> {
     const calendarReference = ctx.booking.references.find(
-      (ref: BookingWithUserAndEventDetails["references"][number]) =>
-        ref.type.includes(requiredCalendarType) && !ref.deleted
+      (ref) => ref.type.includes(requiredCalendarType) && !ref.deleted
     );
 
     if (!calendarReference) {
@@ -275,7 +272,11 @@ export class BookingLocationIntegrationService_2024_08_13 {
       );
     }
 
-    const evt = await this.calendarSyncService.buildCalEventFromBookingData(ctx.booking, ctx.internalLocation, null);
+    const evt = await this.calendarSyncService.buildCalEventFromBookingData(
+      ctx.booking,
+      ctx.internalLocation,
+      null
+    );
 
     if (ctx.integrationSlug === "google-meet") {
       evt.conferenceData = {
@@ -302,43 +303,14 @@ export class BookingLocationIntegrationService_2024_08_13 {
 
     const bookingLocation = meetingUrl || ctx.internalLocation;
 
-    // for calendar-based integrations, we update booking directly without replacing references
-    const existingMetadata = (ctx.existingBooking.metadata || {}) as Record<string, unknown>;
-    const updatedMetadata = {
-      ...existingMetadata,
-      videoCallUrl: meetingUrl,
-    };
+    const updatedMetadata = this.buildUpdatedMetadata(ctx.existingBooking.metadata, meetingUrl);
 
     const updatedBooking = await this.bookingsRepository.updateBooking(ctx.existingBooking.uid, {
       location: bookingLocation,
       metadata: updatedMetadata as Prisma.InputJsonValue,
     });
 
-    const organizationId = ctx.existingBookingHost?.organizationId ?? null;
-    const isBookingAuditEnabled = organizationId
-      ? await this.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-      : false;
-
-    await this.bookingEventHandlerService.onLocationChanged({
-      bookingUid: ctx.existingBooking.uid,
-      actor: makeUserActor(ctx.user.uuid),
-      organizationId,
-      source: "API_V2",
-      auditData: {
-        location: {
-          old: ctx.existingBooking.location,
-          new: bookingLocation,
-        },
-      },
-      isBookingAuditEnabled,
-    });
-
-    await this.calendarSyncService.sendLocationChangeNotifications(
-      evt,
-      ctx.existingBooking.uid,
-      bookingLocation,
-      ctx.booking.eventType?.metadata as Record<string, unknown> | undefined
-    );
+    await this.emitLocationChangeEvents(ctx, bookingLocation, evt);
 
     return this.bookingsService.getBooking(updatedBooking.uid, ctx.user);
   }
@@ -349,28 +321,38 @@ export class BookingLocationIntegrationService_2024_08_13 {
     bookingLocation: string,
     evt: CalendarEvent
   ): Promise<BookingLocationResponse> {
-    const existingMetadata = (ctx.existingBooking.metadata || {}) as Record<string, unknown>;
-    const updatedMetadata = {
-      ...existingMetadata,
-      videoCallUrl,
-    };
+    const updatedMetadata = this.buildUpdatedMetadata(ctx.existingBooking.metadata, videoCallUrl);
 
     const bookingFieldsLocation = this.inputService.transformLocation(ctx.inputLocation);
-
     const responses = (ctx.existingBooking.responses || {}) as Record<string, unknown>;
     const { location: _existingLocation, ...rest } = responses;
 
-    const updatedBookingResponses = {
-      ...rest,
-      location: bookingFieldsLocation,
-    };
-
     const updatedBooking = await this.bookingsRepository.updateBooking(ctx.existingBooking.uid, {
       location: bookingLocation,
-      responses: updatedBookingResponses,
+      responses: { ...rest, location: bookingFieldsLocation },
       metadata: updatedMetadata as Prisma.InputJsonValue,
     });
 
+    await this.emitLocationChangeEvents(ctx, bookingLocation, evt);
+
+    return this.bookingsService.getBooking(updatedBooking.uid, ctx.user);
+  }
+
+  private buildUpdatedMetadata(
+    existingMetadata: unknown,
+    videoCallUrl: string | undefined
+  ): Record<string, unknown> {
+    return {
+      ...((existingMetadata || {}) as Record<string, unknown>),
+      videoCallUrl,
+    };
+  }
+
+  private async emitLocationChangeEvents(
+    ctx: IntegrationHandlerContext,
+    bookingLocation: string,
+    evt: CalendarEvent
+  ): Promise<void> {
     const organizationId = ctx.existingBookingHost?.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
       ? await this.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
@@ -396,7 +378,5 @@ export class BookingLocationIntegrationService_2024_08_13 {
       bookingLocation,
       ctx.booking.eventType?.metadata as Record<string, unknown> | undefined
     );
-
-    return this.bookingsService.getBooking(updatedBooking.uid, ctx.user);
   }
 }

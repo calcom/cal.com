@@ -16,41 +16,38 @@ export class BookingLocationCredentialService_2024_08_13 {
       type: string;
     }>
   ): Promise<CredentialForCalendarService | null> {
+    const credentialId = this.resolveCredentialId(reference, userCredentials);
+    if (!credentialId) {
+      return null;
+    }
+    return CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId });
+  }
+
+  private resolveCredentialId(
+    reference: {
+      credentialId: number | null;
+      delegationCredentialId: string | null;
+      type: string;
+    },
+    userCredentials: Array<{
+      id: number;
+      delegationCredentialId: string | null;
+      type: string;
+    }>
+  ): number | null {
     if (reference.delegationCredentialId) {
       const delegationCred = userCredentials.find(
         (cred) => cred.delegationCredentialId === reference.delegationCredentialId
       );
-      if (delegationCred) {
-        const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
-          id: delegationCred.id,
-        });
-        return credFromDB;
-      }
+      if (delegationCred) return delegationCred.id;
     }
 
     if (reference.credentialId && reference.credentialId > 0) {
       const localCred = userCredentials.find((cred) => cred.id === reference.credentialId);
-      if (localCred) {
-        const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
-          id: localCred.id,
-        });
-        return credFromDB;
-      }
-
-      const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
-        id: reference.credentialId,
-      });
-      return credFromDB;
+      return localCred?.id ?? reference.credentialId;
     }
 
     const typeCred = userCredentials.find((cred) => cred.type === reference.type);
-    if (typeCred) {
-      const credFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
-        id: typeCred.id,
-      });
-      return credFromDB;
-    }
-
-    return null;
+    return typeCred?.id ?? null;
   }
 }

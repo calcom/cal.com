@@ -1,10 +1,20 @@
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
-import type { UpdateBookingInputLocation_2024_08_13, UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types";
-import type { Booking, Prisma } from "@calcom/prisma/client";
-import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import type {
+  UpdateBookingInputLocation_2024_08_13,
+  UpdateBookingLocationInput_2024_08_13,
+} from "@calcom/platform-types";
+import type { Prisma } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingLocationCalendarSyncService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-calendar-sync.service";
 import {
+  type BookingForLocationUpdate,
   BookingLocationIntegrationService_2024_08_13,
   type BookingLocationResponse,
 } from "@/ee/bookings/2024-08-13/services/booking-location-integration.service";
@@ -17,11 +27,6 @@ import { BookingEventHandlerService } from "@/lib/services/booking-event-handler
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-
-type BookingForLocationUpdate = Pick<
-  Booking,
-  "id" | "uid" | "userId" | "eventTypeId" | "location" | "responses" | "metadata"
->;
 
 @Injectable()
 export class BookingLocationService_2024_08_13 {
@@ -156,33 +161,37 @@ export class BookingLocationService_2024_08_13 {
     });
 
     if (bookingLocation) {
-      const bookingWithDetails = await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(
-        existingBooking.id
-      );
-      if (bookingWithDetails?.user) {
-        const evt = await this.calendarSyncService.buildCalEventFromBookingData(
-          bookingWithDetails,
-          bookingLocation,
-          null
-        );
-        await this.calendarSyncService.sendLocationChangeNotifications(
-          evt,
-          existingBooking.uid,
-          bookingLocation,
-          bookingWithDetails.eventType?.metadata as Record<string, unknown> | undefined
-        );
-      } else if (!bookingWithDetails) {
-        this.logger.warn(
-          `Unable to send location change notifications: booking details not found for bookingId=${existingBooking.id}`
-        );
-      } else if (!bookingWithDetails.user) {
-        this.logger.warn(
-          `Unable to send location change notifications: user not found for bookingId=${existingBooking.id}`
-        );
-      }
+      await this.sendLocationChangeNotifications(existingBooking.id, existingBooking.uid, bookingLocation);
     }
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
+  }
+
+  private async sendLocationChangeNotifications(
+    bookingId: number,
+    bookingUid: string,
+    bookingLocation: string
+  ): Promise<void> {
+    const bookingWithDetails = await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(bookingId);
+
+    if (!bookingWithDetails || !bookingWithDetails.user) {
+      this.logger.warn(
+        `Unable to send location change notifications: ${!bookingWithDetails ? "booking details" : "user"} not found for bookingId=${bookingId}`
+      );
+      return;
+    }
+
+    const evt = await this.calendarSyncService.buildCalEventFromBookingData(
+      bookingWithDetails,
+      bookingLocation,
+      null
+    );
+    await this.calendarSyncService.sendLocationChangeNotifications(
+      evt,
+      bookingUid,
+      bookingLocation,
+      bookingWithDetails.eventType?.metadata as Record<string, unknown> | undefined
+    );
   }
 
   private getNonIntegrationLocationValue(loc: UpdateBookingInputLocation_2024_08_13): string | undefined {
