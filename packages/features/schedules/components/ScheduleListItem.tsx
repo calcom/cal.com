@@ -9,6 +9,7 @@ import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { LoaderIcon } from "@coss/ui/icons";
 import {
   Dropdown,
   DropdownItem,
@@ -19,7 +20,6 @@ import {
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { GlobeIcon } from "@coss/ui/icons";
-
 interface Schedule {
   id: number;
   name: string;
@@ -60,7 +60,7 @@ export function ScheduleListItem({
 }) {
   const { t, i18n } = useLocale();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false)
   type AvailabilityItem = (typeof schedule.availability)[number];
 
   return (
@@ -159,19 +159,35 @@ export function ScheduleListItem({
           </DropdownMenuContent>
         </Dropdown>
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t("delete_schedule")}
-            confirmBtnText={t("delete")}
-            loadingText={t("delete")}
-            onConfirm={(e) => {
-              e.preventDefault();
-              deleteFunction({
-                scheduleId: schedule.id,
-              });
-            }}>
-            {t("delete_schedule_description")}
-          </ConfirmationDialogContent>
+          
+  <ConfirmationDialogContent
+  variety="danger"
+  title={t("delete_schedule")}
+  confirmBtn={
+    <Button
+      loading={loading}
+      onClick={async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const minTime = 200;
+        const start = Date.now();
+
+        await deleteFunction({ scheduleId: schedule.id });
+
+        const delay = Math.max(0, minTime - (Date.now() - start));
+        setTimeout(() => setLoading(false), delay);
+      }}
+    >
+      {loading ? "Deleting..." : t("delete")}
+    </Button>
+  }
+>
+  {t("delete_schedule_description")}
+</ConfirmationDialogContent>
+
+
+          
         </Dialog>
       </div>
     </li>
