@@ -13,8 +13,9 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 
-// Mock the createMeeting function to return a fake Daily.co meeting
-// This bypasses both the database check for enabled apps and the actual API call
+const MOCK_GOOGLE_MEET_URL = "https://meet.google.com/mock-meet-id";
+const MOCK_MS_TEAMS_URL = "https://teams.microsoft.com/l/meetup-join/mock-teams-id";
+
 jest.mock("@calcom/platform-libraries/conferencing", () => ({
   ...jest.requireActual("@calcom/platform-libraries/conferencing"),
   createMeeting: jest.fn().mockResolvedValue({
@@ -32,7 +33,41 @@ jest.mock("@calcom/platform-libraries/conferencing", () => ({
     credentialId: 0,
   }),
 }));
+
+jest.mock("@calcom/platform-libraries", () => {
+  const actual = jest.requireActual("@calcom/platform-libraries");
+  return {
+    ...actual,
+    updateEvent: jest.fn().mockImplementation((_credential, evt) => {
+      const isGoogleMeet = evt.conferenceData?.createRequest;
+      return Promise.resolve({
+        uid: "MOCK_CALENDAR_UID",
+        updatedEvent: {
+          id: "MOCK_UPDATED_EVENT_ID",
+          hangoutLink: isGoogleMeet ? MOCK_GOOGLE_MEET_URL : undefined,
+          url: isGoogleMeet ? undefined : MOCK_MS_TEAMS_URL,
+        },
+      });
+    }),
+    CredentialRepository: {
+      ...actual.CredentialRepository,
+      findCredentialForCalendarServiceById: jest.fn().mockResolvedValue({
+        id: 99999,
+        type: "google_calendar",
+        userId: 1,
+        teamId: null,
+        key: {},
+        appId: "google-calendar",
+        invalid: false,
+        delegationCredentialId: null,
+      }),
+    },
+    sendLocationChangeEmailsAndSMS: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -48,6 +83,7 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersModule } from "@/modules/users/users.module";
 
 type TestUser = {
@@ -69,11 +105,13 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
   let userRepositoryFixture: UserRepositoryFixture;
   let bookingsRepositoryFixture: BookingsRepositoryFixture;
+  let credentialsRepositoryFixture: CredentialsRepositoryFixture;
   let schedulesService: SchedulesService_2024_04_15;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let tokensRepositoryFixture: TokensRepositoryFixture;
+  let prismaWrite: PrismaWriteService;
 
   let testSetup: TestSetup;
 
@@ -90,11 +128,13 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+    credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
+    prismaWrite = moduleRef.get(PrismaWriteService);
 
     organization = await teamRepositoryFixture.create({
       name: `update-booking-location-organization-${randomString()}`,
@@ -373,6 +413,128 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         expect(
           updatedBooking.location?.startsWith("http") || updatedBooking.location === "integrations:daily"
         ).toBe(true);
+      });
+
+      it("can update location to type integration (google-meet)", async () => {
+        const googleCredential = await credentialsRepositoryFixture.create(
+          "google_calendar",
+          { access_token: "mock", refresh_token: "mock", expiry_date: Date.now() + 3600000 },
+          testSetup.organizer.id,
+          "google-calendar"
+        );
+
+        const googleBooking = await bookingsRepositoryFixture.create({
+          uid: `google-meet-booking-${randomString(10)}`,
+          title: "google meet booking",
+          startTime: "2048-09-14T09:00:00.000Z",
+          endTime: "2048-09-14T10:00:00.000Z",
+          eventType: { connect: { id: eventTypeWithAllLocationsId } },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: { connect: { id: testSetup.organizer.id } },
+        });
+
+        await prismaWrite.prisma.bookingReference.create({
+          data: {
+            type: "google_calendar",
+            uid: "mock-google-calendar-event-uid",
+            bookingId: googleBooking.id,
+            credentialId: googleCredential.id,
+            externalCalendarId: "primary",
+          },
+        });
+
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "google-meet",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${googleBooking.uid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(MOCK_GOOGLE_MEET_URL);
+
+        await prismaWrite.prisma.bookingReference.deleteMany({ where: { bookingId: googleBooking.id } });
+        await bookingsRepositoryFixture.deleteById(googleBooking.id);
+        await credentialsRepositoryFixture.delete(googleCredential.id);
+      });
+
+      it("can update location to type integration (office365-video)", async () => {
+        const office365Credential = await credentialsRepositoryFixture.create(
+          "office365_calendar",
+          { access_token: "mock", refresh_token: "mock", expiry_date: Date.now() + 3600000 },
+          testSetup.organizer.id,
+          "office365-calendar"
+        );
+
+        const msTeamsBooking = await bookingsRepositoryFixture.create({
+          uid: `ms-teams-booking-${randomString(10)}`,
+          title: "ms teams booking",
+          startTime: "2048-10-14T09:00:00.000Z",
+          endTime: "2048-10-14T10:00:00.000Z",
+          eventType: { connect: { id: eventTypeWithAllLocationsId } },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: { connect: { id: testSetup.organizer.id } },
+        });
+
+        await prismaWrite.prisma.bookingReference.create({
+          data: {
+            type: "office365_calendar",
+            uid: "mock-office365-calendar-event-uid",
+            bookingId: msTeamsBooking.id,
+            credentialId: office365Credential.id,
+            externalCalendarId: "primary",
+          },
+        });
+
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "office365-video",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${msTeamsBooking.uid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(MOCK_MS_TEAMS_URL);
+
+        await prismaWrite.prisma.bookingReference.deleteMany({ where: { bookingId: msTeamsBooking.id } });
+        await bookingsRepositoryFixture.deleteById(msTeamsBooking.id);
+        await credentialsRepositoryFixture.delete(office365Credential.id);
       });
 
       it("should return 400 when updating to unsupported integration", async () => {
