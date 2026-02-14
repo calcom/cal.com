@@ -1,13 +1,12 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
-
 import type {
-  IWatchlistRepository,
-  CreateWatchlistInput,
   CheckWatchlistInput,
-  WatchlistEntry,
+  CreateWatchlistInput,
   FindAllEntriesInput,
+  IWatchlistRepository,
   WatchlistAuditEntry,
+  WatchlistEntry,
 } from "./IWatchlistRepository";
 
 export class WatchlistRepository implements IWatchlistRepository {
@@ -238,6 +237,9 @@ export class WatchlistRepository implements IWatchlistRepository {
       id: string;
       isGlobal: boolean;
       organizationId: number | null;
+      source: WatchlistSource;
+      type: WatchlistEntry["type"];
+      value: string;
     }>
   > {
     return this.prismaClient.watchlist.findMany({
@@ -246,6 +248,9 @@ export class WatchlistRepository implements IWatchlistRepository {
         id: true,
         isGlobal: true,
         organizationId: true,
+        source: true,
+        type: true,
+        value: true,
       },
     });
   }

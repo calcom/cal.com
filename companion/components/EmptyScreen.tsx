@@ -26,9 +26,7 @@ export function EmptyScreen({
   const colors = {
     text: isDark ? "#FFFFFF" : "#111827",
     textSecondary: isDark ? "#A3A3A3" : "#6B7280",
-    background: isDark ? "#171717" : "#FFFFFF",
-    backgroundSecondary: isDark ? "#2C2C2E" : "#F3F4F6",
-    border: isDark ? "#4D4D4D" : "#D1D5DB",
+    iconBackground: isDark ? "#2C2C2E" : "#F3F4F6",
     icon: isDark ? "#E5E5EA" : "#374151",
     buttonBg: isDark ? "#FFFFFF" : "#111827",
     buttonText: isDark ? "#000000" : "#FFFFFF",
@@ -37,9 +35,6 @@ export function EmptyScreen({
   return (
     <View
       style={{
-        backgroundColor: colors.background,
-        borderColor: colors.border,
-        borderWidth: 1,
         borderRadius: 8,
         padding: 28,
         width: "100%",
@@ -54,9 +49,7 @@ export function EmptyScreen({
           width: 72,
           height: 72,
           borderRadius: 36,
-          backgroundColor: colors.backgroundSecondary,
-          borderWidth: 1,
-          borderColor: colors.border,
+          backgroundColor: colors.iconBackground,
           alignItems: "center",
           justifyContent: "center",
         }}

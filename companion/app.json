@@ -3,7 +3,7 @@
     "name": "Calcom",
     "slug": "calcom-companion",
     "scheme": "calcom",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -102,7 +102,7 @@
               "minWidth": "180dp",
               "minHeight": "110dp",
               "description": "View your upcoming Cal.com bookings",
-              "previewImage": "./assets/icon.png",
+              "previewImage": "./assets/widget-preview.png",
               "resizeMode": "horizontal|vertical",
               "targetCellWidth": 3,
               "targetCellHeight": 2
