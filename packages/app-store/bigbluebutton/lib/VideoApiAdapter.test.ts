@@ -4,6 +4,14 @@ vi.mock("../../_utils/getAppKeysFromSlug", () => ({
   default: vi.fn(),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    bookingReference: {
+      findFirst: vi.fn(),
+    },
+  },
+}));
+
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import BigBlueButtonVideoApiAdapter from "./VideoApiAdapter";
 
@@ -54,6 +62,7 @@ describe("BigBlueButtonVideoApiAdapter", () => {
       expect(result.id).toBeDefined();
       expect(result.url).toContain("bbb.example.com");
       expect(result.url).toContain("/join?");
+      expect(result.url).toContain("fullName=");
       expect(global.fetch).toHaveBeenCalledTimes(1);
 
       // Verify the create URL was called with correct base
@@ -104,20 +113,41 @@ describe("BigBlueButtonVideoApiAdapter", () => {
       await expect(adapter.deleteMeeting("some-id")).resolves.toBeUndefined();
     });
 
-    it("calls the end API", async () => {
+    it("calls the end API with moderator password from booking reference", async () => {
       mockedGetAppKeys.mockResolvedValue({
         bbbUrl: "https://bbb.example.com/bigbluebutton/",
         bbbSecret: "secret",
       });
+      const prisma = await import("@calcom/prisma");
+      (prisma.default.bookingReference.findFirst as any).mockResolvedValue({
+        meetingId: "meeting-123",
+        meetingPassword: "mod-password",
+      });
       global.fetch = vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve("") });
 
       const adapter = BigBlueButtonVideoApiAdapter();
-      await adapter.deleteMeeting("meeting-123");
+      await adapter.deleteMeeting("ref-uid");
 
       expect(global.fetch).toHaveBeenCalledTimes(1);
       const callUrl = (global.fetch as any).mock.calls[0][0] as string;
       expect(callUrl).toContain("/end?");
       expect(callUrl).toContain("meetingID=meeting-123");
+      expect(callUrl).toContain("password=mod-password");
+    });
+
+    it("skips end API when no moderator password found", async () => {
+      mockedGetAppKeys.mockResolvedValue({
+        bbbUrl: "https://bbb.example.com/bigbluebutton/",
+        bbbSecret: "secret",
+      });
+      const prisma = await import("@calcom/prisma");
+      (prisma.default.bookingReference.findFirst as any).mockResolvedValue(null);
+      global.fetch = vi.fn();
+
+      const adapter = BigBlueButtonVideoApiAdapter();
+      await adapter.deleteMeeting("ref-uid");
+
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 

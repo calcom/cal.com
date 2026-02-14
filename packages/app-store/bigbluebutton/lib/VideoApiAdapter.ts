@@ -87,9 +87,12 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
 
       // Build a join link using attendee password so the URL works for anyone.
       // The organizer gets the moderator password stored in the booking reference.
+      const attendeeName =
+        eventData.attendees?.[0]?.name || eventData.organizer?.name || "Participant";
       const joinParams: Record<string, string> = {
         meetingID,
         password: attendeePW,
+        fullName: attendeeName,
         redirect: "true",
       };
       const joinQs = buildQuery(joinParams);
@@ -112,8 +115,21 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
 
         if (!bbbUrl || !bbbSecret) return;
 
+        // Look up the moderator password from the booking reference.
+        // The `end` API requires the moderator password to terminate a meeting.
+        const { default: prisma } = await import("@calcom/prisma");
+        const reference = await prisma.bookingReference.findFirst({
+          where: { uid, type: metadata.type },
+          select: { meetingPassword: true, meetingId: true },
+        });
+
+        const meetingID = reference?.meetingId || uid;
+        const moderatorPW = reference?.meetingPassword || "";
+
+        if (!moderatorPW) return; // Can't end without moderator password; BBB will auto-expire
+
         const apiBase = resolveApiBase(bbbUrl);
-        const endParams: Record<string, string> = { meetingID: uid, password: "" };
+        const endParams: Record<string, string> = { meetingID, password: moderatorPW };
         const qs = buildQuery(endParams);
         const checksum = bbbChecksum("end", qs, bbbSecret);
 
