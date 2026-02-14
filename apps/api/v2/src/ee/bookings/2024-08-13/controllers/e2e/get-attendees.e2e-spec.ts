@@ -373,14 +373,14 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
           .expect(404);
       });
 
-      it("should return 404 for non-existent booking UID", async () => {
+      it("should return 403 for non-existent booking UID because BookingPbacGuard treats missing bookings as unauthorized", async () => {
         await request(app.getHttpServer())
           .get(
             `/v2/bookings/non-existent-booking-uid/attendees/${testSetup.attendeeId}`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
-          .expect(404);
+          .expect(403);
       });
     });
 
