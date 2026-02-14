@@ -269,6 +269,7 @@ export const AvailableTimes = ({
   const { t } = useLocale();
 
   const oooAllDay = slots.every((slot) => slot.away);
+
   if (oooAllDay) {
     return <OOOSlot {...slots[0]} />;
   }
@@ -305,6 +306,7 @@ interface IOOOSlotProps {
   fromUser?: IOutOfOfficeData["anyDate"]["fromUser"];
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
   reason?: string;
+  specifiedReason?: string | null;
   emoji?: string;
   notes?: string | null;
   showNotePublicly?: boolean;
@@ -314,7 +316,8 @@ interface IOOOSlotProps {
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
   const isPlatform = useIsPlatform();
-  const { fromUser, toUser, reason, emoji, notes, showNotePublicly, time, className = "" } = props;
+  const { fromUser, toUser, reason, specifiedReason, emoji, notes, showNotePublicly, time, className = "" } =
+    props;
 
   if (isPlatform) return <></>;
   return (
@@ -323,6 +326,7 @@ const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
       toUser={toUser}
       date={dayjs(time).format("YYYY-MM-DD")}
       reason={reason}
+      specifiedReason={specifiedReason}
       emoji={emoji}
       notes={notes}
       showNotePublicly={showNotePublicly}

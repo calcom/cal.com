@@ -4,6 +4,7 @@ import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUser
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 
@@ -13,6 +14,7 @@ interface IOutOfOfficeInSlotsProps {
   toUser?: IOutOfOfficeData["anyDate"]["toUser"];
   emoji?: string;
   reason?: string;
+  specifiedReason?: string | null;
   notes?: string | null;
   showNotePublicly?: boolean;
   borderDashed?: boolean;
@@ -26,17 +28,30 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
     toUser,
     emoji = "🏝️",
     reason,
+    specifiedReason,
     borderDashed = true,
     date,
     className,
     notes,
     showNotePublicly,
   } = props;
+  
   const searchParams = useCompatSearchParams();
-
   const router = useRouter();
 
-  // Check if this is a holiday (no fromUser but has reason)
+  const { data: outOfOfficeReasonList } = trpc.viewer.ooo.outOfOfficeReasonList.useQuery(undefined, {
+    retry: false,
+  });
+  
+  const getReasonLabel = (reasonStr: string | null | undefined): string => {
+    if (!reasonStr) return "";
+    const matched = outOfOfficeReasonList?.find((r) => r.reason === reasonStr);
+    if (matched) {
+      return matched.userId === null ? t(matched.reason) : matched.reason;
+    }
+    return reasonStr;
+  };
+
   const isHoliday = !fromUser && reason;
 
   // For regular OOO, require fromUser (toUser is optional for redirect)
@@ -55,7 +70,7 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
         <div className="stack-y-2 max-h-[300px] w-full overflow-y-auto text-center">
           {isHoliday ? (
             <>
-              <p className="mt-2 text-base font-bold">{reason}</p>
+              <p className="mt-2 text-base font-bold">{reason ? getReasonLabel(reason) : reason}</p>
               <p className="text-subtle text-center text-sm">{t("holiday_no_availability")}</p>
             </>
           ) : (
@@ -63,10 +78,22 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
               <p className="mt-2 text-base font-bold">
                 {t("ooo_user_is_ooo", { displayName: fromUser?.displayName })}
               </p>
+              {reason && (
+                reason === "ooo_reasons_other" ? (
+                  <p className="text-subtle mt-1 text-sm">
+                    {t("reason")}: {getReasonLabel(specifiedReason)}
+                  </p>
+                ) : (
+                  <p className="text-subtle mt-1 text-sm">
+                    {t("reason")}: {getReasonLabel(reason)}
+                  </p>
+                )
+              )}
 
+              
               {notes && showNotePublicly && (
                 <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
-                  {notes}
+                  {t("note")}:{notes}
                 </p>
               )}
 

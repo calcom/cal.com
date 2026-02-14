@@ -4,6 +4,7 @@ export type BookingRedirectForm = {
   endDateOffset: number;
   toTeamUserId: number | null;
   reasonId: number;
+  specifiedReason?: string;
   notes?: string;
   showNotePublicly?: boolean;
   uuid?: string | null;

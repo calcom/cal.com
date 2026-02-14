@@ -56,6 +56,7 @@ type TimeRangeExtended = TimeRange & {
   fromUser?: IFromUser;
   toUser?: IToUser;
   reason?: string;
+  specifiedReason?: string | null;
   emoji?: string;
   notes?: string | null;
   showNotePublicly?: boolean;

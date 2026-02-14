@@ -103,7 +103,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
-  const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
+  const reasonList: Option[] = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
     value: reason.id,
   }));
@@ -118,7 +118,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     control,
     register,
     watch,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     getValues,
   } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
@@ -141,7 +141,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchForUserId = watch("forUserId");
   const watchedDateRange = watch("dateRange");
   const watchedNotes = watch("notes");
+  const watchedReasonId = watch("reasonId");
   const hasValidNotes = Boolean(watchedNotes?.trim());
+  const isOtherReason =
+    outOfOfficeReasonList?.find((r) => r.id === watchedReasonId)?.reason === "ooo_reasons_other";
 
   // Fetch user's holiday settings to show warning if OOO dates overlap with holidays
   const { data: holidaySettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
@@ -152,13 +155,16 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
       return [];
     }
 
+    type HolidayItem = { id: string; name: string; date: string; enabled: boolean };
+    const holidays = (holidaySettings as { holidays?: HolidayItem[] })?.holidays || [];
+
     // Filter holidays that are enabled and fall within the date range
     const startStr = dayjs(watchedDateRange.startDate).format("YYYY-MM-DD");
     const endStr = dayjs(watchedDateRange.endDate).format("YYYY-MM-DD");
 
-    return (holidaySettings.holidays || [])
-      .filter((h) => h.enabled && h.date >= startStr && h.date <= endStr)
-      .map((h) => ({ date: h.date, holiday: { id: h.id, name: h.name } }));
+    return holidays
+      .filter((h: HolidayItem) => h.enabled && h.date >= startStr && h.date <= endStr)
+      .map((h: HolidayItem) => ({ date: h.date, holiday: { id: h.id, name: h.name } }));
   }, [holidaySettings, watchedDateRange]);
 
   const createOrEditOutOfOfficeEntry = trpc.viewer.ooo.outOfOfficeCreateOrUpdate.useMutation({
@@ -200,6 +206,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 ...data,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
+                specifiedReason: isOtherReason ? data.specifiedReason?.trim() || null : null,
               });
             }
           })}>
@@ -292,7 +299,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                           count: overlappingHolidays.length,
                           holidays: overlappingHolidays
                             .slice(0, 3)
-                            .map((h) => h.holiday.name)
+                            .map((item: { date: string; holiday: { id: string; name: string } }) => item.holiday.name)
                             .join(", "),
                         })
                   }
@@ -319,12 +326,41 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(selectedOption) => {
                         if (selectedOption?.value) {
                           onChange(selectedOption.value);
+                          if (
+                            outOfOfficeReasonList?.find((r) => r.id === selectedOption.value)?.reason !==
+                            "ooo_reasons_other"
+                          ) {
+                            setValue("specifiedReason", "");
+                          }
                         }
                       }}
                     />
                   )}
                 />
               </div>
+              {isOtherReason && (
+                <div className="mt-2">
+                  <p className="text-emphasis block text-sm font-medium">
+                    {t("ooo_specified_reason")}
+                    <span className="text-default ml-1">*</span>
+                  </p>
+                  <Input
+                    data-testid="specified_reason_input"
+                    className="border-subtle mt-1 w-full rounded-lg border px-2"
+                    placeholder={t("e_g_client_visit")}
+                    {...register("specifiedReason", {
+                      validate: (value) => {
+                        if (!isOtherReason) return true;
+                        if (!value?.trim()) return t("required");
+                        return true;
+                      },
+                    })}
+                  />
+                  {errors.specifiedReason && (
+                    <p className="text-destructive mt-1 text-sm">{errors.specifiedReason.message}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Notes input */}

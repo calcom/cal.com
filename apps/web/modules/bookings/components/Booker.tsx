@@ -48,6 +48,7 @@ import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
 import { Header } from "@calcom/features/bookings/components/Header";
 import { InstantBooking } from "./InstantBooking";
 import { LargeCalendar } from "./LargeCalendar";
+import { OutOfOfficeMonthViewDetails } from "./OutOfOfficeMonthViewDetails";
 import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
@@ -101,7 +102,6 @@ const BookerComponent = ({
     (state) => [state.state, state.setState],
     shallow
   );
-
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
   const [isSlotSelectionModalVisible, setIsSlotSelectionModalVisible] = useBookerStoreContext(
@@ -466,6 +466,14 @@ const BookerComponent = ({
                     hideEventTypeDetails={hideEventTypeDetails}>
                     {eventMetaChildren}
                   </EventMeta>
+                )}
+                {layout === BookerLayouts.MONTH_VIEW && bookerState !== "booking" && (
+                  <div className="mt-3 px-5">
+                    <OutOfOfficeMonthViewDetails
+                      slots={schedule?.data?.slots}
+                      isLoading={schedule.isPending}
+                    />
+                  </div>
                 )}
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (

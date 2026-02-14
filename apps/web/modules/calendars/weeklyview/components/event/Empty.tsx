@@ -107,6 +107,7 @@ export function AvailableCellsForDay({ timezone, availableSlots, day, startHour 
           fromUser={firstSlot?.fromUser}
           toUser={firstSlot?.toUser}
           reason={firstSlot?.reason}
+          specifiedReason={firstSlot?.specifiedReason}
           emoji={firstSlot?.emoji}
           notes={firstSlot?.notes}
           showNotePublicly={firstSlot?.showNotePublicly}

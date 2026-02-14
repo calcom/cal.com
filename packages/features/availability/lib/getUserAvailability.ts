@@ -145,6 +145,7 @@ export type GetUserAvailabilityInitialData = {
     user: Pick<User, "id" | "name">;
     toUser: Pick<User, "id" | "username" | "name"> | null;
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
+    specifiedReason?: string | null;
   })[];
   busyTimesFromLimitsBookings?: EventBusyDetails[];
   busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
@@ -208,6 +209,7 @@ export interface IOutOfOfficeData {
     fromUser: IFromUser | null;
     toUser?: IToUser | null;
     reason?: string | null;
+    specifiedReason?: string | null;
     emoji?: string | null;
     notes?: string | null;
     showNotePublicly?: boolean;
@@ -674,7 +676,10 @@ export class UserAvailabilityService {
     }
 
     return outOfOfficeDays.reduce(
-      (acc: IOutOfOfficeData, { start, end, toUser, user, reason, notes, showNotePublicly }) => {
+      (
+        acc: IOutOfOfficeData,
+        { start, end, toUser, user, reason, specifiedReason, notes, showNotePublicly }
+      ) => {
         // here we should use startDate or today if start is before today
         // consider timezone in start and end date range
         const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
@@ -711,6 +716,7 @@ export class UserAvailabilityService {
             // optional chaining destructuring toUser
             toUser: toUserData,
             reason: reason?.reason || null,
+            specifiedReason: reason?.reason === "ooo_reasons_other" ? specifiedReason ?? null : null,
             emoji: reason?.emoji || null,
             notes,
             showNotePublicly,

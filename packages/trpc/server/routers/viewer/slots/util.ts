@@ -1429,8 +1429,8 @@ export class AvailableSlotsService {
 
       return availableTimeSlots.reduce(
         (
-          r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
-          { time, ...passThroughProps }
+          r: Record<string, { time: string; attendees?: number; bookingUid?: string; reason?: string; specifiedReason?: string | null }[]>,
+          { time, reason, specifiedReason, ...passThroughProps }
         ) => {
           // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
           // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
@@ -1447,6 +1447,8 @@ export class AvailableSlotsService {
           r[dateString].push({
             ...passThroughProps,
             time: timeISO,
+            ...(reason && { reason }),
+            ...(specifiedReason !== undefined && { specifiedReason }),
             ...(existingBooking && {
               attendees: existingBooking.attendees,
               bookingUid: existingBooking.uid,
@@ -1545,7 +1547,7 @@ export class AvailableSlotsService {
       slotsMappedToDate: withinBoundsSlotsMappedToDate,
       startTime: input.startTime,
       endTime: input.endTime,
-      timeZone: input.timeZone,
+      timeZone: input.timeZone
     });
 
     // We only want to run this on single targeted events and not dynamic

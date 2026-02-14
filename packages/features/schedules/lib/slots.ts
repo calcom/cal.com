@@ -199,6 +199,7 @@ function buildSlotsWithDateRanges({
         fromUser?: IFromUser;
         toUser?: IToUser;
         reason?: string;
+        specifiedReason?: string | null;
         emoji?: string;
         notes?: string | null;
         showNotePublicly?: boolean;
@@ -207,7 +208,8 @@ function buildSlotsWithDateRanges({
       };
 
       if (dateOutOfOfficeExists) {
-        const { toUser, fromUser, reason, emoji, notes, showNotePublicly } = dateOutOfOfficeExists;
+        const { toUser, fromUser, reason, specifiedReason, emoji, notes, showNotePublicly } =
+          dateOutOfOfficeExists;
 
         slotData = {
           time: slotStartTime,
@@ -215,6 +217,7 @@ function buildSlotsWithDateRanges({
           ...(fromUser && { fromUser }),
           ...(toUser && { toUser }),
           ...(reason && { reason }),
+          ...(specifiedReason !== undefined && { specifiedReason }),
           ...(emoji && { emoji }),
           ...(notes && showNotePublicly && { notes }),
           ...(showNotePublicly !== undefined && { showNotePublicly }),
@@ -246,6 +249,7 @@ const getSlots = ({
   fromUser?: IFromUser;
   toUser?: IToUser;
   reason?: string;
+  specifiedReason?: string | null;
   emoji?: string;
 }[] => {
   return buildSlotsWithDateRanges({

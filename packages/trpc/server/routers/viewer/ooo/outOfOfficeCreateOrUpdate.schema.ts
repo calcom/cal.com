@@ -11,6 +11,7 @@ export const ZOutOfOfficeInputSchema = z.object({
   endDateOffset: z.number(),
   toTeamUserId: z.number().nullable(),
   reasonId: z.number(),
+  specifiedReason: z.string().nullish(),
   notes: z.string().nullable().optional(),
   showNotePublicly: z.boolean().optional(),
 });

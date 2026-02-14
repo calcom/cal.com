@@ -128,6 +128,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       ],
     },
   });
+ 
+
 
   // don't allow infinite redirects
   if (existingOutOfOfficeEntry) {
@@ -178,6 +180,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc.toISOString(),
       end: endTimeUtc.toISOString(),
       notes: input.notes,
+      specifiedReason: input.specifiedReason?.trim() || null,
       showNotePublicly: input.showNotePublicly ?? false,
       userId: oooUserId,
       reasonId: input.reasonId,
@@ -189,6 +192,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       start: startTimeUtc.toISOString(),
       end: endTimeUtc.toISOString(),
       notes: input.notes,
+      specifiedReason: input.specifiedReason?.trim() || null,
       ...(input.showNotePublicly !== undefined && { showNotePublicly: input.showNotePublicly }),
       userId: oooUserId,
       reasonId: input.reasonId,
@@ -353,7 +357,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       notes: createdOrUpdatedOutOfOffice.notes,
       reason: {
         emoji: reason?.emoji,
-        reason: reason?.reason,
+        reason:
+          reason?.reason === "ooo_reasons_other" && input.specifiedReason?.trim()
+            ? input.specifiedReason.trim()
+            : reason?.reason,
       },
       reasonId: input.reasonId,
       user: {

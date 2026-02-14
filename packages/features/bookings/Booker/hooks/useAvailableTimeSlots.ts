@@ -15,6 +15,7 @@ export interface IGetAvailableSlots {
       fromUser?: IFromUser | undefined;
       toUser?: IToUser | undefined;
       reason?: string | undefined;
+      specifiedReason?: string | null;
       emoji?: string | undefined;
       showNotePublicly?: boolean | undefined;
     }[]

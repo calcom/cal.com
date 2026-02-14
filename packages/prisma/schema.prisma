@@ -2019,6 +2019,7 @@ model OutOfOfficeEntry {
   start            DateTime
   end              DateTime
   notes            String?
+  specifiedReason  String? // Free-text reason when "None of the Above" is selected (not stored in OutOfOfficeReason)
   showNotePublicly Boolean            @default(false)
   userId           Int
   user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -2026,9 +2027,8 @@ model OutOfOfficeEntry {
   toUser           User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
   reasonId         Int?
   reason           OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([uuid])
   @@index([userId])

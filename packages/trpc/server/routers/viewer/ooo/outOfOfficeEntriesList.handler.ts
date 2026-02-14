@@ -90,6 +90,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
       ? {
           OR: [
             { notes: { contains: searchTerm } },
+            { specifiedReason: { contains: searchTerm } },
             { reason: { reason: { contains: searchTerm } } },
             {
               toUser: {
@@ -137,6 +138,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
           userId: true,
         },
       },
+      specifiedReason: true,
       notes: true,
       showNotePublicly: true,
       user: fetchTeamMembersEntries
