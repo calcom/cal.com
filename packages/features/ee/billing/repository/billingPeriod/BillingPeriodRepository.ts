@@ -20,6 +20,8 @@ export interface UpdateBillingPeriodData {
   billingPeriod: BillingPeriod;
   pricePerSeat?: number | null;
   paidSeats?: number | null;
+  subscriptionStart?: Date | null;
+  subscriptionEnd?: Date | null;
 }
 
 export class BillingPeriodRepository {

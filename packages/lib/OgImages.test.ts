@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { getOGImageVersion, constructMeetingImage, constructAppImage, constructGenericImage } from "./OgImages";
+import {
+  getOGImageVersion,
+  constructMeetingImage,
+  constructAppImage,
+  constructGenericImage,
+} from "./OgImages";
 
 describe("OgImages", () => {
   describe("getOGImageVersion", () => {
