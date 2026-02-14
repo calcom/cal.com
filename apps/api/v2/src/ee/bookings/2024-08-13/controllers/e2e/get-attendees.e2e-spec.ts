@@ -256,9 +256,6 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(attendee.name).toEqual(attendeeName);
         expect(attendee.email).toEqual(attendeeEmail);
         expect(attendee.timeZone).toEqual(attendeeTimeZone);
-
-        // Store attendee ID for single attendee tests
-        testSetup.attendeeId = attendee.id;
       });
 
       it("should return 403 when unrelated user tries to get attendees", async () => {
@@ -304,6 +301,18 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     const attendeeEmail = "attendee@example.com";
     const attendeeName = "Test Attendee";
     const attendeeTimeZone = "Europe/Rome";
+
+    beforeAll(async () => {
+      const getAttendeesResponse = await request(app.getHttpServer())
+        .get(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
+
+      const responseBody: GetBookingAttendeesOutput_2024_08_13 = getAttendeesResponse.body;
+      if (responseBody.data?.length > 0) {
+        testSetup.attendeeId = responseBody.data[0].id;
+      }
+    });
 
     describe("Authentication", () => {
       it("should return 401 when getting single attendee without authentication", async () => {
