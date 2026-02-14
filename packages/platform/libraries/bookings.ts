@@ -19,5 +19,8 @@ export { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/B
 export { BookingEmailAndSmsTaskService } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTaskService";
 export { BookingEmailAndSmsTriggerDevTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTriggerTasker";
 export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
-export { bookingWithUserAndEventDetailsSelect } from "@calcom/prisma/selects/booking";
+export {
+  bookingWithUserAndEventDetailsSelect,
+  type BookingWithUserAndEventDetails,
+} from "@calcom/prisma/selects/booking";
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";

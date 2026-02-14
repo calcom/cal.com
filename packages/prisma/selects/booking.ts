@@ -78,6 +78,15 @@ export const bookingWithUserAndEventDetailsSelect = {
       id: true,
       integration: true,
       externalId: true,
+      primaryEmail: true,
+      userId: true,
+      eventTypeId: true,
+      credentialId: true,
+      delegationCredentialId: true,
+      domainWideDelegationCredentialId: true,
+      createdAt: true,
+      updatedAt: true,
+      customCalendarReminder: true,
     },
   },
   attendees: {
@@ -117,6 +126,15 @@ export const bookingWithUserAndEventDetailsSelect = {
           id: true,
           integration: true,
           externalId: true,
+          primaryEmail: true,
+          userId: true,
+          eventTypeId: true,
+          credentialId: true,
+          delegationCredentialId: true,
+          domainWideDelegationCredentialId: true,
+          createdAt: true,
+          updatedAt: true,
+          customCalendarReminder: true,
         },
       },
       profiles: {
@@ -138,3 +156,7 @@ export const bookingWithUserAndEventDetailsSelect = {
     },
   },
 } satisfies Prisma.BookingSelect;
+
+export type BookingWithUserAndEventDetails = Prisma.BookingGetPayload<{
+  select: typeof bookingWithUserAndEventDetailsSelect;
+}>;
