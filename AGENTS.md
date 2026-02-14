@@ -17,6 +17,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 - Use Biome for formatting and linting
+- Only add code comments that explain **why**, not **what** — see [code comment guidelines](agents/rules/quality-code-comments.md)
 
 
 ## Don't
@@ -29,6 +30,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never use barrel imports from index.ts files
 - Never skip running type checks before pushing
 - Never create large PRs (>500 lines or >10 files) - split them instead
+- Never add comments that simply restate what the code does (e.g., `// Get the user` above a `getUser()` call)
 
 ## PR Size Guidelines
 
@@ -223,6 +225,14 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - Open a draft PR with notes if unsure about approach
 - Fix type errors before test failures - they're often the root cause
 - Run `yarn prisma generate` if you see missing enum/type errors
+
+## Spec-Driven Development (Opt-In)
+
+For complex features, you can use spec-driven development when explicitly requested.
+
+**To enable:** Tell the AI "use spec-driven development" or "follow the spec workflow"
+
+See [SPEC-WORKFLOW.md](SPEC-WORKFLOW.md) for the full workflow documentation.
 
 ## Extended Documentation
 

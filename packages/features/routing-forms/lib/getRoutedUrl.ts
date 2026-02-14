@@ -158,6 +158,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
+  let fallbackAction: typeof decidedAction | null = null;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -178,6 +179,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     crmContactOwnerEmail = result.crmContactOwnerEmail;
     crmContactOwnerRecordType = result.crmContactOwnerRecordType;
     crmAppSlug = result.crmAppSlug;
+    fallbackAction = result.fallbackAction ?? null;
     timeTaken = {
       ...timeTaken,
       ...result.timeTaken,
@@ -212,19 +214,22 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   // TODO: To be done using sentry tracing
   console.log("Server-Timing", getServerTimingHeader(timeTaken));
 
+  // Use fallbackAction if set (when no team members found), otherwise use the main decidedAction
+  const actionToUse = fallbackAction ?? decidedAction;
+
   //TODO: Maybe take action after successful mutation
-  if (decidedAction.type === "customPageMessage") {
+  if (actionToUse.type === "customPageMessage") {
     return {
       props: {
         ...pageProps,
         form: serializableForm,
-        message: decidedAction.value,
+        message: actionToUse.value,
         errorMessage: null,
       },
     };
-  } else if (decidedAction.type === "eventTypeRedirectUrl") {
+  } else if (actionToUse.type === "eventTypeRedirectUrl") {
     const eventTypeUrlWithResolvedVariables = substituteVariables(
-      decidedAction.value,
+      actionToUse.value,
       response,
       serializableForm.fields
     );
@@ -258,10 +263,10 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         permanent: false,
       },
     };
-  } else if (decidedAction.type === "externalRedirectUrl") {
+  } else if (actionToUse.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
+        destination: `${actionToUse.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
         permanent: false,
       },
     };

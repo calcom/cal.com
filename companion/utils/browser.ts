@@ -6,9 +6,30 @@
  */
 
 import * as WebBrowser from "expo-web-browser";
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 
 import { showErrorAlert } from "./alerts";
+
+/**
+ * Handle errors from browser functions in a consistent way.
+ *
+ * @param error - The error that occurred
+ * @param functionName - Name of the function for debug logging
+ * @param fallbackMessage - Optional message to show in error alert (defaults to "link")
+ */
+const handleBrowserError = (
+  error: unknown,
+  functionName: string,
+  fallbackMessage?: string
+): void => {
+  console.error(`Failed to open link in ${functionName}`);
+  if (__DEV__) {
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.debug(`[${functionName}] failed`, { message, stack, fallbackMessage });
+  }
+  showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+};
 
 /**
  * Configuration options for in-app browser
@@ -100,12 +121,33 @@ export const openInAppBrowser = async (
 
     await WebBrowser.openBrowserAsync(processedUrl, browserOptions);
   } catch (error) {
-    console.error("Failed to open link");
-    if (__DEV__) {
-      const message = error instanceof Error ? error.message : String(error);
-      const stack = error instanceof Error ? error.stack : undefined;
-      console.debug("[openInAppBrowser] failed", { message, stack, fallbackMessage });
-    }
-    showErrorAlert("Error", `Failed to open ${fallbackMessage || "link"}. Please try again.`);
+    handleBrowserError(error, "openInAppBrowser", fallbackMessage);
+  }
+};
+
+/**
+ * Open a URL in the device's default browser (Safari on iOS, Chrome on Android).
+ *
+ * Unlike openInAppBrowser, this opens the URL in the actual browser app
+ * rather than an in-app browser view. This is useful for video meeting links
+ * where users may want to use their browser's native features or extensions.
+ *
+ * @param url - The URL to open
+ * @param fallbackMessage - Optional message to show in error alert (defaults to "link")
+ *
+ * @example
+ * ```tsx
+ * // Open a meeting link in the default browser
+ * await openInDefaultBrowser("https://meet.cal.com/abc123", "meeting link");
+ * ```
+ */
+export const openInDefaultBrowser = async (
+  url: string,
+  fallbackMessage?: string
+): Promise<void> => {
+  try {
+    await Linking.openURL(url);
+  } catch (error) {
+    handleBrowserError(error, "openInDefaultBrowser", fallbackMessage);
   }
 };

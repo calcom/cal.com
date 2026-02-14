@@ -17,9 +17,9 @@ import {
   CommandItem,
   CommandList,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import { CheckIcon } from "@coss/ui/icons";
 
 import type { UserTableUser } from "../types";
 
@@ -256,7 +256,7 @@ const ListItem = ({ onSelect, text, isSelected, isTeam }: ListItemProps) => {
           "border-subtle ml-auto flex h-4 w-4 items-center justify-center rounded-sm border",
           isSelected ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
         )}>
-        <Icon name="check" className={classNames("h-4 w-4")} />
+        <CheckIcon className={classNames("h-4 w-4")} />
       </div>
     </CommandItem>
   );
