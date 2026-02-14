@@ -31,6 +31,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, ChevronDownIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -475,10 +476,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
-      <Icon
-        name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
-      />
+      <ArrowLeftIcon className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
@@ -602,9 +600,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" className="h-4 w-4" />
+                        <ChevronDownIcon className="h-4 w-4" />
                       ) : (
-                        <Icon name="chevron-right" className="h-4 w-4" />
+                        <ChevronRightIcon className="h-4 w-4" />
                       )}
                     </div>
                     {}
@@ -949,9 +947,9 @@ const SettingsSidebarContainer = ({
                                   }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
+                                      <ChevronDownIcon className="h-4 w-4" />
                                     ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                      <ChevronRightIcon className="h-4 w-4" />
                                     )}
                                   </div>
                                   {}
@@ -1036,7 +1034,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <Icon name="arrow-left" className="text-default h-4 w-4" />
+            <ArrowLeftIcon className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>

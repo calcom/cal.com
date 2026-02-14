@@ -9,8 +9,8 @@ import type {
   CombinedFilterSegment,
   SegmentIdentifier,
   UseSegments,
-} from "../lib/types";
-import { SYSTEM_SEGMENT_PREFIX } from "../lib/types";
+} from "@calcom/features/data-table/lib/types";
+import { SYSTEM_SEGMENT_PREFIX } from "@calcom/features/data-table/lib/types";
 import { useDataTableState } from "./DataTableStateContext";
 
 export type DataTableSegmentContextType = {
