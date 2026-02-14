@@ -1403,6 +1403,26 @@ export class UserRepository {
     return users.map(withSelectedCalendars);
   }
 
+  async findUsersByEmails({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+    return this.prismaClient.user.findMany({
+      where: {
+        OR: [
+          { email: { in: emails, mode: "insensitive" } },
+          {
+            secondaryEmails: {
+              some: {
+                email: { in: emails, mode: "insensitive" },
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true, email: true },
+    });
+  }
+
   async findByEmailAndTeamId({ email, teamId }: { email: string; teamId: number }) {
     return this.prismaClient.user.findFirst({
       where: {

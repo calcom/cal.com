@@ -1724,6 +1724,37 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findAcceptedBookingsByUserIdsOrEmails({
+    userIds,
+    emails,
+    startDate,
+    endDate,
+    excludeUid,
+  }: {
+    userIds: number[];
+    emails: string[];
+    startDate: Date;
+    endDate: Date;
+    excludeUid?: string;
+  }) {
+    if (!userIds.length && !emails.length) return [];
+    return this.prismaClient.booking.findMany({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        startTime: { lte: endDate },
+        endTime: { gte: startDate },
+        ...(excludeUid ? { uid: { not: excludeUid } } : {}),
+        OR: [
+          ...(userIds.length ? [{ userId: { in: userIds } }] : []),
+          ...(emails.length
+            ? [{ attendees: { some: { email: { in: emails, mode: "insensitive" as const } } } }]
+            : []),
+        ],
+      },
+      select: { uid: true, startTime: true, endTime: true },
+    });
+  }
+
   async findByIdForReassignment(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
