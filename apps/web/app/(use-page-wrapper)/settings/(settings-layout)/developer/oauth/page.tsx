@@ -25,9 +25,7 @@ const Page = async () => {
     redirect("/auth/login?callbackUrl=/settings/developer/oauth");
   }
 
-  return (
-    <OAuthClientsView />
-  );
+  return <OAuthClientsView />;
 };
 
 export default Page;

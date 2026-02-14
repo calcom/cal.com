@@ -232,7 +232,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
   const teamBillingServiceFactory = getTeamBillingServiceFactory();
   const teamBillingService = teamBillingServiceFactory.init(team);
-  await teamBillingService.updateQuantity();
+  await teamBillingService.updateQuantity("addition");
 
   return {
     // TODO: Better rename it to invitations only maybe?

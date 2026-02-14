@@ -140,27 +140,26 @@ export const ZColumnFilter = z.object({
 export type FilterValueSchema<T extends FilterType> = T extends ColumnFilterTypeValues["SINGLE_SELECT"]
   ? typeof ZSingleSelectFilterValue
   : T extends ColumnFilterTypeValues["MULTI_SELECT"]
-  ? typeof ZMultiSelectFilterValue
-  : T extends ColumnFilterTypeValues["TEXT"]
-  ? typeof ZTextFilterValue
-  : T extends ColumnFilterTypeValues["NUMBER"]
-  ? typeof ZNumberFilterValue
-  : T extends ColumnFilterTypeValues["DATE_RANGE"]
-  ? typeof ZDateRangeFilterValue
-  : never;
+    ? typeof ZMultiSelectFilterValue
+    : T extends ColumnFilterTypeValues["TEXT"]
+      ? typeof ZTextFilterValue
+      : T extends ColumnFilterTypeValues["NUMBER"]
+        ? typeof ZNumberFilterValue
+        : T extends ColumnFilterTypeValues["DATE_RANGE"]
+          ? typeof ZDateRangeFilterValue
+          : never;
 
-export type FilterValue<T extends FilterType = FilterType> =
-  T extends ColumnFilterTypeValues["SINGLE_SELECT"]
-    ? SingleSelectFilterValue
-    : T extends ColumnFilterTypeValues["MULTI_SELECT"]
+export type FilterValue<T extends FilterType = FilterType> = T extends ColumnFilterTypeValues["SINGLE_SELECT"]
+  ? SingleSelectFilterValue
+  : T extends ColumnFilterTypeValues["MULTI_SELECT"]
     ? MultiSelectFilterValue
     : T extends ColumnFilterTypeValues["TEXT"]
-    ? TextFilterValue
-    : T extends ColumnFilterTypeValues["NUMBER"]
-    ? NumberFilterValue
-    : T extends ColumnFilterTypeValues["DATE_RANGE"]
-    ? DateRangeFilterValue
-    : never;
+      ? TextFilterValue
+      : T extends ColumnFilterTypeValues["NUMBER"]
+        ? NumberFilterValue
+        : T extends ColumnFilterTypeValues["DATE_RANGE"]
+          ? DateRangeFilterValue
+          : never;
 
 export type TypedColumnFilter<T extends FilterType> = {
   id: string;
