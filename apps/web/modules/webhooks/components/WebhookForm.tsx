@@ -476,7 +476,10 @@ const WebhookForm = (props: {
                     {(selectedValues: { value: WebhookTriggerEvents; label: string }[]) => (
                       <>
                         {selectedValues?.map((item) => (
-                          <ComboboxChip key={item.value}>
+                          <ComboboxChip
+                            key={item.value}
+                            removeProps={{ "aria-label": `${t("remove")} ${item.label}` }}
+                          >
                             {item.label}
                           </ComboboxChip>
                         ))}
@@ -493,7 +496,7 @@ const WebhookForm = (props: {
                   </ComboboxValue>
                 </ComboboxChips>
                 <ComboboxPopup>
-                  <ComboboxEmpty>{t("no_event_triggers_found", "No event triggers found.")}</ComboboxEmpty>
+                  <ComboboxEmpty>{t("no_options_available")}</ComboboxEmpty>
                   <ComboboxList>
                     {(item: { value: WebhookTriggerEvents; label: string }) => (
                       <ComboboxItem key={item.value} value={item}>
