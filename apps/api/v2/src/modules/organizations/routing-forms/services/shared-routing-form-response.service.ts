@@ -21,7 +21,7 @@ export class SharedRoutingFormResponseService {
     private readonly slotsService: SlotsService_2024_09_04,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14
-  ) {}
+  ) { }
 
   async createRoutingFormResponseWithSlots(
     routingFormId: string,
@@ -153,8 +153,24 @@ export class SharedRoutingFormResponseService {
   }
 
   private async extractEventTypeAndCrmParams(userId: number, routingUrl: URL) {
-    // Extract team and event type information
-    // TODO: Route action also has eventTypeId directly now and instead of using this brittle approach for getting event type by slug, we should get by eventTypeId
+    const urlParams = routingUrl.searchParams;
+
+    // Prefer direct eventTypeId lookup if available (more reliable than slug-based)
+    const eventTypeIdParam = urlParams.get("cal.eventTypeId");
+    if (eventTypeIdParam) {
+      const eventTypeId = parseInt(eventTypeIdParam, 10);
+      if (!isNaN(eventTypeId)) {
+        const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+        if (eventType?.id) {
+          return {
+            eventTypeId: eventType.id,
+            crmParams: this.extractCrmParamsFromUrl(urlParams),
+          };
+        }
+      }
+    }
+
+    // Fall back to slug-based lookup for backward compatibility
     const { teamId, eventTypeSlug } = this.extractTeamIdAndEventTypeSlugFromRedirectUrl(routingUrl);
     const eventType = teamId
       ? await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug)
@@ -168,25 +184,7 @@ export class SharedRoutingFormResponseService {
     }
 
     // Extract CRM parameters from URL
-    const urlParams = routingUrl.searchParams;
-    const crmParams = {
-      teamMemberEmail: urlParams.get("cal.crmContactOwnerEmail") || undefined,
-      routedTeamMemberIds: urlParams.get("cal.routedTeamMemberIds")
-        ? urlParams
-            .get("cal.routedTeamMemberIds")!
-            .split(",")
-            .map((id) => parseInt(id))
-        : undefined,
-      routingFormResponseId: urlParams.get("cal.routingFormResponseId")
-        ? parseInt(urlParams.get("cal.routingFormResponseId")!)
-        : undefined,
-      queuedFormResponseId: urlParams.get("cal.queuedFormResponseId")
-        ? (urlParams.get("cal.queuedFormResponseId") as string)
-        : undefined,
-      skipContactOwner: urlParams.get("cal.skipContactOwner") === "true" ? true : false,
-      crmAppSlug: urlParams.get("cal.crmAppSlug") || undefined,
-      crmOwnerRecordType: urlParams.get("cal.crmContactOwnerRecordType") || undefined,
-    };
+    const crmParams = this.extractCrmParamsFromUrl(urlParams);
 
     return {
       eventTypeId: eventType.id,
@@ -222,5 +220,26 @@ export class SharedRoutingFormResponseService {
   private extractEventTypeFromRoutedUrl(routingUrl: URL) {
     const pathNameParams = routingUrl.pathname.split("/");
     return pathNameParams[pathNameParams.length - 1];
+  }
+
+  private extractCrmParamsFromUrl(urlParams: URLSearchParams) {
+    return {
+      teamMemberEmail: urlParams.get("cal.crmContactOwnerEmail") || undefined,
+      routedTeamMemberIds: urlParams.get("cal.routedTeamMemberIds")
+        ? urlParams
+            .get("cal.routedTeamMemberIds")!
+            .split(",")
+            .map((id) => parseInt(id))
+        : undefined,
+      routingFormResponseId: urlParams.get("cal.routingFormResponseId")
+        ? parseInt(urlParams.get("cal.routingFormResponseId")!)
+        : undefined,
+      queuedFormResponseId: urlParams.get("cal.queuedFormResponseId")
+        ? (urlParams.get("cal.queuedFormResponseId") as string)
+        : undefined,
+      skipContactOwner: urlParams.get("cal.skipContactOwner") === "true" ? true : false,
+      crmAppSlug: urlParams.get("cal.crmAppSlug") || undefined,
+      crmOwnerRecordType: urlParams.get("cal.crmContactOwnerRecordType") || undefined,
+    };
   }
 }
