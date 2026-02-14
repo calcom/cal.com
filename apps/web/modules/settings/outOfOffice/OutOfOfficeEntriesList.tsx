@@ -56,7 +56,6 @@ interface OutOfOfficeEntry {
     reason: string;
     userId: number;
   } | null;
-  specifiedReason?: string | null;
   notes: string | null;
   showNotePublicly: boolean | null;
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
@@ -172,47 +171,47 @@ function OutOfOfficeEntriesListContent({
       }),
       ...(selectedTab === OutOfOfficeTab.TEAM
         ? [
-            columnHelper.display({
-              id: "member",
-              header: `Member`,
-              size: 220,
-              cell: ({ row }) => {
-                if (!row.original || !row.original.user || isPending || isFetching) {
-                  return <SkeletonText className="h-8 w-full" />;
-                }
-                const { avatarUrl, username, email, name } = row.original.user;
-                const memberName =
-                  name ||
-                  (() => {
-                    const emailName = email.split("@")[0];
-                    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                  })();
-                return (
-                  <div className="flex items-center gap-2">
-                    <Avatar
-                      size="sm"
-                      alt={username || email}
-                      imageSrc={getUserAvatarUrl({
-                        avatarUrl,
-                      })}
-                    />
-                    <div className="">
-                      <div
-                        data-testid={`ooo-member-${username}-username`}
-                        className="text-emphasis text-sm font-medium leading-none">
-                        {memberName}
-                      </div>
-                      <div
-                        data-testid={`ooo-member-${username}-email`}
-                        className="text-subtle mt-1 text-sm leading-none">
-                        {email}
-                      </div>
+          columnHelper.display({
+            id: "member",
+            header: `Member`,
+            size: 220,
+            cell: ({ row }) => {
+              if (!row.original || !row.original.user || isPending || isFetching) {
+                return <SkeletonText className="h-8 w-full" />;
+              }
+              const { avatarUrl, username, email, name } = row.original.user;
+              const memberName =
+                name ||
+                (() => {
+                  const emailName = email.split("@")[0];
+                  return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                })();
+              return (
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    size="sm"
+                    alt={username || email}
+                    imageSrc={getUserAvatarUrl({
+                      avatarUrl,
+                    })}
+                  />
+                  <div className="">
+                    <div
+                      data-testid={`ooo-member-${username}-username`}
+                      className="text-emphasis text-sm font-medium leading-none">
+                      {memberName}
+                    </div>
+                    <div
+                      data-testid={`ooo-member-${username}-email`}
+                      className="text-subtle mt-1 text-sm leading-none">
+                      {email}
                     </div>
                   </div>
-                );
-              },
-            }),
-          ]
+                </div>
+              );
+            },
+          }),
+        ]
         : []),
       columnHelper.display({
         id: "outOfOffice",
@@ -295,7 +294,6 @@ function OutOfOfficeEntriesListContent({
                           endDateOffset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
-                          specifiedReason: item.specifiedReason ?? undefined,
                           notes: item.notes ?? undefined,
                           showNotePublicly: item.showNotePublicly ?? false,
                           forUserId: item.user?.id || null,

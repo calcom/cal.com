@@ -35,14 +35,14 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
     notes,
     showNotePublicly,
   } = props;
-
+  
   const searchParams = useCompatSearchParams();
   const router = useRouter();
 
   const { data: outOfOfficeReasonList } = trpc.viewer.ooo.outOfOfficeReasonList.useQuery(undefined, {
     retry: false,
   });
-
+  
   const getReasonLabel = (reasonStr: string | null | undefined): string => {
     if (!reasonStr) return "";
     const matched = outOfOfficeReasonList?.find((r) => r.reason === reasonStr);
@@ -78,8 +78,8 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
               <p className="mt-2 text-base font-bold">
                 {t("ooo_user_is_ooo", { displayName: fromUser?.displayName })}
               </p>
-              {reason &&
-                (reason === "ooo_reasons_other" ? (
+              {reason && (
+                reason === "ooo_reasons_other" ? (
                   <p className="text-subtle mt-1 text-sm">
                     {t("reason")}: {getReasonLabel(specifiedReason)}
                   </p>
@@ -87,8 +87,10 @@ export const OutOfOfficeInSlots = (props: IOutOfOfficeInSlotsProps) => {
                   <p className="text-subtle mt-1 text-sm">
                     {t("reason")}: {getReasonLabel(reason)}
                   </p>
-                ))}
+                )
+              )}
 
+              
               {notes && showNotePublicly && (
                 <p className="text-subtle mt-2 max-h-[120px] overflow-y-auto break-words px-2 text-center text-sm italic">
                   {t("note")}:{notes}

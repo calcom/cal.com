@@ -206,10 +206,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 ...data,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
-                ...(isOtherReason && {
-                  specifiedReason: data.specifiedReason?.trim() || null,
-                }),
-              } as Parameters<typeof createOrEditOutOfOfficeEntry.mutate>[0]);
+                specifiedReason: isOtherReason ? data.specifiedReason?.trim() || null : null,
+              });
             }
           })}>
           <div className="h-full px-1">
@@ -273,13 +271,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   control={control}
                   render={({ field: { onChange, value } }) => (
                     <DateRangePicker
-                      minDate={dayjs().startOf("d").toDate()}
+                      minDate={null}
                       dates={{ startDate: value.startDate, endDate: value.endDate }}
                       onDatesChange={(values) => {
                         onChange(values);
                       }}
                       strictlyBottom={true}
-                      allowPastDates={false}
+                      allowPastDates={true}
                     />
                   )}
                 />
@@ -301,10 +299,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                           count: overlappingHolidays.length,
                           holidays: overlappingHolidays
                             .slice(0, 3)
-                            .map(
-                              (item: { date: string; holiday: { id: string; name: string } }) =>
-                                item.holiday.name
-                            )
+                            .map((item: { date: string; holiday: { id: string; name: string } }) => item.holiday.name)
                             .join(", "),
                         })
                   }

@@ -127,7 +127,9 @@ export function OutOfOfficeMonthViewDetails({
     <div
       className={`rounded-md border border-dashed border-subtle bg-muted/30 px-4 py-3 ${className}`}
       data-testid="ooo-month-view-details">
-      <p className="text-emphasis mb-2 text-sm font-medium">{t("out_of_office")}</p>
+      <p className="text-emphasis mb-2 text-sm font-medium">
+        {t("out_of_office")}
+      </p>
       <ul className="text-subtle space-y-2 text-xs">
         {oooRanges.map((range, index) => (
           <li key={`${range.startDate}-${index}`} className="flex flex-col gap-0.5">
@@ -140,9 +142,9 @@ export function OutOfOfficeMonthViewDetails({
                 {t("reason")}: {range.specifiedReason}
               </span>
             ) : (
-              <span className="text-subtle font-normal">
+                <span className="text-subtle font-normal">
                 {t("reason")}: {getReasonLabel(range.reason)}
-              </span>
+                </span>
             )}
             {range.notes && range.showNotePublicly && (
               <p className="text-subtle mt-0.5 max-h-[80px] overflow-y-auto wrap-break-word italic">
