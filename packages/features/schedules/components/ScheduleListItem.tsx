@@ -165,18 +165,15 @@ export function ScheduleListItem({
   confirmBtn={
     <Button
       loading={loading}
-      onClick={async (e) => {
-        e.preventDefault();
-        setLoading(true);
-
-        const minTime = 200;
-        const start = Date.now();
-
-        await deleteFunction({ scheduleId: schedule.id });
-
-        const delay = Math.max(0, minTime - (Date.now() - start));
-        setTimeout(() => setLoading(false), delay);
-      }}
+onClick={(e) => {
+    e.preventDefault();
+    setLoading(true);
+  
+     setTimeout(() => {
+    deleteFunction({ scheduleId: schedule.id });
+    setLoading(false);
+  }, 0);
+  }}
     >
       {loading ? "Deleting..." : t("delete")}
     </Button>
