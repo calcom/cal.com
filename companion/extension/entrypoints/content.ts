@@ -1,6 +1,7 @@
 /// <reference types="chrome" />
 import { initGoogleCalendarIntegration } from "../lib/google-calendar";
 import { initLinkedInIntegration } from "../lib/linkedin";
+import { escapeHtml } from "../lib/utils";
 
 /**
  * Development-only logging utility for content scripts.
@@ -37,6 +38,7 @@ export default defineContentScript({
 
     let isVisible = false;
     let isClosed = true;
+    let iframeLoaded = false;
 
     // Create sidebar container
     const sidebarContainer = document.createElement("div");
@@ -68,7 +70,6 @@ export default defineContentScript({
     // - ext:build-prod → uses https://companion.cal.com
     const COMPANION_URL =
       (import.meta.env.EXPO_PUBLIC_COMPANION_DEV_URL as string) || "https://companion.cal.com";
-    iframe.src = COMPANION_URL;
     // Enable clipboard access for the cross-origin iframe
     // This allows the companion app to use navigator.clipboard.writeText()
     iframe.allow = "clipboard-write; clipboard-read";
@@ -89,6 +90,8 @@ export default defineContentScript({
 
     // Listen for messages from iframe to control width and handle OAuth
     window.addEventListener("message", (event) => {
+      if (!iframeLoaded) return;
+
       // Security: Only accept messages from our iframe's origin
       // This prevents malicious scripts on the host page from manipulating the companion
       const iframeOrigin = new URL(iframe.src).origin;
@@ -504,6 +507,10 @@ export default defineContentScript({
 
     // Function to open the sidebar
     function openSidebar() {
+      if (!iframeLoaded) {
+        iframe.src = COMPANION_URL;
+        iframeLoaded = true;
+      }
       if (isClosed) {
         isClosed = false;
         isVisible = true;
@@ -964,7 +971,7 @@ export default defineContentScript({
 
                   contentWrapper.innerHTML = `
                     <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
-                      <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                      <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapeHtml(title)}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
                       <span style="
@@ -983,7 +990,7 @@ export default defineContentScript({
                       </span>
                       ${
                         description
-                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                          ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${escapeHtml(description)}</span>`
                           : ""
                       }
                     </div>
@@ -1714,7 +1721,7 @@ export default defineContentScript({
 
               contentWrapper.innerHTML = `
                 <div style="display: flex; align-items: center; margin-bottom: 6px; overflow: hidden;">
-                  <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${title}</span>
+                  <span style="color: #3c4043; font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${escapeHtml(title)}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
                   <span style="
@@ -1733,7 +1740,7 @@ export default defineContentScript({
                   </span>
                   ${
                     description
-                      ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${description}</span>`
+                      ? `<span style="color: #5f6368; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">${escapeHtml(description)}</span>`
                       : ""
                   }
                 </div>

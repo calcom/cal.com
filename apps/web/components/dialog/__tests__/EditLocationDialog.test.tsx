@@ -47,7 +47,7 @@ vi.mock("@calcom/features/form/components/LocationSelect", () => {
 });
 
 const AttendeePhoneNumberLabel = "Attendee phone number";
-const OrganizerPhoneLabel = "Organizer phone number";
+const OrganizerPhoneLabel = "Phone call";
 const CampfireLabel = "Campfire";
 const ZoomVideoLabel = "Zoom Video";
 const OrganizerDefaultConferencingAppLabel = "Organizer's default app";
@@ -202,7 +202,7 @@ describe("EditLocationDialog", () => {
   });
 
   describe("Team Booking Case", () => {
-    it("should not show Attendee Phone Number but show Organizer Phone Number and dynamic link Conferencing apps", async () => {
+    it("should not show Attendee Phone Number but show Phone Call option and dynamic link Conferencing apps", async () => {
       render(<EditLocationDialog {...mockProps} booking={{ location: "Office" }} teamId={1} />);
 
       expect(screen.queryByText(AttendeePhoneNumberLabel)).not.toBeInTheDocument();

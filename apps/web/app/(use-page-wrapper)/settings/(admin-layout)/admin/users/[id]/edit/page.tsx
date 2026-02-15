@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { UsersEditView } from "~/ee/users/views/users-edit-view";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 

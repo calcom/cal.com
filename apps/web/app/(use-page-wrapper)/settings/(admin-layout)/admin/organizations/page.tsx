@@ -2,8 +2,8 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import AdminOrgTable from "~/ee/organizations/admin/AdminOrgPage";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import AdminOrgTable from "~/ee/organizations/admin/views/AdminOrgPage";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

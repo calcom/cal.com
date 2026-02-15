@@ -640,14 +640,14 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                logoUrl: profileOrg.logoUrl,
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-              }
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
               : null,
         } as JWT;
       };
@@ -881,7 +881,10 @@ export const getOptions = ({
       }
 
       if (!user.name) {
-        log.warn("callbacks:signIn - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
+        log.warn("callbacks:signIn - user name is missing", {
+          emailDomain: user.email.split("@")[1],
+          provider: account?.provider,
+        });
         return false;
       }
       if (account?.provider) {
@@ -1024,7 +1027,11 @@ export const getOptions = ({
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
-              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              const validation = await validateSamlAccountConversion(
+                samlTenant,
+                user.email,
+                "SelfHosted→SAML"
+              );
               if (!validation.allowed) {
                 return validation.errorUrl;
               }
@@ -1109,12 +1116,8 @@ export const getOptions = ({
             } else {
               return true;
             }
-          } else if (
-            existingUserWithEmail.identityProvider === IdentityProvider.CAL
-          ) {
-            log.error(
-              `Userid ${user.id} already exists with CAL identity provider`
-            );
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+            log.error(`Userid ${user.id} already exists with CAL identity provider`);
             return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
@@ -1143,17 +1146,14 @@ export const getOptions = ({
               return true;
             }
           }
-          log.error(
-            `Userid ${user.id} trying to login with the wrong provider`,
-            {
-              userId: user.id,
-              account: {
-                providerAccountId: account?.providerAccountId,
-                type: account?.type,
-                provider: account?.provider,
-              },
-            }
-          );
+          log.error(`Userid ${user.id} trying to login with the wrong provider`, {
+            userId: user.id,
+            account: {
+              providerAccountId: account?.providerAccountId,
+              type: account?.type,
+              provider: account?.provider,
+            },
+          });
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
