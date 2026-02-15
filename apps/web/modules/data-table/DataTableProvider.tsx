@@ -20,7 +20,7 @@ import type {
   SegmentIdentifier,
   ActiveFilters,
   UseSegments,
-} from "./lib/types";
+} from "@calcom/features/data-table/lib/types";
 
 export type { ActiveFiltersValidatorState };
 export type { ActiveFiltersValidator } from "./contexts";
