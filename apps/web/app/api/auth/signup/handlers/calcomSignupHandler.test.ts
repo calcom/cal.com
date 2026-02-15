@@ -7,6 +7,8 @@ import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__
 import {
   createMockFoundToken,
   createMockTeam,
+  createMockUser,
+  createSignupBody,
 } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
@@ -128,4 +130,48 @@ runP2002TestSuite("calcomHandler", callHandler, () => {
   mockValidateAndGetCorrectedUsernameForTeam.mockResolvedValue("testuser");
   prismaMock.team.findUnique.mockResolvedValue(createMockTeam() as never);
   prismaMock.verificationToken.delete.mockResolvedValue({} as never);
+});
+
+describe("calcomHandler - locale persistence", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetPrismaMock();
+    mockFindTokenByToken.mockResolvedValue(createMockFoundToken());
+    mockValidateAndGetCorrectedUsernameForTeam.mockResolvedValue("testuser");
+    prismaMock.team.findUnique.mockResolvedValue(createMockTeam() as never);
+    prismaMock.verificationToken.delete.mockResolvedValue({} as never);
+  });
+
+  it("should persist the language provided in the body", async () => {
+    prismaMock.user.create.mockResolvedValue(createMockUser() as never);
+
+    await callHandler(createSignupBody({ language: "fr" }));
+
+    expect(prismaMock.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          locale: "fr",
+        }),
+      })
+    );
+  });
+
+  it("should persist the language in the upsert call (invite flow)", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(null as never);
+    prismaMock.user.findFirst.mockResolvedValue(null as never);
+    prismaMock.user.upsert.mockResolvedValue(createMockUser() as never);
+
+    await callHandler(createSignupBody({ token: "valid-token", language: "es" }));
+
+    expect(prismaMock.user.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: expect.objectContaining({
+          locale: "es",
+        }),
+        create: expect.objectContaining({
+          locale: "es",
+        }),
+      })
+    );
+  });
 });
