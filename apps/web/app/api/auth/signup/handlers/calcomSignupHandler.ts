@@ -47,15 +47,18 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     email: _email,
     password,
     token,
+    language,
   } = signupSchema
     .pick({
       email: true,
       password: true,
       token: true,
+      language: true,
     })
     .parse(body);
 
   const billingService = getBillingProviderService();
+  const userLanguage = language ?? (await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())));
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,
@@ -217,6 +220,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
               },
             },
             organizationId,
+            locale: userLanguage,
           },
           create: {
             username,
@@ -225,6 +229,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
             identityProvider: IdentityProvider.CAL,
             password: { create: { hash: hashedPassword } },
             organizationId,
+            locale: userLanguage,
           },
           select: { id: true },
         });
@@ -272,6 +277,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
             checkoutSessionId,
           },
           creationSource: CreationSource.WEBAPP,
+          locale: userLanguage,
         },
       });
     } catch (error) {
@@ -320,7 +326,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   if (!checkoutSessionId && !token) {
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+      language: userLanguage,
       username: username || "",
     });
   }

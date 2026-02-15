@@ -129,6 +129,7 @@ export default async function handler(body: Record<string, string>) {
               },
             },
             organizationId,
+            locale: language,
           },
           create: {
             username: correctedUsername,
@@ -137,6 +138,7 @@ export default async function handler(body: Record<string, string>) {
             identityProvider: IdentityProvider.CAL,
             password: { create: { hash: hashedPassword } },
             organizationId,
+            locale: language,
           },
           select: { id: true },
         });
@@ -192,6 +194,7 @@ export default async function handler(body: Record<string, string>) {
           email: userEmail,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
+          locale: language,
         },
         select: { id: true },
       });
