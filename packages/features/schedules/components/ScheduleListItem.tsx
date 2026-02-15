@@ -54,8 +54,8 @@ export function ScheduleListItem({
     weekStart?: string;
   };
   isDeletable: boolean;
-  updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
-  duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
+  updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => Promise<any>;
+  duplicateFunction: ({ scheduleId }: { scheduleId: number }) => Promise<any>;
   redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
@@ -128,7 +128,7 @@ export function ScheduleListItem({
                     updateDefault({
                       scheduleId: schedule.id,
                       isDefault: true,
-                    });
+                    }).catch(()=>{});
                   }}>
                   {t("set_as_default")}
                 </DropdownItem>
@@ -142,7 +142,7 @@ export function ScheduleListItem({
                 onClick={() => {
                   duplicateFunction({
                     scheduleId: schedule.id,
-                  });
+                  }).catch(()=>{});
                 }}>
                 {t("duplicate")}
               </DropdownItem>
