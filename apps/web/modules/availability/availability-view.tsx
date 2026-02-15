@@ -151,9 +151,9 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
                   key={schedule.id}
                   schedule={schedule}
                   isDeletable={availabilities.schedules.length !== 1}
-                  updateDefault={updateMutation.mutateAsync}
+                  updateDefault={updateMutation.mutate}
                   deleteFunction={deleteMutation.mutateAsync}
-                  duplicateFunction={duplicateMutation.mutateAsync}
+                  duplicateFunction={duplicateMutation.mutate}
                 />
               ))}
             </ul>
