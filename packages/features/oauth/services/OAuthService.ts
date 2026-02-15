@@ -175,7 +175,9 @@ export class OAuthService {
 
   private ensureClientIsApproved(client: { status: OAuthClientStatus }): void {
     if (client.status !== OAuthClientStatus.APPROVED) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_approved" });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
+        reason: "client_not_approved",
+      });
     }
   }
 

@@ -2,6 +2,8 @@ import type { NextApiRequest } from "next";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
+import { ZGetActiveUserBookingsInputSchema } from "./getActiveUserBookings.schema";
+import { ZGetActiveUserBreakdownInputSchema } from "./getActiveUserBreakdown.schema";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
@@ -231,6 +233,14 @@ export const viewerTeamsRouter = router({
   }),
   listInvoices: authedProcedure.input(ZListInvoicesInputSchema).query(async (opts) => {
     const { default: handler } = await import("./listInvoices.handler");
+    return handler(opts);
+  }),
+  getActiveUserBreakdown: authedProcedure.input(ZGetActiveUserBreakdownInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./getActiveUserBreakdown.handler");
+    return handler(opts);
+  }),
+  getActiveUserBookings: authedProcedure.input(ZGetActiveUserBookingsInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./getActiveUserBookings.handler");
     return handler(opts);
   }),
 });

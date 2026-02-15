@@ -12,71 +12,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = [
-  "/api/auth/forgot-password",
-  "/api/auth/oauth/me",
-  "/api/auth/oauth/refreshToken",
-  "/api/auth/oauth/token",
-  "/api/auth/reset-password",
-  "/api/auth/saml/callback",
-  "/api/auth/saml/token",
-  "/api/auth/setup",
-  "/api/auth/signup",
-  "/api/auth/two-factor/totp/disable",
-  "/api/auth/two-factor/totp/enable",
-  "/api/auth/two-factor/totp/setup",
-  "/api/auth/session",
-  "/api/availability/calendar",
-  "/api/cancel",
-  "/api/cron/bookingReminder",
-  "/api/cron/calendar-cache-cleanup",
-  "/api/cron/changeTimeZone",
-  "/api/cron/checkSmsPrices",
-  "/api/cron/downgradeUsers",
-  "/api/cron/monthlyDigestEmail",
-  "/api/cron/syncAppMeta",
-  "/api/cron/webhookTriggers",
-  "/api/cron/workflows/scheduleEmailReminders",
-  "/api/cron/workflows/scheduleSMSReminders",
-  "/api/cron/workflows/scheduleWhatsappReminders",
-  "/api/get-inbound-dynamic-variables",
-  "/api/integrations/", // for /api/integrations/[...args] and webhooks
-  "/api/recorded-daily-video",
-  "/api/router",
-  "/api/routing-forms/queued-response",
-  "/api/scim/v2.0/", // /api/scim/v2.0/[...directory]
-  "/api/support/conversation",
-  "/api/sync/helpscout",
-  "/api/twilio/webhook",
-  "/api/username",
-  "/api/verify-booking-token",
-  "/api/video/guest-session",
-  "/api/webhook/app-credential",
-  "/api/webhooks/calendar-subscription/", // /api/webhooks/calendar-subscription/[provider]
-  "/api/webhooks/retell-ai",
-  "/api/workflows/sms/user-response",
-  "/api/trpc/", // for tRPC
-  "/api/auth/callback/", // for NextAuth
-  "/api/book/event",
-  "/api/book/instant-event",
-  "/api/book/recurring-event",
-  "/availability",
-];
-
-export function checkPostMethod(req: NextRequest) {
-  const pathname = req.nextUrl.pathname;
-  if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
-    return new NextResponse(null, {
-      status: 405,
-      statusText: "Method Not Allowed",
-      headers: {
-        Allow: "GET",
-      },
-    });
-  }
-  return null;
-}
-
 // Vercel/Edge rejects non‑ASCII header values (see: https://github.com/vercel/next.js/issues/85631)
 const isAscii = (s: string) => {
   for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x7f) return false;
@@ -131,9 +66,6 @@ const shouldEnforceCsp = (url: URL) => {
 };
 
 const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
-  const postCheckResult = checkPostMethod(req);
-  if (postCheckResult) return postCheckResult;
-
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
@@ -231,51 +163,7 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  matcher: [
-    "/auth/login",
-    "/login",
-    "/apps/installed",
-    "/auth/logout",
-    "/:path*/embed",
-    "/api/auth/forgot-password",
-    "/api/auth/oauth/me",
-    "/api/auth/oauth/refreshToken",
-    "/api/auth/oauth/token",
-    "/api/auth/reset-password",
-    "/api/auth/saml/callback",
-    "/api/auth/saml/token",
-    "/api/auth/setup",
-    "/api/auth/signup",
-    "/api/auth/two-factor/totp/disable",
-    "/api/auth/two-factor/totp/enable",
-    "/api/auth/two-factor/totp/setup",
-    "/api/auth/session",
-    "/api/availability/calendar",
-    "/api/cancel",
-    "/api/cron/:path*",
-    "/api/get-inbound-dynamic-variables",
-    "/api/integrations/:path*",
-    "/api/recorded-daily-video",
-    "/api/router",
-    "/api/routing-forms/queued-response",
-    "/api/scim/v2.0/:path*",
-    "/api/support/conversation",
-    "/api/sync/helpscout",
-    "/api/twilio/webhook",
-    "/api/username",
-    "/api/verify-booking-token",
-    "/api/video/guest-session",
-    "/api/webhook/app-credential",
-    "/api/webhooks/calendar-subscription/:path*",
-    "/api/webhooks/retell-ai",
-    "/api/workflows/sms/user-response",
-    "/api/trpc/:path*",
-    "/api/auth/callback/:path*",
-    "/api/book/event",
-    "/api/book/instant-event",
-    "/api/book/recurring-event",
-    "/availability",
-  ],
+  matcher: ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed", "/availability", "/api/auth/signup"],
 };
 
 export default proxy;
