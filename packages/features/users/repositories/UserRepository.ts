@@ -277,6 +277,26 @@ export class UserRepository {
     return user;
   }
 
+  /**
+   * Find Cal.com users by a list of emails.
+   * Used to check if booking guests are Cal.com users (e.g., for reschedule availability).
+   */
+  async findUsersByEmails({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    return this.prismaClient.user.findMany({
+      where: {
+        email: { in: normalizedEmails },
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        timeZone: true,
+      },
+    });
+  }
+
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 

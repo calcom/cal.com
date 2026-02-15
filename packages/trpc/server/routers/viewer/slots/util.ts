@@ -910,6 +910,16 @@ export class AvailableSlotsService {
     const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
 
+    // When rescheduling, check if any guests are Cal.com users and include their busy times
+    let guestBusyTimes: EventBusyDetails[] = [];
+    if (input.rescheduleUid) {
+      guestBusyTimes = await this.getGuestBusyTimesForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        startDate: startTimeDate,
+        endDate: endTimeDate,
+      });
+    }
+
     const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
       users,
       query: {
@@ -933,6 +943,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
@@ -959,6 +970,60 @@ export class AvailableSlotsService {
       usersWithCredentials,
       currentSeats,
     };
+  }
+
+  /**
+   * When a host reschedules a booking, check if any attendees (guests) are Cal.com users.
+   * If so, fetch their existing bookings as busy times so the host can only pick
+   * times that work for both parties.
+   */
+  private async getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    startDate,
+    endDate,
+  }: {
+    rescheduleUid: string;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<EventBusyDetails[]> {
+    try {
+      // 1. Get the original booking to find attendee emails
+      const originalBooking = await this.dependencies.bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid: rescheduleUid,
+      });
+
+      if (!originalBooking?.attendees?.length) return [];
+
+      const attendeeEmails = originalBooking.attendees.map((a) => a.email);
+
+      // 2. Check which attendees are Cal.com users
+      const calUsers = await this.dependencies.userRepo.findUsersByEmails({ emails: attendeeEmails });
+
+      if (!calUsers.length) return [];
+
+      // 3. Get their existing bookings as busy times
+      const calUserIds = calUsers.map((u) => u.id);
+      const calUserEmails = calUsers.map((u) => u.email);
+
+      const guestBookings = await this.dependencies.bookingRepo.findAcceptedBookingsByUserIdsOrEmails({
+        userIds: calUserIds,
+        emails: calUserEmails,
+        startDate,
+        endDate,
+        excludeUid: rescheduleUid,
+      });
+
+      return guestBookings.map((booking) => ({
+        start: dayjs(booking.startTime).toISOString(),
+        end: dayjs(booking.endTime).toISOString(),
+        title: "Guest busy",
+        source: "bookings",
+      }));
+    } catch (error) {
+      // Don't block rescheduling if guest availability check fails
+      logger.warn("Failed to fetch guest busy times for reschedule", { rescheduleUid, error });
+      return [];
+    }
   }
 
   private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
