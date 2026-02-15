@@ -4638,7 +4638,6 @@
   "paypal_important_requirements": "Important requirements:",
   "paypal_business_account": "PayPal Business account",
   "paypal_developer_account": "PayPal Developer account",
-  "resources": "Resources",
   "paypal_setup_guide_link": "Link to PayPal developer API REST Setup Guide:",
   "setup_instructions": "Setup instructions",
   "paypal_setup_instructions_note": "Remember to only proceed with the following steps if your account has already been upgraded to a business account. Also keep in mind that some of the following steps might be different since PayPal offers different experiences based on your country.",
