@@ -77,6 +77,7 @@ export const PriorityDialog = (
               weight: host.weight,
               groupId: host.groupId,
               userId: host.userId,
+              ignoreForAvailability: host.ignoreForAvailability,
             };
           })
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
@@ -93,6 +94,7 @@ export const PriorityDialog = (
           isFixed: host.isFixed,
           groupId: host.groupId,
           userId: host.userId,
+          ignoreForAvailability: host.ignoreForAvailability,
         };
       });
       const updatedHosts = [...otherGroupsOptions, ...sortedHostGroup];
@@ -186,6 +188,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
         weight: host.weight,
         isFixed: host.isFixed,
         groupId: host.groupId,
+        ignoreForAvailability: host.ignoreForAvailability,
       }));
 
       // Preserve hosts from other groups
@@ -201,6 +204,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
           weight: host.weight,
           isFixed: host.isFixed,
           groupId: host.groupId,
+          ignoreForAvailability: host.ignoreForAvailability,
         };
       });
       const newFullValue = [...otherGroupsOptions, ...updatedOptions];

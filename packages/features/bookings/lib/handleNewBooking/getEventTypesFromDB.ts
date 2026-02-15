@@ -135,6 +135,7 @@ const getEventTypesFromDBSelect = {
       weight: true,
       createdAt: true,
       groupId: true,
+      ignoreForAvailability: true,
       location: {
         select: {
           id: true,

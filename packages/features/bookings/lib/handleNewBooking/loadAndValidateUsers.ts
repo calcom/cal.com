@@ -174,7 +174,15 @@ const _loadAndValidateUsers = async ({
       routingFormResponse,
       rrHostSubsetIds,
     });
-  const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
+  // Hosts with ignoreForAvailability (e.g. resource/bot) are not assignable as organizer
+  const assignableQualifiedRRHosts = qualifiedRRHosts.filter((h) => !h.ignoreForAvailability);
+  const assignableFixedHosts = fixedHosts.filter((h) => !h.ignoreForAvailability);
+  const assignableFallbackRRHosts = allFallbackRRHosts?.filter((h) => !h.ignoreForAvailability) ?? [];
+  const allQualifiedHostsHashMap = [
+    ...assignableQualifiedRRHosts,
+    ...assignableFallbackRRHosts,
+    ...assignableFixedHosts,
+  ].reduce(
     (acc, host) => {
       if (host.user.id) {
         return { ...acc, [host.user.id]: host };
@@ -192,23 +200,23 @@ const _loadAndValidateUsers = async ({
   let allFallbackRRUsers: UsersWithDelegationCredentials = [];
   let fixedUsers: UsersWithDelegationCredentials = [];
 
-  if (qualifiedRRHosts.length) {
+  if (assignableQualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
-    const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
+    const qualifiedHostIds = new Set(assignableQualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
     qualifiedRRUsers = users
       .filter((user) => qualifiedHostIds.has(user.id))
       .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
-  if (allFallbackRRHosts?.length) {
-    const fallbackHostIds = new Set(allFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
+  if (assignableFallbackRRHosts.length) {
+    const fallbackHostIds = new Set(assignableFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
     allFallbackRRUsers = users
       .filter((user) => fallbackHostIds.has(user.id))
       .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));
   }
 
-  if (fixedHosts?.length) {
-    const fixedHostIds = new Set(fixedHosts.map((fixedHost) => fixedHost.user.id));
+  if (assignableFixedHosts.length) {
+    const fixedHostIds = new Set(assignableFixedHosts.map((fixedHost) => fixedHost.user.id));
     fixedUsers = users
       .filter((user) => fixedHostIds.has(user.id))
       .map((user) => ({ ...user, credentials: allQualifiedHostsHashMap[user.id].user.credentials }));

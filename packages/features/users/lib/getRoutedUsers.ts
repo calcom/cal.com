@@ -77,6 +77,7 @@ type BaseHost<User extends BaseUser> = {
   weightAdjustment?: number | null;
   user: User;
   groupId: string | null;
+  ignoreForAvailability?: boolean;
 };
 
 export type EventType = {
@@ -149,6 +150,7 @@ export async function getNormalizedHostsWithDelegationCredentials<
       weight: host.weight,
       createdAt: host.createdAt,
       groupId: host.groupId,
+      ignoreForAvailability: host.ignoreForAvailability ?? false,
     }));
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
@@ -202,6 +204,7 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
     weight?: number | null;
     createdAt: Date | null;
     groupId: string | null;
+    ignoreForAvailability?: boolean;
   }[];
 }) {
   const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({

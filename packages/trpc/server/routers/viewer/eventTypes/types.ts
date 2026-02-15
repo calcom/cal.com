@@ -84,6 +84,7 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
   location: hostLocationSchema.optional().nullable(),
+  ignoreForAvailability: z.boolean().optional(),
 });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({

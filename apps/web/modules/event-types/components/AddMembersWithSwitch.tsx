@@ -84,14 +84,18 @@ const CheckedHostField = ({
           onChange={(options) => {
             onChange &&
               onChange(
-                options.map((option) => ({
-                  isFixed,
-                  userId: parseInt(option.value, 10),
-                  priority: option.priority ?? 2,
-                  weight: option.weight ?? 100,
-                  scheduleId: option.defaultScheduleId,
-                  groupId: option.groupId,
-                }))
+                options.map((option) => {
+                  const existingHost = value?.find((h) => h.userId.toString() === option.value);
+                  return {
+                    isFixed,
+                    userId: parseInt(option.value, 10),
+                    priority: option.priority ?? 2,
+                    weight: option.weight ?? 100,
+                    scheduleId: option.defaultScheduleId,
+                    groupId: option.groupId,
+                    ignoreForAvailability: option.ignoreForAvailability ?? existingHost?.ignoreForAvailability ?? false,
+                  };
+                })
               );
           }}
           value={(value || [])
@@ -106,6 +110,7 @@ const CheckedHostField = ({
                 isFixed,
                 weight: host.weight ?? 100,
                 groupId: host.groupId,
+                ignoreForAvailability: host.ignoreForAvailability ?? false,
               });
 
               return acc;

@@ -1154,6 +1154,11 @@ export class AvailableSlotsService {
       };
     }
 
+    // Hosts with ignoreForAvailability (e.g. resource/bot) do not block team slots
+    const availabilityHosts = allHosts.filter(
+      (h) => !(h as { ignoreForAvailability?: boolean }).ignoreForAvailability
+    );
+
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts =
@@ -1163,7 +1168,7 @@ export class AvailableSlotsService {
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
-        hosts: allHosts,
+        hosts: availabilityHosts.length > 0 ? availabilityHosts : allHosts,
         loggerWithEventDetails,
         // adjust start time so we can check for available slots in the first two weeks
         startTime:
@@ -1198,7 +1203,10 @@ export class AvailableSlotsService {
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
+            hosts:
+              availabilityHosts.length > 0
+                ? availabilityHosts
+                : [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
@@ -1230,11 +1238,15 @@ export class AvailableSlotsService {
 
       if (diff > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
+        const fallbackHosts = [...eligibleFallbackRRHosts, ...eligibleFixedHosts];
+        const availabilityFallbackHosts = fallbackHosts.filter(
+          (h) => !(h as { ignoreForAvailability?: boolean }).ignoreForAvailability
+        );
         ({ allUsersAvailability, usersWithCredentials, currentSeats } =
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
+            hosts: availabilityFallbackHosts.length > 0 ? availabilityFallbackHosts : fallbackHosts,
             loggerWithEventDetails,
             startTime,
             endTime,

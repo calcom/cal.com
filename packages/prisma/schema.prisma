@@ -76,6 +76,8 @@ model Host {
   memberId         Int?
   member           Membership?   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   location         HostLocation?
+  /// When true, this host's calendar and bookings do not block team availability (e.g. resource/bot accounts).
+  ignoreForAvailability Boolean   @default(false)
 
   @@id([userId, eventTypeId])
   @@index([memberId])

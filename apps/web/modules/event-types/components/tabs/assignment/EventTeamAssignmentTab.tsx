@@ -177,6 +177,7 @@ const FixedHosts = ({
           // if host was already added, retain scheduleId and groupId
           scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
           groupId: host?.groupId || null,
+          ignoreForAvailability: host?.ignoreForAvailability ?? false,
         };
       }),
       { shouldDirty: true }
@@ -403,6 +404,7 @@ const RoundRobinHosts = ({
             // if host was already added, retain scheduleId and groupId
             scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
             groupId: host?.groupId || groupId,
+            ignoreForAvailability: host?.ignoreForAvailability ?? false,
           };
         }),
         { shouldDirty: true }
@@ -668,6 +670,7 @@ const Hosts = ({
             ...newValue,
             scheduleId: existingHost.scheduleId,
             groupId: existingHost.groupId,
+            ignoreForAvailability: newValue.ignoreForAvailability ?? existingHost.ignoreForAvailability,
           }
         : newValue;
     });

@@ -286,6 +286,7 @@ export const buildEventForTeamEventType = async ({
   organizerUser,
   schedulingType,
   team,
+  additionalTeamMembers = [],
 }: {
   existingEvent: Partial<CalendarEvent>;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
@@ -298,6 +299,8 @@ export const buildEventForTeamEventType = async ({
     id: number;
     name: string;
   } | null;
+  /** Hosts with ignoreForAvailability (e.g. resource/bot) — they get the invite but are not in the assignable pool */
+  additionalTeamMembers?: Pick<User, "id" | "name" | "timeZone" | "locale" | "email">[];
 }) => {
   // not null assertion.
   if (!schedulingType) {
@@ -308,6 +311,8 @@ export const buildEventForTeamEventType = async ({
   const nonFixedUsers = users.filter((user) => !user.isFixed);
   const filteredUsers =
     schedulingType === SchedulingType.ROUND_ROBIN ? [...fixedUsers, ...nonFixedUsers] : users;
+
+  const assignedEmails = new Set(filteredUsers.map((u) => u.email));
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = filteredUsers
@@ -336,7 +341,25 @@ export const buildEventForTeamEventType = async ({
       };
     });
 
-  const teamMembers = await Promise.all(teamMemberPromises);
+  let teamMembers = await Promise.all(teamMemberPromises);
+
+  const additionalMembersPromises = additionalTeamMembers
+    .filter(
+      (user) => user.email !== organizerUser.email && !assignedEmails.has(user.email ?? "")
+    )
+    .map(async (user) => ({
+      id: user.id,
+      email: user.email ?? "",
+      name: user.name ?? "",
+      firstName: "",
+      lastName: "",
+      timeZone: user.timeZone,
+      language: {
+        translate: await getTranslation(user.locale ?? "en", "common"),
+        locale: user.locale ?? "en",
+      },
+    }));
+  teamMembers = [...teamMembers, ...(await Promise.all(additionalMembersPromises))];
 
   const updatedEvt = CalendarEventBuilder.fromEvent(evt)
     ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
@@ -1596,12 +1619,23 @@ async function handler(
   }
 
   if (isTeamEventType) {
+    const additionalTeamMembers =
+      eventType.hosts
+        ?.filter((h) => h.ignoreForAvailability)
+        .map((h) => ({
+          id: h.user.id,
+          name: h.user.name ?? "",
+          email: h.user.email ?? "",
+          timeZone: h.user.timeZone,
+          locale: h.user.locale ?? "en",
+        })) ?? [];
     const teamEvt = await buildEventForTeamEventType({
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
       team: eventType.team,
       organizerUser,
+      additionalTeamMembers,
     });
 
     if (!teamEvt) {

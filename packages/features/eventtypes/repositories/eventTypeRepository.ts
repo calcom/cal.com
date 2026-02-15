@@ -1410,6 +1410,7 @@ export class EventTypeRepository implements IEventTypesRepository {
             weight: true,
             priority: true,
             groupId: true,
+            ignoreForAvailability: true,
             user: {
               select: {
                 locked: true,

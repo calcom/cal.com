@@ -50,6 +50,7 @@ export type Host = {
   scheduleId?: number | null;
   groupId: string | null;
   location?: HostLocation | null;
+  ignoreForAvailability?: boolean;
 };
 export type TeamMember = {
   value: string;
@@ -274,6 +275,8 @@ export type HostInput = {
   scheduleId?: number | null;
   groupId?: string | null;
   location?: HostLocationInput | null;
+  /** When true, this host's calendar and bookings do not block team availability (e.g. resource/bot accounts). */
+  ignoreForAvailability?: boolean;
 };
 
 export type HostGroupInput = {

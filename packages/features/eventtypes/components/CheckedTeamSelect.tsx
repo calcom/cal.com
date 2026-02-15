@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
+import { Select, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -31,6 +31,7 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  ignoreForAvailability?: boolean;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -172,6 +173,22 @@ export const CheckedTeamSelect = ({
                   <></>
                 )}
 
+                <Tooltip content={t("host_ignore_for_availability_tooltip")}>
+                  <div className="my-auto flex items-center">
+                    <Switch
+                      checked={option.ignoreForAvailability ?? false}
+                      onCheckedChange={(checked) => {
+                        const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
+                        const updatedGroup = valueFromGroup.map((item) =>
+                          item.value === option.value
+                            ? { ...item, ignoreForAvailability: checked }
+                            : item
+                        );
+                        props.onChange([...otherGroupsHosts, ...updatedGroup]);
+                      }}
+                    />
+                  </div>
+                </Tooltip>
                 <Icon
                   name="x"
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
