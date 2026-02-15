@@ -47,7 +47,7 @@ export function ScheduleListItem({
   redirectUrl,
 }: {
   schedule: Schedule;
-  deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
+  deleteFunction: ({ scheduleId }: { scheduleId: number }) => Promise<any>;
   displayOptions?: {
     timeZone?: string;
     hour12?: boolean;
