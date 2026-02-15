@@ -62,16 +62,15 @@ export function ScheduleListItem({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false)
   type AvailabilityItem = (typeof schedule.availability)[number];
-  const handleDelete=(e:React.MouseEvent)=>{
-     e.preventDefault();
-     setLoading(true);
-     setTimeout(()=> {
-      deleteFunction({
-      scheduleId: schedule.id,
-    })
-    setLoading(false)
-     },0)
-  } 
+ const handleDelete = async (e: React.MouseEvent) => {
+  e.preventDefault();
+  setLoading(true);        
+  try {
+    await deleteFunction({ scheduleId: schedule.id });
+  } finally {
+    setLoading(false);     
+  }
+};
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
