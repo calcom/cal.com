@@ -60,9 +60,18 @@ export function ScheduleListItem({
 }) {
   const { t, i18n } = useLocale();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
+  const [loading, setLoading] = useState(false)
   type AvailabilityItem = (typeof schedule.availability)[number];
-
+  const handleDelete=(e:React.MouseEvent)=>{
+     e.preventDefault();
+     setLoading(true);
+     setTimeout(()=> {
+      deleteFunction({
+      scheduleId: schedule.id,
+    })
+    setLoading(false)
+     },0)
+  } 
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
@@ -160,18 +169,20 @@ export function ScheduleListItem({
         </Dropdown>
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <ConfirmationDialogContent
-            variety="danger"
-            title={t("delete_schedule")}
-            confirmBtnText={t("delete")}
-            loadingText={t("delete")}
-            onConfirm={(e) => {
-              e.preventDefault();
-              deleteFunction({
-                scheduleId: schedule.id,
-              });
-            }}>
-            {t("delete_schedule_description")}
-          </ConfirmationDialogContent>
+  variety="danger"
+  title={t("delete_schedule")}
+  confirmBtn={
+   <Button
+      loading={loading}
+       onClick={handleDelete}
+>
+  {t("delete")}
+</Button>
+
+  }
+>
+  {t("delete_schedule_description")}
+</ConfirmationDialogContent>
         </Dialog>
       </div>
     </li>
