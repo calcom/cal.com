@@ -1,4 +1,3 @@
-import process from "node:process";
 import { validJson } from "@calcom/lib/jsonUtils";
 import type { AppMeta } from "@calcom/types/App";
 
