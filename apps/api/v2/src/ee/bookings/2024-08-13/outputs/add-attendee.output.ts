@@ -1,9 +1,10 @@
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BookingAttendee } from "@calcom/platform-types";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsEnum, IsNumber, IsString, IsTimeZone, ValidateNested } from "class-validator";
+import { IsEnum, IsNumber, ValidateNested } from "class-validator";
 
-export class BookingAttendeeOutput_2024_08_13 {
+export class BookingAttendeeOutput_2024_08_13 extends BookingAttendee {
   @ApiProperty({ type: Number, example: 251 })
   @IsNumber()
   @Expose()
@@ -13,21 +14,6 @@ export class BookingAttendeeOutput_2024_08_13 {
   @IsNumber()
   @Expose()
   bookingId!: number;
-
-  @ApiProperty({ type: String, example: "John Doe" })
-  @IsString()
-  @Expose()
-  name!: string;
-
-  @ApiProperty({ type: String, example: "john.doe@example.com" })
-  @IsString()
-  @Expose()
-  email!: string;
-
-  @ApiProperty({ type: String, example: "Asia/Jerusalem" })
-  @IsTimeZone()
-  @Expose()
-  timeZone!: string;
 }
 
 export class AddAttendeeOutput_2024_08_13 {

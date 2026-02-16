@@ -74,9 +74,17 @@ export class BookingAttendeesService_2024_08_13 {
         bookingId: booking.id,
         name: createdAttendee.name,
         email: createdAttendee.email,
+        displayEmail: this.getDisplayEmail(createdAttendee.email),
         timeZone: createdAttendee.timeZone,
+        language: createdAttendee.locale ?? undefined,
+        absent: false,
+        phoneNumber: createdAttendee.phoneNumber ?? undefined,
       },
       { strategy: "excludeAll" }
     );
+  }
+
+  private getDisplayEmail(email: string): string {
+    return email.replace(/\+[a-zA-Z0-9]{25}/, "");
   }
 }
