@@ -127,7 +127,14 @@ test.describe("Custom Domain - Internal Links", () => {
           create: [{ link: generateHashedLink(eventType.id) }],
         },
       },
-      include: { hashedLink: true },
+      select: {
+        slug: true,
+        hashedLink: {
+          select: {
+            link: true,
+          },
+        },
+      },
     });
 
     await doOnOrgDomain({ page, orgSlug: customDomainSlug }, async () => {
