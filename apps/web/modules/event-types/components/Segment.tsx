@@ -111,8 +111,8 @@ function MatchingTeamMembers({
   // Check if queryValue has valid children properties value
   const hasValidValue = queryValue?.children1
     ? Object.values(queryValue.children1).some(
-      (child) => child.properties?.value?.[0] !== undefined && child.properties?.value?.[0] !== null
-    )
+        (child) => child.properties?.value?.[0] !== undefined && child.properties?.value?.[0] !== null
+      )
     : false;
 
   const { data: matchingTeamMembersWithResult, isPending } =

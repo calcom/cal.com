@@ -1876,7 +1876,7 @@ describe("require email/domain validation", () => {
       ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
       view: "ALL_VIEWS",
     });
-    
+
     const parsedResponses = await schema.safeParseAsync({
       name: "John Doe",
       email: "john@example.com",
