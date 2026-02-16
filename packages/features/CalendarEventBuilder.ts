@@ -308,7 +308,6 @@ export class CalendarEventBuilder {
   }
 
   withEventType(eventType: {
-    slug?: string;
     description?: string | null;
     id: number;
     hideCalendarNotes?: boolean;

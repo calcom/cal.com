@@ -71,7 +71,6 @@ describe("CalendarEventBuilder", () => {
         additionalNotes: "Some notes",
       })
       .withEventType({
-        slug: "test-slug",
         description: "Test description",
         id: 123,
       })
@@ -96,7 +95,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         description: "Test description",
         id: 123,
         hideCalendarNotes: true,
@@ -135,7 +133,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .build();
@@ -176,7 +173,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .build();
@@ -207,7 +203,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withMetadataAndResponses({
@@ -236,7 +231,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withLocation({
@@ -275,7 +269,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withDestinationCalendar([destinationCalendar])
@@ -296,7 +289,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withIdentifiers({
@@ -321,7 +313,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withConfirmation({
@@ -346,7 +337,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withConfirmation({
@@ -371,7 +361,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withPlatformVariables({
@@ -419,7 +408,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withAppsStatus(appsStatus)
@@ -447,7 +435,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withVideoCallData(videoCallData)
@@ -484,7 +471,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withTeam(team)
@@ -511,7 +497,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withRecurring(recurringEvent)
@@ -532,7 +517,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withAttendeeSeatId("seat-123")
@@ -553,7 +537,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withUid("booking-uid-123")
@@ -574,7 +557,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withOneTimePassword("otp123")
@@ -595,7 +577,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withRecurringEventId("recurring-123")
@@ -618,7 +599,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withAssignmentReason({
@@ -645,7 +625,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withAssignmentReason({
@@ -672,7 +651,6 @@ describe("CalendarEventBuilder", () => {
         endTime: mockEndTime,
       })
       .withEventType({
-        slug: "test-slug",
         id: 123,
       })
       .withAssignmentReason(null)
@@ -718,7 +696,6 @@ describe("CalendarEventBuilder", () => {
         additionalNotes: "Complete test notes",
       })
       .withEventType({
-        slug: "complete-test",
         description: "Complete test description",
         id: 123,
         hideCalendarNotes: true,
@@ -853,7 +830,6 @@ describe("CalendarEventBuilder", () => {
         additionalNotes: "Some notes",
       })
       .withEventType({
-        slug: "test-slug",
         description: "Test description",
         id: 123,
         disableCancelling: true,
@@ -1565,7 +1541,6 @@ describe("CalendarEventBuilder", () => {
         })
         .withEventType({
           id: 700,
-          slug: "match-event",
           description: "Match event type",
           hideCalendarNotes: false,
           hideCalendarEventDetails: false,
