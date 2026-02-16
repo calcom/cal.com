@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import {
@@ -9,6 +9,7 @@ import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -69,11 +70,12 @@ export const EventTypeCalendarViewComponent = (
   });
 
   const { timezone: rawTimezone } = useTimePreferences();
-  const initialTimezoneRef = useRef(rawTimezone);
-  const hasRestrictionSchedule =
-    event?.data?.restrictionScheduleId != null && event?.data?.restrictionScheduleId > 0;
-  const shouldUseStableTimezone = hasRestrictionSchedule && event?.data?.useBookerTimezone === false;
-  const timezone = shouldUseStableTimezone ? initialTimezoneRef.current : rawTimezone;
+  const timezone = useStableTimezone(
+    rawTimezone,
+    event?.data?.restrictionScheduleId != null
+      ? { id: event.data.restrictionScheduleId, useBookerTimezone: event.data.useBookerTimezone }
+      : undefined
+  );
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
   }, [username]);

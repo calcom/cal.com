@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -7,6 +6,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
@@ -96,19 +96,13 @@ export const useScheduleForEvent = ({
   };
   restrictionSchedule?: { id: number | null; useBookerTimezone: boolean };
 }) => {
-  const { timezone } = useBookerTime();
+  const { timezone: rawTimezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
     (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
     shallow
   );
 
-  const initialTimezoneRef = useRef(timezone);
-  const shouldUseStableTimezone =
-    restrictionSchedule != null &&
-    restrictionSchedule.id != null &&
-    restrictionSchedule.id > 0 &&
-    restrictionSchedule.useBookerTimezone === false;
-  const effectiveTimezone = shouldUseStableTimezone ? initialTimezoneRef.current : timezone;
+  const effectiveTimezone = useStableTimezone(rawTimezone, restrictionSchedule);
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
