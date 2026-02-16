@@ -91,6 +91,7 @@ export type HandleSeatsResultBooking =
   | (Partial<Booking> & {
     appsStatus?: AppsStatus[];
     seatReferenceUid?: string;
+    bookerAttendeeId?: number;
     paymentUid?: string;
     message?: string;
     paymentId?: number;

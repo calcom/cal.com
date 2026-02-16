@@ -110,20 +110,22 @@ const fireBookingEvents = async ({
         isBookingAuditEnabled,
       });
     } else {
-      await deps.bookingEventHandler.onSeatBooked({
-        bookingUid: previousSeatedBooking.uid,
-        actor: auditActor,
-        organizationId: organizationId ?? null,
-        auditData: {
-          seatReferenceUid,
-          attendeeEmail: bookerEmail,
-          attendeeName: bookerName,
-          startTime: previousSeatedBooking.startTime.getTime(),
-          endTime: previousSeatedBooking.endTime.getTime(),
-        },
-        source: actionSource,
-        isBookingAuditEnabled,
-      });
+      const bookerAttendeeId = newBooking.bookerAttendeeId;
+      if (bookerAttendeeId) {
+        await deps.bookingEventHandler.onSeatBooked({
+          bookingUid: previousSeatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
+            seatReferenceUid,
+            attendeeId: bookerAttendeeId,
+            startTime: previousSeatedBooking.startTime.getTime(),
+            endTime: previousSeatedBooking.endTime.getTime(),
+          },
+          source: actionSource,
+          isBookingAuditEnabled,
+        });
+      }
     }
   } catch (error) {
     deps.logger.error("Error while firing booking events", safeStringify(error));

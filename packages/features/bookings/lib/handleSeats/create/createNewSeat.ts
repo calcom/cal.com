@@ -301,6 +301,7 @@ const createNewSeat = async (
   }
 
   resultBooking["seatReferenceUid"] = evt.attendeeSeatId;
+  resultBooking["bookerAttendeeId"] = newBookingSeat?.attendeeId;
 
   return resultBooking;
 };
