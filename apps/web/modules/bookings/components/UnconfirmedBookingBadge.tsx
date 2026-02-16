@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -11,7 +10,6 @@ export default function UnconfirmedBookingBadge() {
   const { data: unconfirmedBookingCount } = trpc.viewer.me.bookingUnconfirmedCount.useQuery();
   if (!unconfirmedBookingCount) return null;
   return (
-    <Link href="/bookings/unconfirmed">
       <Badge
         rounded
         title={t("unconfirmed_bookings_tooltip")}
@@ -19,6 +17,5 @@ export default function UnconfirmedBookingBadge() {
         className="cursor-pointer hover:bg-orange-800 hover:text-orange-100">
         {unconfirmedBookingCount}
       </Badge>
-    </Link>
   );
 }
