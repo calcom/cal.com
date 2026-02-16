@@ -14,13 +14,13 @@ const handleBeforeUnload = (event: BeforeUnloadEvent) => {
 };
 
 export const RedirectToInstantMeetingModal = ({
-  bookingId,
+  bookingUid,
   onGoBack,
   expiryTime,
   instantVideoMeetingUrl,
   orgName,
 }: {
-  bookingId: number;
+  bookingUid: string;
   onGoBack: () => void;
   expiryTime?: Date;
   instantVideoMeetingUrl?: string;
@@ -79,7 +79,7 @@ export const RedirectToInstantMeetingModal = ({
   }, [instantVideoMeetingUrl]);
 
   return (
-    <Dialog open={!!bookingId && !!expiryTime}>
+    <Dialog open={!!bookingUid && !!expiryTime}>
       <DialogContent enableOverflow className="py-8">
         <div>
           {hasInstantMeetingTokenExpired ? (

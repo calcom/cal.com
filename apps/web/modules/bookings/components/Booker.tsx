@@ -314,7 +314,7 @@ const BookerComponent = ({
         {!isPlatform && (
           <RedirectToInstantMeetingModal
             expiryTime={expiryTime}
-            bookingId={parseInt(getQueryParam("bookingId") || "0")}
+            bookingUid={getQueryParam("bookingUid") || ""}
             instantVideoMeetingUrl={instantVideoMeetingUrl}
             onGoBack={() => {
               onGoBackInstantMeeting();
