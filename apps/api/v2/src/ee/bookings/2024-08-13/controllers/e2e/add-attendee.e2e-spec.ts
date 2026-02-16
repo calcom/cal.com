@@ -378,7 +378,7 @@ describe("Bookings Endpoints 2024-08-13 add attendee", () => {
           .expect(400);
       });
 
-      it("should return 404 when booking does not exist", async () => {
+      it("should return 403 when booking does not exist", async () => {
         const addAttendeeBody = {
           email: "nonexistent.booking@example.com",
           name: "Nonexistent Booking Attendee",
@@ -390,7 +390,7 @@ describe("Bookings Endpoints 2024-08-13 add attendee", () => {
           .send(addAttendeeBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
-          .expect(404);
+          .expect(403);
       });
     });
   });
