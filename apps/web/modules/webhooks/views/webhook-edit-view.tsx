@@ -1,39 +1,20 @@
 "use client";
 
-import {
-  getWebhookVersionDocsUrl,
-  getWebhookVersionLabel,
-  WEBHOOK_TRIGGER_EVENTS,
-  WEBHOOK_VERSION_OPTIONS,
-} from "@calcom/features/webhooks/lib/constants";
+import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import type { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { toastManager } from "@coss/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
-import { Button } from "@coss/ui/components/button";
 import { CardFrame } from "@coss/ui/components/card";
-import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@coss/ui/components/tooltip";
-import { ExternalLinkIcon } from "@coss/ui/icons";
-import Link from "next/link";
+import { toastManager } from "@coss/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
+import { WebhookVersionCTA } from "../components/WebhookVersionCTA";
 import { WebhookFormHeader } from "./webhook-form-header";
 import { WebhookFormSkeleton } from "./webhook-form-skeleton";
-
-const webhookVersionItems = WEBHOOK_VERSION_OPTIONS.map((option) => ({
-  value: option.value,
-  label: option.label,
-}));
 
 type WebhookProps = {
   id: string;
@@ -80,79 +61,12 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
     <WebhookForm
       noRoutingFormTriggers={false}
       webhook={webhook}
-      headerWrapper={(formMethods, children) => {
-        const version = formMethods.watch("version");
-        const selectedVersionItem =
-          webhookVersionItems.find((item) => item.value === version) ?? webhookVersionItems[0];
-
-        return (
-          <CardFrame>
-            <WebhookFormHeader
-              titleKey="edit_webhook"
-              CTA={
-                <div className="flex items-center gap-1 self-center">
-                  <TooltipProvider delay={0}>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <div className="inline-flex">
-                            <Select
-                              aria-label={t("webhook_version")}
-                              value={selectedVersionItem}
-                              onValueChange={(newValue) => {
-                                if (newValue) {
-                                  formMethods.setValue("version", newValue.value, { shouldDirty: true });
-                                }
-                              }}
-                              items={webhookVersionItems}>
-                              <SelectTrigger size="sm" className="min-w-none">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectPopup>
-                                {webhookVersionItems.map((item) => (
-                                  <SelectItem key={item.value} value={item}>
-                                    {item.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectPopup>
-                            </Select>
-                          </div>
-                        }
-                      />
-                      <TooltipPopup>{t("webhook_version")}</TooltipPopup>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            render={
-                              <Link
-                                className="text-muted-foreground hover:text-foreground flex"
-                                href={getWebhookVersionDocsUrl(version)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              />
-                            }>
-                            <ExternalLinkIcon />
-                          </Button>
-                        }
-                      />
-                      <TooltipPopup>
-                        {t("webhook_version_docs", {
-                          version: getWebhookVersionLabel(version),
-                        })}
-                      </TooltipPopup>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              }
-            />
-            {children}
-          </CardFrame>
-        );
-      }}
+      headerWrapper={(formMethods, children) => (
+        <CardFrame>
+          <WebhookFormHeader titleKey="edit_webhook" CTA={<WebhookVersionCTA formMethods={formMethods} />} />
+          {children}
+        </CardFrame>
+      )}
       onSubmit={(values: WebhookFormSubmitData) => {
         if (
           subscriberUrlReserved({
