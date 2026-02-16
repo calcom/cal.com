@@ -66,6 +66,7 @@ jest.mock("@calcom/platform-libraries", () => {
   };
 });
 
+import { BookingReferenceRepositoryFixture } from "test/fixtures/repository/booking-reference.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -105,6 +106,7 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
   let userRepositoryFixture: UserRepositoryFixture;
   let bookingsRepositoryFixture: BookingsRepositoryFixture;
+  let bookingReferenceRepositoryFixture: BookingReferenceRepositoryFixture;
   let credentialsRepositoryFixture: CredentialsRepositoryFixture;
   let schedulesService: SchedulesService_2024_04_15;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
@@ -128,6 +130,7 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+    bookingReferenceRepositoryFixture = new BookingReferenceRepositoryFixture(moduleRef);
     credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
@@ -435,14 +438,12 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
           user: { connect: { id: testSetup.organizer.id } },
         });
 
-        await prismaWrite.prisma.bookingReference.create({
-          data: {
-            type: "google_calendar",
-            uid: "mock-google-calendar-event-uid",
-            bookingId: googleBooking.id,
-            credentialId: googleCredential.id,
-            externalCalendarId: "primary",
-          },
+        await bookingReferenceRepositoryFixture.create({
+          type: "google_calendar",
+          uid: "mock-google-calendar-event-uid",
+          booking: { connect: { id: googleBooking.id } },
+          credential: { connect: { id: googleCredential.id } },
+          externalCalendarId: "primary",
         });
 
         const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
@@ -471,7 +472,7 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(MOCK_GOOGLE_MEET_URL);
 
-        await prismaWrite.prisma.bookingReference.deleteMany({ where: { bookingId: googleBooking.id } });
+        await bookingReferenceRepositoryFixture.deleteByBookingId(googleBooking.id);
         await bookingsRepositoryFixture.deleteById(googleBooking.id);
         await credentialsRepositoryFixture.delete(googleCredential.id);
       });
@@ -496,14 +497,12 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
           user: { connect: { id: testSetup.organizer.id } },
         });
 
-        await prismaWrite.prisma.bookingReference.create({
-          data: {
-            type: "office365_calendar",
-            uid: "mock-office365-calendar-event-uid",
-            bookingId: msTeamsBooking.id,
-            credentialId: office365Credential.id,
-            externalCalendarId: "primary",
-          },
+        await bookingReferenceRepositoryFixture.create({
+          type: "office365_calendar",
+          uid: "mock-office365-calendar-event-uid",
+          booking: { connect: { id: msTeamsBooking.id } },
+          credential: { connect: { id: office365Credential.id } },
+          externalCalendarId: "primary",
         });
 
         const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
@@ -532,7 +531,7 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(MOCK_MS_TEAMS_URL);
 
-        await prismaWrite.prisma.bookingReference.deleteMany({ where: { bookingId: msTeamsBooking.id } });
+        await bookingReferenceRepositoryFixture.deleteByBookingId(msTeamsBooking.id);
         await bookingsRepositoryFixture.deleteById(msTeamsBooking.id);
         await credentialsRepositoryFixture.delete(office365Credential.id);
       });
