@@ -167,7 +167,6 @@ jobs:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks }}
-      has-companion: ${{ steps.filter-inclusions.outputs.has-companion }}
       has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
       has-agents-changes: ${{ steps.filter-inclusions.outputs.has-agents-changes }}
@@ -197,7 +196,6 @@ jobs:
           filters: |
             has-files-requiring-all-checks:
               - '**'
-              - '!companion/**'
               - '!.vscode/**'
               - '!**/*.md'
               - '!**/*.mdx'
@@ -213,8 +211,6 @@ jobs:
           filters: |
             has-agents-changes:
               - "agents/**"
-            has-companion:
-              - "companion/**"
             has-api-v2-changes:
               - "apps/api/v2/**"
               - "packages/platform-constants/**"
@@ -387,27 +383,6 @@ jobs:
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
-  build-companion:
-    name: Companion builds
-    needs: [prepare]
-    if: needs.prepare.outputs.has-companion == 'true'
-    uses: ./.github/workflows/companion-build.yml
-    secrets: inherit
-
-  typecheck-companion:
-    name: Type Checks
-    needs: [prepare]
-    if: needs.prepare.outputs.has-companion == 'true'
-    uses: ./.github/workflows/companion-typecheck.yml
-    secrets: inherit
-
-  lint-companion:
-    name: Linters
-    needs: [prepare]
-    if: needs.prepare.outputs.has-companion == 'true'
-    uses: ./.github/workflows/companion-lint.yml
-    secrets: inherit
-
   build:
     name: Production builds
     needs: [prepare]
@@ -489,9 +464,6 @@ jobs:
         build-api-v2,
         build-atoms,
         build-docs,
-        build-companion,
-        typecheck-companion,
-        lint-companion,
         setup-db,
         e2e,
         e2e-api-v2,
@@ -538,14 +510,6 @@ jobs:
               needs.e2e-embed.result != 'success' ||
               needs.e2e-embed-react.result != 'success' ||
               needs.e2e-app-store.result != 'success'
-            )
-          ) ||
-          (
-            needs.prepare.outputs.has-companion == 'true' &&
-            (
-              needs.build-companion.result != 'success' ||
-              needs.typecheck-companion.result != 'success' ||
-              needs.lint-companion.result != 'success'
             )
           ) ||
           (
