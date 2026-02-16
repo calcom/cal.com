@@ -243,8 +243,17 @@ export class JobDispatcher {
     const pollInterval = 150; // fast but cheap
 
     const lockKey = `bull:${queueName}:${job.id}:lock`;
-    const client = await job.queue.client;
+    const queue = this.queueRegistry[queueName];
 
+    if (!queue) {
+      this.logger.error("[job-dispatcher] Queue not found during pickup check", {
+        queueName,
+        jobId: job.id,
+      });
+      return false;
+    }
+
+    const client = await queue.client;
     while (Date.now() < deadline) {
       try {
         // 1️⃣ Check if worker acquired lock (strongest signal)
@@ -264,6 +273,7 @@ export class JobDispatcher {
             jobId: job.id,
             state,
           });
+
           return true;
         }
 
