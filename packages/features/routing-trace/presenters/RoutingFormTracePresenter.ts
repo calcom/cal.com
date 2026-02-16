@@ -14,7 +14,9 @@ export class RoutingFormTracePresenter {
         parts.push(`Route: "${routeName}"`);
         if (d.routeIsFallback) parts.push("(fallback)");
         if (d.attributeRoutingDetails && Array.isArray(d.attributeRoutingDetails)) {
-          const details = (d.attributeRoutingDetails as Array<{ attributeName: string; attributeValue: string }>)
+          const details = (
+            d.attributeRoutingDetails as Array<{ attributeName: string; attributeValue: string }>
+          )
             .map((a) => `${a.attributeName}=${a.attributeValue}`)
             .join(", ");
           parts.push(`Attributes: [${details}]`);

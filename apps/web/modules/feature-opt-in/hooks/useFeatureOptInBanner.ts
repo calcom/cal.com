@@ -11,6 +11,8 @@ import {
   setFeatureDismissed,
   setFeatureOptedIn,
 } from "../lib/feature-opt-in-storage";
+import type { OptInFeedbackState } from "./useOptInFeedback";
+import { useOptInFeedback } from "./useOptInFeedback";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -48,6 +50,7 @@ type UseFeatureOptInBannerResult = {
   dismiss: () => void;
   markOptedIn: () => void;
   mutations: FeatureOptInMutations;
+  feedback: OptInFeedbackState;
   trackFeatureEnabled: (data: FeatureOptInTrackingData) => void;
 };
 
@@ -55,12 +58,22 @@ function isFeatureOptedIn(featureId: string): boolean {
   return getFeatureOptInTimestamp(featureId) !== null;
 }
 
-function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
+type UseFeatureOptInBannerOptions = {
+  onOptInSuccess: () => void;
+};
+
+function useFeatureOptInBanner(
+  featureId: string,
+  options: UseFeatureOptInBannerOptions
+): UseFeatureOptInBannerResult {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(() => isFeatureDismissed(featureId));
   const [isOptedIn, setIsOptedIn] = useState(() => isFeatureOptedIn(featureId));
 
   const featureConfig = useMemo(() => getOptInFeatureConfig(featureId) ?? null, [featureId]);
+
+  const feedback = useOptInFeedback(featureId, featureConfig);
+
   const utils = trpc.useUtils();
 
   const eligibilityQuery = trpc.viewer.featureOptIn.checkFeatureOptInEligibility.useQuery(
@@ -129,7 +142,8 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
   const markOptedIn = useCallback(() => {
     setFeatureOptedIn(featureId);
     setIsOptedIn(true);
-  }, [featureId]);
+    options.onOptInSuccess();
+  }, [featureId, options.onOptInSuccess]);
 
   const openDialog = useCallback(() => {
     posthog.capture("feature_opt_in_banner_try_it_clicked", {
@@ -187,6 +201,7 @@ function useFeatureOptInBanner(featureId: string): UseFeatureOptInBannerResult {
     dismiss,
     markOptedIn,
     mutations,
+    feedback,
     trackFeatureEnabled,
   };
 }

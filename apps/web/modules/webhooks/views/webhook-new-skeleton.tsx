@@ -7,7 +7,7 @@ import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton"
 
 export const SkeletonLoader = () => {
   const { t } = useLocale();
-  
+
   return (
     <SettingsHeaderWithBackButton
       title={t("add_webhook")}

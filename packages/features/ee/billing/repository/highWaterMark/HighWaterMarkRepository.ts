@@ -74,9 +74,7 @@ export class HighWaterMarkRepository {
 
     if (!team) return null;
 
-    const billing = team.isOrganization
-      ? team.organizationBilling
-      : team.teamBilling;
+    const billing = team.isOrganization ? team.organizationBilling : team.teamBilling;
     if (!billing) return null;
 
     return {
@@ -85,9 +83,7 @@ export class HighWaterMarkRepository {
     };
   }
 
-  async getBySubscriptionId(
-    subscriptionId: string
-  ): Promise<HighWaterMarkBySubscriptionData | null> {
+  async getBySubscriptionId(subscriptionId: string): Promise<HighWaterMarkBySubscriptionData | null> {
     // Try team billing first
     const teamBilling = await this.prisma.teamBilling.findUnique({
       where: { subscriptionId },

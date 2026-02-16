@@ -1,7 +1,8 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { useDataTable, useDisplayedFilterCount } from "@calcom/features/data-table";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -230,7 +231,7 @@ function BookingListInner({
 }
 
 export function BookingListContainer(props: BookingListContainerProps) {
-  const { limit, offset, setPageIndex } = useDataTable();
+  const { limit, offset, setPageIndex, isValidatorPending } = useDataTable();
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
 
@@ -270,6 +271,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
   const query = trpc.viewer.bookings.get.useQuery(queryInput, {
     staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
     gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+    enabled: !isValidatorPending, // Wait for validator to be ready before fetching
   });
 
   const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);

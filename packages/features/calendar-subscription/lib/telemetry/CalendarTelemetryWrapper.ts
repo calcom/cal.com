@@ -151,7 +151,7 @@ export class CalendarTelemetryWrapper implements Calendar {
         cache: this.deps.cacheEnabled ? "on" : "off",
         calendarType: this.deps.calendarType,
         mode: String(this.deps.mode),
-      }
+      },
     });
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.duration_ms", totalFetchDurationMs, {
@@ -159,16 +159,15 @@ export class CalendarTelemetryWrapper implements Calendar {
         cache: this.deps.cacheEnabled ? "on" : "off",
         calendarType: this.deps.calendarType,
         mode: String(this.deps.mode),
-      }
+      },
     });
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.events_count", results?.length ?? 0, {
-        attributes: {
-          cache: this.deps.cacheEnabled ? "on" : "off",
-          calendarType: this.deps.calendarType,
-        },
-      }
-    );
+      attributes: {
+        cache: this.deps.cacheEnabled ? "on" : "off",
+        calendarType: this.deps.calendarType,
+      },
+    });
 
     log.debug("Calendar fetch with timezones completed", {
       calendarCount: selectedCalendars.length,
