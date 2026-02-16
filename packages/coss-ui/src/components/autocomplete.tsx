@@ -15,6 +15,8 @@ function AutocompleteInput({
   showClear = false,
   startAddon,
   size,
+  triggerProps,
+  clearProps,
   ...props
 }: Omit<AutocompletePrimitive.Input.Props, "size"> & {
   showTrigger?: boolean;
@@ -22,6 +24,8 @@ function AutocompleteInput({
   startAddon?: React.ReactNode;
   size?: "sm" | "default" | "lg" | number;
   ref?: React.Ref<HTMLInputElement>;
+  triggerProps?: AutocompletePrimitive.Trigger.Props;
+  clearProps?: AutocompletePrimitive.Clear.Props;
 }) {
   const sizeValue = (size ?? "default") as "sm" | "default" | "lg" | number;
 
@@ -55,6 +59,7 @@ function AutocompleteInput({
             "-translate-y-1/2 absolute top-1/2 inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent opacity-80 outline-none transition-colors pointer-coarse:after:absolute pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 hover:opacity-100 has-[+[data-slot=autocomplete-clear]]:hidden sm:size-7 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
             sizeValue === "sm" ? "end-0" : "end-0.5",
           )}
+          {...triggerProps}
         >
           <AutocompletePrimitive.Icon data-slot="autocomplete-icon">
             <ChevronsUpDownIcon />
@@ -67,6 +72,7 @@ function AutocompleteInput({
             "-translate-y-1/2 absolute top-1/2 inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent opacity-80 outline-none transition-colors pointer-coarse:after:absolute pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 hover:opacity-100 has-[+[data-slot=autocomplete-clear]]:hidden sm:size-7 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
             sizeValue === "sm" ? "end-0" : "end-0.5",
           )}
+          {...clearProps}
         >
           <XIcon />
         </AutocompleteClear>

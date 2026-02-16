@@ -57,10 +57,12 @@ function DialogPopup({
   children,
   showCloseButton = true,
   bottomStickOnMobile = true,
+  closeProps,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
   bottomStickOnMobile?: boolean;
+  closeProps?: DialogPrimitive.Close.Props;
 }) {
   return (
     <DialogPortal>
@@ -87,6 +89,7 @@ function DialogPopup({
               aria-label="Close"
               className="absolute end-2 top-2"
               render={<Button size="icon" variant="ghost" />}
+              {...closeProps}
             >
               <XIcon />
             </DialogPrimitive.Close>

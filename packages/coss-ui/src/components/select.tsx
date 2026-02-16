@@ -56,7 +56,7 @@ function SelectButton({
         <ChevronsUpDownIcon className={selectTriggerIconClassName} />
       </>
     ),
-    className: cn(selectTriggerVariants({ size }), "min-w-none", className),
+    className: cn(selectTriggerVariants({ size }), "min-w-0", className),
     "data-slot": "select-button",
     type: typeValue,
   };
