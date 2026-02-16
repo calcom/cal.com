@@ -199,7 +199,8 @@ export async function _onFormSubmission(
         }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
       },
     }).catch((e) => {
-      console.error(`Error executing routing form webhook`, webhook, e);
+      const { secret: _secret, ...webhookInfo } = webhook;
+      console.error(`Error executing routing form webhook`, webhookInfo, e);
     });
   });
 
