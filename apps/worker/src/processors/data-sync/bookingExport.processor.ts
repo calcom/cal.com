@@ -5,5 +5,5 @@ import type { Job } from "bullmq";
 
 export async function processBookingExport(job: Job<BookingExportJobData>) {
   const ctx = createBullWorkflowContext(job);
-  await bookingExportService(ctx, job.data.payload);
+  await bookingExportService(ctx, job.data);
 }

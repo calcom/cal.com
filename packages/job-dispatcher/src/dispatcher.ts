@@ -232,158 +232,49 @@ export class JobDispatcher {
   // -----------------------------------------------------------------------
 
   /**
-   * Wait for the job to be picked up by a worker using QueueEvents.
-   * Falls back to polling if QueueEvents is not available for this queue.
+   * Detect if a job was picked up by worker using lock detection polling
+   * Here we check if the job lock has been acquired falling back to polling job state
    *
    * @returns `true` if a worker picked up (or already completed) the job,
    *          `false` if the job is still waiting after the timeout.
    */
   private async waitForPickup(job: Job, queueName: string): Promise<boolean> {
-    const queueEvents = this.queueEventsRegistry[queueName];
-
-    // Fallback to polling if QueueEvents not available
-    if (!queueEvents) {
-      this.logger.warn("[job-dispatcher] QueueEvents not available, falling back to polling", {
-        queue: queueName,
-        jobId: job.id,
-      });
-      return this.waitForPickupPolling(job);
-    }
-
-    return this.waitForPickupWithEvents(job, queueEvents);
-  }
-
-  /**
-   * Event-driven pickup detection using QueueEvents (preferred method).
-   */
-  private async waitForPickupWithEvents(job: Job, queueEvents: QueueEvents): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      let resolved = false;
-      const timeoutHandle = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          resolve(false);
-        }
-      }, this.pickupTimeoutMs);
-
-      const cleanup = () => {
-        clearTimeout(timeoutHandle);
-        queueEvents.off("active", onActive);
-        queueEvents.off("completed", onCompleted);
-        queueEvents.off("failed", onFailed);
-      };
-
-      const onActive = ({ jobId }: { jobId: string }) => {
-        if (jobId === job.id && !resolved) {
-          resolved = true;
-          cleanup();
-          this.logger.info("[job-dispatcher] Job became active (via event)", {
-            jobId: job.id,
-          });
-          resolve(true);
-        }
-      };
-
-      const onCompleted = ({ jobId }: { jobId: string }) => {
-        if (jobId === job.id && !resolved) {
-          resolved = true;
-          cleanup();
-          this.logger.info("[job-dispatcher] Job completed immediately (via event)", {
-            jobId: job.id,
-          });
-          resolve(true);
-        }
-      };
-
-      const onFailed = ({ jobId }: { jobId: string }) => {
-        if (jobId === job.id && !resolved) {
-          resolved = true;
-          cleanup();
-          this.logger.info("[job-dispatcher] Job failed immediately (via event)", {
-            jobId: job.id,
-          });
-          resolve(true);
-        }
-      };
-
-      queueEvents.on("active", onActive);
-      queueEvents.on("completed", onCompleted);
-      queueEvents.on("failed", onFailed);
-
-      // Double-check: job might have already been picked up before we attached listeners
-      job
-        .getState()
-        .then((state) => {
-          if (PICKED_UP_STATES.has(state) && !resolved) {
-            resolved = true;
-            cleanup();
-            this.logger.info("[job-dispatcher] Job already picked up (initial state check)", {
-              jobId: job.id,
-              state,
-            });
-            resolve(true);
-          }
-        })
-        .catch((error) => {
-          this.logger.warn("[job-dispatcher] Error checking initial job state", {
-            jobId: job.id,
-            error: error instanceof Error ? error.message : String(error),
-          });
-          // Don't resolve here - let the timeout or events handle it
-        });
-    });
-  }
-
-  /**
-   * Polling-based pickup detection (fallback when QueueEvents unavailable).
-   */
-  private async waitForPickupPolling(job: Job): Promise<boolean> {
     const deadline = Date.now() + this.pickupTimeoutMs;
-    const pollInterval = 500;
-    let consecutiveErrors = 0;
-    const maxConsecutiveErrors = 3;
+    const pollInterval = 150; // fast but cheap
+
+    const lockKey = `bull:${queueName}:${job.id}:lock`;
+    const client = await job.queue.client;
 
     while (Date.now() < deadline) {
       try {
-        const state = await job.getState();
-        consecutiveErrors = 0;
-
-        if (PICKED_UP_STATES.has(state)) {
+        // 1️⃣ Check if worker acquired lock (strongest signal)
+        const lockExists = await client.exists(lockKey);
+        if (lockExists) {
+          this.logger.info("[job-dispatcher] Worker lock detected (job picked up)", {
+            jobId: job.id,
+            queue: queueName,
+          });
           return true;
         }
 
-        if (WAITING_STATES.has(state)) {
-          await new Promise((resolve) => setTimeout(resolve, pollInterval));
-          continue;
+        // 2️⃣ Fallback: check state (covers very fast jobs)
+        const state = await job.getState();
+        if (PICKED_UP_STATES.has(state)) {
+          this.logger.info("[job-dispatcher] Job already processed (state check)", {
+            jobId: job.id,
+            state,
+          });
+          return true;
         }
 
-        this.logger.warn("[job-dispatcher] Unexpected job state during pickup check", {
-          jobId: job.id,
-          state,
-        });
-        return false;
+        await sleep(pollInterval);
       } catch (error) {
-        consecutiveErrors++;
-
-        this.logger.warn("[job-dispatcher] Error checking job state during pickup poll", {
+        this.logger.warn("[job-dispatcher] Error during pickup detection", {
           jobId: job.id,
           error: error instanceof Error ? error.message : String(error),
-          consecutiveErrors,
         });
 
-        if (consecutiveErrors >= maxConsecutiveErrors) {
-          this.logger.error(
-            "[job-dispatcher] Too many consecutive errors during pickup check – aborting poll",
-            {
-              jobId: job.id,
-              consecutiveErrors,
-            }
-          );
-          return false;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        await sleep(pollInterval);
       }
     }
 

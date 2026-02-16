@@ -34,7 +34,7 @@ export const exportHandler = async ({ ctx, input }: ExportOptions) => {
   };
 
   await dispatcher.dispatch({
-    queue: QueueName.DEFAULT,
+    queue: QueueName.DATA_SYNC,
     name: JobName.BOOKING_EXPORT,
     data: payload,
     options: {

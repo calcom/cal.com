@@ -1,8 +1,8 @@
-import { DEMO_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
-import { V2BaseEmailHtml, CallToAction } from "../components";
-import ServerTrans from "@calcom/lib/components/ServerTrans";
+import React from "react";
 
-import { BaseEmailHtml } from "../components";
+import { DEMO_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+
+import { V2BaseEmailHtml } from "../components";
 
 export type BookingExportEmailProps = {
   user: {
@@ -16,8 +16,7 @@ export const BookingExportEmail = (
   props: BookingExportEmailProps & Partial<React.ComponentProps<typeof V2BaseEmailHtml>>
 ) => {
   return (
-    <V2BaseEmailHtml
-     subject={`Your Booking Data is Attached, ${props.user.fullName}`}>
+    <V2BaseEmailHtml subject={`Your Booking Data is Attached, ${props.user.fullName}`}>
       <p style={{ fontWeight: 400, lineHeight: "24px", margin: "0 0 20px" }}>Hi {props.user.fullName}, 👋</p>
       <p style={{ fontWeight: 400, lineHeight: "24px", margin: "0 0 20px" }}>
         We’ve compiled your booking data into a CSV file and attached it to this email for your convenience.

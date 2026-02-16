@@ -8,7 +8,9 @@
     },
     "moduleResolution": "bundler",
     "types": ["node"],
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
   "include": ["src"]
 }

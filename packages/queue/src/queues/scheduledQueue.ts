@@ -1,10 +1,10 @@
-import { Queue, QueueEvents } from "bullmq";
+import { Queue } from "bullmq";
 
 import { getRedisOptions } from "../redis";
 
 let queue: Queue | null = null;
 export const SCHEDULED_QUEUE = "scheduled_queue";
-let queueEvents: QueueEvents | null = null;
+// const queueEvents: QueueEvents | null = null;
 
 export const SCHEDULED_JOB_OPTIONS = {
   attempts: 10, // VERY IMPORTANT
@@ -36,12 +36,12 @@ export function getScheduledQueue(): Queue {
   return queue;
 }
 
-export function getScheduledQueueEvents(): QueueEvents {
-  if (!queueEvents) {
-    queueEvents = new QueueEvents(`${SCHEDULED_QUEUE}_events`, {
-      connection: getRedisOptions(),
-    });
-  }
+// export function getScheduledQueueEvents(): QueueEvents {
+//   if (!queueEvents) {
+//     queueEvents = new QueueEvents(`${SCHEDULED_QUEUE}_events`, {
+//       connection: getRedisOptions(),
+//     });
+//   }
 
-  return queueEvents;
-}
+//   return queueEvents;
+// }
