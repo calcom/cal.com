@@ -64,7 +64,8 @@ export const getRegExpThatMatchesAllOrgDomains = ({ webAppUrl }: { webAppUrl: st
   // Build pattern that only matches subdomains of ALLOWED_HOSTNAMES
   // e.g., for ["cal.com", "cal.local:3000"], create: (cal\.com|cal\.local:3000)
   if (ALLOWED_HOSTNAMES.length > 0) {
-    const allowedHostsPattern = ALLOWED_HOSTNAMES.map((host) => host.replace(/\./g, "\\.").replace(/:/g, "\\:")).join("|");
+    const uniqueHosts = Array.from(new Set(ALLOWED_HOSTNAMES.map((host) => host.replace(/:\d+$/, ""))));
+    const allowedHostsPattern = uniqueHosts.map((host) => host.replace(/\./g, "\\.")).join("|");
     return `^(?<${orgSlugCaptureGroupName}>${subdomainRegExp})\\.(${allowedHostsPattern})$`;
   }
   return `^(?<${orgSlugCaptureGroupName}>${subdomainRegExp})\\.(?!vercel\\.app).*`;
@@ -80,9 +81,10 @@ export const getRegExpThatMatchesCustomDomains = (): string | null => {
   }
   // Build negative lookahead for all allowed hostnames and their subdomains
   // e.g., for ["cal.com", "cal.dev"], create: (?!(.+\.)?cal\.com$)(?!(.+\.)?cal\.dev$)
-  const negativePatterns = ALLOWED_HOSTNAMES.map((host) => {
+  const uniqueHosts = Array.from(new Set(ALLOWED_HOSTNAMES.map((host) => host.replace(/:\d+$/, ""))));
+  const negativePatterns = uniqueHosts.map((host) => {
     const escapedHost = host.replace(/\./g, "\\.");
-    return `(?!(.+\\.)?${escapedHost}(:\\d+)?$)`;
+    return `(?!(.+\\.)?${escapedHost}$)`;
   }).join("");
   // Capture the full hostname (with optional port stripped in the app)
   return `^${negativePatterns}(?<${orgSlugCaptureGroupName}>.+)$`;
