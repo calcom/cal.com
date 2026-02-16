@@ -48,7 +48,6 @@ export default function WebhookListItem(props: {
   canEditWebhook?: boolean;
   editHref?: string;
   onEditWebhookAction?: () => void;
-  lastItem: boolean;
   permissions: {
     canEditWebhook?: boolean;
     canDeleteWebhook?: boolean;

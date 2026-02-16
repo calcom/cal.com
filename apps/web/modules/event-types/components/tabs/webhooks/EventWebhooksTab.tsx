@@ -2,7 +2,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -10,13 +10,12 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-import { CardFrame } from "@coss/ui/components/card";
+import { Card, CardFrame, CardPanel } from "@coss/ui/components/card";
 import { Dialog, DialogPanel, DialogPopup } from "@coss/ui/components/dialog";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { WebhookForm } from "~/webhooks/components";
-import EventTypeWebhookListItem from "~/webhooks/components/EventTypeWebhookListItem";
+import { WebhookForm, WebhookListItem } from "~/webhooks/components";
 import type { TWebhook, WebhookFormSubmitData } from "~/webhooks/components/WebhookForm";
 import { WebhookVersionCTA } from "~/webhooks/components/WebhookVersionCTA";
 import { WebhookFormHeader } from "~/webhooks/views/webhook-form-header";
@@ -160,22 +159,28 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                     )}
                   </div>
 
-                  <div className="my-8 rounded-md border border-subtle">
-                    {webhooks.map((webhook, index) => {
-                      return (
-                        <EventTypeWebhookListItem
-                          key={webhook.id}
-                          webhook={webhook}
-                          lastItem={webhooks.length === index + 1}
-                          onEditWebhookAction={() => {
-                            setEditModalOpen(true);
-                            setWebhookToEdit(webhook);
-                          }}
-                          readOnly={isChildrenManagedEventType && webhook.eventTypeId !== eventType.id}
-                        />
-                      );
-                    })}
-                  </div>
+                  <Card className="my-8">
+                    <CardPanel className="p-0">
+                      {webhooks.map((webhook, index) => {
+                        const readOnly =
+                          isChildrenManagedEventType && webhook.eventTypeId !== eventType.id;
+                        return (
+                          <WebhookListItem
+                            key={webhook.id}
+                            webhook={webhook}
+                            permissions={{
+                              canEditWebhook: !readOnly,
+                              canDeleteWebhook: !readOnly,
+                            }}
+                            onEditWebhookAction={() => {
+                              setEditModalOpen(true);
+                              setWebhookToEdit(webhook);
+                            }}
+                          />
+                        );
+                      })}
+                    </CardPanel>
+                  </Card>
 
                   <p className="font-normal text-default text-sm">
                     <ServerTrans
