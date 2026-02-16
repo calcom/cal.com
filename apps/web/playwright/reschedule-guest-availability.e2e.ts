@@ -80,6 +80,7 @@ test.describe("Reschedule with Guest Availability Tests", () => {
     // Host tries to reschedule the original booking
     await host.apiLogin();
     await page.goto(`/reschedule/${originalBooking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/reschedule/${originalBooking.uid}`));
 
     // Navigate to next month
     const incrementMonth = page.getByTestId("incrementMonth");
@@ -166,6 +167,7 @@ test.describe("Reschedule with Guest Availability Tests", () => {
 
     await host.apiLogin();
     await page.goto(`/reschedule/${originalBooking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/reschedule/${originalBooking.uid}`));
 
     // Select a time slot next month
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -228,6 +230,7 @@ test.describe("Reschedule with Guest Availability Tests", () => {
 
     await host.apiLogin();
     await page.goto(`/reschedule/${originalBooking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/reschedule/${originalBooking.uid}`));
 
     // Should be able to reschedule normally since guest is not a Cal.com user
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -326,6 +329,7 @@ test.describe("Reschedule with Guest Availability Tests", () => {
 
     await host.apiLogin();
     await page.goto(`/reschedule/${originalBooking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/reschedule/${originalBooking.uid}`));
 
     // Navigate to the booking day
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -400,6 +404,7 @@ test.describe("Reschedule with Guest Availability Tests", () => {
 
     await host.apiLogin();
     await page.goto(`/reschedule/${originalBooking.uid}`);
+    await expect(page).toHaveURL(new RegExp(`/reschedule/${originalBooking.uid}`));
 
     // Navigate to next month
     const incrementMonth = page.getByTestId("incrementMonth");
