@@ -182,8 +182,6 @@ export default function CancelBooking(props: Props) {
      try{
           setLoading(true);
 
-                  // telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
                   const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
                   const { csrfToken } = await response.json();
 
@@ -210,7 +208,6 @@ export default function CancelBooking(props: Props) {
                   } as unknown;
 
                   if (res.status >= 200 && res.status < 300) {
-                    // tested by apps/web/playwright/booking-pages.e2e.ts
                     sdkActionManager?.fire("bookingCancelled", {
                       ...bookingCancelledEventProps,
                       booking: bookingWithCancellationReason,
