@@ -23,7 +23,7 @@ export class BookingAttendeesService_2024_08_13 {
     input: AddAttendeeInput_2024_08_13,
     user: ApiAuthGuardUser
   ): Promise<BookingAttendeeOutput_2024_08_13> {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
     }
@@ -34,17 +34,15 @@ export class BookingAttendeesService_2024_08_13 {
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
-    const res = await this.bookingAttendeesService.addAttendee({
+    const createdAttendee = await this.bookingAttendeesService.addAttendee({
       bookingId: booking.id,
-      guests: [
-        {
-          email: input.email,
-          name: input.name,
-          timeZone: input.timeZone,
-          phoneNumber: input.phoneNumber,
-          language: input.language,
-        },
-      ],
+      attendee: {
+        email: input.email,
+        name: input.name,
+        timeZone: input.timeZone,
+        phoneNumber: input.phoneNumber,
+        language: input.language,
+      },
       user: {
         id: user.id,
         email: user.email,
@@ -52,26 +50,14 @@ export class BookingAttendeesService_2024_08_13 {
         uuid: user.uuid,
       },
       emailsEnabled,
-      emailVariant: "attendee",
       actionSource: "API_V2",
     });
-
-    if (res.message !== "Guests added") {
-      throw new HttpException("Failed to add attendee to the booking", 500);
-    }
-
-    const updatedBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
-    const createdAttendee = updatedBooking?.attendees.find((a) => a.email === input.email);
-
-    if (!createdAttendee) {
-      throw new HttpException("Attendee was added but could not be retrieved", 500);
-    }
 
     return plainToClass(
       BookingAttendeeOutput_2024_08_13,
       {
         id: createdAttendee.id,
-        bookingId: booking.id,
+        bookingId: createdAttendee.bookingId,
         name: createdAttendee.name,
         email: createdAttendee.email,
         displayEmail: this.getDisplayEmail(createdAttendee.email),
