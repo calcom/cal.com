@@ -1,5 +1,6 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
@@ -22,7 +23,7 @@ type GetSubscriptionStatusOptions = {
 
 export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscriptionStatusOptions) => {
   if (!IS_TEAM_BILLING_ENABLED) {
-    return { status: null, isTrialing: false };
+    return { status: null, isTrialing: false, billingMode: null };
   }
 
   const { teamId } = input;
@@ -62,11 +63,15 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
 
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
+    const billingPeriodService = new BillingPeriodService();
+    const billingInfo = await billingPeriodService.getBillingPeriodInfo(teamId);
+
     log.debug(`Subscription status for team ${teamId}: ${subscriptionStatus}`);
 
     return {
       status: subscriptionStatus,
       isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
+      billingMode: billingInfo.billingMode,
     };
   } catch (error) {
     if (error instanceof TRPCError) {

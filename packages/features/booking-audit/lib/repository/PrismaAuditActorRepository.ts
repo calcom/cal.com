@@ -49,6 +49,7 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
     if (normalizedEmail) {
       const existingByEmail = await this.deps.prismaClient.auditActor.findUnique({
         where: { email: normalizedEmail },
+        select: { id: true },
       });
 
       if (existingByEmail) {
@@ -67,6 +68,7 @@ export class PrismaAuditActorRepository implements IAuditActorRepository {
     if (normalizedPhone) {
       const existingByPhone = await this.deps.prismaClient.auditActor.findUnique({
         where: { phone: normalizedPhone },
+        select: { id: true },
       });
 
       if (existingByPhone) {

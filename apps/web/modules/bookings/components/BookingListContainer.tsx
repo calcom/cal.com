@@ -1,7 +1,8 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { useDataTable, useDisplayedFilterCount } from "@calcom/features/data-table";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
