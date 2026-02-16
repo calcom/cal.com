@@ -88,7 +88,10 @@ async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId:
   let webhookResponse = null;
   try {
     const traceContext = distributedTracing.createTrace("test_stripe_webhook");
-    await handleStripePaymentSuccess(getMockedStripePaymentEvent({ paymentIntentId: externalId }), traceContext);
+    await handleStripePaymentSuccess(
+      getMockedStripePaymentEvent({ paymentIntentId: externalId }),
+      traceContext
+    );
   } catch (e) {
     log.silly("mockPaymentSuccessWebhookFromStripe:catch", JSON.stringify(e));
     webhookResponse = e as HttpError;
@@ -1392,7 +1395,11 @@ describe("handleNewBooking", () => {
               },
             ],
             organizer,
-            apps: [TestData.apps["google-meet"], TestData.apps["daily-video"], TestData.apps["office365-calendar"]],
+            apps: [
+              TestData.apps["google-meet"],
+              TestData.apps["daily-video"],
+              TestData.apps["office365-calendar"],
+            ],
           });
 
           mockSuccessfulVideoMeetingCreation({
@@ -1481,7 +1488,11 @@ describe("handleNewBooking", () => {
               },
             ],
             organizer,
-            apps: [TestData.apps["google-calendar"], TestData.apps["google-meet"], TestData.apps["daily-video"]],
+            apps: [
+              TestData.apps["google-calendar"],
+              TestData.apps["google-meet"],
+              TestData.apps["daily-video"],
+            ],
           });
 
           mockSuccessfulVideoMeetingCreation({

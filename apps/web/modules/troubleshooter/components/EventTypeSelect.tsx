@@ -4,13 +4,7 @@ import { trpc } from "@calcom/trpc/react";
 export { EventTypeSelectComponent };
 
 export function EventTypeSelect(): JSX.Element {
-  const { data: eventTypes, isPending } =
-    trpc.viewer.eventTypes.listWithTeam.useQuery();
+  const { data: eventTypes, isPending } = trpc.viewer.eventTypes.listWithTeam.useQuery();
 
-  return (
-    <EventTypeSelectComponent
-      eventTypes={eventTypes ?? []}
-      isPending={isPending}
-    />
-  );
+  return <EventTypeSelectComponent eventTypes={eventTypes ?? []} isPending={isPending} />;
 }

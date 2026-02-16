@@ -339,12 +339,11 @@ export class BookingAuditViewerService {
     };
   }
 
-
   private mergeDataRequirements(...requirements: DataRequirements[]): DataRequirements {
     const userUuids = new Set<string>();
     const attendeeIds = new Set<number>();
     const credentialIds = new Set<number>();
-    
+
     for (const requirement of requirements) {
       for (const uuid of requirement.userUuids || []) userUuids.add(uuid);
       for (const id of requirement.attendeeIds || []) attendeeIds.add(id);
@@ -368,7 +367,7 @@ export class BookingAuditViewerService {
     for (const log of auditLogs) {
       actorRequirements.push(getActorDataRequirements(log.actor));
 
-      const context = log.context
+      const context = log.context;
       if (context?.impersonatedBy) {
         contextRequirements.push({ userUuids: [context.impersonatedBy] });
       }
@@ -377,7 +376,7 @@ export class BookingAuditViewerService {
         const actionService = this.actionServiceRegistry.getActionService(log.action);
         const parsedData = actionService.parseStored(log.data);
         serviceRequirements.push(actionService.getDataRequirements(parsedData));
-      } catch(error) {
+      } catch (error) {
         this.log.error(
           `Failed to get data requirements for action ${log.action}: ${error instanceof Error ? error.message : String(error)}`
         );
