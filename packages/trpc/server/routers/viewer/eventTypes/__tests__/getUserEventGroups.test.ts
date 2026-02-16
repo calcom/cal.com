@@ -37,9 +37,11 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
 const mockFilterTeamsByEventTypeReadPermission = vi.fn();
 
 vi.mock("../teamAccessUseCase", () => ({
-  TeamAccessUseCase: vi.fn().mockImplementation(function() { return {
-    filterTeamsByEventTypeReadPermission: mockFilterTeamsByEventTypeReadPermission,
-  }; }),
+  TeamAccessUseCase: vi.fn().mockImplementation(function () {
+    return {
+      filterTeamsByEventTypeReadPermission: mockFilterTeamsByEventTypeReadPermission,
+    };
+  }),
 }));
 
 vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer", () => ({
