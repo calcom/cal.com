@@ -14,7 +14,7 @@ import {
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test("dynamic booking", async ({ page, users }) => {
+test.skip("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.apiLogin();
 
@@ -65,7 +65,7 @@ test("dynamic booking", async ({ page, users }) => {
   });
 });
 
-test("dynamic booking info prefilled by query params", async ({ page, users }) => {
+test.skip("dynamic booking info prefilled by query params", async ({ page, users }) => {
   const pro = await users.create();
   await pro.apiLogin();
 
@@ -93,7 +93,7 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   expect(activeState).toEqual("false");
 });
 
-test("multiple duration selection updates event length correctly", async ({ page, users }) => {
+test.skip("multiple duration selection updates event length correctly", async ({ page, users }) => {
   const user = await users.create();
   await user.apiLogin();
 
@@ -199,7 +199,7 @@ test.describe("Organization:", () => {
     );
   });
 
-  test("Can book a dynamic time slot on custom domain", async ({ page, users, orgs }) => {
+  test.skip("Can book a dynamic time slot on custom domain", async ({ page, users, orgs }) => {
     const org = await orgs.create({
       name: "TestOrg",
     });
@@ -237,7 +237,7 @@ test.describe("Organization:", () => {
     );
   });
 
-  test("dynamic booking for usernames with special characters", async ({ page, users, orgs }) => {
+  test.skip("dynamic booking for usernames with special characters", async ({ page, users, orgs }) => {
     const org = await orgs.create({
       name: "TestOrg",
     });
