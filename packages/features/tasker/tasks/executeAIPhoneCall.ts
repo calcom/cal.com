@@ -3,7 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
-import { formatIdentifierToVariable } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
+import { getVariableFormats } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
@@ -14,7 +14,6 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
-
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
   agentId: string;
@@ -35,6 +34,23 @@ type BookingWithRelations = NonNullable<
   >["booking"]
 >;
 
+/**
+ * Converts responses to variable format entries with both current and legacy formats
+ * for backward compatibility.
+ * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
+ */
+export function convertResponsesToVariableFormats(
+  responses: Record<string, { value?: unknown }>
+) {
+  return Object.fromEntries(
+    Object.entries(responses).flatMap(([key, value]) => {
+      const formats = getVariableFormats(key);
+      const valueStr = value.value?.toString() || "";
+      return formats.map((format) => [format, valueStr]);
+    })
+  );
+}
+
 function getVariablesFromFormResponse({
   responses,
   eventTypeId,
@@ -52,13 +68,8 @@ function getVariablesFromFormResponse({
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
-    // Include any custom form responses
-    ...Object.fromEntries(
-      Object.entries(responses || {}).map(([key, value]) => [
-        formatIdentifierToVariable(key),
-        value.value?.toString() || "",
-      ])
-    ),
+    // Include custom form responses with both current and legacy variable formats for backward compatibility
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
@@ -102,13 +113,8 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
       .format("h:mm A"),
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
     eventTypeId: booking.eventTypeId?.toString() || "",
-    // Include any custom form responses
-    ...Object.fromEntries(
-      Object.entries(responses || {}).map(([key, value]) => [
-        formatIdentifierToVariable(key),
-        value.value?.toString() || "",
-      ])
-    ),
+    // Include custom form responses with both current and legacy variable formats for backward compatibility
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
