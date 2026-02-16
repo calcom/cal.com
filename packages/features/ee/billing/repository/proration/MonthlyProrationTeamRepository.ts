@@ -69,9 +69,7 @@ export class MonthlyProrationTeamRepository {
 
     if (!team) return null;
 
-    let billing: BillingInfo | null = team.isOrganization
-      ? team.organizationBilling
-      : team.teamBilling;
+    let billing: BillingInfo | null = team.isOrganization ? team.organizationBilling : team.teamBilling;
 
     if (!billing) {
       billing = this.extractBillingFromMetadata(team.metadata);

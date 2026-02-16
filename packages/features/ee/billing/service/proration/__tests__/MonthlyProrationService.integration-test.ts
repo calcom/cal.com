@@ -30,14 +30,10 @@ function getTestDates() {
 }
 
 const mockBillingService: IBillingProviderService = {
-  createInvoiceItem: vi
-    .fn()
-    .mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
   deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
-  finalizeInvoice: vi
-    .fn()
-    .mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
+  finalizeInvoice: vi.fn().mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
   getSubscription: vi.fn().mockResolvedValue({
     items: [
       {
@@ -58,12 +54,8 @@ const mockBillingService: IBillingProviderService = {
   handleSubscriptionCancel: vi.fn().mockResolvedValue(undefined),
   handleSubscriptionCreation: vi.fn().mockResolvedValue(undefined),
   handleEndTrial: vi.fn().mockResolvedValue(undefined),
-  createCustomer: vi
-    .fn()
-    .mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
-  createPaymentIntent: vi
-    .fn()
-    .mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
+  createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
+  createPaymentIntent: vi.fn().mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
   createSubscriptionCheckout: vi.fn().mockResolvedValue({
     checkoutUrl: "https://checkout.test",
     sessionId: "cs_test_123",
@@ -257,9 +249,7 @@ describe("MonthlyProrationService Integration Tests", () => {
     });
 
     expect(seatChanges).toHaveLength(2);
-    expect(
-      seatChanges.every((sc) => sc.processedInProrationId === proration?.id)
-    ).toBe(true);
+    expect(seatChanges.every((sc) => sc.processedInProrationId === proration?.id)).toBe(true);
   });
 
   it("should create a $0 proration for team with no net change", async () => {
@@ -363,13 +353,9 @@ describe("MonthlyProrationService Integration Tests", () => {
       monthKey,
     });
 
-    const filteredResults = results.filter((r) =>
-      [testTeam.id, testTeam2.id].includes(r.teamId)
-    );
+    const filteredResults = results.filter((r) => [testTeam.id, testTeam2.id].includes(r.teamId));
     expect(filteredResults).toHaveLength(2);
-    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(
-      true
-    );
+    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(true);
   });
 
   it("should handle payment success callback", async () => {
@@ -470,9 +456,7 @@ describe("MonthlyProrationService Integration Tests", () => {
     const seatTracker = createSeatTracker();
     const failingBillingService = {
       ...mockBillingService,
-      handleSubscriptionUpdate: vi
-        .fn()
-        .mockRejectedValue(new Error("Subscription not found")),
+      handleSubscriptionUpdate: vi.fn().mockRejectedValue(new Error("Subscription not found")),
     };
     const prorationService = createProrationService(failingBillingService);
 
@@ -490,8 +474,8 @@ describe("MonthlyProrationService Integration Tests", () => {
     });
 
     // Should throw when trying to update subscription
-    await expect(
-      prorationService.handleProrationPaymentSuccess(proration!.id)
-    ).rejects.toThrow("Subscription not found");
+    await expect(prorationService.handleProrationPaymentSuccess(proration!.id)).rejects.toThrow(
+      "Subscription not found"
+    );
   });
 });

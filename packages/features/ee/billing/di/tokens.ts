@@ -25,4 +25,10 @@ export const DI_TOKENS = {
   MONTHLY_PRORATION_REPOSITORY_MODULE: Symbol("MonthlyProrationRepositoryModule"),
   PRORATION_EMAIL_SERVICE: Symbol("ProrationEmailService"),
   PRORATION_EMAIL_SERVICE_MODULE: Symbol("ProrationEmailServiceModule"),
+  BILLING_PERIOD_REPOSITORY: Symbol("BillingPeriodRepository"),
+  BILLING_PERIOD_REPOSITORY_MODULE: Symbol("BillingPeriodRepositoryModule"),
+  BILLING_PERIOD_SERVICE: Symbol("BillingPeriodService"),
+  BILLING_PERIOD_SERVICE_MODULE: Symbol("BillingPeriodServiceModule"),
+  SEAT_BILLING_STRATEGY_FACTORY: Symbol("SeatBillingStrategyFactory"),
+  SEAT_BILLING_STRATEGY_FACTORY_MODULE: Symbol("SeatBillingStrategyFactoryModule"),
 };

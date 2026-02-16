@@ -20,7 +20,7 @@ export const _getLocationValuesForDb = <
     username: string | null;
     metadata: Prisma.JsonValue;
     credentials: CredentialForCalendarService[];
-  }
+  },
 >({
   dynamicUserList,
   users,

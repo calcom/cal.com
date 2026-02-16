@@ -172,7 +172,7 @@ export class TeamService {
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingServices = await teamBillingServiceFactory.findAndInitMany(teamIds);
     const teamBillingPromises = teamBillingServices.map((teamBillingService) =>
-      teamBillingService.updateQuantity()
+      teamBillingService.updateQuantity("removal")
     );
     await Promise.allSettled(teamBillingPromises);
   }
@@ -230,7 +230,7 @@ export class TeamService {
 
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = await teamBillingServiceFactory.findAndInit(verificationToken.teamId);
-    await teamBillingService.updateQuantity();
+    await teamBillingService.updateQuantity("addition");
 
     return verificationToken.team.name;
   }

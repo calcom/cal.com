@@ -95,7 +95,10 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
   }
 
   async getDisplayTitle({ storedData }: GetDisplayTitleParams): Promise<TranslationWithParams> {
-    const { fields: parsedFields } = this.parseStored({ version: storedData.version, fields: storedData.fields });
+    const { fields: parsedFields } = this.parseStored({
+      version: storedData.version,
+      fields: storedData.fields,
+    });
     if (this.isHostSet(parsedFields) && this.isAttendeesNoShowSet(parsedFields)) {
       return { key: "booking_audit_action.no_show_updated" };
     }

@@ -19,17 +19,13 @@ export function validateInvoiceLinesForHwm(
   log: Logger<unknown> = defaultLogger
 ): { isValid: boolean; periodStart?: number } {
   if (!linesData || linesData.length === 0) {
-    log.warn(
-      `Invoice has no line items for subscription ${subscriptionId}, cannot process HWM`
-    );
+    log.warn(`Invoice has no line items for subscription ${subscriptionId}, cannot process HWM`);
     return { isValid: false };
   }
 
   const periodStart = linesData[0]?.period?.start;
   if (!periodStart) {
-    log.warn(
-      `Invoice line item missing period.start for subscription ${subscriptionId}, cannot process HWM`
-    );
+    log.warn(`Invoice line item missing period.start for subscription ${subscriptionId}, cannot process HWM`);
     return { isValid: false };
   }
 
@@ -48,9 +44,7 @@ export async function handleHwmResetAfterRenewal(
   log: Logger<unknown> = defaultLogger
 ): Promise<HwmResetResult> {
   if (!periodStartTimestamp) {
-    log.warn(
-      `No period start timestamp for subscription ${subscriptionId}, skipping HWM reset`
-    );
+    log.warn(`No period start timestamp for subscription ${subscriptionId}, skipping HWM reset`);
     return { success: false, error: "No period start timestamp" };
   }
 

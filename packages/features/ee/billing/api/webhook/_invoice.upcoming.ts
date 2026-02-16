@@ -1,4 +1,4 @@
-import { getHighWaterMarkService } from "@calcom/features/ee/billing/di/containers/HighWaterMarkService";
+import { getSeatBillingStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 
 import type { SWHMap } from "./__handler";
@@ -10,7 +10,6 @@ const log = logger.getSubLogger({ prefix: ["stripe-webhook-invoice-upcoming"] })
 const handler = async (data: Data) => {
   const invoice = data.object;
 
-  // Only handle subscription invoices
   if (!invoice.subscription) {
     log.debug("Not a subscription invoice, skipping");
     return { success: false, message: "Not a subscription invoice" };
@@ -25,26 +24,18 @@ const handler = async (data: Data) => {
     customerId: typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id,
   });
 
-  const highWaterMarkService = getHighWaterMarkService();
-
   try {
-    const applied = await highWaterMarkService.applyHighWaterMarkToSubscription(subscriptionId);
+    const factory = getSeatBillingStrategyFactory();
+    const strategy = await factory.createBySubscriptionId(subscriptionId);
+    const { applied } = await strategy.onInvoiceUpcoming(subscriptionId);
 
     if (applied) {
-      log.info("Successfully applied high water mark before renewal", {
-        subscriptionId,
-      });
-      return { success: true, highWaterMarkApplied: true };
+      log.info("Strategy applied invoice.upcoming handling", { subscriptionId });
     }
 
-    log.debug("No high water mark update needed", { subscriptionId });
-    return { success: true, highWaterMarkApplied: false };
+    return { success: true, highWaterMarkApplied: applied };
   } catch (error) {
-    log.error("Failed to apply high water mark", {
-      subscriptionId,
-      error,
-    });
-    // Return success: false but don't throw - we don't want to fail the webhook
+    log.error("Failed to process invoice.upcoming", { subscriptionId, error });
     return { success: false, error: String(error) };
   }
 };
