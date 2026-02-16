@@ -142,6 +142,7 @@ export default class LeverService implements CRM {
         }
       } catch (e) {
         console.error("Error creating contact in Lever", e);
+        throw e;
       }
     }
     return created;

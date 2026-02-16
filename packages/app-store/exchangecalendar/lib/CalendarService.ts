@@ -201,7 +201,7 @@ class ExchangeCalendarService implements Calendar {
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
       const { XhrApi } = await import("@ewsjs/xhr");
       const xhr = new XhrApi({
-        rejectUnauthorized: false,
+        rejectUnauthorized: this.payload.rejectUnauthorized ?? true,
       }).useNtlmAuthentication(this.payload.username, this.payload.password);
       service.XHRApi = xhr;
     }
