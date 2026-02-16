@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
+import { formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +21,6 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { SegmentedControl } from "@calcom/ui/components/segmented-control";
 import {
   Sheet,
@@ -30,10 +30,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
+import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
 import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import type { z } from "zod";
 import { AcceptBookingButton } from "../../../components/booking/AcceptBookingButton";
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
@@ -63,14 +64,25 @@ export function BookingDetailsSheet({
   bookingAuditEnabled = false,
 }: BookingDetailsSheetProps) {
   const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
+  const selectedBookingUid = useBookingDetailsSheetStore((state) => state.selectedBookingUid);
+  const lastBookingRef = useRef<BookingOutput | null>(null);
 
-  // Return null if no booking is selected (sheet is closed)
-  if (!booking) return null;
+  if (booking) {
+    lastBookingRef.current = booking;
+  }
+
+  if (!selectedBookingUid) {
+    lastBookingRef.current = null;
+  }
+
+  const displayBooking = booking ?? lastBookingRef.current;
+
+  if (!displayBooking) return null;
 
   return (
     <BookingActionsStoreProvider>
       <BookingDetailsSheetInner
-        booking={booking}
+        booking={displayBooking}
         userTimeZone={userTimeZone}
         userTimeFormat={userTimeFormat}
         userId={userId}
@@ -223,16 +235,13 @@ function BookingDetailsSheetInner({
         className="overflow-y-auto pb-0 sm:pb-0"
         hideOverlay
         onInteractOutside={(e) => {
-          // Check if the click is on a booking list item
           const target = e.target as HTMLElement;
-          const isBookingListItem = target.closest("[data-booking-list-item]");
+          const isBookingItem =
+            target.closest("[data-booking-list-item]") || target.closest("[data-booking-calendar-event]");
 
-          if (isBookingListItem) {
-            // Prevent closing when clicking a booking list item
-            // The item's onClick will handle opening the sheet with the new booking
+          if (isBookingItem) {
             e.preventDefault();
           }
-          // If clicking elsewhere, allow the default behavior (close the sheet)
         }}>
         <SheetHeader showCloseButton={false} className="mt-0 w-full">
           <div className="flex items-center justify-between gap-x-4">
@@ -445,14 +454,20 @@ function DisplayTimestamp({
   endTime: Date | dayjs.Dayjs;
   timeZone?: string;
 }) {
+  const {
+    i18n: { language },
+  } = useLocale();
   const start = startTime instanceof Date ? dayjs(startTime).tz(timeZone) : startTime;
   const end = endTime instanceof Date ? dayjs(endTime).tz(timeZone) : endTime;
+  const localizedTimezone = timeZone
+    ? formatToLocalizedTimezone(start, language, timeZone) ?? timeZone
+    : start.format("Z");
 
   return (
     <>
       <span>{start.format("dddd, MMMM D, YYYY")}</span>
       <span>
-        {start.format("h:mma")} - {end.format("h:mma")} ({timeZone || start.format("Z")})
+        {start.format("h:mma")} - {end.format("h:mma")} ({localizedTimezone})
       </span>
     </>
   );
@@ -507,6 +522,9 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
               />
               <div className="min-w-0 flex-1">
                 <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
+                {attendee.phoneNumber && (
+                  <p className="text-default truncate text-sm leading-[1.2]">{attendee.phoneNumber}</p>
+                )}
                 <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
               </div>
             </div>
@@ -755,7 +773,7 @@ function OldRescheduledBookingInfo({
           <Link href={`/booking/${rescheduledToBooking.uid}`}>
             <div className="text-default flex items-center gap-1 text-sm underline">
               {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
+              <ExternalLinkIcon className="h-4 w-4" />
             </div>
           </Link>
         </Section>
@@ -798,7 +816,7 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
         <Link href={`/booking/${booking.fromReschedule}`}>
           <div className="text-default flex items-center gap-1 text-sm underline">
             {t("original_booking")}
-            <Icon name="external-link" className="h-4 w-4" />
+            <ExternalLinkIcon className="h-4 w-4" />
           </div>
         </Link>
       </Section>
@@ -894,7 +912,7 @@ function BookingHeaderBadges({
       ) : null}
       {recurringInfo && (
         <Badge variant="gray">
-          <Icon name="repeat" className="mr-1 h-3 w-3" />
+          <RepeatIcon className="mr-1 h-3 w-3" />
           {recurringInfo.count}
         </Badge>
       )}
