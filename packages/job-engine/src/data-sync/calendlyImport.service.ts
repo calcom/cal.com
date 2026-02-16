@@ -1,4 +1,4 @@
-import type { WorkflowContext } from "@calid/job-dispatcher/src/adapter/index";
+import type { WorkflowContext } from "@calid/job-dispatcher";
 import type {
   CalendlyEventType,
   CalendlyScheduledEventLocation,

@@ -1,6 +1,6 @@
 import { createInngestWorkflowContext, getInngestClient } from "@calid/job-dispatcher/";
-import { calendlyImportService } from "@calid/job-engine";
-import type { CalendlyImportJobData } from "@calid/job-engine";
+import { calendlyImportService, bookingExportService } from "@calid/job-engine";
+import type { BookingExportJobData, CalendlyImportJobData } from "@calid/job-engine";
 import { serve } from "inngest/next";
 
 import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
@@ -60,12 +60,12 @@ const handleCalendlyImportFn = inngestClient.createFunction(
 // );
 
 export const handleBookingExportFn = inngestClient.createFunction(
-  { id: `sync-import-from-calendly-${key}`, retries: 2 },
-  { event: `sync/import-from-calendly-${key}` },
+  { id: `core-export-bookings-${key}`, retries: 2 },
+  { event: `core/export-bookings-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
-    await calendlyImportService(ctx, event.data as CalendlyImportJobData);
-    return { message: `Import completed for userID: ${event.data.user.id}` };
+    await bookingExportService(ctx, event.data as BookingExportJobData);
+    return { message: `Export Booking mail sent for userID: ${event.data.user.id}` };
   }
 );
 
