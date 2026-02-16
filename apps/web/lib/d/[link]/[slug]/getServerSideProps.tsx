@@ -18,6 +18,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
+import { buildCustomDomainRedirect } from "@lib/getCustomDomainRedirect";
 import { getRedirectWithOriginAndSearchString } from "@lib/handleOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -82,9 +83,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         redirect: {
           permanent: false,
           // App Router doesn't have access to the current path directly, so we build it manually
-          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${
-            redirectWithOriginAndSearchString.searchString
-          }`,
+          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${redirectWithOriginAndSearchString.searchString
+            }`,
         },
       };
     }
@@ -121,13 +121,23 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       isTeamEvent,
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      isCustomDomain: !!customDomain,
     },
     session?.user?.id
   );
 
   if (!eventData) {
     return notFound;
+  }
+
+  const isEmbed = context.resolvedUrl?.includes("/embed");
+  if (!isEmbed && isValidOrgDomain && !customDomain) {
+    const customDomainRedirect = buildCustomDomainRedirect({
+      customDomainFromRequest: customDomain,
+      verifiedCustomDomain: eventData.entity.customDomain ?? null,
+      path: `/d/${link}/${slug}`,
+      search: context.resolvedUrl?.includes("?") ? `?${context.resolvedUrl.split("?")[1]}` : "",
+    });
+    if (customDomainRedirect) return customDomainRedirect;
   }
 
   // Check if team has API v2 feature flag enabled (same logic as team pages)
