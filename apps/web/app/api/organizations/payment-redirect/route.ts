@@ -1,15 +1,13 @@
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+import { orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import stripe from "@calcom/features/ee/payments/server/stripe";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import { prisma } from "@calcom/prisma";
-import { orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -34,8 +32,8 @@ async function getHandler(req: NextRequest) {
     const organizationOnboardingId = checkoutSession.metadata?.organizationOnboardingId;
 
     // Check if onboarding-v3 feature flag is enabled
-    const featuresRepository = new FeaturesRepository(prisma);
-    const isOnboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
+    const featureRepository = getFeatureRepository();
+    const isOnboardingV3Enabled = await featureRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
     // Build query params to preserve
     const params = new URLSearchParams({

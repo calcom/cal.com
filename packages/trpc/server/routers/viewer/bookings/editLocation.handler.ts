@@ -5,11 +5,11 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CredentialAccessService } from "@calcom/features/credentials/services/CredentialAccessService";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -24,7 +24,6 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 import { TRPCError } from "@trpc/server";
 import type { z } from "zod";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
@@ -137,7 +136,9 @@ async function getAllCredentialsIncludeServiceAccountKey({
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-  let conferenceCredential: Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>> | undefined;
+  let conferenceCredential:
+    | Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>>
+    | undefined;
 
   if (conferenceCredentialId) {
     // Validate that the credential is accessible before fetching it
@@ -316,9 +317,9 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
+  const teamFeatureRepository = getTeamFeatureRepository();
   const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    ? await teamFeatureRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
     : false;
 
   await bookingEventHandlerService.onLocationChanged({

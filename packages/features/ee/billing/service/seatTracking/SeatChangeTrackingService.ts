@@ -1,11 +1,10 @@
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { formatMonthKey } from "@calcom/features/ee/billing/lib/month-key";
 import { HighWaterMarkRepository } from "@calcom/features/ee/billing/repository/highWaterMark/HighWaterMarkRepository";
 import { MonthlyProrationTeamRepository } from "@calcom/features/ee/billing/repository/proration/MonthlyProrationTeamRepository";
 import { SeatChangeLogRepository } from "@calcom/features/ee/billing/repository/seatChangeLogs/SeatChangeLogRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SeatChangeType } from "@calcom/prisma/enums";
 
@@ -33,14 +32,14 @@ export interface SeatChangeTrackingServiceDeps {
   repository?: SeatChangeLogRepository;
   highWaterMarkRepo?: HighWaterMarkRepository;
   teamRepo?: MonthlyProrationTeamRepository;
-  featuresRepository?: IFeaturesRepository;
+  featureRepository?: IFeatureRepository;
 }
 
 export class SeatChangeTrackingService {
   private repository: SeatChangeLogRepository;
   private highWaterMarkRepo: HighWaterMarkRepository;
   private teamRepo: MonthlyProrationTeamRepository;
-  private featuresRepository: IFeaturesRepository;
+  private featureRepository: IFeatureRepository;
 
   constructor(
     repositoryOrDeps?: SeatChangeLogRepository | SeatChangeTrackingServiceDeps,
@@ -48,22 +47,18 @@ export class SeatChangeTrackingService {
     teamRepo?: MonthlyProrationTeamRepository
   ) {
     // Support both old positional args and new deps object for backwards compatibility
-    if (
-      repositoryOrDeps &&
-      typeof repositoryOrDeps === "object" &&
-      "featuresRepository" in repositoryOrDeps
-    ) {
+    if (repositoryOrDeps && typeof repositoryOrDeps === "object" && "featureRepository" in repositoryOrDeps) {
       const deps = repositoryOrDeps as SeatChangeTrackingServiceDeps;
       this.repository = deps.repository || new SeatChangeLogRepository();
       this.highWaterMarkRepo = deps.highWaterMarkRepo || new HighWaterMarkRepository();
       this.teamRepo = deps.teamRepo || new MonthlyProrationTeamRepository();
-      this.featuresRepository = deps.featuresRepository || new FeaturesRepository(prisma);
+      this.featureRepository = deps.featureRepository || getFeatureRepository();
     } else {
       // Legacy constructor signature
       this.repository = (repositoryOrDeps as SeatChangeLogRepository) || new SeatChangeLogRepository();
       this.highWaterMarkRepo = highWaterMarkRepo || new HighWaterMarkRepository();
       this.teamRepo = teamRepo || new MonthlyProrationTeamRepository();
-      this.featuresRepository = new FeaturesRepository(prisma);
+      this.featureRepository = getFeatureRepository();
     }
   }
 
@@ -101,7 +96,7 @@ export class SeatChangeTrackingService {
   private async updateHighWaterMarkIfNeeded(teamId: number): Promise<void> {
     try {
       // Check if the feature is enabled
-      const isFeatureEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
+      const isFeatureEnabled = await this.featureRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
 
       if (!isFeatureEnabled) {
         return;

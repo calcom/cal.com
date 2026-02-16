@@ -6,7 +6,6 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import type { TeamFeatures, UserFeatures } from "@calcom/prisma/client";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { IFeatureOptInServiceDeps } from "./FeatureOptInService";
 import { FeatureOptInService } from "./FeatureOptInService";
 

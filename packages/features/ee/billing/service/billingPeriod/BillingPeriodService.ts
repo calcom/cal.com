@@ -1,8 +1,8 @@
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
-import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BillingMode, BillingPeriod } from "@calcom/prisma/enums";
@@ -24,18 +24,18 @@ export interface BillingPeriodInfo {
 export interface BillingPeriodServiceDeps {
   logger?: Logger<unknown>;
   repository?: BillingPeriodRepository;
-  featuresRepository?: IFeaturesRepository;
+  featureRepository?: IFeatureRepository;
 }
 
 export class BillingPeriodService {
   private logger: Logger<unknown>;
   private repository: BillingPeriodRepository;
-  private featuresRepository: IFeaturesRepository;
+  private featureRepository: IFeatureRepository;
 
   constructor(deps?: BillingPeriodServiceDeps) {
     this.logger = deps?.logger || log;
     this.repository = deps?.repository || new BillingPeriodRepository();
-    this.featuresRepository = deps?.featuresRepository || getFeaturesRepository();
+    this.featureRepository = deps?.featureRepository || getFeatureRepository();
   }
 
   async isAnnualPlan(teamId: number): Promise<boolean> {
@@ -50,7 +50,7 @@ export class BillingPeriodService {
 
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
     try {
-      const isEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+      const isEnabled = await this.featureRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
       if (!isEnabled) {
         return false;
       }
@@ -66,7 +66,7 @@ export class BillingPeriodService {
 
   async shouldApplyHighWaterMark(teamId: number): Promise<boolean> {
     try {
-      const isEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
+      const isEnabled = await this.featureRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
       if (!isEnabled) {
         return false;
       }
@@ -137,14 +137,11 @@ export class BillingPeriodService {
       };
     }
 
-    const periodIsStale =
-      billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
+    const periodIsStale = billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
     const needsSync = (!billing.billingPeriod || periodIsStale) && billing.subscriptionId;
 
     if (needsSync) {
-      log.info(
-        `Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
-      );
+      log.info(`Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`);
 
       try {
         const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);

@@ -1,4 +1,5 @@
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { AppFlags } from "@calcom/features/flags/config";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
@@ -7,8 +8,8 @@ import { map } from "./map";
 
 export const featureFlagRouter = router({
   list: publicProcedure.query(async () => {
-    const featuresRepository = getFeaturesRepository();
-    return featuresRepository.getAllFeatures();
+    const featureRepository = getFeatureRepository();
+    return featureRepository.findAll();
   }),
   checkTeamFeature: publicProcedure
     .input(
@@ -18,8 +19,8 @@ export const featureFlagRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const featuresRepository = getFeaturesRepository();
-      return featuresRepository.checkIfTeamHasFeature(input.teamId, input.feature as keyof AppFlags);
+      const teamFeatureRepository = getTeamFeatureRepository();
+      return teamFeatureRepository.checkIfTeamHasFeature(input.teamId, input.feature as keyof AppFlags);
     }),
   map,
 });

@@ -1,11 +1,11 @@
-import { uuid } from "short-uuid";
-
+import process from "node:process";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import { MembershipRole, RoleType } from "@calcom/prisma/enums";
+import { uuid } from "short-uuid";
 
 /**
  * Creates an organization with custom roles and PBAC (Permission-Based Access Control) enabled
@@ -53,13 +53,8 @@ export async function createPBACOrganization() {
   });
 
   // Add the feature flag
-  const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState({
-    teamId: organization.id,
-    featureId: "pbac" as FeatureId,
-    state: "enabled",
-    assignedBy: "system (Seed script)",
-  });
+  const teamFeatureRepository = getTeamFeatureRepository();
+  await teamFeatureRepository.upsert(organization.id, "pbac" as FeatureId, true, "system (Seed script)");
 
   console.log(`✅ Created organization: ${organization.name} (ID: ${organization.id})`);
 

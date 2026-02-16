@@ -1,11 +1,7 @@
-import {
-  bindModuleToClassOnToken,
-  createModule,
-  type ModuleLoader,
-} from "@calcom/features/di/di";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as activeUserBillingServiceModuleLoader } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.module";
 import { SeatBillingStrategyFactory } from "@calcom/features/ee/billing/service/seatBillingStrategy/SeatBillingStrategyFactory";
+import { moduleLoader as featureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
 import { DI_TOKENS } from "../tokens";
 import { billingPeriodServiceModuleLoader } from "./BillingPeriodService.module";
 import { billingProviderServiceModuleLoader } from "./BillingProviderService";
@@ -25,7 +21,7 @@ const loadModule = bindModuleToClassOnToken({
   classs: SeatBillingStrategyFactory,
   depsMap: {
     billingPeriodService: billingPeriodServiceModuleLoader,
-    featuresRepository: featuresRepositoryModuleLoader,
+    featureRepository: featureRepositoryModuleLoader,
     billingProviderService: billingProviderServiceModuleLoader,
     highWaterMarkRepository: highWaterMarkRepositoryModuleLoader,
     highWaterMarkService: highWaterMarkServiceModuleLoader,

@@ -2,9 +2,9 @@ import dayjs from "@calcom/dayjs";
 import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
 import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -177,9 +177,9 @@ export const fireNoShowUpdatedEvent = async ({
     });
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    const featuresRepository = getFeaturesRepository();
+    const teamFeatureRepository = getTeamFeatureRepository();
     const isBookingAuditEnabled = orgId
-      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      ? await teamFeatureRepository.checkIfTeamHasFeature(orgId, "booking-audit")
       : false;
 
     await bookingEventHandlerService.onNoShowUpdated({

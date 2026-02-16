@@ -1,11 +1,10 @@
 import { createMemberships } from "@calcom/features/ee/teams/lib/inviteMemberUtils";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
@@ -69,7 +68,7 @@ const mockBillingService: IBillingProviderService = {
   createSubscriptionUsageRecord: vi.fn().mockResolvedValue(undefined),
 } satisfies IBillingProviderService;
 
-const mockFeaturesRepository: IFeaturesRepository = {
+const mockFeatureRepository: IFeatureRepository = {
   checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
   checkIfUserHasFeature: vi.fn().mockResolvedValue(false),
   getUserFeaturesStatus: vi.fn().mockResolvedValue({}),
@@ -321,7 +320,7 @@ describe("MonthlyProrationService Integration Tests", () => {
 
     const prorationService = new MonthlyProrationService({
       logger: mockLogger,
-      featuresRepository: mockFeaturesRepository,
+      featureRepository: mockFeatureRepository,
       billingService: mockBillingService,
     });
     const results = await prorationService.processMonthlyProrations({

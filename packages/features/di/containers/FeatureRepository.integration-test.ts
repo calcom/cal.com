@@ -1,7 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
-
 import { prisma } from "@calcom/prisma";
-
+import { afterEach, describe, expect, it } from "vitest";
 import { getFeatureRepository } from "./FeatureRepository";
 
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;

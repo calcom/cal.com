@@ -1,5 +1,5 @@
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { Task } from "@calcom/features/tasker/repository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
@@ -24,7 +24,7 @@ import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRe
 interface BookingAuditTaskConsumerDeps {
   bookingAuditRepository: IBookingAuditRepository;
   auditActorRepository: IAuditActorRepository;
-  featuresRepository: IFeaturesRepository;
+  teamFeatureRepository: ITeamFeatureRepository;
   attendeeRepository: IAttendeeRepository;
   userRepository: UserRepository;
 }
@@ -73,12 +73,12 @@ export class BookingAuditTaskConsumer {
   private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
   private readonly bookingAuditRepository: IBookingAuditRepository;
   private readonly auditActorRepository: IAuditActorRepository;
-  private readonly featuresRepository: IFeaturesRepository;
+  private readonly teamFeatureRepository: ITeamFeatureRepository;
 
   constructor(deps: BookingAuditTaskConsumerDeps) {
     this.bookingAuditRepository = deps.bookingAuditRepository;
     this.auditActorRepository = deps.auditActorRepository;
-    this.featuresRepository = deps.featuresRepository;
+    this.teamFeatureRepository = deps.teamFeatureRepository;
 
     this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
   }
@@ -285,7 +285,7 @@ export class BookingAuditTaskConsumer {
       return false;
     }
 
-    const isFeatureEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+    const isFeatureEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(
       organizationId,
       "booking-audit"
     );

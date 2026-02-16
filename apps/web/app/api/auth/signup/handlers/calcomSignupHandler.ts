@@ -12,8 +12,8 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";

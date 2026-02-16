@@ -1,18 +1,14 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  Timezones,
-  TestData,
   type ScenarioData,
+  TestData,
+  Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, test, vi } from "vitest";
-import type { z } from "zod";
-
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
-
+import { describe, test, vi } from "vitest";
+import type { z } from "zod";
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 

@@ -1,12 +1,10 @@
 import type { IncomingHttpHeaders } from "node:http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BotDetectionService } from "./BotDetectionService";
 
 // Mock the botid/server module
@@ -27,7 +25,7 @@ vi.mock("@calcom/lib/logger", () => ({
 
 describe("BotDetectionService", () => {
   let botDetectionService: BotDetectionService;
-  let mockFeaturesRepository: FeaturesRepository;
+  let mockFeaturesRepository: ITeamFeatureRepository;
   let mockEventTypeRepository: EventTypeRepository;
   let mockHeaders: IncomingHttpHeaders;
 
@@ -36,7 +34,7 @@ describe("BotDetectionService", () => {
 
     mockFeaturesRepository = {
       checkIfTeamHasFeature: vi.fn(),
-    } as unknown as FeaturesRepository;
+    } as unknown as ITeamFeatureRepository;
 
     mockEventTypeRepository = {
       getTeamIdByEventTypeId: vi.fn(),

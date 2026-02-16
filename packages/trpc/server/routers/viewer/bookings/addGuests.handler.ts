@@ -1,13 +1,14 @@
+import process from "node:process";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -19,9 +20,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
@@ -89,10 +88,10 @@ export const addGuestsHandler = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
+  const teamFeatureRepository = getTeamFeatureRepository();
   const organizationId = user.organizationId ?? null;
   const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    ? await teamFeatureRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
     : false;
 
   await bookingEventHandlerService.onAttendeeAdded({

@@ -1,20 +1,23 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
-
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleManagementError, RoleManagementErrorCode } from "../../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../../lib/constants";
 import { PermissionCheckService } from "../permission-check.service";
-import { RoleManagementFactory } from "../role-management.factory";
 import { RoleService } from "../role.service";
+import { RoleManagementFactory } from "../role-management.factory";
 
 // Mock dependencies
-vi.mock("@calcom/features/flags/features.repository");
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn(),
+}));
 vi.mock("../role.service");
 vi.mock("../permission-check.service");
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn(),
+}));
 vi.mock("@calcom/prisma", () => ({
   prisma: {
     membership: {
@@ -66,8 +69,8 @@ describe("RoleManagementFactory", () => {
       writable: true,
     });
 
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockImplementation(
-      mockFeaturesRepository.checkIfTeamHasFeature
+    vi.mocked(getTeamFeatureRepository).mockReturnValue(
+      mockFeaturesRepository as ReturnType<typeof getTeamFeatureRepository>
     );
     vi.spyOn(RoleService.prototype, "assignRoleToMember").mockImplementation(
       mockRoleService.assignRoleToMember

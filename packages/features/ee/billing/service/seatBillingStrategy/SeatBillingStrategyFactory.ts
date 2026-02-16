@@ -1,6 +1,5 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
-
 import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
@@ -18,7 +17,7 @@ const log = logger.getSubLogger({ prefix: ["SeatBillingStrategyFactory"] });
 
 export interface ISeatBillingStrategyFactoryDeps {
   billingPeriodService: BillingPeriodService;
-  featuresRepository: IFeaturesRepository;
+  featureRepository: IFeatureRepository;
   billingProviderService: IBillingProviderService;
   highWaterMarkRepository: HighWaterMarkRepository;
   highWaterMarkService: HighWaterMarkService;
@@ -55,18 +54,16 @@ export class SeatBillingStrategyFactory {
     if (!info.isInTrial && info.subscriptionStart) {
       if (info.billingMode === "ACTIVE_USERS") {
         const enabled =
-          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
-            "active-user-billing"
-          );
+          await this.deps.featureRepository.checkIfFeatureIsEnabledGlobally("active-user-billing");
         if (enabled) return this.activeUserStrategy;
       }
       if (info.billingPeriod === "ANNUALLY") {
         const enabled =
-          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+          await this.deps.featureRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
         if (enabled) return this.prorationStrategy;
       }
       if (info.billingPeriod === "MONTHLY") {
-        const enabled = await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
+        const enabled = await this.deps.featureRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
         if (enabled) return this.hwmStrategy;
       }
     }

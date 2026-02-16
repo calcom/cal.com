@@ -1,22 +1,24 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
-
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
 import type { PermissionString } from "../../domain/types/permission-registry";
 import { Resource } from "../../domain/types/permission-registry";
-import { PermissionCheckService } from "../permission-check.service";
 import type { PermissionService } from "../permission.service";
+import { PermissionCheckService } from "../permission-check.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
-vi.mock("@calcom/features/flags/features.repository");
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn(),
+}));
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("../permission.service");
 
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn(),
+}));
 vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
@@ -63,7 +65,7 @@ describe("PermissionCheckService", () => {
 
     service = new PermissionCheckService(
       mockRepository,
-      mockFeaturesRepository as unknown as FeaturesRepository,
+      mockFeaturesRepository as unknown as ITeamFeatureRepository,
       mockPermissionService as unknown as PermissionService,
       mockMembershipRepository as unknown as MembershipRepository
     );

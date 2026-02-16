@@ -1,16 +1,17 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
-
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { Resource } from "../../domain/types/permission-registry";
 import { PermissionCheckService } from "../../services/permission-check.service";
 import { getEventTypePermissions } from "../event-type-permissions";
 
-vi.mock("@calcom/features/flags/features.repository");
-vi.mock("../../services/permission-check.service");
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn(),
+}));
+vi.mock("../../services/permission-check.service", () => ({
+  PermissionCheckService: vi.fn(),
+}));
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
@@ -35,9 +36,7 @@ describe("getEventTypePermissions", () => {
       getResourcePermissions: vi.fn(),
     };
 
-    vi.mocked(FeaturesRepository).mockImplementation(function () {
-      return mockFeaturesRepository as any;
-    });
+    vi.mocked(getTeamFeatureRepository).mockReturnValue(mockFeaturesRepository as any);
     vi.mocked(PermissionCheckService).mockImplementation(function () {
       return mockPermissionCheckService as any;
     });
@@ -550,9 +549,8 @@ describe("getEventTypePermissions", () => {
       vi.clearAllMocks();
 
       // Re-initialize mocks after clearing
-      vi.mocked(FeaturesRepository).mockImplementation(function () {
-        return mockFeaturesRepository as any;
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(getTeamFeatureRepository).mockReturnValue(mockFeaturesRepository as any);
       vi.mocked(PermissionCheckService).mockImplementation(function () {
         return mockPermissionCheckService as any;
       });

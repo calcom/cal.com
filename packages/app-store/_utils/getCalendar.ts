@@ -3,13 +3,13 @@ import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscrip
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
 import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import logger from "@calcom/lib/logger";
 import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
 import type { Calendar, CalendarFetchMode } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { CalendarServiceMap } from "../calendar.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
@@ -52,13 +52,14 @@ export const getCalendar = async (
   // - "none": Don't use cache (for operations that don't use getAvailability, e.g., deleteEvent, listCalendars)
   let shouldServeCache = false;
   if (mode === "slots") {
-    const featuresRepository = new FeaturesRepository(prisma);
+    const featureRepository = getFeatureRepository();
+    const userFeatureRepository = getUserFeatureRepository();
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
-        featuresRepository.checkIfFeatureIsEnabledGlobally(
+        featureRepository.checkIfFeatureIsEnabledGlobally(
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),
-        featuresRepository.checkIfUserHasFeatureNonHierarchical(
+        userFeatureRepository.checkIfUserHasFeatureNonHierarchical(
           credential.userId as number,
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),

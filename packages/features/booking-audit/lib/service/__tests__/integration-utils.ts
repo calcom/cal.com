@@ -1,7 +1,7 @@
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import type { FeatureId } from "@calcom/features/flags/config";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
-import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 
 export const generateUniqueId = () => {
   const timestamp = Date.now();
@@ -106,13 +106,8 @@ export const enableFeatureForOrganization = async (organizationId: number, featu
     },
   });
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  await featuresRepository.setTeamFeatureState({
-    teamId: organizationId,
-    featureId: featureSlug as FeatureId,
-    state: "enabled",
-    assignedBy: "test-system",
-  });
+  const teamFeatureRepository = getTeamFeatureRepository();
+  await teamFeatureRepository.upsert(organizationId, featureSlug as FeatureId, true, "test-system");
 };
 
 export const cleanupTestData = async (testData: {

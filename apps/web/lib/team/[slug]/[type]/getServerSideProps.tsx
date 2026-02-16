@@ -1,22 +1,21 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
+import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import logger from "@calcom/lib/logger";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -109,7 +108,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Run independent queries in parallel — these all depend on team/eventData but not on each other
   const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
-  const featureRepo = new FeaturesRepository(prisma);
+  const teamFeatureRepo = getTeamFeatureRepository();
   const [eventHostsUserData, crmResult, teamHasApiV2Route, booking] = await Promise.all([
     getUsersData(
       team.isPrivate,
@@ -129,7 +128,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             throw err;
           })
       : Promise.resolve(null),
-    featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots").catch((err) => {
+    teamFeatureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots").catch((err) => {
       log.error("Failed to check API V2 feature flag", err);
       throw err;
     }),

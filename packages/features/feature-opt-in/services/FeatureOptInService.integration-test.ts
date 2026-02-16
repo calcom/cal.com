@@ -1,10 +1,11 @@
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import { prisma } from "@calcom/prisma";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
 import type { IFeatureOptInService } from "./IFeatureOptInService";
 
 // Mock isFeatureAllowedForScope to always return true for integration tests.
@@ -30,17 +31,13 @@ afterEach(async () => {
   cleanupFunctions.length = 0;
 });
 
-// Access private clearCache method through type assertion
-const clearFeaturesCache = (repo: FeaturesRepository) => {
-  (repo as unknown as { clearCache: () => void }).clearCache();
-};
-
 interface TestEntities {
   user: { id: number };
   org: { id: number };
   team: { id: number };
   team2: { id: number };
-  featuresRepository: FeaturesRepository;
+  teamFeatureRepository: ITeamFeatureRepository;
+  userFeatureRepository: IUserFeatureRepository;
   service: IFeatureOptInService;
   createdFeatures: string[];
   setupFeature: (enabled?: boolean) => Promise<FeatureId>;
@@ -88,7 +85,8 @@ async function setup(): Promise<TestEntities> {
     },
   });
 
-  const featuresRepository = getFeaturesRepository();
+  const teamFeatureRepository = getTeamFeatureRepository();
+  const userFeatureRepository = getUserFeatureRepository();
   const service = getFeatureOptInService();
 
   // Helper to create a feature for a test and track it for cleanup
@@ -102,8 +100,6 @@ async function setup(): Promise<TestEntities> {
         type: "EXPERIMENT",
       },
     });
-    // Clear cache after creating feature so getAllFeatures() returns fresh data
-    clearFeaturesCache(featuresRepository);
     return featureSlug;
   };
 
@@ -141,7 +137,8 @@ async function setup(): Promise<TestEntities> {
     org,
     team,
     team2,
-    featuresRepository,
+    teamFeatureRepository,
+    userFeatureRepository,
     service,
     createdFeatures,
     setupFeature,
@@ -169,32 +166,18 @@ describe("FeatureOptInService Integration Tests", () => {
 
     describe("org disabled", () => {
       it("should return effectiveEnabled=false regardless of team and user states", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository, userFeatureRepository } =
+          await setup();
         const testFeature = await setupFeature(true);
 
         // Org explicitly disables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, false, "test");
 
         // Team enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, true, "test");
 
         // User enables
-        await featuresRepository.setUserFeatureState({
-          userId: user.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await userFeatureRepository.upsert(user.id, testFeature, true, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -211,40 +194,29 @@ describe("FeatureOptInService Integration Tests", () => {
 
     describe("org enabled", () => {
       it("should return effectiveEnabled=false when all teams are disabled", async () => {
-        const { user, org, team, team2, service, setupFeature, featuresRepository } = await setup();
+        const {
+          user,
+          org,
+          team,
+          team2,
+          service,
+          setupFeature,
+          teamFeatureRepository,
+          userFeatureRepository,
+        } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Both teams disable
         await Promise.all([
-          featuresRepository.setTeamFeatureState({
-            teamId: team.id,
-            featureId: testFeature,
-            state: "disabled",
-            assignedBy: "test",
-          }),
-          featuresRepository.setTeamFeatureState({
-            teamId: team2.id,
-            featureId: testFeature,
-            state: "disabled",
-            assignedBy: "test",
-          }),
+          teamFeatureRepository.upsert(team.id, testFeature, false, "test"),
+          teamFeatureRepository.upsert(team2.id, testFeature, false, "test"),
         ]);
 
         // User enables
-        await featuresRepository.setUserFeatureState({
-          userId: user.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await userFeatureRepository.upsert(user.id, testFeature, true, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -260,31 +232,16 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should return effectiveEnabled=true when at least one team is enabled and user inherits", async () => {
-        const { user, org, team, team2, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, team2, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // One team enables, one disables
         await Promise.all([
-          featuresRepository.setTeamFeatureState({
-            teamId: team.id,
-            featureId: testFeature,
-            state: "enabled",
-            assignedBy: "test",
-          }),
-          featuresRepository.setTeamFeatureState({
-            teamId: team2.id,
-            featureId: testFeature,
-            state: "disabled",
-            assignedBy: "test",
-          }),
+          teamFeatureRepository.upsert(team.id, testFeature, true, "test"),
+          teamFeatureRepository.upsert(team2.id, testFeature, false, "test"),
         ]);
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
@@ -301,32 +258,18 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should return effectiveEnabled=false when user explicitly disables", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository, userFeatureRepository } =
+          await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Team enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, true, "test");
 
         // User disables
-        await featuresRepository.setUserFeatureState({
-          userId: user.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await userFeatureRepository.upsert(user.id, testFeature, false, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -341,16 +284,11 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should return effectiveEnabled=true when teams inherit from enabled org", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Teams inherit (no rows)
 
@@ -370,16 +308,11 @@ describe("FeatureOptInService Integration Tests", () => {
 
     describe("org inherits (or no org)", () => {
       it("should return effectiveEnabled=false when all teams are disabled", async () => {
-        const { user, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Team disables
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, false, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -395,16 +328,11 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should return effectiveEnabled=true when at least one team is enabled", async () => {
-        const { user, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // One team enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, true, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -439,16 +367,11 @@ describe("FeatureOptInService Integration Tests", () => {
 
     describe("no teams", () => {
       it("should return effectiveEnabled=true when org is enabled and user inherits", async () => {
-        const { user, org, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -467,16 +390,11 @@ describe("FeatureOptInService Integration Tests", () => {
 
   describe("setUserFeatureState", () => {
     it("should delete the row when state is 'inherit'", async () => {
-      const { user, service, setupFeature, featuresRepository } = await setup();
+      const { user, service, setupFeature, userFeatureRepository } = await setup();
       const testFeature = await setupFeature(true);
 
       // First create a row
-      await featuresRepository.setUserFeatureState({
-        userId: user.id,
-        featureId: testFeature,
-        state: "enabled",
-        assignedBy: "test",
-      });
+      await userFeatureRepository.upsert(user.id, testFeature, true, "test");
 
       // Set to inherit (should delete)
       await service.setUserFeatureState({
@@ -542,16 +460,11 @@ describe("FeatureOptInService Integration Tests", () => {
 
   describe("setTeamFeatureState", () => {
     it("should delete the row when state is 'inherit'", async () => {
-      const { team, service, setupFeature, featuresRepository } = await setup();
+      const { team, service, setupFeature, teamFeatureRepository } = await setup();
       const testFeature = await setupFeature(true);
 
       // First create a row
-      await featuresRepository.setTeamFeatureState({
-        teamId: team.id,
-        featureId: testFeature,
-        state: "enabled",
-        assignedBy: "test",
-      });
+      await teamFeatureRepository.upsert(team.id, testFeature, true, "test");
 
       // Set to inherit (should delete)
       await service.setTeamFeatureState({
@@ -624,7 +537,7 @@ describe("FeatureOptInService Integration Tests", () => {
   describe("auto-opt-in scenarios", () => {
     describe("user autoOptInFeatures", () => {
       it("should transform user state from 'inherit' to 'enabled' when user has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
@@ -634,20 +547,10 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         // Org enables (to allow team level)
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Team enables (to allow user level)
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, true, "test");
 
         // User has no explicit state (inherit), but autoOptInFeatures=true should enable
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
@@ -664,7 +567,8 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should NOT transform explicit 'disabled' state when user has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository, userFeatureRepository } =
+          await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
@@ -674,28 +578,13 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Team enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, true, "test");
 
         // User explicitly disables
-        await featuresRepository.setUserFeatureState({
-          userId: user.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await userFeatureRepository.upsert(user.id, testFeature, false, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -713,7 +602,7 @@ describe("FeatureOptInService Integration Tests", () => {
 
     describe("team autoOptInFeatures", () => {
       it("should transform team state from 'inherit' to 'enabled' when team has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for team
@@ -723,12 +612,7 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         // Org enables (to allow team level)
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Team has no explicit state (inherit), but autoOptInFeatures=true should enable
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
@@ -745,7 +629,7 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should NOT transform explicit 'disabled' state when team has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for team
@@ -755,20 +639,10 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         // Org enables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "enabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, true, "test");
 
         // Team explicitly disables
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(team.id, testFeature, false, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -811,7 +685,7 @@ describe("FeatureOptInService Integration Tests", () => {
       });
 
       it("should NOT transform explicit 'disabled' state when org has autoOptInFeatures=true", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for org
@@ -821,12 +695,7 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         // Org explicitly disables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, false, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,
@@ -844,7 +713,7 @@ describe("FeatureOptInService Integration Tests", () => {
 
     describe("auto-opt-in with org disabled blocking", () => {
       it("should return effectiveEnabled=false when user auto-opts-in but org is disabled", async () => {
-        const { user, org, team, service, setupFeature, featuresRepository } = await setup();
+        const { user, org, team, service, setupFeature, teamFeatureRepository } = await setup();
         const testFeature = await setupFeature(true);
 
         // Enable auto-opt-in for user
@@ -854,12 +723,7 @@ describe("FeatureOptInService Integration Tests", () => {
         });
 
         // Org explicitly disables
-        await featuresRepository.setTeamFeatureState({
-          teamId: org.id,
-          featureId: testFeature,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        await teamFeatureRepository.upsert(org.id, testFeature, false, "test");
 
         const statusMap = await service.resolveFeatureStatesAcrossTeams({
           userId: user.id,

@@ -1,13 +1,11 @@
-import { z } from "zod";
-
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import { prisma } from "@calcom/prisma";
-import { RoleType, MembershipRole } from "@calcom/prisma/enums";
-
+import { MembershipRole, RoleType } from "@calcom/prisma/enums";
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
@@ -181,8 +179,8 @@ export const permissionsRouter = router({
         throw new Error("Unauthorized");
       }
 
-      const featureRepo = new FeaturesRepository(prisma);
-      const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
+      const teamFeatureRepo = getTeamFeatureRepository();
+      const teamHasPBACFeature = await teamFeatureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
 
       // If PBAC is not enabled but caller wants system roles only (for preview), allow it
       if (!teamHasPBACFeature && input.includeSystemRolesOnly) {
@@ -241,20 +239,15 @@ export const permissionsRouter = router({
     }
 
     // Check if PBAC is already enabled for this org
-    const featureRepo = new FeaturesRepository(prisma);
-    const pbacAlreadyEnabled = await featureRepo.checkIfTeamHasFeature(orgId, "pbac");
+    const teamFeatureRepoForEnable = getTeamFeatureRepository();
+    const pbacAlreadyEnabled = await teamFeatureRepoForEnable.checkIfTeamHasFeature(orgId, "pbac");
 
     if (pbacAlreadyEnabled) {
       return { success: true, message: "PBAC is already enabled for this organization" };
     }
 
     // Enable PBAC feature for the organization
-    await featureRepo.setTeamFeatureState({
-      teamId: orgId,
-      featureId: "pbac",
-      state: "enabled",
-      assignedBy: "opt-in by user: " + ctx.user.id,
-    });
+    await teamFeatureRepoForEnable.upsert(orgId, "pbac", true, "opt-in by user: " + ctx.user.id);
 
     return { success: true, message: "PBAC enabled successfully" };
   }),
