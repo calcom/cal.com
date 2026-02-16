@@ -151,6 +151,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
           footer={
             <div className="flex w-full justify-end gap-2">
               <Button
+                data-testid="onboarding-continue-btn"
                 color="primary"
                 className="rounded-[10px]"
                 onClick={handleContinue}

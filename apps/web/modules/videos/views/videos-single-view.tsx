@@ -17,7 +17,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CalendarDaysIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider, useDailyEvent } from "@daily-co/daily-react";
@@ -451,7 +451,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           <div className="flex items-center justify-between rounded-lg border border-subtle p-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-md bg-subtle">
-                <Icon name="calendar-days" className="h-5 w-5 text-default" />
+                <CalendarDaysIcon className="h-5 w-5 text-default" />
               </div>
               <div>
                 <p className="font-semibold text-emphasis text-sm">{bookingTitle}</p>
@@ -595,8 +595,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           aria-label={`${open ? "close" : "open"} booking description sidebar`}
           className="h-20 w-6 rounded-r-md border border-gray-300/20 border-l-0 bg-black/60 text-white shadow-sm backdrop-blur-lg"
           onClick={() => setOpen(!open)}>
-          <Icon
-            name="chevron-right"
+          <ChevronRightIcon
             aria-hidden
             className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
           />

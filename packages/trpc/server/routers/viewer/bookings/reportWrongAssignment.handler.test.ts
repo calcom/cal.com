@@ -1,5 +1,6 @@
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,6 +34,11 @@ vi.mock("@calcom/features/bookings/services/BookingAccessService", () => {
     },
   };
 });
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => {
+  return {
+    TeamRepository: class MockTeamRepository {},
+  };
+});
 vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/prisma", () => ({
@@ -41,7 +47,9 @@ vi.mock("@calcom/prisma", () => ({
 vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => {
     const translations: Record<string, string> = {
-      wrong_assignment_already_reported: "A wrong assignment report has already been submitted for this booking",
+      wrong_assignment_already_reported:
+        "A wrong assignment report has already been submitted for this booking",
+      wrong_assignment_reported: "Wrong assignment reported successfully",
     };
     return translations[key] || key;
   }),
@@ -136,7 +144,7 @@ describe("reportWrongAssignmentHandler", () => {
           ctx: { user: mockUser },
           input: mockInput,
         })
-      ).rejects.toThrow(TRPCError);
+      ).rejects.toThrow(ErrorWithCode);
 
       await expect(
         reportWrongAssignmentHandler({
@@ -144,7 +152,6 @@ describe("reportWrongAssignmentHandler", () => {
           input: mockInput,
         })
       ).rejects.toMatchObject({
-        code: "NOT_FOUND",
         message: "Booking not found",
       });
     });
@@ -181,8 +188,17 @@ describe("reportWrongAssignmentHandler", () => {
             additionalNotes: "Duplicate report",
           },
         })
+      ).rejects.toThrow(ErrorWithCode);
+
+      await expect(
+        reportWrongAssignmentHandler({
+          ctx: { user: mockUser },
+          input: {
+            bookingUid: "test-booking-uid",
+            additionalNotes: "Duplicate report",
+          },
+        })
       ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
         message: "A wrong assignment report has already been submitted for this booking",
       });
 

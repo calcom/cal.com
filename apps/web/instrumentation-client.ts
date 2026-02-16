@@ -59,7 +59,7 @@ if (
   initBotId({
     protect: [
       {
-        path: "/api/book/event",
+        path: "*/api/book/event",
         method: "POST",
       },
     ],

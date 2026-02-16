@@ -20,7 +20,7 @@ import { CheckboxField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 interface IAddActionDialog {
@@ -230,7 +230,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <Label>{t("sender_id")}</Label>
                     <Tooltip content={t("sender_id_info")}>
                       <span>
-                        <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                        <InfoIcon className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
                       </span>
                     </Tooltip>
                   </div>
