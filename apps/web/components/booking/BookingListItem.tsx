@@ -41,26 +41,26 @@ import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextAreaField } from "@calcom/ui/components/form";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { TableActions } from "@calcom/ui/components/table";
 import type { ActionType } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { showToast } from "@calcom/ui/toast";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
-import { BookingSeatsDialog } from "@components/booking/BookingSeatsDialog";
-import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
-import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
-import { WorkflowStatusDialog } from "@components/booking/WorkflowStatusDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
+import { BookingSeatsDialog } from "@components/dialog/BookingSeatsDialog";
+import { CancelInstancesDialog } from "@components/dialog/CancelInstancesDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { MeetingNotesDialog } from "@components/dialog/MeetingNotesDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { RejectBookingDialog } from "@components/dialog/RejectBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
+import { RescheduleInstanceDialog } from "@components/dialog/RescheduleInstanceDialog";
+import { WorkflowStatusDialog } from "@components/dialog/WorkflowStatusDialog";
 
 import { BookingExpandedCard } from "./BookingExpandedCard";
 import {
@@ -129,7 +129,6 @@ export default function BookingListItem(booking: BookingItemProps) {
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
@@ -137,6 +136,8 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
   const [isWorkflowStatusDialogOpen, setIsWorkflowStatusDialogOpen] = useState(false);
+  const [isMeetingNotesDialogOpen, setIsMeetingNotesDialogOpen] = useState(false);
+  const [meetingNotesEditingNotes, setMeetingNotesEditingNotes] = useState("");
   // Check if booking has workflow insights
   const hasWorkflowInsights =
     parsedBooking.workflowInsights &&
@@ -186,13 +187,8 @@ export default function BookingListItem(booking: BookingItemProps) {
   };
 
   const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: (data) => {
-      if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
-        triggerToast(t("booking_rejection_success"), "success");
-      } else {
-        triggerToast(t("booking_confirmation_success"), "success");
-      }
+    onSuccess: () => {
+      triggerToast(t("booking_confirmation_success"), "success");
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
@@ -244,7 +240,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     let body = {
       bookingId: booking.id,
       confirmed: confirm,
-      reason: rejectionReason,
+      reason: "",
     };
 
     // NEW: For recurring bookings, we use the booking's own uid since each booking
@@ -265,6 +261,10 @@ export default function BookingListItem(booking: BookingItemProps) {
   const hasTeam = booking.eventType?.calIdTeam?.id !== null;
   const hasUserId = booking.eventType?.userId !== null;
   const isUserOwner = booking.eventType?.userId === userId;
+
+  const attendeePhoneNo = isPrismaObjOrUndefined(booking.responses)?.attendeePhoneNumber as
+    | string
+    | undefined;
 
   const actionContext: BookingActionContext = {
     booking,
@@ -290,6 +290,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     cardCharged,
     attendeeList,
     getSeatReferenceUid,
+    attendeePhoneNumber: attendeePhoneNo,
     t,
   } as BookingActionContext;
 
@@ -308,14 +309,6 @@ export default function BookingListItem(booking: BookingItemProps) {
   const cancelEventAction = getCancelEventAction(actionContext);
 
   const rescheduleEventLink = getRescheduleEventLink(actionContext);
-
-  const RequestSentMessage = () => {
-    return (
-      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
-        {t("reschedule_request_sent")}
-      </Badge>
-    );
-  };
 
   const bookingYear = dayjs(booking.startTime).year();
   const currentYear = dayjs().year();
@@ -353,6 +346,32 @@ export default function BookingListItem(booking: BookingItemProps) {
       triggerToast(message, "error");
     },
   });
+
+  const saveNotesMutation = trpc.viewer.bookings.saveNote.useMutation({
+    onSuccess: async () => {
+      setIsMeetingNotesDialogOpen(false);
+      triggerToast(t("meeting_notes_saved"), "success");
+      await utils.viewer.bookings.invalidate();
+    },
+  });
+
+  const handleMeetingNoteSave = async () => {
+    await saveNotesMutation.mutate({ bookingId: booking.id, meetingNote: meetingNotesEditingNotes });
+  };
+
+  const openWhatsAppChat = (phoneNumber: string) => {
+    const width = 800;
+    const height = 600;
+    const left = (window.innerWidth - width) / 2;
+    const top = (window.innerHeight - height) / 2;
+    const options = `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes,status=1`;
+    const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
+    const urlEndcodedTextMessage = encodeURIComponent(
+      `Hi, I'm running late by 5 minutes. I'll be there soon.`
+    );
+    const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
+    window.open(whatsappLink, "_blank", options);
+  };
 
   const saveLocation = async ({
     newLocation,
@@ -401,17 +420,65 @@ export default function BookingListItem(booking: BookingItemProps) {
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
+  const isRecurringBookingOnRecurringTab =
+    isRecurring &&
+    isConfirmed &&
+    isTabRecurring &&
+    !isCancelled &&
+    booking.recurringInfo?.bookings?.[BookingStatus.ACCEPTED]?.some(
+      (date) => new Date(date).getTime() > new Date().getTime()
+    );
+
   const baseEditEventActions = getEditEventActions(actionContext);
 
   const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
     ...action,
+    href: action.id === "reschedule" && isRecurringBookingOnRecurringTab ? undefined : action.href,
     onClick:
-      action.id === "reschedule_request"
+      action.id === "reschedule" && isRecurringBookingOnRecurringTab
+        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsRescheduleInstanceDialogOpen(true);
+          }
+        : action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
         : action.id === "change_location"
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
+        : action.id === "meeting_notes"
+        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.stopPropagation();
+            setMeetingNotesEditingNotes(parsedBooking.metadata?.meetingNote ?? "");
+            setIsMeetingNotesDialogOpen(true);
+          }
+        : action.id === "whatsapp_chat"
+        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.stopPropagation();
+            attendeePhoneNo && openWhatsAppChat(attendeePhoneNo);
+          }
+        : action.id === "cancel_event"
+        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+            e.stopPropagation();
+            if (isRecurringBookingOnRecurringTab) {
+              setIsCancelInstanceDialogOpen(true);
+            } else {
+              setIsOpenCancellationDialog(true);
+            }
+          }
+        : action.id === "no_show"
+        ? () => {
+            if (attendeeList.length === 1) {
+              const attendee = attendeeList[0];
+              noShowMutation.mutate({
+                bookingUid: booking.uid,
+                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+              });
+              return;
+            }
+            setIsNoShowDialogOpen(true);
+          }
         : undefined,
   })) as ActionType[];
 
@@ -450,7 +517,7 @@ export default function BookingListItem(booking: BookingItemProps) {
 
   const handleCancelInstances = async (selectedDates: Date[]) => {
     try {
-      showToast("Cancelling selected instances...", "success");
+      triggerToast("Cancelling selected instances...", "success");
 
       const response = await fetch("/api/cancel", {
         method: "POST",
@@ -463,7 +530,6 @@ export default function BookingListItem(booking: BookingItemProps) {
           cancelledBy: booking.user?.email,
           autoRefund: false,
           cancelledDates: selectedDates.map((date) => date.toISOString()),
-          // deleteType: "instance",
         }),
       });
 
@@ -472,23 +538,14 @@ export default function BookingListItem(booking: BookingItemProps) {
         throw new Error(errorData.message || "Failed to cancel instances");
       }
 
-      showToast(`Excluded ${selectedDates.length} instance(s) from the series`, "success");
+      triggerToast(`Excluded ${selectedDates.length} instance(s) from the series`, "success");
       utils.viewer.bookings.invalidate();
       setIsCancelInstanceDialogOpen(false);
     } catch (error) {
       console.error("Cancel instances error:", error);
-      showToast(error instanceof Error ? error.message : "Failed to cancel instances", "error");
+      triggerToast(error instanceof Error ? error.message : "Failed to cancel instances", "error");
     }
   };
-
-  const showCancelOrModifyInstanceAction =
-    isRecurring &&
-    isConfirmed &&
-    isTabRecurring &&
-    !isCancelled &&
-    booking.recurringInfo?.bookings?.[BookingStatus.ACCEPTED]?.some(
-      (date) => new Date(date).getTime() > new Date().getTime()
-    );
 
   const showBookingSeatsDialogButton =
     isUpcoming && !isCancelled && !isRecurring && isConfirmed && booking.eventType.seatsPerTimeSlot > 1;
@@ -541,7 +598,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
-      {showCancelOrModifyInstanceAction && (
+      {isRecurringBookingOnRecurringTab && (
         <CancelInstancesDialog
           isOpenDialog={isCancelInstanceDialogOpen}
           setIsOpenDialog={setIsCancelInstanceDialogOpen}
@@ -565,7 +622,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         />
       )}
 
-      {showCancelOrModifyInstanceAction && (
+      {isRecurringBookingOnRecurringTab && (
         <RescheduleInstanceDialog
           isOpen={isRescheduleInstanceDialogOpen}
           setIsOpen={setIsRescheduleInstanceDialogOpen}
@@ -585,6 +642,14 @@ export default function BookingListItem(booking: BookingItemProps) {
           isMultiSeat={isMultiSeat}
         />
       )}
+      <MeetingNotesDialog
+        isOpenDialog={isMeetingNotesDialogOpen}
+        setIsOpenDialog={setIsMeetingNotesDialogOpen}
+        notes={meetingNotesEditingNotes}
+        setNotes={setMeetingNotesEditingNotes}
+        handleMeetingNoteSave={handleMeetingNoteSave}
+        hideTrigger
+      />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
@@ -610,39 +675,18 @@ export default function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-          <div>
-            <TextAreaField
-              name="rejectionReason"
-              label={
-                <>
-                  {t("rejection_reason")}
-                  <span className="text-subtle font-normal"> (Optional)</span>
-                </>
-              }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={mutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={() => {
-                bookingConfirm(false);
-              }}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RejectBookingDialog
+        {...booking}
+        isOpenDialog={rejectionDialogIsOpen}
+        setIsOpenDialog={setRejectionDialogIsOpen}
+        isTabRecurring={isTabRecurring}
+        isTabUnconfirmed={isTabUnconfirmed}
+        isRecurring={isRecurring}
+      />
 
       <div
         data-testid={`booking-uid-${booking.uid}`}
-        className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border shadow-sm hover:shadow-md">
+        className="bg-default border-default my-1.5 flex w-full flex-col items-start justify-between rounded-md border hover:shadow-md">
         <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
           <div className="cursor-pointer">
             <div className="flex flex-col pb-4">
@@ -721,7 +765,6 @@ export default function BookingListItem(booking: BookingItemProps) {
                         </Badge>
                       )}
                     </div>
-
                     <div className="text-subtle flex w-full cursor-pointer flex-row items-center py-2 text-xs font-medium">
                       <div className="">{booking.isToday ? t("today_capitalized") : startTime}</div>
                       <span className="px-2">{" • "}</span>
@@ -737,9 +780,8 @@ export default function BookingListItem(booking: BookingItemProps) {
                         />
                       </div>
                     </div>
-
                     {!isPending && (
-                      <div>
+                      <div className="mb-1">
                         {(provider?.label ||
                           (typeof locationToDisplay === "string" &&
                             locationToDisplay?.startsWith("https://"))) &&
@@ -752,7 +794,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                               rel="noreferrer"
                               className="text-active text-xs leading-6 hover:underline">
                               <div className="flex items-center gap-2">
-                                <Icon name={getIconFromLocationValue(location)} className="h-3.5 w-3.5" />
+                                <Icon name={getIconFromLocationValue(location)} className="h-4 w-4" />
                                 {provider?.label
                                   ? t("join_event_location", { eventLocationType: provider?.label })
                                   : t("join_meeting")}
@@ -761,47 +803,34 @@ export default function BookingListItem(booking: BookingItemProps) {
                           )}
                       </div>
                     )}
-                    {isCancelled && booking.rescheduled && (
-                      <div className="mt-2 inline-block md:hidden">
-                        <RequestSentMessage />
-                      </div>
-                    )}
+                    <BookingItemBadges
+                      booking={booking}
+                      isPending={isPending}
+                      recurringDates={recurringDates}
+                      userTimeFormat={userTimeFormat}
+                      userTimeZone={userTimeZone}
+                      isRescheduled={isRescheduled}
+                      isRejected={isRejected}
+                      isCancelledAndRescheduled={isCancelled && !!booking.rescheduled}
+                    />
                   </div>
                 </div>
 
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-                    {hasWorkflowInsights && !isRejected && (
-                      <Button
-                        color="secondary"
-                        StartIcon="zap"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsWorkflowStatusDialogOpen(true);
-                        }}
-                        className="flex items-center space-x-2"
-                        aria-label="View workflow status">
-                        <span>{t("workflow_status")}</span>
-                      </Button>
-                    )}
-                    {!showCancelOrModifyInstanceAction && !!isCancelled && !isPending && !isRejected && (
-                      <Button
-                        color="secondary"
-                        onClick={() => rescheduleBooking(rescheduleEventLink)}
-                        className="flex items-center space-x-2">
-                        <span>{t("reschedule")}</span>
-                      </Button>
-                    )}
-
-                    {!isCancelled && !isPending && !isRejected && !isBookingInPast && (
-                      <Button
-                        color="secondary"
-                        onClick={() => setIsOpenCancellationDialog(true)}
-                        className="flex items-center space-x-2">
-                        <span>{t("cancel")}</span>
-                      </Button>
-                    )}
+                    <Button
+                      color="secondary"
+                      disabled={!hasWorkflowInsights || isRejected}
+                      StartIcon="zap"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsWorkflowStatusDialogOpen(true);
+                      }}
+                      className="flex items-center space-x-2"
+                      aria-label="View workflow status">
+                      <span>{t("workflow_status")}</span>
+                    </Button>
 
                     {showBookingSeatsDialogButton && (
                       <Button
@@ -812,54 +841,27 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
-                    {showCancelOrModifyInstanceAction && (
-                      <Button
-                        color="secondary"
-                        onClick={() => setIsCancelInstanceDialogOpen(true)}
-                        className="flex items-center space-x-2">
-                        <span>{t("cancel_instances")}</span>
-                      </Button>
-                    )}
-
-                    {showCancelOrModifyInstanceAction && (
-                      <Button
-                        color="secondary"
-                        onClick={() => setIsRescheduleInstanceDialogOpen(true)}
-                        className="flex items-center space-x-2">
-                        <span>{t("reschedule_instance")}</span>
-                      </Button>
-                    )}
-
-                    {!isCancelled && !isRejected && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button StartIcon="ellipsis" color="secondary" variant="icon" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {editEventActions.map((action) => (
-                            <DropdownMenuItem
-                              key={action.id}
-                              className="rounded-lg"
-                              disabled={action.disabled}
-                              color={action.color}
-                              StartIcon={action.icon}
-                              href={action.href}
-                              onClick={action.onClick}
-                              data-bookingid={action.bookingId}
-                              data-testid={action.id}>
-                              {action.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-
-                    {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-                    {isCancelled && booking.rescheduled && (
-                      <div className="hidden h-full w-full items-center md:flex">
-                        <RequestSentMessage />
-                      </div>
-                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button StartIcon="ellipsis" color="secondary" variant="button" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {editEventActions.map((action) => (
+                          <DropdownMenuItem
+                            key={action.id}
+                            className="rounded-lg"
+                            disabled={action.disabled}
+                            color={action.color}
+                            StartIcon={action.icon}
+                            href={action.href}
+                            onClick={action.onClick}
+                            data-bookingid={action.bookingId}
+                            data-testid={action.id}>
+                            {action.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   <div className="flex-1" />
@@ -882,14 +884,6 @@ export default function BookingListItem(booking: BookingItemProps) {
                   </div>
                 </div>
               </div>
-              <BookingItemBadges
-                booking={booking}
-                isPending={isPending}
-                recurringDates={recurringDates}
-                userTimeFormat={userTimeFormat}
-                userTimeZone={userTimeZone}
-                isRescheduled={isRescheduled}
-              />
             </div>
 
             {expandedBooking === booking.id && (
@@ -917,6 +911,8 @@ const BookingItemBadges = ({
   userTimeFormat,
   userTimeZone,
   isRescheduled,
+  isRejected,
+  isCancelledAndRescheduled,
 }: {
   booking: BookingItemProps;
   isPending: boolean;
@@ -924,11 +920,19 @@ const BookingItemBadges = ({
   userTimeFormat: number | null | undefined;
   userTimeZone: string | undefined;
   isRescheduled: boolean;
+  isRejected?: boolean;
+  isCancelledAndRescheduled?: boolean;
 }) => {
   const { t } = useLocale();
 
   return (
-    <div className="flex flex-row flex-wrap items-center gap-2 pb-2 pl-4">
+    <div className="flex flex-row flex-wrap items-center gap-2">
+      {isRejected && <Badge variant="gray">{t("rejected")}</Badge>}
+      {isCancelledAndRescheduled && (
+        <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
+          {t("reschedule_request_sent")}
+        </Badge>
+      )}
       {isPending && <Badge variant="orange">{t("unconfirmed")}</Badge>}
       {isRescheduled && (
         <Tooltip content={`${t("rescheduled_by")} ${booking.rescheduler}`}>
@@ -1027,13 +1031,13 @@ const RecurringBookingsTooltip = ({
                   </p>
                 );
               })}>
-              <div className="text-default">
+              <div className="text-default flex items-center gap-2">
                 <Icon
                   name="refresh-ccw"
                   strokeWidth="3"
-                  className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
+                  className="text-muted float-left inline-block h-4 w-4"
                 />
-                <p className="mt-1 pl-5 text-xs">
+                <p className="text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining_other", {
                         count: recurringCount,
@@ -1436,7 +1440,6 @@ const DisplayAttendees = ({
 
   return (
     <div className="align-center !decoration-none text-sm font-bold text-slate-500">
-      {/* {user && <FirstAttendee user={user} currentEmail={currentEmail} />} */}
       {/* {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>} */}
       <Attendee
         name={attendees[0].name}

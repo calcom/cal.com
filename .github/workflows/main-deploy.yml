@@ -27,7 +27,8 @@ on:
         default: "false"
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{github.event.inputs.branch || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   # ONLY RUN JOB ON PR MERGE on MAIN OR DEVELOP BRANCH
@@ -135,7 +136,7 @@ jobs:
           check "${{ secrets.HOMEPAGE_URL_PROD }}" "HOMEPAGE_URL_PROD"
           check "${{ secrets.NEXT_PUBLIC_PIXEL }}" "NEXT_PUBLIC_PIXEL"
           check "${{ secrets.NEXT_PUBLIC_SENDGRID_SENDER_NAME }}" "NEXT_PUBLIC_SENDGRID_SENDER_NAME"
-
+          check "${{ secrets.NEXT_PUBLIC_CLOUDFLARE_SITEKEY }}" "NEXT_PUBLIC_CLOUDFLARE_SITEKEY"         
       # SETTING NECESSARY ENV VARIABLES
       - name: Extract Git commit hash
         if: ${{ steps.check_required_secrets_status.outputs.passed != 'failure' }}
@@ -335,7 +336,7 @@ jobs:
             NEXT_PUBLIC_ONEHASH_CRM_URL=${{secrets.NEXT_PUBLIC_ONEHASH_CRM_URL}}
             NEXT_PUBLIC_WHITELISTED_ORGS=${{ secrets.NEXT_PUBLIC_WHITELISTED_ORGS }}
             NEXT_PUBLIC_PIXEL=${{ secrets.NEXT_PUBLIC_PIXEL }}
-
+            NEXT_PUBLIC_CLOUDFLARE_SITEKEY=${{ secrets.NEXT_PUBLIC_CLOUDFLARE_SITEKEY }}
       - name: Check Docker build status
         shell: bash
         id: check_docker_build_status

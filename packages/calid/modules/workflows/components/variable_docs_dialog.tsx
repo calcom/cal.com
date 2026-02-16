@@ -83,6 +83,10 @@ const VARIABLE_DOCUMENTATION: VariableDoc[] = [
     description: "The URL to cancel the event",
   },
   {
+    variable: "{{cancellation_reason}}",
+    description: "The reason of meeting cancellation",
+  },
+  {
     variable: "{{reschedule_url}}",
     description: "The URL to reschedule the event",
   },

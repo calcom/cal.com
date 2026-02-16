@@ -33,7 +33,7 @@ export function ProBadge({ yearClaimed, validTillDate, isMobile }: ProBadgeProps
       <span className="font-bold text-blue-500">Pro</span>
     </div>
   ) : (
-    <div className="text-default text-md mb-8 flex flex-col rounded-xl border border-blue-300 bg-blue-100 p-2">
+    <div className="text-default text-md mb-2 flex flex-col rounded-xl border border-blue-300 bg-blue-100 p-2">
       <div className="mb-2 flex flex-row items-center">
         <div className="mr-2 flex h-6 w-6 items-center justify-center rounded-md bg-blue-200">
           <Icon name="sparkles" className="h-4 w-4 text-blue-500" />

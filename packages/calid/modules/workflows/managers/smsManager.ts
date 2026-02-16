@@ -16,6 +16,7 @@ import * as smsService from "../providers/messaging/dispatcher";
 import type { VariablesType } from "../templates/customTemplate";
 import customTemplate from "../templates/customTemplate";
 import { getSenderId } from "../utils/getSenderId";
+import wordTruncate from "../utils/getTruncatedString";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
 
@@ -24,16 +25,17 @@ const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
  * Uses numbered placeholders: {{1}}, {{2}}, {{3}}, {{4}}, {{5}}
  * {{1}} - Recipient's Name
  * {{2}} - Meeting Title
- * {{3}} - Date
- * {{4}} - Time
- * {{5}} - Timezone
+ * {{3}} - Sender's Name
+ * {{4}} - Date
+ * {{5}} - Time
+ * {{6}} - Timezone
  */
-const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
-  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}}" is coming up on {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
-  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}}" scheduled for {{3}} at {{4}} {{5}} has been cancelled.\n\n- Cal ID`,
-  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}}" has a new time: {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
-  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}}" on {{3}} at {{4}} {{5}} is all wrapped up. Thanks for joining!\n\n- Cal ID`,
-  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}}" is confirmed for {{3}} at {{4}} {{5}}. See you then!\n\n- Cal ID`,
+export const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
+  [WorkflowTemplates.REMINDER]: `Hi {{1}} - Just a heads-up, your meeting "{{2}} with {{3}}" is coming up on {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.CANCELLED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" scheduled for {{4}} at {{5}} {{6}} has been cancelled.\n\n- Cal ID`,
+  [WorkflowTemplates.RESCHEDULED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" has a new time: {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
+  [WorkflowTemplates.COMPLETED]: `Hi {{1}} - Your meeting "{{2}} with {{3}}" on {{4}} at {{5}} {{6}} is all wrapped up. Thanks for joining!\n\n- Cal ID`,
+  [WorkflowTemplates.CONFIRMATION]: `Hi {{1}} - You are all set! Your meeting "{{2}} with {{3}}" is confirmed for {{4}} at {{5}} {{6}}. See you then!\n\n- Cal ID`,
   // CUSTOM workflow uses user-provided messageTemplate, so no default needed
   [WorkflowTemplates.CUSTOM]: "",
   // RATING and THANKYOU currently have no default templates - will throw error if used
@@ -47,6 +49,7 @@ const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = 
 const interpolateDefaultTemplate = (
   template: string,
   recipientName: string,
+  senderName: string,
   eventTitle: string,
   eventDate: string,
   eventTime: string,
@@ -55,9 +58,10 @@ const interpolateDefaultTemplate = (
   return template
     .replace(/\{\{1\}\}/g, recipientName)
     .replace(/\{\{2\}\}/g, eventTitle)
-    .replace(/\{\{3\}\}/g, eventDate)
-    .replace(/\{\{4\}\}/g, eventTime)
-    .replace(/\{\{5\}\}/g, timezone);
+    .replace(/\{\{3\}\}/g, senderName)
+    .replace(/\{\{4\}\}/g, eventDate)
+    .replace(/\{\{5\}\}/g, eventTime)
+    .replace(/\{\{6\}\}/g, timezone);
 };
 
 const validateNumberVerification = async (
@@ -116,9 +120,9 @@ const calculateScheduledDateTime = (
     case WorkflowTriggerEvents.NEW_EVENT:
     case WorkflowTriggerEvents.EVENT_CANCELLED:
     case WorkflowTriggerEvents.RESCHEDULE_EVENT:
-      // For traditionally immediate events, schedule relative to event start time
+      // For traditionally immediate events, schedule relative to current time
       // You can modify this logic based on your specific requirements
-      return dayjs(eventStartTime).add(time, normalizedUnit);
+      return dayjs().add(time, normalizedUnit);
     default:
       return null;
   }
@@ -150,7 +154,7 @@ const buildMessageVariables = (
 
 const getEventTitleFromBookingTitle = (str: string) => {
   const match = str.match(/^(.*?)\s+between\b/i);
-  return match ? match[1].trim() : "";
+  return match ? match[1].trim() : str;
 };
 
 const generateMessageContent = (
@@ -183,15 +187,18 @@ const generateMessageContent = (
       );
     }
 
-    // Determine recipient name and event details for interpolation
+    // Determine recipient name, sender name and event details for interpolation
     const recipientName =
       actionType === WorkflowActions.SMS_ATTENDEE ? targetParticipant.name : eventDetails.organizer.name;
+
+    const senderName =
+      actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name;
     // const eventTitle = eventDetails.title;
-    const eventTitle = `${
-      eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title)
-    } with ${
-      actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name
-    }`;
+    const eventTitle = wordTruncate(
+      (eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title))
+        .trim()
+        .replace(/"/g, "")
+    );
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
@@ -203,6 +210,7 @@ const generateMessageContent = (
     return interpolateDefaultTemplate(
       defaultTemplate,
       recipientName.split(" ")[0],
+      senderName.split(" ")[0],
       eventTitle,
       formattedDate,
       formattedTime,
@@ -221,18 +229,36 @@ const createWorkflowInsight = async (
   bookingUid?: string | null,
   seatReferenceUid?: string | null,
   workflowId?: number | null,
-  workflowStepId?: number | null
+  workflowStepId?: number | null,
+  metadata?: Record<string, string | Date | boolean>
 ) => {
   await prisma.calIdWorkflowInsights.create({
     data: {
-      msgId: msgId,
-      eventTypeId: eventTypeId,
+      msgId,
       type: WorkflowMethods.SMS,
       status: WorkflowStatus.QUEUED,
-      ...(bookingUid && { bookingUid: bookingUid }),
-      ...(seatReferenceUid && { bookingSeatReferenceUid: seatReferenceUid }),
-      workflowId: workflowId,
-      workflowStepId: workflowStepId,
+
+      eventType: {
+        connect: { id: eventTypeId },
+      },
+
+      ...(bookingUid && {
+        booking: { connect: { uid: bookingUid } },
+      }),
+
+      ...(seatReferenceUid && {
+        bookingSeat: { connect: { referenceUid: seatReferenceUid } },
+      }),
+
+      ...(workflowId && {
+        workflow: { connect: { id: workflowId } },
+      }),
+
+      ...(workflowStepId && {
+        workflowStep: { connect: { id: workflowStepId } },
+      }),
+
+      ...(metadata && { metadata }),
     },
   });
 };
@@ -263,7 +289,12 @@ const executeImmediateNotification = async (
     );
     const msgId = msgRes.response.sid;
     if (msgId && eventTypeRef) {
-      await createWorkflowInsight(msgId, eventTypeRef, bookingRef, seatRef, workflowId, workflowStepId);
+      await createWorkflowInsight(msgId, eventTypeRef, bookingRef, seatRef, workflowId, workflowStepId, {
+        recipientNumber: phoneDestination,
+        smsText: textContent,
+        sendAt: new Date(),
+        isScheduled: false,
+      });
     }
   } catch (exception) {
     moduleLogger.error(`Immediate SMS delivery failed: ${exception}`);
@@ -317,7 +348,13 @@ const scheduleDelayedNotification = async (
           bookingReference,
           seatReference ?? undefined,
           workflowId ?? undefined,
-          stepReference
+          stepReference,
+          {
+            recipientNumber: phoneDestination,
+            smsText: textContent,
+            sendAt: new Date(),
+            isScheduled: true,
+          }
         );
       }
     }
@@ -360,7 +397,6 @@ const processScheduledReminder = async (
 ): Promise<void> => {
   const currentMoment = dayjs();
   const twoHourWindow = currentMoment.add(2, "hour");
-
   // within next 2 hours → schedule delayed notification
   if (dispatchTime.isBefore(twoHourWindow)) {
     await scheduleDelayedNotification(

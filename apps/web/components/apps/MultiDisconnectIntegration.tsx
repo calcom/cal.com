@@ -2,6 +2,15 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
+import {
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuContent,
@@ -11,11 +20,9 @@ import {
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useState } from "react";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 
 import type { inferRouterOutputs } from "@trpc/server";
 
@@ -93,9 +100,6 @@ export function MultiDisconnectIntegration({ slug, categories, credentials, onSu
           {credentials.map((cred) => (
             <DropdownMenuItem key={cred.id}>
               <DropdownMenuItem
-                type="button"
-                color="destructive"
-                className="hover:bg-subtle hover:text-emphasis w-full border-0"
                 StartIcon={cred.calIdTeamId ? "users" : "user"}
                 onClick={() => {
                   setCredentialToDelete({
@@ -127,22 +131,29 @@ export function MultiDisconnectIntegration({ slug, categories, credentials, onSu
       </DropdownMenu>
 
       <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("remove_app")}
-          confirmBtnText={t("yes_remove_app")}
-          onConfirm={() => {
-            if (credentialToDelete) {
-              mutation.mutate({
-                id: credentialToDelete.id,
-                ...(credentialToDelete.teamId ? { teamId: credentialToDelete.teamId } : {}),
-              });
-            }
-          }}>
-          <p className="mt-5">
-            {t("are_you_sure_you_want_to_remove_this_app_from")} {credentialToDelete?.name || t("unnamed")}?
-          </p>
-        </ConfirmationDialogContent>
+        <DialogContent>
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
+            <DialogTitle>{t("remove_app")}</DialogTitle>
+            <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose />
+            <Button
+              color="destructive"
+              StartIcon="trash"
+              onClick={() => {
+                if (credentialToDelete) {
+                  mutation.mutate({
+                    id: credentialToDelete.id,
+                    ...(credentialToDelete.teamId ? { teamId: credentialToDelete.teamId } : {}),
+                  });
+                }
+                setConfirmationDialogOpen(false);
+              }}>
+              {t("yes_remove_app")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

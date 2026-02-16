@@ -149,9 +149,48 @@ export class BookingRepository {
 
     // TODO add checks for team and org
     const userRepo = new UserRepository(this.prismaClient);
-    const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
+    const isAdminOrUser = await userRepo.isAdminOrOwnerOfCalIdTeam({
       userId,
       teamId: booking.eventType.teamId,
+    });
+
+    return isAdminOrUser;
+  }
+
+  /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
+  async doesUserIdHaveAccessToBookingOrItsCalIdTeam({
+    userId,
+    bookingId,
+  }: {
+    userId: number;
+    bookingId: number;
+  }) {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        userId: true,
+        eventType: {
+          select: {
+            calIdTeamId: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) return false;
+
+    if (userId === booking.userId) return true;
+
+    // If the booking doesn't belong to the user and there's no team then return early
+    if (!booking.eventType || !booking.eventType.calIdTeamId) return false;
+
+    // TODO add checks for team and org
+    const userRepo = new UserRepository(this.prismaClient);
+    const isAdminOrUser = await userRepo.isAdminOrOwnerOfCalIdTeam({
+      userId,
+      teamId: booking.eventType.calIdTeamId,
     });
 
     return isAdminOrUser;
@@ -810,13 +849,13 @@ export class BookingRepository {
     bookerEmail,
     bookerPhoneNumber,
     startTime,
-    // filterForUnconfirmed,
-  }: {
+  }: //filterForUnconfirmed,
+  {
     eventTypeId: number;
     bookerEmail?: string;
     bookerPhoneNumber?: string;
     startTime: Date;
-    // filterForUnconfirmed?: boolean;
+    //filterForUnconfirmed?: boolean;
   }) {
     return await this.prismaClient.booking.findFirst({
       where: {
@@ -828,7 +867,7 @@ export class BookingRepository {
           },
         },
         startTime,
-        // status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
+        //status: filterForUnconfirmed ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
       },
       include: {
         attendees: true,

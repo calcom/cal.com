@@ -1,8 +1,7 @@
 "use client";
 
-import { TimeTimeUnitInput } from "@calid/features/modules/workflows/components/time_unit_input";
 import { Button } from "@calid/features/ui/components/button";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
@@ -243,18 +242,18 @@ const WebhookForm = (props: {
           }}
         />
 
-        {showTimeSection && (
+        {/* {showTimeSection && (
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
             <TimeTimeUnitInput disabled={false} defaultTime={5} />
           </div>
-        )}
+        )} */}
 
         <FormField
           name="secret"
           control={formMethods.control}
           render={({ field: { value } }) => (
-            <div className="mt-6">
+            <div className="mt-4">
               {!!hasSecretKey && !changeSecret && (
                 <>
                   <Label className="font-sm text-emphasis font-medium">Secret</Label>

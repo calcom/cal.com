@@ -28,6 +28,7 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   id: z.number(),
   bio: z.string().optional(),
   name: z.string().optional(),
+
   logo: z
     .string()
     .transform(async (val) => await resizeBase64Image(val))

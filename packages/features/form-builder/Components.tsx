@@ -1,4 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
+import PhoneInput from "@calcom/features/components/phone-input";
 import { AttachmentUploader, type AttachmentUploaderRef } from "@calid/features/ui/components/uploader";
 import { useEffect, useRef } from "react";
 import type { z } from "zod";
@@ -8,7 +9,6 @@ import type {
   TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
-import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
@@ -225,6 +225,7 @@ export const Components: Record<FieldType, Component> = {
       return (
         <PhoneInput
           disabled={readOnly}
+          autoFormat={true}
           onChange={(val: string) => {
             setValue(val);
           }}

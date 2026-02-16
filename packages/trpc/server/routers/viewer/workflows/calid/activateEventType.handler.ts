@@ -3,7 +3,6 @@ import { scheduleSMSReminder } from "@calid/features/modules/workflows/managers/
 import { scheduleWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
 
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { CalIdWorkflowRepository } from "@calcom/lib/server/repository/workflow.calid";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -100,28 +99,29 @@ export const calIdActivateEventTypeHandler = async ({ ctx, input }: CalIdActivat
   const activeOn = [eventTypeId].concat(userEventType.children.map((ch) => ch.id));
 
   if (isActive) {
-    // disable workflow for this event type & delete all reminders
-    const remindersToDelete = await prisma.calIdWorkflowReminder.findMany({
-      where: {
-        booking: {
-          eventTypeId: eventTypeId,
-          userId: ctx.user.id,
-        },
-        workflowStepId: {
-          in: eventTypeWorkflow.steps.map((step) => {
-            return step.id;
-          }),
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        method: true,
-        scheduled: true,
-      },
-    });
+    // // disable workflow for this event type & delete all reminders
+    // const remindersToDelete = await prisma.calIdWorkflowReminder.findMany({
+    //   where: {
+    //     booking: {
+    //       eventTypeId: eventTypeId,
+    //       userId: ctx.user.id,
+    //     },
+    //     workflowStepId: {
+    //       in: eventTypeWorkflow.steps.map((step) => {
+    //         return step.id;
+    //       }),
+    //     },
+    //   },
+    //   select: {
+    //     id: true,
+    //     referenceId: true,
+    //     method: true,
+    //     scheduled: true,
+    //   },
+    // });
 
-    await CalIdWorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
+    //not cancelling scheduled workflows as corresponding booking are still in place
+    // await CalIdWorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
 
     await prisma.calIdWorkflowsOnEventTypes.deleteMany({
       where: {

@@ -1,9 +1,11 @@
 /* eslint-disable react/no-danger */
+import { readFileSync } from "fs";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { headers, cookies } from "next/headers";
 import Script from "next/script";
+import { join } from "path";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
@@ -91,6 +93,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const ns = "common";
   const translations = await loadTranslations(locale, ns);
+
+  // Read and inline the sprite sheet for immediate icon availability
+  let spriteSheetContent = "";
+  try {
+    const spritePath = join(process.cwd(), "public", "icons", "sprite.svg");
+    spriteSheetContent = readFileSync(spritePath, "utf-8");
+    // Remove XML declaration and comments for cleaner inline SVG
+    spriteSheetContent = spriteSheetContent
+      .replace(/<\?xml[^>]*\?>/g, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .trim();
+  } catch (error) {
+    console.warn("Failed to read sprite.svg, icons will load asynchronously:", error);
+  }
 
   return (
     <html
@@ -208,67 +224,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "OneHash",
-              url: "https://www.onehash.ai",
-              alternateName: "Cal ID",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: "https://www.onehash.ai/search?q={search_term_string}",
-                "query-input": "required name=search_term_string",
-              },
+              name: "Cal ID",
+              url: "https://www.cal.id",
             }),
           }}
         />
-
-        {/* Customer.io Analytics
-        <script
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(){
-                var i="cioanalytics", analytics=(window[i]=window[i]||[]);
-                if(!analytics.initialize) {
-                  if(analytics.invoked) {
-                    window.console && console.error && console.error("Snippet included twice.");
-                  } else {
-                    analytics.invoked = !0;
-                    analytics.methods = [
-                      "trackSubmit","trackClick","trackLink","trackForm","pageview","identify",
-                      "reset","group","track","ready","alias","debug","page","once","off","on",
-                      "addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"
-                    ];
-                    analytics.factory = function(e) {
-                      return function() {
-                        var t = Array.prototype.slice.call(arguments);
-                        t.unshift(e);
-                        analytics.push(t);
-                        return analytics;
-                      };
-                    };
-                    for (var e = 0; e < analytics.methods.length; e++) {
-                      var key = analytics.methods[e];
-                      analytics[key] = analytics.factory(key);
-                    }
-                    analytics.load = function(key, e) {
-                      var t = document.createElement("script");
-                      t.type = "text/javascript";
-                      t.async = !0;
-                      t.setAttribute("data-global-customerio-analytics-key", i);
-                      t.src = "https://cdp.customer.io/v1/analytics-js/snippet/" + key + "/analytics.min.js";
-                      var n = document.getElementsByTagName("script")[0];
-                      n.parentNode.insertBefore(t, n);
-                      analytics._writeKey = key;
-                      analytics._loadOptions = e;
-                    };
-                    analytics.SNIPPET_VERSION = "4.15.3";
-                    analytics.load("fa6d11bb6fbfbf91cf0d");
-                    analytics.page();
-                  }
-                }
-              }();
-            `,
-          }}
-        /> */}
       </head>
 
       <body
@@ -283,7 +243,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 visibility: "visible",
               }
         }>
-        <IconSprites />
+        {spriteSheetContent ? (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: spriteSheetContent,
+            }}
+            style={{ display: "none" }}
+            aria-hidden="true"
+          />
+        ) : (
+          <IconSprites />
+        )}
         <SpeculationRules
           prerenderPathsOnHover={[
             "/event-types",

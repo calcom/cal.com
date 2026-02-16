@@ -1,13 +1,12 @@
 "use client";
 
-import {
-  generateRecurringInstances,
-  getActualRecurringStartTime,
-} from "@calid/features/modules/teams/lib/recurrenceUtil";
+import { generateRecurringInstances } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { TextArea } from "@calid/features/ui/components/input/text-area";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
@@ -54,8 +53,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { EmailInput, TextArea } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { EmailInput } from "@calcom/ui/components/form";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -197,19 +195,19 @@ export default function Success(props: PageProps) {
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
       setIsFeedbackSubmitted(true);
-      showToast("Thank you, feedback submitted", "success");
+      triggerToast("Thank you, feedback submitted", "success");
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
   const hostNoShowMutation = trpc.viewer.public.markHostAsNoShow.useMutation({
     onSuccess: async () => {
-      showToast("Thank you, feedback submitted", "success");
+      triggerToast("Thank you, feedback submitted", "success");
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      triggerToast(err.message, "error");
     },
   });
 
@@ -428,6 +426,7 @@ export default function Success(props: PageProps) {
             )
           )
           .map((member) => member.user.email),
+        ...(bookingInfo.user.email ? [bookingInfo.user.email] : []),
       ],
 
       attendee_participants: bookingInfo.responses
@@ -1186,7 +1185,7 @@ export default function Success(props: PageProps) {
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
                         <div className="text-default pt-8 text-center text-xs">
-                          <a href="https://cal.com/signup">
+                          <a href="https://cal.id/signup">
                             {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                           </a>
 
@@ -1307,7 +1306,7 @@ export default function Success(props: PageProps) {
                         disabled={isFeedbackSubmitted}
                         onChange={(event) => setComment(event.target.value)}
                       />
-                      <div className="my-4 flex justify-start">
+                      <div className="my-4 flex justify-center">
                         <Button
                           loading={mutation.isPending}
                           disabled={isFeedbackSubmitted}
@@ -1430,14 +1429,10 @@ function RecurringBookings({
 
   // Show summary format for more than 10 instances
   if (recurringBookingsSorted && recurringBookingsSorted.length > 10 && allRemainingBookings) {
-    const firstDate = (() => {
-      // If we have a recurring event, compute the actual first occurrence
-      if (recurringEvent) {
-        const actualStart = getActualRecurringStartTime(recurringEvent, new Date(recurringBookingsSorted[0]));
-        return actualStart;
-      }
-      return recurringBookingsSorted[0];
-    })();
+    const firstThreeDates = recurringBookingsSorted.slice(0, 3);
+    const lastTwoDates = recurringBookingsSorted.slice(-2);
+    const hiddenCount = recurringBookingsSorted.length - 5;
+
     return (
       <div className={classNames(isCancelled ? "line-through" : "")}>
         {recurringEvent?.count && (
@@ -1452,21 +1447,44 @@ function RecurringBookings({
           </div>
         )}
 
-        <div>
-          <span className="font-medium">{t("starting")} </span>
-          {formatToLocalizedDate(dayjs.tz(firstDate, tz), language, "full", tz)}
-          <br />
-          {formatToLocalizedTime(dayjs(firstDate), language, undefined, !is24h, tz)} -{" "}
-          {formatToLocalizedTime(dayjs(firstDate).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
-          <span className="text-bookinglight">
-            ({formatToLocalizedTimezone(dayjs(firstDate), language, tz)})
-          </span>
-          {recurringEvent?.rDates && recurringEvent.rDates.length > 0 && (
-            <span className="text-subtle ml-1">
-              <br />+ {t("additional_dates", { count: recurringEvent.rDates.length })}
+        {/* First 3 dates */}
+        {firstThreeDates.map((dateStr: string, idx: number) => (
+          <div key={`first-${idx}`} className="mb-2">
+            {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+            <br />
+            {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+            {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+            <span className="text-bookinglight">
+              ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
             </span>
-          )}
+          </div>
+        ))}
+
+        {/* Vertical ellipsis */}
+        <div className="mb-2 text-start">
+          <span className="text-subtle">⋮</span>
+
+          <span className="text-subtle ml-2 text-sm">({t("plus_more", { count: hiddenCount })})</span>
         </div>
+
+        {/* Last 2 dates */}
+        {lastTwoDates.map((dateStr: string, idx: number) => (
+          <div key={`last-${idx}`} className="mb-2">
+            {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
+            <br />
+            {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
+            {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+            <span className="text-bookinglight">
+              ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
+            </span>
+          </div>
+        ))}
+
+        {/* {recurringEvent?.rDates && recurringEvent.rDates.length > 0 && (
+          <span className="text-subtle ml-1">
+            <br />+ {t("additional_dates", { count: recurringEvent.rDates.length })}
+          </span>
+        )} */}
       </div>
     );
   }

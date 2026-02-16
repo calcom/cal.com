@@ -56,13 +56,17 @@ export const whatsappReminderScheduled = async ({ event, step, logger }) => {
       }
 
       if (reminderRecord.booking?.status === "REJECTED") {
-        throw new NonRetriableError(`Booking ${data.bookingUid} was cancelled, skipping reminder`);
+        throw new NonRetriableError(`Booking ${data.bookingUid} was rejected, skipping reminder`);
       }
 
       if (
         reminderRecord.booking?.status === "CANCELLED" &&
         reminderRecord.workflowStep?.workflow.trigger !== "EVENT_CANCELLED"
       ) {
+        throw new NonRetriableError(`Booking ${data.bookingUid} was cancelled, skipping reminder`);
+      }
+
+      if (reminderRecord.cancelled) {
         throw new NonRetriableError(`Booking ${data.bookingUid} was cancelled, skipping reminder`);
       }
 

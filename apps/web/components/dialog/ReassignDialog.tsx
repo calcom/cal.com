@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@calid/features/ui/components/dialog";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextAreaField } from "@calid/features/ui/components/input/text-area";
@@ -119,7 +119,7 @@ export const ReassignDialog = ({
     },
   });
 
-  const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
+  const roundRobinReassignMutation = trpc.viewer.calidTeams.roundRobinReassign.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
@@ -134,7 +134,7 @@ export const ReassignDialog = ({
     },
   });
 
-  const roundRobinManualReassignMutation = trpc.viewer.teams.roundRobinManualReassign.useMutation({
+  const roundRobinManualReassignMutation = trpc.viewer.calidTeams.roundRobinManualReassign.useMutation({
     onSuccess: async () => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
@@ -298,24 +298,7 @@ export const ReassignDialog = ({
             confirmationModal?.membersStatus === "unavailable"
               ? t("confirm_reassign_unavailable")
               : t("confirm_reassign_available")
-          }
-          confirmBtnText={t("yes_reassign")}
-          cancelBtnText={t("cancel")}
-          onConfirm={() => {
-            const teamMemberId = form.getValues("teamMemberId");
-            if (!teamMemberId) {
-              return;
-            }
-            roundRobinManualReassignMutation.mutate({
-              bookingId,
-              teamMemberId,
-              reassignReason: form.getValues("reassignReason"),
-            });
-            setConfirmationModal({
-              show: false,
-              membersStatus: null,
-            });
-          }}>
+          }>
           <p className="mb-4">
             {confirmationModal?.membersStatus === "unavailable"
               ? t("reassign_unavailable_team_member_description")
@@ -327,6 +310,35 @@ export const ReassignDialog = ({
             onChange={(e) => form.setValue("reassignReason", e.target.value)}
             required={confirmationModal?.membersStatus === "unavailable"}
           />
+
+          <DialogFooter className="mt-8">
+            <Button
+              onClick={() => {
+                setConfirmationModal({ ...confirmationModal, show: false });
+              }}
+              color="secondary">
+              {t("cancel")}
+            </Button>
+            <Button
+              data-testid="add_members"
+              onClick={() => {
+                const teamMemberId = form.getValues("teamMemberId");
+                if (!teamMemberId) {
+                  return;
+                }
+                roundRobinManualReassignMutation.mutate({
+                  bookingId,
+                  teamMemberId,
+                  reassignReason: form.getValues("reassignReason"),
+                });
+                setConfirmationModal({
+                  show: false,
+                  membersStatus: null,
+                });
+              }}>
+              {t("reassign")}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

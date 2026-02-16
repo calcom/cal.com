@@ -1,44 +1,62 @@
-import {  WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowTemplates } from "@calcom/prisma/enums";
 
 export const defaultTemplateNamesMap = (
   templateName: WorkflowTemplates,
-  target: "attendee" | "organizer"
 ) => {
-  return `${target}_${templateName.toLowerCase()}`;
+  return `${templateName.toLowerCase()}`;
 };
 
 export const defaultTemplateComponentsMap = (
   templateName: WorkflowTemplates,
-  target: "attendee" | "organizer"
 ) => {
   switch (templateName) {
     case WorkflowTemplates.REMINDER:
       return {
         components: [
           {
-            text: `Hi {{${target}_name}}, this is a reminder that your meeting ({{event_name}}) is on {{event_time}} {{timezone}}. Thanks.`,
+            text: "{{event_type_name}} — Reminder",
+            type: "HEADER",
+            format: "TEXT",
+            example: {
+              header_text_named_params: [
+                {
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
+                },
+              ],
+            },
+          },
+          {
+            text: 'Hi {{recipient_name}} — Just a heads-up, your meeting "{{event_type_name}}" with {{sender_name}} is coming up on {{event_date}} at {{event_time_formatted}}. See you then!',
             type: "BODY",
             example: {
               body_text_named_params: [
                 {
-                  example: "John",
-                  param_name: `${target}_name`,
+                  example: "Manas",
+                  param_name: "recipient_name",
                 },
                 {
-                  example: "Chat",
-                  param_name: "event_name",
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
                 },
                 {
-                  example: "Thu, 3 Dec, 3 PM",
-                  param_name: "event_time",
+                  example: "Rohit",
+                  param_name: "sender_name",
                 },
-
                 {
-                  example: "Asia/Kolkata",
-                  param_name: "timezone",
+                  example: "24 Jan 2026",
+                  param_name: "event_date",
+                },
+                {
+                  example: "3:00am GMT+5:30",
+                  param_name: "event_time_formatted",
                 },
               ],
             },
+          },
+          {
+            text: "— Cal ID",
+            type: "FOOTER",
           },
         ],
         sub_category: "CUSTOM",
@@ -48,28 +66,49 @@ export const defaultTemplateComponentsMap = (
       return {
         components: [
           {
-            text: `Hi {{${target}_name}}, your scheduled meeting ({{event_name}}) on {{event_time}} {{timezone}} has now been officially cancelled.`,
+            text: "{{event_type_name}} — Cancelled",
+            type: "HEADER",
+            format: "TEXT",
+            example: {
+              header_text_named_params: [
+                {
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
+                },
+              ],
+            },
+          },
+          {
+            text: 'Hi {{recipient_name}} — Your meeting "{{event_type_name}}" with {{sender_name}} scheduled for {{event_date}} at {{event_time_formatted}} has been cancelled.',
             type: "BODY",
             example: {
               body_text_named_params: [
                 {
-                  example: "John",
-                  param_name: `${target}_name`,
+                  example: "Manas",
+                  param_name: "recipient_name",
                 },
                 {
-                  example: "Chat",
-                  param_name: "event_name",
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
                 },
                 {
-                  example: "Thu, 3 Dec, 3 PM",
-                  param_name: "event_time",
+                  example: "Rohit",
+                  param_name: "sender_name",
                 },
                 {
-                  example: "Asia/Kolkata",
-                  param_name: "timezone",
+                  example: "24 Jan 2026",
+                  param_name: "event_date",
+                },
+                {
+                  example: "3:00am GMT+5:30",
+                  param_name: "event_time_formatted",
                 },
               ],
             },
+          },
+          {
+            text: "— Cal ID",
+            type: "FOOTER",
           },
         ],
         sub_category: "CUSTOM",
@@ -79,28 +118,49 @@ export const defaultTemplateComponentsMap = (
       return {
         components: [
           {
-            text: `Hi {{${target}_name}}, your meeting ({{event_name}}) has been rescheduled successfully to {{event_time}} {{timezone}} as of now.`,
+            text: "{{event_type_name}} — Rescheduled",
+            type: "HEADER",
+            format: "TEXT",
+            example: {
+              header_text_named_params: [
+                {
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
+                },
+              ],
+            },
+          },
+          {
+            text: 'Hi {{recipient_name}} — Your meeting "{{event_type_name}}" with {{sender_name}} has a new time: {{event_date}} at {{event_time_formatted}}. See you then!',
             type: "BODY",
             example: {
               body_text_named_params: [
                 {
-                  example: "John",
-                  param_name: `${target}_name`,
+                  example: "Manas",
+                  param_name: "recipient_name",
                 },
                 {
-                  example: "Chat",
-                  param_name: "event_name",
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
                 },
                 {
-                  example: "Thu, 3 Dec, 3 PM",
-                  param_name: "event_time",
+                  example: "Rohit",
+                  param_name: "sender_name",
                 },
                 {
-                  example: "Asia/Kolkata",
-                  param_name: "timezone",
+                  example: "24 Jan 2026",
+                  param_name: "event_date",
+                },
+                {
+                  example: "3:00am GMT+5:30",
+                  param_name: "event_time_formatted",
                 },
               ],
             },
+          },
+          {
+            text: "— Cal ID",
+            type: "FOOTER",
           },
         ],
         sub_category: "CUSTOM",
@@ -110,33 +170,108 @@ export const defaultTemplateComponentsMap = (
       return {
         components: [
           {
-            text: `Hi {{${target}_name}}, Your event ({{event_name}}) on {{event_time}} {{timezone}} has been completed. Thank you for attending`,
+            text: "{{event_type_name}} — Completed",
+            type: "HEADER",
+            format: "TEXT",
+            example: {
+              header_text_named_params: [
+                {
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
+                },
+              ],
+            },
+          },
+          {
+            text: 'Hi {{recipient_name}} — Your meeting "{{event_type_name}}" with {{sender_name}} on {{event_date}} at {{event_time_formatted}} is all wrapped up. Thanks for joining!',
             type: "BODY",
             example: {
               body_text_named_params: [
                 {
-                  example: "John",
-                  param_name: `${target}_name`,
+                  example: "Manas",
+                  param_name: "recipient_name",
                 },
                 {
-                  example: "Chat",
-                  param_name: "event_name",
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
                 },
                 {
-                  example: "Thu, 3 Dec, 3 PM",
-                  param_name: "event_time",
+                  example: "Rohit",
+                  param_name: "sender_name",
                 },
                 {
-                  example: "Asia/Kolkata",
-                  param_name: "timezone",
+                  example: "24 Jan 2026",
+                  param_name: "event_date",
+                },
+                {
+                  example: "3:00am GMT+5:30",
+                  param_name: "event_time_formatted",
                 },
               ],
             },
+          },
+          {
+            text: "— Cal ID",
+            type: "FOOTER",
           },
         ],
         sub_category: "CUSTOM",
         parameter_format: "NAMED",
       };
+
+    case WorkflowTemplates.CONFIRMATION:
+      return {
+        components: [
+          {
+            text: "{{event_type_name}} — Confirmed",
+            type: "HEADER",
+            format: "TEXT",
+            example: {
+              header_text_named_params: [
+                {
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
+                },
+              ],
+            },
+          },
+          {
+            text: 'Hi {{recipient_name}} — You are all set! Your meeting "{{event_type_name}}" with {{sender_name}} is confirmed for {{event_date}} at {{event_time_formatted}}. See you then!',
+            type: "BODY",
+            example: {
+              body_text_named_params: [
+                {
+                  example: "Manas",
+                  param_name: "recipient_name",
+                },
+                {
+                  example: "Quick Chat",
+                  param_name: "event_type_name",
+                },
+                {
+                  example: " Rohit",
+                  param_name: "sender_name",
+                },
+                {
+                  example: "24 Jan 2026",
+                  param_name: "event_date",
+                },
+                {
+                  example: "3:00am GMT+5:30",
+                  param_name: "event_time_formatted",
+                },
+              ],
+            },
+          },
+          {
+            text: "— Cal ID",
+            type: "FOOTER",
+          },
+        ],
+        sub_category: "CUSTOM",
+        parameter_format: "NAMED",
+      };
+
     default:
       throw new Error(`Unsupported workflow template: ${templateName}`);
   }

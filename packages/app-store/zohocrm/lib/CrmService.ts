@@ -1,3 +1,4 @@
+import type { AxiosError } from "axios";
 import axios from "axios";
 import qs from "qs";
 
@@ -45,6 +46,30 @@ const toISO8601String = (date: Date) => {
     Math.abs(tzo) % 60
   )}`;
 };
+
+/**
+ * Helper to format Axios errors in a human-readable way
+ */
+const formatAxiosError = (error: unknown, context: string) => {
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+    return {
+      context,
+      status: axiosError.response?.status,
+      statusText: axiosError.response?.statusText,
+      url: axiosError.config?.url,
+      method: axiosError.config?.method?.toUpperCase(),
+      message: axiosError.message,
+      responseData: axiosError.response?.data,
+      code: axiosError.code,
+    };
+  }
+  return {
+    context,
+    error: error instanceof Error ? error.message : String(error),
+  };
+};
+
 export default class ZohoCrmCrmService implements CRM {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
@@ -72,23 +97,28 @@ export default class ZohoCrmCrmService implements CRM {
         Email: contactToCreate.email,
       };
     });
-    const response = await axios({
-      method: "post",
-      url: `https://www.zohoapis.com/crm/v3/Contacts`,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Zoho-oauthtoken ${this.accessToken}`,
-      },
-      data: JSON.stringify({ data: contacts }),
-    });
 
-    const { data } = response;
-    return data.data.map((contact: ZohoContact) => {
-      return {
-        id: contact.id,
-        email: contact.email,
-      };
-    });
+    try {
+      const response = await axios({
+        method: "post",
+        url: `https://www.zohoapis.com/crm/v3/Contacts`,
+        headers: {
+          "content-type": "application/json",
+          authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        },
+        data: JSON.stringify({ data: contacts }),
+      });
+
+      const { data } = response;
+      return data.data.map((contact: ZohoContact) => {
+        return {
+          id: contact.id,
+          email: contact.email,
+        };
+      });
+    } catch (error) {
+      this.log.error("Failed to create contacts in Zoho CRM", formatAxiosError(error, "createContacts"));
+    }
   }
 
   async getContacts({ emails }: { emails: string | string[] }) {
@@ -98,26 +128,25 @@ export default class ZohoCrmCrmService implements CRM {
 
     const searchCriteria = `(${emailsArray.map((email) => `(Email:equals:${encodeURI(email)})`).join("or")})`;
 
-    const response = await axios({
-      method: "get",
-      url: `https://www.zohoapis.com/crm/v3/Contacts/search?criteria=${searchCriteria}`,
-      headers: {
-        authorization: `Zoho-oauthtoken ${this.accessToken}`,
-      },
-    })
-      .then((data) => data.data)
-      .catch((e) => {
-        this.log.error(e, e.response?.data);
+    try {
+      const response = await axios({
+        method: "get",
+        url: `https://www.zohoapis.com/crm/v3/Contacts/search?criteria=${searchCriteria}`,
+        headers: {
+          authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        },
       });
 
-    return response
-      ? response.data.map((contact: ZohoContact) => {
-          return {
-            id: contact.id,
-            email: contact.email,
-          };
-        })
-      : [];
+      return response.data.data.map((contact: ZohoContact) => {
+        return {
+          id: contact.id,
+          email: contact.email,
+        };
+      });
+    } catch (error) {
+      this.log.error("Failed to get contacts from Zoho CRM", formatAxiosError(error, "getContacts"));
+      return [];
+    }
   }
 
   private getMeetingBody = (event: CalendarEvent): string => {
@@ -138,17 +167,21 @@ export default class ZohoCrmCrmService implements CRM {
       Who_Id: contacts[0].id, // Link the first attendee as the primary Who_Id
     };
 
-    return axios({
-      method: "post",
-      url: `https://www.zohoapis.com/crm/v3/Events`,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Zoho-oauthtoken ${this.accessToken}`,
-      },
-      data: JSON.stringify({ data: [zohoEvent] }),
-    })
-      .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+    try {
+      const response = await axios({
+        method: "post",
+        url: `https://www.zohoapis.com/crm/v3/Events`,
+        headers: {
+          "content-type": "application/json",
+          authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        },
+        data: JSON.stringify({ data: [zohoEvent] }),
+      });
+
+      return response.data;
+    } catch (error) {
+      this.log.error("Failed to create event in Zoho CRM", formatAxiosError(error, "createZohoEvent"));
+    }
   };
 
   private updateMeeting = async (uid: string, event: CalendarEvent) => {
@@ -160,30 +193,40 @@ export default class ZohoCrmCrmService implements CRM {
       Description: this.getMeetingBody(event),
       Venue: getLocation(event),
     };
-    return axios({
-      method: "put",
-      url: `https://www.zohoapis.com/crm/v3/Events`,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Zoho-oauthtoken ${this.accessToken}`,
-      },
-      data: JSON.stringify({ data: [zohoEvent] }),
-    })
-      .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+
+    try {
+      const response = await axios({
+        method: "put",
+        url: `https://www.zohoapis.com/crm/v3/Events`,
+        headers: {
+          "content-type": "application/json",
+          authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        },
+        data: JSON.stringify({ data: [zohoEvent] }),
+      });
+
+      return response.data;
+    } catch (error) {
+      this.log.error("Failed to update event in Zoho CRM", formatAxiosError(error, "updateMeeting"));
+    }
   };
 
   private deleteMeeting = async (uid: string) => {
-    return axios({
-      method: "delete",
-      url: `https://www.zohoapis.com/crm/v3/Events?ids=${uid}`,
-      headers: {
-        "content-type": "application/json",
-        authorization: `Zoho-oauthtoken ${this.accessToken}`,
-      },
-    })
-      .then((data) => data.data)
-      .catch((e) => this.log.error(e, e.response?.data));
+    try {
+      const response = await axios({
+        method: "delete",
+        url: `https://www.zohoapis.com/crm/v3/Events?ids=${uid}`,
+        headers: {
+          "content-type": "application/json",
+          authorization: `Zoho-oauthtoken ${this.accessToken}`,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      this.log.error("Failed to delete event in Zoho CRM", formatAxiosError(error, "deleteMeeting"));
+      throw error;
+    }
   };
 
   private zohoCrmAuth = async (credential: CredentialPayload) => {
@@ -241,12 +284,15 @@ export default class ZohoCrmCrmService implements CRM {
             },
           });
           this.accessToken = zohoCrmTokenInfo.data.access_token;
-          this.log.debug("Fetched token", this.accessToken);
+          this.log.debug("Successfully refreshed Zoho CRM access token");
         } else {
-          this.log.error(zohoCrmTokenInfo.data);
+          this.log.error("Zoho CRM token refresh failed", { error: zohoCrmTokenInfo.data.error });
         }
-      } catch (e: unknown) {
-        this.log.error(e);
+      } catch (error) {
+        this.log.error(
+          "Failed to refresh Zoho CRM access token",
+          formatAxiosError(error, "refreshAccessToken")
+        );
       }
     };
 
@@ -258,7 +304,7 @@ export default class ZohoCrmCrmService implements CRM {
   async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const meetingEvent = await this.createZohoEvent(event, contacts);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
-      this.log.debug("event:creation:ok", { meetingEvent });
+      this.log.debug("Successfully created event in Zoho CRM", { eventId: meetingEvent.data[0].details.id });
       return Promise.resolve({
         uid: meetingEvent.data[0].details.id,
         id: meetingEvent.data[0].details.id,
@@ -268,7 +314,11 @@ export default class ZohoCrmCrmService implements CRM {
         additionalInfo: { contacts, meetingEvent },
       });
     }
-    this.log.debug("meeting:creation:notOk", { meetingEvent, event, contacts });
+    this.log.error("Event creation failed - unexpected response from Zoho CRM", {
+      meetingEvent,
+      event,
+      contacts,
+    });
     return Promise.reject("Something went wrong when creating a meeting in ZohoCRM");
   }
 

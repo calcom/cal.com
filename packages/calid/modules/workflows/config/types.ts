@@ -256,6 +256,7 @@ export type CalIdBookingInfo = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
+  cancellationReason?: string;
 };
 
 // -------------------- Teams --------------------

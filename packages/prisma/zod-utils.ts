@@ -203,7 +203,7 @@ export const eventTypeLocations = z.array(
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
   .object({
-    dtstart: z.date().optional(),
+    dtstart: z.union([z.date(), z.string()]).optional(),
     interval: z.number(),
     count: z.number(),
     freq: z.nativeEnum(Frequency),
@@ -355,9 +355,10 @@ export const userMetadata = z
     isProUser: z
       .object({
         yearClaimed: z.number().optional().default(0),
-        formSubmittedForYear: z.number().optional(),
+        claimSubmittedForYear: z.number().optional(),
         validTillDate: z.string().optional(),
-        verified: z.boolean().optional().default(false),
+        claimDate: z.string().optional(),
+        claimProtocol: z.enum(["v1", "v2"]).optional(),
       })
       .optional(),
     sessionTimeout: z.number().optional(), // Minutes
@@ -394,6 +395,15 @@ export const userMetadata = z
         utm_medium: z.string().optional().nullable(),
         utm_campaign: z.string().optional().nullable(),
         utm_content: z.string().optional().nullable(),
+      })
+      .optional(),
+    deviceDetails: z
+      .object({
+        ip: z.string().optional(),
+        browser: z.string(),
+        deviceType: z.enum(["Mobile", "Desktop", "Tablet"]),
+        deviceOS: z.string(),
+        screenResolution: z.string(),
       })
       .optional(),
     google_signup_tracked: z.boolean().optional(),
@@ -445,7 +455,7 @@ const dateFromString = z.preprocess((arg) => {
   return arg;
 }, z.date());
 export const recurringEventSchema = z.object({
-  dtstart: z.date().optional(),
+  dtstart: z.union([z.date(), z.string()]).optional(),
   freq: z.number(), // Could also use z.enum(["DAILY","WEEKLY",...]) if you have Frequency enum
   interval: z.number().optional(),
   count: z.number().optional(),
@@ -794,6 +804,14 @@ export const signupSchema = z.object({
   }),
   language: z.string().optional(),
   token: z.string().optional(),
+  deviceDetails: z
+    .object({
+      browser: z.string().max(100),
+      deviceType: z.enum(["Mobile", "Desktop", "Tablet"]),
+      deviceOS: z.string().max(100),
+      screenResolution: z.string().max(50),
+    })
+    .optional(),
 });
 
 export const ZVerifyCodeInputSchema = z.object({

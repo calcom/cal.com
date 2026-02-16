@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@calid/features/ui/components/dialog";
 import { useState } from "react";
 
@@ -7,7 +8,6 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import ApiKeyDialogForm from "../components/api-keys-dialog-form";
@@ -73,7 +73,6 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
         </div>
       </SettingsHeader>
 
-      {/* Create API Key Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent size="md" type="creation" title={t("create_api_key")}>
           <DialogTitle>{t("create_api_key")}</DialogTitle>
@@ -82,7 +81,6 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit API Key Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent size="md" type="creation" title={t("edit_api_key")}>
           <DialogTitle>{t("edit_api_key")}</DialogTitle>

@@ -8,6 +8,11 @@ import "react-phone-input-2/lib/style.css";
 
 import { trpc } from "@calcom/trpc/react";
 
+export const CUSTOM_PHONE_MASKS = {
+  ci: ".. .. .. .. ..",
+  bj: ".. .. .. .. ..",
+};
+
 export type PhoneInputProps = {
   value?: string;
   id?: string;
@@ -37,6 +42,7 @@ function BasePhoneInput({
       country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
+      masks={CUSTOM_PHONE_MASKS}
       inputProps={{
         name: name,
         required: rest.required,

@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "../dialog";
 import { triggerToast } from "../toast";
 import { createImage, Slider, type Area } from "./common";
@@ -314,14 +315,14 @@ export default function BannerUploader({
         </Button>
       </DialogTrigger>
       <DialogContent
-        size="lg"
-        className="max-w-[95vw] sm:w-[45rem] sm:max-w-[45rem]"
+        size="md"
         title={t("upload_target", { target: fieldName || target })}
         enableOverflow={false}>
         <DialogHeader>
           <DialogTitle>{t("upload_target", { target: fieldName || target })}</DialogTitle>
+          <DialogDescription>{t("image_limits", { limit: `${width}x${height}` })}</DialogDescription>
         </DialogHeader>
-        <div className="mb-4 overflow-hidden">
+        <div className="overflow-hidden">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {selectedImage ? (
               <CropContainer
@@ -330,7 +331,7 @@ export default function BannerUploader({
                 onCropComplete={setCroppedAreaPixels}
               />
             ) : (
-              <div className="bg-muted flex h-60 w-full items-center justify-center">
+              <div className="border-default flex h-60 w-full items-center justify-center border">
                 {!imageSrc ? (
                   <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                 ) : (
@@ -340,7 +341,7 @@ export default function BannerUploader({
             )}
             <label
               data-testid="open-upload-image-filechooser"
-              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              className="bg-subtle hover:bg-muted hover:text-emphasis border-default text-default mt-8 cursor-pointer rounded-md border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"
@@ -367,6 +368,7 @@ export default function BannerUploader({
           <DialogClose />
           <Button
             data-testid="upload-avatar"
+            StartIcon="check"
             color="primary"
             onClick={showCroppedImage}
             loading={isProcessing}

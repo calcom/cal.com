@@ -1,3 +1,4 @@
+import { Button } from "@calid/features/ui/components/button";
 import {
   DialogContent,
   DialogTitle,
@@ -12,7 +13,6 @@ import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 
@@ -53,12 +53,11 @@ export function BulkEditDefaultForEventsModal({
 
   return (
     <Dialog name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
-      <DialogContent type="creation" enableOverflow>
-        <DialogHeader>
+      <DialogContent enableOverflow>
+        <DialogHeader showIcon={true} iconName="layers" iconVariant="info">
           <DialogTitle>{t("default_conferencing_bulk_title")}</DialogTitle>
           <DialogDescription>{props.description}</DialogDescription>
         </DialogHeader>
-
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -98,13 +97,18 @@ export function BulkEditDefaultForEventsModal({
               </div>
             ))}
           </div>
-          <DialogFooter showDivider className="mt-10">
+          <DialogFooter>
             <DialogClose
               onClick={() => {
                 props.handleBulkEditDialogToggle();
               }}
             />
-            <Button type="submit" color="primary" loading={props.isPending} disabled={isButtonDisabled}>
+            <Button
+              StartIcon="check"
+              type="submit"
+              color="primary"
+              loading={props.isPending}
+              disabled={isButtonDisabled}>
               {t("update")}
             </Button>
           </DialogFooter>

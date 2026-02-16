@@ -13,15 +13,15 @@ declare global {
 }
 
 interface TallyFormProps {
-  formSubmittedForYear: number;
+  claimSubmittedForYear: number;
   userEmail?: string | null;
   onSubmission?: () => void;
 }
 
-export const TallyForm = ({ formSubmittedForYear, userEmail, onSubmission }: TallyFormProps) => {
+export const TallyForm = ({ claimSubmittedForYear, userEmail, onSubmission }: TallyFormProps) => {
   const scriptLoadedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
-  const baseUrl = formSubmittedForYear == 1 ? "https://tally.so/r/mDrJKZ" : "https://tally.so/r/3qr859";
+  const baseUrl = claimSubmittedForYear == 1 ? "https://tally.so/r/mDrJKZ" : "https://tally.so/r/3qr859";
 
   const tallySrc = userEmail
     ? `${baseUrl}?formEventsForwarding=1&Email=${encodeURIComponent(userEmail)}`

@@ -30,7 +30,7 @@ function TopNav() {
         <Link href="/event-types">
           <div className="flex items-center">
             <Logo />
-            {user?.metadata?.isProUser?.yearClaimed > 0 && user?.metadata?.isProUser?.verified && (
+            {user?.metadata?.isProUser?.yearClaimed > 0 && (
               <ProBadge
                 yearClaimed={user.metadata.isProUser.yearClaimed}
                 validTillDate={user.metadata.isProUser.validTillDate}

@@ -6,7 +6,7 @@ import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { CalIdWorkflow, CalIdWorkflowStep } from "../config/types";
 
 type PartialCalIdWorkflowStep =
-  | (Partial<CalIdWorkflowStep> & { workflow: { userId?: number; calIdTeamId?: number } })
+  | (Partial<CalIdWorkflowStep> & { workflow: { id?: number, userId?: number; calIdTeamId?: number } })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -35,6 +35,7 @@ type PartialBooking =
       eventType:
         | (Partial<EventType> & {
             slug: string;
+            title: string;
             team: { parentId?: number };
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
@@ -138,12 +139,15 @@ export const select: Prisma.CalIdWorkflowReminderSelect = {
   referenceId: true,
   workflowStep: {
     select: {
+      id: true,
       action: true,
       sendTo: true,
       reminderBody: true,
       emailSubject: true,
       template: true,
       sender: true,
+      metaTemplateName: true,
+      metaTemplatePhoneNumberId: true,
       includeCalendarEvent: true,
       workflow: {
         select: {
@@ -156,6 +160,7 @@ export const select: Prisma.CalIdWorkflowReminderSelect = {
   },
   booking: {
     select: {
+      title: true,
       startTime: true,
       endTime: true,
       location: true,

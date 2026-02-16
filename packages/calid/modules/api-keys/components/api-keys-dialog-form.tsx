@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextAreaField } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
 import { Switch } from "@calid/features/ui/components/switch";

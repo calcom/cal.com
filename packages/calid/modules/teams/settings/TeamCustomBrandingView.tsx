@@ -2,7 +2,7 @@
 
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
+import { Form } from "@calid/features/ui/components/form/form";
 import { Label } from "@calid/features/ui/components/label";
 import { SettingsSwitch } from "@calid/features/ui/components/switch/settings-switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -211,6 +211,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
               <div className="flex gap-2">
                 <CustomBannerUploader
                   target="metadata.headerUrl"
+                  startIcon="upload"
                   id="public-banner-upload"
                   buttonMsg={t("upload_image")}
                   uploading={uploadingPublicBanner}
@@ -222,11 +223,11 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                     await handlePublicBannerUpdate(newHeaderUrl);
                   }}
                   imageSrc={getPlaceholderHeader(publicBannerUrl, publicBannerUrl) ?? undefined}
-                  triggerButtonColor={publicBannerUrl ? "secondary" : "primary"}
                 />
                 {publicBannerUrl && (
                   <Button
-                    color="secondary"
+                    color="destructive"
+                    StartIcon="trash"
                     onClick={() => {
                       handlePublicBannerUpdate(null);
                     }}>

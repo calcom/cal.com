@@ -1,21 +1,10 @@
-import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
-import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
-import {
-  useOrgBranding,
-  type OrganizationBranding,
-} from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -29,7 +18,7 @@ declare global {
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const getNavigationItems = (orgBranding: OrganizationBranding, userId: number): NavigationItemType[] => [
+const getNavigationItems = (userId: number): NavigationItemType[] => [
   {
     name: "home",
     href: "/home",
@@ -57,12 +46,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding, userId: number): 
     href: "/claim",
     icon: "badge-percent",
     onlyDesktop: true,
-    shouldDisplay: (user) => {
-      // Don't show if user data is not loaded yet
-      if (!user) return false;
-      const yearClaimed = user?.metadata?.isProUser?.yearClaimed || 0;
-      return yearClaimed < 2;
-    },
   },
   {
     name: "teams",
@@ -185,12 +168,11 @@ const platformNavigationItems: NavigationItemType[] = [
 ];
 
 const useNavigationItems = (isPlatformNavigation = false) => {
-  const orgBranding = useOrgBranding();
   const session = useSession();
   const userId = session.data?.user.id || 0;
 
   return useMemo(() => {
-    const items = !isPlatformNavigation ? getNavigationItems(orgBranding, userId) : platformNavigationItems;
+    const items = !isPlatformNavigation ? getNavigationItems(userId) : platformNavigationItems;
 
     const desktopNavigationItems = items.filter(
       (item) => item.name !== MORE_SEPARATOR_NAME && !item.onlyMobile
@@ -203,106 +185,7 @@ const useNavigationItems = (isPlatformNavigation = false) => {
     );
 
     return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
-  }, [isPlatformNavigation, orgBranding]);
-};
-
-type TIntegrationRequest = {
-  account_name: string;
-  account_user_id: number;
-  account_user_email: string;
-};
-
-//OH CHAT INTEGRATION REQUESTS COMPONENTS
-const IntegrationRequests = () => {
-  const { data: user } = useMeQuery();
-  const { t } = useLocale();
-
-  const [integrationRequests, setIntegrationRequests] = useState<TIntegrationRequest[]>([]);
-  const [loadingBtn, setLoadingBtn] = useState<string>("");
-
-  useEffect(() => {
-    const userMeta = isPrismaObjOrUndefined(user?.metadata);
-    if (userMeta) {
-      setIntegrationRequests((userMeta.chat_integration_requests as TIntegrationRequest[]) ?? []);
-    }
-  }, [user]);
-
-  const handleReq = async (account_user_id: number, accept: boolean) => {
-    try {
-      setLoadingBtn(`${account_user_id}-${accept ? "a" : "r"}`);
-      if (!user?.id) return;
-
-      const res = await fetch("/api/integrations/oh/chat/internal", {
-        method: "POST",
-        body: JSON.stringify({
-          cal_user_id: user.id,
-          account_user_id,
-          status: accept,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!res.ok) {
-        showToast("Failed to handle request", "error");
-        return;
-      }
-
-      const data = await res.json();
-      showToast(data.message, "success");
-      setIntegrationRequests((prev) => prev.filter((el) => el.account_user_id !== account_user_id));
-    } finally {
-      setLoadingBtn("");
-    }
-  };
-
-  if (!integrationRequests?.length) return null;
-
-  return (
-    <div className="md:px-2 md:py-1.5">
-      <Tooltip content={t("chat_integration_desc")}>
-        <div className="flex gap-3 md:hidden md:gap-2 lg:flex">
-          <Icon name="webhook" className="h-4 w-4" />
-          <span className="text-default text-sm">Chat Integrations</span>
-        </div>
-      </Tooltip>
-
-      <div className="scrollbar-none max-h-[400px] overflow-y-auto overflow-x-hidden">
-        {integrationRequests.map((req) => (
-          <div key={req.account_user_id} className="my-2 rounded-md border p-2">
-            <div className="mb-2 text-sm font-normal">
-              <p className="break-words">
-                {`${t("email")} :`} <span className="text-default">{req.account_user_email}</span>
-              </p>
-              <p>
-                Account : <span className="text-default capitalize">{req.account_name}</span>
-              </p>
-            </div>
-
-            <div className="space-between flex gap-2">
-              <Button
-                size="sm"
-                loading={loadingBtn === `${req.account_user_id}-a`}
-                disabled={loadingBtn.includes(`${req.account_user_id}`)}
-                onClick={() => handleReq(req.account_user_id, true)}
-                color="secondary">
-                <span className="text-sm font-normal">Accept</span>
-              </Button>
-              <Button
-                size="sm"
-                loading={loadingBtn === `${req.account_user_id}-r`}
-                disabled={loadingBtn.includes(`${req.account_user_id}`)}
-                onClick={() => handleReq(req.account_user_id, false)}
-                color="destructive">
-                <span className="text-sm font-normal">Reject</span>
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  }, [isPlatformNavigation]);
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
@@ -315,8 +198,6 @@ export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigat
       <div className="text-subtle mt-0.5 lg:hidden">
         <KBarTrigger />
       </div>
-
-      <IntegrationRequests />
     </nav>
   );
 };

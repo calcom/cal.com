@@ -2,7 +2,7 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
 
-import { currencyOptions, isAcceptedCurrencyCode } from "@calcom/app-store/razorpay/lib/currencyOptions";
+import { currencyOptions } from "@calcom/app-store/razorpay/lib/currencyOptions";
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
@@ -22,9 +22,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   eventType,
 }) => {
   const price = getAppData("price");
-
-  const currency = "INR";
-
   const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions.find((c) => c.value === "INR"));
 
   const getCurrencySymbol = (locale: string, currency: string) =>

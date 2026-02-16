@@ -45,7 +45,7 @@ import {
   bookingCancelInput,
 } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllCalIdWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util.calid";
 import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -468,11 +468,13 @@ async function handler(input: CancelBookingInput) {
   // Handle workflows
   const eventTypeRaw = !bookingToDelete.eventTypeId ? null : { id: bookingToDelete.eventTypeId };
   const eventTypeRelated = eventTypeRaw
-    ? await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId)
+    ? await getAllCalIdWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId)
     : null;
   const eventType = { ...bookingToDelete.eventType, workflows: eventTypeRelated };
 
-  const workflows: CalIdWorkflow[] = eventType?.workflows?.map((workflow) => workflow as CalIdWorkflow);
+  const workflows: CalIdWorkflow[] = (eventType?.workflows ?? []).map(
+    (workflow) => workflow as CalIdWorkflow
+  );
 
   if (workflows.length > 0) {
     await sendCancelledReminders({

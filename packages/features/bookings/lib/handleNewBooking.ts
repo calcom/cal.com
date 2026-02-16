@@ -1,5 +1,6 @@
 import { toDate } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
+import { doesHaveSmsAttendeeWorkflow } from "@calid/features/modules/workflows/config/utils";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -82,14 +83,19 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllCalIdWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util.calid";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -134,8 +140,10 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+import { generateRecurringRRule } from "./recurrenceResolution/generateRecurringRRule";
+import { getUserAvailabilityData } from "./recurrenceResolution/getUserAvailabilityData";
 
-type ExistingBooking = Awaited<ReturnType<typeof bookingRepo.getValidBookingFromEventTypeForAttendee>>;
+type ExistingBooking = Awaited<ReturnType<BookingRepository["getValidBookingFromEventTypeForAttendee"]>>;
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
@@ -651,7 +659,6 @@ async function handler(
       startTime: new Date(dayjs(reqBody.start).utc().format()),
       // filterForUnconfirmed: !isConfirmedByDefault,
     });
-    console.log("Existing booking: ", existingBooking);
 
     if (existingBooking?.status === BookingStatus.CANCELLED) {
       existingBooking = null;
@@ -1437,13 +1444,15 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows: CalIdWorkflow[] = await getAllWorkflowsFromEventType(
+  const workflows: CalIdWorkflow[] = await getAllCalIdWorkflowsFromEventType(
     {
       ...eventType,
       metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
     },
     organizerUser.id
   );
+
+  const hasConfirmationSmsWorkflow = doesHaveSmsAttendeeWorkflow(workflows, WorkflowTriggerEvents.NEW_EVENT);
 
   // Main mutable logic starts here
 
@@ -1522,31 +1531,160 @@ async function handler(
 
   // Handle recurring event metadata
   if (eventType.recurringEvent) {
-    let recurringEvent: RecurringEvent;
-
     if (!rescheduleInstance) {
-      // New booking — derive recurring info from event type
-      recurringEvent = {
-        ...eventType.recurringEvent,
-        ...(recurringCount !== undefined && { count: recurringCount }),
-      };
+      // === STEP 1: Identify the actual host for this booking ===
+      // For team bookings, this is the organizerUser (selected/assigned host)
+      // For solo bookings, this is also the organizerUser
+      const actualHostUser = organizerUser;
+      try {
+        // === STEP 2: Resolve the host's effective schedule ===
+        // Priority: eventType.schedule → user's default schedule
+        // For team events, the schedule may be team-wide or host-specific
+
+        // Find the host user in eventType.users to access their schedules
+        const hostUserWithSchedules = eventType.users.find((u) => u.id === actualHostUser.id);
+
+        if (!hostUserWithSchedules) {
+          throw new Error(
+            `Host user ${actualHostUser.id} not found in event type users. This should not happen.`
+          );
+        }
+
+        // Determine which schedule to use:
+        // 1. If eventType has an explicit schedule assigned, use it (if host has access to it)
+        // 2. Otherwise, use the host's default schedule
+        let effectiveSchedule = null;
+
+        if (eventType.schedule?.id) {
+          // Check if host has access to the event type's schedule
+          effectiveSchedule = hostUserWithSchedules.schedules.find((s) => s.id === eventType.schedule?.id);
+
+          if (!effectiveSchedule) {
+            loggerWithEventDetails.warn(
+              `Host ${actualHostUser.id} does not have access to eventType schedule ${eventType.schedule.id}, falling back to default schedule`
+            );
+          }
+        }
+
+        // Fall back to host's default schedule if needed
+        if (!effectiveSchedule) {
+          effectiveSchedule = hostUserWithSchedules.schedules.find(
+            (s) => s.id === hostUserWithSchedules.defaultScheduleId
+          );
+        }
+
+        if (!effectiveSchedule) {
+          throw new Error(
+            `No effective schedule found for host ${actualHostUser.id}. Host must have a default schedule.`
+          );
+        }
+
+        loggerWithEventDetails.debug(
+          "Resolved effective schedule for recurring booking",
+          safeStringify({
+            hostUserId: actualHostUser.id,
+            effectiveScheduleId: effectiveSchedule.id,
+            eventTypeScheduleId: eventType.schedule?.id,
+            wasEventTypeScheduleUsed: effectiveSchedule.id === eventType.schedule?.id,
+          })
+        );
+
+        // === STEP 3: Fetch host's availability data ===
+        // This combines:
+        // - Schedule-based availability (time-of-day + days/date overrides)
+        // - Out-of-office entries
+        // The getUserAvailabilityData function efficiently reuses the pre-fetched schedule
+        const availabilityData = await getUserAvailabilityData({
+          userId: actualHostUser.id,
+          preFetchedSchedule: effectiveSchedule,
+          hostDefaultScheduleId: hostUserWithSchedules.defaultScheduleId,
+          eventTypeScheduleId: eventType.schedule?.id,
+        });
+
+        // === STEP 4: Generate RRULE with availability filtering ===
+        // This will produce exDates for occurrences that conflict with:
+        // - Schedule unavailability (outside working hours/days)
+        // - Out-of-office periods
+        const recurringEventWithExDates: RecurringEvent = await generateRecurringRRule(
+          {
+            startTime: reqBody.start,
+            endTime: reqBody.end,
+            recurringEvent: {
+              ...eventType.recurringEvent,
+              count: recurringCount || eventType.recurringEvent.count,
+            },
+            timeZone: reqBody.timeZone,
+          },
+          availabilityData
+        );
+
+        // === STEP 5: Attach to event and metadata ===
+        evt.recurringEvent = recurringEventWithExDates;
+        reqBody.metadata = {
+          ...reqBody.metadata,
+          recurringEvent: recurringEventWithExDates,
+        };
+      } catch (error) {
+        const err = getErrorFromUnknown(error);
+        loggerWithEventDetails.error(
+          "Failed to generate recurring booking RRULE",
+          safeStringify({
+            error: err.message,
+            stack: err.stack,
+            hostUserId: actualHostUser.id,
+            isTeamEvent: isTeamEventType,
+          })
+        );
+
+        // Re-throw HttpErrors as-is
+        if (error instanceof HttpError) {
+          throw error;
+        }
+
+        // Wrap other errors
+        throw new HttpError({
+          statusCode: 400,
+          message: `Failed to generate recurring booking pattern: ${err.message}`,
+        });
+      }
     } else {
-      // Rescheduling an instance of a recurring event
+      // === Handle recurring instance reschedule ===
+      // For instance reschedules, we use the processRecurringInstanceReschedule helper
+      // which updates exDates/rDates based on the formerTime → newTime change
+      // Note: We intentionally do NOT re-validate availability here because:
+      // The new time slot is already selected from the list of available valid time slot
+
+      loggerWithEventDetails.debug(
+        "Processing recurring instance reschedule",
+        safeStringify({
+          formerTime: rescheduleInstance.formerTime,
+          newTime: rescheduleInstance.newTime,
+          hostUserId: organizerUser.id,
+        })
+      );
+
       const originalBookingRecurringEvent = isPrismaObjOrUndefined(originalRescheduledBooking?.metadata)
         ?.recurringEvent as RecurringEvent | undefined;
 
-      recurringEvent = processRecurringInstanceReschedule({
+      const recurringEvent = processRecurringInstanceReschedule({
         recurringEvent: originalBookingRecurringEvent ?? eventType.recurringEvent,
         rescheduleInstance,
       });
-    }
 
-    // Apply recurring event metadata to event and request body
-    evt.recurringEvent = recurringEvent;
-    reqBody.metadata = {
-      ...reqBody.metadata,
-      recurringEvent,
-    };
+      evt.recurringEvent = recurringEvent;
+      reqBody.metadata = {
+        ...reqBody.metadata,
+        recurringEvent,
+      };
+
+      loggerWithEventDetails.debug(
+        "Recurring instance reschedule processed",
+        safeStringify({
+          exDatesCount: recurringEvent.exDates?.length || 0,
+          rDatesCount: recurringEvent.rDates?.length || 0,
+        })
+      );
+    }
   }
 
   const changedOrganizer =
@@ -1627,22 +1765,6 @@ async function handler(
         if (booking?.userId) {
           const usersRepository = new UsersRepository();
           await usersRepository.updateLastActiveAt(booking.userId);
-          const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
-
-          logger.info(`Booking created`, {
-            bookingUid: booking.uid,
-            availabilitySnapshot: organizerUserAvailability?.availabilityData,
-            isRecurringTeamBooking,
-            ...(isRecurringTeamBooking && eventType.recurringEvent
-              ? {
-                  recurringEventInfo: {
-                    freq: eventType.recurringEvent.freq,
-                    count: eventType.recurringEvent.count,
-                    interval: eventType.recurringEvent.interval,
-                  },
-                }
-              : {}),
-          });
         }
 
         // Record assignment reason for round robin bookings
@@ -1936,10 +2058,10 @@ async function handler(
       loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
 
       /*
-        handle emails for round robin
-          - if booked rr host is the same, then rescheduling email
-          - if new rr host is booked, then cancellation email to old host and confirmation email to new host
-      */
+      handle emails for round robin
+        - if booked rr host is the same, then rescheduling email
+        - if new rr host is booked, then cancellation email to old host and confirmation email to new host
+    */
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         const originalBookingMemberEmails: Person[] = [];
 
@@ -2024,6 +2146,11 @@ async function handler(
       } else {
         if (!isDryRun) {
           // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
+            workflows,
+            WorkflowTriggerEvents.RESCHEDULE_EVENT
+          );
+
           await triggerBookingEmailsInngest({
             calEvent: {
               ...copyEvent,
@@ -2035,6 +2162,7 @@ async function handler(
             isAttendeeConfirmationEmailDisabled: false,
             eventTypeMetadata: eventType?.metadata,
             emailType: "rescheduled",
+            hasRelevantSmsWorkflow,
           });
         }
       }
@@ -2167,6 +2295,10 @@ async function handler(
         );
 
         if (!isDryRun) {
+          const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
+            workflows,
+            WorkflowTriggerEvents.NEW_EVENT
+          );
           // Send emails asynchronously via Inngest to improve booking response time
           await triggerBookingEmailsInngest({
             calEvent: {
@@ -2180,6 +2312,7 @@ async function handler(
             isAttendeeConfirmationEmailDisabled,
             eventTypeMetadata: eventType.metadata,
             emailType: "scheduled",
+            hasRelevantSmsWorkflow,
           });
         }
       }
@@ -2218,6 +2351,7 @@ async function handler(
         eventTypeMetadata: eventType.metadata,
         emailType: "request",
         firstAttendee: attendeesList[0],
+        hasRelevantSmsWorkflow: false,
       });
     }
   }
@@ -2621,8 +2755,6 @@ async function requiresNoPayment(data: {
 }) {
   const { booking, eventType, paymentAppData, bookingSeat } = data;
 
-  console.log("requiresNoPayment: ", JSON.stringify(data));
-
   if (
     !paymentAppData ||
     !paymentAppData.enabled ||
@@ -2639,8 +2771,6 @@ async function requiresNoPayment(data: {
       success: true,
     },
   });
-
-  console.log("payment: ", payment);
 
   return payment !== null;
 }

@@ -1554,6 +1554,7 @@ model WebhookScheduledTriggers {
   jobName       String? // jobName is deprecated, not needed when webhook and booking is set
   subscriberUrl String
   payload       String
+  scheduled     Boolean   @default(false)
   startAfter    DateTime
   retryCount    Int      @default(0)
 

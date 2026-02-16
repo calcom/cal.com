@@ -22,6 +22,8 @@ export const calIdDuplicateHandler = async ({ ctx, input }: CalIdDuplicateOption
     },
     include: {
       steps: true,
+      activeOn: true,
+      activeOnTeams: true,
     },
   });
 
@@ -40,6 +42,7 @@ export const calIdDuplicateHandler = async ({ ctx, input }: CalIdDuplicateOption
       timeUnit: originalWorkflow.timeUnit,
       userId: ctx.user.id,
       calIdTeamId: originalWorkflow.calIdTeamId,
+      isActiveOnAll: originalWorkflow.isActiveOnAll,
     },
   });
 
@@ -61,6 +64,24 @@ export const calIdDuplicateHandler = async ({ ctx, input }: CalIdDuplicateOption
       })
     )
   );
+
+  if (originalWorkflow.activeOn.length > 0) {
+    await prisma.calIdWorkflowsOnEventTypes.createMany({
+      data: originalWorkflow.activeOn.map((rel) => ({
+        workflowId: duplicatedWorkflow.id,
+        eventTypeId: rel.eventTypeId,
+      })),
+    });
+  }
+
+  if (originalWorkflow.activeOnTeams.length > 0) {
+    await prisma.calIdWorkflowsOnTeams.createMany({
+      data: originalWorkflow.activeOnTeams.map((rel) => ({
+        workflowId: duplicatedWorkflow.id,
+        calIdTeamId: rel.calIdTeamId,
+      })),
+    });
+  }
 
   return { workflow: duplicatedWorkflow };
 };

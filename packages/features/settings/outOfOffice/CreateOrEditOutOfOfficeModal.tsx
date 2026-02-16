@@ -1,5 +1,11 @@
 import { Button } from "@calid/features/ui/components/button";
-import { DialogTitle, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui/components/dialog";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { useState } from "react";
@@ -106,23 +112,29 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     // }
   );
 
-  console.log("Redirect members: ", redirectMembers);
-
   const redirectToMemberListOptions: {
     value: number;
     label: string;
     avatarUrl: string | null;
   }[] =
-    redirectMembers?.data?.members // ?.pages
-      // .flatMap((page) => page.members)
-      ?.filter((member) =>
-        oooType === OutOfOfficeTab.MINE ? me?.data?.id !== member.id : oooType === OutOfOfficeTab.TEAM
-      )
-      .map((member) => ({
-        value: member.user.id,
-        label: member.user.username || member.user.name || "",
-        avatarUrl: member.user.avatarUrl,
-      })) || [];
+    Array.from(
+      new Map(
+        redirectMembers?.data?.members
+          ?.filter((member) =>
+            oooType === OutOfOfficeTab.MINE
+              ? me?.data?.id !== member.user.id
+              : oooType === OutOfOfficeTab.TEAM
+          )
+          .map((member) => [
+            member.user.id, // 👈 unique key
+            {
+              value: member.user.id,
+              label: member.user.username || member.user.name || "",
+              avatarUrl: member.user.avatarUrl,
+            },
+          ]) ?? []
+      ).values()
+    ) || [];
   const { ref: observerRefRedirect } = useInViewObserver(() => {
     if (redirectMembers.hasNextPage && !redirectMembers.isFetching) {
       redirectMembers.fetchNextPage();
@@ -196,13 +208,23 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
+        <DialogHeader showIcon={true} iconName="clock" iconVariant="info">
+          <DialogTitle>
+            {currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")}
+          </DialogTitle>
+          <DialogDescription>
+            {currentlyEditingOutOfOfficeEntry
+              ? t("edit_an_out_of_office_description")
+              : t("create_an_out_of_office_description")}
+          </DialogDescription>
+        </DialogHeader>
         <form
           id="create-or-edit-ooo-form"
-          onSubmit={handleSubmit((data) => {
+          onSubmit={handleSubmit(async (data) => {
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
-              createOrEditOutOfOfficeEntry.mutate({
+              await createOrEditOutOfOfficeEntry.mutateAsync({
                 ...data,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
@@ -210,31 +232,6 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             }
           })}>
           <div className="h-full px-1">
-            <DialogHeader
-            // title={
-            //   currentlyEditingOutOfOfficeEntry
-            //     ? t("edit_an_out_of_office")
-            //     : oooType === "team"
-            //     ? t("create_ooo_dialog_team_title")
-            //     : t("create_an_out_of_office")
-            // }
-            // subtitle={
-            //   oooType === "team"
-            //     ? currentlyEditingOutOfOfficeEntry
-            //       ? t("edit_ooo_dialog_team_subtitle")
-            //       : t("create_ooo_dialog_team_subtitle")
-            //     : undefined
-            // }
-            >
-              <DialogTitle>
-                {currentlyEditingOutOfOfficeEntry
-                  ? t("edit_an_out_of_office")
-                  : oooType === "team"
-                  ? t("create_ooo_dialog_team_title")
-                  : t("create_an_out_of_office")}
-              </DialogTitle>
-            </DialogHeader>
-
             {/* In case of Team, Select Member for whom OOO is created */}
             {oooType === OutOfOfficeTab.TEAM && (
               <>
@@ -445,6 +442,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           <div>
             <Button
               color="minimal"
+              StartIcon="x"
               type="button"
               onClick={() => {
                 closeModal();
@@ -454,6 +452,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             </Button>
             <Button
               form="create-or-edit-ooo-form"
+              StartIcon="plus"
               color="primary"
               type="submit"
               disabled={isSubmitting || isReasonListPending}

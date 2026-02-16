@@ -54,6 +54,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
             rrTimestampBasis: true,
           },
         },
+        calIdTeamId: true,
         calIdTeam: {
           select: {
             id: true,

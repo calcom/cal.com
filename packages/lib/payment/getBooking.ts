@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
+import { calIdWorkflowSelect, workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -81,7 +81,7 @@ export async function getBooking(bookingId: number) {
           calIdWorkflows: {
             select: {
               workflow: {
-                select: workflowSelect,
+                select: calIdWorkflowSelect,
               },
             },
           },

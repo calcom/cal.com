@@ -6,7 +6,7 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
-import { BookingSeatData } from "@calcom/features/bookings/lib/handleSeats/types";
+import type { BookingSeatData } from "@calcom/features/bookings/lib/handleSeats/types";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -215,11 +215,11 @@ function resolveWorkflowStepStatus(
     const parsedScheduledDate = parseUtcTimestamp(workflowReminder.scheduledDate);
     const currentTime = Date.now();
 
-    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
-      return "DELIVERED";
-    }
     if (workflowReminder.cancelled) {
       return "CANCELLED";
+    }
+    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
+      return "DELIVERED";
     }
     if (workflowReminder.scheduled && parsedScheduledDate > currentTime) {
       return "QUEUED";
@@ -624,6 +624,8 @@ export async function getBookings({
           "Booking.fromReschedule",
           "Booking.rescheduled",
           "Booking.isRecorded",
+          "Booking.rating",
+          "Booking.ratingFeedback",
           jsonObjectFrom(
             eb
               .selectFrom("App_RoutingForms_FormResponse")

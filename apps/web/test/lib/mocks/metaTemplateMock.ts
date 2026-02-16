@@ -67,7 +67,7 @@ export const mockMediaTemplate: WhatsAppTemplate = {
       type: "BODY",
       example: {
         body_text_named_params: [
-          { example: "sukh@onehash.ai", param_name: "email" },
+          { example: "test@onehash.ai", param_name: "email" },
           { example: "90102939", param_name: "phone" },
           { example: "golu", param_name: "agent_name" },
           { example: "OneHash", param_name: "account" },
@@ -145,7 +145,7 @@ export const mockOpeth: WhatsAppTemplate = {
         {
           text: "Call phone number",
           type: "PHONE_NUMBER",
-          phone_number: "+916284851183",
+          phone_number: "+919999999999",
         },
       ],
     },

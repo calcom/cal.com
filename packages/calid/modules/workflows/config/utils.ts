@@ -1,4 +1,3 @@
-import { capitalize } from "lodash";
 import type { TFunction } from "next-i18next";
 
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -6,8 +5,10 @@ import { WorkflowActions, WorkflowTriggerEvents, WorkflowTemplates } from "@calc
 
 import type { CalIdWorkflowType } from "../config/types";
 import { defaultTemplateComponentsMap } from "../providers/meta_default_templates";
+import emailCancelledTemplate from "../templates/email/cancelled";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
+import emailRescheduledTemplate from "../templates/email/rescheduled";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
 import {
   ATTENDEE_WORKFLOW_TEMPLATES,
@@ -20,29 +21,23 @@ import {
   WORKFLOW_TRIGGER_EVENTS,
 } from "./constants";
 
-/**
- * Mapping of workflow templates to their default SMS message templates
- * Variables are replaced based on action type (attendee vs organizer/number)
- */
 const WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE: Record<WorkflowTemplates, string> = {
-  [WorkflowTemplates.REMINDER]: `Hi {RECIPIENT_NAME} - Just a heads-up, your meeting "{EVENT_NAME}" is coming up on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+  [WorkflowTemplates.REMINDER]: `Hi {RECIPIENT_NAME} - Just a heads-up, your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} is coming up on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
 
 - Cal ID`,
-  [WorkflowTemplates.CANCELLED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" scheduled for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} has been cancelled.
+  [WorkflowTemplates.CANCELLED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} scheduled for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} has been cancelled.
 
 - Cal ID`,
-  [WorkflowTemplates.RESCHEDULED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" has a new time: {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+  [WorkflowTemplates.RESCHEDULED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} has a new time: {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
 
 - Cal ID`,
-  [WorkflowTemplates.COMPLETED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_NAME}" on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} is all wrapped up. Thanks for joining!
+  [WorkflowTemplates.COMPLETED]: `Hi {RECIPIENT_NAME} - Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} on {EVENT_DATE} at {EVENT_TIME} {TIMEZONE} is all wrapped up. Thanks for joining!
 
 - Cal ID`,
-  [WorkflowTemplates.CONFIRMATION]: `Hi {RECIPIENT_NAME} - You are all set! Your meeting "{EVENT_NAME}" is confirmed for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
+  [WorkflowTemplates.CONFIRMATION]: `Hi {RECIPIENT_NAME} - You are all set! Your meeting "{EVENT_TYPE_NAME}" with {SENDER_NAME} is confirmed for {EVENT_DATE} at {EVENT_TIME} {TIMEZONE}. See you then!
 
 - Cal ID`,
-  // CUSTOM workflow uses user-provided messageTemplate, so no default needed
   [WorkflowTemplates.CUSTOM]: "",
-  // RATING and THANKYOU currently have no default templates
   [WorkflowTemplates.RATING]: "",
   [WorkflowTemplates.THANKYOU]: "",
 };
@@ -59,12 +54,15 @@ function getSMSDefaultTemplateBody(template: WorkflowTemplates, action: Workflow
     return "";
   }
 
-  // Determine recipient name variable based on action type
   const recipientNameVariable =
     action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE_NAME}" : "{ORGANIZER_NAME}";
 
-  // Replace {RECIPIENT_NAME} with the appropriate variable and convert \n to <br>
-  return defaultTemplate.replace(/{RECIPIENT_NAME}/g, recipientNameVariable).replace(/\n/g, "<br>");
+  const senderNameVariable = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER_NAME}" : "{ATTENDEE_NAME}";
+
+  return defaultTemplate
+    .replace(/{RECIPIENT_NAME}/g, recipientNameVariable)
+    .replace(/{SENDER_NAME}/g, senderNameVariable)
+    .replace(/\n/g, "<br>");
 }
 
 function validateSenderIdFormat(str: string): boolean {
@@ -107,14 +105,12 @@ function getTimeFormatFromUserSetting(timeFormat: number | null | undefined): Ti
   return timeFormat === 24 ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR;
 }
 
-const determineWhatsappTemplateHandler = (
-  actionType: WorkflowActions,
-  templateCategory?: WorkflowTemplates
-): string => {
-  return defaultTemplateComponentsMap(
-    templateCategory ?? WorkflowTemplates.REMINDER,
-    actionType.includes("ATTENDEE") ? "attendee" : "organizer"
-  ).components[0].text;
+const determineWhatsappTemplateHandler = (templateCategory?: WorkflowTemplates): string => {
+  return (
+    defaultTemplateComponentsMap(templateCategory ?? WorkflowTemplates.REMINDER).components.find(
+      (e) => e.type === "BODY"
+    )?.text ?? "Body not found"
+  );
 };
 
 function determineEmailTemplateHandler(template?: WorkflowTemplates) {
@@ -125,19 +121,22 @@ function determineEmailTemplateHandler(template?: WorkflowTemplates) {
       return emailRatingTemplate;
     case WorkflowTemplates.THANKYOU:
       return emailThankYouTemplate;
+    case WorkflowTemplates.CANCELLED:
+      return emailCancelledTemplate;
+    case WorkflowTemplates.RESCHEDULED:
+      return emailRescheduledTemplate;
     default:
       return emailReminderTemplate;
   }
 }
 
-// seems like this method is not used anywhere
 function getWhatsappTemplateContent(
   actionType: WorkflowActions,
   localeString: string,
   templateType: WorkflowTemplates,
   timeFormatSetting: TimeFormat
 ): string | null {
-  const contentRenderer = determineWhatsappTemplateHandler(actionType, templateType);
+  const contentRenderer = determineWhatsappTemplateHandler(templateType);
   return contentRenderer;
 }
 
@@ -303,7 +302,7 @@ function getTemplateBodyForAction({
   }
 
   if (isWhatsappAction(action)) {
-    const body = determineWhatsappTemplateHandler(action, template);
+    const body = determineWhatsappTemplateHandler(template);
     return body;
   }
 
@@ -350,9 +349,6 @@ export {
   compareReminderBodyToTemplate,
 };
 
-/**
- * Generate trigger text for a workflow
- */
 export const generateTriggerText = (workflow: CalIdWorkflowType, t: TFunction): string => {
   let triggerStr = t(`${workflow.trigger.toLowerCase()}_trigger`);
   if (workflow.timeUnit && workflow.time) {
@@ -360,15 +356,11 @@ export const generateTriggerText = (workflow: CalIdWorkflowType, t: TFunction): 
       count: workflow.time,
     })} ${triggerStr}`;
   }
-  return capitalize(triggerStr);
+  return triggerStr.charAt(0).toUpperCase() + triggerStr.slice(1).toLowerCase();
 };
 
-/**
- * Generate event type info text for a workflow
- */
 export const generateEventTypeInfo = (workflow: CalIdWorkflowType, t: TFunction): string => {
   if (workflow.isActiveOnAll) {
-    // return workflow.isOrg  ? t("active_on_all_teams") : t("active_on_all_event_types");
     return t("active_on_all_event_types");
   } else if (workflow.activeOn && workflow.activeOn.length > 0) {
     const count = workflow.activeOn.filter((wf) =>
@@ -378,22 +370,73 @@ export const generateEventTypeInfo = (workflow: CalIdWorkflowType, t: TFunction)
   } else if (workflow.activeOnTeams && workflow.activeOnTeams.length > 0) {
     return t("active_on_teams", { count: workflow.activeOnTeams.length });
   } else {
-    // return workflow.isOrg ? t("no_active_teams") : t("no_active_event_types");
     return t("no_active_event_types");
   }
 };
 
-/**
- * Generate action count text for a workflow
- */
-export const generateActionText = (workflow: CalIdWorkflowType): string => {
-  const actionCount = workflow.steps?.length || 0;
-  return `${actionCount} ${actionCount <= 1 ? "Action" : "Actions"} added`;
+export const generateTriggerTimingBadgeText = (workflow: CalIdWorkflowType, t: TFunction): string => {
+  if (workflow.time == null || workflow.time === 0 || !workflow.timeUnit) {
+    return t("immediate_trigger");
+  }
+  const unit = t(`${workflow.timeUnit.toLowerCase()}_timeUnit`, {
+    count: workflow.time,
+  });
+  const timeAndUnit = `${workflow.time} ${unit}`;
+  if (workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+    return `${t("before").charAt(0).toUpperCase() + t("before").slice(1)} ${timeAndUnit}`;
+  }
+  return `${t("after").charAt(0).toUpperCase() + t("after").slice(1)} ${timeAndUnit}`;
 };
 
-/**
- * Generate workflow title with fallback logic
- */
+export const getActiveChannelsCount = (workflow: CalIdWorkflowType): number => {
+  const steps = workflow.steps ?? [];
+  let hasEmail = false;
+  let hasSms = false;
+  let hasWhatsapp = false;
+  for (const step of steps) {
+    if (isEmailAction(step.action)) hasEmail = true;
+    if (isSMSAction(step.action)) hasSms = true;
+    if (isWhatsappAction(step.action)) hasWhatsapp = true;
+  }
+  return (hasEmail ? 1 : 0) + (hasSms ? 1 : 0) + (hasWhatsapp ? 1 : 0);
+};
+
+export const getEventTypeTooltipContent = (workflow: CalIdWorkflowType, t: TFunction): string => {
+  if (workflow.isActiveOnAll) {
+    return t("active_on_all_event_types");
+  }
+  if (workflow.activeOn && workflow.activeOn.length > 0) {
+    const items = workflow.activeOn.filter((wf) =>
+      workflow.calIdTeamId ? wf.eventType.parentId === null : true
+    );
+    return items.map((item) => item.eventType.title).join(", ");
+  }
+  if (workflow.activeOnTeams && workflow.activeOnTeams.length > 0) {
+    return workflow.activeOnTeams
+      .map((item) => item.calIdTeam.name ?? String(item.calIdTeam.id))
+      .filter(Boolean)
+      .join(", ");
+  }
+  return t("no_active_event_types");
+};
+
+export const getActiveChannelNamesForTooltip = (workflow: CalIdWorkflowType, t: TFunction): string[] => {
+  const steps = workflow.steps ?? [];
+  const channels: string[] = [];
+  let hasEmail = false;
+  let hasSms = false;
+  let hasWhatsapp = false;
+  for (const step of steps) {
+    if (isEmailAction(step.action)) hasEmail = true;
+    if (isSMSAction(step.action)) hasSms = true;
+    if (isWhatsappAction(step.action)) hasWhatsapp = true;
+  }
+  if (hasEmail) channels.push(t("email"));
+  if (hasSms) channels.push(t("sms"));
+  if (hasWhatsapp) channels.push(t("whatsapp"));
+  return channels;
+};
+
 export const generateWorkflowTitle = (workflow: CalIdWorkflowType, t: TFunction): string => {
   if (workflow.name) return workflow.name;
 
@@ -405,13 +448,21 @@ export const generateWorkflowTitle = (workflow: CalIdWorkflowType, t: TFunction)
   return "Untitled";
 };
 
-/**
- * Filter teams from profiles
- */
 export const filterTeamsFromProfiles = (profiles: any[]): any[] => {
   return profiles.filter((profile) => !!profile.teamId);
 };
 
 export function shouldScheduleEmailReminder(action: WorkflowActions) {
   return action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST;
+}
+
+export function doesHaveSmsAttendeeWorkflow(workflows, trigger: WorkflowTriggerEvents) {
+  if (!Array.isArray(workflows)) return false;
+
+  return workflows.some(
+    (workflow) =>
+      workflow.trigger === trigger &&
+      Array.isArray(workflow.steps) &&
+      workflow.steps.some((step) => step.action === "SMS_ATTENDEE")
+  );
 }

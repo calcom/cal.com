@@ -21,6 +21,7 @@ import {
   $getSelection,
   $insertNodes,
   $isRangeSelection,
+  $setSelection,
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
@@ -61,14 +62,45 @@ function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
   }
 }
 
-function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
+function normalizeUrl(rawUrl: string) {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return "";
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+function FloatingLinkEditor({
+  editor,
+  selectionRef,
+}: {
+  editor: LexicalEditor;
+  selectionRef: React.MutableRefObject<RangeSelection | NodeSelection | GridSelection | null>;
+}) {
   const editorRef = useRef<HTMLInputElement>(null);
   const mouseDownRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const lastSelectionRef = useRef<RangeSelection | NodeSelection | GridSelection | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [isEditMode, setEditMode] = useState(true);
   const [lastSelection, setLastSelection] = useState<RangeSelection | NodeSelection | GridSelection | null>(
     null
+  );
+
+  const commitLink = useCallback(
+    (rawUrl: string) => {
+      const selection = lastSelectionRef.current || selectionRef.current;
+      if (selection === null) return;
+      const selectionToRestore =
+        "clone" in selection && typeof selection.clone === "function" ? selection.clone() : selection;
+      const normalizedUrl = normalizeUrl(rawUrl);
+      const shouldRemove = normalizedUrl === "" || normalizedUrl === "https://";
+      editor.update(() => {
+        $setSelection(selectionToRestore);
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, shouldRemove ? null : normalizedUrl);
+      });
+      setEditMode(false);
+    },
+    [editor]
   );
 
   const updateLinkEditor = useCallback(() => {
@@ -77,11 +109,11 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
       const node = getSelectedNode(selection);
       const parent = node.getParent();
       if ($isLinkNode(parent)) {
-        setLinkUrl(parent.getURL());
+        if (!isEditMode) setLinkUrl(parent.getURL());
       } else if ($isLinkNode(node)) {
-        setLinkUrl(node.getURL());
+        if (!isEditMode) setLinkUrl(node.getURL());
       } else {
-        setLinkUrl("");
+        if (!isEditMode) setLinkUrl("");
       }
     }
     const editorElem = editorRef.current;
@@ -114,19 +146,25 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
         positionEditorElement(editorElem, rect || null);
       }
 
-      setLastSelection(selection);
+      const selectionSnapshot = selection.clone();
+      setLastSelection(selectionSnapshot);
+      lastSelectionRef.current = selectionSnapshot;
+      selectionRef.current = selectionSnapshot;
     } else if (
       !activeElement ||
-      (activeElement.className !== "link-input" && !editorElem.contains(activeElement)) 
+      (activeElement.className !== "link-input" && !editorElem.contains(activeElement))
     ) {
-      positionEditorElement(editorElem, null);
-      setLastSelection(null);
-      setEditMode(false);
-      setLinkUrl("");
+      if (!isEditMode) {
+        positionEditorElement(editorElem, null);
+        setLastSelection(null);
+        lastSelectionRef.current = null;
+        setEditMode(false);
+        setLinkUrl("");
+      }
     }
 
     return true;
-  }, [editor]);
+  }, [editor, isEditMode, selectionRef]);
 
   // Add click outside handler
   useEffect(() => {
@@ -141,9 +179,13 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
         const isClickInEditor = rootElement && rootElement.contains(target);
 
         if (!isClickInEditor) {
+          if (isEditMode) {
+            commitLink(linkUrl);
+          }
           // Clicked outside both link editor and lexical editor - close it
           positionEditorElement(editorElem, null);
           setLastSelection(null);
+          lastSelectionRef.current = null;
           setEditMode(false);
           setLinkUrl("");
         }
@@ -154,7 +196,7 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [editor]);
+  }, [editor, commitLink, isEditMode, linkUrl]);
 
   useEffect(() => {
     return mergeRegister(
@@ -193,18 +235,19 @@ function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
         <input
           ref={inputRef}
           className="link-input"
+          placeholder="https://"
           value={linkUrl}
           onChange={(event) => {
             setLinkUrl(event.target.value);
+          }}
+          onBlur={() => {
+            if (isEditMode) commitLink(linkUrl);
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault();
               if (lastSelection !== null) {
-                if (linkUrl !== "") {
-                  editor.dispatchCommand(TOGGLE_LINK_COMMAND, linkUrl);
-                }
-                setEditMode(false);
+                commitLink(linkUrl);
               }
             } else if (event.key === "Escape") {
               event.preventDefault();
@@ -253,6 +296,7 @@ function getSelectedNode(selection: RangeSelection) {
 export default function ToolbarPlugin(props: TextEditorProps) {
   const [editor] = useLexicalComposerContext();
   const toolbarRef = useRef(null);
+  const linkSelectionRef = useRef<RangeSelection | NodeSelection | GridSelection | null>(null);
   const [blockType, setBlockType] = useState("paragraph");
   const [isLink, setIsLink] = useState(false);
   const [isBold, setIsBold] = useState(false);
@@ -453,6 +497,12 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
   const insertLink = useCallback(() => {
     if (!isLink) {
+      editor.getEditorState().read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          linkSelectionRef.current = selection.clone();
+        }
+      });
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
     } else {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
@@ -538,7 +588,11 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                 onClick={insertLink}
                 className={isLink ? "bg-subtle" : ""}
               />
-              {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+              {isLink &&
+                createPortal(
+                  <FloatingLinkEditor editor={editor} selectionRef={linkSelectionRef} />,
+                  document.body
+                )}{" "}
             </>
           )}
         </>

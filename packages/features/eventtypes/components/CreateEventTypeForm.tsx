@@ -1,4 +1,4 @@
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { TextAreaField } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
@@ -44,7 +44,7 @@ export default function CreateEventTypeForm({
       onSubmit={(values) => {
         handleSubmit(values);
       }}>
-      <div className="mt-3 space-y-6 pb-11">
+      <div className="space-y-6">
         <FormField
           name="title"
           control={form.control}

@@ -1,4 +1,12 @@
 import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +24,6 @@ import {
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { Dialog, DialogContent, DialogFooter } from "@calid/features/ui/components/dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -107,19 +114,19 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Icon name="phone" className="h-3.5 w-3.5" />;
+        return <Icon name="phone" className="text-default h-4 w-4" />;
       case "userPhone":
-        return <Icon name="phone" className="h-3.5 w-3.5" />;
+        return <Icon name="phone" className="text-default h-4 w-4" />;
       case "inPerson":
-        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
+        return <Icon name="map-pin" className="text-default h-4 w-4" />;
       case "attendeeInPerson":
-        return <Icon name="map-pin" className="h-3.5 w-3.5" />;
+        return <Icon name="map-pin" className="text-default h-4 w-4" />;
       case "link":
-        return <Icon name="link" className="h-3.5 w-3.5" />;
+        return <Icon name="link" className="text-default h-4 w-4" />;
       case "somewhereElse":
-        return <Icon name="map" className="h-3.5 w-3.5" />;
+        return <Icon name="map" className="text-default h-4 w-4" />;
       default:
-        return <Icon name="video" className="h-3.5 w-3.5" />;
+        return <Icon name="video" className="text-default h-4 w-4" />;
     }
   };
 
@@ -243,6 +250,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={(open) => setShowLocationModal(open)}>
       <DialogContent>
+        <DialogHeader showIcon iconName="map-pin" iconVariant="info">
+          <DialogTitle>{t("edit_location")}</DialogTitle>
+          <DialogDescription>{t("edit_location_subtitle")}</DialogDescription>
+        </DialogHeader>
         <Form
           form={locationFormMethods}
           handleSubmit={async (values) => {
@@ -276,19 +287,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               setIsLocationUpdating(false);
             }
           }}>
-          <div className="flex flex-row space-x-3">
+          <div className="flex flex-row">
             <div className="w-full">
-              <div className="mt-3 text-center sm:mt-0 sm:text-left">
-                <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-                  {t("edit_location")}
-                </h3>
-              </div>
-              <div className="mt-3 text-center sm:mt-0 sm:text-left" />
-
               <div className="text-muted flex flex-row items-center pt-4">
-                <p className="text-emphasis pr-2 text-sm font-bold">{t("current_location")}:</p>
+                <p className="text-default pr-2 text-sm font-semibold">{t("current_location")}:</p>
                 {getIconFromValue(booking.location)}
-                <p className=" text-emphasis break-all pl-1 text-sm">
+                <p className=" text-default break-all pl-1 text-sm">
                   {getHumanReadableLocationValue(booking.location, t)}
                 </p>
               </div>
@@ -352,6 +356,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           </div>
           <DialogFooter className="mt-8">
             <Button
+              StartIcon="x"
               onClick={() => {
                 setShowLocationModal(false);
                 setSelectedLocation?.(undefined);
@@ -363,6 +368,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             </Button>
             <Button
               data-testid="update-location"
+              StartIcon="check"
               type="submit"
               disabled={isLocationUpdating}>
               {t("update")}

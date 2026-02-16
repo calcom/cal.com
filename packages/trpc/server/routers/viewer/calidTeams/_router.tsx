@@ -14,6 +14,8 @@ import { ZLeaveTeamSchema } from "./leaveTeam.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZRemoveMemberSchema } from "./removeMember.schema";
 import { ZResendCalidInvitationSchema } from "./resendInvitation.schema";
+import { ZRoundRobinManualReassignInputSchema } from "./roundRobinManualReassign.schema";
+import { ZRoundRobinReassignInputSchema } from "./roundRobinReassign.schema";
 import { ZUpdateCalidTeamSchema } from "./update.schema";
 import { ZUpdateMemberSchema } from "./updateMember.schema";
 
@@ -134,4 +136,18 @@ export const calIdTeamsRouter = router({
       input,
     });
   }),
+
+  roundRobinReassign: authedProcedure
+    .input(ZRoundRobinReassignInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { roundRobinReassignHandler } = await import("./roundRobinReassign.handler");
+      return roundRobinReassignHandler({ ctx, input });
+    }),
+
+  roundRobinManualReassign: authedProcedure
+    .input(ZRoundRobinManualReassignInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { roundRobinManualReassignHandler } = await import("./roundRobinManualReassign.handler");
+      return roundRobinManualReassignHandler({ ctx, input });
+    }),
 });

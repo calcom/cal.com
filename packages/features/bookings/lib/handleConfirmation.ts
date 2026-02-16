@@ -26,7 +26,7 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
-import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { getAllCalIdWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util.calid";
 import type { AdditionalInformation, CalendarEvent, RecurringEvent, Person } from "@calcom/types/Calendar";
 
 import { getCalEventResponses } from "./getCalEventResponses";
@@ -110,7 +110,7 @@ export async function handleConfirmation(args: {
   const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
-  const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
+  const workflows = await getAllCalIdWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -153,7 +153,8 @@ export async function handleConfirmation(args: {
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
           eventTypeMetadata,
-          args.curAttendee
+          args.curAttendee,
+          true
         );
       }
     } catch (error) {

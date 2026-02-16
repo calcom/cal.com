@@ -26,7 +26,7 @@ export const WorkflowLoading: React.FC = () => {
             {[...Array(6)].map((_, idx) => (
               <div
                 key={idx}
-                className="border-border bg-card flex flex-col items-center justify-center rounded-lg border p-4">
+                className="border-border bg-default flex flex-col items-center justify-center rounded-lg border p-4">
                 <div className="bg-muted mb-4 h-10 w-10 animate-pulse rounded-md" />
                 <SkeletonText className="mb-2 h-5 w-32" />
                 <SkeletonText className="mb-4 h-4 w-40" />
@@ -46,7 +46,7 @@ export const WorkflowLoading: React.FC = () => {
           <SkeletonText className="mb-4 h-6 w-40" />
 
           <div className="space-y-4">
-            <div className="bg-card border-default flex items-start justify-between rounded-md border px-3 py-5">
+            <div className="bg-default border-default flex items-start justify-between rounded-md border px-3 py-5">
               <div className="min-w-0 flex-1">
                 <div className="mb-2 flex items-center justify-between">
                   <SkeletonText className="h-5 w-48" />

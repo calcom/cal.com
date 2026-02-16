@@ -1,6 +1,10 @@
 // meta.ts
 import type { Prisma } from "@prisma/client";
+import type { Dayjs } from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
+import dayjs from "@calcom/dayjs";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -11,7 +15,11 @@ import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
+import wordTruncate from "../utils/getTruncatedString";
 import { defaultTemplateNamesMap, defaultTemplateComponentsMap } from "./meta_default_templates";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
 export class MetaError extends Error {
@@ -163,7 +171,7 @@ const SNAKE_CASE_PATTERN = /\{\{([a-z_][a-z0-9_]*)\}\}/g;
 
 const extractTemplateVariables = (
   component: TemplateComponent,
-  variableData: VariablesType,
+  variableData: ExpandedVariablesType,
   isNamedParams: boolean
 ): Array<{ type: string; text: string; parameter_name?: string }> => {
   const parameters: Array<{ type: string; text: string; parameter_name?: string }> = [];
@@ -194,23 +202,21 @@ const extractTemplateVariables = (
   orderedParams.forEach((paramName) => {
     // Convert snake_case to camelCase for looking up in variableData
     const camelCaseKey = snakeToCamel(paramName);
-    const fieldValue = variableData[camelCaseKey as keyof VariablesType];
+    const fieldValue = variableData[camelCaseKey as keyof VariablesType] ?? "";
 
     // Only include if the value exists and is not undefined
-    if (fieldValue !== undefined) {
-      if (isNamedParams) {
-        // Keep snake_case for Meta API parameter_name
-        parameters.push({
-          type: "text",
-          parameter_name: paramName, // Use original snake_case name
-          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
-        });
-      } else {
-        parameters.push({
-          type: "text",
-          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
-        });
-      }
+    if (isNamedParams) {
+      // Keep snake_case for Meta API parameter_name
+      parameters.push({
+        type: "text",
+        parameter_name: paramName, // Use original snake_case name
+        text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
+      });
+    } else {
+      parameters.push({
+        type: "text",
+        text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
+      });
     }
   });
 
@@ -289,12 +295,66 @@ const uploadMediaToWhatsApp = async (
   }
 };
 
+type ExpandedVariablesType = VariablesType & {
+  recipientName?: string;
+  senderName?: string;
+  eventStartTimeInAttendeeTimezone?: string;
+  eventEndTimeInAttendeeTimezone?: string;
+};
+
+const calculateSuffixLength = (templateText: string, variableName: string): number => {
+  // Find the variable placeholder in the template
+  const variablePattern = new RegExp(`\\{\\{${variableName}\\}\\}`, "g");
+
+  // Replace the variable placeholder with empty string to get surrounding text
+  const textWithoutVariable = templateText.replace(variablePattern, "");
+  return textWithoutVariable.length + 20 /* +20 cuz meta needs extra buffer */;
+};
+
+const getCappedVariables = (
+  component: TemplateComponent,
+  expandedVariables: ExpandedVariablesType,
+  maxTotalLength = 60
+): ExpandedVariablesType => {
+  if (!component.text) return expandedVariables;
+
+  // Check if event_type_name exists in the template
+  const hasEventTypeName = /\{\{event_type_name\}\}/.test(component.text);
+
+  if (!hasEventTypeName) {
+    // No event_type_name variable, return as is
+    return expandedVariables;
+  }
+
+  // Calculate the length of text surrounding the event_type_name variable
+  const suffixLength = calculateSuffixLength(component.text, "event_type_name");
+
+  // Calculate max length for event_type_name (accounting for ellipsis)
+  const maxLengthForEventTypeName = maxTotalLength - (suffixLength + 3); /* for ellipsis */
+
+  return {
+    ...expandedVariables,
+    eventTypeName: wordTruncate(expandedVariables.eventTypeName, maxLengthForEventTypeName),
+  };
+};
+
+function formatTimeInTimezone(value: string | Dayjs | undefined | null, timezone: string, format = "h:mma") {
+  if (!value) return undefined;
+
+  if (typeof value === "string") {
+    return dayjs.utc(value).tz(timezone).format(format);
+  }
+
+  return value.format(format);
+}
+
 // Update the buildMetaTemplateComponentsFromTemplate function
 export const buildMetaTemplateComponentsFromTemplate = async (
   template: WhatsAppTemplate,
   variableData: VariablesType,
   phoneNumberId: string,
-  accessToken: string
+  accessToken: string,
+  recieverType: "attendee" | "organizer"
 ): Promise<
   Array<{
     type: string;
@@ -304,6 +364,27 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     document?: { id: string };
   }>
 > => {
+  const expandedVariables = {
+    ...variableData,
+    eventStartTimeInAttendeeTimezone: formatTimeInTimezone(
+      variableData.eventStartTimeInAttendeeTimezone,
+      variableData.attendeeTimezone
+    ),
+
+    eventEndTimeInAttendeeTimezone: formatTimeInTimezone(
+      variableData.eventEndTimeInAttendeeTimezone,
+      variableData.attendeeTimezone
+    ),
+
+    eventStartTime: formatTimeInTimezone(variableData.eventStartTime, variableData.timezone),
+
+    eventEndTime: formatTimeInTimezone(variableData.eventEndTime, variableData.timezone),
+
+    recipientName:
+      recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
+    senderName:
+      recieverType === "attendee" ? variableData.organizerFirstName : variableData.attendeeFirstName,
+  };
   const components: Array<{
     type: string;
     parameters?: Array<{
@@ -383,7 +464,11 @@ export const buildMetaTemplateComponentsFromTemplate = async (
         }
       } else if (component.format === "TEXT" && component.text) {
         // Extract snake_case variable placeholders from header text
-        const headerParams = extractTemplateVariables(component, variableData, isNamedParams);
+
+        const cappedVariables = getCappedVariables(component, expandedVariables);
+
+        const headerParams = extractTemplateVariables(component, cappedVariables, isNamedParams);
+
         if (headerParams.length > 0) {
           components.push({
             type: "header",
@@ -395,8 +480,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 
     // Handle BODY component
     if (component.type === "BODY" && component.text) {
-      const bodyParams = extractTemplateVariables(component, variableData, isNamedParams);
-      console.log("body params: ", bodyParams);
+      const bodyParams = extractTemplateVariables(component, expandedVariables, isNamedParams);
       if (bodyParams.length > 0) {
         components.push({
           type: "body",
@@ -413,7 +497,7 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 
           if (fieldName) {
             const camelCaseKey = snakeToCamel(fieldName);
-            const fieldValue = variableData[camelCaseKey as keyof VariablesType];
+            const fieldValue = expandedVariables[camelCaseKey as keyof VariablesType];
 
             if (fieldValue !== undefined) {
               components.push({
@@ -520,10 +604,9 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       ? ((whatsappPhone.templates as Prisma.JsonArray).find(
           (e: any) => e?.name === config.metaTemplateName
         ) as WhatsAppTemplate | undefined)
-      : defaultTemplateComponentsMap(
-          config.templateType,
-          config.action.includes("ATTENDEE") ? "attendee" : "organizer"
-        );
+      : config.templateType
+      ? defaultTemplateComponentsMap(config.templateType)
+      : null;
 
     if (!template) {
       throw new Error(`Template ${config.metaTemplateName} not found in WhatsApp phone configuration`);
@@ -548,12 +631,7 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
 
     messagePayload.type = "template";
     messagePayload.template = {
-      name:
-        config.metaTemplateName ??
-        defaultTemplateNamesMap(
-          config.templateType!,
-          config.action.includes("ATTENDEE") ? "attendee" : "organizer"
-        ),
+      name: config.metaTemplateName ?? defaultTemplateNamesMap(config.templateType!),
       language: {
         code: template.language || "en",
       },
@@ -564,7 +642,8 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
       template,
       config.variableData,
       phoneNumberId,
-      credentials?.key?.access_token || META_ACCESS_TOKEN!
+      credentials?.key?.access_token || META_ACCESS_TOKEN!,
+      config.action.includes("ATTENDEE") ? "attendee" : "organizer"
     );
 
     messageLogger.debug("Built template components", {
@@ -712,6 +791,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
       workflowStepId: config.workflowStepId,
       method: "WHATSAPP",
       seatReferenceId: config.seatReferenceUid || null,
+      OR: [{ cancelled: false }, { cancelled: null }],
     },
   });
 
@@ -765,10 +845,6 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
 
   // Schedule with Inngest
   try {
-    console.log(
-      "Sending Inngest scheduling event for WhatsApp reminder: ",
-      delay > 0 ? now.getTime() + delay : undefined
-    );
     const { ids } = await inngestClient.send({
       name: `whatsapp/reminder.scheduled-${key}`,
       data: {

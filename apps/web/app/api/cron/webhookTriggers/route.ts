@@ -12,9 +12,9 @@ async function postHandler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  await handleWebhookScheduledTriggers(prisma);
+  const result = await handleWebhookScheduledTriggers(prisma);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, ...result });
 }
 
 export const POST = defaultResponderForAppDir(postHandler);

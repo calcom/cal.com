@@ -33,7 +33,12 @@ const WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CONFIRMATION,
 ] as const;
 
-const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
+const BASIC_WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.CUSTOM,
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
+] as const;
 
 const SMS_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
@@ -48,6 +53,8 @@ const ATTENDEE_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.REMINDER,
   WorkflowTemplates.RATING,
   WorkflowTemplates.THANKYOU,
+  WorkflowTemplates.CANCELLED,
+  WorkflowTemplates.RESCHEDULED,
 ] as const;
 
 const WHATSAPP_WORKFLOW_TEMPLATES = [
@@ -55,6 +62,7 @@ const WHATSAPP_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.COMPLETED,
   WorkflowTemplates.CANCELLED,
   WorkflowTemplates.RESCHEDULED,
+  WorkflowTemplates.CONFIRMATION,
 ] as const;
 
 const DYNAMIC_TEXT_VARIABLES = [
@@ -73,6 +81,7 @@ const DYNAMIC_TEXT_VARIABLES = [
   "additional_notes",
   "meeting_url",
   "cancel_url",
+  "cancellation_reason",
   "reschedule_url",
   "rating_url",
   "no_show_url",

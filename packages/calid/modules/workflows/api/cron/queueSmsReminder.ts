@@ -2,19 +2,16 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods, WorkflowStatus, WorkflowTemplates } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 
 // import * as twilio from "../../providers/twilio";
 import * as smsService from "../..//providers/messaging/dispatcher";
-import customTemplate from "../../templates/customTemplate";
-import type { VariablesType } from "../../templates/customTemplate";
-import smsReminderTemplate from "../../templates/sms/reminder";
+import { WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE } from "../../managers/smsManager";
+import type { SendSmsResponse } from "../../providers/messaging/config/type";
 import { getSenderId } from "../../utils/getSenderId";
+import wordTruncate from "../../utils/getTruncatedString";
 import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
 import { select } from "../../utils/getWorkflows";
 
@@ -78,63 +75,49 @@ const processNotificationQueue = async (): Promise<number> => {
           ? notification.booking?.attendees[0].locale
           : notification.booking?.user?.locale;
 
-      let messageText: string | null = notification.workflowStep.reminderBody || null;
+      // Initialize messageText with empty string instead of null
+      let messageText = "";
 
-      if (notification.workflowStep.reminderBody) {
-        const { responses } = getCalEventResponses({
-          bookingFields: notification.booking.eventType?.bookingFields ?? null,
-          booking: notification.booking,
-        });
+      // Use the new default template system from smsManager for other workflow templates
+      const targetAttendee = notification.booking.attendees[0];
 
-        const organizerProfile = await prisma.profile.findFirst({
-          where: {
-            userId: notification.booking.user?.id,
-          },
-        });
+      const defaultTemplate =
+        WORKFLOW_TEMPLATE_TO_DEFAULT_MESSAGE[notification.workflowStep.template as WorkflowTemplates];
 
-        const organizerOrgId = organizerProfile?.organizationId;
+      if (defaultTemplate) {
+        const recipientName =
+          notification.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+            ? targetAttendee.name
+            : notification.booking.user?.name || "";
 
-        const bookingBaseUrl = await getBookerBaseUrl(
-          notification.booking.eventType?.team?.parentId ?? organizerOrgId ?? null
+        const senderName =
+          notification.workflowStep.action === WorkflowActions.SMS_ATTENDEE
+            ? notification.booking.user?.name || ""
+            : targetAttendee.name;
+
+        //To prevent template variable length constraints, we are truncating event title to 40 characters and removing any double quotes to avoid breaking the message format. This is done to ensure that the most important information is conveyed within the SMS character limits.
+        const eventTitle = wordTruncate(
+          (notification.booking.eventType?.title ?? "").trim().replace(/"/g, "")
         );
 
-        const templateData: VariablesType = {
-          eventName: notification.booking?.eventType?.title,
-          organizerName: notification.booking?.user?.name || "",
-          attendeeName: notification.booking?.attendees[0].name,
-          attendeeEmail: notification.booking?.attendees[0].email,
-          eventDate: dayjs(notification.booking?.startTime).tz(participantTimeZone),
-          eventEndTime: dayjs(notification.booking?.endTime).tz(participantTimeZone),
-          timezone: participantTimeZone,
-          location: notification.booking?.location || "",
-          additionalNotes: notification.booking?.description,
-          responses: responses,
-          meetingUrl: bookingMetadataSchema.parse(notification.booking?.metadata || {})?.videoCallUrl,
-          cancelUrl: `${bookingBaseUrl}/booking/${notification.booking.uid}?cancel=true`,
-          rescheduleUrl: `${bookingBaseUrl}/reschedule/${notification.booking.uid}`,
-        };
-        const processedMessage = customTemplate(
-          notification.workflowStep.reminderBody || "",
-          templateData,
-          participantLocale || "en",
-          getTimeFormatStringFromUserTimeFormat(notification.booking.user?.timeFormat)
-        );
-        messageText = processedMessage.text;
-      } else if (notification.workflowStep.template === WorkflowTemplates.REMINDER) {
-        messageText = smsReminderTemplate(
-          false,
-          participantLocale ?? "en",
-          notification.workflowStep.action,
-          getTimeFormatStringFromUserTimeFormat(notification.booking.user?.timeFormat),
-          notification.booking?.startTime.toISOString() || "",
-          notification.booking?.eventType?.title || "",
-          participantTimeZone || "",
-          participantDisplayName || "",
-          recipientDisplayName
-        );
+        const eventMoment = dayjs(notification.booking.startTime)
+          .tz(participantTimeZone || "UTC")
+          .locale(participantLocale || "en");
+        const formattedDate = eventMoment.format("DD MMM YYYY");
+        const formattedTimeWithLocalizedTimeZone = eventMoment.format("h:mma [GMT]Z");
+        const [formattedTime, localizedRecipientTimezone] = formattedTimeWithLocalizedTimeZone.split(" ");
+
+        messageText = defaultTemplate
+          .replace(/\{\{1\}\}/g, recipientName.split(" ")[0])
+          .replace(/\{\{2\}\}/g, eventTitle)
+          .replace(/\{\{3\}\}/g, senderName.split(" ")[0])
+          .replace(/\{\{4\}\}/g, formattedDate)
+          .replace(/\{\{5\}\}/g, formattedTime)
+          .replace(/\{\{6\}\}/g, localizedRecipientTimezone);
       }
 
-      if (messageText?.length && messageText?.length > 0 && recipientNumber) {
+      // Only proceed if we have a valid message and recipient number
+      if (messageText.length > 0 && recipientNumber) {
         const dispatchedSMS = await smsService.scheduleSMS(
           recipientNumber,
           messageText,
@@ -146,38 +129,12 @@ const processNotificationQueue = async (): Promise<number> => {
           undefined,
           undefined
         );
-
-        // 2. Update reminder
         //If sms was successfully scheduled by provider and the unique identifier "sid" was returned
         if (dispatchedSMS && dispatchedSMS.response?.sid) {
-          await prisma.calIdWorkflowReminder.update({
-            where: {
-              id: notification.id,
-            },
-            data: {
-              scheduled: true,
-              referenceId: dispatchedSMS.response.sid,
-            },
-          });
-          // 3. Create workflow insight
-          if (notification.booking?.eventTypeId) {
-            await prisma.calIdWorkflowInsights.create({
-              data: {
-                msgId: dispatchedSMS.response.sid,
-                eventTypeId: notification.booking.eventTypeId,
-                type: WorkflowMethods.SMS,
-                status: WorkflowStatus.QUEUED,
-                bookingUid: notification.booking.uid,
-                ...(notification.seatReferenceId && {
-                  bookingSeatReferenceUid: notification.seatReferenceId,
-                }),
-                ...(notification.workflowStep?.id && { workflowStepId: notification.workflowStep.id }),
-                ...(notification.workflowStep?.workflowId && {
-                  workflowId: notification.workflowStep.workflowId,
-                }),
-              },
-            });
-          }
+          //  Update reminder
+          await updateWorkflowReminder(notification, dispatchedSMS);
+          // Create workflow insight
+          await createWorkflowInsight(dispatchedSMS, notification, recipientNumber, messageText);
         } else {
           await prisma.calIdWorkflowReminder.update({
             where: {
@@ -280,6 +237,66 @@ const executeCancellationProcess = async (): Promise<void> => {
 
   await Promise.all(cancellationTasks);
 };
+
+async function updateWorkflowReminder(notification, dispatchedSMS: SendSmsResponse) {
+  await prisma.calIdWorkflowReminder.update({
+    where: {
+      id: notification.id,
+    },
+    data: {
+      scheduled: true,
+      referenceId: dispatchedSMS.response.sid,
+    },
+  });
+}
+
+async function createWorkflowInsight(
+  dispatchedSMS: SendSmsResponse,
+  notification: any,
+  recipientNumber: string,
+  messageText: string
+) {
+  await prisma.calIdWorkflowInsights.create({
+    data: {
+      msgId: dispatchedSMS.response.sid,
+      type: WorkflowMethods.SMS,
+      status: WorkflowStatus.QUEUED,
+
+      eventType: {
+        connect: { id: notification.booking.eventTypeId },
+      },
+
+      booking: {
+        connect: { uid: notification.booking.uid },
+      },
+
+      ...(notification.seatReferenceId && {
+        bookingSeat: {
+          connect: { referenceUid: notification.seatReferenceId },
+        },
+      }),
+
+      ...(notification.workflowStep?.id && {
+        workflowStep: {
+          connect: { id: notification.workflowStep.id },
+        },
+      }),
+
+      ...(notification.workflowStep?.workflowId && {
+        workflow: {
+          connect: { id: notification.workflowStep.workflowId },
+        },
+      }),
+
+      metadata: {
+        recipientNumber,
+        smsText: messageText,
+        sendAt: notification.scheduledDate,
+        isScheduled: true,
+      },
+    },
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {

@@ -165,11 +165,12 @@ export default function CredentialActionsDropdown({
 
       <Dialog open={disconnectModalOpen} onOpenChange={setDisconnectModalOpen}>
         <DialogContent>
-          <DialogHeader showIcon variant="warning">
+          <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
             <DialogTitle>{t("remove_app")}</DialogTitle>
             <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
+            <DialogClose />
             <Button
               color="destructive"
               StartIcon="trash"
@@ -179,7 +180,6 @@ export default function CredentialActionsDropdown({
               }}>
               {t("yes_remove_app")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
