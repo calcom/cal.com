@@ -17,10 +17,7 @@ type CreateAttributeSyncOptions = {
   input: ZCreateAttributeSyncSchema;
 };
 
-const createAttributeSyncHandler = async ({
-  ctx,
-  input,
-}: CreateAttributeSyncOptions) => {
+const createAttributeSyncHandler = async ({ ctx, input }: CreateAttributeSyncOptions) => {
   const org = ctx.user.organization;
 
   if (!org?.id) {
@@ -33,10 +30,7 @@ const createAttributeSyncHandler = async ({
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
   try {
-    return await integrationAttributeSyncService.createAttributeSync(
-      input,
-      org.id
-    );
+    return await integrationAttributeSyncService.createAttributeSync(input, org.id);
   } catch (error) {
     if (error instanceof CredentialNotFoundError) {
       throw new TRPCError({
