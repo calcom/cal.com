@@ -16,7 +16,14 @@ import turndown from "@calcom/lib/turndownService";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField, Label, Select, SettingsToggle, TextAreaField, TextField } from "@calcom/ui/components/form";
+import {
+  CheckboxField,
+  Label,
+  Select,
+  SettingsToggle,
+  TextAreaField,
+  TextField,
+} from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -26,7 +33,7 @@ import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import type { LocationCustomClassNames } from "../../locations/types";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -143,10 +150,12 @@ export const EventSetupTab = (
                 </Label>
                 <Editor
                   getText={() => md.render(formMethods.getValues("description") || "")}
-                  setText={(value: string) =>
-                    formMethods.setValue("description", turndown(value), { shouldDirty: true })
-                  }
-                  excludedToolbarItems={["blockType"]}
+                  setText={(value: string) => {
+                    // Clean up non-breaking spaces
+                    const cleanedValue = value.replace(/&nbsp;/g, " ");
+                    const markdownValue = turndown(cleanedValue);
+                    formMethods.setValue("description", markdownValue, { shouldDirty: true });
+                  }}
                   placeholder={t("quick_video_meeting")}
                   editable={!descriptionLockedProps.disabled}
                   firstRender={firstRender}
@@ -406,7 +415,7 @@ export const EventSetupTab = (
             </div>
           </div>
         </Tooltip>
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && !isPlatform && (
           <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />
         )}
       </div>

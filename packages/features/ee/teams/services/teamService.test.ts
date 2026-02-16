@@ -115,7 +115,7 @@ describe("TeamService", () => {
           userId: 1,
         },
       });
-      expect(mockTeamBilling.updateQuantity).toHaveBeenCalled();
+      expect(mockTeamBilling.updateQuantity).toHaveBeenCalledWith("addition");
       expect(result).toBe("Test Team");
     });
   });

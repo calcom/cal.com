@@ -75,7 +75,15 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
 
     for (const admin of team.adminAndOwners) {
       emailsToSend.push(
-        sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team, creditFor }))
+        sendEmail(
+          () =>
+            new CreditBalanceLowWarningEmail({
+              user: admin,
+              balance,
+              team,
+              creditFor,
+            })
+        )
       );
     }
 

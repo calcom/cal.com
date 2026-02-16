@@ -118,6 +118,22 @@ export class OrganizationsDelegationCredentialService {
       const results = await Promise.allSettled(
         delegatedUserProfiles.map(async (profile) => {
           if (profile.userId) {
+            if (this.configService.get("enableAsyncTasker")) {
+              this.logger.log(`Adding default calendar job for user with id: ${profile.userId}`);
+              await this.calendarsTasker.dispatch(
+                "ensureDefaultCalendars",
+                {
+                  userId: profile.userId,
+                },
+                {
+                  idempotencyKey: `${DEFAULT_CALENDARS_JOB}_${profile.userId}`,
+                  idempotencyKeyTTL: "1h",
+                  tags: [`${DEFAULT_CALENDARS_JOB}_${profile.userId}`],
+                }
+              );
+              return;
+            }
+
             const job = await this.calendarsQueue.getJob(`${DEFAULT_CALENDARS_JOB}_${profile.userId}`);
             if (job) {
               await job.remove();
@@ -158,7 +174,7 @@ export class OrganizationsDelegationCredentialService {
         this.logger.warn(`Invalid email format for user ${userId}: missing domain`);
         return;
       }
-      const emailDomain = `@${emailParts[1]}`;
+      const emailDomain = emailParts[1];
 
       const delegationCredential =
         await this.organizationsDelegationCredentialRepository.findEnabledByOrgIdAndDomain(

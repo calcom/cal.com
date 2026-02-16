@@ -155,6 +155,7 @@ const commons = {
   updatedAt: null,
   rrHostSubsetEnabled: false,
   enablePerHostLocations: false,
+  redirectUrlOnNoRoutingFormResponse: null,
 };
 
 export const dynamicEvent = {
