@@ -170,7 +170,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                               key={webhook.id}
                               webhook={webhook}
                               lastItem={webhooks.length === index + 1}
-                              onEditWebhook={() => {
+                              onEditWebhookAction={() => {
                                 setEditModalOpen(true);
                                 setWebhookToEdit(webhook);
                               }}

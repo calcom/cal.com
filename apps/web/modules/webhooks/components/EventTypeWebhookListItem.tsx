@@ -36,7 +36,7 @@ type WebhookProps = {
 
 export default function EventTypeWebhookListItem(props: {
   webhook: WebhookProps;
-  onEditWebhook: () => void;
+  onEditWebhookAction: () => void;
   lastItem: boolean;
   readOnly?: boolean;
 }) {
@@ -119,7 +119,7 @@ export default function EventTypeWebhookListItem(props: {
           <Button
             className="hidden lg:flex"
             color="secondary"
-            onClick={props.onEditWebhook}
+            onClick={props.onEditWebhookAction}
             data-testid="webhook-edit-button">
             {t("edit")}
           </Button>
@@ -140,7 +140,7 @@ export default function EventTypeWebhookListItem(props: {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhook}>
+                <DropdownItem StartIcon="pencil" color="secondary" onClick={props.onEditWebhookAction}>
                   {t("edit")}
                 </DropdownItem>
               </DropdownMenuItem>

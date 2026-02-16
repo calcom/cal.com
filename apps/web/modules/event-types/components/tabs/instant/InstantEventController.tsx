@@ -376,7 +376,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                         webhook={webhook}
                         lastItem={webhooks.length === index + 1}
                         canEditWebhook={!webhookLockedStatus.disabled}
-                        onEditWebhook={() => {
+                        onEditWebhookAction={() => {
                           setEditModalOpen(true);
                           setWebhookToEdit(webhook);
                         }}
