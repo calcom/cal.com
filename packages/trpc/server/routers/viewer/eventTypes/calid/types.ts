@@ -44,6 +44,11 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     isInstantEvent: z.boolean(),
     instantMeetingParameters: z.array(z.string()),
     instantMeetingExpiryTimeOffsetInSeconds: z.number(),
+    showBusy: z.boolean().optional(),
+    showBusyPercent: z.number().optional().nullable(),
+    showBusySlots: z.record(z.array(z.string())).optional().nullable(),
+    showBusyWindowDays: z.number().optional().nullable(),
+    showBusyWindowType: z.enum(["calendar", "business"]).optional().nullable(),
     customInputs: z.array(customInputSchema),
     destinationCalendar: _DestinationCalendarModel
       .pick({

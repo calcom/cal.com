@@ -108,6 +108,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      showBusy: true,
+      showBusyPercent: true,
+      showBusySlots: true,
+      showBusyWindowDays: true,
+      showBusyWindowType: true,
       maxActiveBookingsPerBooker: true,
       fieldTranslations: {
         select: {
@@ -206,6 +211,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
   }
 
+  const nextShowBusy = typeof rest.showBusy === "boolean" ? rest.showBusy : eventType.showBusy;
+  const nextShowBusyPercent =
+    typeof rest.showBusyPercent === "number" ? rest.showBusyPercent : eventType.showBusyPercent;
+  const nextShowBusyWindowDays =
+    typeof rest.showBusyWindowDays === "number" ? rest.showBusyWindowDays : eventType.showBusyWindowDays;
+  const nextShowBusyWindowType =
+    typeof rest.showBusyWindowType === "string" ? rest.showBusyWindowType : eventType.showBusyWindowType;
+  const shouldResetShowBusySlots =
+    nextShowBusy !== true ||
+    eventType.showBusy !== nextShowBusy ||
+    eventType.showBusyPercent !== nextShowBusyPercent ||
+    eventType.showBusyWindowDays !== nextShowBusyWindowDays ||
+    eventType.showBusyWindowType !== nextShowBusyWindowType;
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
@@ -226,6 +245,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //     : rest.maxLeadThreshold,
     calIdTeam: calIdTeamId ? { connect: { id: calIdTeamId } } : undefined,
   };
+  if (shouldResetShowBusySlots) {
+    data.showBusySlots = Prisma.DbNull;
+  }
   data.locations = locations ?? undefined;
 
   if (periodType) {
