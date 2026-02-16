@@ -18,13 +18,11 @@ import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import {
-  DataTableProvider,
-  useDataTable,
-  useFetchMoreOnBottomReached,
-  useColumnFilters,
-  convertFacetedValuesToMap,
-} from "@calcom/features/data-table";
+import { convertFacetedValuesToMap } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFetchMoreOnBottomReached } from "~/data-table/hooks/useFetchMoreOnBottomReached";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import {
   DataTableToolbar,
   DataTableFilters,

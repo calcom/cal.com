@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useState, useEffect, useRef } from "react";
 import { Text, TextInput, useColorScheme, View } from "react-native";
 import { BookingListScreen } from "@/components/booking-list-screen/BookingListScreen";
 import { Header } from "@/components/Header";
@@ -10,11 +11,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppPressable } from "@/components/AppPressable";
-import { useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
+import { type BookingFilter, useActiveBookingFilter } from "@/hooks/useActiveBookingFilter";
 import { useEventTypes } from "@/hooks";
 import { getColors } from "@/constants/colors";
 
+const VALID_FILTERS: BookingFilter[] = [
+  "upcoming",
+  "unconfirmed",
+  "recurring",
+  "past",
+  "cancelled",
+];
+
+function isValidBookingFilter(value: string | undefined): value is BookingFilter {
+  return value !== undefined && VALID_FILTERS.includes(value as BookingFilter);
+}
+
 export default function Bookings() {
+  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const initialFilter = isValidBookingFilter(filter) ? filter : "upcoming";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventTypeId, setSelectedEventTypeId] = useState<number | null>(null);
   const [selectedEventTypeLabel, setSelectedEventTypeLabel] = useState<string | null>(null);
@@ -26,15 +42,37 @@ export default function Bookings() {
   const { data: eventTypes = [], isLoading: eventTypesLoading } = useEventTypes();
 
   // Use the active booking filter hook
-  const { activeFilter, filterOptions, filterParams, handleFilterChange } = useActiveBookingFilter(
-    "upcoming",
-    () => {
-      // Clear dependent filters when status filter changes
-      setSearchQuery("");
-      setSelectedEventTypeId(null);
-      setSelectedEventTypeLabel(null);
+  const {
+    activeFilter,
+    filterOptions,
+    filterParams,
+    handleFilterChange: originalHandleFilterChange,
+  } = useActiveBookingFilter(initialFilter, () => {
+    // Clear dependent filters when status filter changes
+    setSearchQuery("");
+    setSelectedEventTypeId(null);
+    setSelectedEventTypeLabel(null);
+  });
+
+  // Wrap handleFilterChange with debug logging
+  const handleFilterChange = (filter: string) => {
+    originalHandleFilterChange(filter as BookingFilter);
+  };
+
+  // Track if we want to ignore the next activeFilter change (because it came from URL sync)
+  const lastUrlFilter = useRef<string | null>(null);
+
+  // Reactively update filter when URL params change (e.g., from deep link)
+  useEffect(() => {
+    if (
+      isValidBookingFilter(filter) &&
+      filter !== activeFilter &&
+      filter !== lastUrlFilter.current
+    ) {
+      lastUrlFilter.current = filter;
+      originalHandleFilterChange(filter);
     }
-  );
+  }, [filter, activeFilter, originalHandleFilterChange]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
