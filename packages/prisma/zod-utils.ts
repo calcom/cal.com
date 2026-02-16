@@ -385,6 +385,7 @@ export const bookingConfirmPatchBodySchema = z.object({
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
+  seatReferenceUid: z.string().optional(),
 });
 
 export const bookingCancelSchema = z.object({

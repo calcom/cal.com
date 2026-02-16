@@ -120,6 +120,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
     actionSource,
     actor,
+    seatReferenceUid,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -238,10 +239,38 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
   }
 
-  // Do not move this before authorization check.
-  // This is done to avoid exposing extra information to the requester.
-  if (booking.status === BookingStatus.ACCEPTED) {
+  // For seated events with per-seat confirmation, the parent booking is ACCEPTED
+  // but individual seats may still be PENDING. Skip this check when seatReferenceUid is provided.
+  if (booking.status === BookingStatus.ACCEPTED && !seatReferenceUid) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+  }
+
+  if (seatReferenceUid) {
+    const seat = await prisma.bookingSeat.findUnique({
+      where: { referenceUid: seatReferenceUid },
+      select: { id: true, status: true, bookingId: true },
+    });
+
+    if (!seat || seat.bookingId !== bookingId) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Seat not found for this booking" });
+    }
+
+    if (seat.status === BookingStatus.ACCEPTED) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Seat already confirmed" });
+    }
+
+    if (seat.status === BookingStatus.REJECTED) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Seat already rejected" });
+    }
+
+    const newStatus = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
+    await prisma.bookingSeat.update({
+      where: { referenceUid: seatReferenceUid },
+      data: { status: newStatus },
+    });
+
+    const message = confirmed ? "Seat confirmed" : "Seat rejected";
+    return { message, status: newStatus };
   }
 
   // If booking requires payment and is not paid, we don't allow confirmation

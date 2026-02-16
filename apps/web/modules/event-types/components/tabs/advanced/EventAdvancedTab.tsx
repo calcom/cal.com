@@ -678,7 +678,6 @@ export const EventAdvancedTab = ({
       </div>
       <RequiresConfirmationController
         eventType={eventType}
-        seatsEnabled={seatsEnabled}
         metadata={formMethods.getValues("metadata")}
         requiresConfirmation={requiresConfirmation}
         requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
@@ -1082,11 +1081,8 @@ export const EventAdvancedTab = ({
                       : undefined
               }
               onCheckedChange={(e) => {
-                // Enabling seats will disable guests and requiring confirmation until fully supported
                 if (e) {
                   toggleGuests(false);
-                  formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
-                  setRequiresConfirmation(false);
                   formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
                   formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2, {
                     shouldDirty: true,

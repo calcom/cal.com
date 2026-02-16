@@ -11,6 +11,7 @@ interface RejectBookingButtonProps {
   isRecurring?: boolean;
   isTabRecurring?: boolean;
   isTabUnconfirmed?: boolean;
+  seatReferenceUid?: string;
   size?: "sm" | "base" | "lg";
   color?: "primary" | "secondary" | "minimal" | "destructive";
   className?: string;
@@ -23,6 +24,7 @@ export function RejectBookingButton({
   isRecurring = false,
   isTabRecurring = false,
   isTabUnconfirmed = false,
+  seatReferenceUid,
   size = "base",
   color = "secondary",
   className,
@@ -43,7 +45,7 @@ export function RejectBookingButton({
       <RejectionReasonDialog
         isOpenDialog={rejectionDialogIsOpen}
         setIsOpenDialog={setRejectionDialogIsOpen}
-        onConfirm={(reason) => bookingConfirm({ bookingId, confirmed: false, recurringEventId, reason })}
+        onConfirm={(reason) => bookingConfirm({ bookingId, confirmed: false, recurringEventId, reason, seatReferenceUid })}
         isPending={isPending}
       />
 

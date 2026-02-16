@@ -617,10 +617,11 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
+                "BookingSeat.status",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
                 ).as("attendee"),
               ])
@@ -1037,7 +1038,19 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           }
 
           if (status === "unconfirmed") {
-            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+            return and([
+              eb("Booking.endTime", ">=", new Date()),
+              or([
+                eb("Booking.status", "=", "pending"),
+                eb.exists(
+                  eb
+                    .selectFrom("BookingSeat")
+                    .select("BookingSeat.id")
+                    .whereRef("BookingSeat.bookingId", "=", "Booking.id")
+                    .where("BookingSeat.status", "=", "pending")
+                ),
+              ]),
+            ]);
           }
           return and([]);
         })

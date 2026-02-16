@@ -25,6 +25,7 @@ export type AddSeatInput = {
   bookingId: number;
   bookingStatus: BookingStatus;
   seatsPerTimeSlot: number;
+  requiresConfirmation?: boolean;
   attendee: {
     email: string;
     phoneNumber?: string;
@@ -103,6 +104,7 @@ export async function addSeatToBooking(input: AddSeatInput, prismaClient: Prisma
                 booking: {
                   connect: { id: input.bookingId },
                 },
+                status: input.requiresConfirmation ? BookingStatus.PENDING : BookingStatus.ACCEPTED,
               },
             },
           },
@@ -169,6 +171,7 @@ const createNewSeat = async (
     bookingId: seatedBooking.id,
     bookingStatus: seatedBooking.status,
     seatsPerTimeSlot: eventType.seatsPerTimeSlot ?? 0,
+    requiresConfirmation: eventType.requiresConfirmation,
     attendee: {
       email: inviteeToAdd.email,
       phoneNumber: inviteeToAdd.phoneNumber,

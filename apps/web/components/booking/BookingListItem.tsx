@@ -185,6 +185,10 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isAttendee = !!userSeat;
 
+  const pendingSeats = booking.seatsReferences.filter(
+    (seat) => seat.status?.toLowerCase() === "pending"
+  );
+
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
@@ -555,6 +559,13 @@ function BookingListItem(booking: BookingItemProps) {
           booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
+      {pendingSeats.length > 0 && (
+        <PendingSeatsSection
+          pendingSeats={pendingSeats}
+          bookingId={booking.id}
+          bookingUid={booking.uid}
+        />
+      )}
       {isBookingFromRoutingForm && (
         <WrongAssignmentDialog
           isOpenDialog={isOpenWrongAssignmentDialog}
@@ -565,6 +576,53 @@ function BookingListItem(booking: BookingItemProps) {
     </div>
   );
 }
+
+const PendingSeatsSection = ({
+  pendingSeats,
+  bookingId,
+  bookingUid,
+}: {
+  pendingSeats: { referenceUid: string; status: string; attendee: { email: string; name: string | null } | null }[];
+  bookingId: number;
+  bookingUid: string;
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <div className="border-subtle border-t px-6 py-3">
+      <div className="text-emphasis mb-2 text-xs font-semibold uppercase">{t("pending_seats")}</div>
+      <div className="space-y-2">
+        {pendingSeats.map((seat) => (
+          <div key={seat.referenceUid} className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon name="user" className="text-subtle h-4 w-4" />
+              <span className="text-default text-sm">
+                {seat.attendee?.name || seat.attendee?.email || t("unknown_attendee")}
+              </span>
+              {seat.attendee?.name && seat.attendee?.email && (
+                <span className="text-subtle text-xs">{seat.attendee.email}</span>
+              )}
+            </div>
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <RejectBookingButton
+                bookingId={bookingId}
+                bookingUid={bookingUid}
+                seatReferenceUid={seat.referenceUid}
+                size="sm"
+              />
+              <AcceptBookingButton
+                bookingId={bookingId}
+                bookingUid={bookingUid}
+                seatReferenceUid={seat.referenceUid}
+                size="sm"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const BookingItemBadges = ({
   booking,

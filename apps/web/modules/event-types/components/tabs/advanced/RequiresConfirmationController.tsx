@@ -36,7 +36,6 @@ type RequiresConfirmationControllerProps = {
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot: boolean;
   onRequiresConfirmation: Dispatch<SetStateAction<boolean>>;
-  seatsEnabled: boolean;
   eventType: EventTypeSetup;
   customClassNames?: RequiresConfirmationCustomClassNames;
 };
@@ -46,7 +45,6 @@ export default function RequiresConfirmationController({
   eventType,
   requiresConfirmation,
   onRequiresConfirmation,
-  seatsEnabled,
   customClassNames,
 }: RequiresConfirmationControllerProps) {
   const { t } = useLocale();
@@ -97,8 +95,7 @@ export default function RequiresConfirmationController({
               descriptionClassName={customClassNames?.description}
               title={t("requires_confirmation")}
               data-testid="requires-confirmation"
-              disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}
-              tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
+              disabled={requiresConfirmationLockedProps.disabled}
               description={
                 <LearnMoreLink
                   t={t}

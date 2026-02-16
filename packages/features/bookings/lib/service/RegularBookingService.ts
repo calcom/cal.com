@@ -2043,6 +2043,7 @@ async function handler(
                 id: currentAttendee?.id,
               },
             },
+            status: isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
           },
         });
         evt.attendeeSeatId = uniqueAttendeeId;

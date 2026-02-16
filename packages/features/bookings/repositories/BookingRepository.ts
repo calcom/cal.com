@@ -228,6 +228,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
           attendeeId: true,
           data: true,
           metadata: true,
+          status: true,
         },
       },
     },

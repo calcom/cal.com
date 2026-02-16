@@ -16,6 +16,7 @@ interface BookingConfirmParams {
   confirmed: boolean;
   recurringEventId?: string | null;
   reason?: string;
+  seatReferenceUid?: string;
 }
 
 export function useBookingConfirmation(options: UseBookingConfirmationOptions = {}) {
@@ -42,19 +43,25 @@ export function useBookingConfirmation(options: UseBookingConfirmationOptions = 
     },
   });
 
-  const bookingConfirm = ({ bookingId, confirmed, recurringEventId, reason }: BookingConfirmParams) => {
-    let body = {
+  const bookingConfirm = ({ bookingId, confirmed, recurringEventId, reason, seatReferenceUid }: BookingConfirmParams) => {
+    const body: {
+      bookingId: number;
+      confirmed: boolean;
+      reason: string;
+      recurringEventId?: string;
+      seatReferenceUid?: string;
+    } = {
       bookingId,
       confirmed,
       reason: reason || "",
     };
 
-    /**
-     * Only pass down the recurring event id when we need to confirm the entire series, which happens in
-     * the "Recurring" tab and "Unconfirmed" tab, to support confirming discretionally in the "Recurring" tab.
-     */
     if ((isTabRecurring || isTabUnconfirmed) && isRecurring && recurringEventId) {
-      body = Object.assign({}, body, { recurringEventId });
+      body.recurringEventId = recurringEventId;
+    }
+
+    if (seatReferenceUid) {
+      body.seatReferenceUid = seatReferenceUid;
     }
 
     mutation.mutate(body);

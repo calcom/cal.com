@@ -1053,7 +1053,7 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return an error when creating an event type with seats enabled and confirmationPolicy enabled", async () => {
+    it("should allow creating an event type with seats enabled and confirmationPolicy enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 4",
         slug: "coding-class-4",
@@ -1071,12 +1071,17 @@ describe("Event types Endpoints", () => {
         },
       };
 
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
-        .expect(400);
+        .expect(201);
+
+      expect(response.body.data).toMatchObject({
+        seats: body.seats,
+        confirmationPolicy: body.confirmationPolicy,
+      });
     });
 
     it("should return an error when trying to enable seats for an event type with confirmationPolicy enabled", async () => {
@@ -1176,7 +1181,7 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
-    it("should return an error when creating an event type with confirmationPolicy enabled and seats enabled", async () => {
+    it("should allow creating an event type with confirmationPolicy enabled and seats enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 7",
         slug: "coding-class-7",
@@ -1194,15 +1199,20 @@ describe("Event types Endpoints", () => {
         },
       };
 
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set("Authorization", `Bearer ${apiKeyString}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .send(body)
-        .expect(400);
+        .expect(201);
+
+      expect(response.body.data).toMatchObject({
+        seats: body.seats,
+        confirmationPolicy: body.confirmationPolicy,
+      });
     });
 
-    it("should return an error when trying to enable confirmationPolicy for an event type with seats enabled", async () => {
+    it("should allow enabling confirmationPolicy for an event type with seats enabled", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class 8",
         slug: "coding-class-8",
@@ -1244,7 +1254,7 @@ describe("Event types Endpoints", () => {
             blockUnconfirmedBookingsInBooker: false,
           },
         })
-        .expect(400);
+        .expect(200);
     });
 
     it("should update event type", async () => {

@@ -242,7 +242,8 @@ function buildNewBookingData(params: CreateBookingParams) {
     endTime: dayjs.utc(evt.endTime).toDate(),
     description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),
-    status: eventType.isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
+    status:
+      evt.seatsPerTimeSlot || eventType.isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
     oneTimePassword: evt.oneTimePassword,
     location: evt.location,
     eventType: eventTypeRel,

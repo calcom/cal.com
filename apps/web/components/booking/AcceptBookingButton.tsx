@@ -10,6 +10,7 @@ interface AcceptBookingButtonProps {
   isRecurring?: boolean;
   isTabRecurring?: boolean;
   isTabUnconfirmed?: boolean;
+  seatReferenceUid?: string;
   size?: "sm" | "base" | "lg";
   color?: "primary" | "secondary" | "minimal" | "destructive";
   className?: string;
@@ -22,6 +23,7 @@ export function AcceptBookingButton({
   isRecurring = false,
   isTabRecurring = false,
   isTabUnconfirmed = false,
+  seatReferenceUid,
   size = "base",
   color = "primary",
   className,
@@ -41,7 +43,7 @@ export function AcceptBookingButton({
       color={color}
       size={size}
       className={className}
-      onClick={() => bookingConfirm({ bookingId, confirmed: true, recurringEventId })}
+      onClick={() => bookingConfirm({ bookingId, confirmed: true, recurringEventId, seatReferenceUid })}
       disabled={isPending}
       data-booking-uid={bookingUid}
       data-testid="confirm">

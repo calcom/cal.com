@@ -455,9 +455,7 @@ export class InputEventTypesService_2024_06_14 {
     const requiresConfirmationFinal =
       requiresConfirmation !== undefined ? requiresConfirmation : requiresConfirmationDb;
     this.validateSeatsSingleLocationRule(seatsEnabledFinal, locationsFinal);
-    this.validateSeatsRequiresConfirmationFalseRule(seatsEnabledFinal, requiresConfirmationFinal);
     this.validateMultipleLocationsSeatsDisabledRule(locationsFinal, seatsEnabledFinal);
-    this.validateRequiresConfirmationSeatsDisabledRule(requiresConfirmationFinal, seatsEnabledFinal);
 
     if (eventName) {
       await this.validateCustomEventNameInput(eventName);
@@ -491,28 +489,12 @@ export class InputEventTypesService_2024_06_14 {
     return [...knownLocations];
   }
 
-  validateSeatsRequiresConfirmationFalseRule(seatsEnabled: boolean, requiresConfirmation: boolean) {
-    if (seatsEnabled && requiresConfirmation) {
-      throw new BadRequestException(
-        "Seats Validation failed: Seats are enabled but requiresConfirmation is true."
-      );
-    }
-  }
-
   validateMultipleLocationsSeatsDisabledRule(
     locations: ReturnType<typeof this.transformLocations>,
     seatsEnabled: boolean
   ) {
     if (locations.length > 1 && seatsEnabled) {
       throw new BadRequestException("Locations Validation failed: Multiple locations but seats are enabled.");
-    }
-  }
-
-  validateRequiresConfirmationSeatsDisabledRule(requiresConfirmation: boolean, seatsEnabled: boolean) {
-    if (requiresConfirmation && seatsEnabled) {
-      throw new BadRequestException(
-        "RequiresConfirmation Validation failed: Seats are enabled but requiresConfirmation is true."
-      );
     }
   }
 
