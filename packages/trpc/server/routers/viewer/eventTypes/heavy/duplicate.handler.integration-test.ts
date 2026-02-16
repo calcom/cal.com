@@ -243,7 +243,9 @@ describe("duplicateHandler - integration", () => {
           teamId: team1.id,
         },
       })
-    ).rejects.toThrow(TRPCError);
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
   });
 
   it("should throw CONFLICT when duplicating with an existing slug", async () => {
