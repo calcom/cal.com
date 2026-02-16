@@ -24,8 +24,6 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingReferenceService } from "@calcom/lib/server/service/BookingReferenceService";
-import { EventResultService } from "@calcom/lib/server/service/EventResultService";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, BookingReference } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -137,8 +135,6 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: Record<string, any>;
-  private readonly bookingReferenceService: BookingReferenceService;
-  private readonly eventResultService: EventResultService;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -174,13 +170,6 @@ export default class EventManager {
     );
 
     this.appOptions = eventTypeAppMetadata;
-
-    this.bookingReferenceService = new BookingReferenceService({
-      logger: log,
-    });
-    this.eventResultService = new EventResultService({
-      logger: log,
-    });
   }
 
   private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
@@ -453,10 +442,21 @@ export default class EventManager {
       results.push(result);
     }
 
-    // Update the calendar event with the proper video call data
+    // Update the calendar event with the proper video call data (or create when no valid uid - declarative)
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
-    if (calendarReference) {
+    let createdNewCalendarEvents = false;
+    if (calendarReference?.uid) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
+    } else if (calendarReference) {
+      const missingCalendarEventsResult = await this.handleMissingCalendarEvents(evt, booking, []);
+      results.push(
+        ...(missingCalendarEventsResult.results as Array<EventResult<Exclude<Event, AdditionalInformation>>>)
+      );
+      createdNewCalendarEvents = missingCalendarEventsResult.createdNewCalendarEvents;
 
       if (evt.location === MSTeamsLocationType) {
         this.updateMSTeamsVideoCallData(evt, results);
@@ -500,6 +500,7 @@ export default class EventManager {
     return {
       results,
       referencesToCreate,
+      ...(createdNewCalendarEvents && { createdNewCalendarEvents }),
     };
   }
 
@@ -635,14 +636,20 @@ export default class EventManager {
     const createdEventsResults = await this.createAllCalendarEvents(evt);
     const results = [...createdEventsResults];
 
-    // Update booking references with newly created calendar events
-    const calendarReferences = this.eventResultService
-      .extractSuccessfulCalendarResults(createdEventsResults)
-      .map((result) => this.bookingReferenceService.mapToReferenceData(result));
+    const calendarReferences = createdEventsResults
+      .filter((r) => r.type.includes("_calendar") && r.success)
+      .map((result) => ({
+        type: result.type,
+        uid: result.uid,
+        meetingId: result.uid,
+        meetingPassword: result.originalEvent.attendees?.[0]?.timeZone || "",
+        meetingUrl: result.originalEvent.videoCallData?.url || "",
+        externalCalendarId: result.externalId || null,
+        credentialId: result.credentialId || null,
+      }));
 
-    // Preserve existing non-calendar references and add new calendar references
-    const existingNonCalendarReferences = this.bookingReferenceService.filterNonCalendarReferences(
-      booking.references
+    const existingNonCalendarReferences = booking.references.filter(
+      (ref: PartialReference) => !ref.type.includes("_calendar")
     );
     updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
     const createdNewCalendarEvents = calendarReferences.length > 0;
@@ -764,6 +771,7 @@ export default class EventManager {
           const updatedLocation = await this.updateLocation(evt, booking);
           results.push(...updatedLocation.results);
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+          createdNewCalendarEvents = updatedLocation.createdNewCalendarEvents ?? createdNewCalendarEvents;
         } else {
           const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
           // If and only if event type is a dedicated meeting, update the dedicated video meeting.

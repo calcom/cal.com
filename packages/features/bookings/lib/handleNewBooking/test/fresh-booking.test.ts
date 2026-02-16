@@ -85,7 +85,7 @@ function getMockedStripePaymentEvent({ paymentIntentId }: { paymentIntentId: str
 }
 
 async function mockPaymentSuccessWebhookFromStripe({ externalId }: { externalId: string }) {
-  let webhookResponse = null;
+  let webhookResponse: HttpError | null = null;
   try {
     const traceContext = distributedTracing.createTrace("test_stripe_webhook");
     await handleStripePaymentSuccess(
@@ -2703,12 +2703,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              uid: "MOCK_ID",
-              id: "MOCK_CALENDAR_EVENT_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -2851,12 +2846,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "dailyvideo",
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              uid: "MOCK_ID",
-              id: "MOCK_CALENDAR_EVENT_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
@@ -2951,12 +2941,7 @@ describe("handleNewBooking", () => {
           metadataLookupKey: "dailyvideo",
         });
 
-        mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            uid: "MOCK_ID",
-            id: "MOCK_CALENDAR_EVENT_ID",
-          },
-        });
+        mockCalendarToHaveNoBusySlots("googlecalendar");
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
@@ -3210,12 +3195,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "stripe",
             appStoreLookupKey: "stripepayment",
           });
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              uid: "MOCK_ID",
-              id: "MOCK_CALENDAR_EVENT_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar");
           const mockBookingData = getMockRequestDataForBooking({
             data: {
               eventTypeId: 1,
@@ -3394,12 +3374,7 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "stripe",
             appStoreLookupKey: "stripepayment",
           });
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              uid: "MOCK_ID",
-              id: "MOCK_CALENDAR_EVENT_ID",
-            },
-          });
+          mockCalendarToHaveNoBusySlots("googlecalendar");
 
           const mockBookingData = getMockRequestDataForBooking({
             data: {
