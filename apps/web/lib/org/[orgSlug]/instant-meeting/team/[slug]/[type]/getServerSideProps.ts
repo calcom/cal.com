@@ -58,7 +58,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isTeamEvent: true,
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      isCustomDomain: !!customDomain,
     },
     session?.user?.id
   );

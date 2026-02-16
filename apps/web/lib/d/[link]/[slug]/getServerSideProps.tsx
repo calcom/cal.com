@@ -121,7 +121,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       isTeamEvent,
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      isCustomDomain: !!customDomain,
     },
     session?.user?.id
   );

@@ -316,7 +316,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
-      isCustomDomain: !!customDomain,
+      customDomain: customDomain ?? null,
       isSEOIndexable: allowSEOIndexing,
     },
   } as const;
