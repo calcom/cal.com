@@ -1,3 +1,4 @@
+import { queueRegistry, queueEventsRegistry } from "@calid/queue";
 import type { Job, JobsOptions, Queue, QueueEvents } from "bullmq";
 
 import { sendToInngest } from "./inngestClient";
@@ -473,3 +474,6 @@ export class JobDispatchError extends Error {
     this.inngestError = details.inngestError;
   }
 }
+
+const dispatcher = new JobDispatcher({ queueRegistry, queueEventsRegistry });
+export default dispatcher;

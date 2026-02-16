@@ -2,19 +2,11 @@
   "name": "@calid/job-engine",
   "private": true,
   "version": "1.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "type": "module",
-  "exports": {
-    "./calendar-sync": {
-      "types": "./dist/calendar-sync/index.d.ts",
-      "default": "./dist/calendar-sync/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc"
-  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "dependencies": {
+    "@calcom/dayjs": "*",
+    "@calcom/emails": "*",
     "axios": "^1.6.5",
     "uuid": "^13.0.0"
   },
