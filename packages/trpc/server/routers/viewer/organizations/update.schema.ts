@@ -98,43 +98,44 @@ export type TUpdateInputSchema = {
   disableAttendeeNewEventEmail?: boolean;
 };
 
-export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUpdateInputSchemaInput> = z.object({
-  name: z.string().optional(),
-  orgId: z
-    .string()
-    .regex(/^\d+$/)
-    .transform((id) => parseInt(id))
-    .or(z.number())
-    .optional(),
-  bio: z.string().optional(),
-  logoUrl: ssrfSafeOptionalUrl,
-  calVideoLogo: ssrfSafeOptionalUrl.transform((v) => v || null),
-  banner: ssrfSafeOptionalUrl,
-  slug: z.string().optional(),
-  hideBranding: z.boolean().optional(),
-  hideBookATeamMember: z.boolean().optional(),
-  brandColor: z.string().optional(),
-  darkBrandColor: z.string().optional(),
-  theme: z.string().optional().nullable(),
-  timeZone: timeZoneSchema.optional(),
-  weekStart: z.string().optional(),
-  timeFormat: z.number().optional(),
-  metadata: teamMetadataStrictSchema.unwrap().optional(),
-  lockEventTypeCreation: z.boolean().optional(),
-  lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
-  adminGetsNoSlotsNotification: z.boolean().optional(),
-  allowSEOIndexing: z.boolean().optional(),
-  orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
-  disablePhoneOnlySMSNotifications: z.boolean().optional(),
-  disableAutofillOnBookingPage: z.boolean().optional(),
-  orgAutoJoinOnSignup: z.boolean().optional(),
-  disableAttendeeConfirmationEmail: z.boolean().optional(),
-  disableAttendeeCancellationEmail: z.boolean().optional(),
-  disableAttendeeRescheduledEmail: z.boolean().optional(),
-  disableAttendeeRequestEmail: z.boolean().optional(),
-  disableAttendeeReassignedEmail: z.boolean().optional(),
-  disableAttendeeAwaitingPaymentEmail: z.boolean().optional(),
-  disableAttendeeRescheduleRequestEmail: z.boolean().optional(),
-  disableAttendeeLocationChangeEmail: z.boolean().optional(),
-  disableAttendeeNewEventEmail: z.boolean().optional(),
-});
+export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUpdateInputSchemaInput> =
+  z.object({
+    name: z.string().optional(),
+    orgId: z
+      .string()
+      .regex(/^\d+$/)
+      .transform((id) => parseInt(id))
+      .or(z.number())
+      .optional(),
+    bio: z.string().optional(),
+    logoUrl: ssrfSafeOptionalUrl,
+    calVideoLogo: ssrfSafeOptionalUrl.transform((v) => v || null),
+    banner: ssrfSafeOptionalUrl,
+    slug: z.string().optional(),
+    hideBranding: z.boolean().optional(),
+    hideBookATeamMember: z.boolean().optional(),
+    brandColor: z.string().optional(),
+    darkBrandColor: z.string().optional(),
+    theme: z.string().optional().nullable(),
+    timeZone: timeZoneSchema.optional(),
+    weekStart: z.string().optional(),
+    timeFormat: z.number().optional(),
+    metadata: teamMetadataStrictSchema.unwrap().optional(),
+    lockEventTypeCreation: z.boolean().optional(),
+    lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
+    adminGetsNoSlotsNotification: z.boolean().optional(),
+    allowSEOIndexing: z.boolean().optional(),
+    orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
+    disablePhoneOnlySMSNotifications: z.boolean().optional(),
+    disableAutofillOnBookingPage: z.boolean().optional(),
+    orgAutoJoinOnSignup: z.boolean().optional(),
+    disableAttendeeConfirmationEmail: z.boolean().optional(),
+    disableAttendeeCancellationEmail: z.boolean().optional(),
+    disableAttendeeRescheduledEmail: z.boolean().optional(),
+    disableAttendeeRequestEmail: z.boolean().optional(),
+    disableAttendeeReassignedEmail: z.boolean().optional(),
+    disableAttendeeAwaitingPaymentEmail: z.boolean().optional(),
+    disableAttendeeRescheduleRequestEmail: z.boolean().optional(),
+    disableAttendeeLocationChangeEmail: z.boolean().optional(),
+    disableAttendeeNewEventEmail: z.boolean().optional(),
+  });
