@@ -1,4 +1,6 @@
-import { getInngestClient } from "@calid/job-dispatcher/";
+import { createInngestWorkflowContext, getInngestClient } from "@calid/job-dispatcher/";
+import { calendlyImportService } from "@calid/job-engine";
+import type { CalendlyImportJobData } from "@calid/job-engine";
 import { serve } from "inngest/next";
 
 import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
@@ -6,8 +8,6 @@ import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemp
 import sendBookingEmailsHandler from "@calcom/features/bookings/lib/handleNewBooking/sendBookingEmails.inngest";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentReminder";
-import { handleBookingExportEvent } from "@calcom/trpc/server/routers/viewer/bookings/export.handler";
-import { handleCalendlyImportEvent } from "@calcom/web/pages/api/import/calendly";
 
 import { triggerScheduledWebhook } from "./trigger-scheduled-webhook";
 import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
@@ -39,28 +39,33 @@ const handleCalendlyImportFn = inngestClient.createFunction(
   { id: `sync-import-from-calendly-${key}`, retries: 2 },
   { event: `sync/import-from-calendly-${key}` },
   async ({ event, step, logger }) => {
-    await handleCalendlyImportEvent(
-      event.data.sendCampaignEmails,
-      event.data.userCalendlyIntegrationProvider,
-      event.data.user,
-      step,
-      logger
-    );
-    return { message: `Import completed for userID :${event.data.user.id}` };
+    const ctx = createInngestWorkflowContext(step, logger);
+    await calendlyImportService(ctx, event.data as CalendlyImportJobData);
+    return { message: `Import completed for userID: ${event.data.user.id}` };
   }
 );
 
-const handleBookingExportFn = inngestClient.createFunction(
-  { id: `core-export-bookings-${key}`, retries: 2 },
-  { event: `core/export-bookings-${key}` },
+// const handleBookingExportFn = inngestClient.createFunction(
+//   { id: `core-export-bookings-${key}`, retries: 2 },
+//   { event: `core/export-bookings-${key}` },
+//   async ({ event, step, logger }) => {
+//     await handleBookingExportEvent({
+//       user: event.data.user,
+//       filters: event.data.filters,
+//       step,
+//       logger,
+//     });
+//     return { message: `Export Booking mail sent for userID :${event.data.user.id}` };
+//   }
+// );
+
+export const handleBookingExportFn = inngestClient.createFunction(
+  { id: `sync-import-from-calendly-${key}`, retries: 2 },
+  { event: `sync/import-from-calendly-${key}` },
   async ({ event, step, logger }) => {
-    await handleBookingExportEvent({
-      user: event.data.user,
-      filters: event.data.filters,
-      step,
-      logger,
-    });
-    return { message: `Export Booking mail sent for userID :${event.data.user.id}` };
+    const ctx = createInngestWorkflowContext(step, logger);
+    await calendlyImportService(ctx, event.data as CalendlyImportJobData);
+    return { message: `Import completed for userID: ${event.data.user.id}` };
   }
 );
 

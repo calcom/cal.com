@@ -1,5 +1,5 @@
 import { getRedisOptions } from "@calid/queue";
-import type { DefaultJob } from "@calid/queue/types";
+import type { DefaultJob } from "@calid/job-engine/types";
 import { Worker } from "bullmq";
 
 export const DEFAULT_RATE_LIMITER = {

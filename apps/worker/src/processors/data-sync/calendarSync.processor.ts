@@ -1,5 +1,5 @@
-import { handleGoogleCalendarSync } from "@calid/job-engine/calendar-sync";
-import type { CalendarSyncJob } from "@calid/queue/types";
+import { handleGoogleCalendarSync } from "@calid/job-engine";
+import type { CalendarSyncJob } from "@calid/job-engine/types";
 import type { Job } from "bullmq";
 
 export async function processCalendarSync(job: Job<CalendarSyncJob>) {
