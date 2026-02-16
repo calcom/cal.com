@@ -1,6 +1,12 @@
 export function MailIcon() {
   return (
-    <svg width="124" height="110" viewBox="0 0 124 110" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg
+      width="124"
+      height="110"
+      viewBox="0 0 124 110"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true">
       <style>
         {`:root {
           --mail-envelope-start: white;

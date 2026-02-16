@@ -8,19 +8,18 @@ export const organizationRepositoryModule = createModule();
 const token = ORGANIZATION_DI_TOKENS.ORGANIZATION_REPOSITORY;
 const moduleToken = ORGANIZATION_DI_TOKENS.ORGANIZATION_REPOSITORY_MODULE;
 const loadModule = bindModuleToClassOnToken({
-    module: organizationRepositoryModule,
-    moduleToken,
-    token,
-    classs: OrganizationRepository,
-    depsMap: {
-        prismaClient: prismaModuleLoader,
-    },
+  module: organizationRepositoryModule,
+  moduleToken,
+  token,
+  classs: OrganizationRepository,
+  depsMap: {
+    prismaClient: prismaModuleLoader,
+  },
 });
 
 export const moduleLoader: ModuleLoader = {
-    token,
-    loadModule,
+  token,
+  loadModule,
 };
 
 export type { OrganizationRepository };
-

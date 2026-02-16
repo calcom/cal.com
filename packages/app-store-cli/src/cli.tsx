@@ -2,14 +2,24 @@
 import { render } from "ink";
 import meow from "meow";
 import App from "./App";
+import { VALID_CATEGORY_VALUES } from "./constants";
+import { BaseAppFork, generateAppFiles, getSlugFromAppName } from "./core";
 import type { SupportedCommands } from "./types";
+import Templates from "./utils/templates";
+import { validateCreateAppFlags } from "./validateCreateAppFlags";
 
 const cli = meow(
   `
 	Usage
 	  $ 'app-store create' or 'app-store create-template' - Creates a new app or template    
     Options
-		[--template -t]  Template to use.
+		[--template -t]  (required in non-interactive mode) Template to use: ${Templates.map((t) => t.value).join(", ")}.
+		[--name -n]  (required) App name. Providing --name, --description, --category, and --template activates non-interactive mode.
+		[--description -d]  (required) App description.
+		[--category -c]  (required) App category: ${VALID_CATEGORY_VALUES.join(", ")}.
+		[--publisher -p]  Publisher name (default: "Your Name").
+		[--email -e]  Publisher email (default: "email@example.com").
+		[--external-link-url]  (required for link-as-an-app template) External link URL.
     
 
     $ 'app-store edit' or 'app-store edit-template' - Edit the App  or Template identified by slug
@@ -30,6 +40,29 @@ const cli = meow(
       template: {
         type: "string",
         alias: "t",
+      },
+      name: {
+        type: "string",
+        alias: "n",
+      },
+      description: {
+        type: "string",
+        alias: "d",
+      },
+      category: {
+        type: "string",
+        alias: "c",
+      },
+      publisher: {
+        type: "string",
+        alias: "p",
+      },
+      email: {
+        type: "string",
+        alias: "e",
+      },
+      externalLinkUrl: {
+        type: "string",
       },
     },
     allowUnknownFlags: false,
@@ -68,4 +101,61 @@ if (
   }
 }
 
-render(<App slug={slug} template={cli.flags.template || ""} command={command} />);
+const isCreateCommand = command === "create" || command === "create-template";
+const { name: appName, description, category, publisher, email, externalLinkUrl } = cli.flags;
+
+if (isCreateCommand && appName && description && category) {
+  const templateFlag = cli.flags.template || "";
+  const validTemplateValues = Templates.map((t) => t.value);
+
+  const validationError = validateCreateAppFlags({
+    template: templateFlag,
+    category,
+    externalLinkUrl,
+    validTemplateValues,
+  });
+
+  if (validationError) {
+    console.error(validationError);
+    process.exit(1);
+  }
+
+  const appSlug = getSlugFromAppName(appName);
+  const isTemplate = command === "create-template";
+
+  (async () => {
+    try {
+      await BaseAppFork.create({
+        category,
+        description,
+        name: appName,
+        slug: appSlug,
+        publisher: publisher || "Your Name",
+        email: email || "email@example.com",
+        template: templateFlag,
+        isTemplate,
+        externalLinkUrl,
+      });
+
+      await generateAppFiles();
+
+      console.log(`\nApp created successfully!`);
+      console.log(`Slug: ${appSlug}`);
+      console.log(`App URL: http://localhost:3000/apps/${appSlug}`);
+      console.log(`Name: ${appName}`);
+      console.log(`Description: ${description}`);
+      console.log(`Category: ${category}`);
+      if (externalLinkUrl) {
+        console.log(`External Link: ${externalLinkUrl}`);
+      }
+      console.log(
+        `\nNext Step: Enable the app from http://localhost:3000/settings/admin/apps as an admin user.`
+      );
+    } catch (error) {
+      console.error("Failed to create app:", error);
+      process.exit(1);
+    }
+  })();
+} else {
+  render(<App slug={slug} template={cli.flags.template || ""} command={command} />);
+}

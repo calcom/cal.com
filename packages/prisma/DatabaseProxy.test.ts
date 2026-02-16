@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@sentry/nextjs", () => ({
-  metrics: {
-    count: vi.fn(),
-  },
-}));
+import { resolveReplica } from "@calcom/lib/server/resolveReplica";
 
 import { createDatabaseProxy, type DatabaseProxy, type ProxyConfig } from "./DatabaseProxy";
 
@@ -323,4 +319,36 @@ describe("DatabaseProxy", () => {
     });
   });
 
+});
+
+describe("resolveReplica", () => {
+  it("returns the header value when present", () => {
+    const headers = new Headers({ "x-cal-replica": "read" });
+
+    expect(resolveReplica(headers)).toBe("read");
+  });
+
+  it("returns null when header is absent", () => {
+    const headers = new Headers();
+
+    expect(resolveReplica(headers)).toBeNull();
+  });
+
+  it("returns empty string when header is set to empty", () => {
+    const headers = new Headers({ "x-cal-replica": "" });
+
+    expect(resolveReplica(headers)).toBe("");
+  });
+
+  it("returns the value for any replica name", () => {
+    const headers = new Headers({ "x-cal-replica": "us-east" });
+
+    expect(resolveReplica(headers)).toBe("us-east");
+  });
+
+  it("is case-insensitive for header name", () => {
+    const headers = new Headers({ "X-Cal-Replica": "read" });
+
+    expect(resolveReplica(headers)).toBe("read");
+  });
 });

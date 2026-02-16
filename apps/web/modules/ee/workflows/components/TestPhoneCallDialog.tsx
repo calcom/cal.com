@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/components/phone-input";
 import { getEventTypeIdForCalAiTest } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,7 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { PhoneIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface TestPhoneCallDialogProps {
@@ -99,7 +99,7 @@ export function TestPhoneCallDialog({
             onClick={handleTestCall}
             loading={testCallMutation.isPending}
             disabled={!testPhoneNumber}>
-            <Icon name="phone" className="mr-2 h-4 w-4" />
+            <PhoneIcon className="mr-2 h-4 w-4" />
             {t("make_test_call")}
           </Button>
         </DialogFooter>

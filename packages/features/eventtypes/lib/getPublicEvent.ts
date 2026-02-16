@@ -129,10 +129,10 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
         },
       },
     },
-        successRedirectUrl: true,
-        forwardParamsSuccessRedirect: true,
-        redirectUrlOnNoRoutingFormResponse: true,
-        workflows: {
+    successRedirectUrl: true,
+    forwardParamsSuccessRedirect: true,
+    redirectUrlOnNoRoutingFormResponse: true,
+    workflows: {
       include: {
         workflow: {
           include: {
@@ -661,7 +661,7 @@ export async function getUsersFromEvent(
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
     return eventHosts.length
       ? eventHosts.filter((host) => host.user.username).map(mapHostsToUsers)
-      : (await getOwnerFromUsersArray(prisma, id)) ?? [];
+      : ((await getOwnerFromUsersArray(prisma, id)) ?? []);
   }
   if (!owner) {
     return null;

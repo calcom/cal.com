@@ -7,6 +7,7 @@ import { cookies, headers } from "next/headers";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { resolveReplica } from "@calcom/lib/server/resolveReplica";
 import { prisma } from "@calcom/prisma";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
@@ -30,7 +31,7 @@ async function isCachedTeamBookingEnabled(params: Params, searchParams: SearchPa
 
   if (!teamId) return false;
 
-  const db = prisma.replica((await headers()).get("x-cal-replica"));
+  const db = prisma.replica(resolveReplica(await headers()));
   const featuresRepository = new FeaturesRepository(db);
   const isTeamFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(
     teamId,

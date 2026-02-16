@@ -171,3 +171,4 @@ export type { DatabaseProxy };
 
 export default prisma;
 export * from "./selects";
+
