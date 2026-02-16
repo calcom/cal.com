@@ -17,6 +17,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
+import { mockThrottlerGuard } from "test/utils/withNoThrottler";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { AddAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
@@ -67,6 +68,8 @@ describe("Bookings Endpoints 2024-08-13 add attendee", () => {
   let testSetup: TestSetup;
 
   beforeAll(async () => {
+    mockThrottlerGuard();
+
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
     })
