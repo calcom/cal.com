@@ -14,7 +14,7 @@ import {
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.skip("dynamic booking", async ({ page, users }) => {
+test("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.apiLogin();
 
