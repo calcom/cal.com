@@ -50,7 +50,7 @@ type UserPageProps = {
     logoUrl?: string | null;
     considerUnpublished: boolean;
     orgSlug?: string | null;
-    isCustomDomain?: boolean;
+    customDomain?: string | null;
     name?: string | null;
     teamSlug?: string | null;
   };
@@ -191,7 +191,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),
         considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
-        isCustomDomain: !!customDomain,
+        customDomain: customDomain ?? null,
         name: org?.name ?? null,
       },
       eventTypes,

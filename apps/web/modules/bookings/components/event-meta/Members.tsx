@@ -3,7 +3,6 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui/components/avatar";
@@ -53,9 +52,9 @@ export const EventMembers = ({
   }
 
   const getEntityBaseUrl = () => {
-    const baseUrl = getOrgFullOrigin(entity.orgSlug ?? null, {
+    const baseUrl = getBookerBaseUrlSync(entity.orgSlug ?? null, {
       protocol: true,
-      isCustomDomain: entity.isCustomDomain,
+      customDomain: entity.customDomain,
     });
     return entity.teamSlug ? `${baseUrl}/${entity.teamSlug}` : baseUrl;
   };

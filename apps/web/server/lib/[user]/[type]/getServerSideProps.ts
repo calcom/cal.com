@@ -120,7 +120,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain, customDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
   const redirect = await handleOrgRedirect({
@@ -158,7 +158,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       eventSlug: slug,
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      isCustomDomain: !!customDomain,
     },
     session?.user?.id
   );
@@ -238,7 +237,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain, customDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const redirect = await handleOrgRedirect({
     slugs: usernames,
@@ -270,7 +269,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       eventSlug: slug,
       org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      isCustomDomain: !!customDomain,
     },
     session?.user?.id
   );

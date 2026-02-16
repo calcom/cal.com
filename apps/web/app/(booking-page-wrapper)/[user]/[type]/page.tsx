@@ -4,7 +4,7 @@ import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
@@ -38,7 +38,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
     isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null, { protocol: true, isCustomDomain: eventData?.entity.isCustomDomain }),
+    getBookerBaseUrlSync(eventData?.entity.orgSlug ?? null, { protocol: true, customDomain: eventData?.entity.customDomain }),
     `/${decodedParams.user}/${decodedParams.type}`
   );
 

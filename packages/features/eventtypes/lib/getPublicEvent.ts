@@ -387,7 +387,7 @@ export const getPublicEvent = async (
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
         fromRedirectOfNonOrgLink,
         orgSlug: org,
-        isCustomDomain: !!orgDetails?.customDomain?.slug,
+        customDomain: customDomain ?? null,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
         teamSlug: null,
         logoUrl: null,
@@ -508,16 +508,23 @@ export const getPublicEvent = async (
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
 
-  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
+  let orgDetails: (Pick<Team, "logoUrl" | "name"> & { customDomain: { slug: string } | null }) | undefined | null;
   if (org) {
     orgDetails = await prisma.team.findFirst({
       where: {
-        slug: org,
+        OR: [
+          { slug: org },
+          { customDomain: { slug: org, verified: true } },
+        ],
         parentId: null,
       },
       select: {
         logoUrl: true,
         name: true,
+        customDomain: {
+          where: { verified: true },
+          select: { slug: true },
+        },
       },
     });
   }
@@ -581,7 +588,7 @@ export const getPublicEvent = async (
           eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
           eventWithUserProfiles.team?.parent?.slug === null),
       orgSlug: org,
-      isCustomDomain: !!eventWithUserProfiles.owner?.profile?.organization?.customDomain?.slug,
+      customDomain: orgDetails?.customDomain?.slug ?? eventWithUserProfiles.owner?.profile?.organization?.customDomain?.slug ?? null,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
         (eventWithUserProfiles.owner?.profile?.organization?.name ||

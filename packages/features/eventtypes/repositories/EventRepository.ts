@@ -7,7 +7,6 @@ export type GetPublicEventInput = {
   isTeamEvent?: boolean;
   org: string | null;
   fromRedirectOfNonOrgLink: boolean;
-  isCustomDomain?: boolean;
 };
 
 export class EventRepository {

@@ -7,7 +7,8 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, type GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
@@ -115,7 +116,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     () => `${title} | ${profileName}`,
     () => title,
     hideBranding,
-    getOrgFullOrigin(enrichedEventType.entity.customDomain ?? enrichedEventType.entity.orgSlug ?? null, { protocol: true, isCustomDomain: !!enrichedEventType.entity.customDomain }),
+    getBookerBaseUrlSync(enrichedEventType.entity.orgSlug ?? null, { protocol: true, customDomain: enrichedEventType.entity.customDomain }),
     `/team/${teamSlug}/${meetingSlug}`
   );
 
@@ -190,13 +191,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     isInstantMeeting: legacyCtx.query.isInstantMeeting === "true",
     eventSlug: meetingSlug,
     username: teamSlug,
-    eventData: {
-      ...enrichedEventType,
-      entity: {
-        ...enrichedEventType.entity,
-        isCustomDomain: !!enrichedEventType.entity.customDomain,
-      }
-    },
+    eventData: enrichedEventType,
     entity: { ...enrichedEventType.entity },
     bookingData: bookingForReschedule,
     isTeamEvent: true,

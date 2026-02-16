@@ -4,7 +4,7 @@ import type { PageProps, Params, SearchParams } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -66,7 +66,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
     isBrandingHidden,
-    getOrgFullOrigin(eventData.entity.orgSlug ?? null, { protocol: true, isCustomDomain: eventData.entity.isCustomDomain }),
+    getBookerBaseUrlSync(eventData.entity.orgSlug ?? null, { protocol: true, customDomain: eventData.entity.customDomain }),
     `/team/${decodedParams.slug}/${decodedParams.type}`
   );
 
