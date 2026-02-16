@@ -21,8 +21,14 @@ export class ProfilesRepository {
     return profile?.userId;
   }
 
-  async createProfile(orgId: number, userId: number, userOrgUsername: string) {
-    await this.dbRead.prisma.profile.create({
+  async createProfile(
+    orgId: number,
+    userId: number,
+    userOrgUsername: string,
+    prismaTransactionClient?: Prisma.TransactionClient
+  ) {
+    const client = prismaTransactionClient ?? this.dbRead.prisma;
+    await client.profile.create({
       data: {
         uid: uuidv4(),
         organizationId: orgId,

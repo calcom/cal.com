@@ -9,8 +9,10 @@ import { GetManagedOrganizationsInput_2024_08_13 } from "@/modules/organizations
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { slugify } from "@calcom/platform-libraries";
 
@@ -23,7 +25,8 @@ export class ManagedOrganizationsService {
     private readonly organizationsMembershipService: OrganizationsMembershipService,
     private readonly apiKeysService: ApiKeysService,
     private readonly managedOrganizationsOutputService: ManagedOrganizationsOutputService,
-    private readonly profilesRepository: ProfilesRepository
+    private readonly profilesRepository: ProfilesRepository,
+    private readonly dbWrite: PrismaWriteService
   ) {}
 
   async createManagedOrganization(
@@ -58,48 +61,79 @@ export class ManagedOrganizationsService {
       );
     }
 
-    const organization = await this.managedOrganizationsRepository.createManagedOrganization(
-      managerOrganizationId,
-      {
-        ...organizationData,
-        isOrganization: true,
-        isPlatform: true,
-        metadata: organizationData.metadata,
+    return this.dbWrite.prisma.$transaction(async (prisma) => {
+      let organization;
+      try {
+        organization = await this.managedOrganizationsRepository.createManagedOrganization(
+          managerOrganizationId,
+          {
+            ...organizationData,
+            isOrganization: true,
+            isPlatform: true,
+            metadata: organizationData.metadata,
+          },
+          prisma
+        );
+      } catch (error) {
+        throw new Error("Failed to create managed organization");
       }
-    );
 
-    await this.organizationsMembershipService.createOrgMembership(organization.id, {
-      userId: authUser.id,
-      accepted: true,
-      role: "OWNER",
+      try {
+        await this.organizationsMembershipService.createOrgMembership(
+          organization.id,
+          {
+            userId: authUser.id,
+            accepted: true,
+            role: MembershipRole.OWNER,
+          },
+          prisma
+        );
+      } catch (error) {
+        throw new Error("Failed to create organization membership");
+      }
+
+      const defaultProfileUsername = `${organization.name}-${authUser.id}`;
+      try {
+        await this.profilesRepository.createProfile(
+          organization.id,
+          authUser.id,
+          authUser.username || defaultProfileUsername,
+          prisma
+        );
+      } catch (error) {
+        throw new Error("Failed to create user profile");
+      }
+
+      try {
+        await this.managedOrganizationsBillingService.createManagedOrganizationBilling(
+          managerOrganizationId,
+          organization.id,
+          prisma
+        );
+      } catch (error) {
+        throw new Error("Failed to create billing record");
+      }
+
+      let apiKey: string;
+      try {
+        apiKey = await this.apiKeysService.createApiKey(authUser.id, {
+        apiKeyDaysValid,
+        apiKeyNeverExpires,
+        note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
+        teamId: organization.id
+    },         prisma);
+      } catch (error) {
+        throw new Error("Failed to create API key");
+      }
+
+      const outputOrganization =
+        this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
+
+      return {
+        ...outputOrganization,
+        apiKey,
+      };
     });
-
-    const defaultProfileUsername = `${organization.name}-${authUser.id}`;
-    await this.profilesRepository.createProfile(
-      organization.id,
-      authUser.id,
-      authUser.username || defaultProfileUsername
-    );
-
-    await this.managedOrganizationsBillingService.createManagedOrganizationBilling(
-      managerOrganizationId,
-      organization.id
-    );
-
-    const apiKey = await this.apiKeysService.createApiKey(authUser.id, {
-      apiKeyDaysValid,
-      apiKeyNeverExpires,
-      note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
-      teamId: organization.id,
-    });
-
-    const outputOrganization =
-      this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
-
-    return {
-      ...outputOrganization,
-      apiKey,
-    };
   }
 
   private async isManagerOrganizationPlatform(managerOrganizationId: number) {

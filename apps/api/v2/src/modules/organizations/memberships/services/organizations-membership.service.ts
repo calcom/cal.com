@@ -7,6 +7,7 @@ import { OrganizationsDelegationCredentialService } from "@/modules/organization
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { OrganizationMembershipOutput } from "@/modules/organizations/memberships/outputs/organization-membership.output";
+import { Prisma } from "@calcom/prisma/client";
 
 export const PLATFORM_USER_BEING_ADDED_TO_REGULAR_ORG_ERROR = `Can't add user to organization - the user is platform managed user but organization is not because organization probably was not created using OAuth credentials.`;
 export const REGULAR_USER_BEING_ADDED_TO_PLATFORM_ORG_ERROR = `Can't add user to organization - the user is not platform managed user but organization is platform managed. Both have to be created using OAuth credentials.`;
@@ -120,10 +121,11 @@ export class OrganizationsMembershipService {
 
   async createOrgMembership(
     organizationId: number,
-    data: CreateOrgMembershipDto
+    data: CreateOrgMembershipDto,
+    prismaTransactionClient?: Prisma.TransactionClient
   ): Promise<OrganizationMembershipOutput> {
     await this.canUserBeAddedToOrg(data.userId, organizationId);
-    const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
+    const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data, prismaTransactionClient);
 
     if (membership.user.email) {
       await this.delegationCredentialService.ensureDefaultCalendarsForUser(

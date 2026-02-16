@@ -78,8 +78,13 @@ export class OrganizationsMembershipRepository {
     });
   }
 
-  async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
-    return this.dbWrite.prisma.membership.upsert({
+  async createOrgMembership(
+    organizationId: number,
+    data: CreateOrgMembershipDto,
+    prismaTransactionClient?: Prisma.TransactionClient
+  ) {
+    const client = prismaTransactionClient ?? this.dbWrite.prisma;
+    return client.membership.upsert({
       create: { ...data, teamId: organizationId },
       update: { role: data.role, accepted: data.accepted, disableImpersonation: data.disableImpersonation },
       where: { userId_teamId: { userId: data.userId, teamId: organizationId } },

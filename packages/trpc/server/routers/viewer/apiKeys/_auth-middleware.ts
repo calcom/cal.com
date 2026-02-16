@@ -7,10 +7,12 @@ export async function checkPermissions(args: {
   userId: number;
   teamId?: number;
   role: Prisma.MembershipWhereInput["role"];
+  prismaTransactionClient?: Prisma.TransactionClient
 }) {
-  const { teamId, userId, role } = args;
+  const { teamId, userId, role, prismaTransactionClient } = args;
   if (!teamId) return;
-  const team = await prisma.team.findFirst({
+  const client = prismaTransactionClient ?? prisma
+  const team = await client.team.findFirst({
     where: {
       id: teamId,
       members: {

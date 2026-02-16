@@ -9,8 +9,13 @@ import type { Prisma } from "@calcom/prisma/client";
 export class ManagedOrganizationsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createManagedOrganization(managerOrganizationId: number, data: Prisma.TeamCreateInput) {
-    return this.dbWrite.prisma.team.create({
+  async createManagedOrganization(
+    managerOrganizationId: number,
+    data: Prisma.TeamCreateInput,
+    prismaTransactionClient?: Prisma.TransactionClient
+  ) {
+    const client = prismaTransactionClient ?? this.dbWrite.prisma;
+    return client.team.create({
       data: {
         ...data,
         managedOrganization: {

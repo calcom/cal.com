@@ -1,3 +1,4 @@
+import type { Prisma } from "@calcom/prisma/client";
 import { hasMinimumPlan } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { orderedPlans, PlatformPlan } from "@/modules/billing/types";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
@@ -8,7 +9,11 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 export class ManagedOrganizationsBillingService {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createManagedOrganizationBilling(managerOrgId: number, managedOrgId: number) {
+  async createManagedOrganizationBilling(
+    managerOrgId: number,
+    managedOrgId: number,
+    prismaTransactionClient?: Prisma.TransactionClient
+  ) {
     const managerOrgBilling = await this.dbRead.prisma.platformBilling.findUnique({
       where: { id: managerOrgId },
     });
@@ -29,7 +34,8 @@ export class ManagedOrganizationsBillingService {
       );
     }
 
-    return this.dbWrite.prisma.platformBilling.create({
+    const client = prismaTransactionClient ?? this.dbWrite.prisma;
+    return client.platformBilling.create({
       data: {
         id: managedOrgId,
         customerId: managerOrgBilling.customerId,

@@ -9,6 +9,7 @@ import { ConfigService } from "@nestjs/config";
 import { DateTime } from "luxon";
 
 import { createApiKeyHandler } from "@calcom/platform-libraries";
+import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class ApiKeysService {
@@ -30,7 +31,7 @@ export class ApiKeysService {
     return apiKey;
   }
 
-  async createApiKey(authUserId: number, createApiKeyInput: CreateApiKeyInput) {
+  async createApiKey(authUserId: number, createApiKeyInput: CreateApiKeyInput, prismaTransactionClient?: Prisma.TransactionClient) {
     if (createApiKeyInput.apiKeyDaysValid && createApiKeyInput.apiKeyNeverExpires) {
       throw new BadRequestException(
         "ApiKeysService -Cannot set both apiKeyDaysValid and apiKeyNeverExpires. It has to be either or none of them."
@@ -54,6 +55,7 @@ export class ApiKeysService {
         expiresAt: apiKeyExpiresAt,
         teamId: createApiKeyInput.teamId,
       },
+      prismaTransactionClient,
     });
 
     return apiKey;

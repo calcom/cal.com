@@ -7,25 +7,28 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../types";
 import { checkPermissions } from "./_auth-middleware";
 import type { TCreateInputSchema } from "./create.schema";
+import { Prisma } from "@calcom/prisma/client";
 
 type CreateHandlerOptions = {
   ctx: {
     user: Pick<NonNullable<TrpcSessionUser>, "id">;
   };
   input: TCreateInputSchema;
+  prismaTransactionClient?: Prisma.TransactionClient
 };
 
-export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
+export const createHandler = async ({ ctx, input, prismaTransactionClient }: CreateHandlerOptions) => {
   const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+  const client = prismaTransactionClient ?? prisma
 
   // Here we snap never expires before deleting it so it's not passed to prisma create call.
   const { neverExpires, teamId, ...rest } = input;
   const userId = ctx.user.id;
 
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
-  await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
+  await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] }, prismaTransactionClient });
 
-  await prisma.apiKey.create({
+  await client.apiKey.create({
     data: {
       id: v4(),
       userId: ctx.user.id,
