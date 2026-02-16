@@ -12,11 +12,11 @@ export interface BookingWhereInput {
 
 export type BookingWhereUniqueInput =
   | {
-    id: number;
-  }
+      id: number;
+    }
   | {
-    uid: string;
-  };
+      uid: string;
+    };
 
 export interface BookingUpdateData {
   status?: BookingStatus;

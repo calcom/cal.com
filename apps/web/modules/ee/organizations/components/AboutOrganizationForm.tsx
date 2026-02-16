@@ -11,7 +11,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { PlusIcon } from "@coss/ui/icons";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
@@ -50,7 +50,7 @@ export const AboutOrganizationForm = () => {
                 <div className="flex items-center">
                   <Avatar
                     alt=""
-                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                    fallback={<PlusIcon className="text-subtle h-6 w-6" />}
                     className="items-center"
                     imageSrc={value}
                     size="lg"

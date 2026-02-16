@@ -7,13 +7,13 @@ import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import {
-  useDataTable,
   ColumnFilterType,
   convertMapToFacetedValues,
-  useFilterValue,
   ZSingleSelectFilterValue,
   type FilterableColumn,
 } from "@calcom/features/data-table";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 import {
   DataTableWrapper,
   DataTableFilters,

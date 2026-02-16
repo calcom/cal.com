@@ -54,6 +54,13 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import {
+  CalendarIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ExternalLinkIcon,
+  XIcon,
+} from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
@@ -476,7 +483,7 @@ export default function Success(props: PageProps) {
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
-            <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
+            <ChevronLeftIcon className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -536,12 +543,12 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
-                          <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
                         {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
-                          <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                          <CalendarIcon className="text-emphasis h-5 w-5" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        {isCancelled && <XIcon className="h-5 w-5 text-red-600 dark:text-red-200" />}
                       </div>
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
@@ -1172,7 +1179,7 @@ const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) =
           <Link href={`/booking/${rescheduledToUid}`}>
             <div className="flex items-center gap-1">
               {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
+              <ExternalLinkIcon className="h-4 w-4" />
             </div>
           </Link>
         </span>
@@ -1198,7 +1205,7 @@ const DisplayLocation = ({
       className={classNames("text-default flex items-center gap-2", className)}
       rel="noreferrer">
       {providerName || "Link"}
-      <Icon name="external-link" className="text-default inline h-4 w-4" />
+      <ExternalLinkIcon className="text-default inline h-4 w-4" />
     </a>
   ) : (
     <p className={className}>{locationToDisplay}</p>

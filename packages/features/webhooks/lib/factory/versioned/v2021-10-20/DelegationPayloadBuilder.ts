@@ -28,4 +28,3 @@ export class DelegationPayloadBuilder extends BaseDelegationPayloadBuilder {
     };
   }
 }
-
