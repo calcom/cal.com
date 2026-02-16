@@ -110,27 +110,6 @@ const _loadAndValidateUsers = async ({
     });
   }
 
-  // If this event was pre-relationship migration
-  // TODO: Establish whether this is dead code.
-  if (!users.length && eventType.userId) {
-    const eventTypeUser = await prisma.user.findUnique({
-      where: {
-        id: eventType.userId,
-      },
-      select: {
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        }, // Don't leak to client
-        ...userSelect,
-      },
-    });
-    if (!eventTypeUser) {
-      logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
-      throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
-    }
-    users.push(withSelectedCalendars(eventTypeUser));
-  }
-
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
   // Get organizationId from eventType (handles org teams and managed events)
@@ -138,8 +117,8 @@ const _loadAndValidateUsers = async ({
 
   // Fallback: For personal events, use the user's first org membership for org-specific blocking
   // TODO: When we support multiple orgs, revisit the logic
-  if (!organizationId && eventType.userId) {
-    organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: eventType.userId });
+  if (!organizationId && users.length > 0) {
+    organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: users[0].id });
   }
 
   const { eligibleUsers, blockedCount } = await filterBlockedUsers(users, organizationId, sentrySpan);

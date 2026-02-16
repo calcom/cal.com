@@ -95,14 +95,6 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     }
     const users = this.eventType.users;
 
-    /* If this event was pre-relationship migration */
-    if (!users.length && this.eventType.userId) {
-      const eventTypeUser = await this.getUserById(this.eventType.userId);
-      if (!eventTypeUser) {
-        throw new Error("buildUsersFromInnerClass.eventTypeUser.notFound");
-      }
-      users.push(eventTypeUser);
-    }
     this.setUsers(users);
   }
 

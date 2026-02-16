@@ -4,6 +4,7 @@ import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { Workflow } from "@calcom/types/Workflow";
 
 type ScheduleNoShowTriggersArgs = {
   booking: {
@@ -19,6 +20,7 @@ type ScheduleNoShowTriggersArgs = {
   orgId?: number | null;
   oAuthClientId?: string | null;
   isDryRun?: boolean;
+  workflows: Workflow[];
 };
 
 const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
@@ -31,6 +33,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     orgId,
     oAuthClientId,
     isDryRun = false,
+    workflows,
   } = args;
 
   const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
@@ -49,27 +52,6 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     oAuthClientId,
   });
 
-  noShowPromises.push(
-    ...subscribersHostsNoShowStarted.map((webhook) => {
-      if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-          .toDate();
-        return tasker.create(
-          "triggerHostNoShowWebhook",
-          {
-            triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-            bookingId: booking.id,
-            // Prevents null values from being serialized
-            webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
-          },
-          { scheduledAt, referenceUid: booking.uid }
-        );
-      }
-      return Promise.resolve();
-    })
-  );
-
   const subscribersGuestsNoShowStarted = await getWebhooks({
     userId: triggerForUser ? organizerUser.id : null,
     eventTypeId,
@@ -79,38 +61,59 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     oAuthClientId,
   });
 
-  noShowPromises.push(
-    ...subscribersGuestsNoShowStarted.map((webhook) => {
-      if (booking?.startTime && webhook.time && webhook.timeUnit) {
-        const scheduledAt = dayjs(booking.startTime)
-          .add(webhook.time, webhook.timeUnit.toLowerCase() as dayjs.ManipulateType)
-          .toDate();
-
-        return tasker.create(
-          "triggerGuestNoShowWebhook",
-          {
-            triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-            bookingId: booking.id,
-            // Prevents null values from being serialized
-            webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
-          },
-          { scheduledAt, referenceUid: booking.uid }
-        );
-      }
-
-      return Promise.resolve();
-    })
+  const afterHostNoShowWorkflows = workflows.filter(
+    (w) => w.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   );
 
-  await Promise.all(noShowPromises);
+  const afterGuestNoShowWorkflows = workflows.filter(
+    (w) => w.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  );
 
-  // TODO: Support no show workflows
-  // const workflowHostsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
-  // );
-  // const workflowGuestsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-  // );
+  subscribersHostsNoShowStarted.forEach((subscriber) => {
+    noShowPromises.push(
+      tasker.create("sendWebhook", {
+        subscriberUrl: subscriber.subscriberUrl,
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        createdAt: dayjs().format(),
+        data: booking,
+        secretKey: subscriber.secret,
+      })
+    );
+  });
+
+  subscribersGuestsNoShowStarted.forEach((subscriber) => {
+    noShowPromises.push(
+      tasker.create("sendWebhook", {
+        subscriberUrl: subscriber.subscriberUrl,
+        triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        createdAt: dayjs().format(),
+        data: booking,
+        secretKey: subscriber.secret,
+      })
+    );
+  });
+
+  afterHostNoShowWorkflows.forEach((w) => {
+    noShowPromises.push(
+      tasker.create("triggerNoShow", {
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        booking,
+        workflow: w,
+      })
+    );
+  });
+
+  afterGuestNoShowWorkflows.forEach((w) => {
+    noShowPromises.push(
+      tasker.create("triggerNoShow", {
+        triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        booking,
+        workflow: w,
+      })
+    );
+  });
+
+  await Promise.all(noShowPromises);
 };
 
 export const scheduleNoShowTriggers = withReporting(_scheduleNoShowTriggers, "scheduleNoShowTriggers");

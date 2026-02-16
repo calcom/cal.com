@@ -108,7 +108,11 @@ const getEventTypesFromDBSelect = {
   useEventTypeDestinationCalendarEmail: true,
   owner: {
     select: {
+      ...userSelect,
       hideBranding: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
     },
   },
   workflows: {
@@ -196,6 +200,7 @@ const getEventTypesFromDBSelect = {
   rrHostSubsetEnabled: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   autoTranslateInstantMeetingTitleEnabled: true,
+  createdAt: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {
@@ -210,7 +215,33 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     throw new Error(ErrorCode.EventTypeNotFound);
   }
 
-  const { profile, hosts, users, ...restEventType } = eventType;
+  // Type assertion for owner to include credentials as it's not in base userSelect but we added it
+  const owner = eventType.owner as typeof eventType.owner & {
+    credentials: Prisma.CredentialGetPayload<{ select: typeof credentialForCalendarServiceSelect }>[];
+  };
+
+  const users = [...eventType.users];
+  const hosts = [...eventType.hosts];
+
+  // Legacy data support: If no users/hosts are defined but there is an owner (userId), treat the owner as the host/user.
+  if (!users.length && eventType.userId && owner) {
+    users.push(owner);
+  }
+
+  if (!hosts.length && eventType.userId && owner && !eventType.teamId) {
+    hosts.push({
+      user: owner,
+      isFixed: true,
+      priority: 2,
+      weight: 100,
+      createdAt: eventType.createdAt || new Date(),
+      groupId: null,
+      location: null,
+      schedule: null,
+    });
+  }
+
+  const { profile, ...restEventType } = eventType;
 
   const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 

@@ -11,7 +11,7 @@ export class OrganizationsTeamsMembershipsService {
   constructor(
     private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository,
     private readonly teamsMembershipsService: TeamsMembershipsService
-  ) {}
+  ) { }
 
   async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
     await this.teamsMembershipsService.canUserBeAddedToTeam(data.userId, teamId);
@@ -79,5 +79,15 @@ export class OrganizationsTeamsMembershipsService {
     await TeamService.removeMembers({ teamIds: [teamId], userIds: [teamMembership.userId], isOrg: false });
 
     return teamMembership;
+  }
+
+  async getOrgTeam(teamId: number) {
+    const team = await this.organizationsTeamsMembershipsRepository.findOrgTeam(teamId);
+
+    if (!team) {
+      throw new NotFoundException(`Team with id ${teamId} not found`);
+    }
+
+    return team;
   }
 }

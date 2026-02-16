@@ -44,6 +44,8 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
 import { SkipTakePagination } from "@calcom/platform-types";
+import { MembershipService } from "@calcom/features/membership/services/membershipService";
+import { CreationSource } from "@calcom/prisma/enums";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/memberships",
@@ -171,8 +173,7 @@ export class OrganizationsTeamsMembershipsController {
   }
 
 
-  // TODO: Refactor to use inviteMembersWithNoInviterPermissionCheck when it is moved to a Service
-  // See: packages/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler.ts
+  // Refactored to use MembershipService.inviteMembers
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/")
@@ -189,28 +190,27 @@ export class OrganizationsTeamsMembershipsController {
       throw new UnprocessableEntityException("User is not part of the Organization");
     }
 
-    const shouldAutoAccept = await this.orgMembershipService.shouldAutoAccept({
-      organizationId: orgId,
-      userEmail: user.email,
+    const membershipService = new MembershipService();
+    // Fetch the team slug for redirection links in emails
+    const team = await this.organizationsTeamsMembershipsService.getOrgTeam(teamId);
+
+    const result = await membershipService.inviteMembers({
+      teamId,
+      language: user.locale || "en",
+      inviterName: null, // Could be context user name if available
+      orgSlug: team.parent?.slug || null,
+      invitations: [
+        {
+          usernameOrEmail: user.email,
+          role: data.role as any, // Cast to MembershipRole
+        },
+      ],
+      creationSource: CreationSource.PLATFORM,
+      isDirectUserAction: true,
     });
 
-    // ALWAYS override when email matches - prevents pending memberships
-    // Remember organizations expect added team member to automatically start receiving bookings for the team event
-    const acceptedStatus = shouldAutoAccept ? true : (data.accepted ?? false);
+    const membership = result.memberships[0];
 
-    const membershipData = { ...data, accepted: acceptedStatus };
-    const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(
-      teamId,
-      membershipData
-    );
-
-    if (membership.accepted) {
-      try {
-        await updateNewTeamMemberEventTypes(user.id, teamId);
-      } catch (err) {
-        this.logger.error("Could not update new team member eventTypes", err);
-      }
-    }
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
