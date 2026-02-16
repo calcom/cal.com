@@ -67,6 +67,7 @@ export class BookingAttendeesService {
         email: a.email,
         timeZone: a.timeZone || organizer.timeZone,
         locale: a.language || organizer.locale,
+        phoneNumber: a.phoneNumber || null,
       }));
 
       const attendeeEmail = attendee.email;
