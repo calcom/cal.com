@@ -1,19 +1,18 @@
+import { getRoutedUrl } from "@calcom/platform-libraries";
+import { ById_2024_09_04_type } from "@calcom/platform-types";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
+import { Request } from "express";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { CreateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/create-routing-form-response.input";
 import { CreateRoutingFormResponseOutputData } from "@/modules/organizations/routing-forms/outputs/create-routing-form-response.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import {
-  Injectable,
-  BadRequestException,
-  InternalServerErrorException,
-  NotFoundException,
-} from "@nestjs/common";
-import { Request } from "express";
-
-import { getRoutedUrl } from "@calcom/platform-libraries";
-import { ById_2024_09_04_type } from "@calcom/platform-types";
 
 @Injectable()
 export class SharedRoutingFormResponseService {
@@ -153,22 +152,32 @@ export class SharedRoutingFormResponseService {
   }
 
   private async extractEventTypeAndCrmParams(userId: number, routingUrl: URL) {
-    // Extract team and event type information
-    // TODO: Route action also has eventTypeId directly now and instead of using this brittle approach for getting event type by slug, we should get by eventTypeId
-    const { teamId, eventTypeSlug } = this.extractTeamIdAndEventTypeSlugFromRedirectUrl(routingUrl);
-    const eventType = teamId
-      ? await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug)
-      : await this.eventTypesRepository.getUserEventTypeBySlug(userId, eventTypeSlug);
+    const urlParams = routingUrl.searchParams;
+
+    // Prefer direct eventTypeId lookup when available (set by route action)
+    const directEventTypeId = urlParams.get("cal.eventTypeId")
+      ? parseInt(urlParams.get("cal.eventTypeId")!)
+      : null;
+
+    let eventType: { id: number } | null = null;
+
+    if (directEventTypeId && !isNaN(directEventTypeId)) {
+      eventType = await this.eventTypesRepository.getEventTypeById(directEventTypeId);
+    }
+
+    // Fall back to slug-based lookup for backward compatibility
+    if (!eventType) {
+      const { teamId, eventTypeSlug } = this.extractTeamIdAndEventTypeSlugFromRedirectUrl(routingUrl);
+      eventType = teamId
+        ? await this.teamsEventTypesRepository.getEventTypeByTeamIdAndSlug(teamId, eventTypeSlug)
+        : await this.eventTypesRepository.getUserEventTypeBySlug(userId, eventTypeSlug);
+    }
 
     if (!eventType?.id) {
-      // This could only happen if the event-type earlier selected as route action was deleted
-      throw new InternalServerErrorException(
-        `Chosen event type identified by slug ${eventTypeSlug} not found.`
-      );
+      throw new InternalServerErrorException(`Chosen event type not found.`);
     }
 
     // Extract CRM parameters from URL
-    const urlParams = routingUrl.searchParams;
     const crmParams = {
       teamMemberEmail: urlParams.get("cal.crmContactOwnerEmail") || undefined,
       routedTeamMemberIds: urlParams.get("cal.routedTeamMemberIds")

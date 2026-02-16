@@ -8,14 +8,15 @@ import {
   bookingMinimalSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
-import type {
-  BookingWhereInput,
-  IBookingRepository,
-  BookingUpdateData,
-  BookingWhereUniqueInput,
-} from "./IBookingRepository";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 import { workflowSelect } from "../../ee/workflows/lib/getAllWorkflows";
+import type {
+  BookingUpdateData,
+  BookingWhereInput,
+  BookingWhereUniqueInput,
+  IBookingRepository,
+} from "./IBookingRepository";
 
 const workflowReminderSelect = {
   id: true,
@@ -1119,21 +1120,20 @@ export class BookingRepository implements IBookingRepository {
     where: { id: number };
     data: {
       location: string;
-      metadata: Record<string, unknown>;
+      metadata: z.infer<typeof bookingMetadataSchema>;
       referencesToCreate: Prisma.BookingReferenceCreateInput[];
       responses?: Record<string, unknown>;
       iCalSequence?: number;
     };
   }) {
+    const validatedMetadata = bookingMetadataSchema.parse(metadata);
     await this.prismaClient.booking.update({
       where: {
         id,
       },
       data: {
         location,
-        // FIXME: metadata is untyped
-        metadata: metadata as unknown as Prisma.InputJsonValue,
-        // FIXME: responses is untyped
+        metadata: validatedMetadata as unknown as Prisma.InputJsonValue,
         ...(responses && { responses: responses as unknown as Prisma.InputJsonValue }),
         ...(iCalSequence !== undefined && { iCalSequence }),
         references: {
@@ -2136,7 +2136,11 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
+  async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({
+    bookingUid,
+  }: {
+    bookingUid: string;
+  }) {
     return await this.prismaClient.booking.findUnique({
       where: { uid: bookingUid },
       select: {
