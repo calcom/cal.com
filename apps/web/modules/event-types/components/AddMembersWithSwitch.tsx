@@ -32,7 +32,7 @@ interface IUserToValue {
 }
 
 export const mapUserToValue = (
-  { id, name, username, avatar, email, defaultScheduleId }: IUserToValue,
+  { id, name, username, avatar, email, defaultScheduleId, isOptional }: IUserToValue & { isOptional?: boolean },
   pendingString: string
 ) => ({
   value: `${id || ""}`,
@@ -40,6 +40,7 @@ export const mapUserToValue = (
   avatar,
   email,
   defaultScheduleId,
+  isOptional: isOptional || false,
 });
 
 const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof mapUserToValue>) => {

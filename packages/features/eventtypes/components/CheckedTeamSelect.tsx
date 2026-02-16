@@ -28,6 +28,7 @@ export type CheckedSelectOption = {
   priority?: number;
   weight?: number;
   isFixed?: boolean;
+  isOptional?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
@@ -136,6 +137,23 @@ export const CheckedTeamSelect = ({
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (
                   <>
+                    <Tooltip content={t(option.isOptional ? "make_required" : "make_optional")}>
+                      <Button
+                        color="minimal"
+                        onClick={() =>
+                          props.onChange(
+                            value.map((item) =>
+                              item.value === option.value ? { ...item, isOptional: !item.isOptional } : item
+                            )
+                          )
+                        }
+                        className={classNames(
+                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                          option.isOptional ? "text-orange-500" : "text-subtle"
+                        )}>
+                        {option.isOptional ? t("optional") : t("required")}
+                      </Button>
+                    </Tooltip>
                     <Tooltip content={t("change_priority")}>
                       <Button
                         color="minimal"
