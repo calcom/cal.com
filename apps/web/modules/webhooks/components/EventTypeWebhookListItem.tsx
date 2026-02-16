@@ -60,11 +60,15 @@ export default function EventTypeWebhookListItem(props: {
     },
   });
   const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
-    async onSuccess(data) {
+    async onSuccess() {
       if (webhook.eventTypeId) revalidateEventTypeEditPage(webhook.eventTypeId);
+      toastManager.add({ title: t("webhook_updated_successfully"), type: "success" });
       await utils.viewer.webhook.getByViewer.invalidate();
       await utils.viewer.webhook.list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
+    },
+    onError() {
+      toastManager.add({ title: t("something_went_wrong"), type: "error" });
     },
   });
 
