@@ -45,6 +45,14 @@ export class BookingAttendeesController_2024_08_13 {
     summary: "Add an attendee to a booking",
     description: `Add a new attendee to an existing booking by its UID.
 
+      **Side effects:**
+      - The booking's attendee list is updated in the database
+      - The calendar event is updated on connected calendars (Google Calendar, Outlook, etc.) to include the new attendee
+      - An email notification is sent to the new attendee with the booking details
+
+      **Permissions:**
+      - The authenticated user must be either the booking organizer, an existing attendee, or have the \`booking.update\` permission for the team
+
       <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
       `,
   })

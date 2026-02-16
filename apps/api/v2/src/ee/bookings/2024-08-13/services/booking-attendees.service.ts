@@ -1,4 +1,4 @@
-import { addGuestsHandler } from "@calcom/platform-libraries/bookings";
+import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
 import { HttpException, Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
@@ -9,10 +9,14 @@ import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-au
 
 @Injectable()
 export class BookingAttendeesService_2024_08_13 {
+  private bookingAttendeesService: BookingAttendeesService;
+
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly platformBookingsService: PlatformBookingsService
-  ) {}
+  ) {
+    this.bookingAttendeesService = new BookingAttendeesService();
+  }
 
   async addAttendee(
     bookingUid: string,
@@ -30,17 +34,22 @@ export class BookingAttendeesService_2024_08_13 {
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
-    const res = await addGuestsHandler({
-      ctx: { user },
-      input: {
-        bookingId: booking.id,
-        guests: [
-          {
-            email: input.email,
-            name: input.name,
-            timeZone: input.timeZone,
-          },
-        ],
+    const res = await this.bookingAttendeesService.addAttendee({
+      bookingId: booking.id,
+      guests: [
+        {
+          email: input.email,
+          name: input.name,
+          timeZone: input.timeZone,
+          phoneNumber: input.phoneNumber,
+          language: input.language,
+        },
+      ],
+      user: {
+        id: user.id,
+        email: user.email,
+        organizationId: user.organizationId,
+        uuid: user.uuid,
       },
       emailsEnabled,
       emailVariant: "attendee",
