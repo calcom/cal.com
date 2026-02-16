@@ -715,7 +715,7 @@ const VerificationDialog = ({ isOpen, onClose, claimSubmittedForYear }: Verifica
 
             <p className="text-default text-sm">
               Your submission is currently being reviewed. Once approved, your{" "}
-              {formSubmittedForYear === 1 ? "1st" : "2nd"} year of Pro plan will be activated automatically.
+              {claimSubmittedForYear === 1 ? "1st" : "2nd"} year of Pro plan will be activated automatically.
               <br />
               Please note that approval timelines vary by platform and may take anywhere from a few days to up
               to two weeks.
