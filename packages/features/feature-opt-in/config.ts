@@ -30,6 +30,8 @@ export interface OptInFeatureConfig {
    * Use [] if you want the feature defined but not displayed anywhere.
    */
   displayLocations?: OptInFeatureDisplayLocation[];
+  /** Which viewports should show the opt-in banner. Defaults to 'all'. */
+  showBannerOn?: "all" | "mobile" | "desktop";
   /**
    * Formbricks feedback configuration for delayed survey triggering after opt-in.
    * When configured, a custom feedback dialog will be shown after the specified delay
@@ -75,7 +77,8 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
     },
     policy: "permissive",
     displayLocations: ["banner", "settings"],
-    scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
+    showBannerOn: "desktop",
+    scope: ["org", "team", "user"],
     formbricks: {
       waitAfterDays: 3,
       showOn: "desktop",
