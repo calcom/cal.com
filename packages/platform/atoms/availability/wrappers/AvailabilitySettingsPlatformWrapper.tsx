@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { forwardRef, useRef } from "react";
+import { forwardRef } from "react";
 
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/ScheduleComponent";
 import type { UpdateScheduleResponse } from "@calcom/features/schedules/services/ScheduleService";
@@ -84,9 +84,7 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
     },
   });
 
-  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
-
-  const { mutate: updateSchedule, isPending: isSavingInProgress } = useAtomUpdateSchedule({
+  const { mutateAsync: updateSchedule, isPending: isSavingInProgress } = useAtomUpdateSchedule({
     onSuccess: (res) => {
       onUpdateSuccess?.(res);
       if (!disableToasts) {
@@ -94,7 +92,6 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
           description: "Schedule updated successfully",
         });
       }
-      callbacksRef.current?.onSuccess?.();
     },
     onError: (err) => {
       onUpdateError?.(err);
@@ -103,7 +100,6 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
           description: "Could not update schedule",
         });
       }
-      callbacksRef.current?.onError?.(err);
     },
   });
 
@@ -119,7 +115,7 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
     }
 
     if (canUpdate) {
-      updateSchedule({
+      await updateSchedule({
         scheduleId: id,
         body: {
           ...body,
@@ -202,7 +198,6 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
         allowDelete={allowDelete}
         allowSetToDefault={allowSetToDefault}
         onFormStateChange={onFormStateChange}
-        callbacksRef={callbacksRef}
         isDryRun={isDryRun}
       />
     </AtomsWrapper>

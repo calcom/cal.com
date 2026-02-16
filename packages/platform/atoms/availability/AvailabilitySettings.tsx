@@ -126,7 +126,6 @@ type AvailabilitySettingsProps = {
     isEventTypesFetching?: boolean;
     handleBulkEditDialogToggle: () => void;
   };
-  callbacksRef?: React.MutableRefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
   isDryRun?: boolean;
 };
 
@@ -314,7 +313,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       bulkUpdateModalProps,
       allowSetToDefault = true,
       allowDelete = true,
-      callbacksRef,
       isDryRun,
     } = props;
     const [openSidebar, setOpenSidebar] = useState(false);
@@ -353,24 +351,21 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const handleFormSubmit = useCallback(
       (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-        if (callbacksRef && customCallbacks) {
-          callbacksRef.current = customCallbacks;
-        }
-
         if (saveButtonRef.current) {
           saveButtonRef.current.click();
         } else {
           form.handleSubmit(async (data) => {
             try {
               await handleSubmit(data);
-              callbacksRef?.current?.onSuccess?.();
+              form.reset(form.getValues());
+              customCallbacks?.onSuccess?.();
             } catch (error) {
-              callbacksRef?.current?.onError?.(error as Error);
+              customCallbacks?.onError?.(error as Error);
             }
           })();
         }
       },
-      [form, handleSubmit, callbacksRef]
+      [form, handleSubmit]
     );
 
     const validateForm = useCallback(async () => {
@@ -649,13 +644,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             form={form}
             id="availability-form"
             handleSubmit={async (props) => {
-              if (callbacksRef) {
-                callbacksRef.current = {
-                  onSuccess: () => form.reset(form.getValues()),
-                  onError: () => {},
-                };
+              try {
+                await handleSubmit(props);
+                form.reset(form.getValues());
+              } catch {
+                // error already handled by parent's onError
               }
-              await handleSubmit(props);
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
             <div className="flex-1">

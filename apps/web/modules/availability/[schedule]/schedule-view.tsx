@@ -3,7 +3,7 @@
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import { revalidateSchedulePage } from "app/(use-page-wrapper)/availability/[schedule]/actions";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/availability/AvailabilitySettings";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -33,7 +33,6 @@ export const AvailabilitySettingsWebWrapper = ({
   const scheduleId = schedule.id;
   const { timeFormat } = me.data || { timeFormat: null };
   const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
-  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: () => void }>({});
   const bulkUpdateDefaultAvailabilityMutation =
     trpc.viewer.availability.schedule.bulkUpdateToDefaultAvailability.useMutation();
 
@@ -83,14 +82,12 @@ export const AvailabilitySettingsWebWrapper = ({
         }),
         "success"
       );
-      callbacksRef.current?.onSuccess?.();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
-      callbacksRef.current?.onError?.();
     },
   });
 
@@ -127,14 +124,14 @@ export const AvailabilitySettingsWebWrapper = ({
           showToast(t("schedule_name_cannot_be_empty"), "error");
           return;
         }
-        scheduleId &&
-          updateMutation.mutate({
+        if (scheduleId) {
+          await updateMutation.mutateAsync({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
             ...values,
           });
+        }
       }}
-      callbacksRef={callbacksRef}
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,
         setIsOpen: setIsBulkUpdateModalOpen,
