@@ -302,8 +302,8 @@ export class RecurringBookingService implements IBookingService {
   }): Promise<BookingResponse[]> {
     const handlerInput = {
       bookingData: input.bookingData,
-      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       ...(input.bookingMeta || {}),
+      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
     };
     return handleNewRecurringBooking.bind(this)({
       input: handlerInput,
@@ -319,8 +319,8 @@ export class RecurringBookingService implements IBookingService {
   }): Promise<BookingResponse[]> {
     const handlerInput = {
       bookingData: input.bookingData,
-      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       ...(input.bookingMeta || {}),
+      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
     };
     return handleNewRecurringBooking.bind(this)({
       input: handlerInput,

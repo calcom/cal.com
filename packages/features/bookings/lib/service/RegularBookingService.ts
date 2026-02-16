@@ -3036,8 +3036,8 @@ export class RegularBookingService implements IBookingService {
     return handler.bind(this)(
       {
         bookingData: input.bookingData,
-        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
         ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       },
       this.deps
     );
@@ -3047,8 +3047,8 @@ export class RegularBookingService implements IBookingService {
     return handler.bind(this)(
       {
         bookingData: input.bookingData,
-        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
         ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       },
       this.deps
     );
@@ -3065,8 +3065,8 @@ export class RegularBookingService implements IBookingService {
     return handler.bind(this)(
       {
         bookingData: input.bookingData,
-        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
         ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       },
       this.deps,
       input.bookingDataSchemaGetter
