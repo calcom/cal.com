@@ -3,10 +3,11 @@ import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 
 import type { Prisma } from "@calcom/prisma/client";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 @Injectable()
 export class ProfilesRepository {
-  constructor(private readonly dbRead: PrismaReadService) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getPlatformOwnerUserId(organizationId: number) {
     const profile = await this.dbRead.prisma.profile.findFirst({
@@ -27,7 +28,7 @@ export class ProfilesRepository {
     userOrgUsername: string,
     prismaTransactionClient?: Prisma.TransactionClient
   ) {
-    const client = prismaTransactionClient ?? this.dbRead.prisma;
+    const client = prismaTransactionClient ?? this.dbWrite.prisma;
     await client.profile.create({
       data: {
         uid: uuidv4(),
@@ -39,7 +40,7 @@ export class ProfilesRepository {
   }
 
   async updateProfile(orgId: number, userId: number, body: Prisma.ProfileUpdateInput) {
-    return this.dbRead.prisma.profile.update({
+    return this.dbWrite.prisma.profile.update({
       where: {
         userId_organizationId: {
           userId,

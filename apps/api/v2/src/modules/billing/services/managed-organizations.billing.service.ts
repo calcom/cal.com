@@ -14,7 +14,10 @@ export class ManagedOrganizationsBillingService {
     managedOrgId: number,
     prismaTransactionClient?: Prisma.TransactionClient
   ) {
-    const managerOrgBilling = await this.dbRead.prisma.platformBilling.findUnique({
+    const writeClient = prismaTransactionClient ?? this.dbWrite.prisma;
+    const readClient = prismaTransactionClient ?? this.dbRead.prisma;
+    
+    const managerOrgBilling = await readClient.platformBilling.findUnique({
       where: { id: managerOrgId },
     });
     if (!managerOrgBilling) {
@@ -34,8 +37,7 @@ export class ManagedOrganizationsBillingService {
       );
     }
 
-    const client = prismaTransactionClient ?? this.dbWrite.prisma;
-    return client.platformBilling.create({
+    return writeClient.platformBilling.create({
       data: {
         id: managedOrgId,
         customerId: managerOrgBilling.customerId,

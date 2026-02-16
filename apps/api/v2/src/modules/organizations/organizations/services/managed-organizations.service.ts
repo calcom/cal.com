@@ -11,10 +11,11 @@ import { ManagedOrganizationsRepository } from "@/modules/organizations/organiza
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { slugify } from "@calcom/platform-libraries";
+import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -49,82 +50,66 @@ export class ManagedOrganizationsService {
       organizationData.slug = effectiveSlug;
     }
 
-    const existingManagedOrganization =
+    return this.dbWrite.prisma.$transaction(async (prisma) => {
+     try {
+      // existingManagedOrganization is getting checked inside transaction to prevent race conditions
+      const existingManagedOrganization =
       await this.managedOrganizationsRepository.getManagedOrganizationBySlug(
         managerOrganizationId,
         effectiveSlug
       );
 
-    if (existingManagedOrganization) {
-      throw new ConflictException(
-        `Organization with slug '${organizationData.slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+      if (existingManagedOrganization) {
+        throw new Error(
+          `Organization with slug '${organizationData.slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+        );
+      }
+
+      const organization = await this.managedOrganizationsRepository.createManagedOrganization(
+        managerOrganizationId,
+        {
+          ...organizationData,
+          isOrganization: true,
+          isPlatform: true,
+          metadata: organizationData.metadata,
+        },
+        prisma
       );
-    }
 
-    return this.dbWrite.prisma.$transaction(async (prisma) => {
-      let organization;
-      try {
-        organization = await this.managedOrganizationsRepository.createManagedOrganization(
-          managerOrganizationId,
-          {
-            ...organizationData,
-            isOrganization: true,
-            isPlatform: true,
-            metadata: organizationData.metadata,
-          },
-          prisma
-        );
-      } catch (error) {
-        throw new Error("Failed to create managed organization");
-      }
 
-      try {
-        await this.organizationsMembershipService.createOrgMembership(
-          organization.id,
-          {
-            userId: authUser.id,
-            accepted: true,
-            role: MembershipRole.OWNER,
-          },
-          prisma
-        );
-      } catch (error) {
-        throw new Error("Failed to create organization membership");
-      }
+      await this.organizationsMembershipService.createOrgMembership(
+        organization.id,
+        {
+          userId: authUser.id,
+          accepted: true,
+          role: MembershipRole.OWNER,
+        },
+        prisma
+      );
+
 
       const defaultProfileUsername = `${organization.name}-${authUser.id}`;
-      try {
+
         await this.profilesRepository.createProfile(
           organization.id,
           authUser.id,
           authUser.username || defaultProfileUsername,
           prisma
         );
-      } catch (error) {
-        throw new Error("Failed to create user profile");
-      }
 
-      try {
         await this.managedOrganizationsBillingService.createManagedOrganizationBilling(
           managerOrganizationId,
           organization.id,
           prisma
         );
-      } catch (error) {
-        throw new Error("Failed to create billing record");
-      }
 
-      let apiKey: string;
-      try {
-        apiKey = await this.apiKeysService.createApiKey(authUser.id, {
+
+        const apiKey = await this.apiKeysService.createApiKey(authUser.id, {
         apiKeyDaysValid,
         apiKeyNeverExpires,
         note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
         teamId: organization.id
     },         prisma);
-      } catch (error) {
-        throw new Error("Failed to create API key");
-      }
 
       const outputOrganization =
         this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
@@ -133,6 +118,14 @@ export class ManagedOrganizationsService {
         ...outputOrganization,
         apiKey,
       };
+     } catch (error) {
+      throw new Error(`Managed organization creation failed. ${error instanceof Error ? error.message : String(error)}`)
+     }
+    }, {
+      // @see: https://www.prisma.io/docs/orm/prisma-client/queries/transactions
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable, // optional, default defined by database configuration
+      maxWait: 5000, // default: 2000
+      timeout: 10000, // default: 5000
     });
   }
 

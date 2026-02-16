@@ -29,8 +29,9 @@ export class ManagedOrganizationsRepository {
     });
   }
 
-  async getManagedOrganizationBySlug(managerOrganizationId: number, managedOrganizationSlug: string) {
-    return this.dbRead.prisma.managedOrganization.findFirst({
+  async getManagedOrganizationBySlug(managerOrganizationId: number, managedOrganizationSlug: string, prismaTransactionClient?: Prisma.TransactionClient) {
+    const client = prismaTransactionClient ?? this.dbRead.prisma;
+    return client.managedOrganization.findFirst({
       where: {
         managerOrganizationId,
         managedOrganization: {
