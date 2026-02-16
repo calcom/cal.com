@@ -1,4 +1,3 @@
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
@@ -8,11 +7,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 import { CardFrame } from "@coss/ui/components/card";
+import { Dialog, DialogPanel, DialogPopup } from "@coss/ui/components/dialog";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -213,80 +212,84 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
           </div>
 
           {/* New webhook dialog */}
-          <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent enableOverflow size="md" className="pb-8">
-              <WebhookForm
-                noRoutingFormTriggers={true}
-                onSubmit={onCreateWebhook}
-                onCancel={() => setCreateModalOpen(false)}
-                apps={installedApps?.items.map((app) => app.slug)}
-                headerWrapper={(formMethods, children) => (
-                  <CardFrame>
-                    <WebhookFormHeader
-                      titleKey="create_webhook"
-                      showBackButton={false}
-                      CTA={<WebhookVersionCTA formMethods={formMethods} />}
-                    />
-                    {children}
-                  </CardFrame>
-                )}
-              />
-            </DialogContent>
+          <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+            <DialogPopup showCloseButton={false} className="max-w-3xl">
+              <DialogPanel>
+                <WebhookForm
+                  noRoutingFormTriggers={true}
+                  onSubmit={onCreateWebhook}
+                  onCancel={() => setCreateModalOpen(false)}
+                  apps={installedApps?.items.map((app) => app.slug)}
+                  headerWrapper={(formMethods, children) => (
+                    <CardFrame>
+                      <WebhookFormHeader
+                        titleKey="create_webhook"
+                        showBackButton={false}
+                        CTA={<WebhookVersionCTA formMethods={formMethods} />}
+                      />
+                      {children}
+                    </CardFrame>
+                  )}
+                />
+              </DialogPanel>
+            </DialogPopup>
           </Dialog>
           {/* Edit webhook dialog */}
-          <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent enableOverflow size="md" className="pb-8">
-              <WebhookForm
-                noRoutingFormTriggers={true}
-                webhook={webhookToEdit}
-                apps={installedApps?.items.map((app) => app.slug)}
-                onCancel={() => setEditModalOpen(false)}
-                headerWrapper={(formMethods, children) => (
-                  <CardFrame>
-                    <WebhookFormHeader
-                      titleKey="edit_webhook"
-                      showBackButton={false}
-                      CTA={<WebhookVersionCTA formMethods={formMethods} />}
-                    />
-                    {children}
-                  </CardFrame>
-                )}
-                onSubmit={(values: WebhookFormSubmitData) => {
-                  if (
-                    subscriberUrlReserved({
+          <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+            <DialogPopup showCloseButton={false} className="max-w-3xl">
+              <DialogPanel>
+                <WebhookForm
+                  noRoutingFormTriggers={true}
+                  webhook={webhookToEdit}
+                  apps={installedApps?.items.map((app) => app.slug)}
+                  onCancel={() => setEditModalOpen(false)}
+                  headerWrapper={(formMethods, children) => (
+                    <CardFrame>
+                      <WebhookFormHeader
+                        titleKey="edit_webhook"
+                        showBackButton={false}
+                        CTA={<WebhookVersionCTA formMethods={formMethods} />}
+                      />
+                      {children}
+                    </CardFrame>
+                  )}
+                  onSubmit={(values: WebhookFormSubmitData) => {
+                    if (
+                      subscriberUrlReserved({
+                        subscriberUrl: values.subscriberUrl,
+                        id: webhookToEdit?.id,
+                        webhooks,
+                        eventTypeId: eventType.id,
+                      })
+                    ) {
+                      showToast(t("webhook_subscriber_url_reserved"), "error");
+                      return;
+                    }
+
+                    if (values.changeSecret) {
+                      values.secret = values.newSecret.length ? values.newSecret : null;
+                    }
+
+                    if (!values.payloadTemplate) {
+                      values.payloadTemplate = null;
+                    }
+
+                    editWebhookMutation.mutate({
+                      id: webhookToEdit?.id || "",
                       subscriberUrl: values.subscriberUrl,
-                      id: webhookToEdit?.id,
-                      webhooks,
-                      eventTypeId: eventType.id,
-                    })
-                  ) {
-                    showToast(t("webhook_subscriber_url_reserved"), "error");
-                    return;
-                  }
-
-                  if (values.changeSecret) {
-                    values.secret = values.newSecret.length ? values.newSecret : null;
-                  }
-
-                  if (!values.payloadTemplate) {
-                    values.payloadTemplate = null;
-                  }
-
-                  editWebhookMutation.mutate({
-                    id: webhookToEdit?.id || "",
-                    subscriberUrl: values.subscriberUrl,
-                    eventTriggers: values.eventTriggers,
-                    active: values.active,
-                    payloadTemplate: values.payloadTemplate,
-                    secret: values.secret,
-                    eventTypeId: webhookToEdit?.eventTypeId || undefined,
-                    timeUnit: values.timeUnit,
-                    time: values.time,
-                    version: values.version,
-                  });
-                }}
-              />
-            </DialogContent>
+                      eventTriggers: values.eventTriggers,
+                      active: values.active,
+                      payloadTemplate: values.payloadTemplate,
+                      secret: values.secret,
+                      eventTypeId: webhookToEdit?.eventTypeId || undefined,
+                      timeUnit: values.timeUnit,
+                      time: values.time,
+                      version: values.version,
+                    });
+                  }}
+                />
+              </DialogPanel>
+            </DialogPopup>
           </Dialog>
         </>
       )}
