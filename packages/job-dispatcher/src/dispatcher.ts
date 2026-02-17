@@ -1,5 +1,5 @@
-import { queueRegistry, queueEventsRegistry } from "@calid/queue";
-import type { Job, JobsOptions, Queue, QueueEvents } from "bullmq";
+import { queueRegistry } from "@calid/queue";
+import type { Job, JobsOptions, Queue } from "bullmq";
 
 import { sendToInngest } from "./inngestClient";
 import type { DispatchJobInput, DispatcherLogger, DispatchResult, JobDispatcherConfig } from "./types";
@@ -79,14 +79,12 @@ const WAITING_STATES = new Set(["waiting", "waiting-children", "delayed", "prior
 
 export class JobDispatcher {
   private readonly queueRegistry: Record<string, Queue>;
-  private readonly queueEventsRegistry: Record<string, QueueEvents>;
   private readonly useBullmq: boolean;
   private readonly pickupTimeoutMs: number;
   private readonly logger: DispatcherLogger;
 
   constructor(config: JobDispatcherConfig) {
     this.queueRegistry = config.queueRegistry;
-    this.queueEventsRegistry = config.queueEventsRegistry ?? {};
     this.useBullmq = resolveUseBullmq(config.useBullmq);
     this.pickupTimeoutMs = config.pickupTimeoutMs ?? DEFAULT_PICKUP_TIMEOUT_MS;
     this.logger = config.logger ?? defaultLogger;
@@ -376,5 +374,7 @@ export class JobDispatchError extends Error {
   }
 }
 
-const dispatcher = new JobDispatcher({ queueRegistry, queueEventsRegistry });
+const dispatcher = new JobDispatcher({
+  queueRegistry,
+});
 export default dispatcher;

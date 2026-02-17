@@ -1,6 +1,6 @@
 import { SleepSignal } from "@calid/job-dispatcher/src/adapter/bull";
 import type { CalendlyImportJobData } from "@calid/job-engine";
-import { type CalendarSyncJob, type DataSyncJob, type BookingExportJob } from "@calid/job-engine";
+import { type CalendarSyncJobData, type DataSyncJob, type BookingExportJobData } from "@calid/job-engine";
 import { getRedisOptions, JobName, QueueName } from "@calid/queue";
 import type { Job } from "bullmq";
 import { Worker } from "bullmq";
@@ -31,10 +31,10 @@ export const dataSyncWorker = new Worker<DataSyncJob>(
 
       switch (name) {
         case JobName.CALENDAR_SYNC:
-          await processCalendarSync(job as Job<CalendarSyncJob>);
+          await processCalendarSync(job as Job<CalendarSyncJobData>);
           break;
         case JobName.BOOKING_EXPORT:
-          await processBookingExport(job as Job<BookingExportJob>);
+          await processBookingExport(job as Job<BookingExportJobData>);
           break;
         case JobName.CALENDLY_IMPORT:
           await processCalendlyImport(job as Job<CalendlyImportJobData>);

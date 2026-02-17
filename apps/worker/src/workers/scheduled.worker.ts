@@ -1,5 +1,5 @@
+import type { ScheduledJob } from "@calid/job-engine";
 import { QueueName, getRedisOptions } from "@calid/queue";
-import type { ScheduledJob } from "@calid/job-engine/types";
 import { Worker } from "bullmq";
 
 export const SCHEDULED_WORKER_NAME = "scheduled-worker";

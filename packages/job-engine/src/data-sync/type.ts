@@ -1,6 +1,6 @@
 export type CalendarProvider = "google" | "outlook" | "apple" | "zoho";
 
-export interface CalendarSyncJob {
+export interface CalendarSyncJobData {
   userId: string;
   provider: CalendarProvider;
   syncType: "initial" | "incremental" | "webhook";
@@ -43,4 +43,4 @@ export type CalendlyImportJobData = {
   };
 };
 
-export type DataSyncJob = CalendarSyncJob | BookingExportJobData | CalendlyImportJobData;
+export type DataSyncJob = CalendarSyncJobData | BookingExportJobData | CalendlyImportJobData;

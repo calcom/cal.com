@@ -1,5 +1,5 @@
-import { getRedisOptions } from "@calid/queue";
-import type { DefaultJob } from "@calid/job-engine/types";
+import type { DefaultJob } from "@calid/job-engine";
+import { getRedisOptions, QueueName } from "@calid/queue";
 import { Worker } from "bullmq";
 
 export const DEFAULT_RATE_LIMITER = {
@@ -14,7 +14,7 @@ export const DEFAULT_WORKER_CONFIG = {
 };
 export const DEFAULT_WORKER_NAME = "default-worker";
 export const defaultWorker = new Worker<DefaultJob>(
-  DEFAULT_WORKER_NAME,
+  QueueName.DEFAULT,
   async (job) => {
     // await processCalendarSync(job);
   },
