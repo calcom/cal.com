@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "node:querystring";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import type { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -26,7 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (error) {
     // User cancels flow
     if (error === "access_denied") {
-      state?.onErrorReturnTo ? res.redirect(state.onErrorReturnTo) : res.redirect("/apps/installed/payment");
+      const safeReturnTo = getSafeRedirectUrl(state?.onErrorReturnTo) ?? "/apps/installed/payment";
+      return res.redirect(safeReturnTo);
     }
     const query = stringify({ error, error_description });
     res.redirect(`/apps/installed?${query}`);
@@ -55,5 +57,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   const returnTo = getReturnToValueFromQueryState(req);
-  res.redirect(returnTo || getInstalledAppPath({ variant: "payment", slug: "stripe" }));
+  res.redirect(getSafeRedirectUrl(returnTo) ?? getInstalledAppPath({ variant: "payment", slug: "stripe" }));
 }
