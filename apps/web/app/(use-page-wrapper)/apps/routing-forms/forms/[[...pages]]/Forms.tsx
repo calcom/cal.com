@@ -1,13 +1,7 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import posthog from "posthog-js";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { FilterResults } from "~/filters/components/FilterResults";
 import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -21,22 +15,33 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type {
-  SetNewFormDialogState,
   NewFormDialogState,
+  SetNewFormDialogState,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
 import {
   FormAction,
   FormActionsDropdown,
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
-
+import {
+  ChartBarIcon,
+  CircleCheckIcon,
+  DownloadIcon,
+  FileTextIcon,
+  MailIcon,
+  ShuffleIcon,
+} from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import posthog from "posthog-js";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { useHasPaidPlan } from "~/billing/hooks/useHasPaidPlan";
-import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
 import { ShellMain } from "~/shell/Shell";
 import { UpgradeTip } from "~/shell/UpgradeTip";
 
@@ -92,32 +97,32 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const forms = queryRes.data?.filtered;
   const features = [
     {
-      icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
+      icon: <FileTextIcon className="h-5 w-5 text-orange-500" />,
       title: t("create_your_first_form"),
       description: t("create_your_first_form_description"),
     },
     {
-      icon: <Icon name="shuffle" className="h-5 w-5 text-lime-500" />,
+      icon: <ShuffleIcon className="h-5 w-5 text-lime-500" />,
       title: t("create_your_first_route"),
       description: t("route_to_the_right_person"),
     },
     {
-      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
+      icon: <ChartBarIcon className="h-5 w-5 text-blue-500" />,
       title: t("reporting"),
       description: t("reporting_feature"),
     },
     {
-      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
+      icon: <CircleCheckIcon className="h-5 w-5 text-teal-500" />,
       title: t("test_routing_form"),
       description: t("test_preview_description"),
     },
     {
-      icon: <Icon name="mail" className="h-5 w-5 text-yellow-500" />,
+      icon: <MailIcon className="h-5 w-5 text-yellow-500" />,
       title: t("routing_forms_send_email_owner"),
       description: t("routing_forms_send_email_owner_description"),
     },
     {
-      icon: <Icon name="download" className="h-5 w-5 text-violet-500" />,
+      icon: <DownloadIcon className="h-5 w-5 text-violet-500" />,
       title: t("download_responses"),
       description: t("download_responses_description"),
     },
@@ -159,8 +164,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
           plan="team"
-          title={t("teams_plan_required")}
-          description={t("routing_forms_are_a_great_way")}
+          title={t("routing_that_grows_with_you")}
+          description={t("routing_forms_upgrade_description")}
           features={features}
           background="/tips/routing-forms"
           isParentLoading={<SkeletonLoaderTeamList />}
@@ -168,7 +173,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
             <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
                 <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
+                  {t("get_started")}
                 </Button>
                 <Button color="minimal" href="https://cal.com/routing" target="_blank">
                   {t("learn_more")}

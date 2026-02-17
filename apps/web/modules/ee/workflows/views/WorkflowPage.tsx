@@ -34,7 +34,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { PencilIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -145,11 +145,11 @@ function WorkflowPage({
     workflow && hasPermissions(workflow)
       ? workflow?.permissions
       : {
-        canUpdate: !teamId,
-        canView: !teamId,
-        canDelete: !teamId,
-        readOnly: !!teamId,
-      };
+          canUpdate: !teamId,
+          canView: !teamId,
+          canDelete: !teamId,
+          readOnly: !!teamId,
+        };
 
   // Watch for form name changes
   const watchedName = form.watch("name");
@@ -160,13 +160,13 @@ function WorkflowPage({
   };
 
   const handleNameSubmit = () => {
-    form.setValue("name", nameValue);
+    form.setValue("name", nameValue, { shouldDirty: true });
     setIsEditingName(false);
   };
 
   const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      form.setValue("name", nameValue);
+      form.setValue("name", nameValue, { shouldDirty: true });
       setIsEditingName(false);
     } else if (e.key === "Escape") {
       setNameValue(watchedName || "");
@@ -256,9 +256,9 @@ function WorkflowPage({
           );
           activeOn = workflowData.activeOn
             ? workflowData.activeOn.map((active) => ({
-              value: active.eventType.id.toString(),
-              label: active.eventType.slug,
-            }))
+                value: active.eventType.id.toString(),
+                label: active.eventType.slug,
+              }))
             : undefined;
         }
       }
@@ -291,6 +291,7 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
+      form.reset(form.getValues());
       setNameValue(workflowData.name);
       setIsAllDataLoaded(true);
     }
@@ -300,6 +301,7 @@ function WorkflowPage({
     onSuccess: async ({ workflow }) => {
       utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
       setFormData(workflow);
+      form.reset(form.getValues());
 
       const autoCreateAgent = searchParams?.get("autoCreateAgent");
       if (!autoCreateAgent) {
@@ -318,6 +320,8 @@ function WorkflowPage({
       }
     },
   });
+
+  const isDisabled = permissions.readOnly || updateMutation.isPending || !form.formState.isDirty;
 
   const validateAndSubmitWorkflow = async (values: FormValues): Promise<void> => {
     let isEmpty = false;
@@ -460,7 +464,6 @@ function WorkflowPage({
                   />
                 ) : (
                   <div className="group flex min-w-0 items-center gap-1">
-
                     <span
                       className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
                       onClick={() => setIsEditingName(true)}>
@@ -473,7 +476,7 @@ function WorkflowPage({
                       disabled={isPending}
                       onClick={() => setIsEditingName(true)}
                       CustomStartIcon={
-                        <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                        <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
                       }>
                       <span className="sr-only">{t("edit")}</span>
                     </Button>
@@ -509,7 +512,7 @@ function WorkflowPage({
               </Tooltip>
               <Button
                 loading={updateMutation.isPending}
-                disabled={permissions.readOnly || updateMutation.isPending}
+                disabled={isDisabled}
                 data-testid="save-workflow"
                 type="submit"
                 size="sm"

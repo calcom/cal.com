@@ -312,7 +312,7 @@ const buildPrismaQueryForAttributeOptionCreation = ({
 };
 
 const createMissingOptionsAndReturnAlongWithExisting = async <
-  TattributeOptionsToAssign extends AttributeOptionsToAssign
+  TattributeOptionsToAssign extends AttributeOptionsToAssign,
 >({
   attributeOptionsToAssignIncludingNonExistentOptions,
   orgId,

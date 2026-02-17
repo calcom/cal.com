@@ -3,14 +3,14 @@ import { formatInTimeZone } from "date-fns-tz";
 
 /**
  * Audit Action Service Helper
- * 
+ *
  * Provides reusable utility methods for audit action services via composition.
- * 
+ *
  * We use composition instead of inheritance for Action services so that services can evolve to v2, v3 independently without polluting a shared base class
  */
 export class AuditActionServiceHelper<
   TLatestFieldsSchema extends z.ZodTypeAny,
-  TStoredDataSchema extends z.ZodTypeAny
+  TStoredDataSchema extends z.ZodTypeAny,
 > {
   private readonly latestFieldsSchema: TLatestFieldsSchema;
   private readonly latestVersion: number;
@@ -83,4 +83,3 @@ export class AuditActionServiceHelper<
     return formatInTimeZone(new Date(date), timeZone, "yyyy-MM-dd HH:mm:ss");
   }
 }
-
