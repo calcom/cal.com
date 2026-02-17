@@ -146,7 +146,7 @@ export const getAppsStatus = (t: TFunction, appsStatus?: AppsStatus[] | null) =>
  * Converts HTML to plain text while preserving line breaks and links.
  * Used for calendar event descriptions that are stored as HTML from the rich text editor.
  */
-const htmlToPlainText = (html: string): string => {
+export const htmlToPlainText = (html: string): string => {
   return (
     html
       // Convert links to markdown-style format: [text](url)

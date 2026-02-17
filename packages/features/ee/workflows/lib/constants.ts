@@ -26,6 +26,7 @@ export const WORKFLOW_ACTIONS = [
   WorkflowActions.WHATSAPP_ATTENDEE,
   WorkflowActions.WHATSAPP_NUMBER,
   WorkflowActions.CAL_AI_PHONE_CALL,
+  WorkflowActions.NTFY_TOPIC
 ] as const;
 
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
@@ -111,4 +112,5 @@ export const ALLOWED_FORM_WORKFLOW_ACTIONS = [
   WorkflowActions.SMS_ATTENDEE,
   WorkflowActions.SMS_NUMBER,
   WorkflowActions.CAL_AI_PHONE_CALL,
+  WorkflowActions.NTFY_TOPIC
 ] as const;

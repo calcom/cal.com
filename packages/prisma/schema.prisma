@@ -1507,6 +1507,7 @@ enum WorkflowActions {
   WHATSAPP_ATTENDEE
   WHATSAPP_NUMBER
   CAL_AI_PHONE_CALL
+  NTFY_TOPIC
 }
 
 enum WorkflowType {
@@ -1689,6 +1690,7 @@ enum WorkflowMethods {
   SMS
   WHATSAPP
   AI_PHONE_CALL
+  NTFY
 }
 
 model BookingSeat {
