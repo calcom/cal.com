@@ -1,16 +1,12 @@
-import md5 from "md5";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
-import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { type ColumnFilter, ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
-  isSingleSelectFilterValue,
-  isMultiSelectFilterValue,
-  isTextFilterValue,
-  isNumberFilterValue,
   isDateRangeFilterValue,
+  isMultiSelectFilterValue,
+  isNumberFilterValue,
+  isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
@@ -20,8 +16,9 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
+import md5 from "md5";
+import { z } from "zod";
+import { type BookingTimeStatusData, transformBookingsForCsv } from "./csvDataTransformer";
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
@@ -608,17 +605,26 @@ export class InsightsBookingBaseService {
     return { data, total: totalCount };
   }
 
-  async getEventTrendsStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+  async getEventTrendsStats({
+    timeZone,
+    dateRanges,
+    dateTarget = "createdAt",
+  }: {
+    timeZone: string;
+    dateRanges: DateRange[];
+    dateTarget?: "startTime" | "createdAt";
+  }) {
     if (!dateRanges.length) {
       return [];
     }
 
     const baseConditions = await this.getBaseConditions();
+    const dateColumn = dateTarget === "startTime" ? Prisma.sql`"startTime"` : Prisma.sql`"createdAt"`;
 
     const query = Prisma.sql`
     WITH booking_stats AS (
       SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
         "timeStatus",
         COALESCE("noShowHost", false) AS "noShowHost",
         COUNT(*) as "bookingsCount"
@@ -629,7 +635,7 @@ export class InsightsBookingBaseService {
     ),
     guest_stats AS (
       SELECT
-        DATE(b."createdAt" AT TIME ZONE ${timeZone}) as "date",
+        DATE(b.${dateColumn} AT TIME ZONE ${timeZone}) as "date",
         b."timeStatus",
         COALESCE(b."noShowHost", false) AS "noShowHost",
         COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
@@ -1213,16 +1219,25 @@ export class InsightsBookingBaseService {
     };
   }
 
-  async getNoShowHostsOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+  async getNoShowHostsOverTimeStats({
+    timeZone,
+    dateRanges,
+    dateTarget = "createdAt",
+  }: {
+    timeZone: string;
+    dateRanges: DateRange[];
+    dateTarget?: "startTime" | "createdAt";
+  }) {
     if (!dateRanges.length) {
       return [];
     }
 
     const baseConditions = await this.getBaseConditions();
+    const dateColumn = dateTarget === "startTime" ? Prisma.sql`"startTime"` : Prisma.sql`"createdAt"`;
 
     const query = Prisma.sql`
       SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
         COUNT(*) as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "noShowHost" = true
@@ -1271,16 +1286,25 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getCSATOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+  async getCSATOverTimeStats({
+    timeZone,
+    dateRanges,
+    dateTarget = "createdAt",
+  }: {
+    timeZone: string;
+    dateRanges: DateRange[];
+    dateTarget?: "startTime" | "createdAt";
+  }) {
     if (!dateRanges.length) {
       return [];
     }
 
     const baseConditions = await this.getBaseConditions();
+    const dateColumn = dateTarget === "startTime" ? Prisma.sql`"startTime"` : Prisma.sql`"createdAt"`;
 
     const query = Prisma.sql`
       SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
         COUNT(*) FILTER (WHERE "rating" >= 3) as "ratings_above_3",
         COUNT(*) FILTER (WHERE "rating" IS NOT NULL) as "total_ratings"
       FROM "BookingTimeStatusDenormalized"
