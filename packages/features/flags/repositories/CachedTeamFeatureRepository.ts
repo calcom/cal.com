@@ -1,9 +1,7 @@
-import { z } from "zod";
-
 import { Memoize, Unmemoize } from "@calcom/features/cache";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import { TeamFeaturesDtoSchema } from "@calcom/lib/dto/TeamFeaturesDto";
-
+import { z } from "zod";
 import type { FeatureId, TeamFeatures } from "../config";
 import type { ITeamFeatureRepository } from "./PrismaTeamFeatureRepository";
 import { booleanSchema } from "./schemas";
@@ -90,5 +88,9 @@ export class CachedTeamFeatureRepository implements ITeamFeatureRepository {
   })
   async getEnabledFeatures(teamId: number): Promise<TeamFeatures | null> {
     return this.prismaTeamFeatureRepository.getEnabledFeatures(teamId);
+  }
+
+  async getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]> {
+    return this.prismaTeamFeatureRepository.getTeamsWithFeatureEnabled(featureId);
   }
 }

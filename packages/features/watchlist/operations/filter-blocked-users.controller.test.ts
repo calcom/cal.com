@@ -4,7 +4,6 @@ import type { SpanFn } from "@calcom/features/watchlist/lib/telemetry";
 
 import { filterBlockedUsers, type UserWithEmail } from "./filter-blocked-users.controller";
 
-
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
 }));
@@ -57,10 +56,7 @@ describe("filterBlockedUsers", () => {
 
   describe("Locked user filtering", () => {
     test("should filter out locked users", async () => {
-      const users = [
-        createUser("locked@example.com", true, 1),
-        createUser("unlocked@example.com", false, 2),
-      ];
+      const users = [createUser("locked@example.com", true, 1), createUser("unlocked@example.com", false, 2)];
 
       mockGlobalBlocking.areBlocked.mockResolvedValue(
         new Map([["unlocked@example.com", { isBlocked: false }]])
@@ -74,10 +70,7 @@ describe("filterBlockedUsers", () => {
     });
 
     test("should filter out all locked users", async () => {
-      const users = [
-        createUser("locked1@example.com", true, 1),
-        createUser("locked2@example.com", true, 2),
-      ];
+      const users = [createUser("locked1@example.com", true, 1), createUser("locked2@example.com", true, 2)];
 
       const result = await filterBlockedUsers(users);
 
@@ -109,10 +102,7 @@ describe("filterBlockedUsers", () => {
 
   describe("Watchlist blocking", () => {
     test("should filter out watchlist-blocked users", async () => {
-      const users = [
-        createUser("blocked@spam.com", false, 1),
-        createUser("clean@example.com", false, 2),
-      ];
+      const users = [createUser("blocked@spam.com", false, 1), createUser("clean@example.com", false, 2)];
 
       mockGlobalBlocking.areBlocked.mockResolvedValue(
         new Map([
@@ -131,9 +121,7 @@ describe("filterBlockedUsers", () => {
     test("should check org-level blocking when organizationId provided", async () => {
       const users = [createUser("user@example.com", false, 1)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
       mockOrgBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: true }]]));
 
       const result = await filterBlockedUsers(users, 123);
@@ -146,9 +134,7 @@ describe("filterBlockedUsers", () => {
     test("should not check org-level blocking when organizationId is null", async () => {
       const users = [createUser("user@example.com", false, 1)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
 
       await filterBlockedUsers(users, null);
 
@@ -231,9 +217,7 @@ describe("filterBlockedUsers", () => {
         },
       ];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
 
       const result = await filterBlockedUsers(users);
 
@@ -258,9 +242,7 @@ describe("filterBlockedUsers", () => {
         },
       ];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
 
       const result = await filterBlockedUsers(users);
 
@@ -273,9 +255,7 @@ describe("filterBlockedUsers", () => {
     test("should handle emails with different cases", async () => {
       const users = [createUser("USER@EXAMPLE.COM", false, 1)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: true }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: true }]]));
 
       const result = await filterBlockedUsers(users);
 
@@ -286,9 +266,7 @@ describe("filterBlockedUsers", () => {
     test("should handle emails with whitespace", async () => {
       const users = [createUser("  user@example.com  ", false, 1)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
 
       const result = await filterBlockedUsers(users);
 
@@ -324,10 +302,7 @@ describe("filterBlockedUsers", () => {
     });
 
     test("should not call watchlist for locked-only users", async () => {
-      const users = [
-        createUser("locked1@example.com", true, 1),
-        createUser("locked2@example.com", true, 2),
-      ];
+      const users = [createUser("locked1@example.com", true, 1), createUser("locked2@example.com", true, 2)];
 
       await filterBlockedUsers(users);
 
@@ -339,9 +314,7 @@ describe("filterBlockedUsers", () => {
     test("should call span when provided", async () => {
       const users = [createUser("user@example.com", false, 1)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
 
       const mockSpan: SpanFn = vi.fn((_options, callback) => {
         return Promise.resolve(callback());
@@ -356,9 +329,7 @@ describe("filterBlockedUsers", () => {
     test("should work without span", async () => {
       const users = [createUser("user@example.com", false, 1)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
 
       // Should not throw when span is not provided
       const result = await filterBlockedUsers(users);
@@ -367,4 +338,3 @@ describe("filterBlockedUsers", () => {
     });
   });
 });
-

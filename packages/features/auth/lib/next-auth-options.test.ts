@@ -23,9 +23,11 @@ const mockFindByEmailAndIncludeProfilesAndPassword = vi.fn();
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(function() { return {
-      findByEmailAndIncludeProfilesAndPassword: mockFindByEmailAndIncludeProfilesAndPassword,
-    }; }),
+    UserRepository: vi.fn().mockImplementation(function () {
+      return {
+        findByEmailAndIncludeProfilesAndPassword: mockFindByEmailAndIncludeProfilesAndPassword,
+      };
+    }),
   };
 });
 

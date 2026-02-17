@@ -9,7 +9,7 @@ import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/t
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { MenuIcon, PencilIcon, WaypointsIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "./FormActions";
@@ -298,7 +298,7 @@ export function Header({
                 color="minimal"
                 onClick={() => setIsEditing(true)}
                 CustomStartIcon={
-                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                  <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
                 }>
                 <span className="sr-only">Edit</span>
               </Button>
@@ -319,13 +319,13 @@ export function Header({
               {
                 value: "form-edit",
                 label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
-                iconLeft: <Icon name="menu" className="h-3 w-3" />,
+                iconLeft: <MenuIcon className="h-3 w-3" />,
                 dataTestId: "toggle-group-item-form-edit",
               },
               {
                 value: "route-builder",
                 label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
-                iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
+                iconLeft: <WaypointsIcon className="h-3 w-3" />,
               },
             ]}
           />
@@ -355,12 +355,12 @@ export function Header({
             {
               value: "form-edit",
               label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
-              iconLeft: <Icon name="menu" className="h-3 w-3" />,
+              iconLeft: <MenuIcon className="h-3 w-3" />,
             },
             {
               value: "route-builder",
               label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
-              iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
+              iconLeft: <WaypointsIcon className="h-3 w-3" />,
             },
           ]}
         />

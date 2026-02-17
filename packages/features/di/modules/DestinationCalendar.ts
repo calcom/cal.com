@@ -1,4 +1,4 @@
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
+import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
