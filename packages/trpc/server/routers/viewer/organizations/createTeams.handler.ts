@@ -181,6 +181,7 @@ async function moveTeam({
       id: true,
       slug: true,
       metadata: true,
+      isOrganization: true,
       parent: {
         select: {
           id: true,
@@ -207,6 +208,24 @@ async function moveTeam({
       orgId: org.id,
       orgSlug: org.slug,
     });
+    return;
+  }
+
+  if (team.isOrganization) {
+    log.warn("Attempted to move an organization as a team. Skipping.", safeStringify({ teamId, orgId: org.id }));
+    return;
+  }
+
+  // Verify the caller has OWNER or ADMIN membership on the team being moved
+  const callerMembership = team.members.find(
+    (m) => m.userId === org.ownerId && (m.role === MembershipRole.OWNER || m.role === MembershipRole.ADMIN)
+  );
+
+  if (!callerMembership) {
+    log.warn(
+      "User attempted to move a team they don't own or admin. Skipping.",
+      safeStringify({ teamId, orgOwnerId: org.ownerId, orgId: org.id })
+    );
     return;
   }
 

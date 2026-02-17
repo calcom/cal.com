@@ -863,6 +863,12 @@ describe("createTeams handler - Comprehensive Tests", () => {
 
       const teamToMove = teams[0];
 
+      await createTestMembership({
+        userId: owner.id,
+        teamId: teamToMove.id,
+        role: MembershipRole.OWNER,
+      });
+
       await prismock.creditBalance.create({
         data: {
           teamId: teamToMove.id,
@@ -1128,6 +1134,86 @@ describe("createTeams handler - Comprehensive Tests", () => {
       });
 
       expect(movedTeams).toHaveLength(2);
+    });
+  });
+
+  describe("Team Migration - Ownership Verification", () => {
+    async function attemptMoveTeam(
+      caller: { id: number; organizationId: number },
+      teamId: number,
+      newSlug: string
+    ) {
+      return createTeamsHandler({
+        ctx: { user: { id: caller.id, organizationId: caller.organizationId } },
+        input: {
+          teamNames: [],
+          orgId: caller.organizationId,
+          moveTeams: [{ id: teamId, shouldMove: true, newSlug }],
+          creationSource: CreationSource.WEBAPP,
+        },
+      });
+    }
+
+    async function expectTeamUnchanged(teamId: number, expectedSlug: string, expectedParentId: number | null) {
+      const team = await prismock.team.findUnique({ where: { id: teamId } });
+      expect(team?.slug).toBe(expectedSlug);
+      expect(team?.parentId).toBe(expectedParentId);
+    }
+
+    it("should not move a team the caller has no membership in", async () => {
+      const { owner, organization } = await createScenario();
+      const otherUser = await createTestUser({ email: "other@example.com" });
+      const otherTeam = await createTestTeam({ name: "Other Team", slug: "other-team", parentId: null });
+      await createTestMembership({ userId: otherUser.id, teamId: otherTeam.id, role: MembershipRole.OWNER });
+
+      await attemptMoveTeam({ id: owner.id, organizationId: organization.id }, otherTeam.id, "stolen");
+
+      await expectTeamUnchanged(otherTeam.id, "other-team", null);
+    });
+
+    it("should not move a team from another organization", async () => {
+      const { owner, organization } = await createScenario();
+      const otherUser = await createTestUser({ email: "other@example.com" });
+      const otherOrg = await createTestTeam({ name: "Other Org", slug: "other-org", isOrganization: true });
+      await createTestMembership({ userId: otherUser.id, teamId: otherOrg.id, role: MembershipRole.OWNER });
+      const otherTeam = await createTestTeam({ name: "Other Team", slug: "other-team", parentId: otherOrg.id });
+      await createTestMembership({ userId: otherUser.id, teamId: otherTeam.id, role: MembershipRole.OWNER });
+
+      await attemptMoveTeam({ id: owner.id, organizationId: organization.id }, otherTeam.id, "stolen");
+
+      await expectTeamUnchanged(otherTeam.id, "other-team", otherOrg.id);
+    });
+
+    it("should not move a team where caller is only a MEMBER", async () => {
+      const { owner, organization } = await createScenario();
+      const team = await createTestTeam({ name: "Member Team", slug: "member-team", parentId: null });
+      await createTestMembership({ userId: owner.id, teamId: team.id, role: MembershipRole.MEMBER });
+
+      await attemptMoveTeam({ id: owner.id, organizationId: organization.id }, team.id, "moved");
+
+      await expectTeamUnchanged(team.id, "member-team", null);
+    });
+
+    it("should allow moving a team where caller is ADMIN", async () => {
+      const { owner, organization } = await createScenario();
+      const team = await createTestTeam({ name: "Admin Team", slug: "admin-team", parentId: null });
+      await createTestMembership({ userId: owner.id, teamId: team.id, role: MembershipRole.ADMIN });
+
+      await attemptMoveTeam({ id: owner.id, organizationId: organization.id }, team.id, "moved-admin");
+
+      const teamAfter = await prismock.team.findUnique({ where: { id: team.id } });
+      expect(teamAfter?.parentId).toBe(organization.id);
+      expect(teamAfter?.slug).toBe("moved-admin");
+    });
+
+    it("should not move an organization entity as a team", async () => {
+      const { owner, organization } = await createScenario();
+      const anotherOrg = await createTestTeam({ name: "Another Org", slug: "another-org", isOrganization: true });
+      await createTestMembership({ userId: owner.id, teamId: anotherOrg.id, role: MembershipRole.OWNER });
+
+      await attemptMoveTeam({ id: owner.id, organizationId: organization.id }, anotherOrg.id, "moved-org");
+
+      await expectTeamUnchanged(anotherOrg.id, "another-org", null);
     });
   });
 
