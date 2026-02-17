@@ -830,6 +830,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
+      await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${randomString()}`,
@@ -865,7 +867,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
 
-      bookingSeatsRepositoryFixture.create({
+      await bookingSeatsRepositoryFixture.create({
         referenceUid: randomString(),
         data: {},
         booking: {
@@ -959,6 +961,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
+      await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${randomString()}`,
@@ -994,7 +998,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
 
-      bookingSeatsRepositoryFixture.create({
+      await bookingSeatsRepositoryFixture.create({
         referenceUid: randomString(),
         data: {},
         booking: {
@@ -1324,6 +1328,11 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     describe("variable length", () => {
       let responseReservedVariableSlot: ReserveSlotOutputData_2024_09_04;
+
+      beforeAll(async () => {
+        await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+      });
+
       it("should not be able to reserve a slot for variable length event type with invalid duration", async () => {
         const slotStartTime = "2050-09-05T10:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
