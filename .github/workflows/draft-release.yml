@@ -23,7 +23,7 @@ jobs:
         with:
           app-id: ${{ secrets.CI_CAL_APP_ID }}
           private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
-          repositories: 'cal.com'
+          repositories: 'cal'
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
           # Define authorized users and their emails using organization secret
           # Expected format: JSON object with username -> email mapping
           # Example: {"zomars": "zomars@cal.com", "peer": "peer@cal.com", "username3": "email3@cal.com"}
-          USER_EMAILS='${{ secrets.RELEASE_USER_EMAILS }}'
+          USER_EMAILS='${{ vars.RELEASE_USER_EMAILS }}'
           
           # Extract email for the triggering user
           USER_EMAIL=$(echo "$USER_EMAILS" | jq -r --arg user "${{ github.actor }}" '.[$user] // empty')

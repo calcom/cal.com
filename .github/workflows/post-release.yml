@@ -19,7 +19,7 @@ jobs:
         with:
           app-id: ${{ secrets.CI_CAL_APP_ID }}
           private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
-          repositories: 'cal.com'
+          repositories: 'cal'
 
       - name: Checkout code
         uses: actions/checkout@v4
