@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
-import { useSchedule } from "~/schedules/hooks/useSchedule";
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -9,6 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Calendar } from "@calcom/web/modules/calendars/weeklyview/components/Calendar";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
+import { useSchedule } from "~/schedules/hooks/useSchedule";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { t } = useLocale();
@@ -67,7 +67,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     //   .toDate(),
 
     const calendarEvents = busyEvents?.busy.map((event, idx) => {
-      const translatedTitle = event.title ? t(event.title) : t("busy");
+      const translatedTitle = event.title ? t(event.title) : t("busy_time.busy");
       return {
         id: idx,
         title: translatedTitle,

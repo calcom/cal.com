@@ -150,15 +150,17 @@ export class BusyTimesService {
           if (minutesToBlockBeforeEvent) {
             aggregate.push({
               start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-              end: dayjs(startTime).toDate(), // The event starts after the buffer
-              source: "busy_time.buffer_time",
+              end: dayjs(startTime).toDate(),
+              title: "busy_time.buffer_time",
+              source: "Buffer Time for seated event (before)",
             });
           }
           if (minutesToBlockAfterEvent) {
             aggregate.push({
-              start: dayjs(endTime).toDate(), // The event ends before the buffer
+              start: dayjs(endTime).toDate(),
               end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
-              source: "busy_time.buffer_time",
+              title: "busy_time.buffer_time",
+              source: "Buffer Time for seated event (after)",
             });
           }
           return aggregate;
