@@ -26,7 +26,7 @@ export default function LinkIconButton(props: LinkIconButtonProps) {
   const combinedClassName = className ? `${commonClasses} ${className}` : commonClasses;
 
   // Check if it's a link
-  const isLink = typeof (props as any).href !== "undefined";
+  const isLink = "href" in props && typeof props.href !== "undefined";
 
   if (isLink) {
     const { href, target, rel, onClick, ...linkProps } = rest as LinkProps & Omit<JSX.IntrinsicElements["a"], "href">;
