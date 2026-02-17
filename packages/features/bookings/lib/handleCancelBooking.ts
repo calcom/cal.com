@@ -13,11 +13,11 @@ import {
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -429,9 +429,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       isPlatformManagedUserBooking: bookingToDelete.user.isPlatformManaged,
     } satisfies HandleCancelBookingResponse;
 
+  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
