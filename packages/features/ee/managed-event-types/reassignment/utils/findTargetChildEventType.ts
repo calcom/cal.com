@@ -31,9 +31,9 @@ interface FindTargetChildEventTypeResult {
 
 /**
  * Pure function that finds and validates the target child event type for managed event reassignment
- * 
+ *
  * Dependencies are injected via parameters - no direct instantiation of repositories
- * 
+ *
  * @param bookingRepository - Injected booking repository
  * @param eventTypeRepository - Injected event type repository
  * @throws Error if booking is not on a managed event type
@@ -77,12 +77,15 @@ export async function findTargetChildEventType({
     throw new Error("Parent event type must be a MANAGED type");
   }
 
-  const targetChildEventType = await eventTypeRepository.findByIdTargetChildEventType(newUserId, currentChildEventType.parentId);
+  const targetChildEventType = await eventTypeRepository.findByIdTargetChildEventType(
+    newUserId,
+    currentChildEventType.parentId
+  );
 
   if (!targetChildEventType) {
     throw new Error(
       `User ${newUserId} does not have a child event type for this managed event. ` +
-      `Only users who are assigned to the parent managed event can be reassigned to.`
+        `Only users who are assigned to the parent managed event can be reassigned to.`
     );
   }
 
@@ -109,4 +112,3 @@ export async function findTargetChildEventType({
     originalBooking: booking,
   };
 }
-

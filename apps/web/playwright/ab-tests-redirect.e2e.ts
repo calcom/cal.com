@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -77,12 +76,12 @@ test.describe("apps/ A/B tests", () => {
     await expect(locator).toBeDefined();
   });
 
-  test("should render the /getting-started", async ({ page, users }) => {
+  test("should render the /onboarding/personal/calendar", async ({ page, users }) => {
     const user = await users.create({ completedOnboarding: false, name: null });
 
     await user.apiLogin();
 
-    await page.goto("/getting-started/connected-calendar");
+    await page.goto("/onboarding/personal/calendar");
 
     const locator = page.getByText("Apple Calendar");
 
