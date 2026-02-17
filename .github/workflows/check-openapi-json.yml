@@ -3,10 +3,6 @@ name: Check OpenAPI JSON
 on:
   workflow_call:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 env:
   API_KEY_PREFIX: ${{ secrets.CI_API_KEY_PREFIX }}
   API_PORT: ${{ vars.CI_API_V2_PORT }}
@@ -26,7 +22,7 @@ env:
 
 jobs:
   check-openapi-json:
-    name: Check and update OpenAPI JSON
+    name: Check OpenAPI JSON
     timeout-minutes: 10
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
@@ -40,11 +36,6 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
-
-      - name: Setup branch for push
-        run: |
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Build platform packages
         run: |
@@ -62,61 +53,26 @@ jobs:
           yarn prisma generate
           yarn generate-swagger
 
-      - name: Check and commit OpenAPI JSON changes
+      - name: Check for OpenAPI JSON changes
         id: check-openapi
         run: |
           if git diff --exit-code docs/api-reference/v2/openapi.json; then
             echo "OpenAPI JSON is up-to-date"
-            echo "needs_update=false" >> $GITHUB_OUTPUT
           else
             echo "OpenAPI JSON has changed"
             echo "needs_update=true" >> $GITHUB_OUTPUT
-            
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add docs/api-reference/v2/openapi.json
-            git commit -m "chore: update openapi.json [skip ci]"
-            
-            if git push; then
-              echo "OpenAPI JSON has been automatically updated and committed"
-              echo "push_failed=false" >> $GITHUB_OUTPUT
-            else
-              echo "Push failed - will post comment to PR"
-              echo "push_failed=true" >> $GITHUB_OUTPUT
-            fi
           fi
 
-      - name: Post comment on push failure
-        if: steps.check-openapi.outputs.push_failed == 'true'
-        uses: actions/github-script@v7
+      - name: Upload updated OpenAPI JSON
+        if: steps.check-openapi.outputs.needs_update == 'true'
+        uses: actions/upload-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const prNumber = context.payload.pull_request.number;
-            
-            const commentBody = [
-              '### OpenAPI JSON Update Required',
-              '',
-              'The `openapi.json` file is out of date, but automatic commit failed (this usually happens for fork PRs without maintainer access).',
-              '',
-              '**To fix this, please run locally:**',
-              '```bash',
-              'cd apps/api/v2',
-              'yarn generate-swagger',
-              'git add ../../docs/api-reference/v2/openapi.json',
-              'git commit -m "chore: update openapi.json"',
-              'git push',
-              '```',
-              '',
-              'Alternatively, if this is a fork PR, you can enable "Allow edits from maintainers" to let us push the update automatically.'
-            ].join('\n');
-            
-            await github.rest.issues.createComment({
-              owner,
-              repo,
-              issue_number: prNumber,
-              body: commentBody
-            });
-            
-            core.setFailed('OpenAPI JSON is out of date and automatic commit failed. See PR comment for instructions.');
+          name: openapi-json-updated
+          path: docs/api-reference/v2/openapi.json
+          retention-days: 1
+
+      - name: Fail if OpenAPI JSON is outdated
+        if: steps.check-openapi.outputs.needs_update == 'true'
+        run: |
+          echo "::error::OpenAPI JSON is out of date. The auto-commit workflow will attempt to push the update."
+          exit 1

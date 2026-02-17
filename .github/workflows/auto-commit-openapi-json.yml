@@ -1,0 +1,116 @@
+name: Auto-commit OpenAPI JSON
+
+on:
+  workflow_run:
+    workflows: ["PR Update"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+  issues: write
+  actions: read
+
+jobs:
+  auto-commit:
+    name: Auto-commit OpenAPI JSON
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Download OpenAPI JSON artifact
+        id: download
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-json-updated
+          path: /tmp/openapi-artifact
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Get PR info
+        if: steps.download.outcome == 'success'
+        id: pr-info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = context.payload.workflow_run.pull_requests;
+            if (prs && prs.length > 0) {
+              core.setOutput('pr_number', prs[0].number);
+              core.setOutput('head_ref', prs[0].head.ref);
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const headSha = context.payload.workflow_run.head_sha;
+            const { data: associatedPrs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: headSha
+            });
+
+            const openPr = associatedPrs.find(pr => pr.state === 'open');
+            if (openPr) {
+              core.setOutput('pr_number', openPr.number);
+              core.setOutput('head_ref', openPr.head.ref);
+            } else {
+              core.info('No open PR found for this workflow run');
+            }
+
+      - name: Checkout PR branch
+        if: steps.download.outcome == 'success' && steps.pr-info.outputs.pr_number
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr-info.outputs.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply updated OpenAPI JSON
+        if: steps.download.outcome == 'success' && steps.pr-info.outputs.pr_number
+        run: cp /tmp/openapi-artifact/openapi.json docs/api-reference/v2/openapi.json
+
+      - name: Commit and push
+        if: steps.download.outcome == 'success' && steps.pr-info.outputs.pr_number
+        id: push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/api-reference/v2/openapi.json
+          git commit -m "chore: update openapi.json"
+          if git push; then
+            echo "push_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "push_success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post comment on push failure
+        if: steps.download.outcome == 'success' && steps.push.outputs.push_success == 'false'
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr-info.outputs.pr_number }}
+        with:
+          script: |
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
+            const { owner, repo } = context.repo;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: [
+                '### OpenAPI JSON Update Required',
+                '',
+                'The `openapi.json` file is out of date, but automatic commit failed (this usually happens for fork PRs without maintainer access).',
+                '',
+                '**To fix this, please run locally:**',
+                '```bash',
+                'cd apps/api/v2',
+                'yarn generate-swagger',
+                'git add ../../docs/api-reference/v2/openapi.json',
+                'git commit -m "chore: update openapi.json"',
+                'git push',
+                '```',
+                '',
+                'Alternatively, if this is a fork PR, you can enable "Allow edits from maintainers" to let us push the update automatically.'
+              ].join('\n')
+            });
+
+            core.setFailed('OpenAPI JSON is out of date and automatic commit failed. See PR comment for instructions.');
