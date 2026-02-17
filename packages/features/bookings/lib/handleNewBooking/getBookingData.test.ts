@@ -53,6 +53,7 @@ const createMockSchema = () => {
       attendeePhoneNumber: z.string().optional(),
       guests: z.array(z.string()).optional(),
       smsReminderNumber: z.string().optional(),
+      aiAgentCallPhoneNumber: z.string().optional(),
       notes: z.string().optional(),
       rescheduleReason: z.string().optional(),
     }),
@@ -215,6 +216,115 @@ describe("getBookingData", () => {
 
       // The location should be the conferencing type, NOT the URL
       expect(result.location).toBe(OrganizerDefaultConferencingAppType);
+    });
+  });
+
+  describe("phone field unification", () => {
+    it("should unify phone values by default (flag undefined)", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const result = await getBookingData({
+        reqBody: {
+          eventTypeId: 1,
+          start: "2024-01-15T10:00:00.000Z",
+          end: "2024-01-15T10:30:00.000Z",
+          timeZone: "UTC",
+          language: "en",
+          metadata: {},
+          responses: {
+            name: "Test User",
+            email: "test@example.com",
+            attendeePhoneNumber: "+1111",
+            smsReminderNumber: "+2222",
+          },
+        },
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.attendeePhoneNumber).toBe("+1111");
+      expect(result.smsReminderNumber).toBe("+1111");
+    });
+
+    it("should unify phone values when flag is explicitly true", async () => {
+      const mockEventType = createMockEventType({ metadata: { unifySystemPhoneFields: true } });
+      const schema = createMockSchema();
+
+      const result = await getBookingData({
+        reqBody: {
+          eventTypeId: 1,
+          start: "2024-01-15T10:00:00.000Z",
+          end: "2024-01-15T10:30:00.000Z",
+          timeZone: "UTC",
+          language: "en",
+          metadata: {},
+          responses: {
+            name: "Test User",
+            email: "test@example.com",
+            attendeePhoneNumber: "+1111",
+            smsReminderNumber: "+2222",
+          },
+        },
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.attendeePhoneNumber).toBe("+1111");
+      expect(result.smsReminderNumber).toBe("+1111");
+    });
+
+    it("should preserve separate phone values when flag is false", async () => {
+      const mockEventType = createMockEventType({ metadata: { unifySystemPhoneFields: false } });
+      const schema = createMockSchema();
+
+      const result = await getBookingData({
+        reqBody: {
+          eventTypeId: 1,
+          start: "2024-01-15T10:00:00.000Z",
+          end: "2024-01-15T10:30:00.000Z",
+          timeZone: "UTC",
+          language: "en",
+          metadata: {},
+          responses: {
+            name: "Test User",
+            email: "test@example.com",
+            attendeePhoneNumber: "+1111",
+            smsReminderNumber: "+2222",
+          },
+        },
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.attendeePhoneNumber).toBe("+1111");
+      expect(result.smsReminderNumber).toBe("+2222");
+    });
+
+    it("should fall back to smsReminderNumber when attendeePhoneNumber is empty", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const result = await getBookingData({
+        reqBody: {
+          eventTypeId: 1,
+          start: "2024-01-15T10:00:00.000Z",
+          end: "2024-01-15T10:30:00.000Z",
+          timeZone: "UTC",
+          language: "en",
+          metadata: {},
+          responses: {
+            name: "Test User",
+            email: "test@example.com",
+            smsReminderNumber: "+2222",
+          },
+        },
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.attendeePhoneNumber).toBe("+2222");
+      expect(result.smsReminderNumber).toBe("+2222");
     });
   });
 });
