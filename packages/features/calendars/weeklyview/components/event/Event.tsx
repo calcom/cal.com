@@ -109,6 +109,7 @@ export function Event({
   return (
     <Tooltip content={tooltipContent} className="max-w-none" side={tooltipSide}>
       <Component
+        data-booking-calendar-event="true"
         onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
         className={classNames(
           eventClasses({
