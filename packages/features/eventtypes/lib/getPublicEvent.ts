@@ -172,6 +172,8 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    restrictionScheduleId: true,
+    useBookerTimezone: true,
     parent: {
       select: {
         team: {
@@ -341,6 +343,8 @@ export const getPublicEvent = async (
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
+      restrictionScheduleId: null,
+      useBookerTimezone: false,
       // Clears meta data since we don't want to send this in the public api.
       subsetOfUsers: users.map((user) => ({
         ...user,
@@ -592,6 +596,8 @@ export const getPublicEvent = async (
     disableRescheduling: event.disableRescheduling,
     allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
+    restrictionScheduleId: event.restrictionScheduleId,
+    useBookerTimezone: event.useBookerTimezone,
   };
 };
 

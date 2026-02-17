@@ -1,3 +1,4 @@
+import process from "node:process";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -2521,8 +2522,9 @@ async function handler(
 
   const webhookLocation = metadata?.videoCallUrl || evt.location;
 
+  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {
-    ...evt,
+    ...evtWithoutAssignmentReason,
     ...eventTypeInfo,
     bookingId: booking?.id,
     rescheduleId: originalRescheduledBooking?.id || undefined,
