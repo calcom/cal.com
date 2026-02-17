@@ -1,0 +1,27 @@
+---
+title: Custom slot selection flow
+description: Learn how to use handleSlotReservation for custom slot selection flows.
+---
+
+## Using `handleSlotReservation` for custom slot selection flows
+
+If you want to trigger a custom action immediately when a user selects a timeslot (before the booking form appears), you can use the `handleSlotReservation` prop. This prop allows you to intercept the slot selection event, enabling you to run custom logic—such as calling the reserve slot API.
+
+**Example usage:**
+
+```tsx
+<Booker
+  handleSlotReservation={(timeslot) => {
+    // Your custom logic here
+    console.log("User selected timeslot:", timeslot);
+    // For example, call the reserve slot api's etc. 
+  }}
+  // ...other props
+/>
+```
+
+- When a user selects a slot, the `handleSlotReservation` function will be called with the selected timeslot as its argument.
+- If you provide this prop, the default slot reservation flow will be interrupted until your custom logic is complete.
+- This is useful for introducing custom slot reservation flows.
+
+See the [Reserve a Slot API](/api-reference/v2/slots/reserve-a-slot) documentation for more details on reserving slots programmatically.

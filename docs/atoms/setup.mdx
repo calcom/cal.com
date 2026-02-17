@@ -1,0 +1,174 @@
+---
+title: Setup
+description: Complete setup guide for Cal.com Atoms with OAuth
+icon: "gear"
+---
+
+This guide walks you through setting up Cal.com Atoms in your application using OAuth authentication.
+
+## 1. Create an OAuth client
+
+First, create an OAuth client to enable user authentication:
+
+1. Go to https://app.cal.com/settings/developer/oauth
+2. Create a new OAuth client with:
+   - **Name**: Your application name
+   - **Redirect URIs**: URLs where users are redirected after authorization (e.g., `https://yourapp.com/callback`)
+
+Your OAuth client will be reviewed by Cal.com. Once approved, you can use it to authenticate users.
+
+See the [OAuth documentation](/api-reference/v2/oauth) for complete details.
+
+## 2. Install the atoms package
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm i @calcom/atoms
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @calcom/atoms
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm add @calcom/atoms
+    ```
+  </Tab>
+</Tabs>
+
+## 3. Implement the OAuth flow
+
+When a user wants to connect their Cal.com account:
+
+1. **Redirect to authorization URL**
+
+```js
+const authUrl = `https://app.cal.com/auth/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}`;
+window.location.href = authUrl;
+```
+
+2. **Handle the callback**
+
+After authorization, the user is redirected to your callback URL with a `code` parameter.
+
+3. **Exchange code for tokens**
+
+```js
+const response = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    grant_type: "authorization_code",
+    code: authorizationCode,
+    redirect_uri: REDIRECT_URI,
+  }),
+});
+
+const { access_token, refresh_token, expires_in } = await response.json();
+// Store these tokens securely
+```
+
+## 4. Set up a token refresh endpoint
+
+Access tokens expire after 30 minutes. Create an endpoint that atoms can call to refresh tokens:
+
+```js
+// pages/api/refresh.js (Next.js example)
+export default async function handler(req, res) {
+  const expiredToken = req.headers.authorization?.replace("Bearer ", "");
+  
+  // Look up the refresh token for this user in your database
+  const refreshToken = await getRefreshTokenForUser(expiredToken);
+  
+  const response = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      client_id: process.env.CAL_OAUTH_CLIENT_ID,
+      client_secret: process.env.CAL_OAUTH_CLIENT_SECRET,
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    }),
+  });
+
+  const tokens = await response.json();
+  
+  // Store the new tokens in your database
+  await updateTokensForUser(expiredToken, tokens);
+  
+  res.json({ accessToken: tokens.access_token });
+}
+```
+
+## 5. Configure the OAuth provider
+
+<Note>
+For atoms to work, the root of your application **must** be wrapped with `CalOAuthProvider`. This provider handles authentication and token management for all atoms in your app.
+</Note>
+
+See the [CalOAuthProvider documentation](/atoms/cal-oauth-provider) for all available props and advanced configuration.
+
+```js
+import "@calcom/atoms/globals.min.css";
+import { CalOAuthProvider } from "@calcom/atoms";
+
+function MyApp({ Component, pageProps }) {
+  const { user } = useAuth(); // Your auth context
+  
+  return (
+    <CalOAuthProvider
+      accessToken={user?.calAccessToken}
+      clientId={process.env.NEXT_PUBLIC_CAL_OAUTH_CLIENT_ID}
+      options={{
+        apiUrl: "https://api.cal.com/v2",
+        refreshUrl: "/api/refresh",
+      }}
+    >
+      <Component {...pageProps} />
+    </CalOAuthProvider>
+  );
+}
+
+export default MyApp;
+```
+
+For all provider properties see [Cal OAuth Provider](/atoms/cal-oauth-provider) docs.
+
+## 6. Start using atoms
+
+Now you can use any atom in your components:
+
+```js
+import { Booker, AvailabilitySettings } from "@calcom/atoms";
+
+export default function SchedulingPage() {
+  return (
+    <div>
+      <h1>Book a meeting</h1>
+      <Booker
+        username="johndoe"
+        eventSlug="30min"
+      />
+      
+      <h2>Manage availability</h2>
+      <AvailabilitySettings />
+    </div>
+  );
+}
+```
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/atoms/introduction" title="Previous: Introduction" icon="arrow-left">
+    Overview of Cal.com Atoms
+  </Card>
+  <Card href="/atoms/booker" title="Next: Booker Atom" icon="arrow-right">
+    Embed booking functionality
+  </Card>
+</CardGroup>

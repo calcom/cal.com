@@ -1,0 +1,373 @@
+---
+title: "Event Type"
+---
+
+The event type atom enables a user to create events that others can use to book them. The events can be created for an individual or a team. However, a team event type can only be created by a team admin or owner.
+
+## Individual event type
+
+Below code snippet can be used to render the create event type atom, which is a form with all the required input fields needed to create an event type.
+
+```js
+import { CreateEventType } from "@calcom/atoms";
+
+export default function EventType() {
+  return (
+    <>
+      <CreateEventType
+        onSuccess={(eventType) => {
+          console.log("EventType created successfully", eventType);
+        }}
+        customClassNames={{
+          atomsWrapper: "border p-4 rounded-md",
+          buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+        }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the create event type atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/b0c5d0599b2c48cdbba288b0b772a676?sid=5a1dbf17-8fc4-41f1-8d77-b36332546989"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+## Team event type
+
+For creating an event type for a team, you need to provide the team id of your particular team as a prop to the create event type atom. Importantly, a team event type can only be created by a managed user who has an accepted admin or owner role within the team. That means
+you have to create a managed user and then add an accepted membership with an admin or owner role by making a request to the [memberships endpoint](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership). Example body:
+```js
+{
+  "userId": 1006,
+  "accepted": true,
+  "role": "OWNER"
+}
+```
+then you have to pass the access token of this managed user to the [CalProvider](https://cal.com/docs/platform/atoms/cal-provider) to then finally be able to
+use the `<CreateEventType />` component while passing `teamId={teamId}` to it to create a team event type:
+
+```js
+import { CreateEventType } from "@calcom/atoms";
+
+export default function TeamEventType(teamId: number) {
+  return (
+    <>
+      <CreateEventType
+        teamId={teamId}
+        onSuccess={(eventType) => {
+          console.log("EventType created successfully", eventType);
+        }}
+        customClassNames={{
+          atomsWrapper: "border p-4 rounded-md",
+          buttons: { submit: "bg-red-500", cancel: "bg-gray-300" },
+        }}
+      />
+    </>
+  )
+}
+```
+
+For a demonstration of the create event type atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/281c18a1a61c4c44b0bdfd3c88ced8e8?sid=ca68ef1d-eb08-4e23-bd94-9a22a8f7aa7d"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+Below is a list of props that can be passed to the create event type atom
+<p></p>
+
+| Name         | Required | Description                                                                                               |
+|:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
+| teamId | No       | Unique identifier of the team                                                         |
+| customClassNames   | No       | To pass in custom classnames from outside for styling the atom    
+| onSuccess | No       | Callback function that handles successful creation of event type                                              |
+| onError   | No       | Callback function to handles errors at the time of event type creation
+| onCancel | No       | Callback function that handles cancellation of event type form                                                     |
+
+Along with the props, create event type atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| atomsWrapper              | Adds styling to the whole create event type atom             |
+| buttons              | Object containing classnames for the submit and cancel buttons inside the create event type atom             |
+
+<Info>Individual and team event types take in the same props.</Info>
+
+## Event type settings
+
+The event type settings contains various tabs that can be used to configure or make modifications to the event type that has just been created.
+
+Below code snippet can be used to render the event type settings atom.
+
+```js
+import { EventTypeSettings } from "@calcom/atoms";
+
+export function EventTypeTabs(eventTypeId: number) {
+  return (
+    <>
+      <EventTypeSettings
+        id={eventTypeId}
+        allowDelete={true}
+        tabs={["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]}
+        onSuccess={(eventType) => {
+          console.log("EventType settings updated successfully", eventType);
+        }}
+        onFormStateChange={(formState) => {
+          console.log("Form state changed:", formState);
+          // Access form data: formState.isDirty, formState.dirtyFields, formState.values
+        }}
+        customClassNames={{ atomsWrapper: "w-[70vw]! m-auto!" }}
+      />
+    </>
+  );
+}
+```
+
+To show only specific tabs, remove the ones you don't want from the array:
+
+```js
+// Example: Show only setup, limits, and availability tabs
+<EventTypeSettings
+  id={eventTypeId}
+  tabs={["setup", "limits", "availability"]}
+  onSuccess={(eventType) => {
+    console.log("EventType settings updated successfully", eventType);
+  }}
+/>
+```
+
+If the `eventTypeId` is of a team event type id, then only the owner or admin of the team can update the event type settings. That means
+you have to create a managed user and then add an accepted membership with an admin or owner role by making a request to the [memberships endpoint](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership). Example body:
+```js
+{
+  "userId": 1006,
+  "accepted": true,
+  "role": "OWNER"
+}
+```
+then you have to pass the access token of this managed user to the [CalProvider](https://cal.com/docs/platform/atoms/cal-provider) to then finally be able to
+use the `<EventTypeSettings />` component while passing id of a team event type enabling admin or owner to edit team event types.
+
+For a demonstration of the event type settings atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/2e94c5699dec4fd09d7804d2fd39d71e?sid=04ea09e9-25c3-43cc-be07-33b4b2f32c17"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+<p></p>
+Below is a list of props that can be passed to the event type settings atom.
+<p></p>
+
+| Name         | Required | Description                                                                                               |
+|:--------------|:----------|:-----------------------------------------------------------------------------------------------------------|
+| id | Yes       | The event type id obtained at the time of event type creation     
+| tabs | No       | Array of tabs to display in the event type settings. Possible values: `["setup", "limits", "recurring", "advanced", "availability", "team", "payments"]`. Remove any tabs you don't want to show. |  
+| onSuccess | No       | Callback function that triggers when the event type is successfully updated                                              |
+| onError   | No       | Callback function to handles errors at the time of event type update |
+| onFormStateChange | No       | Callback function that triggers when the form state changes, providing access to isDirty, dirtyFields, and current form values |
+| onDeleteSuccess | No       | Callback function that triggers when the event type is successfully deleted                                                     |
+| onDeleteError | No       | Callback function that handles errors at the time of event type deletion |                                                   |
+| allowDelete | No       | Boolean value that determines whether the delete button is displayed or not                                                     |
+| disableToasts | No       | Boolean value that determines whether the toasts are displayed or not                                                     
+| customClassNames   | No       | To pass in custom classnames from outside for styling the atom  
+
+Along with the props, event type settings atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
+<p></p>
+| Name                      | Description                                                           |
+|:---------------------------|:-----------------------------------------------------------------------|
+| atomsWrapper              | Adds styling to the whole event type settings atom             |
+
+<Info>
+  Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.
+</Info>
+
+## Programmatic Form Validation and Submission
+
+The EventTypeSettings component supports programmatic form validation and submission through a ref-based API. This allows you to validate form data and submit forms programmatically without user interaction.
+
+```js
+import { useRef } from 'react';
+import { EventTypeSettings } from "@calcom/atoms";
+import type { EventTypePlatformWrapperRef } from "@calcom/atoms";
+
+export function EventTypeWithValidation(eventTypeId: number) {
+  const eventTypeRef = useRef<EventTypePlatformWrapperRef>(null);
+
+  const handleValidate = async () => {
+    const result = await eventTypeRef.current?.validateForm();
+    if (result?.isValid) {
+      console.log("Form is valid");
+    } else {
+      console.log("Validation errors:", result?.errors);
+    }
+  };
+
+  const handleSubmit = () => {
+    eventTypeRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        // Additional success handling logic here
+        console.log('Event type updated successfully');
+      },
+      onError: (error) => {
+        // Additional error handling logic here
+        console.error('Error updating event type:', error);
+      }
+    });
+  };
+
+  return (
+    <>
+      <EventTypeSettings
+        ref={eventTypeRef}
+        id={eventTypeId}
+        onSuccess={(eventType) => {
+          console.log("EventType updated successfully", eventType);
+        }}
+      />
+      <button onClick={handleValidate}>Validate Form</button>
+      <button onClick={handleSubmit}>Submit Form</button>
+    </>
+  );
+}
+```
+
+### Ref Methods
+
+| Method | Description |
+|:-------|:------------|
+| validateForm | Validates the current event type form state and returns a promise with validation results. |
+| handleFormSubmit | Programmatically submits the event type form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
+
+### Callbacks
+
+The `handleFormSubmit` method accepts an optional callbacks object with the following properties:
+
+```typescript
+type EventTypeFormCallbacks = {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+};
+```
+
+- **onSuccess**: Called when the form submission is successful. This allows you to execute additional logic after a successful update.
+- **onError**: Called when an error occurs during form submission. The error parameter contains details about what went wrong, allowing you to handle specific error cases or display custom error messages.
+
+The `validateForm` method returns an `EventTypeFormValidationResult` object with:
+- `isValid`: Boolean indicating if the form passed validation
+- `errors`: Object containing any validation errors found
+
+**Note:** If a required field is not filled in, the `validateForm` method will not return any error. The validation focuses on the format and consistency of provided data rather than enforcing required field completion.
+
+Following are the tabs that are available in the event type settings atom:
+
+<p></p>
+
+**1. Event Setup**
+
+The event setup tab allows users to configure the fundamental aspects of their events. In this tab, users can define or update essential details such as the event title, description, duration, slug, location as well as the event URL. 
+
+<img src="/images/EventSetup.png" alt="Event Setup tab" />
+
+**2. Availability**
+
+The availability tab allows users to manage their scheduling preferences effectively. Within this tab, users can edit their existing availability or set new availability options based on the preferences they have previously established.
+
+<img src="/images/Availability.png" alt="User availability" />
+
+For team event types, availability for a specific event can also be configured for the entire team based on a common schedule. Otherwise each host can be assigned their own specific availability based on their schedules.
+
+<img src="/images/Team_Availability.png" alt="Team availability" />
+
+**3. Assignment**
+
+The assignment tab is only available for team event types. It lets you configure what kind of scheduling you want to enable for your team event, where you can choose from a collective, round robin or managed event. You can also choose who amongst your team can or cannot attend the event.
+
+<img src="/images/Assignment.png" alt="Assignment tab" />
+
+**4. Limits**
+
+The limits tab lets you configure how often you can be booked. You can add a lot of configurations via this tab, such as a buffer time before or after the event and a minimum notice period. 
+
+Also if you want to select how many time a particular event can be booked, or how far in the future the event can be booked that is also possible. Or if you want to limit the event to a specific amount of time, that can also be done via the limits tab.
+
+
+Below video shows a demonstration of the limits tab.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/ac02d393c923413aaa97ab29b43eed48?sid=c130e621-d8e2-4e22-9614-fee97053a194"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+**5. Advanced**
+
+The advanced tab lets you customize your event type with a lot more options. For example, you can set a custom name for the event type that will appear in your calendar, or add questions that will appear on your booking page. Another option would be to add an email verification for the person who is booking the event. 
+
+Below video shows a demonstration of the all the options you get in the advanced tab.
+
+<p></p>
+
+    <iframe
+      height="315"
+      style={{ width: "100%", maxWidth: "560px" }}
+      src="https://www.loom.com/embed/7a03c4a453ca401ab787b2db98728f31?sid=8cdc6398-0017-41c8-a0a1-8fa31f80616c"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+**6. Recurring**
+
+The recurring tab lets you set up a recurring event. You can set up recurring events such as weekly, monthly, yearly, etc for a maximum of events you want it to repeat.
+
+<img src="/images/Recurring.png" alt="Recurring tab" />
+
+<Info>Recurring events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this.</Info>
+
+**7. Payments**
+
+The payments tab lets you accept payments for your events. At the moment we only support payments via Stripe. 
+
+<img src="/images/StripeConnect.png" alt="Payments tab without stripe connected" />
+
+Once you connect your Stripe account, you can set a custom price along with the currency and payment option; which will determine when to charge your customers.
+
+<img src="/images/StripeConnected.png" alt="Payments tab with stripe connected" />

@@ -34,6 +34,74 @@
         ]
       },
       {
+        "tab": "Atoms",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "atoms/introduction",
+              "atoms/setup",
+              "atoms/cal-oauth-provider"
+            ]
+          },
+          {
+            "group": "Booking",
+            "pages": [
+              "atoms/booker",
+              "atoms/booker-embed"
+            ]
+          },
+          {
+            "group": "Event Types",
+            "pages": [
+              "atoms/event-type",
+              "atoms/list-event-types"
+            ]
+          },
+          {
+            "group": "Availability",
+            "pages": [
+              "atoms/availability-settings",
+              "atoms/create-schedule",
+              "atoms/list-schedules"
+            ]
+          },
+          {
+            "group": "Calendars",
+            "pages": [
+              "atoms/calendar-settings",
+              "atoms/calendar-view",
+              "atoms/google-calendar-connect",
+              "atoms/outlook-calendar-connect",
+              "atoms/apple-calendar-connect"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "atoms/conferencing-apps",
+              "atoms/stripe-connect",
+              "atoms/payment-form"
+            ]
+          },
+          {
+            "group": "Utility",
+            "pages": [
+              "atoms/troubleshooter"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "atoms/guides/booking-fields",
+              "atoms/guides/custom-booking-flow",
+              "atoms/guides/custom-slot-select-flow",
+              "atoms/guides/replacing-toasts"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Developing",
         "groups": [
           {
