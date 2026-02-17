@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { ActiveUserBillingRepository } from "../repositories/ActiveUserBillingRepository";
 import { ActiveUserBillingService } from "./ActiveUserBillingService";
 
@@ -15,6 +14,7 @@ function createMockRepository(): {
     getActiveUsersAsAttendee: vi.fn().mockResolvedValue([]),
     getBookingsByHostUserId: vi.fn().mockResolvedValue([]),
     getBookingsByAttendeeEmail: vi.fn().mockResolvedValue([]),
+    getLastActiveAt: vi.fn().mockResolvedValue(null),
   };
 }
 
@@ -224,10 +224,7 @@ describe("ActiveUserBillingService", () => {
         { id: 1, email: "alice@org.com", name: "Alice" },
         { id: 2, email: "bob@org.com", name: "Bob" },
       ]);
-      mockRepo.getActiveUsersAsHost.mockResolvedValue([
-        { email: "alice@org.com" },
-        { email: "bob@org.com" },
-      ]);
+      mockRepo.getActiveUsersAsHost.mockResolvedValue([{ email: "alice@org.com" }, { email: "bob@org.com" }]);
 
       const result = await service.getActiveUsersForOrg(orgId, periodStart, periodEnd);
 

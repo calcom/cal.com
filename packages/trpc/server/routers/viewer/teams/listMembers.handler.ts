@@ -1,9 +1,10 @@
+import { getCachedActiveUserBillingRepository } from "@calcom/features/ee/billing/active-user/di/CachedActiveUserBillingRepository.container";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
-  Resource,
   CustomAction,
-  PermissionString,
+  type PermissionString,
+  Resource,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -13,9 +14,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TListMembersInputSchema } from "./listMembers.schema";
 
 type ListMembersHandlerOptions = {
@@ -33,7 +32,6 @@ const userSelect = {
   id: true,
   bio: true,
   disableImpersonation: true,
-  lastActiveAt: true,
 } satisfies Prisma.UserSelect;
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
@@ -79,7 +77,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     orderBy: { id: "asc" },
   });
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined;
   if (teamMembers.length > limit) {
     const nextItem = teamMembers.pop();
     nextCursor = nextItem?.id;
@@ -118,6 +116,15 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     enrichedUserMap.set(enrichedUser.id, enrichedUser);
   });
 
+  const cachedRepo = getCachedActiveUserBillingRepository();
+  const lastActiveAtMap = new Map<number, Date | null>();
+  await Promise.all(
+    teamMembers.map(async (member) => {
+      const lastActiveAt = await cachedRepo.getLastActiveAt(member.user.id, member.user.email);
+      lastActiveAtMap.set(member.user.id, lastActiveAt);
+    })
+  );
+
   const membersWithApps = teamMembers
     .map((member) => {
       const user = enrichedUserMap.get(member.user.id);
@@ -133,6 +140,8 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
       if (member.customRoleId && customRoles[member.customRoleId]) {
         customRole = customRoles[member.customRoleId];
       }
+
+      const lastActiveAt = lastActiveAtMap.get(member.user.id) ?? null;
       return {
         ...restUser,
         username: profile?.username ?? restUser.username,
@@ -146,11 +155,11 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
         disableImpersonation: user.disableImpersonation,
         bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
         teamId: member.teamId,
-        lastActiveAt: member.user.lastActiveAt
+        lastActiveAt: lastActiveAt
           ? new Intl.DateTimeFormat(ctx.user.locale, {
               timeZone: ctx.user.timeZone,
             })
-              .format(member.user.lastActiveAt)
+              .format(lastActiveAt)
               .toLowerCase()
           : null,
       };

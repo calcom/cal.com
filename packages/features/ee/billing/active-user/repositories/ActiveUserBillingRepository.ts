@@ -241,4 +241,37 @@ export class ActiveUserBillingRepository {
       },
     });
   }
+
+  /**
+   * Get the most recent accepted booking startTime for a user, considering both
+   * host and attendee roles. This aligns with the active user billing definition
+   * where "active" means hosted or attended at least one accepted booking.
+   */
+  async getLastActiveAt(userId: number, email: string): Promise<Date | null> {
+    const [lastHostBooking, lastAttendeeBooking] = await Promise.all([
+      this.prismaClient.booking.findFirst({
+        where: {
+          userId,
+          status: BookingStatus.ACCEPTED,
+        },
+        orderBy: { startTime: "desc" },
+        select: { startTime: true },
+      }),
+      this.prismaClient.booking.findFirst({
+        where: {
+          attendees: { some: { email } },
+          status: BookingStatus.ACCEPTED,
+        },
+        orderBy: { startTime: "desc" },
+        select: { startTime: true },
+      }),
+    ]);
+
+    const hostTime = lastHostBooking?.startTime?.getTime() ?? 0;
+    const attendeeTime = lastAttendeeBooking?.startTime?.getTime() ?? 0;
+    const maxTime = Math.max(hostTime, attendeeTime);
+
+    if (maxTime === 0) return null;
+    return new Date(maxTime);
+  }
 }

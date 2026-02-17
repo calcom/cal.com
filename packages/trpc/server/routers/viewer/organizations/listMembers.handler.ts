@@ -1,15 +1,14 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
+import { ColumnFilterType, type TypedColumnFilter } from "@calcom/features/data-table/lib/types";
+import { getCachedActiveUserBillingRepository } from "@calcom/features/ee/billing/active-user/di/CachedActiveUserBillingRepository.container";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { FilterType } from "@calcom/types/data-table";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listMembers.schema";
 
@@ -255,7 +254,6 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           timeZone: true,
           disableImpersonation: true,
           completedOnboarding: true,
-          lastActiveAt: true,
           ...(ctx.user.organization.isOrgAdmin && { twoFactorEnabled: true }),
           teams: {
             select: {
@@ -279,6 +277,15 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   });
 
   const [totalCount, teamMembers] = await Promise.all([totalCountPromise, teamMembersPromise]);
+
+  const cachedRepo = getCachedActiveUserBillingRepository();
+  const lastActiveAtMap = new Map<number, Date | null>();
+  await Promise.all(
+    teamMembers.map(async (membership) => {
+      const lastActiveAt = await cachedRepo.getLastActiveAt(membership.user.id, membership.user.email);
+      lastActiveAtMap.set(membership.user.id, lastActiveAt);
+    })
+  );
 
   const members = await Promise.all(
     teamMembers?.map(async (membership) => {
@@ -321,6 +328,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           );
       }
 
+      const lastActiveAt = lastActiveAtMap.get(membership.user.id) ?? null;
       return {
         id: user.id,
         username: user.profiles[0]?.username || user.username,
@@ -332,11 +340,11 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         accepted: membership.accepted,
         disableImpersonation: user.disableImpersonation,
         completedOnboarding: user.completedOnboarding,
-        lastActiveAt: membership.user.lastActiveAt
+        lastActiveAt: lastActiveAt
           ? new Intl.DateTimeFormat(ctx.user.locale, {
               timeZone: ctx.user.timeZone,
             })
-              .format(membership.user.lastActiveAt)
+              .format(lastActiveAt)
               .toLowerCase()
           : null,
         createdAt: membership.createdAt
