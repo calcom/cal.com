@@ -34,6 +34,8 @@ export type CreateInnerContextOptions = {
         | "allowDynamicBooking"
         | "verified"
       > & {
+        firstName?: string | null;
+        lastName?: string | null;
         locale: Exclude<PrismaUser["locale"], null>;
         credentials?: Credential[];
         selectedCalendars?: Partial<SelectedCalendar>[];

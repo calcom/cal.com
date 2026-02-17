@@ -52,6 +52,12 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     ...rest,
     metadata: userMetadata,
     secondaryEmails: undefined,
+    firstName: input.firstName, 
+    lastName: input.lastName,   
+    
+    name: input.firstName || input.lastName 
+      ? `${input.firstName ?? ""} ${input.lastName ?? ""}`.trim() 
+      : input.name,
   };
 
   let isPremiumUsername = false;
@@ -225,6 +231,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     select: {
       id: true,
       username: true,
+      firstName: true,
+      lastName: true,
       email: true,
       identityProvider: true,
       identityProviderId: true,
@@ -246,6 +254,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     id: number;
     username: string | null;
     email: string;
+    firstName?: string | null;
+    lastName?: string | null;
     identityProvider: string | null;
     identityProviderId: string | null;
     metadata: JsonValue;

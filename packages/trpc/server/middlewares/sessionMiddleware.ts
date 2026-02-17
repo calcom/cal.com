@@ -73,6 +73,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
     return {
       ...user,
+      firstName: user.firstName,
+      lastName: user.lastName,
       avatar: `${WEBAPP_URL}/${user.username}/avatar.png${organization.id ? `?orgId=${organization.id}` : ""}`,
       // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
       organization,

@@ -104,6 +104,8 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     id: user.id,
     name: user.name,
     email: user.email,
+    firstName: (user as any).firstName || "", 
+    lastName: (user as any).lastName || "",
     emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
     emailVerified: user.emailVerified,
     bufferTime: user.bufferTime,

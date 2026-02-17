@@ -1116,6 +1116,8 @@ export class UserRepository {
         weekStart: true,
         defaultScheduleId: true,
         bufferTime: true,
+        firstName: true,
+        lastName: true,
         theme: true,
         appTheme: true,
         createdDate: true,

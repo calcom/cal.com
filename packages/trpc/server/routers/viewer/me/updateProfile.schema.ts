@@ -15,6 +15,8 @@ export const updateUserMetadataAllowedKeys: z.ZodType<TUpdateUserMetadataAllowed
 });
 
 export type TUpdateProfileInputSchemaInput = {
+  firstName?: string;
+  lastName?: string; 
   username?: string;
   name?: string;
   email?: string;
@@ -50,6 +52,8 @@ export type TUpdateProfileInputSchemaInput = {
 };
 
 export type TUpdateProfileInputSchema = {
+  firstName?: string;
+  lastName?: string; 
   username?: string;
   name?: string;
   email?: string;
@@ -85,6 +89,8 @@ export type TUpdateProfileInputSchema = {
 };
 
 export const ZUpdateProfileInputSchema: z.ZodType<TUpdateProfileInputSchema, z.ZodTypeDef, TUpdateProfileInputSchemaInput> = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),

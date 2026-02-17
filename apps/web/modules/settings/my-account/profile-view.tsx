@@ -61,6 +61,8 @@ type Email = {
 };
 
 export type FormValues = {
+  firstName?: string;
+  lastName?: string;
   username: string;
   avatarUrl: string | null;
   name: string;
@@ -77,21 +79,23 @@ const ProfileView = ({ user }: Props) => {
   const utils = trpc.useUtils();
   const session = useSession();
   const { update } = session;
+
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
-    onSuccess: async (res) => {
-      await update(res);
-      utils.viewer.me.invalidate();
-      utils.viewer.me.shouldVerifyEmail.invalidate();
-      revalidateSettingsProfile();
+      onSuccess: async (res) => {
+        await update(res);
 
-      if (res.hasEmailBeenChanged && res.sendEmailVerification) {
-        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
-      } else {
-        showToast(t("settings_updated_successfully"), "success");
-      }
+        utils.viewer.me.invalidate();
+        utils.viewer.me.shouldVerifyEmail.invalidate();
+        revalidateSettingsProfile();
 
-      setTempFormValues(null);
-    },
+        if (res.hasEmailBeenChanged && res.sendEmailVerification) {
+          showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+        } else {
+          showToast(t("settings_updated_successfully"), "success");
+        }
+
+        setTempFormValues(null);
+      },
     onError: (e) => {
       switch (e.message) {
         // TODO: Add error codes.
@@ -237,6 +241,8 @@ const ProfileView = ({ user }: Props) => {
     username: user.username || "",
     avatarUrl: user.avatarUrl,
     name: user.name || "",
+    firstName: user.firstName || "",
+    lastName: user.lastName || "", 
     email: userEmail,
     bio: user.bio || "",
     // We add the primary email as the first item in the list
@@ -521,6 +527,8 @@ const ProfileForm = ({
   const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
     username: z.string(),
     avatarUrl: z.string().nullable(),
     name: z
@@ -545,8 +553,12 @@ const ProfileForm = ({
   });
 
   const formMethods = useForm<FormValues>({
-    defaultValues,
     resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      ...defaultValues,
+      firstName: user.firstName || "", 
+      lastName: user.lastName || "",
+    },
   });
 
   const {
@@ -663,9 +675,22 @@ const ProfileForm = ({
           <InfoIcon className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
-        <div className="mt-6">
-          <TextField label={t("full_name")} {...formMethods.register("name")} />
-        </div>
+          <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:gap-4">
+            <div className="flex-1">
+              <TextField 
+                label="First Name" 
+                {...formMethods.register("firstName")} 
+                placeholder="e.g. Jane"
+              />
+            </div>
+            <div className="flex-1">
+              <TextField 
+                label="Last Name" 
+                {...formMethods.register("lastName")} 
+                placeholder="e.g. Doe"
+              />
+            </div>
+          </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
           <div className="-mt-2 flex flex-wrap items-start gap-2">
