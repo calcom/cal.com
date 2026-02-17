@@ -96,10 +96,13 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
     const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
     if (roleManager.isPBACEnabled) {
       const roles = await roleManager.getTeamRoles(teamId);
-      customRoles = roles.reduce((acc, role) => {
-        acc[role.id] = role;
-        return acc;
-      }, {} as { [key: string]: { id: string; name: string } });
+      customRoles = roles.reduce(
+        (acc, role) => {
+          acc[role.id] = role;
+          return acc;
+        },
+        {} as { [key: string]: { id: string; name: string } }
+      );
     }
   } catch (error) {
     // PBAC not enabled or error occurred, continue with traditional roles

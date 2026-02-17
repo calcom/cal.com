@@ -62,7 +62,7 @@
     "@sentry/node": "9.46.0",
     "@sentry/profiling-node": "9.46.0",
     "@snyk/protect": "latest",
-    "axios": "1.13.2",
+    "axios": "1.13.5",
     "body-parser": "1.20.3",
     "bull": "4.15.1",
     "class-transformer": "0.5.1",

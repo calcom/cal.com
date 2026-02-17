@@ -4,7 +4,18 @@ import { useUserAgentData } from "@calcom/lib/hooks/useUserAgentData";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Icon } from "@calcom/ui/components/icon";
+import {
+  BlocksIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CircleHelpIcon,
+  DownloadIcon,
+  LogOutIcon,
+  MapIcon,
+  MoonIcon,
+  SettingsIcon,
+  UserIcon,
+} from "@coss/ui/icons";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import FreshChatProvider from "@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider";
 import {
@@ -166,11 +177,17 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 {isPending ? "Loading..." : (user?.name ?? "Nameless User")}
               </span>
             </span>
-            <Icon
-              name={menuOpen ? "chevron-up" : "chevron-down"}
-              className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
-              aria-hidden="true"
-            />
+            {menuOpen ? (
+              <ChevronUpIcon
+                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+                aria-hidden="true"
+              />
+            ) : (
+              <ChevronDownIcon
+                className="group-hover:text-subtle text-muted h-4 w-4 shrink-0 transition rtl:mr-4"
+                aria-hidden="true"
+              />
+            )}
           </span>
         )}
       </MenuTrigger>
@@ -180,15 +197,15 @@ export function UserDropdown({ small }: UserDropdownProps) {
           {!isPlatformPages && (
             <>
               <MenuItem render={<Link href="/settings/my-account/profile" />}>
-                <Icon name="user" />
+                <UserIcon />
                 {t("my_profile")}
               </MenuItem>
               <MenuItem render={<Link href="/settings/my-account/general" />}>
-                <Icon name="settings" />
+                <SettingsIcon />
                 {t("my_settings")}
               </MenuItem>
               <MenuItem render={<Link href="/settings/my-account/out-of-office" />}>
-                <Icon name="moon" />
+                <MoonIcon />
                 {t("out_of_office")}
               </MenuItem>
               <MenuSeparator />
@@ -196,29 +213,29 @@ export function UserDropdown({ small }: UserDropdownProps) {
           )}
 
           <MenuItem render={<a href={ROADMAP} target="_blank" rel="noreferrer" />}>
-            <Icon name="map" />
+            <MapIcon />
             {t("visit_roadmap")}
           </MenuItem>
           <MenuItem onClick={handleHelpClick}>
-            <Icon name="circle-help" />
+            <CircleHelpIcon />
             {t("help")}
           </MenuItem>
           {!isPlatformPages && isMobile && os === "ios" && (
             <MenuItem render={<a href={DOWNLOAD_LINKS.ios} target="_blank" rel="noreferrer" />}>
-              <Icon name="download" />
+              <DownloadIcon />
               {t("download_app")}
             </MenuItem>
           )}
           {!isPlatformPages && isMobile && os === "android" && (
             <MenuItem render={<a href={DOWNLOAD_LINKS.android} target="_blank" rel="noreferrer" />}>
-              <Icon name="download" />
+              <DownloadIcon />
               {t("download_app")}
             </MenuItem>
           )}
           {!isPlatformPages && !isMobile && (
             <MenuSub>
               <MenuSubTrigger>
-                <Icon name="download" />
+                <DownloadIcon />
                 {t("download_app")}
               </MenuSubTrigger>
               <MenuSubPopup>
@@ -278,7 +295,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
 
           {!isPlatformPages && isPlatformUser && (
             <MenuItem render={<Link href="/settings/platform" />} className="todesktop:hidden hidden lg:flex">
-              <Icon name="blocks" />
+              <BlocksIcon />
               {t("platform")}
             </MenuItem>
           )}
@@ -289,7 +306,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
             onClick={() => {
               signOut({ callbackUrl: "/auth/logout" });
             }}>
-            <Icon name="log-out" />
+            <LogOutIcon />
             {t("sign_out")}
           </MenuItem>
         </MenuPopup>

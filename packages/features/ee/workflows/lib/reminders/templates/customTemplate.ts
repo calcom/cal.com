@@ -57,10 +57,39 @@ export function transformRoutingFormResponsesToVariableFormat(
 
 export function formatIdentifierToVariable(key: string): string {
   return key
+    .replace(/[^a-zA-Z0-9_ ]/g, "")
+    .trim()
+    .replaceAll(" ", "_")
+    .toUpperCase();
+}
+
+/**
+ * Legacy version of formatIdentifierToVariable that strips underscores.
+ * Used for backward compatibility with templates that were created when
+ * underscores were being stripped from identifiers.
+ */
+function formatIdentifierToVariableLegacy(key: string): string {
+  return key
     .replace(/[^a-zA-Z0-9 ]/g, "")
     .trim()
     .replaceAll(" ", "_")
     .toUpperCase();
+}
+
+/**
+ * Returns all variable formats for a given key.
+ * Includes both the current format (with underscores preserved) and the legacy format
+ * (without underscores) for backward compatibility with existing templates.
+ * @returns Array of unique variable formats
+ */
+export function getVariableFormats(key: string): string[] {
+  const current = formatIdentifierToVariable(key);
+  const legacy = formatIdentifierToVariableLegacy(key);
+
+  if (current === legacy) {
+    return [current];
+  }
+  return [current, legacy];
 }
 
 export type VariablesType = {
@@ -196,9 +225,13 @@ const customTemplate = (
     // handle custom variables from form/booking responses
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
-        const formatedToVariable = formatIdentifierToVariable(customInput);
+        const foundVariableInTemplate = variable;
+        const availableVariable = formatIdentifierToVariable(customInput);
+        // Legacy format for backward compatibility with templates created before underscore support
+        const availableVariableLegacyFormat = formatIdentifierToVariableLegacy(customInput);
+        const isFoundTemplateVariableValid = foundVariableInTemplate === availableVariable || foundVariableInTemplate === availableVariableLegacyFormat;
 
-        if (variable === formatedToVariable && variables.responses) {
+        if (isFoundTemplateVariableValid && variables.responses) {
           const response = variables.responses[customInput];
           if (response?.value !== undefined) {
             const responseValue = response.value;
@@ -206,7 +239,7 @@ const customTemplate = (
               ? responseValue.join(", ")
               : String(responseValue);
 
-            dynamicText = dynamicText.replace(`{${variable}}`, valueString);
+            dynamicText = dynamicText.replace(`{${foundVariableInTemplate}}`, valueString);
           }
         }
       });

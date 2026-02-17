@@ -987,12 +987,6 @@ An example of good readme is [atoms readme](https://github.com/calcom/cal.com/bl
 1. Follow semantic versioning when using changesets.
 2. Mark breaking changes using `❗️Breaking change`
 
-<!-- LICENSE -->
-
-## License
-
-Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/main/LICENSE). See `LICENSE` for more information.
-
 <!-- ACKNOWLEDGEMENTS -->
 
 ## Acknowledgements
