@@ -88,7 +88,9 @@ describe("RoutingTracePresenter", () => {
 
     expect(result).toHaveLength(3);
     expect(result[0].message).toBe('Route matched: "Sales" (ID: route-1)');
-    expect(result[1].message).toBe("GraphQL account resolution initiated for user@acme.com (domain: acme.com)");
+    expect(result[1].message).toBe(
+      "GraphQL account resolution initiated for user@acme.com (domain: acme.com)"
+    );
     expect(result[2].message).toBe("Salesforce assignment: owner@acme.com via Contact (ID: 003ABC)");
   });
 

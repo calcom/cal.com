@@ -1,11 +1,10 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   linkType: "dynamic",
   name: "Zoom Video",
-  description: _package.description,
+  description:
+    "Zoom is a secure and reliable video platform that supports all of your online communication needs. It can provide everything from one on one meetings, chat, phone, webinars, and large-scale online events. Available with both desktop, web, and mobile versions.",
   type: "zoom_video",
   categories: ["conferencing"],
   variant: "conferencing",

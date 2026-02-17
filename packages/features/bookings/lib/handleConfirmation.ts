@@ -6,6 +6,8 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -33,16 +35,15 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 async function fireBookingAcceptedEvent({
   actor,
   organizationId,
   actionSource,
   acceptedBookings,
+  isBookingAuditEnabled,
   tracingLogger,
 }: {
   actor: Actor;
@@ -52,6 +53,7 @@ async function fireBookingAcceptedEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
 }) {
   try {
@@ -69,6 +71,7 @@ async function fireBookingAcceptedEvent({
         organizationId,
         operationId,
         source: actionSource,
+        isBookingAuditEnabled,
       });
     } else if (acceptedBookings.length === 1) {
       const acceptedBooking = acceptedBookings[0];
@@ -80,6 +83,7 @@ async function fireBookingAcceptedEvent({
           status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
         source: actionSource,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -410,6 +414,11 @@ export async function handleConfirmation(args: {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
   await fireBookingAcceptedEvent({
@@ -417,6 +426,7 @@ export async function handleConfirmation(args: {
     acceptedBookings,
     organizationId: orgId ?? null,
     actionSource,
+    isBookingAuditEnabled,
     tracingLogger,
   });
 
@@ -559,14 +569,15 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
     };
 

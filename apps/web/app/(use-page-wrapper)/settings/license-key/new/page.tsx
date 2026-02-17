@@ -23,9 +23,7 @@ const getData = withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServe
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   await getData(buildLegacyCtx(await headers(), await cookies(), await params, await searchParams));
-  return (
-    <SettingsNewView />
-  );
+  return <SettingsNewView />;
 };
 
 export default ServerPage;

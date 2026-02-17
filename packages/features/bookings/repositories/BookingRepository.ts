@@ -1,12 +1,11 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
+import type { Booking, Prisma } from "@calcom/prisma/client";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import {
-  bookingMinimalSelect,
   bookingAuthorizationCheckSelect,
   bookingDetailsSelect,
+  bookingMinimalSelect,
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -15,7 +14,8 @@ import type {
   IBookingRepository,
   BookingUpdateData,
   BookingWhereUniqueInput,
-} from "@calcom/lib/server/repository/dto/IBookingRepository";
+} from "./IBookingRepository";
+import { workflowSelect } from "../../ee/workflows/lib/getAllWorkflows";
 
 const workflowReminderSelect = {
   id: true,
@@ -391,6 +391,103 @@ export class BookingRepository implements IBookingRepository {
             teamId: true,
           },
         },
+      },
+    });
+  }
+
+  async findByUidIncludeEventTypeAttendeesAndUser({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        metadata: true,
+        uid: true,
+        location: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            id: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            schedulingType: true,
+            slug: true,
+            title: true,
+            metadata: true,
+            parentId: true,
+            teamId: true,
+            userId: true,
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+            workflows: {
+              select: {
+                workflow: {
+                  select: workflowSelect,
+                },
+              },
+            },
+            owner: {
+              select: {
+                hideBranding: true,
+                email: true,
+                name: true,
+                timeZone: true,
+                locale: true,
+              },
+            },
+            team: {
+              select: {
+                parentId: true,
+                name: true,
+                id: true,
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            uuid: true,
+            email: true,
+            name: true,
+            destinationCalendar: true,
+            timeZone: true,
+            locale: true,
+            username: true,
+            timeFormat: true,
+          },
+        },
+        noShowHost: true,
       },
     });
   }
@@ -1509,7 +1606,7 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+  async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
     return await this.prismaClient.booking.updateMany({
       where: where,
       data,
@@ -1520,6 +1617,20 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     return await this.prismaClient.booking.update({
       where,
       data,
+    });
+  }
+
+  async updateNoShowHost({
+    bookingUid,
+    noShowHost,
+  }: {
+    bookingUid: string;
+    noShowHost: boolean;
+  }): Promise<{ id: number }> {
+    return await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { noShowHost },
+      select: { id: true },
     });
   }
 
@@ -2012,49 +2123,6 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     });
   }
 
-  async findByUidIncludeEventTypeAndTeamAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        uid: bookingUid,
-      },
-      select: {
-        id: true,
-        uid: true,
-        title: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            teamId: true,
-          },
-        },
-        assignmentReason: {
-          select: {
-            reasonString: true,
-            reasonEnum: true,
-          },
-        },
-      },
-    });
-  }
-
   async updateRecordedStatus({
     bookingUid,
     isRecorded,
@@ -2065,6 +2133,60 @@ async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdat
     await this.prismaClient.booking.update({
       where: { uid: bookingUid },
       data: { isRecorded },
+    });
+  }
+
+  async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        assignmentReason: {
+          select: {
+            reasonString: true,
+          },
+          take: 1,
+          orderBy: {
+            createdAt: "asc" as const,
+          },
+        },
+        routedFromRoutingFormReponse: {
+          select: {
+            formId: true,
+          },
+        },
+      },
     });
   }
 }
