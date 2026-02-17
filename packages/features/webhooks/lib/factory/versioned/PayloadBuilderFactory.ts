@@ -113,6 +113,9 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
 
   // Wrong assignment report events
   [WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT]: "booking",
+
+  // Reservation events
+  [WebhookTriggerEvents.RESERVATION_EXPIRED]: "booking",
 };
 
 export type BookingTriggerEvents =

@@ -4124,6 +4124,7 @@
   "failed_bookings_by_field": "Failed bookings by field",
   "failed_bookings": "Failed bookings",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "reservation_expired": "Reservation Expired",
   "cache_status": "Cache status",
   "cache_last_updated": "Last updated: {{timestamp}}",
   "delete_cached_data": "Delete cached data",
@@ -4632,5 +4633,5 @@
   "last_6_months": "Last 6 months",
   "last_12_months": "Last 12 months",
   "calendar_events_disabled_video_limitation": "When calendar events are disabled, meeting links cannot be generated for apps whose link generation is tied to calendar event creation, for example, Google Meet and Microsoft Teams. Other video apps like Cal Video will continue to work.",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS":"↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
