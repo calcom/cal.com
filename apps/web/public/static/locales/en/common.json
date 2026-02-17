@@ -1266,6 +1266,7 @@
   "cal_provide_zoom_meeting_url": "{{appName}} will provide a Zoom meeting URL.",
   "cal_provide_tandem_meeting_url": "{{appName}} will provide a Tandem meeting URL.",
   "cal_provide_video_meeting_url": "{{appName}} will provide a video meeting URL.",
+  "cal_provide_bigbluebutton_meeting_url": "{{appName}} will provide a BigBlueButton meeting URL.",
   "cal_provide_jitsi_meeting_url": "We will generate a Jitsi Meet URL for you.",
   "cal_provide_huddle01_meeting_url": "{{appName}} will provide a Huddle01 video meeting URL.",
   "cal_provide_teams_meeting_url": "{{appName}} will provide a MS Teams meeting URL. NOTE: MUST HAVE A WORK OR SCHOOL ACCOUNT",

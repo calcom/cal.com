@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 import { appDataSchema as alby_zod_ts } from "./alby/zod";
+import { appDataSchema as bigbluebutton_zod_ts } from "./bigbluebutton/zod";
 import { appDataSchema as basecamp3_zod_ts } from "./basecamp3/zod";
 import { appDataSchema as btcpayserver_zod_ts } from "./btcpayserver/zod";
 import { appDataSchema as closecom_zod_ts } from "./closecom/zod";
@@ -54,6 +55,7 @@ import { appDataSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appDataSchemas = {
   alby: alby_zod_ts,
+  bigbluebutton: bigbluebutton_zod_ts,
   basecamp3: basecamp3_zod_ts,
   btcpayserver: btcpayserver_zod_ts,
   closecom: closecom_zod_ts,

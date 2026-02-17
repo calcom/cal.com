@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 import { appKeysSchema as alby_zod_ts } from "./alby/zod";
+import { appKeysSchema as bigbluebutton_zod_ts } from "./bigbluebutton/zod";
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
 import { appKeysSchema as btcpayserver_zod_ts } from "./btcpayserver/zod";
 import { appKeysSchema as closecom_zod_ts } from "./closecom/zod";
@@ -54,6 +55,7 @@ import { appKeysSchema as zohocrm_zod_ts } from "./zohocrm/zod";
 import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appKeysSchemas = {
   alby: alby_zod_ts,
+  bigbluebutton: bigbluebutton_zod_ts,
   basecamp3: basecamp3_zod_ts,
   btcpayserver: btcpayserver_zod_ts,
   closecom: closecom_zod_ts,

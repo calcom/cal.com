@@ -165,6 +165,7 @@ export default async function main() {
     });
   }
   await createApp("jitsi", "jitsivideo", ["conferencing"], "jitsi_video");
+  await createApp("bigbluebutton", "bigbluebutton", ["conferencing"], "bigbluebutton_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
     await createApp("hubspot", "hubspot", ["crm"], "hubspot_other_calendar", {
