@@ -139,7 +139,13 @@ function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWi
         values={actionDisplayTitle.params}
         components={actionDisplayTitle.components.map((comp) =>
           comp.type === "link" ? (
-            <Link key={comp.href} href={comp.href} className="text-emphasis underline hover:no-underline" />
+            <Link
+              key={comp.href}
+              href={comp.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emphasis underline hover:no-underline"
+            />
           ) : (
             <span key={comp.href} />
           )
@@ -304,15 +310,15 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                       {/* Render displayFields if available, otherwise show type */}
                       {log.displayFields && log.displayFields.length > 0
                         ? log.displayFields.map((field, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                              <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
-                              <span className="font-medium">
-                                <DisplayFieldValue field={field} />
-                              </span>
-                            </div>
-                          ))
+                          <div
+                            key={idx}
+                            className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                            <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
+                            <span className="font-medium">
+                              <DisplayFieldValue field={field} />
+                            </span>
+                          </div>
+                        ))
                         : null}
                       <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                         <span className="font-medium text-emphasis w-[140px]">{t("actor")}</span>
