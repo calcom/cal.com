@@ -23,7 +23,6 @@ export { slugify } from "@calcom/lib/slugify";
 export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
 
-export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 export {
   DEFAULT_WEBHOOK_VERSION,

@@ -171,11 +171,6 @@ export interface IWebhookProducerService {
   queueBookingNoShowUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
 
   /**
-   * Queue a webhook delivery task for BOOKING_LOCATION_UPDATED event
-   */
-  queueBookingLocationUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
-
-  /**
    * Queue a webhook delivery task for FORM_SUBMITTED event
    */
   queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void>;
