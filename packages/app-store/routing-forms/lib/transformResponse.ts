@@ -89,5 +89,27 @@ export function getFieldResponseForJsonLogic({
 
     return transformSelectValue({ field, idOrLabel: valueAsString });
   }
+
+  // "checkbox" is a multi-select (checkbox group) field — treat like multiselect
+  if (field.type === "checkbox") {
+    let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
+    valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => {
+      return transformSelectValue({ field, idOrLabel });
+    });
+    return valueOrLabelArray;
+  }
+
+  // "radio" is a single-select (radio group) field — treat like select
+  if (field.type === "radio") {
+    const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
+    const valueAsString =
+      valueAsStringOrStringArray instanceof Array
+        ? valueAsStringOrStringArray[0]
+        : valueAsStringOrStringArray;
+    return transformSelectValue({ field, idOrLabel: valueAsString });
+  }
+
+  // "boolean" stores as "true"/"false" string — already handled by the factory
+  // "address" and "url" are plain text — no transformation needed
   return value;
 }

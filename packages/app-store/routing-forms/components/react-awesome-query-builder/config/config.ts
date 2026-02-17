@@ -15,6 +15,23 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    // New field types matching booking question types
+    address: {
+      ...BasicConfig.widgets.text,
+    },
+    url: {
+      ...BasicConfig.widgets.text,
+    },
+    // checkbox and radio map to select/multiselect for RAQB operators
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    radio: {
+      ...BasicConfig.widgets.select,
+    },
+    boolean: {
+      ...BasicConfig.widgets.boolean,
+    },
   };
   return widgetsWithoutFactory;
 }
@@ -40,6 +57,52 @@ function getTypes(configFor: ConfigFor) {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
+      },
+    },
+    // New field types matching booking question types
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        address: {
+          operators: BasicConfig.types.text.widgets.text?.operators || ["equal", "not_equal", "like", "not_like"],
+        },
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        url: {
+          operators: BasicConfig.types.text.widgets.text?.operators || ["equal", "not_equal", "like", "not_like"],
+        },
+      },
+    },
+    // checkbox maps to multiselect type (multiple choices)
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        checkbox: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [...multiSelectOperators],
+        },
+      },
+    },
+    // radio maps to select type (single choice)
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
+        radio: {
+          operators: BasicConfig.types.select.widgets.select?.operators || ["select_equals", "select_not_equals"],
+        },
+      },
+    },
+    boolean: {
+      ...BasicConfig.types.boolean,
+      widgets: {
+        ...BasicConfig.types.boolean.widgets,
       },
     },
     multiselect: {
