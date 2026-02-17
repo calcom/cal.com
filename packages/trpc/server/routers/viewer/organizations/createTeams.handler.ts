@@ -11,9 +11,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
 import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
@@ -247,25 +245,50 @@ async function moveTeam({
     throw error;
   }
 
-  // Owner is already a member of the team. Inviting an existing member can throw error
   const invitableMembers = team.members.filter(isMembershipNotWithOwner).map((membership) => ({
     usernameOrEmail: membership.user.email,
     role: membership.role,
   }));
 
+  log.info(
+    "Inviting team members to org",
+    safeStringify({
+      teamId,
+      orgId: org.id,
+      totalMembers: team.members.length,
+      invitableMembersCount: invitableMembers.length,
+      invitableMembers: invitableMembers.map((m) => m.usernameOrEmail),
+      orgOwnerId: org.ownerId,
+    })
+  );
+
   if (invitableMembers.length) {
-    // Invite team members to the new org. They are already members of the team.
-    await inviteMembersWithNoInviterPermissionCheck({
-      orgSlug: org.slug,
-      invitations: invitableMembers,
-      creationSource,
-      language: "en",
-      inviterName: null,
-      teamId: org.id,
-      // This is important so that if we re-invite existing users accidentally, we don't endup erroring out.
-      // Because this is a bulk action that could be taken from organization payment webhook, we could have cases where a user was just invited through another team migration in parallel.
-      isDirectUserAction: false,
-    });
+    try {
+      await inviteMembersWithNoInviterPermissionCheck({
+        orgSlug: org.slug,
+        invitations: invitableMembers,
+        creationSource,
+        language: "en",
+        inviterName: null,
+        teamId: org.id,
+        // Silences errors for duplicate invites that can happen when migrating multiple teams with overlapping members
+        isDirectUserAction: false,
+      });
+      log.info(
+        "Successfully invited team members to org",
+        safeStringify({ teamId, orgId: org.id, invitedCount: invitableMembers.length })
+      );
+    } catch (error) {
+      log.error(
+        "Failed to invite team members to org during migration. Team was moved but members were not added to the org.",
+        safeStringify({
+          teamId,
+          orgId: org.id,
+          invitableMembers: invitableMembers.map((m) => m.usernameOrEmail),
+          error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+        })
+      );
+    }
   }
 
   await addTeamRedirect({

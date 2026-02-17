@@ -653,7 +653,7 @@ export async function handleExistingUsersInvites({
       })
     );
 
-    const existingUsersWithMembershipsNew = await Promise.all(
+    const settledResults = await Promise.allSettled(
       invitableExistingUsers.map(async (user) => {
         const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
         let profile = null;
@@ -678,7 +678,6 @@ export async function handleExistingUsersInvites({
           },
         });
 
-        // If auto-accepting into org, also accept any pending sub-team memberships
         if (shouldAutoAccept) {
           await prisma.membership.updateMany({
             where: {
@@ -699,6 +698,34 @@ export async function handleExistingUsersInvites({
         };
       })
     );
+
+    for (let i = 0; i < settledResults.length; i++) {
+      const result = settledResults[i];
+      if (result.status === "rejected") {
+        const failedUser = invitableExistingUsers[i];
+        log.error(
+          "Failed to invite existing user to organization",
+          safeStringify({
+            userId: failedUser.id,
+            email: failedUser.email,
+            organizationId: organization.id,
+            error:
+              result.reason instanceof Error
+                ? { message: result.reason.message, stack: result.reason.stack }
+                : result.reason,
+          })
+        );
+      }
+    }
+
+    const existingUsersWithMembershipsNew: Array<
+      InvitableExistingUser & { profile: Awaited<ReturnType<typeof createAProfileForAnExistingUser>> | null }
+    > = [];
+    for (const result of settledResults) {
+      if (result.status === "fulfilled") {
+        existingUsersWithMembershipsNew.push(result.value);
+      }
+    }
 
     if (!team.parentId && existingUsersWithMembershipsNew.length > 0) {
       const seatTracker = new SeatChangeTrackingService();
