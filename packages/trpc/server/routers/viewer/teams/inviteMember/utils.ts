@@ -707,7 +707,6 @@ export async function handleExistingUsersInvites({
           "Failed to invite existing user to organization",
           safeStringify({
             userId: failedUser.id,
-            email: failedUser.email,
             organizationId: organization.id,
             error:
               result.reason instanceof Error

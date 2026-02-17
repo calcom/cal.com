@@ -257,7 +257,6 @@ async function moveTeam({
       orgId: org.id,
       totalMembers: team.members.length,
       invitableMembersCount: invitableMembers.length,
-      invitableMembers: invitableMembers.map((m) => m.usernameOrEmail),
       orgOwnerId: org.ownerId,
     })
   );
@@ -284,7 +283,6 @@ async function moveTeam({
         safeStringify({
           teamId,
           orgId: org.id,
-          invitableMembers: invitableMembers.map((m) => m.usernameOrEmail),
           error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
         })
       );
