@@ -172,6 +172,139 @@ const injectScheduleAgent = (iCalString: string): string => {
   return result;
 };
 
+/**
+ * Builds a VTIMEZONE component string for the given IANA timezone identifier.
+ * Uses UTC offsets at the event start time (simplified, non-DST-transition version).
+ *
+ * RFC 5545 Section 3.6.5 requires VTIMEZONE when DTSTART uses TZID.
+ * We generate a simplified VTIMEZONE with STANDARD and DAYLIGHT components
+ * covering the current UTC offset as well as a DAYLIGHT component if the
+ * timezone observes DST.
+ *
+ * @param timezone - IANA timezone string (e.g., "America/Chicago")
+ * @param eventStart - ISO string of the event start time
+ * @returns VTIMEZONE iCalendar block string (including BEGIN/END)
+ */
+const buildVTimezone = (timezone: string, eventStart: string): string => {
+  // Get the UTC offset at the time of the event (e.g., "-05:00" or "+02:00")
+  const eventMoment = dayjs(eventStart).tz(timezone);
+  const winterMoment = dayjs(eventStart).tz(timezone).month(0); // January (likely standard time)
+  const summerMoment = dayjs(eventStart).tz(timezone).month(6); // July (likely daylight time)
+
+  // Format offset as iCal TZOFFSET (e.g., -0500 or +0200)
+  const formatOffset = (d: ReturnType<typeof dayjs>): string => {
+    const offsetMinutes = d.utcOffset();
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    const abs = Math.abs(offsetMinutes);
+    const hours = String(Math.floor(abs / 60)).padStart(2, "0");
+    const mins = String(abs % 60).padStart(2, "0");
+    return `${sign}${hours}${mins}`;
+  };
+
+  const standardOffset = formatOffset(winterMoment);
+  const daylightOffset = formatOffset(summerMoment);
+  const hasDST = standardOffset !== daylightOffset;
+
+  const lines: string[] = [
+    "BEGIN:VTIMEZONE",
+    `TZID:${timezone}`,
+  ];
+
+  if (hasDST) {
+    // DAYLIGHT component (summer time - transitions ~March in Northern Hemisphere)
+    lines.push(
+      "BEGIN:DAYLIGHT",
+      `TZOFFSETFROM:${standardOffset}`,
+      `TZOFFSETTO:${daylightOffset}`,
+      "TZNAME:DST",
+      "DTSTART:19700308T020000",
+      "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU",
+      "END:DAYLIGHT"
+    );
+
+    // STANDARD component (winter time - transitions ~November in Northern Hemisphere)
+    lines.push(
+      "BEGIN:STANDARD",
+      `TZOFFSETFROM:${daylightOffset}`,
+      `TZOFFSETTO:${standardOffset}`,
+      "TZNAME:ST",
+      "DTSTART:19701101T020000",
+      "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU",
+      "END:STANDARD"
+    );
+  } else {
+    // No DST — single STANDARD component
+    lines.push(
+      "BEGIN:STANDARD",
+      `TZOFFSETFROM:${standardOffset}`,
+      `TZOFFSETTO:${standardOffset}`,
+      `TZNAME:${timezone}`,
+      "DTSTART:19700101T000000",
+      "END:STANDARD"
+    );
+  }
+
+  lines.push("END:VTIMEZONE");
+  return lines.join("\r\n");
+};
+
+/**
+ * Injects a VTIMEZONE block and rewrites DTSTART/DTEND from UTC to timezone-local format.
+ *
+ * The `ics` library generates UTC times (DTSTART:20240115T140000Z) with no VTIMEZONE.
+ * CalDAV servers like Fastmail read this as UTC and send scheduling emails in UTC,
+ * confusing attendees in other timezones.
+ *
+ * Per RFC 5545 Section 3.6.5, when a DTSTART uses TZID, a matching VTIMEZONE component
+ * MUST be included in the iCalendar object.
+ *
+ * @param iCalString - Raw ICS string from the `ics` library
+ * @param timezone - IANA timezone for the event (organizer's timezone)
+ * @param startTime - ISO string of event start time
+ * @param endTime - ISO string of event end time
+ * @returns Modified ICS string with VTIMEZONE and timezone-aware DTSTART/DTEND
+ */
+const injectVTimezone = (
+  iCalString: string,
+  timezone: string,
+  startTime: string,
+  endTime: string
+): string => {
+  // Format local datetime as iCal local format: YYYYMMDDTHHMMSS (no Z suffix)
+  const formatLocalDateTime = (isoString: string, tz: string): string => {
+    const local = dayjs(isoString).tz(tz);
+    return local.format("YYYYMMDDTHHmmss");
+  };
+
+  const localStart = formatLocalDateTime(startTime, timezone);
+  const localEnd = formatLocalDateTime(endTime, timezone);
+
+  // Replace DTSTART:...Z (UTC) with DTSTART;TZID=timezone:localtime
+  // Also handle DTEND (ics library uses DURATION, but handle DTEND just in case)
+  let result = iCalString
+    .replace(
+      /^DTSTART:[^\r\n]+/m,
+      `DTSTART;TZID=${timezone}:${localStart}`
+    )
+    .replace(
+      /^DTEND:[^\r\n]+/m,
+      `DTEND;TZID=${timezone}:${localEnd}`
+    );
+
+  // Note: the `ics` library may use DURATION instead of DTEND.
+  // If DURATION is present, we should add DTEND as well for clarity,
+  // but DURATION + DTSTART;TZID= is valid per RFC 5545, so we leave it as-is.
+
+  // Build and inject VTIMEZONE block before BEGIN:VEVENT
+  const vtimezone = buildVTimezone(timezone, startTime);
+  result = result.replace(
+    /^BEGIN:VEVENT/m,
+    `${vtimezone}\r\nBEGIN:VEVENT`
+  );
+
+  return result;
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -217,7 +350,14 @@ export default abstract class BaseCalendarService implements Calendar {
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      const uid = uuidv4();
+
+      // Bug fix: Use the booking's canonical UID (event.uid) when available,
+      // rather than always generating a new random UUID. This ensures the CalDAV
+      // event UID matches the UID used in cal.com's email invitations, preventing
+      // duplicate events when recipients add the email .ics to their calendar.
+      // See: https://github.com/calcom/cal.com/issues/9485
+      // RFC 5545 Section 3.8.4.7: UID must be the same across all representations of an event.
+      const uid = event.uid || uuidv4();
 
       // We create local ICS files
       const { error, value: iCalString } = createEvent({
@@ -242,6 +382,14 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      // Bug fix: Inject VTIMEZONE block and rewrite DTSTART/DTEND to use the organizer's
+      // local timezone instead of UTC. Without this, CalDAV servers like Fastmail
+      // send scheduling emails with UTC times, confusing attendees in other timezones.
+      // Per RFC 5545 Section 3.6.5, DTSTART with TZID requires a matching VTIMEZONE.
+      // See: https://github.com/calcom/cal.com/issues/9485
+      const timezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = injectVTimezone(iCalString, timezone, event.startTime, event.endTime);
+
       const mainHostDestinationCalendar = event.destinationCalendar
         ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
           event.destinationCalendar[0])
@@ -261,7 +409,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              iCalString: injectScheduleAgent(iCalString),
+              iCalString: injectScheduleAgent(iCalStringWithTimezone),
               headers: this.headers,
             })
           )
@@ -320,6 +468,13 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+
+      // Apply timezone fix to updated events as well
+      const timezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = iCalString
+        ? injectVTimezone(iCalString, timezone, event.startTime, event.endTime)
+        : "";
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
@@ -328,7 +483,7 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              data: injectScheduleAgent(iCalString ?? ""),
+              data: injectScheduleAgent(iCalStringWithTimezone ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
