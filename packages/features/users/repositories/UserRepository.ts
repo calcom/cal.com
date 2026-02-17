@@ -118,6 +118,12 @@ const userSelect = {
   lastActiveAt: true,
   identityProvider: true,
   teams: true,
+  // Host email notification preferences
+  disableHostConfirmationEmail: true,
+  disableHostRescheduledEmail: true,
+  disableHostCancellationEmail: true,
+  disableHostLocationChangeEmail: true,
+  disableHostRequestEmail: true,
   profiles: true,
 } satisfies Prisma.UserSelect;
 

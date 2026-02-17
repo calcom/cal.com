@@ -512,6 +512,12 @@ model User {
   oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
 
+  // Host email notification preferences
+  disableHostConfirmationEmail   Boolean                       @default(false)
+  disableHostRescheduledEmail    Boolean                       @default(false)
+  disableHostCancellationEmail   Boolean                       @default(false)
+  disableHostLocationChangeEmail Boolean                       @default(false)
+  disableHostRequestEmail        Boolean                       @default(false)
   autoOptInFeatures Boolean @default(false)
 
   @@unique([email])

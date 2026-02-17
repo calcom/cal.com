@@ -133,6 +133,12 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     requiresBookerEmailVerification: user.requiresBookerEmailVerification,
+    // Host email notification preferences
+    disableHostConfirmationEmail: user.disableHostConfirmationEmail,
+    disableHostRescheduledEmail: user.disableHostRescheduledEmail,
+    disableHostCancellationEmail: user.disableHostCancellationEmail,
+    disableHostLocationChangeEmail: user.disableHostLocationChangeEmail,
+    disableHostRequestEmail: user.disableHostRequestEmail,
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
