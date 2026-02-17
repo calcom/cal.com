@@ -3,6 +3,10 @@ title: Calendars hooks
 description: Overview of all the hooks associated with calendars.
 ---
 
+<Warning>
+This is now deprecated and under maintenance for existing users only - no new customers can sign up for the platform plan
+</Warning>
+
 ### 1. `useConnectedCalendars`
 
 The useConnectedCalendars returns an object containing all connected calendars of a user, and the destination calendar. It is useful in managing multiple calendar integrations. Each connected calendar entry contains essential properties such as the credentialId, externalId and integration which should be an object, which can be used in the hooks to add and remove selected calendars.
@@ -135,3 +139,14 @@ export default function DeleteUserCalendar() {
   );
 }
 ```
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/platform/event-types-hooks" title="Previous: Event Types Hooks" icon="arrow-left">
+    Hooks for event types
+  </Card>
+  <Card href="/platform/user-or-team-related-hooks" title="Next: User/Teams Hooks" icon="arrow-right">
+    Hooks for users and teams
+  </Card>
+</CardGroup>

@@ -2,6 +2,10 @@
 title: "Troubleshooter"
 ---
 
+<Warning>
+This is now deprecated and under maintenance for existing users only - no new customers can sign up for the platform plan
+</Warning>
+
 The Troubleshooter atom helps users debug their availability and scheduling issues. It displays a sidebar where users can select an event type, view their schedule, and toggle connected calendars alongside a large calendar view that visually shows the resulting availability. Essentially, it lets users diagnose why certain time slots may or may not appear as available.
 
 Below code snippet can be used to render the Troubleshooter atom
@@ -42,3 +46,14 @@ We offer some customizations to the Troubleshooter atom via props. Below is a li
 | :-------------------- | :------- | :----------------------------------------------------------------------- |
 | onManageCalendarsClick             | No       | Callback triggered when the "Manage Calendars" button is clicked (shown when calendars are connected) |
 | onInstallCalendarClick             | No       | Callback triggered when the "Install Calendar" button is clicked (shown when no calendars are connected) |
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/platform/atoms/payment-form" title="Previous: Payment Form" icon="arrow-left">
+    Process payments
+  </Card>
+  <Card href="/platform/bookings-hooks" title="Next: Bookings Hooks" icon="arrow-right">
+    Hooks for bookings
+  </Card>
+</CardGroup>

@@ -2,6 +2,10 @@
 title: "Availability settings"
 ---
 
+<Warning>
+This is now deprecated and under maintenance for existing users only - no new customers can sign up for the platform plan
+</Warning>
+
 The availability settings atom enables a user to set their available time slots. This atom allows users to define specific time slots when they are available for meetings or events, helping them manage their schedules effectively and avoid double bookings.
 
 First, for the AvailabilitySettings toggle animation to work set the reading direction on the `<html>` element:
@@ -245,3 +249,14 @@ The `validateForm` method returns an `AvailabilityFormValidationResult` object w
 - `errors`: Object containing any validation errors found
 
 **Note:** If a required field is not filled in, the `validateForm` method will not return any error. The validation focuses on the format and consistency of provided data rather than enforcing required field completion.
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/platform/atoms/list-event-types" title="Previous: List Event Types" icon="arrow-left">
+    Display event types
+  </Card>
+  <Card href="/platform/atoms/create-schedule" title="Next: Create Schedule" icon="arrow-right">
+    Create new schedules
+  </Card>
+</CardGroup>

@@ -3,6 +3,10 @@ title: Custom booking flow
 description: Learn how to intercept a booking to introduce your custom flow and then submit the booking.
 ---
 
+<Warning>
+This is now deprecated and under maintenance for existing users only - no new customers can sign up for the platform plan
+</Warning>
+
 If you want to have a custom payment flow or any other custom action before the booking happens, you can intercept the booking
 once the user clicks book in the [Booker atom](https://cal.com/docs/platform/atoms/booker), run whatever custom code you need and then finally
 submit the booking with the intercepted booking data.
@@ -33,3 +37,14 @@ export function BookingPage(props: { calUsername: string; calEmail: string }) {
 2. Then, you can hide the Booker component and instead render another component, show a modal, redirect to a new page or whatever you want to do.
 3. After your custom action is finished, extract the necessary information from the booking data passed to `interceptBooking` and make a POST request to
 [create booking](https://cal.com/docs/api-reference/v2/bookings/create-a-booking) endpoint to actually create the booking.
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/platform/guides/booking-fields" title="Previous: Booking Fields" icon="arrow-left">
+    Manage booking fields
+  </Card>
+  <Card href="/platform/guides/custom-slot-select-flow" title="Next: Custom Slot Selection" icon="arrow-right">
+    Intercept slot selection
+  </Card>
+</CardGroup>

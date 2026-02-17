@@ -3,6 +3,10 @@ title: Booking redirects
 description: Find out how to manage the booking flow.
 ---
 
+<Warning>
+This is now deprecated and under maintenance for existing users only - no new customers can sign up for the platform plan
+</Warning>
+
 When creating an OAuth client you can specify:
 1. booking URL to manage where people land after booking after one of your users.
 2. reschedule URL to your page for rescheduling a booking.
@@ -129,3 +133,14 @@ const { mutate: cancelBooking } = useCancelBooking({
 ```
 
 An example implementation can be found [here](https://github.com/calcom/cal.com/blob/main/packages/platform/examples/base/src/pages/booking.tsx).
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/platform/user-or-team-related-hooks" title="Previous: User/Teams Hooks" icon="arrow-left">
+    Hooks for users and teams
+  </Card>
+  <Card href="/platform/guides/booking-fields" title="Next: Booking Fields" icon="arrow-right">
+    Manage booking fields
+  </Card>
+</CardGroup>

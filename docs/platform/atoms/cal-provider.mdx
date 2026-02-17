@@ -2,6 +2,10 @@
 title: "Cal Provider"
 ---
 
+<Warning>
+This is now deprecated and under maintenance for existing users only - no new customers can sign up for the platform plan
+</Warning>
+
 Cal Provider is used to setup scheduling within your app. It is used in the root of your app, be it _app.js or or _app.tsx in case of
 Next.js or App.js or App.ts in case of React. Here is an example:
 
@@ -40,3 +44,14 @@ Below is a list of props that can be passed to the Cal Provider.
 | autoUpdateTimezone         | No       | Whether to automatically update managed user timezone (default: true)                                          |
 | language                   | No       | Language code (default: "en") - available languages: "en", "de", "fr", "it", "nl", "pt-BR", "es"                                                                          |
 | organizationId             | No       | ID of your organization                                                                                |
+
+---
+
+<CardGroup cols={2}>
+  <Card href="/platform/quickstart" title="Previous: Quickstart" icon="arrow-left">
+    Getting started with atoms
+  </Card>
+  <Card href="/platform/atoms/cal-oauth-provider" title="Next: Cal OAuth Provider" icon="arrow-right">
+    OAuth provider setup
+  </Card>
+</CardGroup>
