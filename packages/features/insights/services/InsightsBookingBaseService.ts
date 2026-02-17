@@ -696,15 +696,22 @@ export class InsightsBookingBaseService {
       };
     });
 
+    // Precompute date strings for timezone-consistent comparison.
+    // SQL DATE(col AT TIME ZONE tz) returns a calendar date in the user's timezone,
+    // but PostgreSQL sends it as midnight UTC. Comparing raw Date objects fails
+    // because the ranges use timezone-offset timestamps. Compare date strings instead.
+    const rangesWithDateStr = dateRanges.map((range) => ({
+      ...range,
+      startStr: dayjs(range.startDate).tz(timeZone).format("YYYY-MM-DD"),
+      endStr: dayjs(range.endDate).tz(timeZone).format("YYYY-MM-DD"),
+    }));
+
     // Process the raw data and aggregate by date ranges
     data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
-      // Find which date range this date belongs to using native Date comparison
-      const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
-      });
+      const dateStr = dayjs.utc(date).format("YYYY-MM-DD");
+      const dateRange = rangesWithDateStr.find(
+        (range) => dateStr >= range.startStr && dateStr <= range.endStr
+      );
 
       if (!dateRange) return;
 
@@ -1260,15 +1267,18 @@ export class InsightsBookingBaseService {
       aggregate[formattedDate] = 0;
     });
 
+    const rangesWithDateStr = dateRanges.map((range) => ({
+      ...range,
+      startStr: dayjs(range.startDate).tz(timeZone).format("YYYY-MM-DD"),
+      endStr: dayjs(range.endDate).tz(timeZone).format("YYYY-MM-DD"),
+    }));
+
     // Process the raw data and aggregate by date ranges
     data.forEach(({ date, count }) => {
-      // Find which date range this date belongs to using native Date comparison
-      const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
-      });
+      const dateStr = dayjs.utc(date).format("YYYY-MM-DD");
+      const dateRange = rangesWithDateStr.find(
+        (range) => dateStr >= range.startStr && dateStr <= range.endStr
+      );
 
       if (!dateRange) return;
 
@@ -1329,15 +1339,18 @@ export class InsightsBookingBaseService {
       aggregate[formattedDate] = { ratingsAbove3: 0, totalRatings: 0 };
     });
 
+    const rangesWithDateStr = dateRanges.map((range) => ({
+      ...range,
+      startStr: dayjs(range.startDate).tz(timeZone).format("YYYY-MM-DD"),
+      endStr: dayjs(range.endDate).tz(timeZone).format("YYYY-MM-DD"),
+    }));
+
     // Process the raw data and aggregate by date ranges
     data.forEach(({ date, ratings_above_3, total_ratings }) => {
-      // Find which date range this date belongs to using native Date comparison
-      const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
-        const rangeStart = new Date(range.startDate);
-        const rangeEnd = new Date(range.endDate);
-        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
-      });
+      const dateStr = dayjs.utc(date).format("YYYY-MM-DD");
+      const dateRange = rangesWithDateStr.find(
+        (range) => dateStr >= range.startStr && dateStr <= range.endStr
+      );
 
       if (!dateRange) return;
 
