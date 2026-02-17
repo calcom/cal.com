@@ -54,7 +54,8 @@ export class DefaultAdapterFactory implements AdapterFactory {
    * @returns
    */
   getProviders(): CalendarSubscriptionProvider[] {
-    const providers: CalendarSubscriptionProvider[] = ["google_calendar", "office365_calendar"];
+    // TODO: add "office365_calendar" once the adapter is validated in production
+    const providers: CalendarSubscriptionProvider[] = ["google_calendar"];
     return providers;
   }
 

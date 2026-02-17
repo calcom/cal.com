@@ -42,13 +42,13 @@ describe("DefaultAdapterFactory", () => {
     test("should return all available providers", () => {
       const providers = factory.getProviders();
 
-      expect(providers).toEqual(["google_calendar", "office365_calendar"]);
+      expect(providers).toEqual(["google_calendar"]);
     });
 
     test("should return array with correct length", () => {
       const providers = factory.getProviders();
 
-      expect(providers).toHaveLength(2);
+      expect(providers).toHaveLength(1);
     });
   });
 });

@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
-import {
+import type {
   CalendarSubscriptionEvent,
   ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
@@ -16,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["MicrosoftCalendarSubscriptionAdapter
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type GraphClient = { accessToken: string };
 
-export type MicrosoftGraphEvent = {
+type MicrosoftGraphEvent = {
   id: string;
   iCalUId?: string;
   subject?: string;
@@ -41,7 +41,7 @@ type MicrosoftGraphEventsResponse = {
 };
 
 const BASE_URL = "https://graph.microsoft.com/v1.0";
-const SUBSCRIPTION_TTL_MS = 6 * 24 * 60 * 60 * 1000; // 7 days (max allowed for MS Graph)
+const SUBSCRIPTION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days (max allowed for MS Graph)
 const BUSY_STATES = ["busy", "tentative", "oof"];
 
 export class Office365CalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
@@ -148,12 +148,12 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       const now = dayjs().startOf("day");
       const monthsAhead = now.add(CalendarCacheEventService.MONTHS_AHEAD, "month").endOf("day");
 
-      const start = now.toISOString();
-      const end = monthsAhead.toISOString();
+      const startDateTime = now.toISOString();
+      const endDateTime = monthsAhead.toISOString();
 
       let next:
         | string
-        | null = `/me/calendars/${selectedCalendar.externalId}/events?$filter=start/dateTime ge '${start}' and start/dateTime le '${end}'&$orderby=start/dateTime asc`;
+        | null = `/me/calendars/${selectedCalendar.externalId}/calendarView/delta?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
 
       log.info("Initial fetch", { url: next });
 
@@ -164,10 +164,9 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
           next
         );
         items.push(...response.value);
+        deltaLink = response["@odata.deltaLink"] ?? deltaLink;
         next = response["@odata.nextLink"] ?? null;
       }
-
-      deltaLink = `/me/calendars/${selectedCalendar.externalId}/events/delta`;
     }
 
     return {
@@ -291,7 +290,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       log.error("Graph API error", { method, url, status: res.status, text });
-      throw new Error(`Graph ${res.status} ${res.statusText}: ${text}`);
+      throw new Error(`Graph ${res.status} ${res.statusText}`);
     }
 
     return method === "DELETE" || res.status === 204 ? ({} as T) : await res.json();

@@ -2,10 +2,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
-import {
-  MicrosoftGraphEvent,
-  Office365CalendarSubscriptionAdapter,
-} from "../Office365CalendarSubscription.adapter";
+import { Office365CalendarSubscriptionAdapter } from "../Office365CalendarSubscription.adapter";
 
 const _mockSelectedCalendar: SelectedCalendar = {
   id: "test-calendar-id",
@@ -213,7 +210,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
 
       const res = await adapter.fetchEvents({ ..._mockSelectedCalendar, syncToken: null }, _mockCredential);
       expect(res.items.length).toBe(2);
-      expect(res.syncToken).toBe("/me/calendars/test@example.com/events/delta");
+      expect(res.syncToken).toBe("done");
     });
   });
 
@@ -256,7 +253,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
   describe("parseEvents", () => {
     test("parses events correctly", () => {
       const adapter = new Office365CalendarSubscriptionAdapter();
-      const events: MicrosoftGraphEvent[] = [
+      const events = [
         {
           id: "1",
           subject: "Meeting",
@@ -273,7 +270,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
 
     test("handles events with different showAs values", () => {
       const adapter = new Office365CalendarSubscriptionAdapter();
-      const events: MicrosoftGraphEvent[] = [
+      const events = [
         { id: "1", showAs: "free" },
         { id: "2", showAs: "tentative" },
         { id: "3", showAs: "oof" },
@@ -288,7 +285,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
 
     test("handles cancelled events", () => {
       const adapter = new Office365CalendarSubscriptionAdapter();
-      const events: MicrosoftGraphEvent[] = [
+      const events = [
         { id: "1", isCancelled: true },
         { id: "2", isCancelled: false },
       ];
@@ -299,7 +296,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
 
     test("handles all-day events", () => {
       const adapter = new Office365CalendarSubscriptionAdapter();
-      const events: MicrosoftGraphEvent[] = [
+      const events = [
         { id: "1", isAllDay: true, start: { date: "2025-10-18" }, end: { date: "2025-10-19" } },
       ];
       const parsed = adapter["parseEvents"](events);
@@ -308,7 +305,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
 
     test("filters out events without id", () => {
       const adapter = new Office365CalendarSubscriptionAdapter();
-      const events: MicrosoftGraphEvent[] = [{ id: "" }, { id: "valid" }];
+      const events = [{ id: "" }, { id: "valid" }];
       const parsed = adapter["parseEvents"](events);
       expect(parsed.length).toBe(1);
       expect(parsed[0].id).toBe("valid");
