@@ -25,7 +25,7 @@ const _getBookingData = async <T extends z.ZodType>({
   const parsedBody = await schema.parseAsync(reqBody);
   const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
-    if (!Object.prototype.hasOwnProperty.call(body, "end")) {
+    if (!Object.hasOwn(body, "end")) {
       body.end = dayjs.utc(body.start).add(eventType.length, "minutes").format();
     }
     return true;
@@ -76,8 +76,10 @@ const _getBookingData = async <T extends z.ZodType>({
     }
   }
 
-  const phoneValue =
-    responses.attendeePhoneNumber || responses.smsReminderNumber || responses.aiAgentCallPhoneNumber;
+  const shouldUnifyPhoneFields = eventType.metadata?.unifySystemPhoneFields !== false;
+  const phoneValue = shouldUnifyPhoneFields
+    ? responses.attendeePhoneNumber || responses.smsReminderNumber || responses.aiAgentCallPhoneNumber
+    : null;
 
   return {
     ...parsedBody,
@@ -86,7 +88,6 @@ const _getBookingData = async <T extends z.ZodType>({
     attendeePhoneNumber: phoneValue || responses.attendeePhoneNumber,
     guests: responses.guests ? responses.guests : [],
     location: locationValue,
-    // Use propagated phone value for smsReminderNumber to ensure workflows receive it
     smsReminderNumber: phoneValue || responses.smsReminderNumber,
     notes: responses.notes || "",
     calEventUserFieldsResponses,

@@ -1,21 +1,19 @@
-import { useMemo, useRef } from "react";
-import { useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import type { LocationObject } from "@calcom/app-store/locations";
-import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
-import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum, getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
-import { FormBuilderField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { createPhoneSyncHandler, useBookerPhoneFields } from "@calcom/lib/bookings/useBookerPhoneFields";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { FormBuilderField } from "@calcom/web/modules/form-builder/components/FormBuilderField";
+import { useMemo, useRef } from "react";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 type TouchedFields = {
   responses?: Record<string, boolean>;
@@ -266,7 +264,6 @@ export const BookingFields = ({
           }
         }
 
-        // Check if this is the consolidated phone field
         const isThisConsolidatedPhoneField = isConsolidatedPhoneField(field.name);
 
         return (
@@ -275,12 +272,12 @@ export const BookingFields = ({
             field={{ ...fieldWithPrice, hidden }}
             readOnly={readOnly}
             key={index}
-            // Pass consent info for consolidated phone field
             {...(isThisConsolidatedPhoneField &&
               consolidatedPhoneInfo && {
-                isConsolidatedPhoneField: true,
-                hasSmsWorkflow: consolidatedPhoneInfo.hasSmsWorkflow,
-                hasCalAiWorkflow: consolidatedPhoneInfo.hasCalAiWorkflow,
+                phoneConsentConfig: {
+                  hasSmsWorkflow: consolidatedPhoneInfo.hasSmsWorkflow,
+                  hasCalAiWorkflow: consolidatedPhoneInfo.hasCalAiWorkflow,
+                },
               })}
             onValueChange={({ value }) => {
               // Sync phone value to all consolidated phone fields
