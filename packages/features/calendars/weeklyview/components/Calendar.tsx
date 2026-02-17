@@ -39,6 +39,7 @@ function CalendarInner(props: CalendarComponentProps) {
   const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
   const scrollToCurrentTime = useCalendarStore((state) => state.scrollToCurrentTime ?? true);
   const updateCurrentTimeOnFocus = useCalendarStore((state) => state.updateCurrentTimeOnFocus ?? false);
+  const renderOutOfOffice = useCalendarStore((state) => state.renderOutOfOffice);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -148,6 +149,7 @@ function CalendarInner(props: CalendarComponentProps) {
                             day={days[i]}
                             startHour={startHour}
                             availableSlots={availableTimeslots}
+                            renderOutOfOffice={renderOutOfOffice}
                           />
                         ) : (
                           <>
