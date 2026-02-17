@@ -1,10 +1,6 @@
 // !IMPORTANT! changes to this file requires publishing new version of platform libraries in order for the changes to be applied to APIV2
 import { createHash } from "node:crypto";
-import type { GetServerSidePropsContext } from "next";
 import { stringify } from "node:querystring";
-import { v4 as uuidv4 } from "uuid";
-import z from "zod";
-
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
@@ -16,6 +12,8 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
+import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
+import { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HttpError } from "@calcom/lib/http-error";
@@ -23,9 +21,10 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
+import type { GetServerSidePropsContext } from "next";
+import { v4 as uuidv4 } from "uuid";
+import z from "zod";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 import { handleResponse } from "./handleResponse";
 
@@ -54,6 +53,9 @@ export function hasEmbedPath(pathWithQuery: string) {
 }
 
 const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">, fetchCrm = true) => {
+  // Initialize trace service for tracking routing decisions
+  const routingTraceService = getRoutingTraceService();
+
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -113,7 +115,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
   if (
-    !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
+    !isAuthorizedToViewFormOnOrgDomain({
+      user: formWithUserProfile.user,
+      currentOrgDomain,
+      team: form.team,
+    })
   ) {
     return {
       notFound: true,
@@ -134,7 +140,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     fieldsResponses,
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  let routingFormTraceService: RoutingFormTraceService | undefined;
+  if (!isBookingDryRun) {
+    routingFormTraceService = new RoutingFormTraceService(routingTraceService);
+  }
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response, routingFormTraceService });
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -144,10 +154,11 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
+  let queuedFormResponseId;
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
-  let queuedFormResponseId;
+  let fallbackAction: typeof decidedAction | null = null;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -158,18 +169,32 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
       isPreview: isBookingDryRun,
       queueFormResponse: shouldQueueFormResponse,
       fetchCrm,
+      traceService: isBookingDryRun ? undefined : routingTraceService,
+      routingFormTraceService,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse?.id;
     queuedFormResponseId = result.queuedFormResponse?.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
+    crmContactOwnerEmail = result.crmContactOwnerEmail;
+    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
+    crmAppSlug = result.crmAppSlug;
+    fallbackAction = result.fallbackAction ?? null;
     timeTaken = {
       ...timeTaken,
       ...result.timeTaken,
     };
-    crmContactOwnerEmail = result.crmContactOwnerEmail;
-    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
-    crmAppSlug = result.crmAppSlug;
+
+    // Save the pending trace (trace steps are added inside handleResponse)
+    if (!isBookingDryRun) {
+      if (formResponseId) {
+        await routingTraceService.savePendingRoutingTrace({ formResponseId });
+      } else if (queuedFormResponseId) {
+        await routingTraceService.savePendingRoutingTrace({
+          queuedFormResponseId,
+        });
+      }
+    }
   } catch (e) {
     if (e instanceof HttpError || e instanceof TRPCError) {
       return {
@@ -189,19 +214,22 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   // TODO: To be done using sentry tracing
   console.log("Server-Timing", getServerTimingHeader(timeTaken));
 
+  // Use fallbackAction if set (when no team members found), otherwise use the main decidedAction
+  const actionToUse = fallbackAction ?? decidedAction;
+
   //TODO: Maybe take action after successful mutation
-  if (decidedAction.type === "customPageMessage") {
+  if (actionToUse.type === "customPageMessage") {
     return {
       props: {
         ...pageProps,
         form: serializableForm,
-        message: decidedAction.value,
+        message: actionToUse.value,
         errorMessage: null,
       },
     };
-  } else if (decidedAction.type === "eventTypeRedirectUrl") {
+  } else if (actionToUse.type === "eventTypeRedirectUrl") {
     const eventTypeUrlWithResolvedVariables = substituteVariables(
-      decidedAction.value,
+      actionToUse.value,
       response,
       serializableForm.fields
     );
@@ -214,27 +242,31 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
             formResponse: response,
             fields: serializableForm.fields,
             searchParams: new URLSearchParams(
-              stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
+              stringify({
+                ...paramsToBeForwardedAsIs,
+                "cal.action": "eventTypeRedirectUrl",
+              })
             ),
             teamMembersMatchingAttributeLogic,
             formResponseId: formResponseId ?? null,
             queuedFormResponseId: queuedFormResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
-            teamId: form?.teamId,
-            orgId: form.team?.parentId,
             crmContactOwnerEmail,
             crmContactOwnerRecordType,
             crmAppSlug,
+            crmLookupDone: fetchCrm,
+            teamId: form?.teamId,
+            orgId: form.team?.parentId,
           }),
           isEmbed: pageProps.isEmbed,
         }),
         permanent: false,
       },
     };
-  } else if (decidedAction.type === "externalRedirectUrl") {
+  } else if (actionToUse.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
+        destination: `${actionToUse.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
         permanent: false,
       },
     };

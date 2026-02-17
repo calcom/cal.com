@@ -164,6 +164,22 @@ export class UsersRepository {
     });
   }
 
+  async findByUsernameWithProfile(username: string) {
+    return this.dbRead.prisma.user.findFirst({
+      where: { username },
+      include: {
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+      },
+    });
+  }
+
+
+
   async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
       where:

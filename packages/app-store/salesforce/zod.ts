@@ -18,6 +18,19 @@ export const writeToRecordEntrySchema = z.object({
 
 export const writeToRecordDataSchema = z.record(z.string(), writeToBookingEntry);
 
+export const RRSkipFieldRuleActionEnum = {
+  IGNORE: "ignore",
+  MUST_INCLUDE: "must_include",
+} as const;
+
+export const rrSkipFieldRuleSchema = z.object({
+  field: z.string(),
+  value: z.string(),
+  action: z.enum([RRSkipFieldRuleActionEnum.IGNORE, RRSkipFieldRuleActionEnum.MUST_INCLUDE]),
+});
+
+export type RRSkipFieldRule = z.infer<typeof rrSkipFieldRuleSchema>;
+
 export const routingFormOptions = z
   .object({
     rrSkipToAccountLookupField: z.boolean().optional(),
@@ -40,6 +53,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
     .nativeEnum(SalesforceRecordEnum)
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
+  rrSkipFieldRules: z.array(rrSkipFieldRuleSchema).optional(),
   ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
   roundRobinSkipFallbackToLeadOwner: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),

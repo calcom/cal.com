@@ -1,13 +1,16 @@
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 
-import type { ZCreateAttributeSyncSchema } from "@calcom/trpc/server/routers/viewer/attribute-sync/createAttributeSync.schema";
 import { enabledAppSlugs } from "../constants";
 import {
   type IIntegrationAttributeSyncRepository,
   type ISyncFormData,
+  type ITeamCondition,
+  type IAttributeSyncRule,
   AttributeSyncIntegrations,
+  ConditionIdentifierEnum,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import { attributeSyncRuleSchema } from "../schemas/zod";
+import { attributeSyncRuleSchema, type ZCreateAttributeSyncSchema } from "../schemas/zod";
 
 export class DuplicateAttributeWithinSyncError extends Error {
   constructor(public attributeId: string) {
@@ -40,14 +43,34 @@ export class CredentialNotFoundError extends Error {
 interface IIntegrationAttributeSyncServiceDeps {
   credentialRepository: CredentialRepository;
   integrationAttributeSyncRepository: IIntegrationAttributeSyncRepository;
+  teamRepository: TeamRepository;
 }
 
 export class IntegrationAttributeSyncService {
   constructor(private readonly deps: IIntegrationAttributeSyncServiceDeps) {}
 
-  private validateWithinSyncUniqueness(
-    mappings: { attributeId: string }[]
-  ): void {
+  private extractTeamIdsFromRule(rule: IAttributeSyncRule): number[] {
+    return rule.conditions
+      .filter((c): c is ITeamCondition => c.identifier === ConditionIdentifierEnum.TEAM_ID)
+      .flatMap((c) => c.value);
+  }
+
+  private async validateTeamsBelongToOrg(teamIds: number[], organizationId: number): Promise<void> {
+    if (teamIds.length === 0) return;
+
+    const invalidTeams = await this.deps.teamRepository.findTeamsNotBelongingToOrgByIds({
+      teamIds,
+      orgId: organizationId,
+    });
+
+    if (invalidTeams.length > 0) {
+      throw new Error(
+        `Teams do not belong to this organization: ${invalidTeams.map((t) => t.id).join(", ")}`
+      );
+    }
+  }
+
+  private validateWithinSyncUniqueness(mappings: { attributeId: string }[]): void {
     const seenAttributes = new Set<string>();
     for (const mapping of mappings) {
       if (seenAttributes.has(mapping.attributeId)) {
@@ -76,10 +99,7 @@ export class IntegrationAttributeSyncService {
     }
   }
 
-  private async validateAttributeOwnership(
-    organizationId: number,
-    attributeIds: string[]
-  ): Promise<void> {
+  private async validateAttributeOwnership(organizationId: number, attributeIds: string[]): Promise<void> {
     const validAttributeIds =
       await this.deps.integrationAttributeSyncRepository.getAttributeIdsByOrganization(
         organizationId,
@@ -101,19 +121,14 @@ export class IntegrationAttributeSyncService {
   }
 
   async getAllIntegrationAttributeSyncs(organizationId: number) {
-    return this.deps.integrationAttributeSyncRepository.getByOrganizationId(
-      organizationId
-    );
+    return this.deps.integrationAttributeSyncRepository.getByOrganizationId(organizationId);
   }
 
   async getById(id: string) {
     return this.deps.integrationAttributeSyncRepository.getById(id);
   }
 
-  async createAttributeSync(
-    input: ZCreateAttributeSyncSchema,
-    organizationId: number
-  ) {
+  async createAttributeSync(input: ZCreateAttributeSyncSchema, organizationId: number) {
     const credential = await this.deps.credentialRepository.findByIdAndTeamId({
       id: input.credentialId,
       teamId: organizationId,
@@ -125,21 +140,17 @@ export class IntegrationAttributeSyncService {
 
     const parsedRule = attributeSyncRuleSchema.parse(input.rule);
 
+    const teamIds = this.extractTeamIdsFromRule(parsedRule);
+    await this.validateTeamsBelongToOrg(teamIds, organizationId);
+
     const integrationValue = credential.app?.slug || credential.type;
-    if (
-      !Object.values(AttributeSyncIntegrations).includes(
-        integrationValue as AttributeSyncIntegrations
-      )
-    ) {
+    if (!Object.values(AttributeSyncIntegrations).includes(integrationValue as AttributeSyncIntegrations)) {
       throw new Error(`Unsupported integration type: ${integrationValue}`);
     }
 
     this.validateWithinSyncUniqueness(input.syncFieldMappings);
 
-    await this.validateCrossSyncUniqueness(
-      organizationId,
-      input.syncFieldMappings
-    );
+    await this.validateCrossSyncUniqueness(organizationId, input.syncFieldMappings);
 
     const attributeIds = input.syncFieldMappings.map((m) => m.attributeId);
     await this.validateAttributeOwnership(organizationId, attributeIds);
@@ -156,26 +167,23 @@ export class IntegrationAttributeSyncService {
   }
 
   async updateIncludeRulesAndMappings(data: ISyncFormData) {
-    const { syncFieldMappings, rule, ruleId, ...integrationAttributeSync } =
-      data;
+    const { syncFieldMappings, rule, ruleId, ...integrationAttributeSync } = data;
 
     this.validateWithinSyncUniqueness(syncFieldMappings);
 
-    await this.validateCrossSyncUniqueness(
-      data.organizationId,
-      syncFieldMappings,
-      data.id
-    );
+    await this.validateCrossSyncUniqueness(data.organizationId, syncFieldMappings, data.id);
 
     const attributeIds = syncFieldMappings.map((m) => m.attributeId);
     await this.validateAttributeOwnership(data.organizationId, attributeIds);
 
-    const existingFieldMappings =
-      await this.deps.integrationAttributeSyncRepository.getSyncFieldMappings(
-        data.id
-      );
+    const existingFieldMappings = await this.deps.integrationAttributeSyncRepository.getSyncFieldMappings(
+      data.id
+    );
 
     const parsedRule = attributeSyncRuleSchema.parse(rule);
+
+    const teamIds = this.extractTeamIdsFromRule(parsedRule);
+    await this.validateTeamsBelongToOrg(teamIds, data.organizationId);
 
     const incomingMappingIds = new Set(
       syncFieldMappings.reduce((ids, mapping) => {
@@ -189,24 +197,24 @@ export class IntegrationAttributeSyncService {
       .map((mapping) => mapping.id);
 
     const fieldMappingsToCreate = syncFieldMappings.filter((m) => !("id" in m));
-    const fieldMappingsToUpdate = syncFieldMappings.filter(
-      (m): m is typeof m & { id: string } => "id" in m
-    );
+    const fieldMappingsToUpdate = syncFieldMappings.filter((m): m is typeof m & { id: string } => "id" in m);
 
-    await this.deps.integrationAttributeSyncRepository.updateTransactionWithRuleAndMappings(
-      {
-        integrationAttributeSync,
-        attributeSyncRule: {
-          id: ruleId,
-          rule: parsedRule,
-        },
-        fieldMappingsToCreate,
-        fieldMappingsToUpdate,
-        fieldMappingsToDelete,
-      }
-    );
+    await this.deps.integrationAttributeSyncRepository.updateTransactionWithRuleAndMappings({
+      integrationAttributeSync,
+      attributeSyncRule: {
+        id: ruleId,
+        rule: parsedRule,
+      },
+      fieldMappingsToCreate,
+      fieldMappingsToUpdate,
+      fieldMappingsToDelete,
+    });
   }
   async deleteById(id: string) {
     return this.deps.integrationAttributeSyncRepository.deleteById(id);
+  }
+
+  async getAllByCredentialId(credentialId: number) {
+    return this.deps.integrationAttributeSyncRepository.getAllByCredentialId(credentialId);
   }
 }

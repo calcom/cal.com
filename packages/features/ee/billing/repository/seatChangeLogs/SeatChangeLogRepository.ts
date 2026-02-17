@@ -10,6 +10,7 @@ export interface CreateSeatChangeLogData {
   userId?: number;
   triggeredBy?: number;
   monthKey: string;
+  operationId?: string;
   metadata?: Prisma.InputJsonValue;
   teamBillingId: string | null;
   organizationBillingId: string | null;
@@ -28,6 +29,20 @@ export class SeatChangeLogRepository {
   }
 
   async create(data: CreateSeatChangeLogData): Promise<SeatChangeLog> {
+    // If operationId is provided, use upsert to prevent duplicates
+    if (data.operationId) {
+      return await this.prisma.seatChangeLog.upsert({
+        where: {
+          teamId_operationId: {
+            teamId: data.teamId,
+            operationId: data.operationId,
+          },
+        },
+        create: data,
+        update: {}, // No update needed - if it exists, we skip
+      });
+    }
+
     return await this.prisma.seatChangeLog.create({
       data,
     });

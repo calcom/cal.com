@@ -1,1 +1,1 @@
-export { PaymentService } from "./PaymentService";
+export { BuildPaymentService } from "./PaymentService";

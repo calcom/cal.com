@@ -1,9 +1,9 @@
 /**
  * PAGES ROUTER ONLY - Used exclusively by Next.js Pages Router
- * 
+ *
  * Currently only serves the /router endpoint (routing forms redirect page).
  * DO NOT add new features here - this file will be deprecated once we remove apps/web/pages.
- * 
+ *
  * For App Router, use PageWrapperAppDir.tsx instead.
  */
 
@@ -84,6 +84,7 @@ function PageWrapper(props: AppProps) {
         // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
         // And we don't want it to error here anyways
         // eslint-disable-next-line react/no-danger
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Setting page status requires inline script
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
 

@@ -83,10 +83,13 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   });
 
   const teamPermissionsArray = await Promise.all(teamPermissionChecks);
-  const teamPermissions = teamPermissionsArray.reduce((acc, item) => {
-    acc[item.teamId] = item.permissions;
-    return acc;
-  }, {} as Record<number, { canCreateEventType: boolean }>);
+  const teamPermissions = teamPermissionsArray.reduce(
+    (acc, item) => {
+      acc[item.teamId] = item.permissions;
+      return acc;
+    },
+    {} as Record<number, { canCreateEventType: boolean }>
+  );
 
   return {
     eventTypeGroups: filteredEventTypeGroups,

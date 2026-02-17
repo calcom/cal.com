@@ -92,6 +92,7 @@ const _buildCommonUserCredential = ({
     key: {
       access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
     },
+    encryptedKey: null,
     invalid: false,
     teamId: null,
     team: null,
@@ -300,20 +301,17 @@ async function _getDelegationCredentialsMapPerUser({
   return credentialsByUserId;
 }
 
-export async function checkIfSuccessfullyConfiguredInWorkspace({
+export async function assertSuccessfullyConfiguredInWorkspace({
   delegationCredential,
   user,
 }: {
   delegationCredential: DelegationCredentialWithSensitiveServiceAccountKey;
   user: User;
-}) {
+}): Promise<void> {
   if (!isValidWorkspaceSlug(delegationCredential.workspacePlatform.slug)) {
-    log.warn(
-      `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
-        delegationCredential.workspacePlatform.slug
-      }`
-    );
-    return false;
+    const errorMessage = `Unsupported workspace platform: ${delegationCredential.workspacePlatform.slug}. Only ${WORKSPACE_PLATFORM_SLUGS.toString()} are supported.`;
+    log.warn(errorMessage);
+    throw new Error(errorMessage);
   }
 
   const credential = _buildDelegatedCalendarCredentialWithServiceAccountKey({
@@ -324,9 +322,10 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   const calendar = await getCalendar(credential, "none");
 
   if (!calendar) {
-    throw new Error("Google Calendar App not found");
+    throw new Error("Calendar App not found for the workspace platform");
   }
-  return await calendar?.testDelegationCredentialSetup?.();
+
+  await calendar.testDelegationCredentialSetup?.();
 }
 
 export async function getAllDelegationCredentialsForUserByAppType({
@@ -382,26 +381,29 @@ export const buildAllCredentials = ({
     ...buildNonDelegationCredentials(nonDelegationCredentials),
   ];
 
-  const uniqueAllCredentials = allCredentials.reduce((acc, credential) => {
-    if (!credential.delegatedToId) {
-      // Regular credential go as is
-      acc.push(credential);
+  const uniqueAllCredentials = allCredentials.reduce(
+    (acc, credential) => {
+      if (!credential.delegatedToId) {
+        // Regular credential go as is
+        acc.push(credential);
+        return acc;
+      }
+      const existingDelegationCredential = acc.find(
+        (c) => c.delegatedToId === credential.delegatedToId && c.appId === credential.appId
+      );
+      if (!existingDelegationCredential) {
+        acc.push(credential);
+      }
       return acc;
-    }
-    const existingDelegationCredential = acc.find(
-      (c) => c.delegatedToId === credential.delegatedToId && c.appId === credential.appId
-    );
-    if (!existingDelegationCredential) {
-      acc.push(credential);
-    }
-    return acc;
-  }, [] as typeof allCredentials);
+    },
+    [] as typeof allCredentials
+  );
 
   return uniqueAllCredentials;
 };
 
 export async function enrichUsersWithDelegationCredentials<
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({ orgId, users }: { orgId: number | null; users: TUser[] }) {
   const delegationCredentialsMap = await _getDelegationCredentialsMapPerUser({
     organizationId: orgId,
@@ -425,7 +427,7 @@ export async function enrichUsersWithDelegationCredentials<
 
 export const enrichHostsWithDelegationCredentials = async <
   THost extends Host<TUser>,
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({
   orgId,
   hosts,
@@ -466,7 +468,7 @@ export const enrichHostsWithDelegationCredentials = async <
 };
 
 export const enrichUserWithDelegationCredentialsIncludeServiceAccountKey = async <
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({
   user,
 }: {
@@ -486,7 +488,7 @@ export const enrichUserWithDelegationCredentialsIncludeServiceAccountKey = async
 };
 
 export const enrichUserWithDelegationCredentials = async <
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({
   user,
 }: {
@@ -502,7 +504,7 @@ export const enrichUserWithDelegationCredentials = async <
 };
 
 export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgId<
-  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] },
 >({ user }: { user: TUser }) {
   const { credentials, ...restUser } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user,
@@ -517,7 +519,7 @@ export async function enrichUserWithDelegationConferencingCredentialsWithoutOrgI
  * Either get Delegation credential from delegationCredentials or find regular credential from Credential table
  */
 export async function getDelegationCredentialOrFindRegularCredential<
-  TDelegationCredential extends { delegatedToId?: string | null }
+  TDelegationCredential extends { delegatedToId?: string | null },
 >({
   id,
   delegationCredentials,
@@ -531,17 +533,17 @@ export async function getDelegationCredentialOrFindRegularCredential<
   return id.delegationCredentialId
     ? delegationCredentials.find((cred) => cred.delegatedToId === id.delegationCredentialId)
     : id.credentialId
-    ? await CredentialRepository.findCredentialForCalendarServiceById({
-        id: id.credentialId,
-      })
-    : null;
+      ? await CredentialRepository.findCredentialForCalendarServiceById({
+          id: id.credentialId,
+        })
+      : null;
 }
 
 /**
  * Utility function to find a credential from a list of credentials, supporting both regular and DelegationCredential credentials
  */
 export function getDelegationCredentialOrRegularCredential<
-  TCredential extends { delegatedToId?: string | null; id: number }
+  TCredential extends { delegatedToId?: string | null; id: number },
 >({
   credentials,
   id,
