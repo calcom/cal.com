@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "@calcom/dayjs";
 import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +9,8 @@ import { Button } from "@calcom/ui/components/button";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { format, formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -286,7 +287,9 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                         {actorRole && <span>{` (${t(actorRole)})`}</span>}
                       </span>
                       <span>•</span>
-                      <span>{dayjs(log.timestamp).fromNow()}</span>
+                      <Tooltip content={format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}>
+                        <span>{formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}</span>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
@@ -343,7 +346,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                       <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
                         <span className="font-medium text-emphasis w-[140px]">{t("timestamp")}</span>
                         <span className="text-default">
-                          {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
+                          {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
                         </span>
                       </div>
                       {log.displayJson && Object.keys(log.displayJson).length > 0 && (
@@ -374,28 +377,35 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 }
 
 function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorFilter: string | null) {
+  const { t } = useLocale();
+
   const filteredLogs = auditLogs.filter((log) => {
     const doesMatchDisplayFields = (): boolean => {
       return (
         log.displayFields?.some((field) => {
           const searchLower = searchTerm.toLowerCase();
+
+          const translatedLabel = field.labelKey ? t(field.labelKey) : "";
+          const translatedValue = field.valueKey ? t(field.valueKey) : "";
+          const displayValue = field.value ?? "";
+          const displayValues = field.values ?? [];
+
           return (
-            field.valueKey?.toLowerCase().includes(searchLower) ||
-            field.labelKey?.toLowerCase().includes(searchLower) ||
-            field.value?.toLowerCase().includes(searchLower) ||
-            field.values?.some((v) => v.toLowerCase().includes(searchLower))
+            translatedLabel.toLowerCase().includes(searchLower) ||
+            translatedValue.toLowerCase().includes(searchLower) ||
+            displayValue.toLowerCase().includes(searchLower) ||
+            displayValues.some((v) => v.toLowerCase().includes(searchLower))
           );
         }) ?? false
       );
     };
 
     const doesMatchActionDisplayTitle = (): boolean => {
-      return (
-        log.actionDisplayTitle.key?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        Object.values(log.actionDisplayTitle.params ?? {}).some((param) =>
-          param?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+      const translatedTitle = log.actionDisplayTitle.key
+        ? t(log.actionDisplayTitle.key, log.actionDisplayTitle.params ?? {})
+        : "";
+
+      return translatedTitle.toLowerCase().includes(searchTerm.toLowerCase());
     };
 
     const matchesSearch =
