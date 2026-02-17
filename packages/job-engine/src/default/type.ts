@@ -13,13 +13,20 @@ export interface WhatsappTemplateSyncJob {
   integrationProvider: string;
 }
 
-export interface RazorpayWebhookJob {
-  userId: string;
-  integrationProvider: string;
+export interface RazorpayAppRevokedJobData {
+  accountId: string;
+  rawEvent?: Record<string, unknown>;
+}
+
+export interface RazorpayPaymentLinkPaidJobData {
+  paymentId: string;
+  paymentLinkId: string;
+  rawEvent?: Record<string, unknown>;
 }
 
 export type DefaultJob =
   | BookingPaymentReminderJob
   | BookingEmailJob
   | WhatsappTemplateSyncJob
-  | RazorpayWebhookJob;
+  | RazorpayAppRevokedJobData
+  | RazorpayPaymentLinkPaidJobData;

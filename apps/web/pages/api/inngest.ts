@@ -1,9 +1,18 @@
 import { createInngestWorkflowContext, getInngestClient } from "@calid/job-dispatcher/";
-import { calendlyImportService, bookingExportService } from "@calid/job-engine";
-import type { BookingExportJobData, CalendlyImportJobData } from "@calid/job-engine";
+import {
+  calendlyImportService,
+  bookingExportService,
+  razorpayAppRevokedService,
+  razorpayPaymentLinkPaidService,
+} from "@calid/job-engine";
+import type {
+  BookingExportJobData,
+  CalendlyImportJobData,
+  RazorpayAppRevokedJobData,
+  RazorpayPaymentLinkPaidJobData,
+} from "@calid/job-engine";
 import { serve } from "inngest/next";
 
-import { appRevokedHandler, paymentLinkPaidHandler } from "@calcom/app-store/razorpay/lib/webhookHandlers";
 import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import sendBookingEmailsHandler from "@calcom/features/bookings/lib/handleNewBooking/sendBookingEmails.inngest";
 import { INNGEST_ID } from "@calcom/lib/constants";
@@ -99,25 +108,32 @@ const handleScheduledWebhookTrigger = inngestClient.createFunction(
   triggerScheduledWebhook
 );
 
-const handleRazorpayAppRevoked = inngestClient.createFunction(
+export const handleRazorpayAppRevoked = inngestClient.createFunction(
   {
     id: `razorpay-app-revoked-${key}`,
     name: "Handle Razorpay App Revoked",
     retries: 3,
   },
   { event: `razorpay/app.revoked-${key}` },
-  appRevokedHandler
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    const result = await razorpayAppRevokedService(ctx, event.data as RazorpayAppRevokedJobData);
+    return result;
+  }
 );
 
-// Inngest function for handling PAYMENT_LINK_PAID event
-const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
+export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
   {
     id: `razorpay-payment-link-paid-${key}`,
     name: "Handle Razorpay Payment Link Paid",
     retries: 3,
   },
   { event: `razorpay/payment-link.paid-${key}` },
-  paymentLinkPaidHandler
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
+    return result;
+  }
 );
 
 export const triggerBookingPaymentReminder = inngestClient.createFunction(

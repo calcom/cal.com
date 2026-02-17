@@ -1,6 +1,9 @@
 import type { DefaultJob } from "@calid/job-engine";
-import { getRedisOptions, QueueName } from "@calid/queue";
+import { getRedisOptions, JobName, QueueName } from "@calid/queue";
 import { Worker } from "bullmq";
+
+import { processRazorpayAppRevoked } from "../processors/default/razorpayAppRevoked.processor";
+import { processRazorpayPaymentLinkPaid } from "../processors/default/razorpayPaymentLinkPaid.processor";
 
 export const DEFAULT_RATE_LIMITER = {
   max: 50,
@@ -16,7 +19,31 @@ export const DEFAULT_WORKER_NAME = "default-worker";
 export const defaultWorker = new Worker<DefaultJob>(
   QueueName.DEFAULT,
   async (job) => {
-    // await processCalendarSync(job);
+    try {
+      const { name } = job;
+
+      switch (job.name) {
+        case JobName.RAZORPAY_APP_REVOKED:
+          await processRazorpayAppRevoked(job);
+          break;
+
+        case JobName.RAZORPAY_PAYMENT_LINK_PAID:
+          await processRazorpayPaymentLinkPaid(job);
+          break;
+
+        default:
+          throw new Error(`No processor registered for job type ${name}`);
+      }
+    } catch (error) {
+      // Sleep signal is not an error - it's expected workflow behavior
+      if (error instanceof SleepSignal) {
+        console.log(`Job ${job.id} sleeping for ${error.duration}ms`);
+        return; // Success - job will resume after delay
+      }
+
+      // Real error - rethrow for retry logic
+      throw error;
+    }
   },
   {
     connection: getRedisOptions(),

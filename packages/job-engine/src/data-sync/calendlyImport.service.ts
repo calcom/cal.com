@@ -8,7 +8,6 @@ import type {
   CalendlyUserAvailabilitySchedules,
 } from "@onehash/calendly";
 import { CalendlyAPIService, CalendlyOAuthProvider } from "@onehash/calendly";
-import { BookingStatus, IntegrationProvider, SchedulingType } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
@@ -19,8 +18,9 @@ import { INNGEST_ID } from "@calcom/lib/constants";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getServerTimezone } from "@calcom/lib/timezone";
 import prisma from "@calcom/prisma";
+import { BookingStatus, IntegrationProvider, SchedulingType } from "@calcom/prisma/enums";
 
-import type { CalendlyImportJobData } from "../types/data-sync";
+import type { CalendlyImportJobData } from "./type";
 
 // ============================================================================
 // TYPES
