@@ -1,6 +1,5 @@
 import type { Settings } from "react-awesome-query-builder";
-import { describe, it, vi, expect } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import {
   ConfigFor,
   withRaqbSettingsAndWidgets,
@@ -14,6 +13,12 @@ vi.mock("../components/react-awesome-query-builder/widgets", () => ({
     MultiSelectWidget: vi.fn(),
     SelectWidget: vi.fn(),
     NumberWidget: vi.fn(),
+    AddressWidget: vi.fn(),
+    URLWidget: vi.fn(),
+    MultiEmailWidget: vi.fn(),
+    CheckboxGroupWidget: vi.fn(),
+    RadioGroupWidget: vi.fn(),
+    BooleanWidget: vi.fn(),
     FieldSelect: vi.fn(),
     Conjs: vi.fn(),
     Button: vi.fn(),
@@ -46,6 +51,24 @@ describe("uiConfig", () => {
       email: {
         type: "email",
       },
+      address: {
+        type: "address",
+      },
+      url: {
+        type: "url",
+      },
+      multiemail: {
+        type: "multiemail",
+      },
+      checkbox: {
+        type: "checkbox",
+      },
+      radio: {
+        type: "radio",
+      },
+      boolean: {
+        type: "boolean",
+      },
     },
     settings: {} as Settings,
   };
@@ -65,6 +88,12 @@ describe("uiConfig", () => {
       expect(result.widgets.select).toHaveProperty("factory");
       expect(result.widgets.phone).toHaveProperty("factory");
       expect(result.widgets.email).toHaveProperty("factory");
+      expect(result.widgets.address).toHaveProperty("factory");
+      expect(result.widgets.url).toHaveProperty("factory");
+      expect(result.widgets.multiemail).toHaveProperty("factory");
+      expect(result.widgets.checkbox).toHaveProperty("factory");
+      expect(result.widgets.radio).toHaveProperty("factory");
+      expect(result.widgets.boolean).toHaveProperty("factory");
     });
 
     it("should add render functions to settings", () => {

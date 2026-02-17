@@ -1,9 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { vi } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import type { RoutingForm } from "../../types/types";
-import { FormFieldsInitialConfig } from "../InitialConfig";
 import { getQueryBuilderConfigForFormFields } from "../getQueryBuilderConfig";
+import { FormFieldsInitialConfig } from "../InitialConfig";
 
 type MockedForm = Pick<RoutingForm, "fields">;
 vi.mock("../InitialConfig", () => ({
@@ -12,6 +10,16 @@ vi.mock("../InitialConfig", () => ({
       text: { type: "text" },
       select: { type: "select" },
       multiselect: { type: "multiselect" },
+      phone: { type: "text" },
+      email: { type: "text" },
+      address: { type: "text" },
+      url: { type: "text" },
+      multiemail: { type: "text" },
+      checkbox: { type: "multiselect" },
+      radio: { type: "select" },
+      boolean: { type: "boolean" },
+      textarea: { type: "text" },
+      number: { type: "number" },
     },
     operators: {
       is_empty: {},
