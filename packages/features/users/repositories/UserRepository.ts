@@ -1456,4 +1456,27 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  /**
+   * Finds Cal.com users by their email addresses, returning data needed for availability checking.
+   * Used during rescheduling to check guest availability.
+   */
+  async findManyByEmailsForAvailability({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+
+    return this.prismaClient.user.findMany({
+      where: {
+        email: { in: normalizedEmails },
+        emailVerified: { not: null },
+        locked: false,
+      },
+      select: {
+        ...availabilityUserSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+  }
 }

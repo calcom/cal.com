@@ -1033,6 +1033,88 @@ export class AvailableSlotsService {
     "getRegularOrDynamicEventType"
   );
 
+  /**
+   * When a host reschedules a booking, checks if any attendees/guests are Cal.com users
+   * and filters out time slots where those guests are busy.
+   * This ensures only mutually available times are shown during rescheduling.
+   */
+  private async filterSlotsByGuestAvailability({
+    rescheduleUid,
+    availableTimeSlots,
+    eventLength,
+    startTime,
+    endTime,
+    eventTypeId,
+    loggerWithEventDetails,
+  }: {
+    rescheduleUid: string;
+    availableTimeSlots: { time: Dayjs; userIds?: number[] }[];
+    eventLength: number;
+    startTime: Dayjs;
+    endTime: Dayjs;
+    eventTypeId: number;
+    loggerWithEventDetails: Logger<unknown>;
+  }) {
+    const bookingRepo = this.dependencies.bookingRepo;
+    const booking = await bookingRepo.findAttendeeEmailsByUid({ bookingUid: rescheduleUid });
+
+    if (!booking?.attendees?.length) {
+      return availableTimeSlots;
+    }
+
+    const attendeeEmails = booking.attendees.map((a) => a.email);
+
+    const userRepo = this.dependencies.userRepo;
+    const guestCalUsers = await userRepo.findManyByEmailsForAvailability({ emails: attendeeEmails });
+
+    if (!guestCalUsers.length) {
+      return availableTimeSlots;
+    }
+
+    loggerWithEventDetails.info("Found Cal.com user guests for reschedule availability check", {
+      guestCount: guestCalUsers.length,
+      guestEmails: guestCalUsers.map((u) => u.email),
+    });
+
+    const guestUsersWithCalendars = guestCalUsers.map((user) => withSelectedCalendars(user));
+
+    // Get availability for each guest Cal.com user
+    const guestAvailabilities = await this.dependencies.userAvailabilityService.getUsersAvailability({
+      users: guestUsersWithCalendars,
+      query: {
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
+        eventTypeId,
+        afterEventBuffer: 0,
+        beforeEventBuffer: 0,
+        duration: 0,
+        returnDateOverrides: false,
+        bypassBusyCalendarTimes: false,
+      },
+      initialData: {
+        currentSeats: undefined,
+        rescheduleUid,
+        busyTimesFromLimitsBookings: [],
+      },
+    });
+
+    // Collect all busy times from all guest Cal.com users
+    const allGuestBusyTimes: EventBusyDate[] = guestAvailabilities.flatMap((availability) => availability.busy);
+
+    if (!allGuestBusyTimes.length) {
+      return availableTimeSlots;
+    }
+
+    // Filter out slots that conflict with any guest's busy times
+    return availableTimeSlots.filter((slot) => {
+      return !checkForConflicts({
+        time: slot.time,
+        busy: allGuestBusyTimes,
+        eventLength,
+      });
+    });
+  }
+
   getAvailableSlots = withReporting(
     withSlotsCache(this.dependencies.redisClient, this._getAvailableSlots.bind(this)),
     "getAvailableSlots"
@@ -1404,6 +1486,20 @@ export class AvailableSlotsService {
             return !!item;
           }
         );
+    }
+
+    // When rescheduling, check if any attendees/guests are Cal.com users
+    // and filter out slots where they are busy
+    if (input.rescheduleUid) {
+      availableTimeSlots = await this.filterSlotsByGuestAvailability({
+        rescheduleUid: input.rescheduleUid,
+        availableTimeSlots,
+        eventLength: input.duration || eventType.length,
+        startTime,
+        endTime,
+        eventTypeId: eventType.id,
+        loggerWithEventDetails,
+      });
     }
 
     // fr-CA uses YYYY-MM-DD
