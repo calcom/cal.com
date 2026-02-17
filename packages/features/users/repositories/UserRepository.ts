@@ -1268,6 +1268,26 @@ export class UserRepository {
     });
   }
 
+  /**
+   * Find Cal.com users by their emails with full availability data (schedules, credentials, etc.)
+   * Used for checking guest availability when rescheduling.
+   */
+  async findManyByEmailsWithAvailabilityData(emails: string[]) {
+    if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    return this.prismaClient.user.findMany({
+      where: {
+        email: { in: normalizedEmails },
+      },
+      select: {
+        ...availabilityUserSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+  }
+
   async findUsersByIds(userIds: number[]) {
     return this.prismaClient.user.findMany({
       where: {

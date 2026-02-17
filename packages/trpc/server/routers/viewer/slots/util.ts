@@ -970,6 +970,135 @@ export class AvailableSlotsService {
   }
 
   /**
+   * When rescheduling, looks up the booking's attendees to see if any are Cal.com users.
+   * If so, fetches their availability and filters out slots where those attendees are busy,
+   * so the host can only reschedule to times that work for the guest too.
+   */
+  private async filterSlotsByAttendeeAvailability({
+    rescheduleUid,
+    availableTimeSlots,
+    startTime,
+    endTime,
+    eventType,
+    eventLength,
+    loggerWithEventDetails,
+  }: {
+    rescheduleUid: string;
+    availableTimeSlots: { time: dayjs.Dayjs; userIds?: number[] }[];
+    startTime: Dayjs;
+    endTime: Dayjs;
+    eventType: { id: number; afterEventBuffer: number; beforeEventBuffer: number; length: number };
+    eventLength: number;
+    loggerWithEventDetails: Logger<unknown>;
+  }): Promise<typeof availableTimeSlots> {
+    const bookingRepo = this.dependencies.bookingRepo;
+
+    // Fetch booking with attendees
+    const booking = await bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid: rescheduleUid,
+    });
+
+    if (!booking?.attendees?.length) {
+      return availableTimeSlots;
+    }
+
+    // Look up which attendees are Cal.com users by loading them with availability data
+    const attendeeEmails = booking.attendees.map((a) => a.email);
+    const userRepo = this.dependencies.userRepo;
+    const rawUsers = await userRepo.findManyByEmailsWithAvailabilityData(attendeeEmails);
+    const calComAttendeeUsers = rawUsers.map((user) => {
+      const userWithCalendars = withSelectedCalendars(user);
+      return userWithCalendars;
+    });
+
+    if (calComAttendeeUsers.length === 0) {
+      loggerWithEventDetails.debug("No Cal.com user attendees found for reschedule guest availability check");
+      return availableTimeSlots;
+    }
+
+    loggerWithEventDetails.debug("Checking guest availability for Cal.com user attendees", {
+      attendeeIds: calComAttendeeUsers.map((a) => a.id),
+    });
+
+    // Get availability for each Cal.com attendee
+    const attendeeAvailabilities = await this.dependencies.userAvailabilityService.getUsersAvailability({
+      users: calComAttendeeUsers.map((user) => ({
+        ...user,
+        currentBookings: [],
+        outOfOfficeDays: [],
+      })),
+      query: {
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
+        eventTypeId: eventType.id,
+        afterEventBuffer: eventType.afterEventBuffer,
+        beforeEventBuffer: eventType.beforeEventBuffer,
+        duration: 0,
+        returnDateOverrides: false,
+      },
+      initialData: {
+        eventType: undefined,
+        currentSeats: undefined,
+        rescheduleUid,
+        busyTimesFromLimitsBookings: [],
+      },
+    });
+
+    // Collect all busy times from attendees
+    const attendeeBusyTimes: EventBusyDate[] = [];
+    for (const availability of attendeeAvailabilities) {
+      if (availability.busy) {
+        attendeeBusyTimes.push(
+          ...availability.busy.map((b) => ({
+            start: new Date(b.start as unknown as string),
+            end: new Date(b.end as unknown as string),
+          }))
+        );
+      }
+    }
+
+    // Filter slots: keep only those where no attendee has a conflict
+    // AND where the slot falls within at least one dateRange of every attendee
+    const filteredSlots = availableTimeSlots.filter((slot) => {
+      // Check that no attendee is busy during this slot
+      const hasConflict = checkForConflicts({
+        time: slot.time,
+        busy: attendeeBusyTimes,
+        eventLength,
+      });
+
+      if (hasConflict) {
+        return false;
+      }
+
+      // Check that each attendee has working hours covering this slot
+      for (const availability of attendeeAvailabilities) {
+        if (availability.dateRanges && availability.dateRanges.length > 0) {
+          const slotStart = slot.time;
+          const slotEnd = slot.time.add(eventLength, "minute");
+          const withinWorkingHours = availability.dateRanges.some(
+            (range) =>
+              (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+              (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+          );
+          if (!withinWorkingHours) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+
+    loggerWithEventDetails.debug("Filtered slots by attendee availability", {
+      originalCount: availableTimeSlots.length,
+      filteredCount: filteredSlots.length,
+    });
+
+    return filteredSlots;
+  }
+
+  /**
    * Resolves the organization ID for watchlist blocking with the following priority:
    * 1. Request context (orgSlug) - most accurate for the current request scope
    * 2. EventType team hierarchy - for team/managed events
@@ -1324,6 +1453,20 @@ export class AvailableSlotsService {
       }
     } else {
       availableTimeSlots = timeSlots;
+    }
+
+    // When rescheduling, check if any attendee is a Cal.com user and filter
+    // slots by their availability so the host can only pick times that work for the guest too.
+    if (input.rescheduleUid) {
+      availableTimeSlots = await this.filterSlotsByAttendeeAvailability({
+        rescheduleUid: input.rescheduleUid,
+        availableTimeSlots,
+        startTime,
+        endTime,
+        eventType,
+        eventLength: input.duration || eventType.length,
+        loggerWithEventDetails,
+      });
     }
 
     const reservedSlots = await this._getReservedSlotsAndCleanupExpired({
