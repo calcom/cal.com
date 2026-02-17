@@ -4,29 +4,11 @@ import type { Job, JobsOptions, Queue } from "bullmq";
 import { sendToInngest } from "./inngestClient";
 import type { DispatchJobInput, DispatcherLogger, DispatchResult, JobDispatcherConfig } from "./types";
 
-// // ---------------------------------------------------------------------------
-// // Default BullMQ job options
-// // ---------------------------------------------------------------------------
-
-// const DEFAULT_BULLMQ_OPTIONS: JobsOptions = {
-//   attempts: 3,
-//   backoff: {
-//     type: "exponential",
-//     delay: 3000,
-//   },
-//   removeOnComplete: false,
-//   removeOnFail: false,
-// };
-
 // ---------------------------------------------------------------------------
-// Defaults for pickup detection
+// Defaults
 // ---------------------------------------------------------------------------
 
 const DEFAULT_PICKUP_TIMEOUT_MS = 5000;
-
-// ---------------------------------------------------------------------------
-// Console‑based default logger
-// ---------------------------------------------------------------------------
 
 const defaultLogger: DispatcherLogger = {
   info: (msg, meta) => console.log(msg, meta ?? ""),
@@ -34,44 +16,18 @@ const defaultLogger: DispatcherLogger = {
   error: (msg, meta) => console.error(msg, meta ?? ""),
 };
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-/**
- * Resolve the `useBullmq` flag.
- *
- * Priority: explicit config value > `USE_BULLMQ` env var > default `true`.
- */
 function resolveUseBullmq(configValue?: boolean): boolean {
   if (configValue !== undefined) return configValue;
-
   const env = process.env.USE_BULLMQ;
-  if (env !== undefined) {
-    return env !== "false" && env !== "0";
-  }
-
-  // Default: BullMQ enabled
+  if (env !== undefined) return env !== "false" && env !== "0";
   return true;
 }
 
-/**
- * Sleep helper for polling.
- */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * States that mean a worker has picked up (or already completed) the job.
- * If the job is in any of these states, we know the worker is alive and
- * handling it — no fallback needed.
- */
 const PICKED_UP_STATES = new Set(["active", "completed", "failed"]);
-
-/**
- * States that mean the job is still sitting in the queue untouched.
- */
-const WAITING_STATES = new Set(["waiting", "waiting-children", "delayed", "prioritized"]);
 
 // ---------------------------------------------------------------------------
 // JobDispatcher
@@ -96,112 +52,111 @@ export class JobDispatcher {
     });
   }
 
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // Public API
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
 
   /**
-   * Dispatch a job using the BullMQ‑first / Inngest‑fallback strategy with exactly‑once delivery guarantee.
+   * Dispatch a job — non-blocking.
    *
    * Flow:
-   *  1. If `useBullmq` is `false`  → send directly to Inngest.
-   *  2. Try to enqueue to BullMQ.
-   *     a. If enqueue fails (Redis down) → fallback to Inngest.
-   *  3. After enqueue succeeds, poll the job state for up to
-   *     `pickupTimeoutMs` to confirm a worker picked it up.
-   *     a. If picked up (`active`/`completed`/`failed`) → done via BullMQ.
-   *     b. If still `waiting` after timeout → remove job from queue,
-   *        then send to Inngest (worker is down).
+   *  1. BullMQ disabled → send to Inngest, return immediately.
+   *  2. Enqueue to BullMQ.
+   *     a. Enqueue fails (Redis down) → fallback to Inngest, return immediately.
+   *  3. Return to caller right after enqueue succeeds (BullMQ path).
+   *     In the background, poll for worker pickup:
+   *     a. Picked up within timeout → done, BullMQ handled it.
+   *     b. Not picked up → remove job, silently send to Inngest as fallback.
    *
-   * This prevents the dual‑execution problem where a job sits in Redis,
-   * gets sent to Inngest, and then later the worker comes back and
-   * processes the same job again.
+   * The caller is never blocked by the pickup polling window.
    */
-  async dispatch<T = unknown>(input: DispatchJobInput<T>): Promise<DispatchResult> {
+  async dispatch(input: DispatchJobInput): Promise<DispatchResult> {
     const { queue: queueName, name, data, bullmqOptions } = input;
-    const jobName = name;
 
-    // ── Fast path: BullMQ disabled ──────────────────────────────────────
+    // ── Fast path: BullMQ disabled ─────────────────────────────────────────
     if (!this.useBullmq) {
-      this.logger.info("[job-dispatcher] BullMQ disabled – routing to Inngest", { jobName });
-      const result = await sendToInngest(jobName, data, this.logger);
-      return { jobName, backend: "inngest", fallback: false, result };
+      this.logger.info("[job-dispatcher] BullMQ disabled – routing to Inngest", { jobName: name });
+      const result = await sendToInngest(name, data, this.logger);
+      return { jobName: name, backend: "inngest", fallback: false, result };
     }
 
-    // ── Step 1: Try to enqueue to BullMQ ────────────────────────────────
+    // ── Step 1: Try to enqueue to BullMQ ───────────────────────────────────
     let job: Job;
     try {
-      job = await this.enqueueToBullmq(queueName, jobName, data, bullmqOptions);
+      job = await this.enqueueToBullmq(queueName, name, data, bullmqOptions);
     } catch (enqueueError) {
-      // Redis is down or queue doesn't exist → immediate Inngest fallback
       this.logger.warn("[job-dispatcher] BullMQ enqueue failed – falling back to Inngest", {
-        jobName,
+        jobName: name,
         error: enqueueError instanceof Error ? enqueueError.message : String(enqueueError),
       });
-
-      return this.fallbackToInngest(jobName, data, enqueueError);
+      return this.fallbackToInngest(name, data, enqueueError);
     }
 
-    // ── Step 2: Wait for worker pickup ──────────────────────────────────
+    // ── Step 2: Return immediately, monitor pickup in the background ────────
+    this.logger.info("[job-dispatcher] Job enqueued to BullMQ – returning to caller", {
+      jobName: name,
+      queue: queueName,
+      jobId: job.id,
+    });
+
+    // Intentionally NOT awaited. Errors are swallowed internally so an
+    // unhandled-rejection never surfaces to the caller's event loop.
+    void this.monitorAndFallback(job, queueName, name, data);
+
+    return { jobName: name, backend: "bullmq", fallback: false, result: job };
+  }
+
+  // -------------------------------------------------------------------------
+  // Private: background pickup monitor
+  // -------------------------------------------------------------------------
+
+  /**
+   * Runs entirely in the background after `dispatch` has already returned.
+   * If the worker doesn't pick up the job within the timeout, the job is
+   * removed from BullMQ and re-sent via Inngest.
+   *
+   * All errors are caught internally — this method must never throw or produce
+   * an unhandled rejection.
+   */
+  private async monitorAndFallback(
+    job: Job,
+    queueName: string,
+    jobName: string,
+    data: unknown
+  ): Promise<void> {
     try {
       const pickedUp = await this.waitForPickup(job, queueName);
 
       if (pickedUp) {
-        this.logger.info("[job-dispatcher] Job picked up by worker via BullMQ", {
+        this.logger.info("[job-dispatcher] Background: job picked up by worker", {
           jobName,
           queue: queueName,
           jobId: job.id,
         });
-        return { jobName, backend: "bullmq", fallback: false, result: job };
+        return;
       }
 
-      // ── Step 3: Worker didn't pick up → remove & fallback ───────────
+      // Worker didn't pick up — remove from queue and send via Inngest.
       this.logger.warn(
-        "[job-dispatcher] Worker did not pick up job within timeout – " +
-          "removing from queue and falling back to Inngest",
-        {
-          jobName,
-          queue: queueName,
-          jobId: job.id,
-          timeoutMs: this.pickupTimeoutMs,
-        }
+        "[job-dispatcher] Background: worker pickup timeout – removing job and falling back to Inngest",
+        { jobName, queue: queueName, jobId: job.id, timeoutMs: this.pickupTimeoutMs }
       );
 
       await this.removeJob(job, queueName);
-
-      return this.fallbackToInngest(jobName, data, new Error("Worker pickup timeout"));
-    } catch (pickupError) {
-      // Something went wrong during polling (e.g. Redis dropped mid‑check).
-      // The job might still be in the queue, so try to remove it before
-      // falling back to Inngest.
-      this.logger.warn("[job-dispatcher] Error during pickup check – removing job and falling back", {
+      await this.fallbackToInngest(jobName, data, new Error("Worker pickup timeout"));
+    } catch (error) {
+      // Last-resort catch: log and move on. Nothing the caller can do at this point.
+      this.logger.error("[job-dispatcher] Background monitor encountered an unexpected error", {
         jobName,
-        error: pickupError instanceof Error ? pickupError.message : String(pickupError),
+        jobId: job.id,
+        error: error instanceof Error ? error.message : String(error),
       });
-
-      try {
-        await this.removeJob(job, queueName);
-      } catch (removeError) {
-        // Best‑effort removal failed. Log but continue with fallback.
-        // Risk: potential duplicate if Redis recovers and worker grabs it.
-        this.logger.error(
-          "[job-dispatcher] Failed to remove job from queue after pickup error. " +
-            "Duplicate execution is possible.",
-          {
-            jobName,
-            jobId: job.id,
-            removeError: removeError instanceof Error ? removeError.message : String(removeError),
-          }
-        );
-      }
-
-      return this.fallbackToInngest(jobName, data, pickupError);
     }
   }
 
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // Private: BullMQ enqueue
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
 
   private async enqueueToBullmq<T>(
     queueName: string,
@@ -210,39 +165,25 @@ export class JobDispatcher {
     overrides?: JobsOptions
   ): Promise<Job> {
     const queue = this.queueRegistry[queueName];
-
     if (!queue) {
       throw new Error(
         `[job-dispatcher] Queue "${queueName}" not found in registry. ` +
           `Available queues: [${Object.keys(this.queueRegistry).join(", ")}]`
       );
     }
-
-    const options: JobsOptions = {
-      ...overrides,
-    };
-
-    return queue.add(jobName, data, options);
+    return queue.add(jobName, data, overrides);
   }
 
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // Private: Pickup detection
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
 
-  /**
-   * Detect if a job was picked up by worker using lock detection polling
-   * Here we check if the job lock has been acquired falling back to polling job state
-   *
-   * @returns `true` if a worker picked up (or already completed) the job,
-   *          `false` if the job is still waiting after the timeout.
-   */
   private async waitForPickup(job: Job, queueName: string): Promise<boolean> {
     const deadline = Date.now() + this.pickupTimeoutMs;
-    const pollInterval = 150; // fast but cheap
-
+    const pollInterval = 150;
     const lockKey = `bull:${queueName}:${job.id}:lock`;
-    const queue = this.queueRegistry[queueName];
 
+    const queue = this.queueRegistry[queueName];
     if (!queue) {
       this.logger.error("[job-dispatcher] Queue not found during pickup check", {
         queueName,
@@ -252,9 +193,9 @@ export class JobDispatcher {
     }
 
     const client = await queue.client;
+
     while (Date.now() < deadline) {
       try {
-        // 1️⃣ Check if worker acquired lock (strongest signal)
         const lockExists = await client.exists(lockKey);
         if (lockExists) {
           this.logger.info("[job-dispatcher] Worker lock detected (job picked up)", {
@@ -264,14 +205,12 @@ export class JobDispatcher {
           return true;
         }
 
-        // 2️⃣ Fallback: check state (covers very fast jobs)
         const state = await job.getState();
         if (PICKED_UP_STATES.has(state)) {
           this.logger.info("[job-dispatcher] Job already processed (state check)", {
             jobId: job.id,
             state,
           });
-
           return true;
         }
 
@@ -281,7 +220,6 @@ export class JobDispatcher {
           jobId: job.id,
           error: error instanceof Error ? error.message : String(error),
         });
-
         await sleep(pollInterval);
       }
     }
@@ -289,19 +227,12 @@ export class JobDispatcher {
     return false;
   }
 
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // Private: Safe job removal
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
 
-  /**
-   * Remove a job from the queue. Only removes if still in a waiting state
-   * to avoid yanking a job that a worker just started processing.
-   */
   private async removeJob(job: Job, queueName: string): Promise<void> {
     const state = await job.getState();
-
-    // Double‑check: only remove if still waiting. If a worker grabbed it
-    // between our last check and now, leave it alone.
     if (PICKED_UP_STATES.has(state)) {
       this.logger.info("[job-dispatcher] Job was picked up between timeout and removal – skipping removal", {
         jobId: job.id,
@@ -310,18 +241,16 @@ export class JobDispatcher {
       });
       return;
     }
-
     await job.remove();
-
     this.logger.info("[job-dispatcher] Removed unprocessed job from queue", {
       jobId: job.id,
       queue: queueName,
     });
   }
 
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // Private: Inngest fallback
-  // -----------------------------------------------------------------------
+  // -------------------------------------------------------------------------
 
   private async fallbackToInngest(
     jobName: string,
@@ -337,7 +266,6 @@ export class JobDispatcher {
         originalError: originalError instanceof Error ? originalError.message : String(originalError),
         inngestError: inngestError instanceof Error ? inngestError.message : String(inngestError),
       });
-
       throw new JobDispatchError(`Failed to dispatch job "${jobName}" via both BullMQ and Inngest`, {
         cause: inngestError as Error,
         jobName,
@@ -359,12 +287,7 @@ export class JobDispatchError extends Error {
 
   constructor(
     message: string,
-    details: {
-      cause: Error;
-      jobName: string;
-      bullmqError: unknown;
-      inngestError: unknown;
-    }
+    details: { cause: Error; jobName: string; bullmqError: unknown; inngestError: unknown }
   ) {
     super(message);
     this.name = "JobDispatchError";
@@ -374,7 +297,5 @@ export class JobDispatchError extends Error {
   }
 }
 
-const dispatcher = new JobDispatcher({
-  queueRegistry,
-});
+const dispatcher = new JobDispatcher({ queueRegistry });
 export default dispatcher;
