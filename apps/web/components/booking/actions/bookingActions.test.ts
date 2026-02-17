@@ -85,7 +85,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
       location: "integrations:daily",
       payment: [],
       seatsReferences: [],
-      assignmentReason: [],
+      assignmentReasonSortedByCreatedAt: [],
       metadata: null,
       routedFromRoutingFormReponse: null,
       listingStatus: "upcoming",

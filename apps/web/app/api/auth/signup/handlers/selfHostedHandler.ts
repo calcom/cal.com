@@ -100,7 +100,7 @@ export default async function handler(body: Record<string, string>) {
         }
       }
 
-      const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
+      const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
 
       const existingUserByUsername = await prisma.user.findFirst({
         where: {
@@ -200,10 +200,7 @@ export default async function handler(body: Record<string, string>) {
       if (isPrismaError(error) && error.code === "P2002") {
         const target = String(error.meta?.target ?? "");
         if (target.includes("email") || target.includes("username")) {
-          return NextResponse.json(
-            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-            { status: 409 }
-          );
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
         }
       }
       throw error;

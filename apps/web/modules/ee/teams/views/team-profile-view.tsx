@@ -32,8 +32,8 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { CopyIcon } from "@coss/ui/icons";
 import {
   SkeletonButton,
   SkeletonContainer,
@@ -47,8 +47,6 @@ import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(ma
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
-
 
 const SkeletonLoader = () => {
   return (
@@ -255,22 +253,19 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
   const router = useRouter();
 
   const teamProfileFormSchema = z.object({
-  id: z.number(),
-  name: z
-    .string()
-    .trim()
-    .min(1,t("must_enter_team_name")),
-  slug: z
-    .string()
-    .regex(regex, {
-      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
-    })
-    .min(1, t("team_url_required")),
-  logo: z.string().nullable(),
-  bio: z.string(),
-});
+    id: z.number(),
+    name: z.string().trim().min(1, t("must_enter_team_name")),
+    slug: z
+      .string()
+      .regex(regex, {
+        message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+      })
+      .min(1, t("team_url_required")),
+    logo: z.string().nullable(),
+    bio: z.string(),
+  });
 
-type FormValues = z.infer<typeof teamProfileFormSchema>;
+  type FormValues = z.infer<typeof teamProfileFormSchema>;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -450,7 +445,7 @@ type FormValues = z.infer<typeof teamProfileFormSchema>;
                   type="button"
                   aria-label="copy team id"
                   onClick={() => handleCopy(teamId.toString())}>
-                  <Icon name="copy" className="ml-1 h-4 w-4" />
+                  <CopyIcon className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
             }

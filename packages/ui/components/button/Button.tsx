@@ -125,7 +125,7 @@ export const buttonClasses = cva(
           "border-default",
           "text-error",
           // Hover state
-          "dark:hover:text-red-100",
+          "dark:hover:text-red-400",
           "hover:border-semantic-error",
           "hover:bg-error",
           // Focus state

@@ -498,6 +498,8 @@ model User {
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
   reportedBookings               BookingReport[]               @relation("ReportedBy")
+  wrongAssignmentReports         WrongAssignmentReport[]       @relation("WrongAssignmentReportedBy")
+  reviewedWrongAssignmentReports WrongAssignmentReport[]       @relation("WrongAssignmentReviewedBy")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -624,6 +626,7 @@ model Team {
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
   bookingReports         BookingReport[]
+  wrongAssignmentReports WrongAssignmentReport[]
 
   features TeamFeatures[]
 
@@ -923,6 +926,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  wrongAssignmentReports       WrongAssignmentReport[]
   routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
@@ -1332,6 +1336,7 @@ model App_RoutingForms_Form {
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
   workflows                WorkflowsOnRoutingForms[]
+  wrongAssignmentReports   WrongAssignmentReport[]
 
   @@index([userId])
   @@index([disabled])
@@ -1360,6 +1365,7 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([formId, createdAt])
   @@index([routedToBookingUid])
 }
 
@@ -2458,6 +2464,7 @@ enum WatchlistAction {
 enum WatchlistSource {
   MANUAL
   FREE_DOMAIN_POLICY
+  SIGNUP
 }
 
 model Watchlist {
@@ -2554,9 +2561,49 @@ model BookingReport {
   @@index([createdAt])
 }
 
+enum WrongAssignmentReportStatus {
+  PENDING // Initial state - awaiting review
+  REVIEWED // Admin has seen it
+  RESOLVED // Corrective action taken
+  DISMISSED // Admin decided no action needed
+}
+
+model WrongAssignmentReport {
+  id              String                      @id @default(uuid()) @db.Uuid
+  bookingUid      String                      @unique
+  booking         Booking                     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  reportedById    Int?
+  reportedBy      User?                       @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  correctAssignee String?
+  additionalNotes String
+  teamId          Int?
+  team            Team?                       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  routingFormId   String?
+  routingForm     App_RoutingForms_Form?      @relation(fields: [routingFormId], references: [id], onDelete: SetNull)
+  status          WrongAssignmentReportStatus @default(PENDING)
+  reviewedById    Int?
+  reviewedBy      User?                       @relation("WrongAssignmentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@index([reportedById])
+  @@index([teamId])
+  @@index([routingFormId])
+  @@index([status])
+  @@index([reviewedById])
+  @@index([createdAt])
+  @@index([teamId, status, createdAt])
+}
+
 enum BillingPeriod {
   MONTHLY
   ANNUALLY
+}
+
+enum BillingMode {
+  SEATS
+  ACTIVE_USERS
 }
 
 model OrganizationOnboarding {
@@ -2998,10 +3045,15 @@ model TeamBilling {
   subscriptionEnd      DateTime?
 
   billingPeriod     BillingPeriod?
+  billingMode       BillingMode        @default(SEATS)
   pricePerSeat      Int?
   paidSeats         Int?
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
+
+  // High water mark tracking for monthly billing
+  highWaterMark            Int?
+  highWaterMarkPeriodStart DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3022,10 +3074,15 @@ model OrganizationBilling {
   subscriptionEnd      DateTime?
 
   billingPeriod     BillingPeriod?
+  billingMode       BillingMode        @default(SEATS)
   pricePerSeat      Int?
   paidSeats         Int?
   monthlyProrations MonthlyProration[]
   seatChangeLogs    SeatChangeLog[]
+
+  // High water mark tracking for monthly billing
+  highWaterMark            Int?
+  highWaterMarkPeriodStart DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
