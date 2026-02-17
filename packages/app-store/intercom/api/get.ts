@@ -1,12 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { escapeForJsString } from "@calcom/lib/escapeForJsString";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    // Set Content-Type header to text/html
-    res.setHeader("Content-Type", "text/html");
-
     const url = req.query.url as string;
 
     if (!url) return res.status(400).json({ message: "Missing URL in query parameters" });
@@ -36,6 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       calLink = url.replace(`${WEBAPP_URL}/`, "");
     }
+
+    const safeCalLink = escapeForJsString(calLink);
+    const safeOrigin = escapeForJsString(origin);
 
     // Generate HTML with embedded Cal component
     const htmlResponse = `
@@ -80,11 +81,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 };
             })(window, "https://app.cal.com/embed/embed.js", "init");
 
-            Cal("init", { origin: "${origin}" });
+            Cal("init", { origin: "${safeOrigin}" });
 
             Cal("inline", {
               elementOrSelector: "#my-cal-inline",
-              calLink: "${calLink}",
+              calLink: "${safeCalLink}",
               config: {
                 theme: "light",
               },
