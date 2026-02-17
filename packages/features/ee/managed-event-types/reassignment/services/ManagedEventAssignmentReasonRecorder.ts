@@ -28,7 +28,7 @@ export class ManagedEventAssignmentReasonService {
 
   /**
    * Record a managed event reassignment reason
-   * 
+   *
    * @param newBookingId - The ID of the NEW booking created during reassignment
    * @param reassignById - The ID of the user who performed the reassignment
    * @param reassignReason - Optional reason for the reassignment

@@ -32,8 +32,8 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { CopyIcon } from "@coss/ui/icons";
 import {
   SkeletonButton,
   SkeletonContainer,
@@ -47,8 +47,6 @@ import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(ma
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
-
-
 
 const SkeletonLoader = () => {
   return (
@@ -256,10 +254,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
 
   const teamProfileFormSchema = z.object({
     id: z.number(),
-    name: z
-      .string()
-      .trim()
-      .min(1, t("must_enter_team_name")),
+    name: z.string().trim().min(1, t("must_enter_team_name")),
     slug: z
       .string()
       .regex(regex, {
@@ -450,7 +445,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
                   type="button"
                   aria-label="copy team id"
                   onClick={() => handleCopy(teamId.toString())}>
-                  <Icon name="copy" className="ml-1 h-4 w-4" />
+                  <CopyIcon className="ml-1 h-4 w-4" />
                 </Button>
               </Tooltip>
             }

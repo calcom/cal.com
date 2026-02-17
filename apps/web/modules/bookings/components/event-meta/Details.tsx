@@ -110,7 +110,9 @@ export const EventMetaBlock = ({
             ))}
         </>
       )}
-      <div className={classNames("relative z-10 max-w-full wrap-break-word", contentClassName)}>{children}</div>
+      <div className={classNames("relative z-10 max-w-full wrap-break-word", contentClassName)}>
+        {children}
+      </div>
     </div>
   );
 };

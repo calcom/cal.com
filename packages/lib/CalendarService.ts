@@ -243,8 +243,8 @@ export default abstract class BaseCalendarService implements Calendar {
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
       const mainHostDestinationCalendar = event.destinationCalendar
-        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
+        ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0])
         : undefined;
 
       // We create the event directly on iCal

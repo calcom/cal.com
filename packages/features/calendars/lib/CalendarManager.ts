@@ -52,7 +52,8 @@ export const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
   // Zoho Calendar requires at least one attendee, so don't empty attendees array for Zoho Calendar
-  const hasZohoCalendar = calEvent.destinationCalendar?.some((cal) => cal.integration === "zoho_calendar") ?? false;
+  const hasZohoCalendar =
+    calEvent.destinationCalendar?.some((cal) => cal.integration === "zoho_calendar") ?? false;
 
   if (calEvent.hideOrganizerEmail && !isOrganizerExempt && !isMeetLocationType && !hasZohoCalendar) {
     calendarEvent.attendees = [];
@@ -546,6 +547,16 @@ export const deleteEvent = async ({
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
+  if (!bookingRefUid) {
+    log.error(
+      "deleteEvent failed - bookingRefUid is empty, skipping calendar deletion to prevent malformed API request",
+      safeStringify({
+        credential: getPiiFreeCredential(credential),
+        event: getPiiFreeCalendarEvent(event),
+      })
+    );
+    return Promise.resolve({});
+  }
   const calendar = await getCalendar(credential, "booking");
   log.debug(
     "Deleting calendar event",
