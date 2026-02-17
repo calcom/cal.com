@@ -39,7 +39,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { ExchangeAuthentication } from "../enums";
+import { ExchangeAuthentication, ExchangeVersion } from "../enums";
 
 class ExchangeCalendarService implements Calendar {
   private integrationName = "";
@@ -195,7 +195,12 @@ class ExchangeCalendarService implements Calendar {
   }
 
   private async getExchangeService(): Promise<ExchangeService> {
-    const service: ExchangeService = new ExchangeService(this.payload.exchangeVersion);
+    const resolvedExchangeVersion =
+      this.payload.exchangeVersion === ExchangeVersion.Exchange2019
+        ? ExchangeVersion.Exchange2016
+        : this.payload.exchangeVersion;
+
+    const service: ExchangeService = new ExchangeService(resolvedExchangeVersion);
     service.Credentials = new WebCredentials(this.payload.username, this.payload.password);
     service.Url = new Uri(this.payload.url);
     if (this.payload.authenticationMethod === ExchangeAuthentication.NTLM) {
