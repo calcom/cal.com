@@ -13,6 +13,7 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
+import { ZGetGuestAvatarsInputSchema } from "./getGuestAvatars.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 import { ZGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
@@ -91,6 +92,14 @@ export const bookingsRouter = router({
 
     return getBookingDetailsHandler({
       ctx,
+      input,
+    });
+  }),
+
+  getGuestAvatars: authedProcedure.input(ZGetGuestAvatarsInputSchema).query(async ({ input }) => {
+    const { getGuestAvatarsHandler } = await import("./getGuestAvatars.handler");
+
+    return getGuestAvatarsHandler({
       input,
     });
   }),

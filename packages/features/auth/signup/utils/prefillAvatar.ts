@@ -1,9 +1,9 @@
-import fetch from "node-fetch";
-
+import { getAvatarUrlFromAvatarAPI } from "@calcom/features/avatars/getAvatarUrlFromAvatarAPI";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import fetch from "node-fetch";
 
 interface IPrefillAvatar {
   email: string;
@@ -29,7 +29,7 @@ async function downloadImageDataFromUrl(url: string) {
 }
 
 export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
-  const imageUrl = await getImageUrlAvatarAPI(email);
+  const imageUrl = await getAvatarUrlFromAvatarAPI(email);
   if (!imageUrl) return;
 
   const base64Image = await downloadImageDataFromUrl(imageUrl);
@@ -52,50 +52,4 @@ export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
     where: { email: email },
     data,
   });
-};
-
-const getImageUrlAvatarAPI = async (email: string) => {
-  if (!process.env.AVATARAPI_USERNAME || !process.env.AVATARAPI_PASSWORD) {
-    console.info("No avatar api credentials found");
-    return null;
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000);
-
-  try {
-    const response = await fetch("https://avatarapi.com/v2/api.aspx", {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain",
-      },
-      body: JSON.stringify({
-        username: process.env.AVATARAPI_USERNAME,
-        password: process.env.AVATARAPI_PASSWORD,
-        email,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    const info = await response.json();
-
-    if (!info.Success) {
-      if (info.Error === "Not found") {
-        // Expected case: no avatar for this email
-        return null;
-      }
-      console.warn("Avatar API error:", info.Error);
-      return null;
-    }
-    return info.Image as string;
-  } catch (error: unknown) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      console.warn("Avatar API request timed out");
-    } else {
-      console.error("Avatar API request failed:", error);
-    }
-    return null;
-  }
 };
