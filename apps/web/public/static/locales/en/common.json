@@ -9,6 +9,7 @@
   "upgrade_now": "Upgrade now",
   "untitled": "Untitled",
   "accept_invitation": "Accept invitation",
+  "invalid_characters_in_name": "Only letters, numbers, spaces, and supported punctuation are allowed.",
   "max_characters": "Max. characters",
   "min_characters": "Min. characters",
   "min_characters_required": "Min. {{count}} characters required",
