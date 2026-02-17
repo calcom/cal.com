@@ -19,6 +19,8 @@ const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"]
  */
 export async function handleBookingRequested(args: {
   evt: CalendarEvent;
+  /** When booking is from a platform/OAuth client, pass so platform webhook subscribers are notified */
+  oAuthClientId?: string | null;
   booking: {
     smsReminderNumber: string | null;
     eventType: {
@@ -54,7 +56,7 @@ export async function handleBookingRequested(args: {
     id: number;
   };
 }) {
-  const { evt, booking } = args;
+  const { evt, booking, oAuthClientId } = args;
 
   log.debug("Emails: Sending booking requested emails");
 
@@ -75,6 +77,8 @@ export async function handleBookingRequested(args: {
       log.error("Cannot queue BOOKING_REQUESTED webhook: missing booking uid");
     } else {
       try {
+        // Keep params in sync with RegularBookingService (non-payment path) so
+        // subscriber filtering (userId, eventTypeId, teamId, orgId, oAuthClientId) is consistent.
         const webhookProducer = getWebhookProducer();
         await webhookProducer.queueBookingRequestedWebhook({
           bookingUid: evt.uid,
@@ -82,6 +86,7 @@ export async function handleBookingRequested(args: {
           eventTypeId: booking.eventTypeId ?? undefined,
           teamId: booking.eventType?.teamId ?? undefined,
           orgId,
+          oAuthClientId: oAuthClientId ?? undefined,
         });
       } catch (error) {
         log.error("Error queueing BOOKING_REQUESTED webhook", safeStringify(error));

@@ -1,14 +1,14 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { PayloadBuilderFactory } from "../../../factory/versioned/PayloadBuilderFactory";
+import { createPayloadBuilderFactory } from "../../../factory/versioned/registry";
 import type { IWebhookDataFetcher } from "../../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../../interface/IWebhookRepository";
 import type { ILogger } from "../../../interface/infrastructure";
 import type { IWebhookService } from "../../../interface/services";
-import type { PayloadBuilderFactory } from "../../../factory/versioned/PayloadBuilderFactory";
-import type { BookingWebhookTaskPayload } from "../../../types/webhookTask";
 import { WebhookTaskConsumer } from "../../../service/WebhookTaskConsumer";
+import type { BookingWebhookTaskPayload } from "../../../types/webhookTask";
 
 /**
  * BOOKING_REQUESTED Trigger Tests
@@ -443,6 +443,53 @@ describe("BOOKING_REQUESTED Trigger", () => {
         })
       );
       expect(mockWebhookService.processWebhooks).toHaveBeenCalled();
+    });
+  });
+
+  describe("Integration: real PayloadBuilder (legacy shape)", () => {
+    const realPayloadBuilderFactory = createPayloadBuilderFactory();
+
+    it("metadata.videoCallUrl is absent when task payload has no metadata (documents consumer-path behaviour)", async () => {
+      const payload: BookingWebhookTaskPayload = {
+        operationId: "op-no-metadata",
+        triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+        bookingUid: "booking-uid-123",
+        eventTypeId: 456,
+        userId: 789,
+        timestamp: new Date().toISOString(),
+        // Intentionally no metadata (or metadata: {}) so videoCallUrl is not supplied
+      };
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
+        {
+          id: "sub-1",
+          subscriberUrl: "https://example.com/webhook",
+          payloadTemplate: null,
+          appId: null,
+          secret: "secret",
+          time: null,
+          timeUnit: null,
+          eventTriggers: [WebhookTriggerEvents.BOOKING_REQUESTED],
+          version: WebhookVersion.V_2021_10_20,
+        },
+      ]);
+
+      const consumerWithRealBuilder = new WebhookTaskConsumer(
+        mockWebhookRepository,
+        [mockBookingDataFetcher],
+        realPayloadBuilderFactory,
+        mockWebhookService,
+        mockLogger
+      );
+
+      await consumerWithRealBuilder.processWebhookTask(payload, "task-real-builder");
+
+      expect(mockWebhookService.processWebhooks).toHaveBeenCalled();
+
+      const [, webhookPayload] = vi.mocked(mockWebhookService.processWebhooks).mock.calls[0];
+      const payloadPayload = (webhookPayload as { payload: Record<string, unknown> }).payload;
+
+      expect(payloadPayload.metadata?.videoCallUrl).toBeUndefined();
     });
   });
 });
