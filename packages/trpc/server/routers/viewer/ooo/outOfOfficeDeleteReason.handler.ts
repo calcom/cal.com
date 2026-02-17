@@ -21,7 +21,7 @@ export const outOfOfficeDeleteReason = async ({ ctx, input }: DeleteOptions) => 
 
     if(existingOutOfOfficeEntryWithCustomReason.length > 0) {
       throw new TRPCError({
-        code: "CONFLICT",
+        code: "BAD_REQUEST",
         message: "Your custom reason already in use",
       });
     }

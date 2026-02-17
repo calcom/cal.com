@@ -135,17 +135,17 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const deleteCustomReason = trpc.viewer.ooo.outOfOfficeDeleteReason.useMutation({
     onSuccess: (_data, variables) => {
-    showToast(t("custom_reason_deleted"), "success");
+      showToast(t("custom_reason_deleted"), "success");
 
-    const currentReasonId = getValues("reasonId");
-    
-    if (currentReasonId === variables.id) {
+      const currentReasonId = getValues("reasonId");
+
+      if (currentReasonId === variables.id) {
       const fallbackReason = reasonList.find((r) => !r.isCustom);
-      setValue("reasonId", fallbackReason?.value ?? 1);
-    }
+        setValue("reasonId", fallbackReason?.value ?? 1);
+      }
     
     utils.viewer.ooo.outOfOfficeReasonList.invalidate();
-  },
+    },
     onError: (error) => {
       showToast(t(error.message), "error");
     },
@@ -188,14 +188,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         },
   });
 
-  const watchedTeamUserId = watch("toTeamUserId");
-  const watchForUserId = watch("forUserId");
   const watchedDateRange = watch("dateRange");
   const watchedNotes = watch("notes");
   const hasValidNotes = Boolean(watchedNotes?.trim());
-
-  // @see: https://stackoverflow.com/a/64034562
-  const emojiPattern = /^\p{Extended_Pictographic}$/u;
+  // below pattern covers common emoji ranges
+  const emojiPattern = /^(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])+$/;
 
   // Fetch user's holiday settings to show warning if OOO dates overlap with holidays
   const { data: holidaySettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
@@ -392,9 +389,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Input
                           value={customEmoji}
                           onChange={(e) => {
-                             const value = e.target.value;
-                             if (!emojiPattern.test(value)) return;
-                             setCustomEmoji(value);
+                            const value = e.target.value;
+                            if (!emojiPattern.test(value)) return;
+                            setCustomEmoji(value);
                           }}
                           maxLength={10}
                           minLength={1}

@@ -52,7 +52,7 @@ describe("outOfOfficeDeleteReason", () => {
     expect(result).toEqual({ success: true });
   });
 
-  it("should throw CONFLICT error if reason is already in use", async () => {
+  it("should throw BAD_REQUEST error if reason is already in use", async () => {
     const input = {
       id: 5,
     };
