@@ -50,7 +50,7 @@ type EditLocationOptions = {
 };
 
 type UserMetadata = z.infer<typeof userMetadata>;
-const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
+const log = logger.getSubLogger({ prefix: ["editLocationHandler"] });
 
 async function updateLocationInConnectedAppForBooking({
   evt,
