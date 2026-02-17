@@ -5,8 +5,15 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CommandIcon,
+  CornerDownLeftIcon,
+  ExternalLinkIcon,
+  SearchIcon,
+} from "@coss/ui/icons";
 import type { Action } from "kbar";
 import {
   KBarAnimator,
@@ -317,7 +324,7 @@ const KBarRoot = ({ children }: { children: ReactNode }): JSX.Element => {
 
 function CommandKey(): JSX.Element {
   if (isMac) {
-    return <Icon name="command" className="h-3 w-3" />;
+    return <CommandIcon className="h-3 w-3" />;
   }
   return <>CTRL</>;
 }
@@ -330,7 +337,7 @@ const KBarContent = (): JSX.Element => {
       <KBarPositioner className="overflow-scroll">
         <KBarAnimator className="z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md bg-default shadow-lg">
           <div className="flex items-center justify-center border-subtle border-b">
-            <Icon name="search" className="mx-3 h-4 w-4 text-default" />
+            <SearchIcon className="mx-3 h-4 w-4 text-default" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
               className="w-full rounded-sm border-0 bg-default px-0 py-2.5 text-default placeholder:text-subtle focus:ring-0 focus-visible:outline-none"
@@ -338,9 +345,9 @@ const KBarContent = (): JSX.Element => {
           </div>
           <RenderResults />
           <div className="hidden items-center space-x-1 border-subtle border-t px-2 py-1.5 text-subtle text-xs sm:flex">
-            <Icon name="arrow-up" className="h-4 w-4" />
-            <Icon name="arrow-down" className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
-            <Icon name="corner-down-left" className="h-4 w-4" />
+            <ArrowUpIcon className="h-4 w-4" />
+            <ArrowDownIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+            <CornerDownLeftIcon className="h-4 w-4" />
             <span className="pr-2">{t("open")}</span>
             <CommandKey />
             <span className="pr-1">+ K </span>
@@ -373,7 +380,7 @@ const KBarTrigger = (): JSX.Element | null => {
         color="minimal"
         onClick={query.toggle}
         className="todesktop:hover:!bg-transparent group flex rounded-md px-3 py-2 font-medium text-default text-sm transition hover:bg-subtle lg:px-2 lg:hover:bg-emphasis lg:hover:text-emphasis">
-        <Icon name="search" className="h-4 w-4 shrink-0 text-inherit" />
+        <SearchIcon className="h-4 w-4 shrink-0 text-inherit" />
       </button>
     </Tooltip>
   );
@@ -449,7 +456,7 @@ function NoResultsFound({ searchQuery }: { searchQuery: string }): JSX.Element {
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 text-emphasis text-sm transition hover:text-default">
-        <Icon name="external-link" className="h-4 w-4" />
+        <ExternalLinkIcon className="h-4 w-4" />
         {t("kbar_search_help_desk_prefix")} <span className="underline">&quot;{searchQuery}&quot;</span>{" "}
         {t("kbar_search_help_desk_suffix")}
       </a>
