@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -12,9 +11,9 @@ import { appKeysSchema } from "../zod";
 
 const log = logger.getSubLogger({ prefix: ["[bigbluebutton]"] });
 
+/** @link https://docs.bigbluebutton.org/development/api#api-security-model */
 function generateChecksum(apiCall: string, queryString: string, secret: string): string {
-  const stringToHash = `${apiCall}${queryString}${secret}`;
-  return crypto.createHash("sha256").update(stringToHash).digest("hex");
+  return crypto.createHash("sha256").update(`${apiCall}${queryString}${secret}`).digest("hex");
 }
 
 function buildApiUrl(
@@ -25,8 +24,8 @@ function buildApiUrl(
 ): string {
   const queryString = new URLSearchParams(params).toString();
   const checksum = generateChecksum(apiCall, queryString, secret);
-  const normalizedUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-  return `${normalizedUrl}/api/${apiCall}?${queryString}&checksum=${checksum}`;
+  const normalizedUrl = baseUrl.replace(/\/+$/, "");
+  return `${normalizedUrl}/bigbluebutton/api/${apiCall}?${queryString}&checksum=${checksum}`;
 }
 
 async function getAppKeys() {
@@ -43,9 +42,9 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
     createMeeting: async (eventData: CalendarEvent): Promise<VideoCallData> => {
       const { bbbUrl, bbbSecret } = await getAppKeys();
 
-      const meetingId = uuidv4();
-      const attendeePW = uuidv4().replace(/-/g, "").substring(0, 16);
-      const moderatorPW = uuidv4().replace(/-/g, "").substring(0, 16);
+      const meetingId = crypto.randomUUID();
+      const attendeePW = crypto.randomUUID().replace(/-/g, "").substring(0, 16);
+      const moderatorPW = crypto.randomUUID().replace(/-/g, "").substring(0, 16);
 
       const createParams: Record<string, string> = {
         name: eventData.title,
@@ -70,12 +69,12 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         throw error;
       }
 
-      // Build a join URL for the organizer with moderator privileges
       const organizerName = eventData.organizer.name || "Organizer";
       const joinParams: Record<string, string> = {
         meetingID: meetingId,
         fullName: organizerName,
         password: moderatorPW,
+        role: "MODERATOR",
       };
       const joinUrl = buildApiUrl(bbbUrl, "join", joinParams, bbbSecret);
 
@@ -87,14 +86,22 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       };
     },
 
-    // BBB meetings auto-terminate when all participants leave.
-    // The end API requires the moderator password which is not available here,
-    // so we gracefully skip forced termination.
-    deleteMeeting: async (): Promise<void> => {
-      Promise.resolve();
+    deleteMeeting: async (uid: string): Promise<void> => {
+      try {
+        const { bbbUrl, bbbSecret } = await getAppKeys();
+        const endParams: Record<string, string> = {
+          meetingID: uid,
+        };
+        const endUrl = buildApiUrl(bbbUrl, "end", endParams, bbbSecret);
+        await fetch(endUrl);
+      } catch (error) {
+        // BBB meetings auto-terminate when all participants leave,
+        // so failing to end explicitly is not critical
+        log.warn("BigBlueButton end meeting failed (meeting may have already ended)", { error });
+      }
     },
 
-    updateMeeting: (bookingRef: PartialReference): Promise<VideoCallData> => {
+    updateMeeting: (bookingRef: PartialReference, _event: CalendarEvent): Promise<VideoCallData> => {
       return Promise.resolve({
         type: metadata.type,
         id: bookingRef.meetingId as string,
