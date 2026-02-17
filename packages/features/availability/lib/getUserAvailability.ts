@@ -659,11 +659,9 @@ export class UserAvailabilityService {
 
   getUserAvailability = withReporting(this._getUserAvailability.bind(this), "getUserAvailability");
 
-  getPeriodStartDatesBetween = withReporting(
-    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string) =>
-      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone),
-    "getPeriodStartDatesBetween"
-  );
+  getPeriodStartDatesBetween(dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string) {
+    return getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone);
+  }
 
   calculateOutOfOfficeRanges(
     outOfOfficeDays: GetUserAvailabilityInitialData["outOfOfficeDays"],
