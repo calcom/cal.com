@@ -16,7 +16,7 @@ import type {
 let RetellSDKClient: typeof import("./RetellSDKClient").RetellSDKClient;
 
 vi.mock("retell-sdk", () => ({
-  Retell: vi.fn().mockImplementation(function() {
+  Retell: vi.fn().mockImplementation(function () {
     return {
       llm: {
         create: vi.fn(),
@@ -109,7 +109,9 @@ describe("RetellSDKClient", () => {
       },
     };
 
-    (Retell as any).mockImplementation(function() { return mockRetellInstance; });
+    (Retell as any).mockImplementation(function () {
+      return mockRetellInstance;
+    });
   });
 
   describe("constructor", () => {

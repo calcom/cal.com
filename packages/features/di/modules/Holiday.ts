@@ -14,4 +14,3 @@ export const moduleLoader = {
     container.load(moduleToken, holidayRepositoryModule);
   },
 };
-

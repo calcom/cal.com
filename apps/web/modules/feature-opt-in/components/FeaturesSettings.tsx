@@ -5,8 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { SettingsToggle, ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { CircleAlertIcon, CircleCheckIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { ReactElement } from "react";
 import { useMemo } from "react";
@@ -105,14 +105,14 @@ function FeatureItem({
             {blockedWarning && (
               <Tooltip side="top" content={blockedWarning}>
                 <span>
-                  <Icon name="circle-alert" className="text-error ml-1 h-4 w-4" />
+                  <CircleAlertIcon className="text-error ml-1 h-4 w-4" />
                 </span>
               </Tooltip>
             )}
             {enabledViaAutoOptInFlag && (
               <Tooltip side="top" content={t("enabled_via_auto_opt_in")}>
                 <span>
-                  <Icon name="circle-check" className="text-success ml-1 h-4 w-4" />
+                  <CircleCheckIcon className="text-success ml-1 h-4 w-4" />
                 </span>
               </Tooltip>
             )}

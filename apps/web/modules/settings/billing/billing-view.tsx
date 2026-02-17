@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { showToast } from "@calcom/ui/components/toast";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { ActiveUserBreakdown } from "~/settings/billing/components/ActiveUserBreakdown";
 import BillingCredits from "~/settings/billing/components/BillingCredits";
 import { InvoicesTable } from "~/settings/billing/components/InvoicesTable";
 
@@ -51,25 +52,21 @@ const BillingView = () => {
   const [showSkipTrialDialog, setShowSkipTrialDialog] = useState(false);
   const utils = trpc.useUtils();
 
-  // Determine the billing context and extract appropriate team/org ID
-  const getTeamIdFromContext = () => {
+  const teamIdNumber = useMemo(() => {
     if (!pathname) return null;
 
-    // Team billing: /settings/teams/{id}/billing
     if (pathname.includes("/teams/") && pathname.includes("/billing")) {
       const teamIdMatch = pathname.match(/\/teams\/(\d+)\/billing/);
-      return teamIdMatch ? teamIdMatch[1] : null;
+      return teamIdMatch ? parseInt(teamIdMatch[1], 10) : null;
     }
 
-    // Organization billing: /settings/organizations/billing
     if (pathname.includes("/organizations/billing")) {
       const orgId = session.data?.user?.org?.id;
-      return typeof orgId === "number" ? orgId.toString() : null;
+      return typeof orgId === "number" ? orgId : null;
     }
-  };
 
-  const teamId = getTeamIdFromContext();
-  const teamIdNumber = teamId ? parseInt(teamId, 10) : null;
+    return null;
+  }, [pathname, session.data?.user?.org?.id]);
 
   const { data: subscriptionStatus, isLoading: isLoadingStatus } =
     trpc.viewer.teams.getSubscriptionStatus.useQuery(
@@ -91,8 +88,8 @@ const BillingView = () => {
     },
   });
 
-  const billingHref = teamId
-    ? `/api/integrations/stripepayment/portal?teamId=${teamId}&returnTo=${WEBAPP_URL}${returnTo}`
+  const billingHref = teamIdNumber
+    ? `/api/integrations/stripepayment/portal?teamId=${teamIdNumber}&returnTo=${WEBAPP_URL}${returnTo}`
     : `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
@@ -146,6 +143,9 @@ const BillingView = () => {
         </div>
       </div>
       <BillingCredits />
+      {teamIdNumber && subscriptionStatus?.billingMode === "ACTIVE_USERS" && (
+        <ActiveUserBreakdown teamId={teamIdNumber} />
+      )}
       <InvoicesTable />
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
