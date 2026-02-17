@@ -764,36 +764,11 @@ async function seedPerHostLocationsInAcmeOrg() {
     },
   });
 
-  const zoomApp = await prisma.app.findUnique({ where: { slug: "zoom" } });
-  const zoomCredential = zoomApp
-    ? await prisma.credential.create({
-        data: {
-          type: "zoom_video",
-          key: { access_token: "MOCK_ZOOM_ACCESS_TOKEN", token_type: "bearer" },
-          appId: "zoom",
-          userId: owner.id,
-        },
-      })
-    : null;
-
-  const googleMeetApp = await prisma.app.findUnique({ where: { slug: "google-meet" } });
-  const googleMeetCredential = googleMeetApp
-    ? await prisma.credential.create({
-        data: {
-          type: "google_video",
-          key: { access_token: "MOCK_GOOGLE_ACCESS_TOKEN", token_type: "bearer" },
-          appId: "google-meet",
-          userId: member0.id,
-        },
-      })
-    : null;
-
   await prisma.hostLocation.create({
     data: {
       userId: owner.id,
       eventTypeId: eventType.id,
-      type: "integrations:zoom",
-      ...(zoomCredential ? { credentialId: zoomCredential.id } : {}),
+      type: "integrations:daily",
     },
   });
 
@@ -801,8 +776,8 @@ async function seedPerHostLocationsInAcmeOrg() {
     data: {
       userId: member0.id,
       eventTypeId: eventType.id,
-      type: "integrations:google:meet",
-      ...(googleMeetCredential ? { credentialId: googleMeetCredential.id } : {}),
+      type: "link",
+      link: "https://example.com/meet",
     },
   });
 
@@ -810,13 +785,14 @@ async function seedPerHostLocationsInAcmeOrg() {
     data: {
       userId: member2.id,
       eventTypeId: eventType.id,
-      type: "integrations:daily",
+      type: "userPhone",
+      phoneNumber: "+1234567890",
     },
   });
 
   console.log(
-    `🏠 Seeded per-host locations in Acme Org for event "${eventType.slug}" (id=${eventType.id}): ` +
-      `owner1→Zoom, member0→Google Meet, member2→Daily Video (Cal Video)`
+    `Seeded per-host locations in Acme Org for event "${eventType.slug}" (id=${eventType.id}): ` +
+      `owner1->Cal Video, member0->Link, member2->Phone`
   );
 }
 
