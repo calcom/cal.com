@@ -1549,6 +1549,8 @@
   "new_guests_added": "Added - New guests added to your event",
   "location_changed_event_type_subject": "Location Changed: {{eventType}} with {{name}} at {{date}}",
   "guests_added_event_type_subject": "Guests Added: {{eventType}} with {{name}} at {{date}}",
+  "new_attendee_added": "Added - New attendee added to your event",
+  "attendee_added_event_type_subject": "Attendee Added: {{eventType}} with {{name}} at {{date}}",
   "current_location": "Current location",
   "new_location": "New location",
   "session": "Session",

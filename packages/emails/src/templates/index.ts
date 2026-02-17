@@ -29,6 +29,7 @@ export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";
 export { OrganisationAccountVerifyEmail } from "./OrganizationAccountVerifyEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
+export { OrganizerAddAttendeeEmail } from "./OrganizerAddAttendeeEmail";
 export { OrganizerAddGuestsEmail } from "./OrganizerAddGuestsEmail";
 export { OrganizerAttendeeCancelledSeatEmail } from "./OrganizerAttendeeCancelledSeatEmail";
 export { OrganizerCancelledEmail } from "./OrganizerCancelledEmail";
