@@ -64,8 +64,8 @@ export class BookingAccessService {
     const booking = bookingUid
       ? await bookingRepo.findByUidIncludeEventType({ bookingUid })
       : bookingId
-      ? await bookingRepo.findByIdIncludeEventType({ bookingId })
-      : null;
+        ? await bookingRepo.findByIdIncludeEventType({ bookingId })
+        : null;
 
     if (!booking) return false;
 

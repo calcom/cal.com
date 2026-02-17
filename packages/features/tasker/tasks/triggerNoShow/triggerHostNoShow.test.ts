@@ -33,6 +33,12 @@ vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () 
   }),
 }));
 
+vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
+  getFeaturesRepository: vi.fn().mockReturnValue({
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+  }),
+}));
+
 const timeout = process.env.CI ? 5000 : 20000;
 
 const EMPTY_MEETING_SESSIONS = {
@@ -64,6 +70,7 @@ type ExpectNoShowAuditParams = {
       };
     }>;
   };
+  isBookingAuditEnabled: boolean;
 };
 
 function expectNoShowAuditToBeDone(expected: ExpectNoShowAuditParams): void {
@@ -224,6 +231,7 @@ describe("Trigger Host No Show:", () => {
         auditData: {
           host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -401,6 +409,7 @@ describe("Trigger Host No Show:", () => {
         auditData: {
           host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -618,6 +627,7 @@ describe("Trigger Host No Show:", () => {
         auditData: {
           host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -782,6 +792,7 @@ describe("Trigger Host No Show:", () => {
         auditData: {
           host: { userUuid: expect.any(String), noShow: { old: false, new: true } },
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout

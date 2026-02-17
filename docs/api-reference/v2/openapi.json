@@ -9326,6 +9326,73 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/by-seat/{seatUid}": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingBySeatUid",
+        "summary": "Get a booking by seat UID",
+        "description": "Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.\n\n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "seatUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/bookings/{bookingUid}": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBooking",
@@ -11593,6 +11660,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11619,6 +11694,14 @@
             "in": "header",
             "description": "OAuth client secret key",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
             }
@@ -12392,6 +12475,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -12417,6 +12508,14 @@
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
             }
@@ -15351,6 +15450,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -15376,6 +15483,14 @@
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
             }
@@ -16662,6 +16777,14 @@
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
             }
