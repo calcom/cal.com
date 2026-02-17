@@ -41,5 +41,7 @@
 # Exclude test files from requiring foundation/consumer approval
 **/*.spec.*
 **/*.e2e.*
+**/*.e2e-spec.*
 **/*.test.*
+**/*.test-suite.*
 **/*.integration-test.*
