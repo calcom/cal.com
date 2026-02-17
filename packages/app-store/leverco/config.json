@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Lever.co",
+  "title": "Lever.co",
+  "slug": "leverco",
+  "type": "leverco_crm",
+  "logo": "icon.svg",
+  "url": "https://www.lever.co",
+  "variant": "crm",
+  "categories": ["crm"],
+  "publisher": "Cal.com, Inc.",
+  "extendsFeature": "EventType",
+  "email": "help@cal.com",
+  "description": "Lever is a leading talent acquisition suite that makes it easy for talent teams to reach their hiring goals and to connect companies with top talent.",
+  "__createdUsingCli": true,
+  "isOAuth": true,
+  "dirName": "leverco"
+}

@@ -5,6 +5,7 @@
 export const CrmServiceMap = {
   closecom: import("./closecom/lib/CrmService"),
   hubspot: import("./hubspot/lib/CrmService"),
+  leverco: import("./leverco/lib/CrmService"),
   "pipedrive-crm": import("./pipedrive-crm/lib/CrmService"),
   salesforce: import("./salesforce/lib/CrmService"),
   "zoho-bigin": import("./zoho-bigin/lib/CrmService"),

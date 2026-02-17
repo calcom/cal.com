@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/leverco",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Lever is a leading talent acquisition suite that makes it easy for talent teams to reach their hiring goals and to connect companies with top talent.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}
