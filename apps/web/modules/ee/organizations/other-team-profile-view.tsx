@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -273,9 +272,9 @@ const OtherTeamProfileView = () => {
                 )}
               </div>
               <div className="">
-                <Link href={permalink} target="_blank" rel="noopener noreferrer">
-                  <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
-                </Link>
+                <LinkIconButton href={permalink} target="_blank" rel="noopener noreferrer" Icon="external-link">
+                  {t("preview")}
+                </LinkIconButton>
                 <LinkIconButton
                   Icon="link"
                   onClick={() => {
