@@ -7,6 +7,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { EmailField as EmailWidget } from "@calcom/ui/components/form";
+import { MultiEmail } from "@calcom/ui/components/address/MultiEmail";
 
 import widgetsComponents from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
@@ -27,6 +28,11 @@ const {
   MultiSelectWidget,
   SelectWidget,
   NumberWidget,
+  AddressWidget,
+  UrlWidget,
+  RadioWidget,
+  CheckboxWidget,
+  BooleanWidget,
   FieldSelect,
   Conjs,
   Button,
@@ -37,6 +43,29 @@ const {
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
 const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(props, TextAreaWidget);
 const NumberFactory = (props: WidgetProps | undefined) => renderComponent(props, NumberWidget);
+const AddressFactory = (props: WidgetProps | undefined) => renderComponent(props, AddressWidget);
+const UrlFactory = (props: WidgetProps | undefined) => renderComponent(props, UrlWidget);
+const MultiEmailFactory = (props: WidgetProps | undefined) => {
+  if (!props) {
+    return <div />;
+  }
+  return <MultiEmail label="" {...props} />;
+};
+const RadioGroupFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, RadioWidget);
+const CheckboxFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, CheckboxWidget);
+const BooleanFactory = (props: WidgetProps | undefined) => renderComponent(props, BooleanWidget);
 const MultiSelectFactory = (
   props:
     | (SelectWidgetProps & {
@@ -110,6 +139,30 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     email: {
       ...widgets.text,
       factory: EmailFactory,
+    },
+    url: {
+      ...widgets.text,
+      factory: UrlFactory,
+    },
+    address: {
+      ...widgets.text,
+      factory: AddressFactory,
+    },
+    multiemail: {
+      ...widgets.text,
+      factory: MultiEmailFactory,
+    },
+    radio: {
+      ...widgets.radio,
+      factory: RadioGroupFactory,
+    } as SelectWidgetType,
+    checkbox: {
+      ...widgets.checkbox,
+      factory: CheckboxFactory,
+    } as SelectWidgetType,
+    boolean: {
+      ...widgets.text,
+      factory: BooleanFactory,
     },
   };
   return widgetsWithFactory;

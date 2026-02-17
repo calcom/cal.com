@@ -12,9 +12,11 @@ import type {
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/components/form";
+import { CheckboxField, TextArea } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { AddressInput } from "@calcom/ui/components/address/AddressInput";
 import { Icon } from "@calcom/ui/components/icon";
+import { Group, RadioField } from "@calcom/ui/components/radio/Radio";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -368,6 +370,116 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
+function AddressWidget(props: TextLikeComponentPropsRAQB) {
+  const { value, setValue, readOnly, placeholder, ...remainingProps } = props;
+  return (
+    <AddressInput
+      value={value || ""}
+      placeholder={placeholder}
+      required={false}
+      onChange={(val: string) => {
+        setValue(val);
+      }}
+      className="mb-2"
+      {...remainingProps}
+    />
+  );
+}
+
+function UrlWidget(props: TextLikeComponentPropsRAQB) {
+  return <TextWidget type="url" {...props} />;
+}
+
+function RadioWidget({ listValues, value, setValue, name, ...remainingProps }: SelectLikeComponentPropsRAQB) {
+  if (!listValues) {
+    return null;
+  }
+  const selectItems = listValues.map((item) => ({
+    label: item.title,
+    value: item.value,
+  }));
+
+  return (
+    <Group
+      disabled={remainingProps.readOnly}
+      value={value || ""}
+      onValueChange={(val) => {
+        if (!val) return;
+        setValue(val);
+      }}>
+      <>
+        {selectItems.map((option, i) => (
+          <RadioField
+            label={option.label}
+            key={`option.${i}.radio`}
+            value={option.value}
+            id={`${name}.option.${i}.radio`}
+          />
+        ))}
+      </>
+    </Group>
+  );
+}
+
+function CheckboxWidget({
+  listValues,
+  value,
+  setValue,
+  ...remainingProps
+}: SelectLikeComponentPropsRAQB<string[]>) {
+  if (!listValues) {
+    return null;
+  }
+  const selectItems = listValues.map((item) => ({
+    label: item.title,
+    value: item.value,
+  }));
+
+  const selectedValues = value || [];
+
+  return (
+    <div className="mb-2">
+      {selectItems.map((option, i) => (
+        <label key={i} className="flex items-center space-x-2 py-1">
+          <input
+            type="checkbox"
+            disabled={remainingProps.readOnly}
+            onChange={(e) => {
+              const newValue = selectedValues.filter((v) => v !== option.value);
+              if (e.target.checked) {
+                newValue.push(option.value);
+              }
+              setValue(newValue);
+            }}
+            className="border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
+            value={option.value}
+            checked={selectedValues.includes(option.value)}
+          />
+          <span className="text-emphasis text-sm">{option.label}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function BooleanWidget({ name, label, value, setValue, readOnly }: TextLikeComponentPropsRAQB<boolean>) {
+  return (
+    <div className="mb-2 flex">
+      <CheckboxField
+        name={name}
+        onChange={(e) => {
+          setValue(e.target.checked);
+        }}
+        placeholder=""
+        checked={!!value}
+        disabled={readOnly}
+        description=""
+        descriptionAsSafeHtml={label ?? ""}
+      />
+    </div>
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -376,6 +488,11 @@ const widgets = {
   SelectWidget,
   NumberWidget,
   MultiSelectWidget,
+  AddressWidget,
+  UrlWidget,
+  RadioWidget,
+  CheckboxWidget,
+  BooleanWidget,
   FieldSelect,
   Button,
   ButtonGroup,

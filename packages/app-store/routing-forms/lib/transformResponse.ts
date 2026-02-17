@@ -69,6 +69,17 @@ export function getFieldResponseForJsonLogic({
     }
     return value;
   }
+  if (field.type === "checkbox") {
+    // Checkbox group works like multiselect
+    let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
+
+    valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => {
+      return transformSelectValue({ field, idOrLabel });
+    });
+
+    return valueOrLabelArray;
+  }
+
   if (field.type === "multiselect") {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
@@ -78,6 +89,17 @@ export function getFieldResponseForJsonLogic({
     });
 
     return valueOrLabelArray;
+  }
+
+  if (field.type === "radio") {
+    // Radio group works like select
+    const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
+    const valueAsString =
+      valueAsStringOrStringArray instanceof Array
+        ? valueAsStringOrStringArray[0]
+        : valueAsStringOrStringArray;
+
+    return transformSelectValue({ field, idOrLabel: valueAsString });
   }
 
   if (field.type === "select") {

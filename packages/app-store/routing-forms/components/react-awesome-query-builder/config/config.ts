@@ -15,6 +15,24 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    url: {
+      ...BasicConfig.widgets.text,
+    },
+    address: {
+      ...BasicConfig.widgets.text,
+    },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+    },
+    radio: {
+      ...BasicConfig.widgets.select,
+    },
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    boolean: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }
@@ -37,6 +55,42 @@ function getTypes(configFor: ConfigFor) {
       },
     },
     email: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    multiemail: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
+      },
+    },
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+      },
+    },
+    boolean: {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
