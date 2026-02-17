@@ -1,8 +1,13 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Request } from "express";
-
 import type { Team } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
+import { Request } from "express";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 
 @Injectable()
 export class IsUserInOrgTeam implements CanActivate {
@@ -26,11 +31,29 @@ export class IsUserInOrgTeam implements CanActivate {
       throw new ForbiddenException("IsUserInOrgTeam - No team id found in request params.");
     }
 
-    const user = await this.organizationsRepository.findOrgTeamUser(
-      Number(orgId),
-      Number(teamId),
-      Number(userId)
-    );
+    const parsedOrgId = Number(orgId);
+    const parsedTeamId = Number(teamId);
+    const parsedUserId = Number(userId);
+
+    if (!Number.isInteger(parsedOrgId) || parsedOrgId < 1) {
+      throw new BadRequestException(
+        `IsUserInOrgTeam - Invalid orgId: '${orgId}' is not a valid number. Please provide a number that is larger than 0.`
+      );
+    }
+
+    if (!Number.isInteger(parsedTeamId) || parsedTeamId < 1) {
+      throw new BadRequestException(
+        `IsUserInOrgTeam - Invalid teamId: '${teamId}' is not a valid number. Please provide a number that is larger than 0.`
+      );
+    }
+
+    if (!Number.isInteger(parsedUserId) || parsedUserId < 1) {
+      throw new BadRequestException(
+        `IsUserInOrgTeam - Invalid userId: '${userId}' is not a valid number. Please provide a number that is larger than 0.`
+      );
+    }
+
+    const user = await this.organizationsRepository.findOrgTeamUser(parsedOrgId, parsedTeamId, parsedUserId);
 
     if (user) {
       request.user = user;
