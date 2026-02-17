@@ -3252,6 +3252,7 @@
   "custom_reason_deleted": "Custom reason deleted successfully",
   "custom_reason_limit_note": "note: reason must be short, within 50 chars",
   "show_note_publicly_description": "Show note on public booking page",
+  "show_note_and_custom_reason_publicly_description": "Show note and custom reason on public booking page",
   "create_an_out_of_office": "Go Out of Office",
   "edit_an_out_of_office": "Edit Out of Office Entry",
   "host_no_show": "Your host didn't show up",

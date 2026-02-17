@@ -11,10 +11,21 @@ type DeleteOptions = {
 };
 
 export const outOfOfficeDeleteReason = async ({ ctx, input }: DeleteOptions) => {
-  // safe to hard delete than toggling the "enabled" column.
-  // If some OOO is already using it, it will then show a default data. 
-  // First checking if it's getting used or not will cause one extra call to db. Not really worth it.
   try {
+    const existingOutOfOfficeEntryWithCustomReason = await prisma.outOfOfficeEntry.findMany({
+      where: {
+        reasonId: input.id,
+        userId: ctx.user.id,
+      }
+    })
+
+    if(existingOutOfOfficeEntryWithCustomReason.length > 0) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "Your custom reason already in use",
+      });
+    }
+
     await prisma.outOfOfficeReason.delete({
       where: {
         id: input.id,
@@ -24,9 +35,13 @@ export const outOfOfficeDeleteReason = async ({ ctx, input }: DeleteOptions) => 
 
     return { success: true };
   } catch (error) {
+    let errorMessage = "Failed to delete custom reason."
+    if(error instanceof Error){
+      errorMessage = error.message;
+    }
     throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Failed to delete custom reason.",
-      });
+        code: "BAD_REQUEST",
+        message: errorMessage,
+    });
   }
 };

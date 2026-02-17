@@ -1,19 +1,40 @@
-import prisma from "@calcom/prisma";
 import type { OutOfOfficeReason } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { outOfOfficeCreateReason } from "./outOfOfficeCreateReason.handler";
 
+const mocks = vi.hoisted(() => {
+  return {
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    getTranslation: vi.fn(),
+  };
+});
+
 vi.mock("@calcom/prisma", () => {
   return {
     default: {
       outOfOfficeReason: {
-        findFirst: vi.fn(),
-        create: vi.fn(),
+        findFirst: mocks.findFirst,
+        findMany: mocks.findMany,
+        create: mocks.create,
       },
     },
   };
 });
+
+const mockTranslations: Record<string, string> = {
+  ooo_reasons_vacation: "Vacation",
+  ooo_reasons_travel: "Travel",
+  ooo_reasons_sick_leave: "Sick leave",
+  ooo_reasons_public_holiday: "Public holiday",
+  ooo_reasons_unspecified: "Unspecified",
+};
+
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: mocks.getTranslation,
+}));
 
 const mockUser = {
   id: 4,
@@ -21,7 +42,8 @@ const mockUser = {
 
 describe("outOfOfficeCreateReason", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    mocks.getTranslation.mockResolvedValue((key: string) => mockTranslations[key] || key);
   });
 
   it("should create a custom reason successfully", async () => {
@@ -38,19 +60,20 @@ describe("outOfOfficeCreateReason", () => {
       enabled: true,
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(null);
-    vi.mocked(prisma.outOfOfficeReason.create).mockResolvedValueOnce(mockCreatedReason);
+    mocks.findFirst.mockResolvedValueOnce(null);
+    mocks.findMany.mockResolvedValueOnce([]);
+    mocks.create.mockResolvedValueOnce(mockCreatedReason);
 
     const result = await outOfOfficeCreateReason({ ctx: { user: mockUser }, input });
 
-    expect(prisma.outOfOfficeReason.findFirst).toHaveBeenCalledWith({
+    expect(mocks.findFirst).toHaveBeenCalledWith({
       where: {
         userId: 4,
         reason: "Client visit",
       },
     });
 
-    expect(prisma.outOfOfficeReason.create).toHaveBeenCalledWith({
+    expect(mocks.create).toHaveBeenCalledWith({
       data: {
         emoji: "💼",
         reason: "Client visit",
@@ -76,13 +99,13 @@ describe("outOfOfficeCreateReason", () => {
       enabled: true,
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(existingReason);
+    mocks.findFirst.mockResolvedValueOnce(existingReason);
 
     await expect(outOfOfficeCreateReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
       "You already have a custom reason with this text"
     );
 
-    expect(prisma.outOfOfficeReason.create).not.toHaveBeenCalled();
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 
   it("should throw CONFLICT error if reason already exists as a system default", async () => {
@@ -94,20 +117,19 @@ describe("outOfOfficeCreateReason", () => {
     const existingSystemDefault: OutOfOfficeReason = {
       id: 1,
       emoji: "🏖️",
-      reason: "Vacation",
+      reason: "ooo_reasons_vacation",
       userId: null,
       enabled: true,
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst)
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(existingSystemDefault);
+    mocks.findFirst.mockResolvedValueOnce(null);
+    mocks.findMany.mockResolvedValueOnce([existingSystemDefault]);
 
     await expect(outOfOfficeCreateReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
       "This reason already exists as a system default"
     );
 
-    expect(prisma.outOfOfficeReason.create).not.toHaveBeenCalled();
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 
   it("should handle compound emojis (skin tones, flags, ZWJ sequences)", async () => {
@@ -124,8 +146,9 @@ describe("outOfOfficeCreateReason", () => {
       enabled: true,
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(null);
-    vi.mocked(prisma.outOfOfficeReason.create).mockResolvedValueOnce(mockCreatedReason);
+    mocks.findFirst.mockResolvedValueOnce(null);
+    mocks.findMany.mockResolvedValueOnce([]);
+    mocks.create.mockResolvedValueOnce(mockCreatedReason);
 
     const result = await outOfOfficeCreateReason({ ctx: { user: mockUser }, input });
 
@@ -146,8 +169,9 @@ describe("outOfOfficeCreateReason", () => {
       enabled: true,
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(null);
-    vi.mocked(prisma.outOfOfficeReason.create).mockResolvedValueOnce(mockCreatedReason);
+    mocks.findFirst.mockResolvedValueOnce(null);
+    mocks.findMany.mockResolvedValueOnce([]);
+    mocks.create.mockResolvedValueOnce(mockCreatedReason);
 
     const result = await outOfOfficeCreateReason({ ctx: { user: mockUser }, input });
 
@@ -168,8 +192,9 @@ describe("outOfOfficeCreateReason", () => {
       enabled: true,
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(null);
-    vi.mocked(prisma.outOfOfficeReason.create).mockResolvedValueOnce(mockCreatedReason);
+    mocks.findFirst.mockResolvedValueOnce(null);
+    mocks.findMany.mockResolvedValueOnce([]);
+    mocks.create.mockResolvedValueOnce(mockCreatedReason);
 
     const result = await outOfOfficeCreateReason({ ctx: { user: mockUser }, input });
 
@@ -182,7 +207,7 @@ describe("outOfOfficeCreateReason", () => {
       reason: "Meeting",
     };
 
-    vi.mocked(prisma.outOfOfficeReason.findFirst).mockRejectedValueOnce(new Error("Database error"));
+    mocks.findFirst.mockRejectedValueOnce(new Error("Database error"));
 
     await expect(outOfOfficeCreateReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
       "Failed to create custom out-of-office reason"

@@ -1,3 +1,4 @@
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -11,6 +12,8 @@ type CreateOptions = {
 };
 
 export const outOfOfficeCreateReason = async ({ ctx, input }: CreateOptions) => {
+  const t = await getTranslation("en", "common");
+  
   try {
     const existingReason = await prisma.outOfOfficeReason.findFirst({
       where: {
@@ -26,14 +29,20 @@ export const outOfOfficeCreateReason = async ({ ctx, input }: CreateOptions) => 
       });
     }
 
-    const existingSystemDefault = await prisma.outOfOfficeReason.findFirst({
+    const systemDefaults = await prisma.outOfOfficeReason.findMany({
       where: {
         userId: null,
-        reason: input.reason,
       },
     });
 
-    if (existingSystemDefault) {
+
+    const inputReasonLower = input.reason.toLowerCase();
+    const isSystemDefault = systemDefaults.some((defaultReason) => {
+      const translatedReason = t(defaultReason.reason);
+      return translatedReason.toLowerCase() === inputReasonLower;
+    });
+
+    if (isSystemDefault) {
       throw new TRPCError({
         code: "CONFLICT",
         message: "This reason already exists as a system default",

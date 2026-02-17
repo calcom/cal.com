@@ -194,6 +194,9 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const watchedNotes = watch("notes");
   const hasValidNotes = Boolean(watchedNotes?.trim());
 
+  // @see: https://stackoverflow.com/a/64034562
+  const emojiPattern = /^\p{Extended_Pictographic}$/u;
+
   // Fetch user's holiday settings to show warning if OOO dates overlap with holidays
   const { data: holidaySettings } = trpc.viewer.holidays.getUserSettings.useQuery({});
 
@@ -388,7 +391,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Label className="text-emphasis text-xs">{t("emoji")}</Label>
                         <Input
                           value={customEmoji}
-                          onChange={(e) => setCustomEmoji(e.target.value)}
+                          onChange={(e) => {
+                             const value = e.target.value;
+                             if (!emojiPattern.test(value)) return;
+                             setCustomEmoji(value);
+                          }}
                           maxLength={10}
                           minLength={1}
                           className="mt-1 text-center"
@@ -502,7 +509,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         "ml-2 text-sm",
                         hasValidNotes ? "text-emphasis cursor-pointer" : "text-muted cursor-not-allowed"
                       )}>
-                      {t("show_note_publicly_description")}
+                      {t("show_note_and_custom_reason_publicly_description")}
                     </label>
                   </div>
                 )}
