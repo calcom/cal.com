@@ -150,4 +150,3 @@ describe("v2021-10-20/BookingPayloadBuilder", () => {
     expect(() => builder.build(minimalDTO)).not.toThrow();
   });
 });
-

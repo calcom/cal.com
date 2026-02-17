@@ -1,6 +1,9 @@
 import { TRPCError } from "@trpc/server";
 
-import { sendOAuthClientApprovedNotification, sendOAuthClientRejectedNotification } from "@calcom/emails/oauth-email-service";
+import {
+  sendOAuthClientApprovedNotification,
+  sendOAuthClientRejectedNotification,
+} from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { PrismaClient } from "@calcom/prisma";
@@ -31,10 +34,7 @@ type UpdateClientOutput = {
   rejectionReason: string | null;
 };
 
-const updateClientHandler = async ({
-  ctx,
-  input,
-}: UpdateClientOptions): Promise<UpdateClientOutput> => {
+const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise<UpdateClientOutput> => {
   const {
     clientId,
     status: requestedStatus,
@@ -72,7 +72,10 @@ const updateClientHandler = async ({
   }
 
   if (isUpdatingFields && !isAdmin && !isOwner) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "You do not have permission to update this OAuth client" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You do not have permission to update this OAuth client",
+    });
   }
 
   const shouldTriggerReapprovalForOwnerEdit = triggersReapprovalForOwnerEdit({
@@ -188,7 +191,7 @@ function triggersReapprovalForOwnerEdit(params: {
   ) {
     return true;
   }
-  
+
   if (
     proposedUpdates.websiteUrl !== undefined &&
     toNullableString(proposedUpdates.websiteUrl) !== toNullableString(currentClient.websiteUrl)
@@ -196,7 +199,10 @@ function triggersReapprovalForOwnerEdit(params: {
     return true;
   }
 
-  if (proposedUpdates.redirectUri !== undefined && proposedUpdates.redirectUri !== currentClient.redirectUri) {
+  if (
+    proposedUpdates.redirectUri !== undefined &&
+    proposedUpdates.redirectUri !== currentClient.redirectUri
+  ) {
     return true;
   }
 

@@ -10,8 +10,8 @@ import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { CheckboxField, Label, Select, TextArea } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { InfoIcon, XIcon } from "@coss/ui/icons";
 import { useCallback, useState } from "react";
 
 interface InternalNotePresetsSelectProps {
@@ -46,6 +46,7 @@ const InternalNotePresetsSelect = ({
       onPresetSelect?.(option);
     }
   };
+
 
   return (
     <div className="mb-4 flex flex-col">
@@ -186,12 +187,69 @@ export default function CancelBooking(props: Props) {
 
   const isRenderedAsCancelDialog = props.renderContext === "dialog";
 
+  const handleCancel =async()=>{
+     try{
+          setLoading(true);
+
+                  const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
+                  const { csrfToken } = await response.json();
+
+                  const res = await fetch("/api/cancel", {
+                    body: JSON.stringify({
+                      uid: booking?.uid,
+                      cancellationReason: cancellationReason,
+                      allRemainingBookings,
+                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
+                      seatReferenceUid,
+                      cancelledBy: currentUserEmail,
+                      internalNote: internalNote,
+                      csrfToken,
+                    }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                  });
+
+                  const bookingWithCancellationReason = {
+                    ...(bookingCancelledEventProps.booking as object),
+                    cancellationReason,
+                  } as unknown;
+
+                  if (res.status >= 200 && res.status < 300) {
+                    sdkActionManager?.fire("bookingCancelled", {
+                      ...bookingCancelledEventProps,
+                      booking: bookingWithCancellationReason,
+                    });
+                    refreshData();
+                    if (props.onCanceled) {
+                      props.onCanceled();
+                    }
+                  } else {
+                    const data = await res.json();
+                    const errorMessage =
+                      data.message ||
+                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                        "please_try_again"
+                      )}`;
+
+                    if (props.showErrorAsToast) {
+                      showToast(errorMessage, "error");
+                    } else {
+                      setError(errorMessage);
+                    }
+                  }
+     } finally{
+          setLoading(false);
+     }
+  }
+
   return (
     <>
       {error && !props.showErrorAsToast && (
         <div className="mt-8">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-            <Icon name="x" className="h-6 w-6 text-red-600" />
+            <XIcon className="h-6 w-6 text-red-600" />
           </div>
           <div className="mt-3 text-center sm:mt-5">
             <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
@@ -239,7 +297,7 @@ export default function CancelBooking(props: Props) {
           />
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
-              <Icon name="info" className="text-subtle h-4 w-4" />
+              <InfoIcon className="text-subtle h-4 w-4" />
               <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
@@ -277,62 +335,7 @@ export default function CancelBooking(props: Props) {
               <Button
                 data-testid="confirm_cancel"
                 disabled={!canCancel}
-                onClick={async () => {
-                  setLoading(true);
-
-                  // telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
-                  const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
-                  const { csrfToken } = await response.json();
-
-                  const res = await fetch("/api/cancel", {
-                    body: JSON.stringify({
-                      uid: booking?.uid,
-                      cancellationReason: cancellationReason,
-                      allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
-                      seatReferenceUid,
-                      cancelledBy: currentUserEmail,
-                      internalNote: internalNote,
-                      csrfToken,
-                    }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                  });
-
-                  const bookingWithCancellationReason = {
-                    ...(bookingCancelledEventProps.booking as object),
-                    cancellationReason,
-                  } as unknown;
-
-                  if (res.status >= 200 && res.status < 300) {
-                    // tested by apps/web/playwright/booking-pages.e2e.ts
-                    sdkActionManager?.fire("bookingCancelled", {
-                      ...bookingCancelledEventProps,
-                      booking: bookingWithCancellationReason,
-                    });
-                    refreshData();
-                    if (props.onCanceled) {
-                      props.onCanceled();
-                    }
-                  } else {
-                    const data = await res.json();
-                    setLoading(false);
-                    const errorMessage =
-                      data.message ||
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`;
-
-                    if (props.showErrorAsToast) {
-                      showToast(errorMessage, "error");
-                    } else {
-                      setError(errorMessage);
-                    }
-                  }
-                }}
+                onClick={handleCancel}
                 loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>

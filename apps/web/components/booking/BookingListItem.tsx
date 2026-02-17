@@ -552,19 +552,14 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          booking.assignmentReason.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
+          booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
       {isBookingFromRoutingForm && (
         <WrongAssignmentDialog
           isOpenDialog={isOpenWrongAssignmentDialog}
           setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-          bookingUid={booking.uid}
-          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-          guestEmail={booking.attendees[0]?.email ?? ""}
-          hostEmail={booking.user?.email ?? ""}
-          hostName={booking.user?.name ?? null}
-          teamId={booking.eventType?.team?.id ?? null}
+          booking={booking}
         />
       )}
     </div>
@@ -606,7 +601,7 @@ const BookingItemBadges = ({
           </Badge>
         </Tooltip>
       )}
-      {isRejected && !isRescheduled && booking.assignmentReason.length === 0 && (
+      {isRejected && !isRescheduled && booking.assignmentReasonSortedByCreatedAt.length === 0 && (
         <Badge variant="gray" className="ltr:mr-2 rtl:ml-2">
           {t("rejected")}
         </Badge>
@@ -616,9 +611,9 @@ const BookingItemBadges = ({
           {booking.eventType.team.name}
         </Badge>
       )}
-      {booking?.assignmentReason.length > 0 && (
+      {booking?.assignmentReasonSortedByCreatedAt.length > 0 && (
         <AssignmentReasonTooltip
-          assignmentReason={booking.assignmentReason[0]}
+          assignmentReason={booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]}
           onClick={onAssignmentReasonClick}
         />
       )}
