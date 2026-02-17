@@ -14,7 +14,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, bookingSeatDataSchema } from "@calcom/prisma/zod-utils";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
@@ -35,6 +36,42 @@ import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
+
+function buildSeatSpecificResponses(seatData: unknown, fallbackResponses: CalEventResponses): CalEventResponses {
+  const parsedSeatData = bookingSeatDataSchema.safeParse(seatData);
+  if (!parsedSeatData.success || !parsedSeatData.data.responses) {
+    return fallbackResponses;
+  }
+
+  const seatResponses = parsedSeatData.data.responses;
+
+  const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+
+  type CalEventResponseValue = CalEventResponses[string]["value"];
+
+  const mergedResponses: CalEventResponses = { ...fallbackResponses };
+
+  for (const [key, value] of Object.entries(seatResponses)) {
+    let normalizedValue: unknown = value;
+
+    if (key === "name" && isRecord(value) && "firstName" in value && typeof value.firstName === "string") {
+      const firstName = value.firstName;
+      const lastName = "lastName" in value && typeof value.lastName === "string" ? value.lastName : "";
+      normalizedValue = lastName ? `${firstName} ${lastName}` : firstName;
+    }
+
+    if (key === "location" && isRecord(value) && "value" in value && typeof value.value === "string") {
+      normalizedValue = value.value;
+    }
+
+    const existing = mergedResponses[key];
+    mergedResponses[key] = existing
+      ? { ...existing, value: normalizedValue as CalEventResponseValue }
+      : { label: key, value: normalizedValue as CalEventResponseValue };
+  }
+
+  return mergedResponses;
+}
 
 async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
@@ -124,6 +161,7 @@ async function handler(req: NextRequest) {
 
     // For seated events, get the correct attendee based on seatReferenceId
     let targetAttendee = reminder.booking?.attendees[0];
+    let seatResponseData: unknown = null;
     if (reminder.seatReferenceId) {
       const bookingSeatRepository = new BookingSeatRepository(prisma);
       const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
@@ -131,6 +169,7 @@ async function handler(req: NextRequest) {
       );
       if (seatAttendeeData?.attendee) {
         targetAttendee = seatAttendeeData.attendee;
+        seatResponseData = seatAttendeeData.data;
       }
     }
 
@@ -199,6 +238,10 @@ async function handler(req: NextRequest) {
             booking: reminder.booking,
           });
 
+          const seatSpecificResponses = seatResponseData
+            ? buildSeatSpecificResponses(seatResponseData, responses)
+            : responses;
+
           const organizerOrganizationProfile = await prisma.profile.findFirst({
             where: {
               userId: reminder.booking.user?.id,
@@ -228,7 +271,7 @@ async function handler(req: NextRequest) {
             timeZone: timeZone,
             location: reminder.booking.location || "",
             additionalNotes: reminder.booking.description,
-            responses: responses,
+            responses: seatSpecificResponses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
             cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
               recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""

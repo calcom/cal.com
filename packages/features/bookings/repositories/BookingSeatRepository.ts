@@ -24,6 +24,7 @@ export class BookingSeatRepository {
         referenceUid,
       },
       select: {
+        data: true,
         attendee: {
           select: {
             name: true,

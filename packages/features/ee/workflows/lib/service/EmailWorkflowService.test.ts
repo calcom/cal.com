@@ -1,5 +1,6 @@
 import { describe, expect, vi, beforeEach, test } from "vitest";
 
+import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import type { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import {
@@ -53,8 +54,12 @@ const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findById
   findByIdIncludeStepAndWorkflow: vi.fn(),
 };
 
-const mockBookingSeatRepository: Pick<BookingSeatRepository, "getByUidIncludeAttendee"> = {
+const mockBookingSeatRepository: Pick<
+  BookingSeatRepository,
+  "getByUidIncludeAttendee" | "getByReferenceUidWithAttendeeDetails"
+> = {
   getByUidIncludeAttendee: vi.fn(),
+  getByReferenceUidWithAttendeeDetails: vi.fn(),
 };
 
 describe("EmailWorkflowService", () => {
@@ -179,6 +184,96 @@ describe("EmailWorkflowService", () => {
       }
 
       expect(mockBookingSeatRepository.getByUidIncludeAttendee).toHaveBeenCalledWith("seat-123");
+    });
+
+    test("should generate email content per attendee recipient", async () => {
+      const mockWorkflowReminder = {
+        id: 1,
+        seatReferenceId: null,
+        workflowStep: {
+          id: 1,
+          action: WorkflowActions.EMAIL_ATTENDEE,
+          sendTo: null,
+          template: WorkflowTemplates.CUSTOM,
+          reminderBody: "Hi {ATTENDEE}",
+          emailSubject: "Test Subject",
+          sender: null,
+          includeCalendarEvent: false,
+          verifiedAt: new Date(),
+          workflow: {
+            userId: null,
+            teamId: null,
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+            time: 24,
+            timeUnit: "HOUR",
+          },
+        },
+      };
+
+      vi.mocked(mockWorkflowReminderRepository.findByIdIncludeStepAndWorkflow).mockResolvedValue(
+        mockWorkflowReminder as never
+      );
+
+      vi.mocked(sendCustomWorkflowEmail).mockResolvedValue(undefined as never);
+
+      const generateSpy = vi
+        .spyOn(emailWorkflowService, "generateEmailPayloadForEvtWorkflow")
+        .mockImplementation(async ({ sendTo }) => ({
+          subject: `subject-${sendTo[0]}`,
+          html: `html-${sendTo[0]}`,
+          sender: "Cal.com",
+        }));
+
+      const multiAttendeeEvt = {
+        ...mockEvt,
+        attendees: [
+          {
+            name: "Alice",
+            email: "alice@example.com",
+            timeZone: "UTC",
+            language: { locale: "en", translate: (key: string) => key },
+          },
+          {
+            name: "Bob",
+            email: "bob@example.com",
+            timeZone: "UTC",
+            language: { locale: "en", translate: (key: string) => key },
+          },
+        ],
+      };
+
+      await emailWorkflowService.handleSendEmailWorkflowTask({
+        evt: multiAttendeeEvt as CalendarEvent,
+        workflowReminderId: 1,
+      });
+
+      expect(generateSpy).toHaveBeenCalledTimes(2);
+      expect(generateSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          sendTo: ["alice@example.com"],
+        })
+      );
+      expect(generateSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          sendTo: ["bob@example.com"],
+        })
+      );
+
+      expect(sendCustomWorkflowEmail).toHaveBeenCalledTimes(2);
+      expect(sendCustomWorkflowEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: "alice@example.com",
+          html: "html-alice@example.com",
+        })
+      );
+      expect(sendCustomWorkflowEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: "bob@example.com",
+          html: "html-bob@example.com",
+        })
+      );
     });
   });
 
@@ -516,6 +611,81 @@ describe("EmailWorkflowService", () => {
           hideBranding: false,
         })
       ).rejects.toThrow("Either evt or formData must be provided");
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - seat-specific responses", () => {
+    test("should use seat-specific booking responses when attendee has bookingSeat data", async () => {
+      const bookingInfo = {
+        uid: "booking-123",
+        bookerUrl: "https://cal.com",
+        title: "Test Meeting",
+        startTime: "2024-12-01T10:00:00Z",
+        endTime: "2024-12-01T11:00:00Z",
+        organizer: {
+          name: "Organizer Name",
+          email: "organizer@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+          timeFormat: TimeFormat.TWELVE_HOUR,
+        },
+        attendees: [
+          {
+            name: "Alice",
+            email: "alice@example.com",
+            timeZone: "UTC",
+            language: { locale: "en" },
+            bookingSeat: {
+              referenceUid: "seat-alice",
+              data: {
+                responses: {
+                  email: "alice@example.com",
+                  name: "Alice",
+                  attendeePhoneNumber: "111",
+                },
+              },
+            },
+          },
+          {
+            name: "Bob",
+            email: "bob@example.com",
+            timeZone: "UTC",
+            language: { locale: "en" },
+            bookingSeat: {
+              referenceUid: "seat-bob",
+              data: {
+                responses: {
+                  email: "bob@example.com",
+                  name: "Bob",
+                  attendeePhoneNumber: "222",
+                },
+              },
+            },
+          },
+        ],
+        responses: {
+          name: {
+            label: "Name",
+            value: "Alice",
+          },
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: bookingInfo as never,
+        sendTo: ["bob@example.com"],
+        hideBranding: false,
+        emailSubject: "Hi {NAME}",
+        emailBody: "Hi {NAME}",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("Bob");
+      expect(result.html).not.toContain("Alice");
     });
   });
 

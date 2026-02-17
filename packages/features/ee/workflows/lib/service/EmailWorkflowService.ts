@@ -17,8 +17,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import { bookingMetadataSchema, bookingSeatDataSchema } from "@calcom/prisma/zod-utils";
+import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 import {
@@ -108,22 +108,48 @@ export class EmailWorkflowService {
       hideBranding,
     });
 
-    const emailWorkflowContent = await this.generateEmailPayloadForEvtWorkflow({
-      ...emailWorkflowContentParams,
-      evt: evt as BookingInfo,
-      action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
-      template: workflowReminder.workflowStep.template,
-      includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
-    });
+    const action = workflowReminder.workflowStep.action as ScheduleEmailReminderAction;
+    const template = workflowReminder.workflowStep.template;
+    const includeCalendarEvent = workflowReminder.workflowStep.includeCalendarEvent;
 
-    const results = await Promise.allSettled(
-      emailWorkflowContentParams.sendTo.map((email) => {
-        return sendCustomWorkflowEmail({
-          to: email,
-          ...emailWorkflowContent,
-        });
-      })
-    );
+    let results: PromiseSettledResult<unknown>[];
+
+    if (action === WorkflowActions.EMAIL_ATTENDEE) {
+      results = await Promise.allSettled(
+        emailWorkflowContentParams.sendTo.map(async (email) => {
+          const emailWorkflowContent = await this.generateEmailPayloadForEvtWorkflow({
+            ...emailWorkflowContentParams,
+            sendTo: [email],
+            evt: evt as BookingInfo,
+            action,
+            template,
+            includeCalendarEvent,
+          });
+
+          return sendCustomWorkflowEmail({
+            to: email,
+            ...emailWorkflowContent,
+          });
+        })
+      );
+    } else {
+      const emailWorkflowContent = await this.generateEmailPayloadForEvtWorkflow({
+        ...emailWorkflowContentParams,
+        evt: evt as BookingInfo,
+        action,
+        template,
+        includeCalendarEvent,
+      });
+
+      results = await Promise.allSettled(
+        emailWorkflowContentParams.sendTo.map((email) =>
+          sendCustomWorkflowEmail({
+            to: email,
+            ...emailWorkflowContent,
+          })
+        )
+      );
+    }
 
     const failedEmails = results
       .map((result, index) => ({
@@ -263,6 +289,49 @@ export class EmailWorkflowService {
     return hideBranding;
   }
 
+  private static buildSeatSpecificResponses(
+    seatData: unknown,
+    fallbackResponses?: CalEventResponses | null
+  ): CalEventResponses | null | undefined {
+    const parsedSeatData = bookingSeatDataSchema.safeParse(seatData);
+    if (!parsedSeatData.success) {
+      return fallbackResponses;
+    }
+
+    const seatResponses = parsedSeatData.data.responses;
+    if (!seatResponses) {
+      return fallbackResponses;
+    }
+
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+
+    type CalEventResponseValue = CalEventResponses[string]["value"];
+
+    const calEventResponses: CalEventResponses = {};
+
+    for (const [key, value] of Object.entries(seatResponses)) {
+      let normalizedValue: unknown = value;
+
+      if (key === "name" && isRecord(value) && "firstName" in value && typeof value.firstName === "string") {
+        const firstName = value.firstName;
+        const lastName = "lastName" in value && typeof value.lastName === "string" ? value.lastName : "";
+        normalizedValue = lastName ? `${firstName} ${lastName}` : firstName;
+      }
+
+      if (key === "location" && isRecord(value) && "value" in value && typeof value.value === "string") {
+        normalizedValue = value.value;
+      }
+
+      calEventResponses[key] = {
+        label: key,
+        value: normalizedValue as CalEventResponseValue,
+      };
+    }
+
+    return calEventResponses;
+  }
+
   async generateEmailPayloadForEvtWorkflow({
     evt,
     sendTo,
@@ -297,6 +366,8 @@ export class EmailWorkflowService {
     let name = "";
     let attendeeName = "";
     let timeZone = "";
+    let seatResponseData: unknown = null;
+    let seatReferenceUidFromAttendee: string | undefined;
 
     switch (action) {
       case WorkflowActions.EMAIL_ADDRESS:
@@ -329,6 +400,7 @@ export class EmailWorkflowService {
               timeZone: seatAttendeeData.attendee.timeZone,
               language: { locale: seatAttendeeData.attendee.locale || "en" },
             };
+            seatResponseData = seatAttendeeData.data;
           } else {
             // Fallback to first attendee if seat attendee not found
             attendeeToBeUsedInMail = evt.attendees[0];
@@ -341,6 +413,13 @@ export class EmailWorkflowService {
           attendeeToBeUsedInMail = attendeeEmailToBeUsedInMailFromEvt
             ? attendeeEmailToBeUsedInMailFromEvt
             : evt.attendees[0];
+
+          const calendarEvt = evt as unknown as CalendarEvent;
+          const calendarAttendee = calendarEvt.attendees.find(
+            (attendee) => attendee.email === attendeeToBeUsedInMail?.email
+          );
+          seatResponseData = calendarAttendee?.bookingSeat?.data ?? null;
+          seatReferenceUidFromAttendee = calendarAttendee?.bookingSeat?.referenceUid ?? undefined;
         }
         name = attendeeToBeUsedInMail.name;
         attendeeName = evt.organizer.name;
@@ -352,6 +431,8 @@ export class EmailWorkflowService {
     if (!attendeeToBeUsedInMail) {
       throw new Error("Failed to determine attendee email");
     }
+
+    const effectiveSeatReferenceUid = seatReferenceUid ?? seatReferenceUidFromAttendee ?? undefined;
 
     const isEmailAttendeeAction = action === WorkflowActions.EMAIL_ATTENDEE;
     const locale = isEmailAttendeeAction
@@ -483,21 +564,29 @@ export class EmailWorkflowService {
         timeZone: timeZone,
         location: evt.location,
         additionalNotes: evt.additionalNotes,
-        responses: transformBookingResponsesToVariableFormat(evt.responses),
+        responses: transformBookingResponsesToVariableFormat(
+          seatResponseData
+            ? EmailWorkflowService.buildSeatSpecificResponses(seatResponseData, evt.responses)
+            : evt.responses
+        ),
         meetingUrl,
         cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
           recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
-        }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
+        }${
+          isEmailAttendeeAction && effectiveSeatReferenceUid
+            ? `&seatReferenceUid=${effectiveSeatReferenceUid}`
+            : ""
+        }`,
         cancelReason: evt.cancellationReason,
         rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
           recipientEmail
             ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
-                isEmailAttendeeAction && seatReferenceUid
-                  ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+                isEmailAttendeeAction && effectiveSeatReferenceUid
+                  ? `&seatReferenceUid=${encodeURIComponent(effectiveSeatReferenceUid)}`
                   : ""
               }`
-            : isEmailAttendeeAction && seatReferenceUid
-              ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
+            : isEmailAttendeeAction && effectiveSeatReferenceUid
+              ? `?seatReferenceUid=${encodeURIComponent(effectiveSeatReferenceUid)}`
               : ""
         }`,
 
