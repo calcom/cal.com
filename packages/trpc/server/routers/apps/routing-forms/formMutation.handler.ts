@@ -363,8 +363,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       });
     }
 
-    let fields: NonNullable<typeof fieldsParsed.data>,
-      routes: NonNullable<typeof routesParsed.data>;
+    let fields: NonNullable<typeof fieldsParsed.data>, routes: NonNullable<typeof routesParsed.data>;
     if (shouldConnect) {
       routes = [
         // This connected route would automatically link the fields
