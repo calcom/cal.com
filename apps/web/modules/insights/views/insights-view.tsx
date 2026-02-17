@@ -3,10 +3,11 @@
 import { usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 
-import { DataTableProvider, ColumnFilterType, type FilterableColumn } from "@calcom/features/data-table";
+import { ColumnFilterType, type FilterableColumn } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { DataTableFilters, DateRangeFilter } from "~/data-table/components";
 import type { FilterType } from "@calcom/types/data-table";
-import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import {
   AverageEventDurationChart,

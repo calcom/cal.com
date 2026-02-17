@@ -359,6 +359,13 @@ async function handler(req: NextRequest) {
             ? reminder.workflowStep?.workflow?.teamId
             : reminder.workflowStep?.workflow?.team?.parentId ?? null;
 
+          const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
+          const fallbackReplyTo =
+            reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
+          const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
+            ? customReplyTo
+            : customReplyTo ?? fallbackReplyTo;
+
           const mailData = {
             subject: emailContent.emailSubject,
             to: Array.isArray(sendTo) ? sendTo : [sendTo],
@@ -375,12 +382,7 @@ async function handler(req: NextRequest) {
               : undefined,
             sender: reminder.workflowStep.sender,
             organizationId,
-            ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
-              replyTo:
-                reminder.booking?.eventType?.customReplyToEmail ??
-                reminder.booking?.userPrimaryEmail ??
-                reminder.booking.user?.email,
-            }),
+            ...(replyTo ? { replyTo } : {}),
           };
 
           if (isSendgridEnabled) {
@@ -456,6 +458,12 @@ async function handler(req: NextRequest) {
         });
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = isSendgridEnabled ? await getBatchId() : undefined;
+          const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
+          const fallbackReplyTo =
+            reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
+          const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
+            ? customReplyTo
+            : customReplyTo || fallbackReplyTo;
 
           // Organization accounts are allowed to use cloaked links (URL behind text)
           // since they are paid accounts with lower spam/scam risk
@@ -470,12 +478,7 @@ async function handler(req: NextRequest) {
             html: emailContent.emailBody,
             sender: reminder.workflowStep?.sender,
             organizationId,
-            ...(!reminder.booking?.eventType?.hideOrganizerEmail && {
-              replyTo:
-                reminder.booking?.eventType?.customReplyToEmail ||
-                reminder.booking?.userPrimaryEmail ||
-                reminder.booking.user?.email,
-            }),
+            ...(replyTo ? { replyTo } : {}),
           };
           if (isSendgridEnabled) {
             sendEmailPromises.push(

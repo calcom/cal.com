@@ -137,7 +137,9 @@ async function getAllCredentialsIncludeServiceAccountKey({
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-  let conferenceCredential: Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>> | undefined;
+  let conferenceCredential:
+    | Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>>
+    | undefined;
 
   if (conferenceCredentialId) {
     // Validate that the credential is accessible before fetching it
