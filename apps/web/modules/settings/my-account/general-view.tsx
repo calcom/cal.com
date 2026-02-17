@@ -40,7 +40,7 @@ import { toastManager } from "@coss/ui/components/toast";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { CalendarIcon, ChevronsUpDownIcon, PlusIcon, SearchIcon, TrashIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { Fragment, useCallback, useMemo, useRef, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
@@ -88,59 +88,13 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const initialReceiveMonthlyDigestEmail = useRef(!!user.receiveMonthlyDigestEmail).current;
   const initialRequiresBookerEmailVerification = useRef(!!user.requiresBookerEmailVerification).current;
 
-  const PROFILE_UPDATE_TOAST_ID = "profile-update";
-  const profileToastActiveRef = useRef(false);
-  const profileToastCountRef = useRef(0);
-  const pendingToastRef = useRef<{ title: string; type: "success" | "error"; count: number } | null>(
-    null
-  );
-
-  const handleProfileToastRemove = useCallback(() => {
-    profileToastActiveRef.current = false;
-    if (pendingToastRef.current) {
-      const { title, type, count } = pendingToastRef.current;
-      pendingToastRef.current = null;
-      profileToastCountRef.current = count;
-      profileToastActiveRef.current = true;
-      toastManager.add({
-        id: PROFILE_UPDATE_TOAST_ID,
-        title,
-        type,
-        onRemove: handleProfileToastRemove,
-      });
-    } else {
-      profileToastCountRef.current = 0;
-    }
-  }, []);
-
-  const showProfileToast = useCallback(
-    (baseTitle: string, type: "success" | "error") => {
-      if (profileToastActiveRef.current) {
-        profileToastCountRef.current += 1;
-        const count = profileToastCountRef.current;
-        const title = `${baseTitle} (${count})`;
-        pendingToastRef.current = { title, type, count };
-        toastManager.close(PROFILE_UPDATE_TOAST_ID);
-      } else {
-        profileToastActiveRef.current = true;
-        toastManager.add({
-          id: PROFILE_UPDATE_TOAST_ID,
-          title: baseTitle,
-          type,
-          onRemove: handleProfileToastRemove,
-        });
-      }
-    },
-    [handleProfileToastRemove]
-  );
-
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsGeneral();
       revalidateTravelSchedules();
       reset(getValues());
-      showProfileToast(t("settings_updated_successfully"), "success");
+      toastManager.add({ title: t("settings_updated_successfully"), type: "success" });
       await update(res);
 
       if (res.locale) {
@@ -149,7 +103,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       }
     },
     onError: () => {
-      showProfileToast(t("error_updating_settings"), "error");
+      toastManager.add({ title: t("error_updating_settings"), type: "error" });
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
@@ -535,13 +489,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           </CardFrameHeader>
           <Switch
             defaultChecked={initialAllowDynamicBooking}
-            onCheckedChange={(checked, eventDetails) => {
-              if (mutation.isPending) {
-                eventDetails.cancel();
-                return;
-              }
-              mutation.mutate({ allowDynamicBooking: checked });
-            }}
+            disabled={mutation.isPending}
+            onCheckedChange={(checked) => mutation.mutate({ allowDynamicBooking: checked })}
           />
         </CardPanel>
       </Card>
@@ -554,14 +503,10 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           </CardFrameHeader>
           <Switch
             defaultChecked={initialAllowSEOIndexing}
-            disabled={user.organizationSettings?.allowSEOIndexing === false}
-            onCheckedChange={(checked, eventDetails) => {
-              if (mutation.isPending) {
-                eventDetails.cancel();
-                return;
-              }
-              mutation.mutate({ allowSEOIndexing: checked });
-            }}
+            disabled={
+              mutation.isPending || user.organizationSettings?.allowSEOIndexing === false
+            }
+            onCheckedChange={(checked) => mutation.mutate({ allowSEOIndexing: checked })}
           />
         </CardPanel>
       </Card>
@@ -574,13 +519,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           </CardFrameHeader>
           <Switch
             defaultChecked={initialReceiveMonthlyDigestEmail}
-            onCheckedChange={(checked, eventDetails) => {
-              if (mutation.isPending) {
-                eventDetails.cancel();
-                return;
-              }
-              mutation.mutate({ receiveMonthlyDigestEmail: checked });
-            }}
+            disabled={mutation.isPending}
+            onCheckedChange={(checked) => mutation.mutate({ receiveMonthlyDigestEmail: checked })}
           />
         </CardPanel>
       </Card>
@@ -593,13 +533,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           </CardFrameHeader>
           <Switch
             defaultChecked={initialRequiresBookerEmailVerification}
-            onCheckedChange={(checked, eventDetails) => {
-              if (mutation.isPending) {
-                eventDetails.cancel();
-                return;
-              }
-              mutation.mutate({ requiresBookerEmailVerification: checked });
-            }}
+            disabled={mutation.isPending}
+            onCheckedChange={(checked) => mutation.mutate({ requiresBookerEmailVerification: checked })}
           />
         </CardPanel>
       </Card>
