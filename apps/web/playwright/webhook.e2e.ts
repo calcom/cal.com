@@ -281,11 +281,7 @@ test.describe("BOOKING_REQUESTED", async () => {
     body.payload.eventTypeId = dynamic;
     body.payload.videoCallData = dynamic;
     body.payload.appsStatus = dynamic;
-    if (body.payload.metadata) {
-      body.payload.metadata.videoCallUrl = dynamic;
-    } else {
-      body.payload.metadata = { videoCallUrl: dynamic };
-    }
+    body.payload.metadata.videoCallUrl = dynamic;
 
     expect(body).toMatchObject({
       triggerEvent: "BOOKING_REQUESTED",
