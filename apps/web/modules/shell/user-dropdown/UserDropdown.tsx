@@ -4,18 +4,6 @@ import { useUserAgentData } from "@calcom/lib/hooks/useUserAgentData";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import {
-  BlocksIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  CircleHelpIcon,
-  DownloadIcon,
-  LogOutIcon,
-  MapIcon,
-  MoonIcon,
-  SettingsIcon,
-  UserIcon,
-} from "@coss/ui/icons";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 import FreshChatProvider from "@calcom/web/modules/ee/support/lib/freshchat/FreshChatProvider";
 import {
@@ -28,12 +16,23 @@ import {
   MenuSubTrigger,
   MenuTrigger,
 } from "@coss/ui/components/menu";
+import {
+  BlocksIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CircleHelpIcon,
+  DownloadIcon,
+  LogOutIcon,
+  MapIcon,
+  MoonIcon,
+  SettingsIcon,
+  UserIcon,
+} from "@coss/ui/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import type { MouseEvent } from "react";
 import { useEffect, useState } from "react";
-
 import {
   AppleIcon,
   ChromeIcon,
@@ -200,7 +199,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 <UserIcon />
                 {t("my_profile")}
               </MenuItem>
-              <MenuItem render={<Link href="/settings/my-account/general" />}>
+              <MenuItem render={<Link href="/settings" />}>
                 <SettingsIcon />
                 {t("my_settings")}
               </MenuItem>

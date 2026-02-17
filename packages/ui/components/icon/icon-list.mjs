@@ -78,6 +78,7 @@ export const lucideIconList = new Set([
   "globe",
   "grid-3x3",
   "handshake",
+  "house",
   "info",
   "italic",
   "key",

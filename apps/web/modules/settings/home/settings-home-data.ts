@@ -7,6 +7,7 @@ export interface SettingsItem {
   descriptionKey: string;
   icon: IconName;
   href: string;
+  isExternalLink?: boolean;
 }
 
 export interface SettingsSection {
@@ -68,10 +69,16 @@ export const settingsSections: SettingsSection[] = [
         icon: "bell",
         href: "/settings/my-account/push-notifications",
       },
+      {
+        titleKey: "features",
+        descriptionKey: "settings_home_features_description",
+        icon: "zap",
+        href: "/settings/my-account/features",
+      },
     ],
   },
   {
-    sectionTitleKey: "security",
+    sectionTitleKey: "privacy_and_security",
     visibility: "always",
     items: [
       {
@@ -121,6 +128,7 @@ export const settingsSections: SettingsSection[] = [
         descriptionKey: "settings_home_org_members_description",
         icon: "users",
         href: "/settings/organizations/members",
+        isExternalLink: true,
       },
       {
         titleKey: "attributes",
@@ -141,10 +149,10 @@ export const settingsSections: SettingsSection[] = [
         href: "/settings/organizations/billing",
       },
       {
-        titleKey: "oAuth",
-        descriptionKey: "settings_home_org_oauth_description",
-        icon: "globe",
-        href: "/settings/developer/oauth",
+        titleKey: "roles",
+        descriptionKey: "settings_home_org_roles_description",
+        icon: "shield",
+        href: "/settings/organizations/roles",
       },
       {
         titleKey: "saml_sso",
