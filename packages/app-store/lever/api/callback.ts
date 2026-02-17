@@ -7,7 +7,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
-import { getLeverAppKeys } from "../lib/getLeverAppKeys";
+import { getLeverAppKey } from "../lib/getLeverAppKeys";
 
 export interface LeverToken {
   access_token: string;
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  const { client_id, client_secret } = await getLeverAppKeys();
+  const { client_id, client_secret } = await getLeverAppKey();
 
   const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/lever/callback`;
 

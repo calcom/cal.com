@@ -4,6 +4,7 @@ import { createDefaultInstallation } from "@calcom/app-store/_utils/installation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
@@ -22,6 +23,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = req.session?.user;
   if (!user) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+  }
+
+  if (teamId) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        teamId: Number(teamId),
+        userId: user.id,
+        accepted: true,
+      },
+    });
+    if (!membership) {
+      throw new HttpError({ statusCode: 403, message: "You are not a member of this team" });
+    }
   }
 
   await createDefaultInstallation({

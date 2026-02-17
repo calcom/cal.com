@@ -7,7 +7,7 @@ const leverAppKeysSchema = z.object({
   client_secret: z.string(),
 });
 
-export const getLeverAppKeys = async () => {
+export const getLeverAppKey = async () => {
   const appKeys = await getAppKeysFromSlug("lever");
   return leverAppKeysSchema.parse(appKeys);
 };

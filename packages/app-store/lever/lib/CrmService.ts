@@ -22,7 +22,7 @@ import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectF
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
 import { updateTokenObjectInDb } from "../../_utils/oauth/updateTokenObject";
 import appConfig from "../config.json";
-import { getLeverAppKeys } from "./getLeverAppKeys";
+import { getLeverAppKey } from "./getLeverAppKeys";
 
 type LeverOpportunity = {
   id: string;
@@ -66,7 +66,7 @@ class LeverCrmService implements CRM {
         if (!refreshToken) {
           return null;
         }
-        const { client_id, client_secret } = await getLeverAppKeys();
+        const { client_id, client_secret } = await getLeverAppKey();
         // Lever uses POST body parameters instead of Basic auth header
         return fetch("https://auth.lever.co/oauth/token", {
           method: "POST",
@@ -280,7 +280,7 @@ class LeverCrmService implements CRM {
       });
     }
 
-    this.log.debug("note:creation:notOk", { status: noteEvent.status });
+    this.log.debug("note:creation:notOk", { opportunityId: contacts[0]?.id });
     return Promise.reject("Something went wrong when creating a note in Lever CRM");
   }
 
@@ -314,7 +314,7 @@ class LeverCrmService implements CRM {
       });
     }
 
-    this.log.debug("note:updation:notOk", { status: noteEvent.status, opportunityId });
+    this.log.debug("note:updation:notOk", { opportunityId });
     return Promise.reject("Something went wrong when updating a note in Lever CRM");
   }
 
