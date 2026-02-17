@@ -388,9 +388,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Label className="text-emphasis text-xs">{t("emoji")}</Label>
                         <Input
                           value={customEmoji}
-                          onChange={(e) => {
                             const value = e.target.value;
-                            if (!emojiPattern.test(value)) return;
+                            if (value !== "" && !emojiPattern.test(value)) return;
                             setCustomEmoji(value);
                           }}
                           maxLength={10}
