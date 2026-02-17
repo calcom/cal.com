@@ -1,39 +1,8 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-import { ZodError } from "zod";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
-import turndown from "@calcom/lib/turndownService";
-import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
-import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
-import { Editor } from "@calcom/ui/components/editor";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import {
-  Switch,
-  CheckboxField,
-  SelectField,
-  Form,
-  Input,
-  InputField,
-  Label,
-} from "@calcom/ui/components/form";
-import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
-import { showToast } from "@calcom/ui/components/toast";
-
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import type { fieldsSchema } from "@calcom/features/form-builder/schema";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
@@ -51,6 +20,35 @@ import {
   type ConsolidatedFormField,
   useConsolidatedPhoneFields,
 } from "@calcom/lib/bookings/useConsolidatedPhoneFields";
+import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import turndown from "@calcom/lib/turndownService";
+import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import {
+  CheckboxField,
+  Form,
+  Input,
+  InputField,
+  Label,
+  SelectField,
+  Switch,
+  ToggleGroup,
+} from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import type { z } from "zod";
+import { ZodError } from "zod";
 import { PhoneFieldSourcesInfo } from "./PhoneFieldSourcesInfo";
 
 type RhfForm = {
@@ -166,11 +164,12 @@ export const FormBuilder = function FormBuilder({
     });
   };
 
+  const resolveOriginalIndex = (displayIdx: number) => displayToOriginalIndex?.[displayIdx] ?? displayIdx;
+
   const editField = (index: number, data: ConsolidatedFormField) => {
-    // For consolidated phone fields, we need to find the actual index in the original fields array
     const actualIndex = data._consolidatedFrom
       ? (phoneFieldIndices?.get(CANONICAL_PHONE_FIELD) ?? index)
-      : (displayToOriginalIndex?.[index] ?? index);
+      : resolveOriginalIndex(index);
     setFieldDialog({
       isOpen: true,
       fieldIndex: actualIndex,
@@ -179,8 +178,7 @@ export const FormBuilder = function FormBuilder({
   };
 
   const removeField = (index: number) => {
-    const originalIndex = displayToOriginalIndex?.[index] ?? index;
-    remove(originalIndex);
+    remove(resolveOriginalIndex(index));
   };
 
   return (
@@ -347,9 +345,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => {
-                          const from = displayToOriginalIndex?.[displayIndex] ?? displayIndex;
-                          const to = displayToOriginalIndex?.[displayIndex - 1] ?? displayIndex - 1;
-                          swap(from, to);
+                          swap(resolveOriginalIndex(displayIndex), resolveOriginalIndex(displayIndex - 1));
                         }}>
                         <ArrowUpIcon className="h-5 w-5" />
                       </button>
@@ -359,9 +355,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => {
-                          const from = displayToOriginalIndex?.[displayIndex] ?? displayIndex;
-                          const to = displayToOriginalIndex?.[displayIndex + 1] ?? displayIndex + 1;
-                          swap(from, to);
+                          swap(resolveOriginalIndex(displayIndex), resolveOriginalIndex(displayIndex + 1));
                         }}>
                         <ArrowDownIcon className="h-5 w-5" />
                       </button>
@@ -426,9 +420,9 @@ export const FormBuilder = function FormBuilder({
                               }
                             });
                           } else {
-                            const originalIndex = displayToOriginalIndex?.[displayIndex] ?? displayIndex;
-                            update(originalIndex, {
-                              ...fields[originalIndex],
+                            const idx = resolveOriginalIndex(displayIndex);
+                            update(idx, {
+                              ...fields[idx],
                               hidden: !checked,
                             });
                           }
@@ -514,7 +508,10 @@ export const FormBuilder = function FormBuilder({
                   }
                 });
               } else {
-                update(fieldDialog.fieldIndex, data);
+                const { _consolidatedFrom: _, ...cleanData } = data as typeof data & {
+                  _consolidatedFrom?: string[];
+                };
+                update(fieldDialog.fieldIndex, cleanData);
               }
             } else {
               const field: RhfFormField = {

@@ -1,14 +1,9 @@
-import { ErrorMessage } from "@hookform/error-message";
-import type { TFunction } from "i18next";
-import { Controller, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import type { fieldsSchema } from "@calcom/features/form-builder/schema";
 import {
-  useShouldBeDisabledDueToPrefill,
   getFieldNameFromErrorMessage,
+  useShouldBeDisabledDueToPrefill,
 } from "@calcom/features/form-builder/useShouldBeDisabledDueToPrefill";
 import { getTranslatedConfig as getTranslatedVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,8 +12,16 @@ import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Label } from "@calcom/ui/components/form";
 import { InfoIcon } from "@coss/ui/icons";
-
+import { ErrorMessage } from "@hookform/error-message";
+import type { TFunction } from "i18next";
+import { Controller, useFormContext } from "react-hook-form";
+import type { z } from "zod";
 import { Components, isValidValueProp } from "./Components";
+
+export type PhoneConsentConfig = {
+  hasSmsWorkflow: boolean;
+  hasCalAiWorkflow: boolean;
+};
 
 // helper to render markdown label safely
 const renderLabel = (field: Partial<RhfFormField>) => {
@@ -65,17 +68,13 @@ export const FormBuilderField = ({
   readOnly,
   className,
   onValueChange,
-  isConsolidatedPhoneField,
-  hasSmsWorkflow,
-  hasCalAiWorkflow,
+  phoneConsentConfig,
 }: {
   field: RhfFormFields[number];
   readOnly: boolean;
   className: string;
   onValueChange?: (args: { name: string; value: unknown; prevValue: unknown }) => void;
-  isConsolidatedPhoneField?: boolean;
-  hasSmsWorkflow?: boolean;
-  hasCalAiWorkflow?: boolean;
+  phoneConsentConfig?: PhoneConsentConfig;
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
@@ -107,9 +106,7 @@ export const FormBuilderField = ({
                 setValue={setAndNotify}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
-                isConsolidatedPhoneField={isConsolidatedPhoneField}
-                hasSmsWorkflow={hasSmsWorkflow}
-                hasCalAiWorkflow={hasCalAiWorkflow}
+                phoneConsentConfig={phoneConsentConfig}
               />
               <ErrorMessage
                 name="responses"
@@ -154,35 +151,47 @@ function assertUnreachable(arg: never) {
 
 // TODO: Add consistent `label` support to all the components and then remove the usage of WithLabel.
 // Label should be handled by each Component itself.
+function PhoneConsentMessage({
+  fieldName,
+  phoneConsentConfig,
+}: {
+  fieldName?: string;
+  phoneConsentConfig?: PhoneConsentConfig;
+}) {
+  const { t } = useLocale();
+
+  const needsSmsConsent = phoneConsentConfig
+    ? phoneConsentConfig.hasSmsWorkflow
+    : fieldName === "smsReminderNumber";
+  const needsCalAiConsent = phoneConsentConfig?.hasCalAiWorkflow ?? false;
+
+  if (!needsSmsConsent && !needsCalAiConsent) return null;
+
+  if (needsSmsConsent && needsCalAiConsent) {
+    return <div className="text-subtle mt-2 text-sm">{t("sms_and_cal_ai_phone_consent")}</div>;
+  }
+  if (needsSmsConsent) {
+    return <div className="text-subtle mt-2 text-sm">{t("sms_workflow_consent")}</div>;
+  }
+  return <div className="text-subtle mt-2 text-sm">{t("cal_ai_phone_consent")}</div>;
+}
+
 const WithLabel = ({
   field,
   children,
   readOnly,
   htmlFor,
   noLabel = false,
-  isConsolidatedPhoneField,
-  hasSmsWorkflow,
-  hasCalAiWorkflow,
+  phoneConsentConfig,
 }: {
   field: Partial<RhfFormField>;
   readOnly: boolean;
   children: React.ReactNode;
   noLabel?: boolean;
   htmlFor: string;
-  isConsolidatedPhoneField?: boolean;
-  hasSmsWorkflow?: boolean;
-  hasCalAiWorkflow?: boolean;
+  phoneConsentConfig?: PhoneConsentConfig;
 }) => {
   const { t } = useLocale();
-
-  const needsSmsConsent = isConsolidatedPhoneField
-    ? hasSmsWorkflow
-    : field.name === "smsReminderNumber";
-  const needsCalAiConsent = isConsolidatedPhoneField ? hasCalAiWorkflow : false;
-
-  const showCombinedConsent = needsSmsConsent && needsCalAiConsent;
-  const showSmsOnlyConsent = needsSmsConsent && !needsCalAiConsent;
-  const showCalAiOnlyConsent = needsCalAiConsent && !needsSmsConsent;
 
   return (
     <div>
@@ -205,21 +214,7 @@ const WithLabel = ({
             </div>
           )}
       {children}
-      {showCombinedConsent && (
-        <div className="text-subtle mt-2 text-sm">
-          {t("sms_and_cal_ai_phone_consent")}
-        </div>
-      )}
-      {showSmsOnlyConsent && (
-        <div className="text-subtle mt-2 text-sm">
-          {t("sms_workflow_consent")}
-        </div>
-      )}
-      {showCalAiOnlyConsent && (
-        <div className="text-subtle mt-2 text-sm">
-          {t("cal_ai_phone_consent")}
-        </div>
-      )}
+      <PhoneConsentMessage fieldName={field.name} phoneConsentConfig={phoneConsentConfig} />
     </div>
   );
 };
@@ -282,9 +277,7 @@ export const ComponentForField = ({
   readOnly,
   noLabel,
   translatedDefaultLabel,
-  isConsolidatedPhoneField,
-  hasSmsWorkflow,
-  hasCalAiWorkflow,
+  phoneConsentConfig,
 }: {
   field: Omit<RhfFormField, "editable" | "label"> & {
     // Label is optional because radioInput doesn't have a label
@@ -293,9 +286,7 @@ export const ComponentForField = ({
   readOnly: boolean;
   noLabel?: boolean;
   translatedDefaultLabel?: string;
-  isConsolidatedPhoneField?: boolean;
-  hasSmsWorkflow?: boolean;
-  hasCalAiWorkflow?: boolean;
+  phoneConsentConfig?: PhoneConsentConfig;
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
@@ -316,7 +307,12 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "text") {
     return (
-      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel} isConsolidatedPhoneField={isConsolidatedPhoneField} hasSmsWorkflow={hasSmsWorkflow} hasCalAiWorkflow={hasCalAiWorkflow}>
+      <WithLabel
+        field={field}
+        htmlFor={field.name}
+        readOnly={readOnly}
+        noLabel={noLabel}
+        phoneConsentConfig={phoneConsentConfig}>
         <componentConfig.factory
           placeholder={field.placeholder}
           minLength={field.minLength}
