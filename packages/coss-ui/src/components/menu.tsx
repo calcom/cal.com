@@ -3,6 +3,7 @@
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { ChevronRightIcon } from "lucide-react";
 import type * as React from "react";
+
 import { cn } from "@coss/ui/lib/utils";
 
 const MenuCreateHandle = MenuPrimitive.createHandle;
@@ -11,8 +12,20 @@ const Menu = MenuPrimitive.Root;
 
 const MenuPortal = MenuPrimitive.Portal;
 
-function MenuTrigger(props: MenuPrimitive.Trigger.Props) {
-  return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} />;
+function MenuTrigger({
+  className,
+  children,
+  ...props
+}: MenuPrimitive.Trigger.Props) {
+  return (
+    <MenuPrimitive.Trigger
+      className={className}
+      data-slot="menu-trigger"
+      {...props}
+    >
+      {children}
+    </MenuPrimitive.Trigger>
+  );
 }
 
 function MenuPopup({
@@ -22,18 +35,21 @@ function MenuPopup({
   align = "center",
   alignOffset,
   side = "bottom",
+  anchor,
   ...props
 }: MenuPrimitive.Popup.Props & {
   align?: MenuPrimitive.Positioner.Props["align"];
   sideOffset?: MenuPrimitive.Positioner.Props["sideOffset"];
   alignOffset?: MenuPrimitive.Positioner.Props["alignOffset"];
   side?: MenuPrimitive.Positioner.Props["side"];
+  anchor?: MenuPrimitive.Positioner.Props["anchor"];
 }) {
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
+        anchor={anchor}
         className="z-50"
         data-slot="menu-positioner"
         side={side}

@@ -17,15 +17,18 @@ function PreviewCardPopup({
   children,
   align = "center",
   sideOffset = 4,
+  anchor,
   ...props
 }: PreviewCardPrimitive.Popup.Props & {
   align?: PreviewCardPrimitive.Positioner.Props["align"];
   sideOffset?: PreviewCardPrimitive.Positioner.Props["sideOffset"];
+  anchor?: PreviewCardPrimitive.Positioner.Props["anchor"];
 }) {
   return (
     <PreviewCardPrimitive.Portal>
       <PreviewCardPrimitive.Positioner
         align={align}
+        anchor={anchor}
         className="z-50"
         data-slot="preview-card-positioner"
         sideOffset={sideOffset}

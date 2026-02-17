@@ -18,6 +18,7 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   components: userComponents,
+  mode = "single",
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
   const defaultClassNames = {
@@ -114,22 +115,26 @@ function Calendar({
     ...userComponents,
   };
 
+  const dayPickerProps = {
+    className: cn(
+      "w-fit [--cell-size:--spacing(10)] sm:[--cell-size:--spacing(9)]",
+      className,
+    ),
+    classNames: mergedClassNames,
+    components: mergedComponents,
+    "data-slot": "calendar",
+    formatters: {
+      formatMonthDropdown: (date: Date) =>
+        date.toLocaleString("default", { month: "short" }),
+    } as React.ComponentProps<typeof DayPicker>["formatters"],
+    mode,
+    showOutsideDays,
+    ...props,
+  };
+
   return (
     <DayPicker
-      className={cn(
-        "w-fit [--cell-size:--spacing(10)] sm:[--cell-size:--spacing(9)]",
-        className,
-      )}
-      classNames={mergedClassNames}
-      components={mergedComponents}
-      data-slot="calendar"
-      formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
-      }}
-      mode="single"
-      showOutsideDays={showOutsideDays}
-      {...props}
+      {...(dayPickerProps as React.ComponentProps<typeof DayPicker>)}
     />
   );
 }
