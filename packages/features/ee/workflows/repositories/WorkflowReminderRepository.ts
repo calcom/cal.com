@@ -100,7 +100,7 @@ export class WorkflowReminderRepository {
         method,
         scheduledDate,
         scheduled,
-        ...(seatReferenceUid && { seatReferenceUid }),
+        ...(seatReferenceUid && { seatReferenceId: seatReferenceUid }),
       },
     });
   }
