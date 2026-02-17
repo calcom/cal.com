@@ -1,3 +1,5 @@
+import React from "react";
+
 import AttendeeScheduledEmailClass from "../../templates/attendee-rescheduled-email";
 import { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 

@@ -23,6 +23,9 @@ export type DispatchJobInput<T = unknown> = {
   data: T;
   /** Override default BullMQ JobsOptions for this specific dispatch */
   bullmqOptions?: JobsOptions;
+
+  /**trigger blocking behaviour to observe entire job lifecycle */
+  allowBlocking?: boolean;
 };
 
 // ---------------------------------------------------------------------------
@@ -84,6 +87,7 @@ export interface DispatcherLogger {
 // ---------------------------------------------------------------------------
 
 export type DispatchResult = {
+  jobId?: string;
   /** The canonical job name (same as input `name`) */
   jobName: string;
   /** Which backend actually handled the job */

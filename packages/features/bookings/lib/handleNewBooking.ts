@@ -128,7 +128,7 @@ import { getOriginalRescheduledBooking } from "./handleNewBooking/originalResche
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { processAttachmentResponses } from "./handleNewBooking/processAttachmentResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
+import { triggerBookingEmails } from "./handleNewBooking/triggerBookingEmails";
 import type { PaymentAppData } from "./handleNewBooking/types";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -2099,7 +2099,7 @@ async function handler(
       } else {
         if (!isDryRun) {
           // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
-          await triggerBookingEmailsInngest({
+          await triggerBookingEmails({
             calEvent: {
               ...copyEvent,
               additionalInformation: metadata,
@@ -2243,7 +2243,7 @@ async function handler(
 
         if (!isDryRun) {
           // Send emails asynchronously via Inngest to improve booking response time
-          await triggerBookingEmailsInngest({
+          await triggerBookingEmails({
             calEvent: {
               ...evt,
               additionalInformation,
@@ -2286,7 +2286,7 @@ async function handler(
     );
     if (!isDryRun) {
       // Send request emails asynchronously via Inngest for pending bookings
-      await triggerBookingEmailsInngest({
+      await triggerBookingEmails({
         calEvent: { ...evt, additionalNotes },
         isHostConfirmationEmailsDisabled: false,
         isAttendeeConfirmationEmailDisabled: false,

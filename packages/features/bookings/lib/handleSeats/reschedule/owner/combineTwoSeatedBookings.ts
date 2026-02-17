@@ -11,7 +11,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import { triggerBookingEmailsInngest } from "../../../handleNewBooking/triggerBookingEmailsInngest";
+import { triggerBookingEmails } from "../../../handleNewBooking/triggerBookingEmails";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
@@ -137,7 +137,7 @@ const combineTwoSeatedBookings = async (
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
-    await triggerBookingEmailsInngest({
+    await triggerBookingEmails({
       calEvent: {
         ...copyEvent,
         additionalNotes, // Resets back to the additionalNote input and not the override value

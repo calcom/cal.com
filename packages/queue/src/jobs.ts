@@ -1,9 +1,9 @@
 export enum JobName {
   BOOKING_PAYMENT_REMINDER = `booking/payment-reminder`,
-  BOOKING_SCHEDULED_EMAIL = `booking/emails.scheduled`,
-  BOOKING_REQUEST_EMAIL = `booking/emails.request`,
-  BOOKING_RESCHEDULED_EMAIL = `booking/emails.rescheduled`,
-  BOOKING_CANCELLED_EMAIL = `booking/emails.cancelled`,
+  BOOKING_EMAILS_SCHEDULED = `booking/emails.scheduled`,
+  BOOKING_EMAILS_REQUEST = `booking/emails.request`,
+  BOOKING_EMAILS_RESCHEDULED = `booking/emails.rescheduled`,
+  BOOKING_EMAILS_CANCELLED = `booking/emails.cancelled`,
   WHATSAPP_TEMPLATE_SYNC = `whatsapp/template-sync`,
   RAZORPAY_APP_REVOKED_WEBHOOK = `razorpay/app.revoked`,
   RAZORPAY_PAYMENT_LINK_PAID_WEBHOOK = `razorpay/payment-link.paid`,

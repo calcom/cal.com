@@ -1,7 +1,15 @@
 import type { DefaultJob } from "@calid/job-engine";
+import {
+  type RazorpayPaymentLinkPaidJobData,
+  type RazorpayAppRevokedJobData,
+  type BookingEmailsJobData,
+} from "@calid/job-engine";
 import { getRedisOptions, JobName, QueueName } from "@calid/queue";
 import { Worker } from "bullmq";
+import type { Job } from "bullmq";
+import { SleepSignal } from "packages/job-dispatcher/src";
 
+import { processBookingEmails } from "../processors/default/bookingEmails.processor";
 import { processRazorpayAppRevoked } from "../processors/default/razorpayAppRevoked.processor";
 import { processRazorpayPaymentLinkPaid } from "../processors/default/razorpayPaymentLinkPaid.processor";
 
@@ -23,12 +31,19 @@ export const defaultWorker = new Worker<DefaultJob>(
       const { name } = job;
 
       switch (job.name) {
-        case JobName.RAZORPAY_APP_REVOKED:
-          await processRazorpayAppRevoked(job);
+        case JobName.RAZORPAY_APP_REVOKED_WEBHOOK:
+          await processRazorpayAppRevoked(job as Job<RazorpayAppRevokedJobData>);
           break;
 
-        case JobName.RAZORPAY_PAYMENT_LINK_PAID:
-          await processRazorpayPaymentLinkPaid(job);
+        case JobName.RAZORPAY_PAYMENT_LINK_PAID_WEBHOOK:
+          await processRazorpayPaymentLinkPaid(job as Job<RazorpayPaymentLinkPaidJobData>);
+          break;
+
+        case JobName.BOOKING_EMAILS_SCHEDULED:
+        case JobName.BOOKING_EMAILS_REQUEST:
+        case JobName.BOOKING_EMAILS_RESCHEDULED:
+        case JobName.BOOKING_EMAILS_CANCELLED:
+          await processBookingEmails(job as Job<BookingEmailsJobData>);
           break;
 
         default:

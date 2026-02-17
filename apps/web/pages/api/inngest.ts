@@ -4,8 +4,10 @@ import {
   bookingExportService,
   razorpayAppRevokedService,
   razorpayPaymentLinkPaidService,
+  bookingEmailsService,
 } from "@calid/job-engine";
 import type {
+  BookingEmailsJobData,
   BookingExportJobData,
   CalendlyImportJobData,
   RazorpayAppRevokedJobData,
@@ -14,7 +16,6 @@ import type {
 import { serve } from "inngest/next";
 
 import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
-import sendBookingEmailsHandler from "@calcom/features/bookings/lib/handleNewBooking/sendBookingEmails.inngest";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentReminder";
 
@@ -35,15 +36,6 @@ export const config = {
   },
 };
 
-const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
-  { id: `whatsapp-template-sync-${key}`, retries: 2 },
-  { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
-  async ({ step, logger }) => {
-    await syncTemplates({ step, logger });
-    return { message: `WhatsApp template sync completed` };
-  }
-);
-
 const handleCalendlyImportFn = inngestClient.createFunction(
   { id: `sync-import-from-calendly-${key}`, retries: 2 },
   { event: `sync/import-from-calendly-${key}` },
@@ -54,20 +46,6 @@ const handleCalendlyImportFn = inngestClient.createFunction(
   }
 );
 
-// const handleBookingExportFn = inngestClient.createFunction(
-//   { id: `core-export-bookings-${key}`, retries: 2 },
-//   { event: `core/export-bookings-${key}` },
-//   async ({ event, step, logger }) => {
-//     await handleBookingExportEvent({
-//       user: event.data.user,
-//       filters: event.data.filters,
-//       step,
-//       logger,
-//     });
-//     return { message: `Export Booking mail sent for userID :${event.data.user.id}` };
-//   }
-// );
-
 export const handleBookingExportFn = inngestClient.createFunction(
   { id: `core-export-bookings-${key}`, retries: 2 },
   { event: `core/export-bookings-${key}` },
@@ -75,6 +53,95 @@ export const handleBookingExportFn = inngestClient.createFunction(
     const ctx = createInngestWorkflowContext(step, logger);
     await bookingExportService(ctx, event.data as BookingExportJobData);
     return { message: `Export Booking mail sent for userID: ${event.data.user.id}` };
+  }
+);
+
+const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
+  { id: `whatsapp-template-sync-${key}`, retries: 2 },
+  { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
+  async ({ step, logger }) => {
+    await syncTemplates({ step, logger });
+    return { message: `WhatsApp template sync completed` };
+  }
+);
+
+export const handleRazorpayAppRevoked = inngestClient.createFunction(
+  {
+    id: `razorpay-app-revoked-${key}`,
+    name: "Handle Razorpay App Revoked",
+    retries: 3,
+  },
+  { event: `razorpay/app.revoked-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    const result = await razorpayAppRevokedService(ctx, event.data as RazorpayAppRevokedJobData);
+    return result;
+  }
+);
+
+export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
+  {
+    id: `razorpay-payment-link-paid-${key}`,
+    name: "Handle Razorpay Payment Link Paid",
+    retries: 3,
+  },
+  { event: `razorpay/payment-link.paid-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
+    return result;
+  }
+);
+
+export const handleBookingEmailsScheduled = inngestClient.createFunction(
+  {
+    id: `booking-emails-scheduled-${key}`,
+    name: "Send Booking Scheduled Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.scheduled-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
+  }
+);
+
+export const handleBookingEmailsRequest = inngestClient.createFunction(
+  {
+    id: `booking-emails-request-${key}`,
+    name: "Send Booking Request Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.request-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
+  }
+);
+
+export const handleBookingEmailsRescheduled = inngestClient.createFunction(
+  {
+    id: `booking-emails-rescheduled-${key}`,
+    name: "Send Booking Rescheduled Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.rescheduled-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
+  }
+);
+
+export const handleBookingEmailsCancelled = inngestClient.createFunction(
+  {
+    id: `booking-emails-cancelled-${key}`,
+    name: "Send Booking Cancelled Emails",
+    retries: 3,
+  },
+  { event: `booking/emails.cancelled-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
   }
 );
 
@@ -108,34 +175,6 @@ const handleScheduledWebhookTrigger = inngestClient.createFunction(
   triggerScheduledWebhook
 );
 
-export const handleRazorpayAppRevoked = inngestClient.createFunction(
-  {
-    id: `razorpay-app-revoked-${key}`,
-    name: "Handle Razorpay App Revoked",
-    retries: 3,
-  },
-  { event: `razorpay/app.revoked-${key}` },
-  async ({ event, step, logger }) => {
-    const ctx = createInngestWorkflowContext(step, logger);
-    const result = await razorpayAppRevokedService(ctx, event.data as RazorpayAppRevokedJobData);
-    return result;
-  }
-);
-
-export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
-  {
-    id: `razorpay-payment-link-paid-${key}`,
-    name: "Handle Razorpay Payment Link Paid",
-    retries: 3,
-  },
-  { event: `razorpay/payment-link.paid-${key}` },
-  async ({ event, step, logger }) => {
-    const ctx = createInngestWorkflowContext(step, logger);
-    const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
-    return result;
-  }
-);
-
 export const triggerBookingPaymentReminder = inngestClient.createFunction(
   {
     id: `booking-payment-reminder-${key}`,
@@ -143,46 +182,6 @@ export const triggerBookingPaymentReminder = inngestClient.createFunction(
   },
   { event: `booking/payment-reminder-${key}` },
   bookingPaymentReminderHandler
-);
-
-const handleBookingEmailsScheduled = inngestClient.createFunction(
-  {
-    id: `booking-emails-scheduled-${key}`,
-    name: "Send Booking Scheduled Emails",
-    retries: 3,
-  },
-  { event: `booking/emails.scheduled-${key}` },
-  sendBookingEmailsHandler
-);
-
-const handleBookingEmailsRequest = inngestClient.createFunction(
-  {
-    id: `booking-emails-request-${key}`,
-    name: "Send Booking Request Emails",
-    retries: 3,
-  },
-  { event: `booking/emails.request-${key}` },
-  sendBookingEmailsHandler
-);
-
-const handleBookingEmailsRescheduled = inngestClient.createFunction(
-  {
-    id: `booking-emails-rescheduled-${key}`,
-    name: "Send Booking Rescheduled Emails",
-    retries: 3,
-  },
-  { event: `booking/emails.rescheduled-${key}` },
-  sendBookingEmailsHandler
-);
-
-const handleBookingEmailsCancelled = inngestClient.createFunction(
-  {
-    id: `booking-emails-cancelled-${key}`,
-    name: "Send Booking Cancelled Emails",
-    retries: 3,
-  },
-  { event: `booking/emails.cancelled-${key}` },
-  sendBookingEmailsHandler
 );
 
 export default serve({
